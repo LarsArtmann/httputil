@@ -49,8 +49,11 @@ func (r *ResponseRecorder) Write(b []byte) (int, error) {
 	}
 
 	n, err := r.ResponseWriter.Write(b)
+	if err != nil {
+		return n, fmt.Errorf("response writer write: %w", err)
+	}
 
-	return n, fmt.Errorf("response writer write: %w", err)
+	return n, nil
 }
 
 // Flush delegates to the underlying ResponseWriter if it implements
@@ -70,8 +73,11 @@ func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	}
 
 	conn, rw, err := h.Hijack()
+	if err != nil {
+		return conn, rw, fmt.Errorf("response writer hijack: %w", err)
+	}
 
-	return conn, rw, fmt.Errorf("response writer hijack: %w", err)
+	return conn, rw, nil
 }
 
 // Push delegates to the underlying ResponseWriter if it implements

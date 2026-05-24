@@ -37,7 +37,8 @@ func TestResponseRecorder_WriteSetsStatusOK(t *testing.T) {
 
 	inner := httptest.NewRecorder()
 	recorder := NewResponseRecorder(inner)
-	err := recorder.Write([]byte("hello"))
+
+	_, err := recorder.Write([]byte("hello"))
 	if err != nil {
 		t.Errorf("Write() error = %v", err)
 	}
