@@ -135,6 +135,7 @@ linters:
           allow:
             - $gostd
             - $module
+            - github.com/larsartmann/go-error-family
     exhaustruct:
       exclude:
         - os/exec.Cmd
