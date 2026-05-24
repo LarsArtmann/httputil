@@ -57,13 +57,13 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
 Single flat `httputil` package. One external dependency: `github.com/larsartmann/go-error-family`. Go 1.26+.
 
-| File          | Exports                                                                                         | Purpose                                                         |
-| ------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `cors.go`     | `CORSConfig`, `DefaultCORSConfig()`, `CORS()`                                                   | CORS middleware                                                 |
-| `clientip.go` | `ClientIP()`                                                                                    | Client IP extraction (X-Forwarded-For → X-Real-IP → RemoteAddr) |
-| `recorder.go` | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()`                                          | Response capture + middleware chaining                          |
+| File          | Exports                                                                                                                | Purpose                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `cors.go`     | `CORSConfig`, `DefaultCORSConfig()`, `CORS()`                                                                          | CORS middleware                                                 |
+| `clientip.go` | `ClientIP()`                                                                                                           | Client IP extraction (X-Forwarded-For → X-Real-IP → RemoteAddr) |
+| `recorder.go` | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()`                                                                 | Response capture + middleware chaining                          |
 | `errors.go`   | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed` | Error codes for classified errors                               |
-| `util.go`     | (unexported `join`, `itoa`)                                                                     | Internal helpers avoiding strconv import                        |
+| `util.go`     | (unexported `join`, `itoa`)                                                                                            | Internal helpers avoiding strconv import                        |
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler`. `Chain()` applies them in declaration order (first = outermost) via `slices.Backward`.
 
@@ -71,13 +71,13 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 
 Errors from `ResponseRecorder` are classified using `go-error-family`:
 
-| Method  | Error Code                | Family          | Retryable | When                                          |
-| ------- | ------------------------- | --------------- | --------- | --------------------------------------------- |
-| `Write` | `http.write_failed`       | Transient       | Yes       | Underlying ResponseWriter.Write fails         |
-| `Hijack`| `http.hijack_unsupported` | Infrastructure  | No        | Underlying writer doesn't implement Hijacker  |
-| `Hijack`| `http.hijack_failed`      | Transient       | Yes       | Underlying Hijack call fails                  |
-| `Push`  | `http.push_unsupported`   | Infrastructure  | No        | Underlying writer doesn't implement Pusher    |
-| `Push`  | `http.push_failed`        | Transient       | Yes       | Underlying Push call fails                    |
+| Method   | Error Code                | Family         | Retryable | When                                         |
+| -------- | ------------------------- | -------------- | --------- | -------------------------------------------- |
+| `Write`  | `http.write_failed`       | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
+| `Hijack` | `http.hijack_unsupported` | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
+| `Hijack` | `http.hijack_failed`      | Transient      | Yes       | Underlying Hijack call fails                 |
+| `Push`   | `http.push_unsupported`   | Infrastructure | No        | Underlying writer doesn't implement Pusher   |
+| `Push`   | `http.push_failed`        | Transient      | Yes       | Underlying Push call fails                   |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
 

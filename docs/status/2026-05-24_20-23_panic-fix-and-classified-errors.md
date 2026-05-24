@@ -20,6 +20,7 @@ The httputil library is in **good health**. Two major workstreams were completed
 **What:** The `branching-flow` tool flagged 2 "Index Out of Range" warnings at `util.go:27` and `util.go:33`. Investigation revealed the warnings were false positives (20-byte buffer is mathematically sufficient for any int64), but the code had a **real bug**: `num = -num` overflows for `math.MinInt` (-9223372036854775808), producing garbage output.
 
 **Fix:**
+
 - Replaced `num = -num` with per-digit absolute value (`if d < 0 { d = -d }`) — handles MinInt correctly
 - Used digit lookup string `"0123456789"[d]` instead of `byte('0') + byte(digit)` to avoid `gosec G115` conversion warning
 - Extracted buffer size to named constant `intBufSize = 20` (satisfies `mnd` linter)
@@ -33,6 +34,7 @@ The httputil library is in **good health**. Two major workstreams were completed
 **What:** All `ResponseRecorder` errors now use `go-error-family` for behavioral classification instead of bare `fmt.Errorf`.
 
 **Changes:**
+
 - `errors.go` — 5 sentinel error codes: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed`
 - `recorder.go` — `Write` returns `Transient` errors, `Hijack`/`Push` return `Infrastructure` for unsupported, `Transient` for failures
 - All errors carry context (`status` on write, `target` on push)
@@ -109,33 +111,33 @@ Nothing is broken. The session had one notable learning:
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Commit all current changes (this session's work) | HIGH | LOW |
-| 2 | Review and commit/discard `clientip_test.go` pre-existing changes | HIGH | LOW |
-| 3 | Add `Benchmark*` tests for `itoa`, `join`, `ClientIP`, `CORS` middleware | HIGH | MEDIUM |
-| 4 | Add `Fuzz*` tests for `ClientIP` (untrusted header parsing) | HIGH | MEDIUM |
-| 5 | Add `Example*` functions for `ClientIP`, `CORS`, `Chain`, `NewResponseRecorder` | MEDIUM | LOW |
-| 6 | Set up GitHub Actions CI (`golangci-lint run` + `go test`) | HIGH | MEDIUM |
-| 7 | Add test coverage reporting to CI | MEDIUM | MEDIUM |
-| 8 | Add `CHANGELOG.md` with current features | MEDIUM | LOW |
-| 9 | Refresh `README.md` to document classified errors and `go-error-family` | MEDIUM | LOW |
-| 10 | Add body capture option to `ResponseRecorder` | MEDIUM | MEDIUM |
-| 11 | Add response header snapshot to `ResponseRecorder` | MEDIUM | LOW |
-| 12 | Add `ClientIP` validation (IP format, trusted proxy config) | MEDIUM | HIGH |
-| 13 | Export `defaultMaxAge` or restructure to eliminate `mnd` warning | LOW | LOW |
-| 14 | Add `errors.go` doc comments on exported error codes | LOW | LOW |
-| 15 | Consider `httputil.` prefix for error codes instead of `http.` | LOW | LOW |
-| 16 | Add integration test with real `net/http.Server` | MEDIUM | MEDIUM |
-| 17 | Add `CORS` tests for concurrent requests with different origins | MEDIUM | MEDIUM |
-| 18 | Add `ResponseRecorder.Write` test for partial writes | LOW | LOW |
-| 19 | Document `itoa` buffer size sufficiency mathematically | LOW | LOW |
-| 20 | Add `Chain()` with zero middleware edge case test | LOW | LOW |
-| 21 | Add `Chain()` with nil handler panic test | LOW | LOW |
-| 22 | Consider adding `http.Flusher` interface assertion for `ResponseRecorder` | LOW | LOW |
-| 23 | Add godoc link to `go-error-family` in `errors.go` | LOW | LOW |
-| 24 | Create `FEATURES.md` for discoverability | LOW | LOW |
-| 25 | Explore `nix flake` migration (per project conventions) | LOW | HIGH |
+| #   | Task                                                                            | Impact | Effort |
+| --- | ------------------------------------------------------------------------------- | ------ | ------ |
+| 1   | Commit all current changes (this session's work)                                | HIGH   | LOW    |
+| 2   | Review and commit/discard `clientip_test.go` pre-existing changes               | HIGH   | LOW    |
+| 3   | Add `Benchmark*` tests for `itoa`, `join`, `ClientIP`, `CORS` middleware        | HIGH   | MEDIUM |
+| 4   | Add `Fuzz*` tests for `ClientIP` (untrusted header parsing)                     | HIGH   | MEDIUM |
+| 5   | Add `Example*` functions for `ClientIP`, `CORS`, `Chain`, `NewResponseRecorder` | MEDIUM | LOW    |
+| 6   | Set up GitHub Actions CI (`golangci-lint run` + `go test`)                      | HIGH   | MEDIUM |
+| 7   | Add test coverage reporting to CI                                               | MEDIUM | MEDIUM |
+| 8   | Add `CHANGELOG.md` with current features                                        | MEDIUM | LOW    |
+| 9   | Refresh `README.md` to document classified errors and `go-error-family`         | MEDIUM | LOW    |
+| 10  | Add body capture option to `ResponseRecorder`                                   | MEDIUM | MEDIUM |
+| 11  | Add response header snapshot to `ResponseRecorder`                              | MEDIUM | LOW    |
+| 12  | Add `ClientIP` validation (IP format, trusted proxy config)                     | MEDIUM | HIGH   |
+| 13  | Export `defaultMaxAge` or restructure to eliminate `mnd` warning                | LOW    | LOW    |
+| 14  | Add `errors.go` doc comments on exported error codes                            | LOW    | LOW    |
+| 15  | Consider `httputil.` prefix for error codes instead of `http.`                  | LOW    | LOW    |
+| 16  | Add integration test with real `net/http.Server`                                | MEDIUM | MEDIUM |
+| 17  | Add `CORS` tests for concurrent requests with different origins                 | MEDIUM | MEDIUM |
+| 18  | Add `ResponseRecorder.Write` test for partial writes                            | LOW    | LOW    |
+| 19  | Document `itoa` buffer size sufficiency mathematically                          | LOW    | LOW    |
+| 20  | Add `Chain()` with zero middleware edge case test                               | LOW    | LOW    |
+| 21  | Add `Chain()` with nil handler panic test                                       | LOW    | LOW    |
+| 22  | Consider adding `http.Flusher` interface assertion for `ResponseRecorder`       | LOW    | LOW    |
+| 23  | Add godoc link to `go-error-family` in `errors.go`                              | LOW    | LOW    |
+| 24  | Create `FEATURES.md` for discoverability                                        | LOW    | LOW    |
+| 25  | Explore `nix flake` migration (per project conventions)                         | LOW    | HIGH   |
 
 ---
 
@@ -144,6 +146,7 @@ Nothing is broken. The session had one notable learning:
 **What is the intent behind the pre-existing uncommitted changes to `clientip_test.go`?**
 
 The file shows as modified (`M clientip_test.go`) in git status but these changes predate this session. I cannot tell if they are:
+
 - Work-in-progress from a planned feature (e.g., additional test cases)
 - Refactoring that was started but not finished
 - Changes that should be discarded
@@ -154,31 +157,31 @@ The `errors_test.go` and `errors.go` files are also untracked but their origin i
 
 ## Quality Gate
 
-| Check | Status |
-|-------|--------|
-| `go test ./...` | ✅ PASS (33 tests, 0 failures) |
-| `golangci-lint run ./...` | ✅ 0 issues |
-| `golangci-lint fmt` | ✅ Clean |
-| Build | ✅ Compiles |
-| Dependencies | `go-error-family v0.1.1` (direct) |
+| Check                     | Status                            |
+| ------------------------- | --------------------------------- |
+| `go test ./...`           | ✅ PASS (33 tests, 0 failures)    |
+| `golangci-lint run ./...` | ✅ 0 issues                       |
+| `golangci-lint fmt`       | ✅ Clean                          |
+| Build                     | ✅ Compiles                       |
+| Dependencies              | `go-error-family v0.1.1` (direct) |
 
 ---
 
 ## File Inventory
 
-| File | Lines | Status | Purpose |
-|------|-------|--------|---------|
-| `clientip.go` | 32 | Unchanged | Client IP extraction |
-| `clientip_test.go` | 67 | Modified (pre-existing) | Tests |
-| `cors.go` | 88 | Unchanged | CORS middleware |
-| `cors_test.go` | 88 | Unchanged | Tests |
-| `errors.go` | 9 | New (untracked) | Error codes |
-| `errors_test.go` | 291 | New (untracked) | Error tests |
-| `recorder.go` | 114 | Modified | Classified errors |
-| `recorder_test.go` | 100 | Unchanged | Tests |
-| `util.go` | 42 | Modified | MinInt fix + bounds safety |
-| `util_test.go` | 80 | New (untracked) | itoa edge case tests |
-| **Total** | **911** | | |
+| File               | Lines   | Status                  | Purpose                    |
+| ------------------ | ------- | ----------------------- | -------------------------- |
+| `clientip.go`      | 32      | Unchanged               | Client IP extraction       |
+| `clientip_test.go` | 67      | Modified (pre-existing) | Tests                      |
+| `cors.go`          | 88      | Unchanged               | CORS middleware            |
+| `cors_test.go`     | 88      | Unchanged               | Tests                      |
+| `errors.go`        | 9       | New (untracked)         | Error codes                |
+| `errors_test.go`   | 291     | New (untracked)         | Error tests                |
+| `recorder.go`      | 114     | Modified                | Classified errors          |
+| `recorder_test.go` | 100     | Unchanged               | Tests                      |
+| `util.go`          | 42      | Modified                | MinInt fix + bounds safety |
+| `util_test.go`     | 80      | New (untracked)         | itoa edge case tests       |
+| **Total**          | **911** |                         |                            |
 
 ---
 

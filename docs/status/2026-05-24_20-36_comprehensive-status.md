@@ -23,6 +23,7 @@ The library is feature-complete for its current scope (CORS, ClientIP, ResponseR
 **What:** Integrated `github.com/larsartmann/go-error-family v0.1.1` as the library's first and only external dependency. The `ResponseRecorder` now returns classified errors that implement `Coded`, `Classified`, `Contextual`, and `Retryable` interfaces.
 
 **Files changed:**
+
 - `errors.go` (new) — 5 error code constants
 - `recorder.go` — `Write`, `Hijack`, `Push` now return classified errors
 - `errors_test.go` (new) — 16 tests covering classification, codes, context, chains, verbose formatting
@@ -31,13 +32,13 @@ The library is feature-complete for its current scope (CORS, ClientIP, ResponseR
 
 **Error classification matrix:**
 
-| Method  | Error Code                | Family          | Retryable | When                                     |
-|---------|---------------------------|-----------------|-----------|------------------------------------------|
-| Write   | `http.write_failed`       | Transient       | Yes       | Underlying Write fails                   |
-| Hijack  | `http.hijack_unsupported` | Infrastructure  | No        | Writer doesn't implement Hijacker        |
-| Hijack  | `http.hijack_failed`      | Transient       | Yes       | Underlying Hijack call fails             |
-| Push    | `http.push_unsupported`   | Infrastructure  | No        | Writer doesn't implement Pusher          |
-| Push    | `http.push_failed`        | Transient       | Yes       | Underlying Push call fails               |
+| Method | Error Code                | Family         | Retryable | When                              |
+| ------ | ------------------------- | -------------- | --------- | --------------------------------- |
+| Write  | `http.write_failed`       | Transient      | Yes       | Underlying Write fails            |
+| Hijack | `http.hijack_unsupported` | Infrastructure | No        | Writer doesn't implement Hijacker |
+| Hijack | `http.hijack_failed`      | Transient      | Yes       | Underlying Hijack call fails      |
+| Push   | `http.push_unsupported`   | Infrastructure | No        | Writer doesn't implement Pusher   |
+| Push   | `http.push_failed`        | Transient      | Yes       | Underlying Push call fails        |
 
 **Status:** ✅ Complete. All 38 tests pass. Zero lint issues.
 
@@ -92,6 +93,7 @@ Nothing is partially done. All started work has been completed.
 ### 1. Additional Middleware Catalog
 
 The library has CORS middleware but could offer more:
+
 - Request logging middleware
 - Request ID middleware
 - Rate limiting middleware
@@ -121,6 +123,7 @@ This would let consumers classify any stdlib HTTP error, not just our own.
 ### 4. Examples Directory
 
 No `examples/` directory exists. Consumers would benefit from:
+
 - Basic HTTP server with CORS + ResponseRecorder
 - Error classification and retry loop
 - Middleware chaining example
@@ -136,6 +139,7 @@ No benchmark tests exist. The `itoa()` and `join()` helpers in `util.go` were ex
 ### 7. CI/CD Pipeline
 
 No `.github/workflows/` exists. Should have:
+
 - Test matrix (Go 1.26+, linux/mac/windows)
 - golangci-lint
 - Code coverage reporting
@@ -192,6 +196,7 @@ In `Push`, when `pusher.Push()` returns nil but the writer claims to support Pus
 ### 20. Test Coverage for CORS edge cases
 
 No tests for:
+
 - CORS with `AllowCredentials: true` and `AllowAllOrigins: true` (invalid per spec)
 - CORS with empty `AllowedOrigins`
 - CORS preflight with `OptionsPassthrough: true`
@@ -209,6 +214,7 @@ All tests are unit tests with `httptest`. No integration tests with a real HTTP 
 ### 23. Go 1.26+ Feature Adoption
 
 The project targets Go 1.26 but doesn't yet use:
+
 - `errors.AsType[T]()` directly (go-error-family uses it internally)
 - Range-over-int (could simplify `itoa`)
 - Other 1.26+ features
@@ -268,33 +274,33 @@ The LSP shows stale diagnostics (duplicate `decimalBase`, wrong `NewRequestWithC
 
 ## f) Top #25 Things to Do Next
 
-| #  | Task                                                                                     | Impact | Effort |
-|----|------------------------------------------------------------------------------------------|--------|--------|
-| 1  | Push 2 unpushed commits to origin                                                        | High   | 1 min  |
-| 2  | Tag v0.1.0 release                                                                       | High   | 1 min  |
-| 3  | Add GitHub Actions CI (test + lint + coverage)                                           | High   | 30 min |
-| 4  | Update README.md with error classification docs                                          | High   | 20 min |
-| 5  | Register stdlib HTTP error sentinels in errors.go                                        | High   | 15 min |
-| 6  | Expand CORS tests (credentials+allorigins, empty, passthrough, no-origin)                | Medium | 30 min |
-| 7  | Add benchmark tests for itoa() and join()                                                | Medium | 20 min |
-| 8  | Create examples/ directory with basic usage                                              | Medium | 30 min |
-| 9  | Add CORSConfig.Validate() method                                                         | Medium | 20 min |
-| 10 | Update CHANGELOG.md                                                                      | Medium | 10 min |
-| 11 | Add BodyCapturingResponseRecorder variant                                                | Medium | 45 min |
-| 12 | Add request context helpers (WithClientIP)                                               | Medium | 15 min |
-| 13 | Add error message templates for httputil error codes                                     | Medium | 20 min |
-| 14 | Add JSON error response helper                                                           | Medium | 30 min |
-| 15 | Add security headers middleware                                                          | Medium | 30 min |
-| 16 | Add request ID middleware                                                                | Medium | 30 min |
-| 17 | Add panic recovery middleware                                                            | Medium | 30 min |
-| 18 | Add request timeout middleware                                                           | Medium | 20 min |
-| 19 | Add compression middleware                                                               | Low    | 60 min |
-| 20 | Add rate limiting middleware                                                             | Low    | 60 min |
-| 21 | Add wildcard domain matching for CORS                                                    | Low    | 20 min |
-| 22 | Add fuzz tests for ClientIP                                                              | Low    | 30 min |
-| 23 | Add CONTRIBUTING.md                                                                      | Low    | 15 min |
-| 24 | Clean up golangci.yml experimental build tags                                            | Low    | 10 min |
-| 25 | Audit Go 1.26+ features for adoption (range-over-int, etc.)                              | Low    | 20 min |
+| #   | Task                                                                      | Impact | Effort |
+| --- | ------------------------------------------------------------------------- | ------ | ------ |
+| 1   | Push 2 unpushed commits to origin                                         | High   | 1 min  |
+| 2   | Tag v0.1.0 release                                                        | High   | 1 min  |
+| 3   | Add GitHub Actions CI (test + lint + coverage)                            | High   | 30 min |
+| 4   | Update README.md with error classification docs                           | High   | 20 min |
+| 5   | Register stdlib HTTP error sentinels in errors.go                         | High   | 15 min |
+| 6   | Expand CORS tests (credentials+allorigins, empty, passthrough, no-origin) | Medium | 30 min |
+| 7   | Add benchmark tests for itoa() and join()                                 | Medium | 20 min |
+| 8   | Create examples/ directory with basic usage                               | Medium | 30 min |
+| 9   | Add CORSConfig.Validate() method                                          | Medium | 20 min |
+| 10  | Update CHANGELOG.md                                                       | Medium | 10 min |
+| 11  | Add BodyCapturingResponseRecorder variant                                 | Medium | 45 min |
+| 12  | Add request context helpers (WithClientIP)                                | Medium | 15 min |
+| 13  | Add error message templates for httputil error codes                      | Medium | 20 min |
+| 14  | Add JSON error response helper                                            | Medium | 30 min |
+| 15  | Add security headers middleware                                           | Medium | 30 min |
+| 16  | Add request ID middleware                                                 | Medium | 30 min |
+| 17  | Add panic recovery middleware                                             | Medium | 30 min |
+| 18  | Add request timeout middleware                                            | Medium | 20 min |
+| 19  | Add compression middleware                                                | Low    | 60 min |
+| 20  | Add rate limiting middleware                                              | Low    | 60 min |
+| 21  | Add wildcard domain matching for CORS                                     | Low    | 20 min |
+| 22  | Add fuzz tests for ClientIP                                               | Low    | 30 min |
+| 23  | Add CONTRIBUTING.md                                                       | Low    | 15 min |
+| 24  | Clean up golangci.yml experimental build tags                             | Low    | 10 min |
+| 25  | Audit Go 1.26+ features for adoption (range-over-int, etc.)               | Low    | 20 min |
 
 ---
 
@@ -308,33 +314,33 @@ This is a product direction question. The library name "httputil" suggests broad
 
 ## Metrics
 
-| Metric              | Value    |
-|---------------------|----------|
-| Go files            | 10       |
-| Total lines         | 911      |
-| Source lines        | 431      |
-| Test lines          | 480      |
-| Test-to-source ratio| 1.11:1   |
-| Tests passing       | 38/38    |
-| Test coverage       | 89.7%    |
-| Lint issues         | 0        |
-| External deps       | 1 (go-error-family) |
-| Commits ahead       | 2        |
+| Metric               | Value               |
+| -------------------- | ------------------- |
+| Go files             | 10                  |
+| Total lines          | 911                 |
+| Source lines         | 431                 |
+| Test lines           | 480                 |
+| Test-to-source ratio | 1.11:1              |
+| Tests passing        | 38/38               |
+| Test coverage        | 89.7%               |
+| Lint issues          | 0                   |
+| External deps        | 1 (go-error-family) |
+| Commits ahead        | 2                   |
 
 ## File Inventory
 
-| File               | Lines | Role                |
-|--------------------|-------|---------------------|
-| `clientip.go`      | 32    | Client IP extraction |
-| `clientip_test.go` | 67    | Client IP tests      |
-| `cors.go`          | 88    | CORS middleware       |
-| `cors_test.go`     | 88    | CORS tests            |
-| `errors.go`        | 9     | Error code constants  |
+| File               | Lines | Role                       |
+| ------------------ | ----- | -------------------------- |
+| `clientip.go`      | 32    | Client IP extraction       |
+| `clientip_test.go` | 67    | Client IP tests            |
+| `cors.go`          | 88    | CORS middleware            |
+| `cors_test.go`     | 88    | CORS tests                 |
+| `errors.go`        | 9     | Error code constants       |
 | `errors_test.go`   | 291   | Error classification tests |
-| `recorder.go`      | 114   | ResponseRecorder + Chain |
-| `recorder_test.go` | 100   | ResponseRecorder tests |
-| `util.go`          | 42    | Internal helpers      |
-| `util_test.go`     | 80    | Helper tests          |
+| `recorder.go`      | 114   | ResponseRecorder + Chain   |
+| `recorder_test.go` | 100   | ResponseRecorder tests     |
+| `util.go`          | 42    | Internal helpers           |
+| `util_test.go`     | 80    | Helper tests               |
 
 ## Commit History (this session)
 

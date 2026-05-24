@@ -24,11 +24,11 @@ If a word means something different to a contributor than to a consumer, define 
 
 The library has four bounded contexts, each with a distinct vocabulary and responsibility.
 
-| Context          | Description                                                     | Key Type(s)                 |
-| ---------------- | --------------------------------------------------------------- | --------------------------- |
-| Client IP        | Extracting the true client IP from proxied requests             | `ClientIP`                  |
-| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy  | `CORSConfig`, `CORS`        |
-| Response Capture | Recording response state for inspection (status, headers, body) | `ResponseRecorder`, `Chain` |
+| Context          | Description                                                     | Key Type(s)                    |
+| ---------------- | --------------------------------------------------------------- | ------------------------------ |
+| Client IP        | Extracting the true client IP from proxied requests             | `ClientIP`                     |
+| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy  | `CORSConfig`, `CORS`           |
+| Response Capture | Recording response state for inspection (status, headers, body) | `ResponseRecorder`, `Chain`    |
 | Error Protocol   | Classified errors with behavioral families for retry decisions  | Error codes, `go-error-family` |
 
 ---
@@ -130,12 +130,12 @@ Invariants and policies that the library enforces.
 
 Patterns consumers and contributors should follow.
 
-| Convention                        | Description                                                                                   |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| Middleware signature               | Always `func(http.Handler) http.Handler` — the Go standard library convention                |
-| Classified errors                  | Errors from ResponseRecorder use `go-error-family` for behavioral classification             |
-| Zero-allocation hot path           | Internal helpers (`join`, `itoa`) avoid `fmt` or `strconv` allocations                       |
-| `httputil` import name             | Consumers import as `httputil`; no aliases needed                                            |
+| Convention               | Description                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| Middleware signature     | Always `func(http.Handler) http.Handler` — the Go standard library convention    |
+| Classified errors        | Errors from ResponseRecorder use `go-error-family` for behavioral classification |
+| Zero-allocation hot path | Internal helpers (`join`, `itoa`) avoid `fmt` or `strconv` allocations           |
+| `httputil` import name   | Consumers import as `httputil`; no aliases needed                                |
 
 ---
 
