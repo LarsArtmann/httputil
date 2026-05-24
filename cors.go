@@ -2,6 +2,8 @@ package httputil
 
 import "net/http"
 
+const defaultMaxAge = 86400 // seconds in 24 hours
+
 // CORSConfig holds the configuration for CORS headers.
 type CORSConfig struct {
 	AllowedOrigins     []string
@@ -18,13 +20,14 @@ type CORSConfig struct {
 // that allows all origins.
 func DefaultCORSConfig() CORSConfig {
 	return CORSConfig{
-		AllowedOrigins:   []string{"*"},
-		AllowAllOrigins:  true,
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Request-ID"},
-		ExposedHeaders:   []string{},
-		AllowCredentials: false,
-		MaxAge:           86400,
+		AllowedOrigins:     []string{"*"},
+		AllowAllOrigins:    true,
+		AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowedHeaders:     []string{"Content-Type", "Authorization", "X-Request-ID"},
+		ExposedHeaders:     []string{},
+		AllowCredentials:   false,
+		MaxAge:             defaultMaxAge,
+		OptionsPassthrough: false,
 	}
 }
 
@@ -40,32 +43,32 @@ func CORS(cfg CORSConfig) func(http.Handler) http.Handler {
 	}
 
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			origin := r.Header.Get("Origin")
+		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+			origin := req.Header.Get("Origin")
 			if origin != "" {
 				allowOrigin = resolveOrigin(origin, cfg)
 			}
 
-			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-			w.Header().Set("Access-Control-Allow-Methods", join(cfg.AllowedMethods))
-			w.Header().Set("Access-Control-Allow-Headers", join(cfg.AllowedHeaders))
-			w.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
+			resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			resp.Header().Set("Access-Control-Allow-Methods", join(cfg.AllowedMethods))
+			resp.Header().Set("Access-Control-Allow-Headers", join(cfg.AllowedHeaders))
+			resp.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
 
 			if len(cfg.ExposedHeaders) > 0 {
-				w.Header().Set("Access-Control-Expose-Headers", join(cfg.ExposedHeaders))
+				resp.Header().Set("Access-Control-Expose-Headers", join(cfg.ExposedHeaders))
 			}
 
 			if cfg.MaxAge > 0 {
-				w.Header().Set("Access-Control-Max-Age", itoa(cfg.MaxAge))
+				resp.Header().Set("Access-Control-Max-Age", itoa(cfg.MaxAge))
 			}
 
-			if r.Method == http.MethodOptions && !cfg.OptionsPassthrough {
-				w.WriteHeader(http.StatusNoContent)
+			if req.Method == http.MethodOptions && !cfg.OptionsPassthrough {
+				resp.WriteHeader(http.StatusNoContent)
 
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(resp, req)
 		})
 	}
 }

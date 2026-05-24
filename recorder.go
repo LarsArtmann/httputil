@@ -42,13 +42,15 @@ func (r *ResponseRecorder) WriteHeader(code int) {
 }
 
 // Write implicitly sets status 200 if WriteHeader has not yet been called.
-func (r *ResponseRecorder) Write(p []byte) (int, error) {
+func (r *ResponseRecorder) Write(b []byte) (int, error) {
 	if !r.wrote {
 		r.status = http.StatusOK
 		r.wrote = true
 	}
 
-	return r.ResponseWriter.Write(p)
+	n, err := r.ResponseWriter.Write(b)
+
+	return n, fmt.Errorf("response writer write: %w", err)
 }
 
 // Flush delegates to the underlying ResponseWriter if it implements
@@ -67,7 +69,9 @@ func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 		return nil, nil, http.ErrNotSupported
 	}
 
-	return h.Hijack()
+	conn, rw, err := h.Hijack()
+
+	return conn, rw, fmt.Errorf("response writer hijack: %w", err)
 }
 
 // Push delegates to the underlying ResponseWriter if it implements
