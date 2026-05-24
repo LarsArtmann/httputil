@@ -23,6 +23,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 **What:** Rewrote CHANGELOG.md, README.md, AGENTS.md, added CONTRIBUTING.md, doc.go.
 
 **Files changed:**
+
 - `CHANGELOG.md` — Full rewrite documenting all changes from this and previous sessions
 - `README.md` — Comprehensive rewrite covering all 9 public middleware/features, full API table, error classification matrix, quick start with full middleware stack
 - `AGENTS.md` — Updated architecture table from 5 to 12 file entries, added all new exports
@@ -34,6 +35,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 2. CORSConfig.Validate() — Complete
 
 **What:** Added `Validate()` method to `CORSConfig` that catches invalid configurations at startup. Currently checks:
+
 - `AllowCredentials=true` + `AllowAllOrigins=true` (rejected by browsers)
 - Negative `MaxAge`
 
@@ -52,6 +54,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 4. CORS Edge Case Tests — Complete
 
 **What:** 7 new CORS tests covering previously untested scenarios:
+
 - Credentials + AllOrigins (invalid config)
 - Empty AllowedOrigins
 - OptionsPassthrough mode
@@ -67,6 +70,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 5. Chain() Edge Case Tests — Complete
 
 **What:** 2 new tests for `Chain()`:
+
 - Zero middleware (handler called directly)
 - Single middleware
 
@@ -77,6 +81,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 6. ResponseRecorder Enhancements — Complete
 
 **What:**
+
 - `HeaderSnapshot()` — Returns an isolated copy of response headers for inspection
 - `Write` after `WriteHeader` test — verifies status isn't overwritten
 
@@ -87,6 +92,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 7. Request Context Helpers — Complete
 
 **What:** Three new context functions for storing/retrieving client IP:
+
 - `WithClientIP(parent, ip)` — Store IP in context
 - `ClientIPFromContext(ctx)` — Retrieve stored IP
 - `ClientIPMiddleware(next)` — Middleware that extracts and stores IP
@@ -138,6 +144,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 13. Error Classification Enhancements — Complete
 
 **What:**
+
 - `RegisterErrorClassifications()` — Explicit startup function that registers stdlib HTTP sentinels (`http.ErrNotSupported`, `http.ErrAbortHandler`, `http.ErrNoCookie`, `http.ErrNoLocation`, `http.ErrSkipAltProtocol`) and error message templates for all 5 error codes
 - Wix-style `MessageTemplate` for each code (What/Why/Fix/WayOut) with `{{.key}}` substitution
 - Avoided `init()` per `gochecknoinits` linter — uses explicit opt-in function instead
@@ -158,14 +165,14 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 
 **What:** 6 benchmark functions covering hot paths:
 
-| Benchmark | ns/op | allocs | Notes |
-|-----------|-------|--------|-------|
-| `BenchmarkItoa` | 62.75 | **0** | Zero-allocation confirmed |
-| `BenchmarkItoa_Strconv` | 67.98 | 4 | Baseline comparison |
-| `BenchmarkJoin` | 36.29 | 1 | |
-| `BenchmarkJoin_StringsJoin` | 36.66 | 1 | Nearly identical |
-| `BenchmarkClientIP` | 44.44 | 1 | |
-| `BenchmarkCORS` | 437.0 | 12 | |
+| Benchmark                   | ns/op | allocs | Notes                     |
+| --------------------------- | ----- | ------ | ------------------------- |
+| `BenchmarkItoa`             | 62.75 | **0**  | Zero-allocation confirmed |
+| `BenchmarkItoa_Strconv`     | 67.98 | 4      | Baseline comparison       |
+| `BenchmarkJoin`             | 36.29 | 1      |                           |
+| `BenchmarkJoin_StringsJoin` | 36.66 | 1      | Nearly identical          |
+| `BenchmarkClientIP`         | 44.44 | 1      |                           |
+| `BenchmarkCORS`             | 437.0 | 12     |                           |
 
 **Files:** `util_test.go`, `clientip_test.go`, `cors_test.go`
 
@@ -182,6 +189,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 17. Example Functions — Complete
 
 **What:** 4 `Example*` functions for GoDoc:
+
 - `ExampleClientIP` — Shows X-Forwarded-For extraction
 - `ExampleCORS` — Shows preflight handling returning 204
 - `ExampleChain` — Shows middleware composition with order verification
@@ -194,6 +202,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 ### 18. GitHub Actions CI — Complete
 
 **What:** `.github/workflows/ci.yml` with two jobs:
+
 - `test` — Runs `go test -race` + coverage artifact upload (Go 1.26, ubuntu-latest)
 - `lint` — Runs `golangci-lint` via official action
 
@@ -332,33 +341,33 @@ The LSP shows stale diagnostics from before the edits — these are gopls cache 
 
 ## f) Top #25 Things to Do Next
 
-| #  | Task | Impact | Effort |
-| -- | ---- | ------ | ------ |
-| 1  | Commit and push all session work | HIGH | 5min |
-| 2  | Tag v0.1.0 release | HIGH | 1min |
-| 3  | Fix CORS `allowOrigin` data race (move inside handler closure) | HIGH | 10min |
-| 4  | Add `BytesWritten()` to ResponseRecorder | MEDIUM | 10min |
-| 5  | Add body-capturing ResponseRecorder variant | MEDIUM | 30min |
-| 6  | Add integration tests with real `net/http.Server` | MEDIUM | 30min |
-| 7  | Add CORS concurrent request test | MEDIUM | 15min |
-| 8  | Add rate limiting middleware | MEDIUM | 45min |
-| 9  | Add compression middleware | MEDIUM | 45min |
-| 10 | Add HTTP error response helper (JSON error bodies) | MEDIUM | 20min |
-| 11 | Add CORS regex origin matching | MEDIUM | 20min |
-| 12 | Add CI badge to README | LOW | 5min |
-| 13 | Add CODEOWNERS file | LOW | 5min |
-| 14 | Add ResponseRecorder `Body()` method | LOW | 15min |
-| 15 | Add fuzz tests for `itoa` | LOW | 10min |
-| 16 | Adopt Go 1.26+ range-over-int in `itoa` | LOW | 10min |
-| 17 | Add `Recovery()` custom error handler option | LOW | 10min |
-| 18 | Add `Logging()` with custom log format/template | LOW | 15min |
-| 19 | Add request context helpers for request ID in middleware chain | LOW | 5min |
-| 20 | Explore `nix flake` migration (per project conventions) | LOW | HIGH |
-| 21 | Add `Timeout()` with custom timeout response option | LOW | 10min |
-| 22 | Add `SecurityHeaders()` tests for each individual header | LOW | 10min |
-| 23 | Consider `httputil.` prefix for error codes (breaking) | LOW | 15min |
-| 24 | Add `example/` directory with runnable Go programs | LOW | 20min |
-| 25 | Add version constant (`Version = "0.1.0"`) | LOW | 5min |
+| #   | Task                                                           | Impact | Effort |
+| --- | -------------------------------------------------------------- | ------ | ------ |
+| 1   | Commit and push all session work                               | HIGH   | 5min   |
+| 2   | Tag v0.1.0 release                                             | HIGH   | 1min   |
+| 3   | Fix CORS `allowOrigin` data race (move inside handler closure) | HIGH   | 10min  |
+| 4   | Add `BytesWritten()` to ResponseRecorder                       | MEDIUM | 10min  |
+| 5   | Add body-capturing ResponseRecorder variant                    | MEDIUM | 30min  |
+| 6   | Add integration tests with real `net/http.Server`              | MEDIUM | 30min  |
+| 7   | Add CORS concurrent request test                               | MEDIUM | 15min  |
+| 8   | Add rate limiting middleware                                   | MEDIUM | 45min  |
+| 9   | Add compression middleware                                     | MEDIUM | 45min  |
+| 10  | Add HTTP error response helper (JSON error bodies)             | MEDIUM | 20min  |
+| 11  | Add CORS regex origin matching                                 | MEDIUM | 20min  |
+| 12  | Add CI badge to README                                         | LOW    | 5min   |
+| 13  | Add CODEOWNERS file                                            | LOW    | 5min   |
+| 14  | Add ResponseRecorder `Body()` method                           | LOW    | 15min  |
+| 15  | Add fuzz tests for `itoa`                                      | LOW    | 10min  |
+| 16  | Adopt Go 1.26+ range-over-int in `itoa`                        | LOW    | 10min  |
+| 17  | Add `Recovery()` custom error handler option                   | LOW    | 10min  |
+| 18  | Add `Logging()` with custom log format/template                | LOW    | 15min  |
+| 19  | Add request context helpers for request ID in middleware chain | LOW    | 5min   |
+| 20  | Explore `nix flake` migration (per project conventions)        | LOW    | HIGH   |
+| 21  | Add `Timeout()` with custom timeout response option            | LOW    | 10min  |
+| 22  | Add `SecurityHeaders()` tests for each individual header       | LOW    | 10min  |
+| 23  | Consider `httputil.` prefix for error codes (breaking)         | LOW    | 15min  |
+| 24  | Add `example/` directory with runnable Go programs             | LOW    | 20min  |
+| 25  | Add version constant (`Version = "0.1.0"`)                     | LOW    | 5min   |
 
 ---
 
@@ -374,45 +383,45 @@ This is a product/architecture decision: is the current behavior a bug to fix si
 
 ## Metrics
 
-| Metric | Before Session | After Session | Delta |
-| ------ | -------------- | ------------- | ----- |
-| Go files | 10 | 20 | +10 |
-| Total lines | 911 | 1,983 | +1,072 |
-| Source lines | 431 | 690 | +259 |
-| Test lines | 480 | 1,293 | +813 |
-| Test-to-source ratio | 1.11:1 | 1.87:1 | +0.76 |
-| Tests passing | 38 | 72 | +34 |
-| Test coverage | 89.7% | 90.1% | +0.4% |
-| Lint issues | 0 | 0 | 0 |
-| External deps | 1 | 1 | 0 |
-| Middleware count | 1 (CORS) | 6 (+Security, RequestID, Recovery, Timeout, Logging) | +5 |
-| Public functions | 5 | 15 | +10 |
+| Metric               | Before Session | After Session                                        | Delta  |
+| -------------------- | -------------- | ---------------------------------------------------- | ------ |
+| Go files             | 10             | 20                                                   | +10    |
+| Total lines          | 911            | 1,983                                                | +1,072 |
+| Source lines         | 431            | 690                                                  | +259   |
+| Test lines           | 480            | 1,293                                                | +813   |
+| Test-to-source ratio | 1.11:1         | 1.87:1                                               | +0.76  |
+| Tests passing        | 38             | 72                                                   | +34    |
+| Test coverage        | 89.7%          | 90.1%                                                | +0.4%  |
+| Lint issues          | 0              | 0                                                    | 0      |
+| External deps        | 1              | 1                                                    | 0      |
+| Middleware count     | 1 (CORS)       | 6 (+Security, RequestID, Recovery, Timeout, Logging) | +5     |
+| Public functions     | 5              | 15                                                   | +10    |
 
 ## File Inventory
 
-| File | Lines | Role |
-| ---- | ----- | ---- |
-| `clientip.go` | 32 | Client IP extraction |
-| `clientip_test.go` | 93 | Client IP tests + benchmark + fuzz |
-| `context.go` | 33 | Request context helpers |
-| `context_test.go` | 77 | Context helper tests + header snapshot test |
-| `cors.go` | 141 | CORS middleware + Validate + wildcard matching |
-| `cors_test.go` | 299 | CORS tests + benchmark |
-| `doc.go` | 13 | Package documentation |
-| `errors.go` | 86 | Error codes + RegisterErrorClassifications + templates |
-| `errors_test.go` | 291 | Error classification tests |
-| `example_test.go` | 71 | GoDoc example functions |
-| `logging.go` | 35 | Structured logging middleware |
-| `middleware_test.go` | 182 | Security/RequestID/Recovery/Timeout/Logging tests |
-| `recorder.go` | 128 | ResponseRecorder + Chain + HeaderSnapshot |
-| `recorder_test.go` | 163 | ResponseRecorder + Chain tests |
-| `recovery.go` | 33 | Panic recovery middleware |
-| `requestid.go` | 66 | Request ID middleware |
-| `security.go` | 60 | Security headers middleware |
-| `timeout.go` | 21 | Request timeout middleware |
-| `util.go` | 42 | Internal helpers |
-| `util_test.go` | 117 | Helper tests + benchmarks |
-| **Total** | **1,983** | |
+| File                 | Lines     | Role                                                   |
+| -------------------- | --------- | ------------------------------------------------------ |
+| `clientip.go`        | 32        | Client IP extraction                                   |
+| `clientip_test.go`   | 93        | Client IP tests + benchmark + fuzz                     |
+| `context.go`         | 33        | Request context helpers                                |
+| `context_test.go`    | 77        | Context helper tests + header snapshot test            |
+| `cors.go`            | 141       | CORS middleware + Validate + wildcard matching         |
+| `cors_test.go`       | 299       | CORS tests + benchmark                                 |
+| `doc.go`             | 13        | Package documentation                                  |
+| `errors.go`          | 86        | Error codes + RegisterErrorClassifications + templates |
+| `errors_test.go`     | 291       | Error classification tests                             |
+| `example_test.go`    | 71        | GoDoc example functions                                |
+| `logging.go`         | 35        | Structured logging middleware                          |
+| `middleware_test.go` | 182       | Security/RequestID/Recovery/Timeout/Logging tests      |
+| `recorder.go`        | 128       | ResponseRecorder + Chain + HeaderSnapshot              |
+| `recorder_test.go`   | 163       | ResponseRecorder + Chain tests                         |
+| `recovery.go`        | 33        | Panic recovery middleware                              |
+| `requestid.go`       | 66        | Request ID middleware                                  |
+| `security.go`        | 60        | Security headers middleware                            |
+| `timeout.go`         | 21        | Request timeout middleware                             |
+| `util.go`            | 42        | Internal helpers                                       |
+| `util_test.go`       | 117       | Helper tests + benchmarks                              |
+| **Total**            | **1,983** |                                                        |
 
 ## Commit History (before this session)
 

@@ -189,37 +189,37 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ## API
 
-| Function                        | Signature                                                             | Purpose                                  |
-| ------------------------------- | --------------------------------------------------------------------- | ---------------------------------------- |
-| `CORS`                          | `func(CORSConfig) func(http.Handler) http.Handler`                    | CORS middleware factory                   |
-| `DefaultCORSConfig`             | `func() CORSConfig`                                                   | Permissive dev config (allows all origins)|
-| `ClientIP`                      | `func(*http.Request) string`                                          | Extract client IP from proxied request    |
-| `ClientIPMiddleware`            | `func(http.Handler) http.Handler`                                     | Store client IP in request context        |
-| `ClientIPFromContext`           | `func(context.Context) string`                                        | Retrieve stored client IP                 |
-| `NewResponseRecorder`           | `func(http.ResponseWriter) *ResponseRecorder`                         | Wrap writer to capture status             |
-| `Chain`                         | `func(http.Handler, ...func(http.Handler) http.Handler) http.Handler` | Compose middleware                        |
-| `SecurityHeaders`               | `func(SecurityHeadersConfig) func(http.Handler) http.Handler`         | Security response headers                 |
-| `DefaultSecurityHeadersConfig`  | `func() SecurityHeadersConfig`                                        | Sensible security defaults                |
-| `RequestID`                     | `func(RequestIDConfig) func(http.Handler) http.Handler`               | Request ID propagation/generation         |
-| `DefaultRequestIDConfig`        | `func() RequestIDConfig`                                              | Default X-Request-ID config               |
-| `RequestIDFromContext`          | `func(context.Context) string`                                        | Retrieve stored request ID                |
-| `Recovery`                      | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                            |
-| `Timeout`                       | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement              |
-| `Logging`                       | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                |
-| `RegisterErrorClassifications`  | `func()`                                                              | Register stdlib error sentinels + templates|
+| Function                       | Signature                                                             | Purpose                                     |
+| ------------------------------ | --------------------------------------------------------------------- | ------------------------------------------- |
+| `CORS`                         | `func(CORSConfig) func(http.Handler) http.Handler`                    | CORS middleware factory                     |
+| `DefaultCORSConfig`            | `func() CORSConfig`                                                   | Permissive dev config (allows all origins)  |
+| `ClientIP`                     | `func(*http.Request) string`                                          | Extract client IP from proxied request      |
+| `ClientIPMiddleware`           | `func(http.Handler) http.Handler`                                     | Store client IP in request context          |
+| `ClientIPFromContext`          | `func(context.Context) string`                                        | Retrieve stored client IP                   |
+| `NewResponseRecorder`          | `func(http.ResponseWriter) *ResponseRecorder`                         | Wrap writer to capture status               |
+| `Chain`                        | `func(http.Handler, ...func(http.Handler) http.Handler) http.Handler` | Compose middleware                          |
+| `SecurityHeaders`              | `func(SecurityHeadersConfig) func(http.Handler) http.Handler`         | Security response headers                   |
+| `DefaultSecurityHeadersConfig` | `func() SecurityHeadersConfig`                                        | Sensible security defaults                  |
+| `RequestID`                    | `func(RequestIDConfig) func(http.Handler) http.Handler`               | Request ID propagation/generation           |
+| `DefaultRequestIDConfig`       | `func() RequestIDConfig`                                              | Default X-Request-ID config                 |
+| `RequestIDFromContext`         | `func(context.Context) string`                                        | Retrieve stored request ID                  |
+| `Recovery`                     | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                              |
+| `Timeout`                      | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                |
+| `Logging`                      | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                  |
+| `RegisterErrorClassifications` | `func()`                                                              | Register stdlib error sentinels + templates |
 
 ### `CORSConfig` fields
 
-| Field                | Type       | Default                                                | Description                         |
-| -------------------- | ---------- | ------------------------------------------------------ | ----------------------------------- |
+| Field                | Type       | Default                                                | Description                                                    |
+| -------------------- | ---------- | ------------------------------------------------------ | -------------------------------------------------------------- |
 | `AllowedOrigins`     | `[]string` | `["*"]`                                                | Origins permitted in CORS responses (supports `*.example.com`) |
-| `AllowedMethods`     | `[]string` | `["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]` | Allowed HTTP methods                |
-| `AllowedHeaders`     | `[]string` | `["Content-Type", "Authorization", "X-Request-ID"]`    | Accepted request headers            |
-| `ExposedHeaders`     | `[]string` | `[]`                                                   | Headers the browser may access      |
-| `AllowCredentials`   | `bool`     | `false`                                                | Whether to send credentials         |
-| `MaxAge`             | `int`      | `86400`                                                | Preflight cache duration in seconds |
-| `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin     |
-| `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler |
+| `AllowedMethods`     | `[]string` | `["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]` | Allowed HTTP methods                                           |
+| `AllowedHeaders`     | `[]string` | `["Content-Type", "Authorization", "X-Request-ID"]`    | Accepted request headers                                       |
+| `ExposedHeaders`     | `[]string` | `[]`                                                   | Headers the browser may access                                 |
+| `AllowCredentials`   | `bool`     | `false`                                                | Whether to send credentials                                    |
+| `MaxAge`             | `int`      | `86400`                                                | Preflight cache duration in seconds                            |
+| `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin                                |
+| `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler                            |
 
 ### `ResponseRecorder` methods
 

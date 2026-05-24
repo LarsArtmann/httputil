@@ -23,7 +23,8 @@ func Logging(logger *slog.Logger) func(http.Handler) http.Handler {
 				status = http.StatusOK
 			}
 
-			logger.Info("request",
+			logger.Info(
+				"request",
 				slog.String("method", req.Method),
 				slog.String("path", req.URL.Path),
 				slog.Int("status", status),

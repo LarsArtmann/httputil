@@ -13,7 +13,8 @@ func Recovery(logger *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			defer func() {
 				if rec := recover(); rec != nil {
-					logger.Error("panic recovered",
+					logger.Error(
+						"panic recovered",
 						slog.Any("error", rec),
 						slog.String("method", req.Method),
 						slog.String("path", req.URL.Path),
