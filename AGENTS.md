@@ -6,9 +6,9 @@
 
 These are the non-obvious rules that cause immediate lint failures. Read these before writing any code.
 
-### No External Dependencies Allowed
+### Allowed Dependencies
 
-`depguard` blocks everything except `$gostd` and `$module`. You **cannot** add any third-party library. If you need functionality not in stdlib, write it yourself (see `util.go` for precedent).
+`depguard` allows `$gostd`, `$module`, and `github.com/larsartmann/go-error-family` (same author, zero transitive deps). No other third-party libraries.
 
 ### `exhaustruct` — Every Struct Field Must Be Set
 
@@ -55,16 +55,33 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
 ## Architecture
 
-Single flat `httputil` package, zero dependencies, Go 1.26+.
+Single flat `httputil` package. One external dependency: `github.com/larsartmann/go-error-family`. Go 1.26+.
 
-| File          | Exports                                                | Purpose                                                         |
-| ------------- | ------------------------------------------------------ | --------------------------------------------------------------- |
-| `cors.go`     | `CORSConfig`, `DefaultCORSConfig()`, `CORS()`          | CORS middleware                                                 |
-| `clientip.go` | `ClientIP()`                                           | Client IP extraction (X-Forwarded-For → X-Real-IP → RemoteAddr) |
-| `recorder.go` | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()` | Response capture + middleware chaining                          |
-| `util.go`     | (unexported `join`, `itoa`)                            | Internal helpers avoiding strconv import                        |
+| File          | Exports                                                                                         | Purpose                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `cors.go`     | `CORSConfig`, `DefaultCORSConfig()`, `CORS()`                                                   | CORS middleware                                                 |
+| `clientip.go` | `ClientIP()`                                                                                    | Client IP extraction (X-Forwarded-For → X-Real-IP → RemoteAddr) |
+| `recorder.go` | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()`                                          | Response capture + middleware chaining                          |
+| `errors.go`   | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed` | Error codes for classified errors                               |
+| `util.go`     | (unexported `join`, `itoa`)                                                                     | Internal helpers avoiding strconv import                        |
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler`. `Chain()` applies them in declaration order (first = outermost) via `slices.Backward`.
+
+## Error Classification
+
+Errors from `ResponseRecorder` are classified using `go-error-family`:
+
+| Method  | Error Code                | Family          | Retryable | When                                          |
+| ------- | ------------------------- | --------------- | --------- | --------------------------------------------- |
+| `Write` | `http.write_failed`       | Transient       | Yes       | Underlying ResponseWriter.Write fails         |
+| `Hijack`| `http.hijack_unsupported` | Infrastructure  | No        | Underlying writer doesn't implement Hijacker  |
+| `Hijack`| `http.hijack_failed`      | Transient       | Yes       | Underlying Hijack call fails                  |
+| `Push`  | `http.push_unsupported`   | Infrastructure  | No        | Underlying writer doesn't implement Pusher    |
+| `Push`  | `http.push_failed`        | Transient       | Yes       | Underlying Push call fails                    |
+
+All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
+
+Context is attached where relevant (e.g., `status` on write errors, `target` on push errors).
 
 ## Non-Obvious Behaviors
 

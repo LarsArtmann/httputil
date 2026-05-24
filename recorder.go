@@ -2,10 +2,11 @@ package httputil
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"net/http"
 	"slices"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ResponseRecorder wraps an http.ResponseWriter to capture the status code.
@@ -48,12 +49,13 @@ func (r *ResponseRecorder) Write(b []byte) (int, error) {
 		r.wrote = true
 	}
 
-	n, err := r.ResponseWriter.Write(b)
+	written, err := r.ResponseWriter.Write(b)
 	if err != nil {
-		return n, fmt.Errorf("response writer write: %w", err)
+		return written, errorfamily.WrapTransient(err, ErrCodeWriteFailed, "response writer write failed").
+			WithContext("status", itoa(r.status))
 	}
 
-	return n, nil
+	return written, nil
 }
 
 // Flush delegates to the underlying ResponseWriter if it implements
@@ -67,14 +69,16 @@ func (r *ResponseRecorder) Flush() {
 // Hijack delegates to the underlying ResponseWriter if it implements
 // http.Hijacker.
 func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	h, ok := r.ResponseWriter.(http.Hijacker)
+	hijacker, ok := r.ResponseWriter.(http.Hijacker)
 	if !ok {
-		return nil, nil, http.ErrNotSupported
+		return nil, nil, errorfamily.WrapInfrastructure(
+			http.ErrNotSupported, ErrCodeHijackUnsupported, "response writer does not implement http.Hijacker",
+		)
 	}
 
-	conn, rw, err := h.Hijack()
+	conn, rw, err := hijacker.Hijack()
 	if err != nil {
-		return conn, rw, fmt.Errorf("response writer hijack: %w", err)
+		return conn, rw, errorfamily.WrapTransient(err, ErrCodeHijackFailed, "response writer hijack failed")
 	}
 
 	return conn, rw, nil
@@ -83,11 +87,20 @@ func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 // Push delegates to the underlying ResponseWriter if it implements
 // http.Pusher.
 func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
-	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
-		return fmt.Errorf("push %q: %w", target, pusher.Push(target, opts))
+	pusher, ok := r.ResponseWriter.(http.Pusher)
+	if !ok {
+		return errorfamily.WrapInfrastructure(
+			http.ErrNotSupported, ErrCodePushUnsupported, "response writer does not implement http.Pusher",
+		).WithContext("target", target)
 	}
 
-	return http.ErrNotSupported
+	err := pusher.Push(target, opts)
+	if err != nil {
+		return errorfamily.WrapTransient(err, ErrCodePushFailed, "response writer push failed").
+			WithContext("target", target)
+	}
+
+	return nil
 }
 
 // Chain wraps a handler with multiple middleware, applying them in reverse

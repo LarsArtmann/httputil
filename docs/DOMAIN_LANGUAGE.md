@@ -22,13 +22,14 @@ If a word means something different to a contributor than to a consumer, define 
 
 ## Bounded Contexts
 
-The library has three bounded contexts, each with a distinct vocabulary and responsibility.
+The library has four bounded contexts, each with a distinct vocabulary and responsibility.
 
 | Context          | Description                                                     | Key Type(s)                 |
 | ---------------- | --------------------------------------------------------------- | --------------------------- |
 | Client IP        | Extracting the true client IP from proxied requests             | `ClientIP`                  |
 | CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy  | `CORSConfig`, `CORS`        |
 | Response Capture | Recording response state for inspection (status, headers, body) | `ResponseRecorder`, `Chain` |
+| Error Protocol   | Classified errors with behavioral families for retry decisions  | Error codes, `go-error-family` |
 
 ---
 
@@ -112,8 +113,11 @@ Invariants and policies that the library enforces.
 - `WriteHeader` only captures on **first call**; subsequent calls are ignored for capture but still delegated
 - `Write` implicitly sets status 200 if no `WriteHeader` was called yet
 - `Flush`, `Hijack`, and `Push` are optional — they delegate only if the underlying ResponseWriter supports them
-- `Hijack` returns `http.ErrNotSupported` if the underlying writer is not an `http.Hijacker`
-- `Push` wraps the underlying error with context including the push target
+- `Hijack` returns a classified `Infrastructure` error if the underlying writer is not an `http.Hijacker`
+- `Push` returns a classified `Infrastructure` error if the underlying writer is not an `http.Pusher`
+- Write/Hijack/Push failures return classified `Transient` errors wrapping the underlying cause
+- All errors carry an error code (e.g., `http.write_failed`), family, and relevant context
+- `errors.Is(err, http.ErrNotSupported)` still works for unsupported Hijack/Push
 
 ### Middleware Chaining
 
@@ -126,12 +130,12 @@ Invariants and policies that the library enforces.
 
 Patterns consumers and contributors should follow.
 
-| Convention               | Description                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| Middleware signature     | Always `func(http.Handler) http.Handler` — the Go standard library convention  |
-| No external dependencies | The library uses only the Go standard library and `slices` (stdlib since 1.21) |
-| Zero-allocation hot path | Internal helpers (`join`, `itoa`) avoid `fmt` or `strconv` allocations         |
-| `httputil` import name   | Consumers import as `httputil`; no aliases needed                              |
+| Convention                        | Description                                                                                   |
+| --------------------------------- | --------------------------------------------------------------------------------------------- |
+| Middleware signature               | Always `func(http.Handler) http.Handler` — the Go standard library convention                |
+| Classified errors                  | Errors from ResponseRecorder use `go-error-family` for behavioral classification             |
+| Zero-allocation hot path           | Internal helpers (`join`, `itoa`) avoid `fmt` or `strconv` allocations                       |
+| `httputil` import name             | Consumers import as `httputil`; no aliases needed                                            |
 
 ---
 
