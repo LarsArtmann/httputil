@@ -33,6 +33,7 @@ func DefaultCORSConfig() CORSConfig {
 // OptionsPassthrough is set.
 func CORS(cfg CORSConfig) func(http.Handler) http.Handler {
 	allowOrigin := "*"
+
 	allowCredentials := "false"
 	if cfg.AllowCredentials {
 		allowCredentials = "true"
@@ -49,15 +50,18 @@ func CORS(cfg CORSConfig) func(http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Methods", join(cfg.AllowedMethods))
 			w.Header().Set("Access-Control-Allow-Headers", join(cfg.AllowedHeaders))
 			w.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
+
 			if len(cfg.ExposedHeaders) > 0 {
 				w.Header().Set("Access-Control-Expose-Headers", join(cfg.ExposedHeaders))
 			}
+
 			if cfg.MaxAge > 0 {
 				w.Header().Set("Access-Control-Max-Age", itoa(cfg.MaxAge))
 			}
 
 			if r.Method == http.MethodOptions && !cfg.OptionsPassthrough {
 				w.WriteHeader(http.StatusNoContent)
+
 				return
 			}
 
@@ -70,10 +74,12 @@ func resolveOrigin(origin string, cfg CORSConfig) string {
 	if cfg.AllowAllOrigins {
 		return "*"
 	}
+
 	for _, o := range cfg.AllowedOrigins {
 		if o == "*" || o == origin {
 			return origin
 		}
 	}
+
 	return "*"
 }

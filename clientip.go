@@ -18,12 +18,15 @@ func ClientIP(r *http.Request) string {
 			return strings.TrimSpace(ips[0])
 		}
 	}
+
 	if xri := r.Header.Get("X-Real-IP"); xri != "" {
 		return strings.TrimSpace(xri)
 	}
+
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
 	}
+
 	return host
 }

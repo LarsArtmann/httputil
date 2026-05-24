@@ -8,6 +8,7 @@ import (
 
 func TestCORS_DefaultConfig_Preflight(t *testing.T) {
 	t.Parallel()
+
 	cfg := DefaultCORSConfig()
 	mw := CORS(cfg)
 
@@ -17,6 +18,7 @@ func TestCORS_DefaultConfig_Preflight(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "http://example.com")
+
 	rec := httptest.NewRecorder()
 
 	mw(inner).ServeHTTP(rec, req)
@@ -24,6 +26,7 @@ func TestCORS_DefaultConfig_Preflight(t *testing.T) {
 	if rec.Code != http.StatusNoContent {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusNoContent)
 	}
+
 	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "*" {
 		t.Errorf("Allow-Origin = %q, want %q", got, "*")
 	}
@@ -31,6 +34,7 @@ func TestCORS_DefaultConfig_Preflight(t *testing.T) {
 
 func TestCORS_DefaultConfig_ActualRequest(t *testing.T) {
 	t.Parallel()
+
 	cfg := DefaultCORSConfig()
 	mw := CORS(cfg)
 
@@ -41,6 +45,7 @@ func TestCORS_DefaultConfig_ActualRequest(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "http://example.com")
+
 	rec := httptest.NewRecorder()
 
 	mw(inner).ServeHTTP(rec, req)
@@ -48,6 +53,7 @@ func TestCORS_DefaultConfig_ActualRequest(t *testing.T) {
 	if !called {
 		t.Error("next handler should be called for actual request")
 	}
+
 	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "*" {
 		t.Errorf("Allow-Origin = %q, want %q", got, "*")
 	}
@@ -55,6 +61,7 @@ func TestCORS_DefaultConfig_ActualRequest(t *testing.T) {
 
 func TestCORS_SpecificOrigin(t *testing.T) {
 	t.Parallel()
+
 	cfg := CORSConfig{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST"},
@@ -67,6 +74,7 @@ func TestCORS_SpecificOrigin(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Origin", "http://localhost:3000")
+
 	rec := httptest.NewRecorder()
 
 	mw(inner).ServeHTTP(rec, req)

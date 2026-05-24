@@ -8,6 +8,7 @@ import (
 
 func TestClientIP_XForwardedFor(t *testing.T) {
 	t.Parallel()
+
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
 	r.RemoteAddr = "10.0.0.1:1234"
@@ -20,6 +21,7 @@ func TestClientIP_XForwardedFor(t *testing.T) {
 
 func TestClientIP_XRealIP(t *testing.T) {
 	t.Parallel()
+
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.Header.Set("X-Real-IP", "9.8.7.6")
 	r.RemoteAddr = "10.0.0.1:1234"
@@ -32,6 +34,7 @@ func TestClientIP_XRealIP(t *testing.T) {
 
 func TestClientIP_RemoteAddr(t *testing.T) {
 	t.Parallel()
+
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = "10.0.0.1:1234"
 
@@ -43,6 +46,7 @@ func TestClientIP_RemoteAddr(t *testing.T) {
 
 func TestClientIP_RemoteAddrNoPort(t *testing.T) {
 	t.Parallel()
+
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.RemoteAddr = "10.0.0.1"
 

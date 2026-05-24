@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+# Sensitive files
+*.db
+# Test coverage
+/coverage
+# Build artifacts
+/httputil
+# Copy/paste detection report
+/report/jscpd-report.json

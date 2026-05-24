@@ -13,6 +13,7 @@ import (
 // underlying ResponseWriter implements them.
 type ResponseRecorder struct {
 	http.ResponseWriter
+
 	status int
 	wrote  bool
 }
@@ -36,6 +37,7 @@ func (r *ResponseRecorder) WriteHeader(code int) {
 		r.status = code
 		r.wrote = true
 	}
+
 	r.ResponseWriter.WriteHeader(code)
 }
 
@@ -45,6 +47,7 @@ func (r *ResponseRecorder) Write(p []byte) (int, error) {
 		r.status = http.StatusOK
 		r.wrote = true
 	}
+
 	return r.ResponseWriter.Write(p)
 }
 
@@ -63,6 +66,7 @@ func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if !ok {
 		return nil, nil, http.ErrNotSupported
 	}
+
 	return h.Hijack()
 }
 
@@ -72,6 +76,7 @@ func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := r.ResponseWriter.(http.Pusher); ok {
 		return fmt.Errorf("push %q: %w", target, pusher.Push(target, opts))
 	}
+
 	return http.ErrNotSupported
 }
 
@@ -81,5 +86,6 @@ func Chain(handler http.Handler, middlewares ...func(http.Handler) http.Handler)
 	for _, mw := range slices.Backward(middlewares) {
 		handler = mw(handler)
 	}
+
 	return handler
 }
