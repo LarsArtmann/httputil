@@ -2,6 +2,8 @@ package httputil
 
 import (
 	"math"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -76,5 +78,40 @@ func TestItoaMinInt(t *testing.T) {
 	want := "-9223372036854775808"
 	if got := itoa(math.MinInt); got != want {
 		t.Errorf("itoa(math.MinInt) = %q, want %q", got, want)
+	}
+}
+
+func BenchmarkItoa(b *testing.B) {
+	for b.Loop() {
+		itoa(200)
+		itoa(86400)
+		itoa(math.MaxInt)
+		itoa(math.MinInt)
+	}
+}
+
+func BenchmarkItoa_Strconv(b *testing.B) {
+	for b.Loop() {
+		strconv.Itoa(200)
+		strconv.Itoa(86400)
+		strconv.Itoa(math.MaxInt)
+		strconv.Itoa(math.MinInt)
+	}
+}
+
+func BenchmarkJoin(b *testing.B) {
+	input := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"}
+
+	for b.Loop() {
+		join(input)
+	}
+}
+
+func BenchmarkJoin_StringsJoin(b *testing.B) {
+	input := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"}
+	sep := ", "
+
+	for b.Loop() {
+		strings.Join(input, sep)
 	}
 }

@@ -1,6 +1,11 @@
 package httputil
 
-import "net/http"
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
+)
 
 const defaultMaxAge = 86400 // seconds in 24 hours
 
@@ -20,15 +25,47 @@ type CORSConfig struct {
 // that allows all origins.
 func DefaultCORSConfig() CORSConfig {
 	return CORSConfig{
-		AllowedOrigins:     []string{"*"},
-		AllowAllOrigins:    true,
-		AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:     []string{"Content-Type", "Authorization", "X-Request-ID"},
+		AllowedOrigins:  []string{"*"},
+		AllowAllOrigins: true,
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodPatch,
+			http.MethodOptions,
+		},
+		AllowedHeaders:     []string{"Content-Type", "Authorization", defaultRequestIDHeader},
 		ExposedHeaders:     []string{},
 		AllowCredentials:   false,
 		MaxAge:             defaultMaxAge,
 		OptionsPassthrough: false,
 	}
+}
+
+var (
+	errCredentialsWithAllOrigins = errors.New(
+		"CORSConfig: AllowCredentials=true with AllowAllOrigins=true is not permitted by the CORS spec",
+	)
+	errNegativeMaxAge = errors.New("CORSConfig: MaxAge must not be negative")
+)
+
+// Validate checks the CORSConfig for invalid combinations and returns an error
+// describing the first issue found. A valid config can be used with CORS without
+// causing browser-side CORS failures.
+func (c CORSConfig) Validate() error {
+	if c.AllowCredentials && c.AllowAllOrigins {
+		return fmt.Errorf(
+			"%w: browsers reject Access-Control-Allow-Origin: * when credentials are enabled",
+			errCredentialsWithAllOrigins,
+		)
+	}
+
+	if c.MaxAge < 0 {
+		return fmt.Errorf("%w: got %d", errNegativeMaxAge, c.MaxAge)
+	}
+
+	return nil
 }
 
 // CORS returns middleware that sets CORS headers based on the given config.
@@ -78,11 +115,27 @@ func resolveOrigin(origin string, cfg CORSConfig) string {
 		return "*"
 	}
 
-	for _, o := range cfg.AllowedOrigins {
-		if o == "*" || o == origin {
+	for _, allowed := range cfg.AllowedOrigins {
+		if allowed == "*" || allowed == origin {
+			return origin
+		}
+
+		if matchWildcardOrigin(allowed, origin) {
 			return origin
 		}
 	}
 
 	return "*"
+}
+
+// matchWildcardOrigin checks if an origin matches a wildcard pattern like
+// "*.example.com". The wildcard only matches subdomains, not the domain itself.
+func matchWildcardOrigin(pattern, origin string) bool {
+	if !strings.HasPrefix(pattern, "*.") {
+		return false
+	}
+
+	suffix := pattern[1:] // ".example.com"
+
+	return strings.HasSuffix(origin, suffix)
 }

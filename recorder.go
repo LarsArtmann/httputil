@@ -31,6 +31,20 @@ func (r *ResponseRecorder) Status() int { return r.status }
 // WroteHeader reports whether WriteHeader has been called.
 func (r *ResponseRecorder) WroteHeader() bool { return r.wrote }
 
+// HeaderSnapshot returns a shallow copy of the response headers at the time
+// of the call. Useful for inspecting headers after a handler has written them.
+func (r *ResponseRecorder) HeaderSnapshot() http.Header {
+	snapshot := make(http.Header, len(r.Header()))
+
+	for key, values := range r.Header() {
+		copied := make([]string, len(values))
+		copy(copied, values)
+		snapshot[key] = copied
+	}
+
+	return snapshot
+}
+
 // WriteHeader captures the status code and delegates to the underlying
 // ResponseWriter.
 func (r *ResponseRecorder) WriteHeader(code int) {

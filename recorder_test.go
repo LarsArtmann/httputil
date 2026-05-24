@@ -98,3 +98,66 @@ func TestChain(t *testing.T) {
 		}
 	}
 }
+
+func TestChain_ZeroMiddleware(t *testing.T) {
+	t.Parallel()
+
+	called := false
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+	})
+
+	Chain(
+		handler,
+	).ServeHTTP(httptest.NewRecorder(), httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil))
+
+	if !called {
+		t.Error("handler should be called with zero middleware")
+	}
+}
+
+func TestChain_SingleMiddleware(t *testing.T) {
+	t.Parallel()
+
+	var order []string
+
+	wrapper := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			order = append(order, "mw")
+
+			next.ServeHTTP(w, r)
+		})
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		order = append(order, "handler")
+	})
+
+	Chain(
+		handler,
+		wrapper,
+	).ServeHTTP(httptest.NewRecorder(), httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil))
+
+	want := []string{"mw", "handler"}
+	if len(order) != len(want) {
+		t.Fatalf("order = %v, want %v", order, want)
+	}
+}
+
+func TestResponseRecorder_WriteAfterWriteHeader(t *testing.T) {
+	t.Parallel()
+
+	inner := httptest.NewRecorder()
+	recorder := NewResponseRecorder(inner)
+
+	recorder.WriteHeader(http.StatusBadRequest)
+
+	_, err := recorder.Write([]byte("error"))
+	if err != nil {
+		t.Errorf("Write() error = %v, want nil", err)
+	}
+
+	if recorder.Status() != http.StatusBadRequest {
+		t.Errorf("Status() = %d, want %d (WriteHeader wins)", recorder.Status(), http.StatusBadRequest)
+	}
+}
