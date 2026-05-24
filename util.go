@@ -6,25 +6,30 @@ func join(ss []string) string {
 	return strings.Join(ss, ", ")
 }
 
-const decimalBase = 10
+const (
+	decimalBase = 10
+	intBufSize  = 20
+)
 
 func itoa(num int) string {
 	if num == 0 {
 		return "0"
 	}
 
-	neg := false
-	if num < 0 {
-		neg = true
-		num = -num
-	}
+	neg := num < 0
 
-	var buf [20]byte
+	var buf [intBufSize]byte
 
 	i := len(buf)
-	for num > 0 {
+	for num != 0 {
 		i--
-		buf[i] = byte('0') + byte(num%decimalBase)
+
+		d := num % decimalBase
+		if d < 0 {
+			d = -d
+		}
+
+		buf[i] = "0123456789"[d]
 		num /= decimalBase
 	}
 
