@@ -14,10 +14,10 @@ func TestSecurityHeaders_DefaultConfig(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultSecurityHeadersConfig()
-	handler := SecurityHeaders(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 
@@ -40,10 +40,10 @@ func TestSecurityHeaders_CustomCSP(t *testing.T) {
 	cfg := SecurityHeadersConfig{
 		ContentSecurityPolicy: "default-src 'self'",
 	}
-	handler := SecurityHeaders(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 
@@ -56,10 +56,10 @@ func TestRequestID_GeneratesID(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultRequestIDConfig()
-	handler := RequestID(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	handler := RequestID(cfg)(newNoOpHandler())
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 
@@ -106,8 +106,8 @@ func TestRecovery_CatchesPanic(t *testing.T) {
 		panic("test panic")
 	}))
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 
@@ -126,8 +126,8 @@ func TestRecovery_PassesThroughNormal(t *testing.T) {
 		called = true
 	}))
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 
@@ -150,8 +150,8 @@ func TestTimeout_SetsDeadline(t *testing.T) {
 		}
 	}))
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 }
@@ -168,10 +168,10 @@ func TestLogging_RecordsRequest(t *testing.T) {
 
 	handler := Logging(logger)(inner)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
+	req := newTestRequest(http.MethodGet, "/test", "")
 	req.RemoteAddr = "10.0.0.1:1234"
 
-	rec := httptest.NewRecorder()
+	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 

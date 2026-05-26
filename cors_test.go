@@ -14,14 +14,9 @@ func TestCORS_DefaultConfig_Preflight(t *testing.T) {
 	cfg := DefaultCORSConfig()
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Error("next handler should not be called for preflight")
-	})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodOptions, "/test", nil)
-	req.Header.Set("Origin", "http://example.com")
-
-	rec := httptest.NewRecorder()
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodOptions, "/test", "http://example.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -39,14 +34,9 @@ func TestCORS_DefaultConfig_ActualRequest(t *testing.T) {
 	middleware := CORS(cfg)
 
 	called := false
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-	})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
-	req.Header.Set("Origin", "http://example.com")
-
-	rec := httptest.NewRecorder()
+	inner := newCountingHandler(&called)
+	req := newTestRequest(http.MethodGet, "/test", "http://example.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -68,12 +58,9 @@ func TestCORS_SpecificOrigin(t *testing.T) {
 	}
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	req.Header.Set("Origin", "http://localhost:3000")
-
-	rec := httptest.NewRecorder()
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "http://localhost:3000")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -159,12 +146,9 @@ func TestCORS_EmptyAllowedOrigins(t *testing.T) {
 	}
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	req.Header.Set("Origin", "http://example.com")
-
-	rec := httptest.NewRecorder()
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -182,14 +166,9 @@ func TestCORS_OptionsPassthrough(t *testing.T) {
 	middleware := CORS(cfg)
 
 	called := false
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-	})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodOptions, "/test", nil)
-	req.Header.Set("Origin", "http://example.com")
-
-	rec := httptest.NewRecorder()
+	inner := newCountingHandler(&called)
+	req := newTestRequest(http.MethodOptions, "/test", "http://example.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -207,11 +186,9 @@ func TestCORS_NoOriginHeader(t *testing.T) {
 	}
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
+	inner := newNoOpHandler()
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-
-	rec := httptest.NewRecorder()
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -228,12 +205,9 @@ func TestCORS_MaxAgeZero(t *testing.T) {
 	}
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	req.Header.Set("Origin", "http://example.com")
-
-	rec := httptest.NewRecorder()
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -246,14 +220,12 @@ func BenchmarkCORS(b *testing.B) {
 	cfg := DefaultCORSConfig()
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	inner := newNoOpHandler()
 	handler := middleware(inner)
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
-	req.Header.Set("Origin", "http://example.com")
+	req := newTestRequest(http.MethodGet, "/test", "http://example.com")
 
 	for b.Loop() {
-		rec := httptest.NewRecorder()
+		rec := newRecorder()
 		handler.ServeHTTP(rec, req)
 	}
 }
@@ -266,12 +238,9 @@ func TestCORS_WildcardOriginMatch(t *testing.T) {
 	}
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	req.Header.Set("Origin", "http://sub.example.com")
-
-	rec := httptest.NewRecorder()
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "http://sub.example.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
@@ -286,12 +255,9 @@ func TestCORS_WildcardOriginNoMatch(t *testing.T) {
 	}
 	middleware := CORS(cfg)
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
-	req.Header.Set("Origin", "http://other.com")
-
-	rec := httptest.NewRecorder()
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "http://other.com")
+	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
