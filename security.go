@@ -6,7 +6,6 @@ import "net/http"
 type SecurityHeadersConfig struct {
 	ContentTypeNosniff      bool
 	FrameOptions            string
-	XSSProtection           bool
 	StrictTransportSecurity string
 	ReferrerPolicy          string
 	ContentSecurityPolicy   string
@@ -18,7 +17,6 @@ func DefaultSecurityHeadersConfig() SecurityHeadersConfig {
 	return SecurityHeadersConfig{
 		ContentTypeNosniff:      true,
 		FrameOptions:            "DENY",
-		XSSProtection:           true,
 		ReferrerPolicy:          "strict-origin-when-cross-origin",
 		ContentSecurityPolicy:   "",
 		StrictTransportSecurity: "",
@@ -36,10 +34,6 @@ func SecurityHeaders(cfg SecurityHeadersConfig) func(http.Handler) http.Handler 
 
 			if cfg.FrameOptions != "" {
 				resp.Header().Set("X-Frame-Options", cfg.FrameOptions)
-			}
-
-			if cfg.XSSProtection {
-				resp.Header().Set("X-XSS-Protection", "0")
 			}
 
 			if cfg.ReferrerPolicy != "" {

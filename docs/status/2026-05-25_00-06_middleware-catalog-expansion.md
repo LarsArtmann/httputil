@@ -103,7 +103,7 @@ The project now sits at **1,983 lines** across 20 Go files (up from 911 lines / 
 
 ### 8. Security Headers Middleware — Complete
 
-**What:** `SecurityHeaders()` middleware sets common security response headers based on configurable `SecurityHeadersConfig`. Default config sets: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 0`, `Referrer-Policy: strict-origin-when-cross-origin`. Supports CSP and HSTS when configured.
+**What:** `SecurityHeaders()` middleware sets common security response headers based on configurable `SecurityHeadersConfig`. Default config sets: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`. Supports CSP and HSTS when configured.
 
 **Files:** `security.go` (new, 60 lines), `middleware_test.go` (2 tests)
 

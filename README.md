@@ -137,7 +137,7 @@ Sets common security response headers with sensible defaults.
 handler := httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())(mux)
 ```
 
-Headers set by default: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 0`, `Referrer-Policy: strict-origin-when-cross-origin`.
+Headers set by default: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
 
 ### Request ID
 

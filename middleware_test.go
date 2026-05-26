@@ -24,7 +24,6 @@ func TestSecurityHeaders_DefaultConfig(t *testing.T) {
 	tests := []struct{ header, want string }{
 		{"X-Content-Type-Options", "nosniff"},
 		{"X-Frame-Options", "DENY"},
-		{"X-XSS-Protection", "0"},
 		{"Referrer-Policy", "strict-origin-when-cross-origin"},
 	}
 

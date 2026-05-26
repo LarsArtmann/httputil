@@ -36,6 +36,15 @@ const (
 	msgInfrastructureUnsupported = "This is an Infrastructure error — the runtime environment does not support this operation."
 )
 
+func registerErrorTemplate(code, what, why, fix, wayOut string) {
+	errorfamily.RegisterTemplate(code, errorfamily.MessageTemplate{
+		What:   what,
+		Why:    why,
+		Fix:    fix,
+		WayOut: wayOut,
+	})
+}
+
 // RegisterErrorClassifications maps stdlib HTTP sentinel errors to their
 // behavioral families and registers error message templates for all httputil
 // error codes. Call once during program startup to enable classification
@@ -49,38 +58,43 @@ func RegisterErrorClassifications() {
 		http.ErrSkipAltProtocol: errorfamily.Infrastructure,
 	})
 
-	errorfamily.RegisterTemplate(ErrCodeWriteFailed, errorfamily.MessageTemplate{
-		What:   "Failed to write HTTP response body",
-		Why:    "The underlying ResponseWriter.Write call returned an error (status: {{.status}}).",
-		Fix:    "Check if the client disconnected or if the response buffer is full.",
-		WayOut: msgRetryMaySucceed,
-	})
+	registerErrorTemplate(
+		ErrCodeWriteFailed,
+		"Failed to write HTTP response body",
+		"The underlying ResponseWriter.Write call returned an error (status: {{.status}}).",
+		"Check if the client disconnected or if the response buffer is full.",
+		msgRetryMaySucceed,
+	)
 
-	errorfamily.RegisterTemplate(ErrCodeHijackUnsupported, errorfamily.MessageTemplate{
-		What:   "HTTP connection hijacking is not supported",
-		Why:    "The underlying ResponseWriter does not implement the http.Hijacker interface.",
-		Fix:    "Use a ResponseWriter that supports hijacking (e.g., net/http default writer).",
-		WayOut: msgInfrastructureUnsupported,
-	})
+	registerErrorTemplate(
+		ErrCodeHijackUnsupported,
+		"HTTP connection hijacking is not supported",
+		"The underlying ResponseWriter does not implement the http.Hijacker interface.",
+		"Use a ResponseWriter that supports hijacking (e.g., net/http default writer).",
+		msgInfrastructureUnsupported,
+	)
 
-	errorfamily.RegisterTemplate(ErrCodeHijackFailed, errorfamily.MessageTemplate{
-		What:   "Failed to hijack HTTP connection",
-		Why:    "The underlying Hijack() call returned an error.",
-		Fix:    "Check if the connection is still active and not already hijacked.",
-		WayOut: msgRetryMaySucceed,
-	})
+	registerErrorTemplate(
+		ErrCodeHijackFailed,
+		"Failed to hijack HTTP connection",
+		"The underlying Hijack() call returned an error.",
+		"Check if the connection is still active and not already hijacked.",
+		msgRetryMaySucceed,
+	)
 
-	errorfamily.RegisterTemplate(ErrCodePushUnsupported, errorfamily.MessageTemplate{
-		What:   "HTTP/2 server push is not supported",
-		Why:    "The underlying ResponseWriter does not implement the http.Pusher interface.",
-		Fix:    "Use a ResponseWriter that supports HTTP/2 push (e.g., net/http HTTP/2 writer).",
-		WayOut: msgInfrastructureUnsupported,
-	})
+	registerErrorTemplate(
+		ErrCodePushUnsupported,
+		"HTTP/2 server push is not supported",
+		"The underlying ResponseWriter does not implement the http.Pusher interface.",
+		"Use a ResponseWriter that supports HTTP/2 push (e.g., net/http HTTP/2 writer).",
+		msgInfrastructureUnsupported,
+	)
 
-	errorfamily.RegisterTemplate(ErrCodePushFailed, errorfamily.MessageTemplate{
-		What:   "Failed to push HTTP/2 resource",
-		Why:    "The Push() call for target {{.target}} returned an error.",
-		Fix:    "Check if the target path is valid and the connection supports HTTP/2 push.",
-		WayOut: msgRetryMaySucceed,
-	})
+	registerErrorTemplate(
+		ErrCodePushFailed,
+		"Failed to push HTTP/2 resource",
+		"The Push() call for target {{.target}} returned an error.",
+		"Check if the target path is valid and the connection supports HTTP/2 push.",
+		msgRetryMaySucceed,
+	)
 }
