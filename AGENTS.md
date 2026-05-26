@@ -104,6 +104,7 @@ Context is attached where relevant (e.g., `status` on write errors, `target` on 
 - **No table-driven tests** — each case is a standalone `func Test*(t *testing.T)`
 - **`t.Errorf`** for non-fatal, `t.Fatalf` for fatal assertions
 - **`httptest.NewRecorder()`** + `httptest.NewRequest()` for HTTP doubles
+- **Shared test helpers** in `testutil_test.go`: `newNoOpHandler()`, `newCountingHandler()`, `newTestRequest()`, `newRecorder()`
 
 ### Test File Lint Relaxations
 
