@@ -1,6 +1,6 @@
 # httputil — AGENTS.md
 
-**Updated:** 2026-05-24
+**Updated:** 2026-05-26
 
 ## Hard Constraints (Will Break Your Code)
 
@@ -70,6 +70,7 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `timeout.go`   | `Timeout()`                                                                                                                                              | Request deadline enforcement middleware                         |
 | `logging.go`   | `Logging()`                                                                                                                                              | Structured request logging middleware                           |
 | `util.go`      | (unexported `join`, `itoa`)                                                                                                                              | Internal helpers avoiding strconv import                        |
+| `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newTestRequest`, `newRecorder`, `assertItoa`)                                           | Shared test helpers for consistent test patterns               |
 | `doc.go`       | (package doc only)                                                                                                                                       | Package-level GoDoc documentation                               |
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler`. `Chain()` applies them in declaration order (first = outermost) via `slices.Backward`.
