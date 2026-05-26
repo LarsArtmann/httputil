@@ -19,6 +19,7 @@ The httputil library is in **excellent condition**. Code quality is high with 0 
 ### 1. Deduplication — Complete ✅
 
 **What was accomplished:**
+
 - Reduced clone groups from **19 → 13** (32% improvement)
 - Extracted `registerErrorTemplate()` helper in `errors.go` (5 repeated struct literals eliminated)
 - Created `testutil_test.go` with shared test helpers:
@@ -29,6 +30,7 @@ The httputil library is in **excellent condition**. Code quality is high with 0 
 - Extracted `assertItoa()` helper in `util_test.go` (9 repeated assertion patterns eliminated)
 
 **Files changed:**
+
 - `errors.go` — extracted registerErrorTemplate helper
 - `testutil_test.go` (new) — shared test helpers
 - `util_test.go` — uses assertItoa helper
@@ -37,6 +39,7 @@ The httputil library is in **excellent condition**. Code quality is high with 0 
 - `AGENTS.md` — documented test helpers
 
 **Commits:**
+
 - `a5ce274` - docs: update AGENTS.md with testutil exports and date
 - `05bcc65` - refactor: extract assertItoa helper in util_test.go
 - `fe84c69` - docs: document shared test helpers in AGENTS.md
@@ -46,11 +49,13 @@ The httputil library is in **excellent condition**. Code quality is high with 0 
 ### 2. Security Fix — Complete ✅
 
 **What was accomplished:**
+
 - Removed deprecated `X-XSS-Protection` header (removed in Chrome 78+, Firefox 70+)
 - Removed `XSSProtection` field from `SecurityHeadersConfig` (breaking change for v1)
 - Updated README and status documentation
 
 **Files changed:**
+
 - `security.go` — removed XSSProtection field and header setting
 - `middleware_test.go` — removed X-XSS-Protection from test assertions
 - `README.md` — updated header documentation
@@ -58,17 +63,18 @@ The httputil library is in **excellent condition**. Code quality is high with 0 
 
 ### 3. Code Quality — Excellent ✅
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Lint Issues | 0 | ✅ PASS |
-| Test Coverage | 89.4% | ✅ GOOD |
-| Clone Groups | 13 | ✅ ACCEPTABLE |
-| Build | Success | ✅ PASS |
-| Tests | All Pass | ✅ PASS |
+| Metric        | Value    | Status        |
+| ------------- | -------- | ------------- |
+| Lint Issues   | 0        | ✅ PASS       |
+| Test Coverage | 89.4%    | ✅ GOOD       |
+| Clone Groups  | 13       | ✅ ACCEPTABLE |
+| Build         | Success  | ✅ PASS       |
+| Tests         | All Pass | ✅ PASS       |
 
 ### 4. Documentation — Complete ✅
 
 **What was accomplished:**
+
 - Updated AGENTS.md date to 2026-05-26
 - Added testutil_test.go to architecture table
 - Documented all shared test helpers
@@ -81,17 +87,17 @@ The httputil library is in **excellent condition**. Code quality is high with 0 
 
 **Low coverage functions:**
 
-| Function | Coverage | Notes |
-|---------|----------|-------|
-| `registerErrorTemplate` | 0.0% | Only called by RegisterErrorClassifications |
-| `RegisterErrorClassifications` | 0.0% | Called once at startup, not tested |
-| `WroteHeader` | 0.0% | Tested via WriteHeader behavior |
-| `Flush` | 0.0% | No tests for Flusher delegation |
-| `Hijack` | 42.9% | Partial coverage for error path |
-| `matchWildcardOrigin` | 75.0% | 1 of 2 paths covered |
-| `Logging` | 90.0% | Partial coverage for log output |
-| `SecurityHeaders` | 92.3% | Conditional branches not fully covered |
-| `CORS` | 95.2% | Near complete |
+| Function                       | Coverage | Notes                                       |
+| ------------------------------ | -------- | ------------------------------------------- |
+| `registerErrorTemplate`        | 0.0%     | Only called by RegisterErrorClassifications |
+| `RegisterErrorClassifications` | 0.0%     | Called once at startup, not tested          |
+| `WroteHeader`                  | 0.0%     | Tested via WriteHeader behavior             |
+| `Flush`                        | 0.0%     | No tests for Flusher delegation             |
+| `Hijack`                       | 42.9%    | Partial coverage for error path             |
+| `matchWildcardOrigin`          | 75.0%    | 1 of 2 paths covered                        |
+| `Logging`                      | 90.0%    | Partial coverage for log output             |
+| `SecurityHeaders`              | 92.3%    | Conditional branches not fully covered      |
+| `CORS`                         | 95.2%    | Near complete                               |
 
 **Assessment:** Coverage is acceptable. Low-coverage functions are hard-to-test edge cases (startup registration, interface delegation, conditional branches).
 
@@ -123,13 +129,13 @@ The following items were identified but not started:
 
 **Nothing is fucked up.** The codebase is in excellent condition.
 
-| Item | Status |
-|------|--------|
-| Build | ✅ Working |
-| Tests | ✅ All Passing |
-| Lint | ✅ 0 Issues |
-| Documentation | ✅ Current |
-| Git History | ✅ Clean |
+| Item          | Status         |
+| ------------- | -------------- |
+| Build         | ✅ Working     |
+| Tests         | ✅ All Passing |
+| Lint          | ✅ 0 Issues    |
+| Documentation | ✅ Current     |
+| Git History   | ✅ Clean       |
 
 ---
 
@@ -214,6 +220,7 @@ The following items were identified but not started:
 The removal of `XSSProtection` from `SecurityHeadersConfig` is a breaking change. The library doesn't have a clear versioning policy or migration guide.
 
 **Questions I cannot answer alone:**
+
 1. **Should we follow semver strictly?** — When do we bump major version?
 2. **How do we communicate breaking changes?** — CHANGELOG is sparse
 3. **Should we provide migration helpers?** — e.g., compatibility wrappers
@@ -226,15 +233,15 @@ The removal of `XSSProtection` from `SecurityHeadersConfig` is a breaking change
 
 ## Files Summary
 
-| Metric | Value |
-|--------|-------|
-| Total Go Files | 21 |
-| Source Files | 12 |
-| Test Files | 8 |
-| Test Coverage | 89.4% |
-| Clone Groups | 13 |
-| Lint Issues | 0 |
-| Dependencies | 1 (go-error-family) |
+| Metric         | Value               |
+| -------------- | ------------------- |
+| Total Go Files | 21                  |
+| Source Files   | 12                  |
+| Test Files     | 8                   |
+| Test Coverage  | 89.4%               |
+| Clone Groups   | 13                  |
+| Lint Issues    | 0                   |
+| Dependencies   | 1 (go-error-family) |
 
 ---
 
@@ -242,14 +249,14 @@ The removal of `XSSProtection` from `SecurityHeadersConfig` is a breaking change
 
 **Single flat package** with these components:
 
-| Component | Files | Purpose |
-|-----------|-------|---------|
-| Middleware | `cors.go`, `security.go`, `recovery.go`, `logging.go`, `timeout.go`, `requestid.go` | HTTP middleware functions |
-| Context | `context.go`, `clientip.go` | Request context helpers |
-| Recording | `recorder.go`, `util.go` | Response capture and utilities |
-| Errors | `errors.go`, `errors_test.go` | Error classification |
-| Tests | `*_test.go`, `testutil_test.go` | Test suite |
-| Docs | `doc.go`, `README.md`, `AGENTS.md`, `DOMAIN_LANGUAGE.md` | Documentation |
+| Component  | Files                                                                               | Purpose                        |
+| ---------- | ----------------------------------------------------------------------------------- | ------------------------------ |
+| Middleware | `cors.go`, `security.go`, `recovery.go`, `logging.go`, `timeout.go`, `requestid.go` | HTTP middleware functions      |
+| Context    | `context.go`, `clientip.go`                                                         | Request context helpers        |
+| Recording  | `recorder.go`, `util.go`                                                            | Response capture and utilities |
+| Errors     | `errors.go`, `errors_test.go`                                                       | Error classification           |
+| Tests      | `*_test.go`, `testutil_test.go`                                                     | Test suite                     |
+| Docs       | `doc.go`, `README.md`, `AGENTS.md`, `DOMAIN_LANGUAGE.md`                            | Documentation                  |
 
 ---
 
