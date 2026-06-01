@@ -47,9 +47,7 @@ func TestSecurityHeaders_CustomCSP(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if got := rec.Header().Get("Content-Security-Policy"); got != "default-src 'self'" {
-		t.Errorf("CSP = %q, want %q", got, "default-src 'self'")
-	}
+	assertHeader(t, rec, "Content-Security-Policy", "default-src 'self'")
 }
 
 func TestRequestID_GeneratesID(t *testing.T) {
@@ -89,9 +87,7 @@ func TestRequestID_ForwardsExistingID(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if got := rec.Header().Get("X-Request-ID"); got != "existing-id-123" {
-		t.Errorf("X-Request-ID = %q, want %q", got, "existing-id-123")
-	}
+	assertHeader(t, rec, "X-Request-ID", "existing-id-123")
 
 	if ctxID != "existing-id-123" {
 		t.Errorf("context ID = %q, want %q", ctxID, "existing-id-123")
@@ -122,9 +118,7 @@ func TestRecovery_PassesThroughNormal(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
 	called := false
 
-	handler := Recovery(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-	}))
+	handler := Recovery(logger)(newCountingHandler(&called))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()

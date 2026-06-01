@@ -33,7 +33,7 @@ func DefaultRequestIDConfig() RequestIDConfig {
 
 // RequestID returns middleware that propagates or generates a request ID.
 // The ID is stored in the request context and set as a response header.
-func RequestID(cfg RequestIDConfig) func(http.Handler) http.Handler {
+func RequestID(cfg RequestIDConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			requestID := req.Header.Get(cfg.ForwardHeader)

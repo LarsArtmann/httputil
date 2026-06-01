@@ -71,7 +71,7 @@ func (c CORSConfig) Validate() error {
 // CORS returns middleware that sets CORS headers based on the given config.
 // Preflight OPTIONS requests receive a 204 No Content response unless
 // OptionsPassthrough is set.
-func CORS(cfg CORSConfig) func(http.Handler) http.Handler {
+func CORS(cfg CORSConfig) Middleware {
 	allowOrigin := "*"
 
 	allowCredentials := "false"

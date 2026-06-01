@@ -75,6 +75,23 @@ func assertAllowOrigin(t *testing.T, rec *httptest.ResponseRecorder, want string
 	}
 }
 
+// serveWildcardCORS creates a CORS middleware with wildcard origin config and
+// serves a request to the given URL, returning the response recorder.
+func serveWildcardCORS(targetURL string) *httptest.ResponseRecorder {
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"*.example.com"},
+	}
+	middleware := CORS(cfg)
+
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", targetURL)
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	return rec
+}
+
 func TestCORSConfig_Validate_ValidDefault(t *testing.T) {
 	t.Parallel()
 
@@ -233,16 +250,7 @@ func BenchmarkCORS(b *testing.B) {
 func TestCORS_WildcardOriginMatch(t *testing.T) {
 	t.Parallel()
 
-	cfg := CORSConfig{
-		AllowedOrigins: []string{"*.example.com"},
-	}
-	middleware := CORS(cfg)
-
-	inner := newNoOpHandler()
-	req := newTestRequest(http.MethodGet, "/", "http://sub.example.com")
-	rec := newRecorder()
-
-	middleware(inner).ServeHTTP(rec, req)
+	rec := serveWildcardCORS("http://sub.example.com")
 
 	assertAllowOrigin(t, rec, "http://sub.example.com")
 }
@@ -250,16 +258,7 @@ func TestCORS_WildcardOriginMatch(t *testing.T) {
 func TestCORS_WildcardOriginNoMatch(t *testing.T) {
 	t.Parallel()
 
-	cfg := CORSConfig{
-		AllowedOrigins: []string{"*.example.com"},
-	}
-	middleware := CORS(cfg)
-
-	inner := newNoOpHandler()
-	req := newTestRequest(http.MethodGet, "/", "http://other.com")
-	rec := newRecorder()
-
-	middleware(inner).ServeHTTP(rec, req)
+	rec := serveWildcardCORS("http://other.com")
 
 	assertAllowOrigin(t, rec, "*")
 }

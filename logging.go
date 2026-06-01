@@ -8,7 +8,7 @@ import (
 
 // Logging returns middleware that logs each request with method, path, status,
 // and duration using the provided slog.Logger.
-func Logging(logger *slog.Logger) func(http.Handler) http.Handler {
+func Logging(logger *slog.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			start := time.Now()

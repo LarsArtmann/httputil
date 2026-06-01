@@ -18,9 +18,7 @@ func ExampleClientIP() {
 
 func ExampleCORS() {
 	cfg := DefaultCORSConfig()
-	handler := CORS(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprint(w, "ok")
-	}))
+	handler := CORS(cfg)(newNoOpHandler())
 
 	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "http://example.com")
@@ -43,9 +41,7 @@ func ExampleChain() {
 		}
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprint(w, "done")
-	})
+	handler := newNoOpHandler()
 
 	chain := Chain(handler, wrapper("first"), wrapper("second"))
 	rec := httptest.NewRecorder()

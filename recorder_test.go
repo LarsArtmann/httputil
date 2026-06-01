@@ -76,9 +76,7 @@ func TestChain(t *testing.T) {
 		}
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		order = append(order, "handler")
-	})
+	handler := newAppendingHandler(&order, "handler")
 
 	Chain(
 		handler,
@@ -103,9 +101,7 @@ func TestChain_ZeroMiddleware(t *testing.T) {
 	t.Parallel()
 
 	called := false
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-	})
+	handler := newCountingHandler(&called)
 
 	Chain(
 		handler,
@@ -129,9 +125,7 @@ func TestChain_SingleMiddleware(t *testing.T) {
 		})
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		order = append(order, "handler")
-	})
+	handler := newAppendingHandler(&order, "handler")
 
 	Chain(
 		handler,

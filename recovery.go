@@ -8,7 +8,7 @@ import (
 
 // Recovery returns middleware that catches panics in downstream handlers,
 // logs the panic value and stack trace, and returns 500 Internal Server Error.
-func Recovery(logger *slog.Logger) func(http.Handler) http.Handler {
+func Recovery(logger *slog.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			defer func() {

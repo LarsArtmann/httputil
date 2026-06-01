@@ -25,7 +25,7 @@ func DefaultSecurityHeadersConfig() SecurityHeadersConfig {
 
 // SecurityHeaders returns middleware that sets common security response headers
 // based on the given configuration.
-func SecurityHeaders(cfg SecurityHeadersConfig) func(http.Handler) http.Handler {
+func SecurityHeaders(cfg SecurityHeadersConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			if cfg.ContentTypeNosniff {

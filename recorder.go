@@ -9,6 +9,9 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// Middleware wraps an http.Handler to intercept or modify request flow.
+type Middleware func(http.Handler) http.Handler
+
 // ResponseRecorder wraps an http.ResponseWriter to capture the status code.
 // It also supports http.Flusher, http.Hijacker, and http.Pusher when the
 // underlying ResponseWriter implements them.
@@ -119,7 +122,7 @@ func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
 
 // Chain wraps a handler with multiple middleware, applying them in reverse
 // order so the first middleware in the variadic list is the outermost.
-func Chain(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
+func Chain(handler http.Handler, middlewares ...Middleware) http.Handler {
 	for _, mw := range slices.Backward(middlewares) {
 		handler = mw(handler)
 	}
