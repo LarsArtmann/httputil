@@ -66,7 +66,7 @@ func TestChain(t *testing.T) {
 
 	var order []string
 
-	middleware := func(name string) func(http.Handler) http.Handler {
+	middleware := func(name string) Middleware {
 		return func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				order = append(order, name)
@@ -86,15 +86,7 @@ func TestChain(t *testing.T) {
 	).ServeHTTP(httptest.NewRecorder(), httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil))
 
 	want := []string{"a", "b", "c", "handler"}
-	if len(order) != len(want) {
-		t.Fatalf("order = %v, want %v", order, want)
-	}
-
-	for i, v := range want {
-		if order[i] != v {
-			t.Errorf("order[%d] = %q, want %q", i, order[i], v)
-		}
-	}
+	assertSliceEqual(t, order, want)
 }
 
 func TestChain_ZeroMiddleware(t *testing.T) {
@@ -133,9 +125,7 @@ func TestChain_SingleMiddleware(t *testing.T) {
 	).ServeHTTP(httptest.NewRecorder(), httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil))
 
 	want := []string{"mw", "handler"}
-	if len(order) != len(want) {
-		t.Fatalf("order = %v, want %v", order, want)
-	}
+	assertSliceEqual(t, order, want)
 }
 
 func TestResponseRecorder_WriteAfterWriteHeader(t *testing.T) {

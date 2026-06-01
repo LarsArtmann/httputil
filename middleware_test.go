@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"bytes"
-	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -80,7 +79,7 @@ func TestRequestID_ForwardsExistingID(t *testing.T) {
 
 	handler := RequestID(cfg)(inner)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set("X-Request-ID", "existing-id-123")
 
 	rec := httptest.NewRecorder()
@@ -97,7 +96,7 @@ func TestRequestID_ForwardsExistingID(t *testing.T) {
 func TestRecovery_CatchesPanic(t *testing.T) {
 	t.Parallel()
 
-	logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
+	logger := newTestLogger()
 	handler := Recovery(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("test panic")
 	}))
@@ -115,7 +114,7 @@ func TestRecovery_CatchesPanic(t *testing.T) {
 func TestRecovery_PassesThroughNormal(t *testing.T) {
 	t.Parallel()
 
-	logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
+	logger := newTestLogger()
 	called := false
 
 	handler := Recovery(logger)(newCountingHandler(&called))

@@ -69,15 +69,7 @@ func TestWrite_HasStatusContext(t *testing.T) {
 
 	_, err := recorder.Write([]byte("hello"))
 
-	contextual, ok := errors.AsType[errorfamily.Contextual](err)
-	if !ok {
-		t.Fatal("error does not implement Contextual")
-	}
-
-	ctx := contextual.ErrorContext()
-	if ctx["status"] != "200" {
-		t.Errorf("context[\"status\"] = %q, want %q", ctx["status"], "200")
-	}
+	assertErrorContext(t, err, "status", "200")
 }
 
 func TestWrite_WrapsUnderlyingError(t *testing.T) {
@@ -166,9 +158,7 @@ func TestHijack_ErrNotSupported_InErrorChain(t *testing.T) {
 
 	_, _, err := recorder.Hijack()
 
-	if !errors.Is(err, http.ErrNotSupported) {
-		t.Error("errors.Is(err, http.ErrNotSupported) = false, want true")
-	}
+	assertErrNotSupported(t, err)
 }
 
 func TestPush_ReturnsNilError_OnSuccess(t *testing.T) {
@@ -243,15 +233,7 @@ func TestPush_HasTargetContext(t *testing.T) {
 
 	err := recorder.Push("/style.css", nil)
 
-	contextual, ok := errors.AsType[errorfamily.Contextual](err)
-	if !ok {
-		t.Fatal("error does not implement Contextual")
-	}
-
-	ctx := contextual.ErrorContext()
-	if ctx["target"] != "/style.css" {
-		t.Errorf("context[\"target\"] = %q, want %q", ctx["target"], "/style.css")
-	}
+	assertErrorContext(t, err, "target", "/style.css")
 }
 
 func TestPush_ErrNotSupported_InErrorChain_WhenUnsupported(t *testing.T) {
@@ -261,6 +243,26 @@ func TestPush_ErrNotSupported_InErrorChain_WhenUnsupported(t *testing.T) {
 	recorder := NewResponseRecorder(inner)
 
 	err := recorder.Push("/style.css", nil)
+
+	assertErrNotSupported(t, err)
+}
+
+func assertErrorContext(t *testing.T, err error, key, want string) {
+	t.Helper()
+
+	contextual, ok := errors.AsType[errorfamily.Contextual](err)
+	if !ok {
+		t.Fatal("error does not implement Contextual")
+	}
+
+	ctx := contextual.ErrorContext()
+	if ctx[key] != want {
+		t.Errorf("context[%q] = %q, want %q", key, ctx[key], want)
+	}
+}
+
+func assertErrNotSupported(t *testing.T, err error) {
+	t.Helper()
 
 	if !errors.Is(err, http.ErrNotSupported) {
 		t.Error("errors.Is(err, http.ErrNotSupported) = false, want true")

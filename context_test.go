@@ -36,7 +36,7 @@ func TestClientIPMiddleware_StoresIPInContext(t *testing.T) {
 		extracted = ClientIPFromContext(r.Context())
 	})
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set("X-Forwarded-For", "9.8.7.6")
 	req.RemoteAddr = "10.0.0.1:1234"
 

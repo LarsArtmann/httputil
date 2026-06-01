@@ -67,7 +67,7 @@ func TestClientIP(t *testing.T) {
 }
 
 func BenchmarkClientIP(b *testing.B) {
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
 	req.RemoteAddr = "10.0.0.1:1234"
 
@@ -84,7 +84,7 @@ func FuzzClientIP(f *testing.F) {
 	f.Add("not-an-ip")
 
 	f.Fuzz(func(t *testing.T, xff string) {
-		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+		req := newTestRequest(http.MethodGet, "/", "")
 		req.Header.Set("X-Forwarded-For", xff)
 		req.RemoteAddr = "10.0.0.1:1234"
 

@@ -1,7 +1,6 @@
 package httputil
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -103,14 +102,18 @@ func TestCORSConfig_Validate_ValidDefault(t *testing.T) {
 	}
 }
 
-func TestCORSConfig_Validate_CredentialsWithAllOrigins(t *testing.T) {
-	t.Parallel()
-
-	cfg := CORSConfig{
+func newCredentialsWithAllOriginsConfig() CORSConfig {
+	return CORSConfig{
 		AllowedOrigins:   []string{"*"},
 		AllowAllOrigins:  true,
 		AllowCredentials: true,
 	}
+}
+
+func TestCORSConfig_Validate_CredentialsWithAllOrigins(t *testing.T) {
+	t.Parallel()
+
+	cfg := newCredentialsWithAllOriginsConfig()
 
 	err := cfg.Validate()
 	if err == nil {
@@ -143,11 +146,7 @@ func TestCORSConfig_Validate_NegativeMaxAge(t *testing.T) {
 func TestCORS_CredentialsAndAllOrigins_InvalidConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := CORSConfig{
-		AllowedOrigins:   []string{"*"},
-		AllowAllOrigins:  true,
-		AllowCredentials: true,
-	}
+	cfg := newCredentialsWithAllOriginsConfig()
 
 	err := cfg.Validate()
 	if err == nil {
@@ -204,7 +203,7 @@ func TestCORS_NoOriginHeader(t *testing.T) {
 	middleware := CORS(cfg)
 
 	inner := newNoOpHandler()
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
@@ -247,18 +246,9 @@ func BenchmarkCORS(b *testing.B) {
 	}
 }
 
-func TestCORS_WildcardOriginMatch(t *testing.T) {
+func TestCORS_WildcardOrigin(t *testing.T) {
 	t.Parallel()
 
-	rec := serveWildcardCORS("http://sub.example.com")
-
-	assertAllowOrigin(t, rec, "http://sub.example.com")
-}
-
-func TestCORS_WildcardOriginNoMatch(t *testing.T) {
-	t.Parallel()
-
-	rec := serveWildcardCORS("http://other.com")
-
-	assertAllowOrigin(t, rec, "*")
+	assertAllowOrigin(t, serveWildcardCORS("http://sub.example.com"), "http://sub.example.com")
+	assertAllowOrigin(t, serveWildcardCORS("http://other.com"), "*")
 }
