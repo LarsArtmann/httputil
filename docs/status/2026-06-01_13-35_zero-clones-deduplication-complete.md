@@ -21,7 +21,7 @@ The httputil library is in **outstanding condition**. After this session's aggre
 **Progression across sessions:**
 
 | Threshold | Before | After Session 1 | After This Session |
-|-----------|--------|-----------------|--------------------|
+| --------- | ------ | --------------- | ------------------ |
 | 50        | 1      | 0               | 0                  |
 | 45        | 1      | 0               | 0                  |
 | 20        | 5      | 0               | 0                  |
@@ -30,10 +30,12 @@ The httputil library is in **outstanding condition**. After this session's aggre
 **What was accomplished this session (threshold 45 → 15):**
 
 **Round 1 (t=45):** 1 clone group → 0
+
 - Extracted `serveWildcardCORS()` helper in `cors_test.go`
 - Merged `TestCORS_WildcardOriginMatch` + `TestCORS_WildcardOriginNoMatch`
 
 **Round 2 (t=20):** 5 clone groups → 0
+
 - Introduced `type Middleware func(http.Handler) http.Handler` in `recorder.go:12` — updated all 7 factory functions and `Chain`
 - Extracted `assertHeader` to `testutil_test.go`
 - Extracted `newAppendingHandler` to `testutil_test.go`
@@ -41,6 +43,7 @@ The httputil library is in **outstanding condition**. After this session's aggre
 - Replaced inline body-writing handlers in `example_test.go` with `newNoOpHandler()`
 
 **Round 3 (t=15):** 8 clone groups → 0
+
 - Replaced 5 raw `httptest.NewRequestWithContext(...)` calls with `newTestRequest()`
 - Updated middleware factory closures in `example_test.go` and `recorder_test.go` to use `Middleware` type
 - Extracted `assertSliceEqual` to `testutil_test.go`
@@ -52,6 +55,7 @@ The httputil library is in **outstanding condition**. After this session's aggre
 ### 2. Middleware Type Alias — Complete ✅
 
 **Public API change (committed in `b9c2ab4`):**
+
 - Added `type Middleware func(http.Handler) http.Handler` to `recorder.go`
 - Updated all 7 factory functions: `CORS`, `SecurityHeaders`, `RequestID`, `Recovery`, `Logging`, `Timeout`, `Chain`
 - `ClientIPMiddleware` is already a `Middleware` value (not a factory)
@@ -61,30 +65,31 @@ The httputil library is in **outstanding condition**. After this session's aggre
 
 **Shared test helpers in `testutil_test.go`:**
 
-| Helper | Purpose | Used In |
-|--------|---------|---------|
-| `newNoOpHandler()` | Empty handler | 6+ test files |
-| `newCountingHandler(*bool)` | Tracks if called | middleware_test, recorder_test |
-| `newTestRequest(method, path, origin)` | Creates test request with context | 8+ test files |
-| `newRecorder()` | Creates ResponseRecorder | 8+ test files |
-| `newTestLogger()` | Creates discard slog.Logger | middleware_test |
-| `newAppendingHandler(*[]string, val)` | Appends to slice | recorder_test |
-| `assertHeader(t, rec, key, want)` | Asserts response header | middleware_test |
-| `assertSliceEqual(t, got, want)` | Asserts string slice equality | recorder_test |
+| Helper                                 | Purpose                           | Used In                        |
+| -------------------------------------- | --------------------------------- | ------------------------------ |
+| `newNoOpHandler()`                     | Empty handler                     | 6+ test files                  |
+| `newCountingHandler(*bool)`            | Tracks if called                  | middleware_test, recorder_test |
+| `newTestRequest(method, path, origin)` | Creates test request with context | 8+ test files                  |
+| `newRecorder()`                        | Creates ResponseRecorder          | 8+ test files                  |
+| `newTestLogger()`                      | Creates discard slog.Logger       | middleware_test                |
+| `newAppendingHandler(*[]string, val)`  | Appends to slice                  | recorder_test                  |
+| `assertHeader(t, rec, key, want)`      | Asserts response header           | middleware_test                |
+| `assertSliceEqual(t, got, want)`       | Asserts string slice equality     | recorder_test                  |
 
 **File-local helpers:**
+
 - `cors_test.go`: `assertAllowOrigin`, `serveWildcardCORS`, `newCredentialsWithAllOriginsConfig`
 - `errors_test.go`: `assertErrorContext`, `assertErrNotSupported`
 
 ### 4. Quality Gates — All Passing ✅
 
-| Check | Status |
-|-------|--------|
-| `go test ./...` | PASS (all tests) |
+| Check               | Status                            |
+| ------------------- | --------------------------------- |
+| `go test ./...`     | PASS (all tests)                  |
 | `golangci-lint run` | 0 issues (~70 linters configured) |
-| `go vet ./...` | CLEAN |
-| `art-dupl -t 15` | 0 clone groups |
-| `art-dupl -t 50` | 0 clone groups |
+| `go vet ./...`      | CLEAN                             |
+| `art-dupl -t 15`    | 0 clone groups                    |
+| `art-dupl -t 50`    | 0 clone groups                    |
 
 ### 5. Documentation — Complete ✅
 
@@ -102,12 +107,14 @@ The httputil library is in **outstanding condition**. After this session's aggre
 ### 1. CHANGELOG Update — Needs Update ⚠️
 
 The `Middleware` type alias and deduplication work are not yet reflected in `CHANGELOG.md`. The `[Unreleased]` section should be updated with:
+
 - `Middleware` type alias addition (public API change)
 - Deduplication improvements (internal)
 
 ### 2. AGENTS.md — Needs Update ⚠️
 
 The architecture table in AGENTS.md needs updating:
+
 - `recorder.go` now exports `Middleware` type
 - `testutil_test.go` now has more helpers: `newTestLogger`, `newAppendingHandler`, `assertHeader`, `assertSliceEqual`
 - The middleware pattern description should mention the `Middleware` type
@@ -147,6 +154,7 @@ The architecture table in AGENTS.md needs updating:
 No broken tests, no lint failures, no regressions. The codebase is clean and all quality gates pass.
 
 **Pre-existing warnings (not our fault, not our job):**
+
 - ~22 `varnamelen` and `noctx` warnings in existing code — documented as acceptable in AGENTS.md
 - `86400` magic number in `DefaultCORSConfig` — pre-existing `mnd` violation, documented in AGENTS.md
 
@@ -181,33 +189,33 @@ No broken tests, no lint failures, no regressions. The codebase is clean and all
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Priority | Task | Impact | Effort |
-|---|----------|------|--------|--------|
-| 1 | Critical | Commit uncommitted deduplication changes | High | 1 min |
-| 2 | Critical | Update CHANGELOG.md with Middleware type + deduplication | High | 10 min |
-| 3 | Critical | Update AGENTS.md architecture table and helpers list | High | 5 min |
-| 4 | High | Run `go test -cover` and verify ≥89% coverage | Medium | 2 min |
-| 5 | High | Create FEATURES.md with full feature inventory | High | 20 min |
-| 6 | High | Create TODO_LIST.md with actionable tasks | Medium | 15 min |
-| 7 | High | Tag v0.2.0 release (Middleware type is a public API addition) | High | 5 min |
-| 8 | Medium | Evaluate Go 1.26 `iter` package for internal use | Medium | 30 min |
-| 9 | Medium | Add integration test: full middleware stack with Chain | Medium | 30 min |
-| 10 | Medium | Verify GitHub Actions CI passes with current changes | Medium | 5 min |
-| 11 | Medium | Create ROADMAP.md with long-term direction | Medium | 20 min |
-| 12 | Medium | Add `Middleware` type documentation to README.md | Medium | 10 min |
-| 13 | Medium | Benchmark `Middleware` type alias overhead | Low | 15 min |
-| 14 | Medium | Review all doc.go/package comments for accuracy | Low | 10 min |
-| 15 | Low | Add GoDoc badge and link to README.md | Low | 5 min |
-| 16 | Low | Add `art-dupl` to CI pipeline for clone detection | Low | 15 min |
-| 17 | Low | Fix pre-existing `mnd` violation (86400 in DefaultCORSConfig) | Low | 2 min |
-| 18 | Low | Evaluate functional options pattern for middleware config | Low | 30 min |
-| 19 | Low | Add example_test.go for `Middleware` type usage | Low | 10 min |
-| 20 | Low | Review `util.go` itoa/join — can we use strconv now? | Low | 10 min |
-| 21 | Low | Add `ResponseRecorder` context propagation | Medium | 30 min |
-| 22 | Low | Consider `http.ResponseWriter` wrapper interface standardization | Low | 45 min |
-| 23 | Low | Add `RateLimit` middleware (token bucket) | Medium | 60 min |
-| 24 | Low | Add `Compress` middleware (gzip/deflate) | Medium | 60 min |
-| 25 | Low | Add `CircuitBreaker` middleware pattern | Medium | 90 min |
+| #   | Priority | Task                                                             | Impact | Effort |
+| --- | -------- | ---------------------------------------------------------------- | ------ | ------ |
+| 1   | Critical | Commit uncommitted deduplication changes                         | High   | 1 min  |
+| 2   | Critical | Update CHANGELOG.md with Middleware type + deduplication         | High   | 10 min |
+| 3   | Critical | Update AGENTS.md architecture table and helpers list             | High   | 5 min  |
+| 4   | High     | Run `go test -cover` and verify ≥89% coverage                    | Medium | 2 min  |
+| 5   | High     | Create FEATURES.md with full feature inventory                   | High   | 20 min |
+| 6   | High     | Create TODO_LIST.md with actionable tasks                        | Medium | 15 min |
+| 7   | High     | Tag v0.2.0 release (Middleware type is a public API addition)    | High   | 5 min  |
+| 8   | Medium   | Evaluate Go 1.26 `iter` package for internal use                 | Medium | 30 min |
+| 9   | Medium   | Add integration test: full middleware stack with Chain           | Medium | 30 min |
+| 10  | Medium   | Verify GitHub Actions CI passes with current changes             | Medium | 5 min  |
+| 11  | Medium   | Create ROADMAP.md with long-term direction                       | Medium | 20 min |
+| 12  | Medium   | Add `Middleware` type documentation to README.md                 | Medium | 10 min |
+| 13  | Medium   | Benchmark `Middleware` type alias overhead                       | Low    | 15 min |
+| 14  | Medium   | Review all doc.go/package comments for accuracy                  | Low    | 10 min |
+| 15  | Low      | Add GoDoc badge and link to README.md                            | Low    | 5 min  |
+| 16  | Low      | Add `art-dupl` to CI pipeline for clone detection                | Low    | 15 min |
+| 17  | Low      | Fix pre-existing `mnd` violation (86400 in DefaultCORSConfig)    | Low    | 2 min  |
+| 18  | Low      | Evaluate functional options pattern for middleware config        | Low    | 30 min |
+| 19  | Low      | Add example_test.go for `Middleware` type usage                  | Low    | 10 min |
+| 20  | Low      | Review `util.go` itoa/join — can we use strconv now?             | Low    | 10 min |
+| 21  | Low      | Add `ResponseRecorder` context propagation                       | Medium | 30 min |
+| 22  | Low      | Consider `http.ResponseWriter` wrapper interface standardization | Low    | 45 min |
+| 23  | Low      | Add `RateLimit` middleware (token bucket)                        | Medium | 60 min |
+| 24  | Low      | Add `Compress` middleware (gzip/deflate)                         | Medium | 60 min |
+| 25  | Low      | Add `CircuitBreaker` middleware pattern                          | Medium | 90 min |
 
 ---
 
@@ -229,32 +237,32 @@ This is technically a **minor breaking change** for anyone who explicitly typed 
 
 8 files modified, 68 insertions, 65 deletions (net -3 lines):
 
-| File | Change |
-|------|--------|
-| `clientip_test.go` | Use `newTestRequest` instead of raw `httptest.NewRequestWithContext` |
-| `context_test.go` | Use `newTestRequest` instead of raw `httptest.NewRequestWithContext` |
-| `cors_test.go` | Extract `newCredentialsWithAllOriginsConfig`, merge wildcard tests, use `newTestRequest`, remove `context` import |
-| `errors_test.go` | Extract `assertErrorContext` and `assertErrNotSupported` helpers |
-| `example_test.go` | Use `Middleware` type for wrapper closure |
-| `middleware_test.go` | Use `newTestRequest`, `newTestLogger`, remove `context` import |
-| `recorder_test.go` | Use `Middleware` type, `assertSliceEqual`, `newAppendingHandler` |
-| `testutil_test.go` | Add `newTestLogger`, `newAppendingHandler`, `assertHeader`, `assertSliceEqual` |
+| File                 | Change                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `clientip_test.go`   | Use `newTestRequest` instead of raw `httptest.NewRequestWithContext`                                              |
+| `context_test.go`    | Use `newTestRequest` instead of raw `httptest.NewRequestWithContext`                                              |
+| `cors_test.go`       | Extract `newCredentialsWithAllOriginsConfig`, merge wildcard tests, use `newTestRequest`, remove `context` import |
+| `errors_test.go`     | Extract `assertErrorContext` and `assertErrNotSupported` helpers                                                  |
+| `example_test.go`    | Use `Middleware` type for wrapper closure                                                                         |
+| `middleware_test.go` | Use `newTestRequest`, `newTestLogger`, remove `context` import                                                    |
+| `recorder_test.go`   | Use `Middleware` type, `assertSliceEqual`, `newAppendingHandler`                                                  |
+| `testutil_test.go`   | Add `newTestLogger`, `newAppendingHandler`, `assertHeader`, `assertSliceEqual`                                    |
 
 ---
 
 ## Codebase Statistics
 
-| Metric | Value |
-|--------|-------|
-| Total lines of Go code | 1,988 |
-| Production files | 10 |
-| Test files | 9 (including testutil) |
-| Exported functions | ~30 |
-| Middleware factories | 7 |
-| Test helpers | 11 |
-| Lint issues | 0 |
-| Clone groups (t=15) | 0 |
-| Clone groups (t=50) | 0 |
+| Metric                 | Value                  |
+| ---------------------- | ---------------------- |
+| Total lines of Go code | 1,988                  |
+| Production files       | 10                     |
+| Test files             | 9 (including testutil) |
+| Exported functions     | ~30                    |
+| Middleware factories   | 7                      |
+| Test helpers           | 11                     |
+| Lint issues            | 0                      |
+| Clone groups (t=15)    | 0                      |
+| Clone groups (t=50)    | 0                      |
 
 ---
 
