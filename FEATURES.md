@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-06-07_
+_Updated: 2026-06-08_
 
 ---
 
@@ -70,7 +70,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` — 114+ tests passing.
+- `go test ./...` — 94 tests passing.
+- 87.1% coverage.
 - `go vet` clean.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests and lint.
@@ -94,11 +95,6 @@ Not 100%. Gaps exist in:
 
 ### Near-term
 
-- Add benchmarks for remaining middlewares.
-- Add example functions for missing middlewares.
-- Add fuzz tests for CORS and RequestID.
-- Add integration tests for common middleware chains (`Recovery + Logging + CORS`).
-- Add `ExampleResponseRecorder` and `BenchmarkChain`.
 - Add WebSocket upgrade test through Compression + ETag.
 - Add `Content-Length` preservation test for small responses.
 

@@ -1,6 +1,6 @@
 # TODO List
 
-_Last verified against code: 2026-06-07_
+_Last verified against code: 2026-06-08_
 
 ---
 
@@ -21,10 +21,16 @@ _Last verified against code: 2026-06-07_
 - [x] `Compression` with `sync.Pool`, content-type filtering, bounded buffering
 - [x] `ETag` with RFC 7232 compliance, 1MB memory limit, zero-allocation hex encoding
 - [x] `wrapper.go` shared ResponseWriter wrapper extracting duplication from compress/etag writers
-- [x] `example_test.go` with 6 example functions
-- [x] Benchmarks for CORS, ClientIP, Compression, ETag, Itoa, Join
-- [x] Fuzz tests for ClientIP, Compression, ETag
-- [x] Integration tests for `Chain(Compression, ETag)` ordering
+- [x] `example_test.go` with 11 example functions
+- [x] Benchmarks for all middlewares (CORS, ClientIP, Compression, ETag, Itoa, Join, RequestID, SecurityHeaders, Recovery, Timeout, Logging, ResponseRecorder, Chain)
+- [x] Fuzz tests for ClientIP, Compression, ETag, CORS, RequestID
+- [x] Integration tests for `Chain(Compression, ETag)` and `Chain(Recovery, Logging, CORS)` ordering
+- [x] Example functions for all public API (11 examples)
+- [x] Document brotli policy decision in README
+- [x] Fix data race in `getGzipPool()` (added `sync.RWMutex`)
+- [x] Improve flake.nix (source filtering, writeShellApplication, format check)
+- [x] Strengthen CI workflow (build, vet, benchmark steps)
+- [x] Improve .golangci.yml (gocognit test exclusion, goexperiment build tags, varnamelen ignores)
 - [x] GitHub Actions CI workflow (test + lint)
 - [x] Release workflow with `govulncheck`
 - [x] Nix flake for reproducible dev environment
@@ -33,34 +39,12 @@ _Last verified against code: 2026-06-07_
 - [x] `docs/DOMAIN_LANGUAGE.md` with domain glossary
 - [x] `doc.go` package-level godoc
 - [x] `golangci-lint` ~70 linters, 0 issues
-- [x] 114+ tests passing, `go vet` clean, 86.9% coverage
+- [x] 94 tests passing, `go vet` clean, 87.1% coverage
 - [x] FEATURES.md — honest feature inventory
 - [x] TODO_LIST.md — centralized task list
 
 ## Not Started
 
-- [x] Add `BenchmarkRequestID` — benchmark for request ID middleware
-- [x] Add `BenchmarkSecurityHeaders` — benchmark for security headers middleware
-- [x] Add `BenchmarkRecovery` — benchmark for panic recovery middleware
-- [x] Add `BenchmarkTimeout` — benchmark for timeout middleware
-- [x] Add `BenchmarkLogging` — benchmark for logging middleware
-- [x] Add `BenchmarkResponseRecorder` — benchmark for response recorder
-- [x] Add `BenchmarkChain` — benchmark for middleware chaining
-- [x] Add `ExampleRequestID` — godoc example for request ID middleware
-- [x] Add `ExampleSecurityHeaders` — godoc example for security headers middleware
-- [x] Add `ExampleRecovery` — godoc example for panic recovery middleware
-- [x] Add `ExampleTimeout` — godoc example for timeout middleware
-- [x] Add `ExampleLogging` — godoc example for logging middleware
-- [x] Add `FuzzCORS` — fuzz test for CORS origin matching
-- [x] Add `FuzzRequestID` — fuzz test for request ID generation
-- [x] Add integration tests for `Chain(Recovery, Logging, CORS)` and other common combinations
-- [x] Document brotli policy decision in README
-- [x] Fix data race in `getGzipPool()` (added `sync.RWMutex`)
-- [x] Add FEATURES.md with honest feature inventory
-- [x] Add TODO_LIST.md with completed and pending tasks
-- [x] Improve flake.nix (source filtering, writeShellApplication, format check)
-- [x] Strengthen CI workflow (build, vet, benchmark steps)
-- [x] Improve .golangci.yml (gocognit test exclusion, goexperiment build tags, varnamelen ignores)
 - [ ] Add WebSocket upgrade test through Compression + ETag
 - [ ] Add `Content-Length` preservation test for small responses
 - [ ] Implement deflate support using `compress/flate`
