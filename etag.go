@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"hash/crc32"
 	"net"
 	"net/http"
@@ -96,7 +95,7 @@ func (w *etagWriter) Write(b []byte) (int, error) {
 	if w.flushed {
 		n, err := w.ResponseWriter.Write(b)
 		if err != nil {
-			return n, fmt.Errorf("failed to write to response writer: %w", err)
+			return n, errorfamily.WrapTransient(err, ErrCodeETagWriteFailed, "etag writer streaming write failed")
 		}
 
 		return n, nil
@@ -107,7 +106,7 @@ func (w *etagWriter) Write(b []byte) (int, error) {
 
 		n, err := w.ResponseWriter.Write(b)
 		if err != nil {
-			return n, fmt.Errorf("failed to write to response writer: %w", err)
+			return n, errorfamily.WrapTransient(err, ErrCodeETagWriteFailed, "etag writer overflow write failed")
 		}
 
 		return n, nil

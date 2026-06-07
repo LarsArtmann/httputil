@@ -29,6 +29,14 @@ const (
 	// ErrCodePushFailed is returned when the underlying Push call fails.
 	// Classified as Transient (retryable).
 	ErrCodePushFailed = "http.push_failed"
+
+	// ErrCodeCompressWriteFailed is returned when gzip write during
+	// compression fails. Classified as Transient (retryable).
+	ErrCodeCompressWriteFailed = "http.compress_write_failed"
+
+	// ErrCodeETagWriteFailed is returned when the ETag writer fails to
+	// write buffered or streamed data. Classified as Transient (retryable).
+	ErrCodeETagWriteFailed = "http.etag_write_failed"
 )
 
 const (
@@ -58,6 +66,10 @@ func RegisterErrorClassifications() {
 		http.ErrSkipAltProtocol: errorfamily.Infrastructure,
 	})
 
+	registerAllErrorTemplates()
+}
+
+func registerAllErrorTemplates() {
 	registerErrorTemplate(
 		ErrCodeWriteFailed,
 		"Failed to write HTTP response body",
@@ -95,6 +107,22 @@ func RegisterErrorClassifications() {
 		"Failed to push HTTP/2 resource",
 		"The Push() call for target {{.target}} returned an error.",
 		"Check if the target path is valid and the connection supports HTTP/2 push.",
+		msgRetryMaySucceed,
+	)
+
+	registerErrorTemplate(
+		ErrCodeCompressWriteFailed,
+		"Failed to write compressed HTTP response",
+		"The gzip writer or underlying ResponseWriter returned an error during compression.",
+		"Check if the client disconnected or if the response buffer is full.",
+		msgRetryMaySucceed,
+	)
+
+	registerErrorTemplate(
+		ErrCodeETagWriteFailed,
+		"Failed to write ETag-buffered HTTP response",
+		"The underlying ResponseWriter.Write call returned an error while streaming ETag data.",
+		"Check if the client disconnected or if the response buffer is full.",
 		msgRetryMaySucceed,
 	)
 }

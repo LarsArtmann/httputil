@@ -134,7 +134,7 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 	if w.compressing {
 		n, err := w.gzipWriter.Write(b)
 		if err != nil {
-			return n, fmt.Errorf("failed to write to gzip writer: %w", err)
+			return n, errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer write failed")
 		}
 
 		return n, nil
@@ -172,7 +172,7 @@ func (w *compressWriter) startCompression() error {
 
 	gz, err := gzip.NewWriterLevel(w.ResponseWriter, w.level)
 	if err != nil {
-		return fmt.Errorf("failed to create gzip writer: %w", err)
+		return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer creation failed")
 	}
 
 	w.gzipWriter = gz
@@ -188,7 +188,7 @@ func (w *compressWriter) startCompression() error {
 		w.buf = w.buf[:0]
 
 		if err != nil {
-			return fmt.Errorf("failed to write buffered data to gzip writer: %w", err)
+			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer buffered write failed")
 		}
 	}
 
@@ -203,7 +203,7 @@ func (w *compressWriter) Close() error {
 	if w.compressing {
 		err := w.gzipWriter.Close()
 		if err != nil {
-			return fmt.Errorf("failed to close gzip writer: %w", err)
+			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer close failed")
 		}
 
 		return nil
@@ -217,7 +217,7 @@ func (w *compressWriter) Close() error {
 	if len(w.buf) > 0 {
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
-			return fmt.Errorf("failed to write buffered response: %w", err)
+			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "buffered response write failed")
 		}
 	}
 
