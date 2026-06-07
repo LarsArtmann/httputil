@@ -5,9 +5,11 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -21,6 +23,25 @@ const (
 )
 
 const encodingGzip = "gzip"
+
+//nolint:gochecknoglobals // sync.Pool is inherently package-level for writer reuse.
+var gzipWriterPools = make(map[int]*sync.Pool)
+
+func getGzipPool(level int) *sync.Pool {
+	pool, ok := gzipWriterPools[level]
+	if !ok {
+		pool = &sync.Pool{
+			New: func() any {
+				gz, _ := gzip.NewWriterLevel(io.Discard, level)
+
+				return gz
+			},
+		}
+		gzipWriterPools[level] = pool
+	}
+
+	return pool
+}
 
 // CompressionConfig holds configuration for response compression.
 type CompressionConfig struct {
@@ -40,7 +61,8 @@ var (
 	errInvalidCompressionLevel = errors.New(
 		"compression level must be between gzip.HuffmanOnly and gzip.BestCompression",
 	)
-	errNegativeMinSize = errors.New("compression minimum size must not be negative")
+	errNegativeMinSize  = errors.New("compression minimum size must not be negative")
+	errPoolTypeMismatch = errors.New("unexpected type from gzip writer pool")
 )
 
 // Validate checks the CompressionConfig for invalid values.
@@ -163,6 +185,37 @@ func (w *compressWriter) shouldCompress() bool {
 		return false
 	}
 
+	if !isCompressibleContentType(w.Header().Get("Content-Type")) {
+		return false
+	}
+
+	return true
+}
+
+//nolint:gochecknoglobals // Immutable reference data for content-type filtering.
+var incompressiblePrefixes = []string{
+	"image/",
+	"video/",
+	"audio/",
+	"application/gzip",
+	"application/zip",
+	"application/pdf",
+	"application/x-rar",
+	"application/x-7z",
+	"application/x-compress",
+}
+
+func isCompressibleContentType(contentType string) bool {
+	if contentType == "" {
+		return true
+	}
+
+	for _, prefix := range incompressiblePrefixes {
+		if strings.HasPrefix(contentType, prefix) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -170,12 +223,21 @@ func (w *compressWriter) startCompression() error {
 	w.Header().Set(headerContentEncoding, encodingGzip)
 	w.Header().Del(headerContentLength)
 
-	gz, err := gzip.NewWriterLevel(w.ResponseWriter, w.level)
-	if err != nil {
-		return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer creation failed")
+	pool := getGzipPool(w.level)
+	raw := pool.Get()
+
+	gzipWriter, ok := raw.(*gzip.Writer)
+	if !ok {
+		return errorfamily.WrapTransient(
+			errPoolTypeMismatch,
+			ErrCodeCompressWriteFailed,
+			"gzip writer pool type mismatch",
+		)
 	}
 
-	w.gzipWriter = gz
+	gzipWriter.Reset(w.ResponseWriter)
+
+	w.gzipWriter = gzipWriter
 	w.compressing = true
 
 	if w.wroteHeader && !w.headerWritten {
@@ -205,6 +267,9 @@ func (w *compressWriter) Close() error {
 		if err != nil {
 			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer close failed")
 		}
+
+		getGzipPool(w.level).Put(w.gzipWriter)
+		w.gzipWriter = nil
 
 		return nil
 	}

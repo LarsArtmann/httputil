@@ -237,6 +237,72 @@ func TestCompressionConfig_Validate_InvalidLevel(t *testing.T) {
 	}
 }
 
+func TestCompression_SkipsImageContentType(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "image/png")
+		resp.WriteHeader(http.StatusOK)
+		_, _ = resp.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding = %q, want empty for image/png", got)
+	}
+}
+
+func TestCompression_SkipsVideoContentType(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "video/mp4")
+		resp.WriteHeader(http.StatusOK)
+		_, _ = resp.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding = %q, want empty for video/mp4", got)
+	}
+}
+
+func TestCompression_SkipsGzipContentType(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "application/gzip")
+		resp.WriteHeader(http.StatusOK)
+		_, _ = resp.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding = %q, want empty for application/gzip", got)
+	}
+}
+
 func TestCompressionConfig_Validate_NegativeMinSize(t *testing.T) {
 	t.Parallel()
 
