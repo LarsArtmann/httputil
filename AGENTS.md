@@ -1,6 +1,6 @@
 # httputil — AGENTS.md
 
-**Updated:** 2026-05-26
+**Updated:** 2026-06-07
 
 ## Hard Constraints (Will Break Your Code)
 
@@ -69,6 +69,8 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `recovery.go`      | `Recovery()`                                                                                                                                             | Panic recovery middleware                                       |
 | `timeout.go`       | `Timeout()`                                                                                                                                              | Request deadline enforcement middleware                         |
 | `logging.go`       | `Logging()`                                                                                                                                              | Structured request logging middleware                           |
+| `compression.go`   | `CompressionConfig`, `DefaultCompressionConfig()`, `Compression()`, `Validate()`                                                                         | Gzip response compression middleware                            |
+| `etag.go`          | `ETagConfig`, `DefaultETagConfig()`, `ETag()`                                                                                                            | ETag generation + 304 conditional request middleware            |
 | `util.go`          | (unexported `join`, `itoa`)                                                                                                                              | Internal helpers avoiding strconv import                        |
 | `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newTestRequest`, `newRecorder`, `assertItoa`)                                                       | Shared test helpers for consistent test patterns                |
 | `doc.go`           | (package doc only)                                                                                                                                       | Package-level GoDoc documentation                               |

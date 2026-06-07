@@ -1,6 +1,6 @@
 # httputil
 
-Composable HTTP middleware and utility primitives for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, and structured logging.
+Composable HTTP middleware and utility primitives for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, and ETag generation.
 
 Minimal footprint — single same-author dependency. Pure stdlib `net/http`. Go 1.26+.
 
@@ -173,6 +173,26 @@ Logs each request with method, path, status, duration, and client IP.
 handler := httputil.Logging(slog.Default())(mux)
 ```
 
+### Response Compression
+
+Transparent gzip compression for responses when the client accepts it and the body exceeds a minimum size. Small responses, non-2xx statuses, and already-encoded responses are left uncompressed.
+
+```go
+handler := httputil.Compression(httputil.DefaultCompressionConfig())(mux)
+```
+
+Use `cfg.Validate()` to catch invalid configurations at startup (e.g., invalid compression levels or negative minimum sizes).
+
+### ETag Generation
+
+Generates ETag headers from response body content and handles `If-None-Match` conditional requests with `304 Not Modified`. Only applies to `GET` and `HEAD` requests.
+
+```go
+handler := httputil.ETag(httputil.DefaultETagConfig())(mux)
+```
+
+Set `Weak: true` for weak ETags (`W/"..."`) if your content may change semantically but not byte-for-byte.
+
 ### Error Classification
 
 `ResponseRecorder` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
@@ -206,6 +226,10 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Recovery`                     | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                              |
 | `Timeout`                      | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                |
 | `Logging`                      | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                  |
+| `Compression`                  | `func(CompressionConfig) func(http.Handler) http.Handler`             | Gzip response compression                   |
+| `DefaultCompressionConfig`     | `func() CompressionConfig`                                            | Sensible compression defaults               |
+| `ETag`                         | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + 304 handling              |
+| `DefaultETagConfig`            | `func() ETagConfig`                                                   | Strong ETag defaults                        |
 | `RegisterErrorClassifications` | `func()`                                                              | Register stdlib error sentinels + templates |
 
 ### `CORSConfig` fields
