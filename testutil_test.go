@@ -1,9 +1,11 @@
 package httputil
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -55,6 +57,40 @@ func assertHeader(t *testing.T, rec *httptest.ResponseRecorder, key, want string
 	if got := rec.Header().Get(key); got != want {
 		t.Errorf("%s = %q, want %q", key, got, want)
 	}
+}
+
+// hijackRecorder is an httptest.ResponseRecorder that also implements http.Hijacker.
+type hijackRecorder struct {
+	*httptest.ResponseRecorder
+
+	hijacked bool
+}
+
+func newHijackRecorder() *hijackRecorder {
+	return &hijackRecorder{ResponseRecorder: httptest.NewRecorder()}
+}
+
+func (r *hijackRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	r.hijacked = true
+
+	return nil, nil, nil
+}
+
+// pushRecorder is an httptest.ResponseRecorder that also implements http.Pusher.
+type pushRecorder struct {
+	*httptest.ResponseRecorder
+
+	pushed bool
+}
+
+func newPushRecorder() *pushRecorder {
+	return &pushRecorder{ResponseRecorder: httptest.NewRecorder()}
+}
+
+func (r *pushRecorder) Push(target string, opts *http.PushOptions) error {
+	r.pushed = true
+
+	return nil
 }
 
 // assertSliceEqual checks that two string slices are element-wise equal.

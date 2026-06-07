@@ -1,7 +1,10 @@
 package httputil
 
 import (
+	"bytes"
+	"io"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -217,6 +220,62 @@ func TestETag_MemoryLimit_DisablesETag(t *testing.T) {
 	if got := rec.Body.String(); got != "this body exceeds the limit" {
 		t.Errorf("body = %q, want %q", got, "this body exceeds the limit")
 	}
+}
+
+func TestETag_Hijack_SetsFlushedMode(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	etagWriter := newETagWriter(newHijackRecorder(), cfg)
+
+	_, _, err := etagWriter.Hijack()
+	if err != nil {
+		t.Fatalf("Hijack() error = %v, want nil", err)
+	}
+
+	if !etagWriter.flushed {
+		t.Error("Hijack should set flushed mode")
+	}
+}
+
+func TestETag_Push_Delegates(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	etagWriter := newETagWriter(newPushRecorder(), cfg)
+
+	err := etagWriter.Push("/test", nil)
+	if err != nil {
+		t.Errorf("Push error = %v, want nil", err)
+	}
+}
+
+func FuzzETag(f *testing.F) {
+	f.Add([]byte("hello world"), "")
+	f.Add([]byte(strings.Repeat("a", 1024)), `"abc123"`)
+	f.Add([]byte(""), "*")
+
+	cfg := DefaultETagConfig()
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("response body"))
+	})
+
+	f.Fuzz(func(t *testing.T, body []byte, ifNoneMatch string) {
+		handler := ETag(cfg)(inner)
+
+		req := newTestRequest(http.MethodGet, "/", "")
+		req.Body = io.NopCloser(bytes.NewReader(body))
+		req.Header.Set(headerIfNoneMatch, ifNoneMatch)
+
+		rec := newRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK && rec.Code != http.StatusNotModified {
+			t.Errorf("status = %d, want 200 or 304", rec.Code)
+		}
+	})
 }
 
 func BenchmarkETag(b *testing.B) {

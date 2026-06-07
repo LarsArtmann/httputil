@@ -1,9 +1,11 @@
 package httputil
 
 import (
+	"bufio"
 	"encoding/binary"
 	"encoding/hex"
 	"hash/crc32"
+	"net"
 	"net/http"
 	"strings"
 
@@ -189,4 +191,10 @@ func (w *etagWriter) Flush() {
 	}
 
 	w.responseWrapper.Flush()
+}
+
+func (w *etagWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	w.flushed = true
+
+	return w.responseWrapper.Hijack()
 }

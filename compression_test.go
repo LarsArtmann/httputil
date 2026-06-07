@@ -303,6 +303,61 @@ func TestCompression_SkipsGzipContentType(t *testing.T) {
 	}
 }
 
+func TestCompression_Hijack_SetsPlainMode(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	compressWriter := newCompressWriter(newHijackRecorder(), cfg.MinSize, cfg.Level)
+
+	_, _, err := compressWriter.Hijack()
+	if err != nil {
+		t.Fatalf("Hijack() error = %v, want nil", err)
+	}
+
+	if !compressWriter.plain {
+		t.Error("Hijack should set plain mode")
+	}
+}
+
+func TestCompression_Push_Delegates(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	compressWriter := newCompressWriter(newPushRecorder(), cfg.MinSize, cfg.Level)
+
+	err := compressWriter.Push("/test", nil)
+	if err != nil {
+		t.Errorf("Push error = %v, want nil", err)
+	}
+}
+
+func FuzzCompression(f *testing.F) {
+	f.Add([]byte("hello world"), "gzip")
+	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate")
+	f.Add([]byte(""), "")
+
+	cfg := DefaultCompressionConfig()
+	inner := http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		resp.WriteHeader(http.StatusOK)
+		_, _ = resp.Write([]byte("response body"))
+	})
+
+	f.Fuzz(func(t *testing.T, body []byte, acceptEncoding string) {
+		handler := Compression(cfg)(inner)
+
+		req := newTestRequest(http.MethodGet, "/", "")
+		req.Header.Set(headerAcceptEncoding, acceptEncoding)
+
+		rec := newRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+		}
+	})
+}
+
 func BenchmarkCompression(b *testing.B) {
 	cfg := DefaultCompressionConfig()
 	middleware := Compression(cfg)

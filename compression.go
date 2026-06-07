@@ -1,10 +1,12 @@
 package httputil
 
 import (
+	"bufio"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -159,6 +161,12 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 	}
 
 	return len(b), nil
+}
+
+func (w *compressWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	w.plain = true
+
+	return w.responseWrapper.Hijack()
 }
 
 func (w *compressWriter) shouldCompress() bool {
