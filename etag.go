@@ -8,6 +8,7 @@ import (
 	"hash/crc32"
 	"net"
 	"net/http"
+	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -17,17 +18,22 @@ const (
 	headerIfNoneMatch = "If-None-Match"
 )
 
-const crc32ByteSize = 4
+const (
+	crc32ByteSize            = 4
+	defaultETagMaxBufferSize = 1024 * 1024 // 1 MB
+)
 
 // ETagConfig holds configuration for ETag generation.
 type ETagConfig struct {
-	Weak bool
+	Weak          bool
+	MaxBufferSize int
 }
 
 // DefaultETagConfig returns an ETagConfig with sensible defaults.
 func DefaultETagConfig() ETagConfig {
 	return ETagConfig{
-		Weak: false,
+		Weak:          false,
+		MaxBufferSize: defaultETagMaxBufferSize,
 	}
 }
 
@@ -42,7 +48,7 @@ func ETag(cfg ETagConfig) Middleware {
 				return
 			}
 
-			ew := newETagWriter(resp, cfg.Weak)
+			ew := newETagWriter(resp, cfg)
 			next.ServeHTTP(ew, req)
 
 			ew.flush(req)
@@ -59,17 +65,19 @@ type etagWriter struct {
 	weak          bool
 	flushed       bool
 	headerWritten bool
+	maxBufferSize int
 }
 
-func newETagWriter(resp http.ResponseWriter, weak bool) *etagWriter {
+func newETagWriter(resp http.ResponseWriter, cfg ETagConfig) *etagWriter {
 	return &etagWriter{
 		ResponseWriter: resp,
 		body:           nil,
 		status:         0,
 		wroteHeader:    false,
-		weak:           weak,
+		weak:           cfg.Weak,
 		flushed:        false,
 		headerWritten:  false,
+		maxBufferSize:  cfg.MaxBufferSize,
 	}
 }
 
@@ -86,6 +94,17 @@ func (w *etagWriter) Write(b []byte) (int, error) {
 	}
 
 	if w.flushed {
+		n, err := w.ResponseWriter.Write(b)
+		if err != nil {
+			return n, fmt.Errorf("failed to write to response writer: %w", err)
+		}
+
+		return n, nil
+	}
+
+	if w.maxBufferSize > 0 && len(w.body)+len(b) > w.maxBufferSize {
+		w.Flush()
+
 		n, err := w.ResponseWriter.Write(b)
 		if err != nil {
 			return n, fmt.Errorf("failed to write to response writer: %w", err)
@@ -152,11 +171,26 @@ func (w *etagWriter) matchesIfNoneMatch(req *http.Request, etag string) bool {
 		return true
 	}
 
-	return inm == etag
+	return etagInList(inm, etag)
+}
+
+func etagInList(list, etag string) bool {
+	for {
+		idx := strings.Index(list, ",")
+		if idx < 0 {
+			return strings.TrimSpace(list) == etag
+		}
+
+		if strings.TrimSpace(list[:idx]) == etag {
+			return true
+		}
+
+		list = list[idx+1:]
+	}
 }
 
 func (w *etagWriter) isCacheableStatus() bool {
-	return w.status == 0 || w.status == http.StatusOK
+	return w.status == 0 || (w.status >= http.StatusOK && w.status < http.StatusMultipleChoices)
 }
 
 func (w *etagWriter) Flush() {

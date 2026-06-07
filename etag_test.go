@@ -53,6 +53,31 @@ func TestETag_GeneratesWeakETag(t *testing.T) {
 	}
 }
 
+func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("hello world"))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"other", "0d4a1185", "another"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotModified {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotModified)
+	}
+
+	if rec.Body.Len() != 0 {
+		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
+	}
+}
+
 func TestETag_IfNoneMatch_Matches(t *testing.T) {
 	t.Parallel()
 
@@ -144,6 +169,53 @@ func TestETag_NonGetHead(t *testing.T) {
 
 	if got := rec.Header().Get(headerETag); got != "" {
 		t.Errorf("ETag = %q, want empty for POST", got)
+	}
+}
+
+func TestETag_201Created_IsCacheable(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte("created"))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	etag := rec.Header().Get(headerETag)
+	if etag == "" {
+		t.Error("ETag header is empty, want generated ETag for 201")
+	}
+}
+
+func TestETag_MemoryLimit_DisablesETag(t *testing.T) {
+	t.Parallel()
+
+	cfg := ETagConfig{MaxBufferSize: 10}
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("this body exceeds the limit"))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	if got := rec.Header().Get(headerETag); got != "" {
+		t.Errorf("ETag = %q, want empty when buffer limit exceeded", got)
+	}
+
+	if got := rec.Body.String(); got != "this body exceeds the limit" {
+		t.Errorf("body = %q, want %q", got, "this body exceeds the limit")
 	}
 }
 
