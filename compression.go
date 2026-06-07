@@ -131,36 +131,103 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	if w.plain {
-		n, err := w.ResponseWriter.Write(b)
-		if err != nil {
-			return n, fmt.Errorf("failed to write to response writer: %w", err)
-		}
+	switch {
+	case w.plain:
+		return w.writePlain(b)
+	case w.compressing:
+		return w.writeCompressed(b)
+	default:
+		return w.writeBuffered(b)
+	}
+}
 
-		return n, nil
+func (w *compressWriter) writePlain(b []byte) (int, error) {
+	n, err := w.ResponseWriter.Write(b)
+	if err != nil {
+		return n, fmt.Errorf("failed to write to response writer: %w", err)
 	}
 
-	if w.compressing {
-		n, err := w.gzipWriter.Write(b)
-		if err != nil {
-			return n, errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer write failed")
-		}
+	return n, nil
+}
 
-		return n, nil
+func (w *compressWriter) writeCompressed(b []byte) (int, error) {
+	n, err := w.gzipWriter.Write(b)
+	if err != nil {
+		return n, errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer write failed")
 	}
 
-	w.buf = append(w.buf, b...)
+	return n, nil
+}
 
-	if len(w.buf) >= w.minSize && w.shouldCompress() {
-		err := w.startCompression()
-		if err != nil {
-			return 0, fmt.Errorf("failed to start gzip compression: %w", err)
+func (w *compressWriter) writeBuffered(b []byte) (int, error) {
+	total := len(b)
+
+	// Buffer only up to minSize so large responses do not accumulate
+	// indefinitely before the compress-or-not decision is made.
+	needed := w.minSize - len(w.buf)
+	if needed > 0 {
+		if len(b) <= needed {
+			w.buf = append(w.buf, b...)
+
+			if len(w.buf) < w.minSize {
+				return total, nil
+			}
+		} else {
+			w.buf = append(w.buf, b[:needed]...)
+			b = b[needed:]
 		}
-
-		return len(b), nil
 	}
 
-	return len(b), nil
+	if w.shouldCompress() {
+		return w.startCompressAndStream(b, total)
+	}
+
+	return w.flushPlainAndStream(b, total)
+}
+
+func (w *compressWriter) startCompressAndStream(b []byte, total int) (int, error) {
+	err := w.startCompression()
+	if err != nil {
+		return 0, fmt.Errorf("failed to start gzip compression: %w", err)
+	}
+
+	if len(b) == 0 {
+		return total, nil
+	}
+
+	_, err = w.gzipWriter.Write(b)
+	if err != nil {
+		return total, errorfamily.WrapTransient(
+			err, ErrCodeCompressWriteFailed, "gzip writer streaming write failed",
+		)
+	}
+
+	return total, nil
+}
+
+func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
+	w.plain = true
+	w.writeHeaderToUnderlying()
+
+	if len(w.buf) > 0 {
+		_, err := w.ResponseWriter.Write(w.buf)
+		if err != nil {
+			return 0, fmt.Errorf("failed to write buffered plain response: %w", err)
+		}
+
+		w.buf = w.buf[:0]
+	}
+
+	if len(b) == 0 {
+		return total, nil
+	}
+
+	_, err := w.ResponseWriter.Write(b)
+	if err != nil {
+		return total, fmt.Errorf("failed to write plain response: %w", err)
+	}
+
+	return total, nil
 }
 
 func (w *compressWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {

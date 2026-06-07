@@ -3,7 +3,6 @@ package httputil
 import (
 	"bufio"
 	"encoding/binary"
-	"encoding/hex"
 	"hash/crc32"
 	"net"
 	"net/http"
@@ -19,8 +18,14 @@ const (
 
 const (
 	crc32ByteSize            = 4
+	crc32HexSize             = 8
+	etagWeakLen              = 12
+	etagStrongLen            = 10
 	defaultETagMaxBufferSize = 1024 * 1024 // 1 MB
 )
+
+//nolint:gochecknoglobals // Immutable lookup table for hex digit encoding.
+var hexDigits = [16]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}
 
 // ETagConfig holds configuration for ETag generation.
 type ETagConfig struct {
@@ -135,15 +140,39 @@ func (w *etagWriter) computeETag() string {
 	}
 
 	checksum := crc32.ChecksumIEEE(w.body)
-	buf := make([]byte, crc32ByteSize)
-	binary.BigEndian.PutUint32(buf, checksum)
-	hexStr := hex.EncodeToString(buf)
+
+	var buf [crc32ByteSize]byte
+	binary.BigEndian.PutUint32(buf[:], checksum)
 
 	if w.weak {
-		return `W/"` + hexStr + `"`
+		var etag [etagWeakLen]byte
+
+		etag[0] = 'W'
+		etag[1] = '/'
+		etag[2] = '"'
+
+		for i := range crc32ByteSize {
+			etag[3+i*2] = hexDigits[buf[i]>>4]
+			etag[4+i*2] = hexDigits[buf[i]&0x0f]
+		}
+
+		etag[etagWeakLen-1] = '"'
+
+		return string(etag[:])
 	}
 
-	return `"` + hexStr + `"`
+	var etag [etagStrongLen]byte
+
+	etag[0] = '"'
+
+	for i := range crc32ByteSize {
+		etag[1+i*2] = hexDigits[buf[i]>>4]
+		etag[2+i*2] = hexDigits[buf[i]&0x0f]
+	}
+
+	etag[etagStrongLen-1] = '"'
+
+	return string(etag[:])
 }
 
 func (w *etagWriter) matchesIfNoneMatch(req *http.Request, etag string) bool {
