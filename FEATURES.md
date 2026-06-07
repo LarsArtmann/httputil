@@ -1,0 +1,123 @@
+# Features
+
+Honest feature inventory for `httputil`.
+
+_Updated: 2026-06-07_
+
+---
+
+## FULLY FUNCTIONAL
+
+### Core Middleware Suite (10 middlewares)
+
+| Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz |
+|------------|------|-------------|-------|----------|------------|------|
+| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS` |
+| ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` |
+| RequestID | `requestid.go` | `RequestIDConfig` | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` |
+| SecurityHeaders | `security.go` | `SecurityHeadersConfig` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — |
+| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — |
+| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — |
+| Logging | `logging.go` | `*slog.Logger` | Yes | `ExampleLogging` | `BenchmarkLogging` | — |
+| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — |
+| Compression | `compression.go` | `CompressionConfig` + `Validate()` | Yes | `ExampleCompression` | `BenchmarkCompression` | `FuzzCompression` |
+| ETag | `etag.go` | `ETagConfig` | Yes | `ExampleETag` | `BenchmarkETag` | `FuzzETag` |
+
+Plus `Chain()` in `recorder.go` for middleware composition.
+
+### Error Classification System
+
+- 7 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`.
+- `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
+- Message templates with `what/why/fix/wayOut` for all classified errors.
+- Test coverage in `errors_test.go`.
+
+### Shared ResponseWriter Wrapper
+
+- `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, `Push`, and `Flush` delegation.
+- Embedded by `compressWriter` and `etagWriter`, eliminating ~80 lines of duplication.
+
+### Compression Performance
+
+- `sync.Pool` keyed by gzip level reuses `gzip.Writer` instances.
+- Content-type deny-list skips incompressible formats (`image/`, `video/`, `audio/`, `application/gzip`, `application/zip`, `application/pdf`, etc.).
+- Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
+
+### ETag Correctness
+
+- RFC 7232 compliant `If-None-Match` list parsing (`etagInList`).
+- All 2xx statuses cacheable (`isCacheableStatus()`).
+- 1MB memory safety limit (`MaxBufferSize`).
+- Zero-allocation hex encoding via stack arrays and lookup table.
+
+### Context Helpers
+
+- `WithClientIP()` stores client IP in request context.
+- `ClientIPFromContext()` retrieves it downstream.
+- `ClientIPMiddleware()` wraps a handler to inject client IP into context.
+- `RequestIDFromContext()` retrieves request ID from context.
+
+### Documentation
+
+- `README.md` — feature overview, API table, usage examples, middleware ordering guidance.
+- `doc.go` — package-level godoc.
+- `AGENTS.md` — architecture reference, testing conventions, lint rules.
+- `CHANGELOG.md` — version history.
+- `docs/DOMAIN_LANGUAGE.md` — domain glossary.
+- Status reports in `docs/status/`.
+- Execution plans in `docs/planning/`.
+
+### Tooling & Quality Gates
+
+- `golangci-lint` with ~70 linters, 0 issues.
+- `go test ./...` — 114+ tests passing.
+- `go vet` clean.
+- Nix flake for reproducible development environment.
+- GitHub Actions CI for tests and lint.
+- Release workflow with `govulncheck`.
+
+---
+
+## PARTIALLY DONE
+
+### Test Coverage (87.1%)
+
+Not 100%. Gaps exist in:
+- Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
+- Edge cases in `CORS` wildcard matching with unusual patterns.
+- `ResponseRecorder` hijack/push failure paths.
+- Some `util.go` branches (`itoa` negative numbers, `join` empty slices).
+
+---
+
+## PLANNED
+
+### Near-term
+
+- Add benchmarks for remaining middlewares.
+- Add example functions for missing middlewares.
+- Add fuzz tests for CORS and RequestID.
+- Add integration tests for common middleware chains (`Recovery + Logging + CORS`).
+- Add `ExampleResponseRecorder` and `BenchmarkChain`.
+- Add WebSocket upgrade test through Compression + ETag.
+- Add `Content-Length` preservation test for small responses.
+
+### Medium-term
+
+- Implement deflate support using `compress/flate`.
+- Add `Accept-Encoding` quality value parsing per RFC 7231.
+- Make content-type filtering configurable via `CompressionConfig`.
+- Add `MiddlewareStack` type with ordering validation.
+- Add a `ResponseWriter` capability interface to unify Hijack/Push/Flush detection.
+- Improve test coverage to 90%+.
+
+---
+
+## WORTH CONSIDERING
+
+- **Brotli support** — blocked by single-dependency policy. Options: keep constraint, relax for `andybalholm/brotli`, or add `WriterFactory` plugin interface.
+- **Streaming ETag option** — compute ETag on a rolling hash and stream body without buffering. Would require breaking 304 short-circuit semantics or significant complexity.
+- **Request/response metrics middleware** — optional, using `expvar` or custom histograms.
+- **Rate-limiting middleware** — sliding window or token bucket.
+- **Request body size limit middleware**.
+- **HTTP/2 Server Push integration test**.

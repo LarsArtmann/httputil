@@ -293,10 +293,21 @@ handler := Chain(mux, Compression(cfg), ETag(cfg))
 handler := Chain(mux, ETag(cfg), Compression(cfg)) // don't do this
 ```
 
+### Compression Limitations
+
+Compression uses **gzip only**. Deflate and Brotli are not supported.
+
+This is an intentional constraint: the library maintains a single-external-dependency policy (`go-error-family` only). Brotli would require either relaxing this policy or adding a plugin interface that increases API surface area.
+
+If you need Brotli or zstd, use a dedicated compression library (e.g., `klauspost/compress`, `chi/middleware`) alongside the other `httputil` middlewares.
+
 ## Development
 
 ```bash
 go test ./...              # Run tests
+go test -race ./...        # Race detection
+go vet ./...               # Vet
+go test -bench=. ./...     # Benchmarks
 golangci-lint run          # Lint (~70 linters)
 ```
 

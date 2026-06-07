@@ -1,6 +1,6 @@
 # httputil — AGENTS.md
 
-**Updated:** 2026-06-07
+**Updated:** 2026-06-08
 
 ## Hard Constraints (Will Break Your Code)
 
@@ -46,7 +46,10 @@ If you write a test function, it must call `t.Parallel()` as its first line.
 
 ```bash
 go test ./...              # Run tests
-golangci-lint run          # Lint
+go test -race ./...        # Race detection
+go vet ./...               # Vet
+go test -bench=. ./...     # Benchmarks
+golangci-lint run          # Lint (~70 linters, 0 issues)
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 ```
@@ -72,7 +75,8 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `compression.go`   | `CompressionConfig`, `DefaultCompressionConfig()`, `Compression()`, `Validate()`                                                                         | Gzip response compression middleware                            |
 | `etag.go`          | `ETagConfig`, `DefaultETagConfig()`, `ETag()`                                                                                                            | ETag generation + 304 conditional request middleware            |
 | `util.go`          | (unexported `join`, `itoa`)                                                                                                                              | Internal helpers avoiding strconv import                        |
-| `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newTestRequest`, `newRecorder`, `assertItoa`)                                                       | Shared test helpers for consistent test patterns                |
+| `wrapper.go`       | (unexported `responseWrapper`)                                                                                                                           | Shared ResponseWriter wrapper for compress/etag writers         |
+| `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newTestRequest`, `newRecorder`, `assertItoa`, `assertSliceEqual`)                                     | Shared test helpers for consistent test patterns                |
 | `doc.go`           | (package doc only)                                                                                                                                       | Package-level GoDoc documentation                               |
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler`. `Chain()` applies them in declaration order (first = outermost) via `slices.Backward`.
@@ -115,7 +119,7 @@ In `_test.go` files: `exhaustruct`, `testpackage`, `gochecknoglobals`, `funlen`,
 
 ## Pre-Existing Lint Warnings
 
-There are ~22 active warnings (mostly `varnamelen` for short parameter names and `noctx` for test requests). **Do not fix these unless explicitly asked** — they are pre-existing and not your responsibility.
+There are **0 active warnings** across ~70 linters. `varnamelen` ignores `w`, `r`, `n`, `rw` for `http.ResponseWriter` and `bufio.ReadWriter` patterns. `noctx` warnings in test files are suppressed via `.golangci.yml` exclusions.
 
 ## Additional Active Linters Worth Knowing
 
