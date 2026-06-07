@@ -113,19 +113,14 @@ func (w *etagWriter) flush(req *http.Request) {
 		w.Header().Set(headerETag, etag)
 
 		if w.matchesIfNoneMatch(req, etag) && w.isCacheableStatus() {
-			if w.wroteHeader && !w.headerWritten {
-				w.ResponseWriter.WriteHeader(http.StatusNotModified)
-				w.headerWritten = true
-			}
+			w.ResponseWriter.WriteHeader(http.StatusNotModified)
+			w.headerWritten = true
 
 			return
 		}
 	}
 
-	if w.wroteHeader && !w.headerWritten {
-		w.ResponseWriter.WriteHeader(w.status)
-		w.headerWritten = true
-	}
+	w.writeHeaderToUnderlying()
 
 	if len(w.body) > 0 {
 		_, _ = w.ResponseWriter.Write(w.body)
