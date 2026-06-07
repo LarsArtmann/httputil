@@ -265,6 +265,34 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Single dependency** — only `go-error-family` (same author, zero transitive deps)
 
+### Middleware Ordering
+
+`Chain` applies middleware in **reverse declaration order** so the first argument is outermost:
+
+```go
+handler := Chain(mux,
+    Logging(logger),          // outermost — logs first, sees final status
+    Recovery(logger),         // catches panics before they reach Logging
+    Timeout(30*time.Second),  // enforces deadline
+    RequestID(DefaultRequestIDConfig()),
+    SecurityHeaders(DefaultSecurityHeadersConfig()),
+    CORS(DefaultCORSConfig()),
+)
+```
+
+When using **Compression** and **ETag** together, order matters:
+
+```go
+// CORRECT: ETag inner, Compression outer.
+// ETag sees the uncompressed body, producing a stable ETag.
+handler := Chain(mux, Compression(cfg), ETag(cfg))
+
+// WRONG: Compression inner, ETag outer.
+// ETag sees gzip-compressed bytes (includes metadata),
+// producing a different ETag on every request.
+handler := Chain(mux, ETag(cfg), Compression(cfg)) // don't do this
+```
+
 ## Development
 
 ```bash

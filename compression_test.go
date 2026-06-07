@@ -303,6 +303,27 @@ func TestCompression_SkipsGzipContentType(t *testing.T) {
 	}
 }
 
+func BenchmarkCompression(b *testing.B) {
+	cfg := DefaultCompressionConfig()
+	middleware := Compression(cfg)
+
+	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
+
+	inner := http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		resp.WriteHeader(http.StatusOK)
+		_, _ = resp.Write(body)
+	})
+
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
 func TestCompressionConfig_Validate_NegativeMinSize(t *testing.T) {
 	t.Parallel()
 

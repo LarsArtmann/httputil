@@ -65,3 +65,38 @@ func ExampleNewResponseRecorder() {
 
 	// Output: 404
 }
+
+func ExampleCompression() {
+	cfg := CompressionConfig{MinSize: 1, Level: -2}
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("hello world"))
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Header().Get("Content-Encoding"))
+
+	// Output: gzip
+}
+
+func ExampleETag() {
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("hello world"))
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Header().Get("ETag") != "")
+
+	// Output: true
+}

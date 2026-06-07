@@ -219,6 +219,26 @@ func TestETag_MemoryLimit_DisablesETag(t *testing.T) {
 	}
 }
 
+func BenchmarkETag(b *testing.B) {
+	cfg := DefaultETagConfig()
+	middleware := ETag(cfg)
+
+	body := []byte("hello world benchmark test data")
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	})
+
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
 func TestETag_EmptyBody(t *testing.T) {
 	t.Parallel()
 

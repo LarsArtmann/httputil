@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -170,5 +171,114 @@ func TestLogging_RecordsRequest(t *testing.T) {
 
 	if buf.Len() == 0 {
 		t.Error("expected log output")
+	}
+}
+
+func TestChain_ETagThenCompression_CorrectOrder(t *testing.T) {
+	t.Parallel()
+
+	etagCfg := DefaultETagConfig()
+	compressCfg := DefaultCompressionConfig()
+
+	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	})
+
+	// ETag should be inner (sees uncompressed body), Compression outer.
+	// Chain applies in reverse: first = outermost.
+	handler := Chain(inner, Compression(compressCfg), ETag(etagCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	if got := rec.Header().Get(headerContentEncoding); got != encodingGzip {
+		t.Errorf("Content-Encoding = %q, want %q", got, encodingGzip)
+	}
+
+	etag := rec.Header().Get(headerETag)
+	if etag == "" {
+		t.Error("ETag header is empty, want generated ETag")
+	}
+}
+
+func TestChain_ETagThenCompression_IfNoneMatch304(t *testing.T) {
+	t.Parallel()
+
+	etagCfg := DefaultETagConfig()
+	compressCfg := DefaultCompressionConfig()
+
+	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	})
+
+	handler := Chain(inner, Compression(compressCfg), ETag(etagCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+	req.Header.Set(headerIfNoneMatch, `"7c5597b9"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotModified {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotModified)
+	}
+
+	if rec.Body.Len() != 0 {
+		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
+	}
+}
+
+func TestChain_CompressionThenETag_WrongOrder(t *testing.T) {
+	t.Parallel()
+
+	etagCfg := DefaultETagConfig()
+	compressCfg := DefaultCompressionConfig()
+
+	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	})
+
+	// WRONG order: Compression inner, ETag outer.
+	// ETag sees compressed bytes, so ETag changes on every request
+	// (gzip includes timestamp/metadata).
+	handler := Chain(inner, ETag(etagCfg), Compression(compressCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	// Still has both headers, but ETag is computed on compressed body.
+	if got := rec.Header().Get(headerContentEncoding); got != encodingGzip {
+		t.Errorf("Content-Encoding = %q, want %q", got, encodingGzip)
+	}
+
+	if got := rec.Header().Get(headerETag); got == "" {
+		t.Error("ETag header is empty")
 	}
 }
