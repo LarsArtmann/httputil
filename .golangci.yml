@@ -3,7 +3,11 @@ run:
   timeout: 5m
   go: 1.26.3
   build-tags:
+    - goexperiment.arenas
+    - goexperiment.goroutineleakprofile
     - goexperiment.jsonv2
+    - goexperiment.runtimesecret
+    - goexperiment.simd
   allow-parallel-runners: true
   allow-serial-runners: true
   issues-exit-code: 1
@@ -167,6 +171,10 @@ linters:
         - a
         - b
         - v
+        - w
+        - r
+        - n
+        - rw
       ignore-type-assert-ok: true
   exclusions:
     generated: lax
@@ -178,6 +186,7 @@ linters:
           - gochecknoglobals
           - funlen
           - cyclop
+          - gocognit
           - goconst
           - noctx
       - path: _test\.go

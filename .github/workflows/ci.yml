@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, main]
   pull_request:
-    branches: [master]
+    branches: [master, main]
 
 permissions:
   contents: read
@@ -18,11 +18,26 @@ jobs:
         go-version: ["1.26"]
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-      - run: go test -race -count=1 ./...
-      - run: go test -coverprofile=coverage.out ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -count=1 ./...
+
+      - name: Test with coverage
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: Benchmark
+        run: go test -bench=. -benchmem -count=1 -run=^$ ./...
+
       - uses: actions/upload-artifact@v4
         with:
           name: coverage
@@ -33,9 +48,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26"
+
       - uses: golangci/golangci-lint-action@v7
         with:
           version: latest
