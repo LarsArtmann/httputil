@@ -1,11 +1,9 @@
 package httputil
 
 import (
-	"bufio"
 	"encoding/binary"
 	"encoding/hex"
 	"hash/crc32"
-	"net"
 	"net/http"
 	"strings"
 
@@ -56,34 +54,21 @@ func ETag(cfg ETagConfig) Middleware {
 }
 
 type etagWriter struct {
-	http.ResponseWriter
+	responseWrapper
 
 	body          []byte
-	status        int
-	wroteHeader   bool
 	weak          bool
 	flushed       bool
-	headerWritten bool
 	maxBufferSize int
 }
 
 func newETagWriter(resp http.ResponseWriter, cfg ETagConfig) *etagWriter {
 	return &etagWriter{
-		ResponseWriter: resp,
-		body:           nil,
-		status:         0,
-		wroteHeader:    false,
-		weak:           cfg.Weak,
-		flushed:        false,
-		headerWritten:  false,
-		maxBufferSize:  cfg.MaxBufferSize,
-	}
-}
-
-func (w *etagWriter) WriteHeader(code int) {
-	if !w.wroteHeader {
-		w.status = code
-		w.wroteHeader = true
+		responseWrapper: newResponseWrapper(resp),
+		body:            nil,
+		weak:            cfg.Weak,
+		flushed:         false,
+		maxBufferSize:   cfg.MaxBufferSize,
 	}
 }
 
@@ -194,61 +179,19 @@ func (w *etagWriter) isCacheableStatus() bool {
 
 func (w *etagWriter) Flush() {
 	if w.flushed {
-		if f, ok := w.ResponseWriter.(http.Flusher); ok {
-			f.Flush()
-		}
+		w.responseWrapper.Flush()
 
 		return
 	}
 
 	w.flushed = true
 
-	if w.wroteHeader && !w.headerWritten {
-		w.ResponseWriter.WriteHeader(w.status)
-		w.headerWritten = true
-	}
+	w.writeHeaderToUnderlying()
 
 	if len(w.body) > 0 {
 		_, _ = w.ResponseWriter.Write(w.body)
 		w.body = w.body[:0]
 	}
 
-	if f, ok := w.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-func (w *etagWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	w.flushed = true
-
-	hijacker, ok := w.ResponseWriter.(http.Hijacker)
-	if !ok {
-		return nil, nil, errorfamily.WrapInfrastructure(
-			http.ErrNotSupported, ErrCodeHijackUnsupported, "response writer does not implement http.Hijacker",
-		)
-	}
-
-	conn, rw, err := hijacker.Hijack()
-	if err != nil {
-		return conn, rw, errorfamily.WrapTransient(err, ErrCodeHijackFailed, "response writer hijack failed")
-	}
-
-	return conn, rw, nil
-}
-
-func (w *etagWriter) Push(target string, opts *http.PushOptions) error {
-	pusher, ok := w.ResponseWriter.(http.Pusher)
-	if !ok {
-		return errorfamily.WrapInfrastructure(
-			http.ErrNotSupported, ErrCodePushUnsupported, "response writer does not implement http.Pusher",
-		).WithContext("target", target)
-	}
-
-	err := pusher.Push(target, opts)
-	if err != nil {
-		return errorfamily.WrapTransient(err, ErrCodePushFailed, "response writer push failed").
-			WithContext("target", target)
-	}
-
-	return nil
+	w.responseWrapper.Flush()
 }

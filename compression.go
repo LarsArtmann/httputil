@@ -1,12 +1,10 @@
 package httputil
 
 import (
-	"bufio"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -104,38 +102,25 @@ func acceptsGzip(req *http.Request) bool {
 }
 
 type compressWriter struct {
-	http.ResponseWriter
+	responseWrapper
 
-	minSize       int
-	level         int
-	buf           []byte
-	status        int
-	wroteHeader   bool
-	compressing   bool
-	plain         bool
-	gzipWriter    *gzip.Writer
-	headerWritten bool
+	minSize     int
+	level       int
+	buf         []byte
+	compressing bool
+	plain       bool
+	gzipWriter  *gzip.Writer
 }
 
 func newCompressWriter(resp http.ResponseWriter, minSize, level int) *compressWriter {
 	return &compressWriter{
-		ResponseWriter: resp,
-		minSize:        minSize,
-		level:          level,
-		buf:            nil,
-		status:         0,
-		wroteHeader:    false,
-		compressing:    false,
-		plain:          false,
-		gzipWriter:     nil,
-		headerWritten:  false,
-	}
-}
-
-func (w *compressWriter) WriteHeader(code int) {
-	if !w.wroteHeader {
-		w.status = code
-		w.wroteHeader = true
+		responseWrapper: newResponseWrapper(resp),
+		minSize:         minSize,
+		level:           level,
+		buf:             nil,
+		compressing:     false,
+		plain:           false,
+		gzipWriter:      nil,
 	}
 }
 
@@ -240,10 +225,7 @@ func (w *compressWriter) startCompression() error {
 	w.gzipWriter = gzipWriter
 	w.compressing = true
 
-	if w.wroteHeader && !w.headerWritten {
-		w.ResponseWriter.WriteHeader(w.status)
-		w.headerWritten = true
-	}
+	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
 		_, err := w.gzipWriter.Write(w.buf)
@@ -274,10 +256,7 @@ func (w *compressWriter) Close() error {
 		return nil
 	}
 
-	if w.wroteHeader && !w.headerWritten {
-		w.ResponseWriter.WriteHeader(w.status)
-		w.headerWritten = true
-	}
+	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
 		_, err := w.ResponseWriter.Write(w.buf)
@@ -293,69 +272,25 @@ func (w *compressWriter) Flush() {
 	if w.compressing {
 		_ = w.gzipWriter.Flush()
 
-		if f, ok := w.ResponseWriter.(http.Flusher); ok {
-			f.Flush()
-		}
+		w.responseWrapper.Flush()
 
 		return
 	}
 
 	if w.plain {
-		if f, ok := w.ResponseWriter.(http.Flusher); ok {
-			f.Flush()
-		}
+		w.responseWrapper.Flush()
 
 		return
 	}
 
 	w.plain = true
 
-	if w.wroteHeader && !w.headerWritten {
-		w.ResponseWriter.WriteHeader(w.status)
-		w.headerWritten = true
-	}
+	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
 		_, _ = w.ResponseWriter.Write(w.buf)
 		w.buf = w.buf[:0]
 	}
 
-	if f, ok := w.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-func (w *compressWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	w.plain = true
-
-	hijacker, ok := w.ResponseWriter.(http.Hijacker)
-	if !ok {
-		return nil, nil, errorfamily.WrapInfrastructure(
-			http.ErrNotSupported, ErrCodeHijackUnsupported, "response writer does not implement http.Hijacker",
-		)
-	}
-
-	conn, rw, err := hijacker.Hijack()
-	if err != nil {
-		return conn, rw, errorfamily.WrapTransient(err, ErrCodeHijackFailed, "response writer hijack failed")
-	}
-
-	return conn, rw, nil
-}
-
-func (w *compressWriter) Push(target string, opts *http.PushOptions) error {
-	pusher, ok := w.ResponseWriter.(http.Pusher)
-	if !ok {
-		return errorfamily.WrapInfrastructure(
-			http.ErrNotSupported, ErrCodePushUnsupported, "response writer does not implement http.Pusher",
-		).WithContext("target", target)
-	}
-
-	err := pusher.Push(target, opts)
-	if err != nil {
-		return errorfamily.WrapTransient(err, ErrCodePushFailed, "response writer push failed").
-			WithContext("target", target)
-	}
-
-	return nil
+	w.responseWrapper.Flush()
 }
