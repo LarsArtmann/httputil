@@ -89,13 +89,19 @@ func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := r.ResponseWriter.(http.Hijacker)
 	if !ok {
 		return nil, nil, errorfamily.WrapInfrastructure(
-			http.ErrNotSupported, ErrCodeHijackUnsupported, "response writer does not implement http.Hijacker",
+			http.ErrNotSupported,
+			ErrCodeHijackUnsupported,
+			"response writer does not implement http.Hijacker",
 		)
 	}
 
 	conn, rw, err := hijacker.Hijack()
 	if err != nil {
-		return conn, rw, errorfamily.WrapTransient(err, ErrCodeHijackFailed, "response writer hijack failed")
+		return conn, rw, errorfamily.WrapTransient(
+			err,
+			ErrCodeHijackFailed,
+			"response writer hijack failed",
+		)
 	}
 
 	return conn, rw, nil
@@ -107,7 +113,9 @@ func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
 	pusher, ok := r.ResponseWriter.(http.Pusher)
 	if !ok {
 		return errorfamily.WrapInfrastructure(
-			http.ErrNotSupported, ErrCodePushUnsupported, "response writer does not implement http.Pusher",
+			http.ErrNotSupported,
+			ErrCodePushUnsupported,
+			"response writer does not implement http.Pusher",
 		).WithContext("target", target)
 	}
 

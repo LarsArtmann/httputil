@@ -35,7 +35,7 @@ func DefaultCORSConfig() CORSConfig {
 			http.MethodPatch,
 			http.MethodOptions,
 		},
-		AllowedHeaders:     []string{"Content-Type", "Authorization", defaultRequestIDHeader},
+		AllowedHeaders:     []string{headerContentType, "Authorization", defaultRequestIDHeader},
 		ExposedHeaders:     []string{},
 		AllowCredentials:   false,
 		MaxAge:             defaultMaxAge,

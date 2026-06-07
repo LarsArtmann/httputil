@@ -51,7 +51,12 @@ func TestClientIP(t *testing.T) {
 				remoteAddr = defaultRemoteAddr
 			}
 
-			request := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+			request := httptest.NewRequestWithContext(
+				context.Background(),
+				http.MethodGet,
+				"/",
+				nil,
+			)
 
 			request.RemoteAddr = remoteAddr
 			if tt.header != "" {

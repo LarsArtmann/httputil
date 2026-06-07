@@ -252,3 +252,33 @@ func TestCORS_WildcardOrigin(t *testing.T) {
 	assertAllowOrigin(t, serveWildcardCORS("http://sub.example.com"), "http://sub.example.com")
 	assertAllowOrigin(t, serveWildcardCORS("http://other.com"), "*")
 }
+
+func FuzzCORS(f *testing.F) {
+	f.Add("http://example.com")
+	f.Add("https://sub.example.com")
+	f.Add("http://other.com")
+	f.Add("")
+	f.Add("*")
+	f.Add("not-a-url")
+	f.Add("http://localhost:8080")
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"http://example.com", "*.example.com"},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost},
+		AllowedHeaders: []string{"Content-Type"},
+	}
+
+	f.Fuzz(func(t *testing.T, origin string) {
+		handler := CORS(cfg)(newNoOpHandler())
+
+		req := newTestRequest(http.MethodGet, "/", origin)
+
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+
+		// Should not panic and should return a valid status.
+		if rec.Code < 100 || rec.Code > 599 {
+			t.Errorf("status = %d, not a valid HTTP status", rec.Code)
+		}
+	})
+}

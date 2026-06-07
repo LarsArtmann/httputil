@@ -2,8 +2,10 @@ package httputil
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 func ExampleClientIP() {
@@ -99,4 +101,79 @@ func ExampleETag() {
 	fmt.Println(rec.Header().Get("ETag") != "")
 
 	// Output: true
+}
+
+func ExampleRequestID() {
+	cfg := DefaultRequestIDConfig()
+	handler := RequestID(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := RequestIDFromContext(r.Context())
+		fmt.Println(id != "")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	// Output: true
+}
+
+func ExampleSecurityHeaders() {
+	cfg := DefaultSecurityHeadersConfig()
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Header().Get("X-Content-Type-Options"))
+
+	// Output: nosniff
+}
+
+func ExampleRecovery() {
+	logger := slog.New(slog.DiscardHandler)
+	handler := Recovery(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("test panic")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Code)
+
+	// Output: 500
+}
+
+func ExampleTimeout() {
+	handler := Timeout(time.Second)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, ok := r.Context().Deadline()
+		fmt.Println(ok)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	// Output: true
+}
+
+func ExampleLogging() {
+	logger := slog.New(slog.DiscardHandler)
+	handler := Logging(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Code)
+
+	// Output: 200
 }

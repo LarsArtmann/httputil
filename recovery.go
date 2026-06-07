@@ -21,7 +21,7 @@ func Recovery(logger *slog.Logger) Middleware {
 						slog.String("stack", string(debug.Stack())),
 					)
 
-					resp.Header().Set("Content-Type", "text/plain; charset=utf-8")
+					resp.Header().Set(headerContentType, "text/plain; charset=utf-8")
 					resp.WriteHeader(http.StatusInternalServerError)
 
 					_, _ = resp.Write([]byte("Internal Server Error"))

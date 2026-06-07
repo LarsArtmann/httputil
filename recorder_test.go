@@ -57,7 +57,11 @@ func TestResponseRecorder_WriteHeaderOnlyOnce(t *testing.T) {
 	recorder.WriteHeader(http.StatusInternalServerError)
 
 	if recorder.Status() != http.StatusCreated {
-		t.Errorf("Status() = %d, want %d (first WriteHeader wins)", recorder.Status(), http.StatusCreated)
+		t.Errorf(
+			"Status() = %d, want %d (first WriteHeader wins)",
+			recorder.Status(),
+			http.StatusCreated,
+		)
 	}
 }
 
@@ -142,6 +146,20 @@ func TestResponseRecorder_WriteAfterWriteHeader(t *testing.T) {
 	}
 
 	if recorder.Status() != http.StatusBadRequest {
-		t.Errorf("Status() = %d, want %d (WriteHeader wins)", recorder.Status(), http.StatusBadRequest)
+		t.Errorf(
+			"Status() = %d, want %d (WriteHeader wins)",
+			recorder.Status(),
+			http.StatusBadRequest,
+		)
+	}
+}
+
+func BenchmarkResponseRecorder(b *testing.B) {
+	inner := httptest.NewRecorder()
+	recorder := NewResponseRecorder(inner)
+	body := []byte("hello world benchmark test data")
+
+	for b.Loop() {
+		_, _ = recorder.Write(body)
 	}
 }

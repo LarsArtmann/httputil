@@ -25,7 +25,24 @@ const (
 )
 
 //nolint:gochecknoglobals // Immutable lookup table for hex digit encoding.
-var hexDigits = [16]byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}
+var hexDigits = [16]byte{
+	'0',
+	'1',
+	'2',
+	'3',
+	'4',
+	'5',
+	'6',
+	'7',
+	'8',
+	'9',
+	'a',
+	'b',
+	'c',
+	'd',
+	'e',
+	'f',
+}
 
 // ETagConfig holds configuration for ETag generation.
 type ETagConfig struct {
@@ -87,7 +104,11 @@ func (w *etagWriter) Write(b []byte) (int, error) {
 	if w.flushed {
 		n, err := w.ResponseWriter.Write(b)
 		if err != nil {
-			return n, errorfamily.WrapTransient(err, ErrCodeETagWriteFailed, "etag writer streaming write failed")
+			return n, errorfamily.WrapTransient(
+				err,
+				ErrCodeETagWriteFailed,
+				"etag writer streaming write failed",
+			)
 		}
 
 		return n, nil
@@ -98,7 +119,11 @@ func (w *etagWriter) Write(b []byte) (int, error) {
 
 		n, err := w.ResponseWriter.Write(b)
 		if err != nil {
-			return n, errorfamily.WrapTransient(err, ErrCodeETagWriteFailed, "etag writer overflow write failed")
+			return n, errorfamily.WrapTransient(
+				err,
+				ErrCodeETagWriteFailed,
+				"etag writer overflow write failed",
+			)
 		}
 
 		return n, nil

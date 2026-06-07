@@ -71,7 +71,11 @@ func TestCompression_AcceptEncoding_Gzip(t *testing.T) {
 	}
 
 	if len(decompressed) != defaultCompressionMinSize+1 {
-		t.Errorf("decompressed length = %d, want %d", len(decompressed), defaultCompressionMinSize+1)
+		t.Errorf(
+			"decompressed length = %d, want %d",
+			len(decompressed),
+			defaultCompressionMinSize+1,
+		)
 	}
 }
 

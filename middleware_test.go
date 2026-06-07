@@ -282,3 +282,219 @@ func TestChain_CompressionThenETag_WrongOrder(t *testing.T) {
 		t.Error("ETag header is empty")
 	}
 }
+
+func TestChain_RecoveryLoggingCORS(t *testing.T) {
+	t.Parallel()
+
+	logger := newTestLogger()
+	corsCfg := DefaultCORSConfig()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	handler := Chain(inner, CORS(corsCfg), Recovery(logger), Logging(logger))
+
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	assertHeader(t, rec, "Access-Control-Allow-Origin", "*")
+}
+
+func TestChain_RecoveryCatchesPanicWithLogging(t *testing.T) {
+	t.Parallel()
+
+	logger := newTestLogger()
+	corsCfg := DefaultCORSConfig()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("integration test panic")
+	})
+
+	handler := Chain(inner, CORS(corsCfg), Recovery(logger), Logging(logger))
+
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
+	}
+}
+
+func TestChain_RequestIDSecurityHeaders(t *testing.T) {
+	t.Parallel()
+
+	reqCfg := DefaultRequestIDConfig()
+	secCfg := DefaultSecurityHeadersConfig()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := Chain(inner, SecurityHeaders(secCfg), RequestID(reqCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Header().Get("X-Request-ID") == "" {
+		t.Error("X-Request-ID header is empty")
+	}
+
+	assertHeader(t, rec, "X-Content-Type-Options", "nosniff")
+}
+
+func TestChain_TimeoutThenRecovery(t *testing.T) {
+	t.Parallel()
+
+	logger := newTestLogger()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, ok := r.Context().Deadline()
+		if !ok {
+			t.Error("context has no deadline")
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := Chain(inner, Recovery(logger), Timeout(time.Second))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
+func BenchmarkRequestID(b *testing.B) {
+	cfg := DefaultRequestIDConfig()
+	middleware := RequestID(cfg)
+
+	inner := newNoOpHandler()
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkSecurityHeaders(b *testing.B) {
+	cfg := DefaultSecurityHeadersConfig()
+	middleware := SecurityHeaders(cfg)
+
+	inner := newNoOpHandler()
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkRecovery(b *testing.B) {
+	logger := newTestLogger()
+	middleware := Recovery(logger)
+
+	inner := newNoOpHandler()
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkTimeout(b *testing.B) {
+	middleware := Timeout(time.Second)
+
+	inner := newNoOpHandler()
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkLogging(b *testing.B) {
+	logger := newTestLogger()
+	middleware := Logging(logger)
+
+	inner := newNoOpHandler()
+	handler := middleware(inner)
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkChain(b *testing.B) {
+	logger := newTestLogger()
+	corsCfg := DefaultCORSConfig()
+	reqCfg := DefaultRequestIDConfig()
+	secCfg := DefaultSecurityHeadersConfig()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := Chain(
+		inner,
+		SecurityHeaders(secCfg),
+		RequestID(reqCfg),
+		Recovery(logger),
+		Logging(logger),
+		CORS(corsCfg),
+	)
+
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func FuzzRequestID(f *testing.F) {
+	f.Add("existing-id-123")
+	f.Add("")
+	f.Add("a")
+	f.Add("x-request-id-with-dashes-and-numbers-42")
+
+	f.Fuzz(func(t *testing.T, headerValue string) {
+		cfg := DefaultRequestIDConfig()
+		handler := RequestID(cfg)(newNoOpHandler())
+
+		req := newTestRequest(http.MethodGet, "/", "")
+		req.Header.Set(cfg.ForwardHeader, headerValue)
+
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+
+		got := rec.Header().Get(cfg.HeaderName)
+		if got == "" {
+			t.Error("request ID header is empty")
+		}
+	})
+}

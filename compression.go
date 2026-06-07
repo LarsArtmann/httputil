@@ -19,26 +19,45 @@ const (
 	headerAcceptEncoding      = "Accept-Encoding"
 	headerContentEncoding     = "Content-Encoding"
 	headerContentLength       = "Content-Length"
+	headerContentType         = "Content-Type"
 	headerVary                = "Vary"
 )
 
 const encodingGzip = "gzip"
 
 //nolint:gochecknoglobals // sync.Pool is inherently package-level for writer reuse.
-var gzipWriterPools = make(map[int]*sync.Pool)
+var (
+	gzipWriterPools   = make(map[int]*sync.Pool)
+	gzipWriterPoolsMu sync.RWMutex
+)
 
 func getGzipPool(level int) *sync.Pool {
-	pool, ok := gzipWriterPools[level]
-	if !ok {
-		pool = &sync.Pool{
-			New: func() any {
-				gz, _ := gzip.NewWriterLevel(io.Discard, level)
+	gzipWriterPoolsMu.RLock()
 
-				return gz
-			},
-		}
-		gzipWriterPools[level] = pool
+	pool, ok := gzipWriterPools[level]
+
+	gzipWriterPoolsMu.RUnlock()
+
+	if ok {
+		return pool
 	}
+
+	gzipWriterPoolsMu.Lock()
+	defer gzipWriterPoolsMu.Unlock()
+
+	pool, ok = gzipWriterPools[level]
+	if ok {
+		return pool
+	}
+
+	pool = &sync.Pool{
+		New: func() any {
+			gz, _ := gzip.NewWriterLevel(io.Discard, level)
+
+			return gz
+		},
+	}
+	gzipWriterPools[level] = pool
 
 	return pool
 }
@@ -67,7 +86,8 @@ var (
 
 // Validate checks the CompressionConfig for invalid values.
 func (c CompressionConfig) Validate() error {
-	if c.Level != gzip.DefaultCompression && (c.Level < gzip.HuffmanOnly || c.Level > gzip.BestCompression) {
+	if c.Level != gzip.DefaultCompression &&
+		(c.Level < gzip.HuffmanOnly || c.Level > gzip.BestCompression) {
 		return fmt.Errorf("%w: got %d", errInvalidCompressionLevel, c.Level)
 	}
 
@@ -153,7 +173,11 @@ func (w *compressWriter) writePlain(b []byte) (int, error) {
 func (w *compressWriter) writeCompressed(b []byte) (int, error) {
 	n, err := w.gzipWriter.Write(b)
 	if err != nil {
-		return n, errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer write failed")
+		return n, errorfamily.WrapTransient(
+			err,
+			ErrCodeCompressWriteFailed,
+			"gzip writer write failed",
+		)
 	}
 
 	return n, nil
@@ -245,7 +269,7 @@ func (w *compressWriter) shouldCompress() bool {
 		return false
 	}
 
-	if !isCompressibleContentType(w.Header().Get("Content-Type")) {
+	if !isCompressibleContentType(w.Header().Get(headerContentType)) {
 		return false
 	}
 
@@ -307,7 +331,11 @@ func (w *compressWriter) startCompression() error {
 		w.buf = w.buf[:0]
 
 		if err != nil {
-			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer buffered write failed")
+			return errorfamily.WrapTransient(
+				err,
+				ErrCodeCompressWriteFailed,
+				"gzip writer buffered write failed",
+			)
 		}
 	}
 
@@ -322,7 +350,11 @@ func (w *compressWriter) Close() error {
 	if w.compressing {
 		err := w.gzipWriter.Close()
 		if err != nil {
-			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "gzip writer close failed")
+			return errorfamily.WrapTransient(
+				err,
+				ErrCodeCompressWriteFailed,
+				"gzip writer close failed",
+			)
 		}
 
 		getGzipPool(w.level).Put(w.gzipWriter)
@@ -336,7 +368,11 @@ func (w *compressWriter) Close() error {
 	if len(w.buf) > 0 {
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
-			return errorfamily.WrapTransient(err, ErrCodeCompressWriteFailed, "buffered response write failed")
+			return errorfamily.WrapTransient(
+				err,
+				ErrCodeCompressWriteFailed,
+				"buffered response write failed",
+			)
 		}
 	}
 
