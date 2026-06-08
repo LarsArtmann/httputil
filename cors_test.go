@@ -296,17 +296,18 @@ func TestCORS_ConcurrentRequests_NoRace(t *testing.T) {
 
 	origins := []string{"https://alpha.example.com", "https://beta.example.com"}
 
-	var wg sync.WaitGroup
+	var waitGroup sync.WaitGroup
 
-	for i := 0; i < 100; i++ {
-		wg.Add(1)
+	for idx := range 100 {
+		waitGroup.Add(1)
 
 		go func(idx int) {
-			defer wg.Done()
+			defer waitGroup.Done()
 
 			origin := origins[idx%len(origins)]
 			req := newTestRequest(http.MethodGet, "/", "")
 			req.Header.Set("Origin", origin)
+
 			rec := newRecorder()
 
 			handler.ServeHTTP(rec, req)
@@ -315,8 +316,8 @@ func TestCORS_ConcurrentRequests_NoRace(t *testing.T) {
 			if got != origin {
 				t.Errorf("origin = %q, got Allow-Origin = %q, want %q", origin, got, origin)
 			}
-		}(i)
+		}(idx)
 	}
 
-	wg.Wait()
+	waitGroup.Wait()
 }

@@ -52,7 +52,10 @@ func getGzipPool(level int) *sync.Pool {
 
 	pool = &sync.Pool{
 		New: func() any {
-			gz, _ := gzip.NewWriterLevel(io.Discard, level)
+			gz, err := gzip.NewWriterLevel(io.Discard, level)
+			if err != nil {
+				panic("gzip.NewWriterLevel(" + itoa(level) + "): " + err.Error())
+			}
 
 			return gz
 		},
