@@ -163,3 +163,41 @@ func BenchmarkResponseRecorder(b *testing.B) {
 		_, _ = recorder.Write(body)
 	}
 }
+
+func TestResponseRecorder_WroteHeader(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+
+	if recorder.WroteHeader() {
+		t.Error("WroteHeader() = true before WriteHeader, want false")
+	}
+
+	recorder.WriteHeader(http.StatusOK)
+
+	if !recorder.WroteHeader() {
+		t.Error("WroteHeader() = false after WriteHeader, want true")
+	}
+}
+
+func TestResponseRecorder_Flush_NoFlusher(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+	recorder.Flush()
+}
+
+func TestResponseRecorder_Hijack_Unsupported(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+
+	conn, rw, err := recorder.Hijack()
+	if conn != nil || rw != nil {
+		t.Error("expected nil conn and rw for non-hijacker")
+	}
+
+	if err == nil {
+		t.Fatal("expected error for non-hijacker")
+	}
+}

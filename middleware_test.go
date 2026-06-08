@@ -589,3 +589,85 @@ func TestSecurityHeadersConfig_Validate_EmptyConfig(t *testing.T) {
 		t.Errorf("Validate() error = %v, want nil for empty config", err)
 	}
 }
+
+func TestChain_CompressionETag_HijackPassthrough(t *testing.T) {
+	t.Parallel()
+
+	compCfg := DefaultCompressionConfig()
+	etagCfg := DefaultETagConfig()
+
+	var hijackCalled bool
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hijacker, ok := w.(http.Hijacker)
+		if !ok {
+			t.Fatal("inner handler: ResponseWriter does not implement Hijacker")
+		}
+
+		_, _, err := hijacker.Hijack()
+		if err != nil {
+			t.Fatalf("Hijack() error: %v", err)
+		}
+
+		hijackCalled = true
+	})
+
+	handler := Chain(inner, Compression(compCfg), ETag(etagCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	rec := newHijackRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !hijackCalled {
+		t.Error("Hijack was not called through Compression + ETag chain")
+	}
+
+	if !rec.hijacked {
+		t.Error("underlying Hijack was not called")
+	}
+}
+
+func TestChain_CompressionETag_SmallResponsePreservesContentLength(t *testing.T) {
+	t.Parallel()
+
+	compCfg := DefaultCompressionConfig()
+	etagCfg := DefaultETagConfig()
+
+	body := []byte("small response under min size")
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", itoa(len(body)))
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	})
+
+	handler := Chain(inner, Compression(compCfg), ETag(etagCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	// Small response: compression skipped, Content-Length should remain.
+	if rec.Header().Get("Content-Length") != itoa(len(body)) {
+		t.Errorf(
+			"Content-Length = %q, want %q for uncompressed response",
+			rec.Header().Get("Content-Length"),
+			itoa(len(body)),
+		)
+	}
+
+	// Compression should NOT have been applied.
+	if rec.Header().Get("Content-Encoding") == "gzip" {
+		t.Error("Content-Encoding should not be gzip for small response")
+	}
+}

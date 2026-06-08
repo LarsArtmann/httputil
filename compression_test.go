@@ -397,3 +397,64 @@ func TestCompressionConfig_Validate_NegativeMinSize(t *testing.T) {
 		t.Errorf("error = %v, want minimum size error", err)
 	}
 }
+
+func TestCompression_WriteCompressedPath(t *testing.T) {
+	t.Parallel()
+
+	cfg := CompressionConfig{MinSize: 1, Level: gzip.DefaultCompression}
+	body := strings.Repeat("a", 300)
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(body))
+		_, _ = w.Write([]byte("second write"))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	if rec.Header().Get("Content-Encoding") != "gzip" {
+		t.Error("Content-Encoding is not gzip")
+	}
+}
+
+func TestCompression_FlushWhileBuffering(t *testing.T) {
+	t.Parallel()
+
+	cfg := CompressionConfig{MinSize: 1000, Level: gzip.DefaultCompression}
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("small"))
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Flusher")
+		}
+
+		flusher.Flush()
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	if rec.Header().Get("Content-Encoding") == "gzip" {
+		t.Error("should not compress when flushed below min size")
+	}
+}
