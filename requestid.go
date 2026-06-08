@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"net/http"
 )
 
@@ -29,6 +30,29 @@ func DefaultRequestIDConfig() RequestIDConfig {
 		ForwardHeader: defaultRequestIDHeader,
 		GenerateID:    generateRequestID,
 	}
+}
+
+var (
+	errNilGenerateID   = errors.New("RequestIDConfig.GenerateID must not be nil")
+	errEmptyHeaderName = errors.New("RequestIDConfig.HeaderName must not be empty")
+	errEmptyForwardHdr = errors.New("RequestIDConfig.ForwardHeader must not be empty")
+)
+
+// Validate checks the RequestIDConfig for invalid values.
+func (c RequestIDConfig) Validate() error {
+	if c.GenerateID == nil {
+		return errNilGenerateID
+	}
+
+	if c.HeaderName == "" {
+		return errEmptyHeaderName
+	}
+
+	if c.ForwardHeader == "" {
+		return errEmptyForwardHdr
+	}
+
+	return nil
 }
 
 // RequestID returns middleware that propagates or generates a request ID.

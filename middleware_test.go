@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"bytes"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -497,4 +498,94 @@ func FuzzRequestID(f *testing.F) {
 			t.Error("request ID header is empty")
 		}
 	})
+}
+
+func TestRequestIDConfig_Validate_ValidDefault(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultRequestIDConfig()
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil", err)
+	}
+}
+
+func TestRequestIDConfig_Validate_NilGenerateID(t *testing.T) {
+	t.Parallel()
+
+	cfg := RequestIDConfig{
+		HeaderName:    "X-Request-ID",
+		ForwardHeader: "X-Request-ID",
+		GenerateID:    nil,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for nil GenerateID")
+	}
+
+	if !errors.Is(err, errNilGenerateID) {
+		t.Errorf("Validate() error = %v, want errNilGenerateID", err)
+	}
+}
+
+func TestRequestIDConfig_Validate_EmptyHeaderName(t *testing.T) {
+	t.Parallel()
+
+	cfg := RequestIDConfig{
+		HeaderName:    "",
+		ForwardHeader: "X-Request-ID",
+		GenerateID:    func() string { return "id" },
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for empty HeaderName")
+	}
+
+	if !errors.Is(err, errEmptyHeaderName) {
+		t.Errorf("Validate() error = %v, want errEmptyHeaderName", err)
+	}
+}
+
+func TestRequestIDConfig_Validate_EmptyForwardHeader(t *testing.T) {
+	t.Parallel()
+
+	cfg := RequestIDConfig{
+		HeaderName:    "X-Request-ID",
+		ForwardHeader: "",
+		GenerateID:    func() string { return "id" },
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for empty ForwardHeader")
+	}
+
+	if !errors.Is(err, errEmptyForwardHdr) {
+		t.Errorf("Validate() error = %v, want errEmptyForwardHdr", err)
+	}
+}
+
+func TestSecurityHeadersConfig_Validate_ValidDefault(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultSecurityHeadersConfig()
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil", err)
+	}
+}
+
+func TestSecurityHeadersConfig_Validate_EmptyConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := SecurityHeadersConfig{}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for empty config", err)
+	}
 }

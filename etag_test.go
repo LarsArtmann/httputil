@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -367,5 +368,46 @@ func TestETag_HeadRequest(t *testing.T) {
 	etag := rec.Header().Get(headerETag)
 	if etag == "" {
 		t.Error("ETag header is empty, want generated ETag for HEAD")
+	}
+}
+
+func TestETagConfig_Validate_ValidDefault(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil", err)
+	}
+}
+
+func TestETagConfig_Validate_ZeroMaxBufferSize(t *testing.T) {
+	t.Parallel()
+
+	cfg := ETagConfig{MaxBufferSize: 0}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for zero MaxBufferSize")
+	}
+
+	if !errors.Is(err, errNonPositiveMaxBufferSize) {
+		t.Errorf("Validate() error = %v, want errNonPositiveMaxBufferSize", err)
+	}
+}
+
+func TestETagConfig_Validate_NegativeMaxBufferSize(t *testing.T) {
+	t.Parallel()
+
+	cfg := ETagConfig{MaxBufferSize: -1}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for negative MaxBufferSize")
+	}
+
+	if !errors.Is(err, errNonPositiveMaxBufferSize) {
+		t.Errorf("Validate() error = %v, want errNonPositiveMaxBufferSize", err)
 	}
 }

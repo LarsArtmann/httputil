@@ -3,6 +3,8 @@ package httputil
 import (
 	"bufio"
 	"encoding/binary"
+	"errors"
+	"fmt"
 	"hash/crc32"
 	"net"
 	"net/http"
@@ -56,6 +58,17 @@ func DefaultETagConfig() ETagConfig {
 		Weak:          false,
 		MaxBufferSize: defaultETagMaxBufferSize,
 	}
+}
+
+var errNonPositiveMaxBufferSize = errors.New("ETagConfig.MaxBufferSize must be positive")
+
+// Validate checks the ETagConfig for invalid values.
+func (c ETagConfig) Validate() error {
+	if c.MaxBufferSize <= 0 {
+		return fmt.Errorf("%w: got %d", errNonPositiveMaxBufferSize, c.MaxBufferSize)
+	}
+
+	return nil
 }
 
 // ETag returns middleware that generates ETag headers based on response body

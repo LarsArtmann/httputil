@@ -23,6 +23,12 @@ func DefaultSecurityHeadersConfig() SecurityHeadersConfig {
 	}
 }
 
+// Validate checks the SecurityHeadersConfig for invalid values.
+// Currently all fields are optional, so the default config is always valid.
+func (c SecurityHeadersConfig) Validate() error {
+	return nil
+}
+
 // SecurityHeaders returns middleware that sets common security response headers
 // based on the given configuration.
 func SecurityHeaders(cfg SecurityHeadersConfig) Middleware {
