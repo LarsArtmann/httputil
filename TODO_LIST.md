@@ -28,11 +28,14 @@ _Last verified against code: 2026-06-08_
 - [x] Benchmarks for all middlewares (CORS, ClientIP, Compression, ETag, Itoa, Join, RequestID, SecurityHeaders, Recovery, Timeout, Logging, ResponseRecorder, Chain)
 - [x] Fuzz tests for ClientIP, Compression, ETag, CORS, RequestID
 - [x] Integration tests for `Chain(Compression, ETag)` and `Chain(Recovery, Logging, CORS)` ordering
+- [x] Integration test for WebSocket upgrade (Hijack) through Compression + ETag
+- [x] Content-Length preservation test for small responses through Compression + ETag
 - [x] Example functions for all public API (11 examples)
 - [x] Document brotli policy decision in README
 - [x] Fix data race in `getGzipPool()` (added `sync.RWMutex`)
 - [x] Improve flake.nix (source filtering, writeShellApplication, format check)
-- [x] Strengthen CI workflow (build, vet, benchmark steps)
+- [x] Strengthen CI workflow (build, vet, benchmark, govulncheck steps)
+- [x] Pin golangci-lint version in CI (v2.12)
 - [x] Improve .golangci.yml (gocognit test exclusion, goexperiment build tags, varnamelen ignores)
 - [x] GitHub Actions CI workflow (test + lint)
 - [x] Release workflow with `govulncheck`
@@ -42,20 +45,18 @@ _Last verified against code: 2026-06-08_
 - [x] `docs/DOMAIN_LANGUAGE.md` with domain glossary
 - [x] `doc.go` package-level godoc
 - [x] `golangci-lint` ~70 linters, 0 issues
-- [x] 103 tests passing, `go vet` clean, 87.4% coverage
+- [x] 110 tests passing, `go vet` clean, 89.1% coverage
 - [x] FEATURES.md — honest feature inventory
 - [x] TODO_LIST.md — centralized task list
 
 ## Not Started
 
-- [ ] Add WebSocket upgrade test through Compression + ETag
-- [ ] Add `Content-Length` preservation test for small responses
 - [ ] Implement deflate support using `compress/flate`
 - [ ] Add `Accept-Encoding` quality value parsing per RFC 7231
 - [ ] Make content-type filtering configurable via `CompressionConfig`
 - [ ] Add `MiddlewareStack` type with ordering validation
 - [ ] Add `ResponseWriter` capability interface for Hijack/Push/Flush
-- [ ] Improve test coverage to 90%+
+- [ ] Improve test coverage to 90%+ (currently 89.1%)
 - [ ] Evaluate streaming ETag option using rolling hash
 - [ ] Consider request/response metrics middleware
 - [ ] Consider rate-limiting middleware

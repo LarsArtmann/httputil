@@ -70,8 +70,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` — 94 tests passing.
-- 87.1% coverage.
+- `go test ./...` — 110 tests passing.
+- 89.1% coverage.
 - `go vet` clean.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests and lint.
@@ -81,7 +81,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage (87.1%)
+### Test Coverage (89.1%)
 
 Not 100%. Gaps exist in:
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
