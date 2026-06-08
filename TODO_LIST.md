@@ -49,15 +49,20 @@ _Last verified against code: 2026-06-08_
 - [x] FEATURES.md — honest feature inventory
 - [x] TODO_LIST.md — centralized task list
 
-## Not Started
+## Not Started (v0.2.0+)
 
-- [ ] Implement deflate support using `compress/flate`
-- [ ] Add `Accept-Encoding` quality value parsing per RFC 7231
+### Near-term
+- [ ] Improve test coverage to 90%+ (currently 89.1%)
 - [ ] Make content-type filtering configurable via `CompressionConfig`
 - [ ] Add `MiddlewareStack` type with ordering validation
 - [ ] Add `ResponseWriter` capability interface for Hijack/Push/Flush
-- [ ] Improve test coverage to 90%+ (currently 89.1%)
+
+### Medium-term
+- [ ] Implement deflate support using `compress/flate`
+- [ ] Add `Accept-Encoding` quality value parsing per RFC 7231
 - [ ] Evaluate streaming ETag option using rolling hash
+
+### Worth considering
 - [ ] Consider request/response metrics middleware
 - [ ] Consider rate-limiting middleware
 - [ ] Consider request body size limit middleware
