@@ -83,8 +83,7 @@ var (
 	errInvalidCompressionLevel = errors.New(
 		"compression level must be between gzip.HuffmanOnly and gzip.BestCompression",
 	)
-	errNegativeMinSize  = errors.New("compression minimum size must not be negative")
-	errPoolTypeMismatch = errors.New("unexpected type from gzip writer pool")
+	errNegativeMinSize = errors.New("compression minimum size must not be negative")
 )
 
 // Validate checks the CompressionConfig for invalid values.
@@ -315,11 +314,7 @@ func (w *compressWriter) startCompression() error {
 
 	gzipWriter, ok := raw.(*gzip.Writer)
 	if !ok {
-		return errorfamily.WrapTransient(
-			errPoolTypeMismatch,
-			ErrCodeCompressWriteFailed,
-			"gzip writer pool type mismatch",
-		)
+		panic("unexpected type from gzip writer pool")
 	}
 
 	gzipWriter.Reset(w.ResponseWriter)

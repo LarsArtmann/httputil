@@ -291,3 +291,14 @@ type mockPusher struct {
 func (m *mockPusher) Push(target string, opts *http.PushOptions) error {
 	return m.pushErr
 }
+
+func TestRegisterErrorClassifications_RegistersTemplates(t *testing.T) {
+	t.Parallel()
+
+	RegisterErrorClassifications()
+
+	family := errorfamily.Classify(http.ErrNotSupported)
+	if family != errorfamily.Infrastructure {
+		t.Errorf("Classify(ErrNotSupported) = %v, want Infrastructure", family)
+	}
+}

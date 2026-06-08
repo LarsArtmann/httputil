@@ -45,14 +45,14 @@ _Last verified against code: 2026-06-08_
 - [x] `docs/DOMAIN_LANGUAGE.md` with domain glossary
 - [x] `doc.go` package-level godoc
 - [x] `golangci-lint` ~70 linters, 0 issues
-- [x] 110 tests passing, `go vet` clean, 89.1% coverage
+- [x] 112 tests passing, `go vet` clean, 91.2% coverage
 - [x] FEATURES.md — honest feature inventory
 - [x] TODO_LIST.md — centralized task list
 
 ## Not Started (v0.2.0+)
 
 ### Near-term
-- [ ] Improve test coverage to 90%+ (currently 89.1%)
+- [x] Improve test coverage to 90%+ (currently 91.2%)
 - [ ] Make content-type filtering configurable via `CompressionConfig`
 - [ ] Add `MiddlewareStack` type with ordering validation
 - [ ] Add `ResponseWriter` capability interface for Hijack/Push/Flush

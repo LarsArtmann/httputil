@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - CORS middleware with configurable origins, methods, headers, credentials, and preflight handling
 - CORS wildcard origin matching (e.g., `*.example.com`)
-- `CORSConfig.Validate()` method for validating CORS configuration at startup
+- `CORSConfig.Validate()`, `CompressionConfig.Validate()`, `RequestIDConfig.Validate()`, `ETagConfig.Validate()`, `SecurityHeadersConfig.Validate()` — all config types have startup validation
 - `DefaultCORSConfig()` with permissive development defaults (allows all origins)
 - Client IP extraction (`ClientIP`) with `X-Forwarded-For` → `X-Real-IP` → `RemoteAddr` precedence
 - `WithClientIP()`, `ClientIPFromContext()`, `ClientIPMiddleware()` context helpers
@@ -26,15 +26,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Request timeout middleware (`Timeout`) with context deadline enforcement
 - Structured request logging middleware (`Logging`)
 - Response compression middleware (`Compression`) with gzip, `sync.Pool`, content-type filtering, and bounded buffering
-- `CompressionConfig.Validate()` for startup configuration validation
-- ETag generation middleware (`ETag`) with RFC 7232 compliance, 1MB memory limit, and zero-allocation hex encoding
+- `CompressionConfig.Validate()` for startup configuration validation (gzip levels, min size)
+- `RequestIDConfig.Validate()` for startup validation (nil GenerateID, empty headers)
+- `ETagConfig.Validate()` for startup validation (non-positive MaxBufferSize)
+- `SecurityHeadersConfig.Validate()` for startup validation (all fields optional, consistent API)
 - Classified errors via `go-error-family` integration for `ResponseRecorder` (`Write`, `Hijack`, `Push`), `compressWriter`, and `etagWriter`
 - 7 error code constants: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`
 - `RegisterErrorClassifications()` for stdlib HTTP error mapping
 - Error message templates (`what/why/fix/wayOut`) for all classified errors
 - `wrapper.go` shared `ResponseWriter` wrapper eliminating ~80 lines of duplication from compress/etag writers
-- 94 tests, 11 example functions, 15 benchmarks, 5 fuzz tests
-- 87.1% test coverage
+- 112 tests, 11 example functions, 15 benchmarks, 5 fuzz tests
+- 91.2% test coverage
 - `golangci-lint` with ~70 linters, 0 issues
 - GitHub Actions CI workflow (test, lint, build, vet)
 - Release workflow with `govulncheck`
@@ -49,3 +51,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `util.go`: Fixed `itoa` MinInt overflow bug with per-digit absolute value
 - `ResponseRecorder`: `Write`, `Hijack`, `Push` return classified errors instead of bare `fmt.Errorf`
 - `ResponseRecorder`: Fixed nil-wrapping bug where successful operations returned non-nil errors
+- `CORS()`: Fixed data race where `allowOrigin` was a shared mutable closure variable across concurrent requests
