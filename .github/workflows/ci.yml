@@ -38,6 +38,11 @@ jobs:
       - name: Benchmark
         run: go test -bench=. -benchmem -count=1 -run=^$ ./...
 
+      - name: Run govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
       - uses: actions/upload-artifact@v4
         with:
           name: coverage
@@ -55,4 +60,5 @@ jobs:
 
       - uses: golangci/golangci-lint-action@v7
         with:
-          version: latest
+          version: v2.12
+          args: --timeout=5m
