@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-08
+
+### Fixed
+
+- `CORS()`: Eliminated data race where `allowOrigin` was a shared mutable closure variable across concurrent requests
+- `Compression()`: Added nil guard in gzip writer pool — `gzip.NewWriterLevel` errors now panic at construction time instead of producing nil writers
+- Removed unreachable `errPoolTypeMismatch` dead code, replaced with `panic()` for impossible states
+
+### Changed
+
+- Updated CHANGELOG, AGENTS.md, and status docs to reflect accurate metrics (112 tests, 91.2% coverage)
+
 ## [0.1.0] - 2026-06-08
 
 ### Added
