@@ -14,14 +14,14 @@ _Updated: 2026-06-08_
 |------------|------|-------------|-------|----------|------------|------|
 | CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS` |
 | ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` |
-| RequestID | `requestid.go` | `RequestIDConfig` | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` |
-| SecurityHeaders | `security.go` | `SecurityHeadersConfig` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — |
+| RequestID | `requestid.go` | `RequestIDConfig` + `Validate()` | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` |
+| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — |
 | Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — |
 | Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — |
 | Logging | `logging.go` | `*slog.Logger` | Yes | `ExampleLogging` | `BenchmarkLogging` | — |
 | ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — |
 | Compression | `compression.go` | `CompressionConfig` + `Validate()` | Yes | `ExampleCompression` | `BenchmarkCompression` | `FuzzCompression` |
-| ETag | `etag.go` | `ETagConfig` | Yes | `ExampleETag` | `BenchmarkETag` | `FuzzETag` |
+| ETag | `etag.go` | `ETagConfig` + `Validate()` | Yes | `ExampleETag` | `BenchmarkETag` | `FuzzETag` |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 

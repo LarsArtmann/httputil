@@ -14,6 +14,9 @@ _Last verified against code: 2026-06-08_
 - [x] `HeaderSnapshot()` for capturing response headers
 - [x] `CORSConfig.Validate()` for startup configuration validation
 - [x] `CompressionConfig.Validate()` for startup configuration validation
+- [x] `RequestIDConfig.Validate()` for startup configuration validation (nil GenerateID, empty headers)
+- [x] `ETagConfig.Validate()` for startup configuration validation (MaxBufferSize guard)
+- [x] `SecurityHeadersConfig.Validate()` for startup configuration validation (all fields optional)
 - [x] CORS wildcard origin matching (`*.example.com`)
 - [x] Client IP extraction with `X-Forwarded-For` → `X-Real-IP` → `RemoteAddr` precedence
 - [x] `WithClientIP()` / `ClientIPFromContext()` / `ClientIPMiddleware()` context helpers
@@ -39,7 +42,7 @@ _Last verified against code: 2026-06-08_
 - [x] `docs/DOMAIN_LANGUAGE.md` with domain glossary
 - [x] `doc.go` package-level godoc
 - [x] `golangci-lint` ~70 linters, 0 issues
-- [x] 94 tests passing, `go vet` clean, 87.1% coverage
+- [x] 103 tests passing, `go vet` clean, 87.4% coverage
 - [x] FEATURES.md — honest feature inventory
 - [x] TODO_LIST.md — centralized task list
 
