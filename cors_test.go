@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 )
 
@@ -281,4 +282,41 @@ func FuzzCORS(f *testing.F) {
 			t.Errorf("status = %d, not a valid HTTP status", rec.Code)
 		}
 	})
+}
+
+func TestCORS_ConcurrentRequests_NoRace(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"https://alpha.example.com", "https://beta.example.com"},
+		AllowedMethods: []string{http.MethodGet},
+		AllowedHeaders: []string{headerContentType},
+	}
+	handler := CORS(cfg)(newNoOpHandler())
+
+	origins := []string{"https://alpha.example.com", "https://beta.example.com"}
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+
+		go func(idx int) {
+			defer wg.Done()
+
+			origin := origins[idx%len(origins)]
+			req := newTestRequest(http.MethodGet, "/", "")
+			req.Header.Set("Origin", origin)
+			rec := newRecorder()
+
+			handler.ServeHTTP(rec, req)
+
+			got := rec.Header().Get("Access-Control-Allow-Origin")
+			if got != origin {
+				t.Errorf("origin = %q, got Allow-Origin = %q, want %q", origin, got, origin)
+			}
+		}(i)
+	}
+
+	wg.Wait()
 }

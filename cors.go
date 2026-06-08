@@ -72,8 +72,6 @@ func (c CORSConfig) Validate() error {
 // Preflight OPTIONS requests receive a 204 No Content response unless
 // OptionsPassthrough is set.
 func CORS(cfg CORSConfig) Middleware {
-	allowOrigin := "*"
-
 	allowCredentials := "false"
 	if cfg.AllowCredentials {
 		allowCredentials = "true"
@@ -81,6 +79,8 @@ func CORS(cfg CORSConfig) Middleware {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+			allowOrigin := "*"
+
 			origin := req.Header.Get("Origin")
 			if origin != "" {
 				allowOrigin = resolveOrigin(origin, cfg)
