@@ -189,10 +189,7 @@ func (w *etagWriter) computeETag() string {
 		etag[1] = '/'
 		etag[2] = '"'
 
-		for i := range crc32ByteSize {
-			etag[3+i*2] = hexDigits[buf[i]>>4]
-			etag[4+i*2] = hexDigits[buf[i]&0x0f]
-		}
+		encodeHex(etag[3:], buf[:])
 
 		etag[etagWeakLen-1] = '"'
 
@@ -203,14 +200,19 @@ func (w *etagWriter) computeETag() string {
 
 	etag[0] = '"'
 
-	for i := range crc32ByteSize {
-		etag[1+i*2] = hexDigits[buf[i]>>4]
-		etag[2+i*2] = hexDigits[buf[i]&0x0f]
-	}
+	encodeHex(etag[1:], buf[:])
 
 	etag[etagStrongLen-1] = '"'
 
 	return string(etag[:])
+}
+
+// encodeHex writes the hex encoding of src into dst. dst must have length >= 2*len(src).
+func encodeHex(dst, src []byte) {
+	for i, b := range src {
+		dst[i*2] = hexDigits[b>>4]
+		dst[i*2+1] = hexDigits[b&0x0f]
+	}
 }
 
 func (w *etagWriter) matchesIfNoneMatch(req *http.Request, etag string) bool {

@@ -59,6 +59,22 @@ func assertHeader(t *testing.T, rec *httptest.ResponseRecorder, key, want string
 	}
 }
 
+// newWriteStatusHandler returns an http.HandlerFunc that writes status and body.
+func newWriteStatusHandler(status int, body string) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(body))
+	})
+}
+
+// newWriteBodyHandler returns an http.HandlerFunc that writes OK status and body.
+func newWriteBodyHandler(body []byte) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(body)
+	})
+}
+
 // newFlushHandler returns an http.HandlerFunc that writes "partial", flushes
 // if the ResponseWriter implements http.Flusher, then writes " more".
 func newFlushHandler() http.HandlerFunc {

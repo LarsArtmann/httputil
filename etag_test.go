@@ -13,10 +13,7 @@ func TestETag_GeneratesStrongETag(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -41,10 +38,7 @@ func TestETag_GeneratesWeakETag(t *testing.T) {
 	t.Parallel()
 
 	cfg := ETagConfig{Weak: true}
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -61,10 +55,7 @@ func testETagIfNoneMatchReturns304(t *testing.T, ifNoneMatchValue string) {
 	t.Helper()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, ifNoneMatchValue)
@@ -98,10 +89,7 @@ func TestETag_IfNoneMatch_NoMatch(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"different"`)
@@ -123,10 +111,7 @@ func TestETag_IfNoneMatch_Star(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, "*")
@@ -144,10 +129,7 @@ func TestETag_NonGetHead(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodPost, "/", "")
 	rec := newRecorder()
@@ -167,10 +149,7 @@ func TestETag_201Created_IsCacheable(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte("created"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusCreated, "created"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -187,10 +166,7 @@ func TestETag_MemoryLimit_DisablesETag(t *testing.T) {
 	t.Parallel()
 
 	cfg := ETagConfig{MaxBufferSize: 10}
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("this body exceeds the limit"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "this body exceeds the limit"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -244,10 +220,7 @@ func FuzzETag(f *testing.F) {
 	f.Add([]byte(""), "*")
 
 	cfg := DefaultETagConfig()
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("response body"))
-	})
+	inner := newWriteStatusHandler(http.StatusOK, "response body")
 
 	f.Fuzz(func(t *testing.T, body []byte, ifNoneMatch string) {
 		handler := ETag(cfg)(inner)
@@ -272,10 +245,7 @@ func BenchmarkETag(b *testing.B) {
 
 	body := []byte("hello world benchmark test data")
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(body)
-	})
+	inner := newWriteBodyHandler(body)
 
 	handler := middleware(inner)
 	req := newTestRequest(http.MethodGet, "/", "")
@@ -290,9 +260,7 @@ func TestETag_EmptyBody(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, ""))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -333,10 +301,7 @@ func TestETag_HeadRequest(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := newTestRequest(http.MethodHead, "/", "")
 	rec := newRecorder()

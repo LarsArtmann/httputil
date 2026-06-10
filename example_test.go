@@ -70,10 +70,7 @@ func ExampleNewResponseRecorder() {
 
 func ExampleCompression() {
 	cfg := CompressionConfig{MinSize: 1, Level: -2}
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := Compression(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Accept-Encoding", "gzip")
@@ -88,10 +85,7 @@ func ExampleCompression() {
 
 func ExampleETag() {
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 

@@ -183,10 +183,7 @@ func TestChain_ETagThenCompression_CorrectOrder(t *testing.T) {
 
 	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(body)
-	})
+	inner := newWriteBodyHandler(body)
 
 	// ETag should be inner (sees uncompressed body), Compression outer.
 	// Chain applies in reverse: first = outermost.
@@ -221,10 +218,7 @@ func TestChain_ETagThenCompression_IfNoneMatch304(t *testing.T) {
 
 	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(body)
-	})
+	inner := newWriteBodyHandler(body)
 
 	handler := Chain(inner, Compression(compressCfg), ETag(etagCfg))
 
@@ -253,10 +247,7 @@ func TestChain_CompressionThenETag_WrongOrder(t *testing.T) {
 
 	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(body)
-	})
+	inner := newWriteBodyHandler(body)
 
 	// WRONG order: Compression inner, ETag outer.
 	// ETag sees compressed bytes, so ETag changes on every request
@@ -290,10 +281,7 @@ func TestChain_RecoveryLoggingCORS(t *testing.T) {
 	logger := newTestLogger()
 	corsCfg := DefaultCORSConfig()
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok"))
-	})
+	inner := newWriteStatusHandler(http.StatusOK, "ok")
 
 	handler := Chain(inner, CORS(corsCfg), Recovery(logger), Logging(logger))
 

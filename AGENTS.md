@@ -76,7 +76,7 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `etag.go`          | `ETagConfig`, `DefaultETagConfig()`, `ETag()`, `Validate()`                                                                                              | ETag generation + 304 conditional request middleware            |
 | `util.go`          | (unexported `join`, `itoa`)                                                                                                                              | Internal helpers avoiding strconv import                        |
 | `wrapper.go`       | (unexported `responseWrapper`)                                                                                                                           | Shared ResponseWriter wrapper for compress/etag writers         |
-| `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertItoa`, `assertSliceEqual`) | Shared test helpers for consistent test patterns                |
+| `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newWriteStatusHandler`, `newWriteBodyHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertItoa`, `assertSliceEqual`) | Shared test helpers for consistent test patterns                |
 | `doc.go`           | (package doc only)                                                                                                                                       | Package-level GoDoc documentation                               |
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler`. `Chain()` applies them in declaration order (first = outermost) via `slices.Backward`.
