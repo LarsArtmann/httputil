@@ -66,7 +66,7 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `clientip.go`      | `ClientIP()`                                                                                                                                             | Client IP extraction (X-Forwarded-For → X-Real-IP → RemoteAddr) |
 | `context.go`       | `WithClientIP()`, `ClientIPFromContext()`, `ClientIPMiddleware()`                                                                                        | Request context helpers for client IP                           |
 | `recorder.go`      | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()`, `HeaderSnapshot()`                                                                               | Response capture + middleware chaining                          |
-| `errors.go`        | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`, `RegisterErrorClassifications()` | Error codes + stdlib sentinel registration + message templates  |
+| `errors.go`        | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`, `RegisterErrorClassifications()` | Error codes + stdlib sentinel registration + message templates  |
 | `security.go`      | `SecurityHeadersConfig`, `DefaultSecurityHeadersConfig()`, `SecurityHeaders()`, `Validate()`                                                            | Security response headers middleware                            |
 | `requestid.go`     | `RequestIDConfig`, `DefaultRequestIDConfig()`, `RequestID()`, `RequestIDFromContext()`, `Validate()`                                                     | Request ID propagation/generation middleware                    |
 | `recovery.go`      | `Recovery()`                                                                                                                                             | Panic recovery middleware                                       |
@@ -90,12 +90,10 @@ Errors from `ResponseRecorder` are classified using `go-error-family`:
 | `Write`  | `http.write_failed`       | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
 | `Hijack` | `http.hijack_unsupported` | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
 | `Hijack` | `http.hijack_failed`      | Transient      | Yes       | Underlying Hijack call fails                 |
-| `Push`   | `http.push_unsupported`   | Infrastructure | No        | Underlying writer doesn't implement Pusher   |
-| `Push`   | `http.push_failed`        | Transient      | Yes       | Underlying Push call fails                   |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
 
-Context is attached where relevant (e.g., `status` on write errors, `target` on push errors).
+Context is attached where relevant (e.g., `status` on write errors).
 
 ## Non-Obvious Behaviors
 

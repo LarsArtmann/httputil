@@ -160,12 +160,11 @@ Invariants and policies that the library enforces.
 
 - `WriteHeader` only captures on **first call**; subsequent calls are ignored for capture but still delegated
 - `Write` implicitly sets status 200 if no `WriteHeader` was called yet
-- `Flush`, `Hijack`, and `Push` are optional — they delegate only if the underlying ResponseWriter supports them
+- `Flush` and `Hijack` are optional — they delegate only if the underlying ResponseWriter supports them
 - `Hijack` returns a classified `Infrastructure` error if the underlying writer is not an `http.Hijacker`
-- `Push` returns a classified `Infrastructure` error if the underlying writer is not an `http.Pusher`
-- Write/Hijack/Push failures return classified `Transient` errors wrapping the underlying cause
+- Write/Hijack failures return classified `Transient` errors wrapping the underlying cause
 - All errors carry an error code (e.g., `http.write_failed`), family, and relevant context
-- `errors.Is(err, http.ErrNotSupported)` still works for unsupported Hijack/Push
+- `errors.Is(err, http.ErrNotSupported)` still works for unsupported Hijack
 
 ### Security Headers Defaults
 
@@ -245,8 +244,6 @@ Invariants and policies that the library enforces.
 | `http.write_failed`           | Transient      | Yes       | Underlying ResponseWriter.Write fails              |
 | `http.hijack_unsupported`     | Infrastructure | No        | Underlying writer doesn't implement Hijacker       |
 | `http.hijack_failed`          | Transient      | Yes       | Underlying Hijack call fails                       |
-| `http.push_unsupported`       | Infrastructure | No        | Underlying writer doesn't implement Pusher         |
-| `http.push_failed`            | Transient      | Yes       | Underlying Push call fails                         |
 | `http.compress_write_failed`  | Transient      | Yes       | Gzip writer Write fails                            |
 | `http.etag_write_failed`      | Transient      | Yes       | ETag writer Write fails                            |
 

@@ -27,14 +27,14 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Error Classification System
 
-- 7 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodePushUnsupported`, `ErrCodePushFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`.
+- 5 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
 - Message templates with `what/why/fix/wayOut` for all classified errors.
 - Test coverage in `errors_test.go`.
 
 ### Shared ResponseWriter Wrapper
 
-- `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, `Push`, and `Flush` delegation.
+- `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, and `Flush` delegation.
 - Embedded by `compressWriter` and `etagWriter`, eliminating ~80 lines of duplication.
 
 ### Compression Performance
@@ -86,7 +86,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 Not 100%. Gaps exist in:
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
 - Edge cases in `CORS` wildcard matching with unusual patterns.
-- `ResponseRecorder` hijack/push failure paths.
+- `ResponseRecorder` hijack failure paths.
 - Some `util.go` branches (`itoa` negative numbers, `join` empty slices).
 
 ---
@@ -104,7 +104,7 @@ Not 100%. Gaps exist in:
 - Add `Accept-Encoding` quality value parsing per RFC 7231.
 - Make content-type filtering configurable via `CompressionConfig`.
 - Add `MiddlewareStack` type with ordering validation.
-- Add a `ResponseWriter` capability interface to unify Hijack/Push/Flush detection.
+- Add a `ResponseWriter` capability interface to unify Hijack/Flush detection.
 - Improve test coverage to 90%+.
 
 ---
@@ -116,4 +116,4 @@ Not 100%. Gaps exist in:
 - **Request/response metrics middleware** — optional, using `expvar` or custom histograms.
 - **Rate-limiting middleware** — sliding window or token bucket.
 - **Request body size limit middleware**.
-- **HTTP/2 Server Push integration test**.
+- **HTTP/2 Server Push integration test** — removed, HTTP/2 push is deprecated.

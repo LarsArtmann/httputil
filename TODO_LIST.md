@@ -8,9 +8,9 @@ _Last verified against code: 2026-06-08_
 
 - [x] Core middleware suite (10 middlewares): CORS, ClientIP, RequestID, SecurityHeaders, Recovery, Timeout, Logging, ResponseRecorder, Compression, ETag
 - [x] `Chain()` middleware composition with reverse-order application
-- [x] Error classification system with `go-error-family` (7 error codes)
+- [x] Error classification system with `go-error-family` (5 error codes)
 - [x] `RegisterErrorClassifications()` for stdlib HTTP error mapping
-- [x] `ResponseRecorder` with `WriteHeader`, `Write`, `Flush`, `Hijack`, `Push` support
+- [x] `ResponseRecorder` with `WriteHeader`, `Write`, `Flush`, `Hijack` support
 - [x] `HeaderSnapshot()` for capturing response headers
 - [x] `CORSConfig.Validate()` for startup configuration validation
 - [x] `CompressionConfig.Validate()` for startup configuration validation
@@ -55,7 +55,7 @@ _Last verified against code: 2026-06-08_
 - [x] Improve test coverage to 90%+ (currently 91.2%)
 - [ ] Make content-type filtering configurable via `CompressionConfig`
 - [ ] Add `MiddlewareStack` type with ordering validation
-- [ ] Add `ResponseWriter` capability interface for Hijack/Push/Flush
+- [ ] Add `ResponseWriter` capability interface for Hijack/Flush
 
 ### Medium-term
 - [ ] Implement deflate support using `compress/flate`

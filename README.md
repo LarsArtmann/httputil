@@ -107,7 +107,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 ```
 
-`ResponseRecorder` transparently supports `http.Flusher`, `http.Hijacker`, and `http.Pusher` when the underlying writer implements them. Write errors carry classified error codes via [go-error-family](https://github.com/larsartmann/go-error-family) for retry decisions.
+`ResponseRecorder` transparently supports `http.Flusher` and `http.Hijacker` when the underlying writer implements them. Write errors carry classified error codes via [go-error-family](https://github.com/larsartmann/go-error-family) for retry decisions.
 
 `HeaderSnapshot()` returns an isolated copy of response headers for inspection:
 
@@ -202,8 +202,6 @@ Set `Weak: true` for weak ETags (`W/"..."`) if your content may change semantica
 | `Write`  | `http.write_failed`       | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
 | `Hijack` | `http.hijack_unsupported` | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
 | `Hijack` | `http.hijack_failed`      | Transient      | Yes       | Underlying Hijack call fails                 |
-| `Push`   | `http.push_unsupported`   | Infrastructure | No        | Underlying writer doesn't implement Pusher   |
-| `Push`   | `http.push_failed`        | Transient      | Yes       | Underlying Push call fails                   |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 
@@ -256,7 +254,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Write([]byte)`                   | `(int, error)`                         | Write body, implicitly set 200                         |
 | `Flush()`                         | —                                      | Delegate if underlying writer supports `http.Flusher`  |
 | `Hijack()`                        | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker` |
-| `Push(string, *http.PushOptions)` | `error`                                | Delegate if underlying writer supports `http.Pusher`   |
 
 ## Design
 
