@@ -78,54 +78,19 @@ func (r *ResponseRecorder) Write(b []byte) (int, error) {
 // Flush delegates to the underlying ResponseWriter if it implements
 // http.Flusher.
 func (r *ResponseRecorder) Flush() {
-	if f, ok := r.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
+	flushDelegate(r.ResponseWriter)
 }
 
 // Hijack delegates to the underlying ResponseWriter if it implements
 // http.Hijacker.
 func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	hijacker, ok := r.ResponseWriter.(http.Hijacker)
-	if !ok {
-		return nil, nil, errorfamily.WrapInfrastructure(
-			http.ErrNotSupported,
-			ErrCodeHijackUnsupported,
-			"response writer does not implement http.Hijacker",
-		)
-	}
-
-	conn, rw, err := hijacker.Hijack()
-	if err != nil {
-		return conn, rw, errorfamily.WrapTransient(
-			err,
-			ErrCodeHijackFailed,
-			"response writer hijack failed",
-		)
-	}
-
-	return conn, rw, nil
+	return hijackDelegate(r.ResponseWriter)
 }
 
 // Push delegates to the underlying ResponseWriter if it implements
 // http.Pusher.
 func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
-	pusher, ok := r.ResponseWriter.(http.Pusher)
-	if !ok {
-		return errorfamily.WrapInfrastructure(
-			http.ErrNotSupported,
-			ErrCodePushUnsupported,
-			"response writer does not implement http.Pusher",
-		).WithContext("target", target)
-	}
-
-	err := pusher.Push(target, opts)
-	if err != nil {
-		return errorfamily.WrapTransient(err, ErrCodePushFailed, "response writer push failed").
-			WithContext("target", target)
-	}
-
-	return nil
+	return pushDelegate(r.ResponseWriter, target, opts)
 }
 
 // Chain wraps a handler with multiple middleware, applying them in reverse

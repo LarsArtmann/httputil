@@ -42,8 +42,8 @@ func (w *responseWrapper) writeHeaderToUnderlying() {
 	}
 }
 
-func (w *responseWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	hijacker, ok := w.ResponseWriter.(http.Hijacker)
+func hijackDelegate(w http.ResponseWriter) (net.Conn, *bufio.ReadWriter, error) {
+	hijacker, ok := w.(http.Hijacker)
 	if !ok {
 		return nil, nil, errorfamily.WrapInfrastructure(
 			http.ErrNotSupported,
@@ -64,8 +64,8 @@ func (w *responseWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return conn, rw, nil
 }
 
-func (w *responseWrapper) Push(target string, opts *http.PushOptions) error {
-	pusher, ok := w.ResponseWriter.(http.Pusher)
+func pushDelegate(w http.ResponseWriter, target string, opts *http.PushOptions) error {
+	pusher, ok := w.(http.Pusher)
 	if !ok {
 		return errorfamily.WrapInfrastructure(
 			http.ErrNotSupported,
@@ -83,8 +83,20 @@ func (w *responseWrapper) Push(target string, opts *http.PushOptions) error {
 	return nil
 }
 
-func (w *responseWrapper) Flush() {
-	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+func flushDelegate(w http.ResponseWriter) {
+	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
 	}
+}
+
+func (w *responseWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return hijackDelegate(w.ResponseWriter)
+}
+
+func (w *responseWrapper) Push(target string, opts *http.PushOptions) error {
+	return pushDelegate(w.ResponseWriter, target, opts)
+}
+
+func (w *responseWrapper) Flush() {
+	flushDelegate(w.ResponseWriter)
 }
