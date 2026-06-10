@@ -10,7 +10,7 @@ import (
 
 // responseWrapper provides common ResponseWriter wrapping behavior used by
 // compressWriter and etagWriter. It buffers WriteHeader calls and delegates
-// Hijack, Push, and Flush to the underlying writer when supported.
+// Hijack and Flush to the underlying writer when supported.
 type responseWrapper struct {
 	http.ResponseWriter
 
@@ -64,25 +64,6 @@ func hijackDelegate(w http.ResponseWriter) (net.Conn, *bufio.ReadWriter, error) 
 	return conn, rw, nil
 }
 
-func pushDelegate(w http.ResponseWriter, target string, opts *http.PushOptions) error {
-	pusher, ok := w.(http.Pusher)
-	if !ok {
-		return errorfamily.WrapInfrastructure(
-			http.ErrNotSupported,
-			ErrCodePushUnsupported,
-			"response writer does not implement http.Pusher",
-		).WithContext("target", target)
-	}
-
-	err := pusher.Push(target, opts)
-	if err != nil {
-		return errorfamily.WrapTransient(err, ErrCodePushFailed, "response writer push failed").
-			WithContext("target", target)
-	}
-
-	return nil
-}
-
 func flushDelegate(w http.ResponseWriter) {
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
@@ -91,10 +72,6 @@ func flushDelegate(w http.ResponseWriter) {
 
 func (w *responseWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return hijackDelegate(w.ResponseWriter)
-}
-
-func (w *responseWrapper) Push(target string, opts *http.PushOptions) error {
-	return pushDelegate(w.ResponseWriter, target, opts)
 }
 
 func (w *responseWrapper) Flush() {

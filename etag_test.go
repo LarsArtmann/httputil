@@ -202,18 +202,6 @@ func TestETag_Hijack_SetsFlushedMode(t *testing.T) {
 	}
 }
 
-func TestETag_Push_Delegates(t *testing.T) {
-	t.Parallel()
-
-	cfg := DefaultETagConfig()
-	etagWriter := newETagWriter(newPushRecorder(), cfg)
-
-	err := etagWriter.Push("/test", nil)
-	if err != nil {
-		t.Errorf("Push error = %v, want nil", err)
-	}
-}
-
 func FuzzETag(f *testing.F) {
 	f.Add([]byte("hello world"), "")
 	f.Add([]byte(strings.Repeat("a", 1024)), `"abc123"`)

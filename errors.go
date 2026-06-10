@@ -22,14 +22,6 @@ const (
 	// Classified as Transient (retryable).
 	ErrCodeHijackFailed = "http.hijack_failed"
 
-	// ErrCodePushUnsupported is returned when the underlying ResponseWriter
-	// does not implement http.Pusher. Classified as Infrastructure (not retryable).
-	ErrCodePushUnsupported = "http.push_unsupported"
-
-	// ErrCodePushFailed is returned when the underlying Push call fails.
-	// Classified as Transient (retryable).
-	ErrCodePushFailed = "http.push_failed"
-
 	// ErrCodeCompressWriteFailed is returned when gzip write during
 	// compression fails. Classified as Transient (retryable).
 	ErrCodeCompressWriteFailed = "http.compress_write_failed"
@@ -91,22 +83,6 @@ func registerAllErrorTemplates() {
 		"Failed to hijack HTTP connection",
 		"The underlying Hijack() call returned an error.",
 		"Check if the connection is still active and not already hijacked.",
-		msgRetryMaySucceed,
-	)
-
-	registerErrorTemplate(
-		ErrCodePushUnsupported,
-		"HTTP/2 server push is not supported",
-		"The underlying ResponseWriter does not implement the http.Pusher interface.",
-		"Use a ResponseWriter that supports HTTP/2 push (e.g., net/http HTTP/2 writer).",
-		msgInfrastructureUnsupported,
-	)
-
-	registerErrorTemplate(
-		ErrCodePushFailed,
-		"Failed to push HTTP/2 resource",
-		"The Push() call for target {{.target}} returned an error.",
-		"Check if the target path is valid and the connection supports HTTP/2 push.",
 		msgRetryMaySucceed,
 	)
 

@@ -161,92 +161,6 @@ func TestHijack_ErrNotSupported_InErrorChain(t *testing.T) {
 	assertErrNotSupported(t, err)
 }
 
-func TestPush_ReturnsNilError_OnSuccess(t *testing.T) {
-	t.Parallel()
-
-	inner := &mockPusher{pushErr: nil}
-	recorder := NewResponseRecorder(inner)
-
-	err := recorder.Push("/style.css", nil)
-	if err != nil {
-		t.Errorf("Push() error = %v, want nil", err)
-	}
-}
-
-func TestPush_ClassifiedAsInfrastructure_WhenUnsupported(t *testing.T) {
-	t.Parallel()
-
-	inner := httptest.NewRecorder()
-	recorder := NewResponseRecorder(inner)
-
-	err := recorder.Push("/style.css", nil)
-	if err == nil {
-		t.Fatal("Push() error = nil, want non-nil")
-	}
-
-	family := errorfamily.Classify(err)
-	if family != errorfamily.Infrastructure {
-		t.Errorf("Classify(err) = %v, want Infrastructure", family)
-	}
-
-	classified, ok := errors.AsType[errorfamily.Coded](err)
-	if !ok {
-		t.Fatal("error does not implement Coded")
-	}
-
-	if classified.ErrorCode() != ErrCodePushUnsupported {
-		t.Errorf("ErrorCode() = %q, want %q", classified.ErrorCode(), ErrCodePushUnsupported)
-	}
-}
-
-func TestPush_ClassifiedAsTransient_OnPushFailure(t *testing.T) {
-	t.Parallel()
-
-	inner := &mockPusher{pushErr: errPushFailed}
-	recorder := NewResponseRecorder(inner)
-
-	err := recorder.Push("/style.css", nil)
-	if err == nil {
-		t.Fatal("Push() error = nil, want non-nil")
-	}
-
-	family := errorfamily.Classify(err)
-	if family != errorfamily.Transient {
-		t.Errorf("Classify(err) = %v, want Transient", family)
-	}
-
-	classified, ok := errors.AsType[errorfamily.Coded](err)
-	if !ok {
-		t.Fatal("error does not implement Coded")
-	}
-
-	if classified.ErrorCode() != ErrCodePushFailed {
-		t.Errorf("ErrorCode() = %q, want %q", classified.ErrorCode(), ErrCodePushFailed)
-	}
-}
-
-func TestPush_HasTargetContext(t *testing.T) {
-	t.Parallel()
-
-	inner := &mockPusher{pushErr: errPushFailed}
-	recorder := NewResponseRecorder(inner)
-
-	err := recorder.Push("/style.css", nil)
-
-	assertErrorContext(t, err, "target", "/style.css")
-}
-
-func TestPush_ErrNotSupported_InErrorChain_WhenUnsupported(t *testing.T) {
-	t.Parallel()
-
-	inner := httptest.NewRecorder()
-	recorder := NewResponseRecorder(inner)
-
-	err := recorder.Push("/style.css", nil)
-
-	assertErrNotSupported(t, err)
-}
-
 func assertErrorContext(t *testing.T, err error, key, want string) {
 	t.Helper()
 
@@ -269,10 +183,7 @@ func assertErrNotSupported(t *testing.T, err error) {
 	}
 }
 
-var (
-	errWriteFailed = errors.New("write failed")
-	errPushFailed  = errors.New("push failed")
-)
+var errWriteFailed = errors.New("write failed")
 
 type failingWriter struct {
 	http.ResponseWriter
@@ -280,16 +191,6 @@ type failingWriter struct {
 
 func (f *failingWriter) Write(b []byte) (int, error) {
 	return 0, errWriteFailed
-}
-
-type mockPusher struct {
-	http.ResponseWriter
-
-	pushErr error
-}
-
-func (m *mockPusher) Push(target string, opts *http.PushOptions) error {
-	return m.pushErr
 }
 
 func TestRegisterErrorClassifications_RegistersTemplates(t *testing.T) {

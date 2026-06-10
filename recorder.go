@@ -13,8 +13,8 @@ import (
 type Middleware func(http.Handler) http.Handler
 
 // ResponseRecorder wraps an http.ResponseWriter to capture the status code.
-// It also supports http.Flusher, http.Hijacker, and http.Pusher when the
-// underlying ResponseWriter implements them.
+// It also supports http.Flusher and http.Hijacker when the underlying
+// ResponseWriter implements them.
 type ResponseRecorder struct {
 	http.ResponseWriter
 
@@ -85,12 +85,6 @@ func (r *ResponseRecorder) Flush() {
 // http.Hijacker.
 func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return hijackDelegate(r.ResponseWriter)
-}
-
-// Push delegates to the underlying ResponseWriter if it implements
-// http.Pusher.
-func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
-	return pushDelegate(r.ResponseWriter, target, opts)
 }
 
 // Chain wraps a handler with multiple middleware, applying them in reverse

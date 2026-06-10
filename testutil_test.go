@@ -107,23 +107,6 @@ func (r *hijackRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, nil
 }
 
-// pushRecorder is an httptest.ResponseRecorder that also implements http.Pusher.
-type pushRecorder struct {
-	*httptest.ResponseRecorder
-
-	pushed bool
-}
-
-func newPushRecorder() *pushRecorder {
-	return &pushRecorder{ResponseRecorder: httptest.NewRecorder()}
-}
-
-func (r *pushRecorder) Push(target string, opts *http.PushOptions) error {
-	r.pushed = true
-
-	return nil
-}
-
 // assertSliceEqual checks that two string slices are element-wise equal.
 func assertSliceEqual(t *testing.T, got, want []string) {
 	t.Helper()

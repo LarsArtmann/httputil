@@ -282,18 +282,6 @@ func TestCompression_Hijack_SetsPlainMode(t *testing.T) {
 	}
 }
 
-func TestCompression_Push_Delegates(t *testing.T) {
-	t.Parallel()
-
-	cfg := DefaultCompressionConfig()
-	compressWriter := newCompressWriter(newPushRecorder(), cfg.MinSize, cfg.Level)
-
-	err := compressWriter.Push("/test", nil)
-	if err != nil {
-		t.Errorf("Push error = %v, want nil", err)
-	}
-}
-
 func FuzzCompression(f *testing.F) {
 	f.Add([]byte("hello world"), "gzip")
 	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate")
