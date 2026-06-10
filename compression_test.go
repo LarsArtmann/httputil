@@ -149,16 +149,7 @@ func TestCompression_Flush(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		resp.WriteHeader(http.StatusOK)
-		_, _ = resp.Write([]byte("partial"))
-
-		if f, ok := resp.(http.Flusher); ok {
-			f.Flush()
-		}
-
-		_, _ = resp.Write([]byte(" more"))
-	}))
+	handler := Compression(cfg)(newFlushHandler())
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)
@@ -241,14 +232,14 @@ func TestCompressionConfig_Validate_InvalidLevel(t *testing.T) {
 	}
 }
 
-func TestCompression_SkipsImageContentType(t *testing.T) {
-	t.Parallel()
+func testCompressionSkipsContentType(t *testing.T, contentType, wantErrMsg string) {
+	t.Helper()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "image/png")
-		resp.WriteHeader(http.StatusOK)
-		_, _ = resp.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", contentType)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
@@ -259,52 +250,26 @@ func TestCompression_SkipsImageContentType(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if got := rec.Header().Get(headerContentEncoding); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty for image/png", got)
+		t.Errorf("Content-Encoding = %q, want empty for %s", got, wantErrMsg)
 	}
+}
+
+func TestCompression_SkipsImageContentType(t *testing.T) {
+	t.Parallel()
+
+	testCompressionSkipsContentType(t, "image/png", "image/png")
 }
 
 func TestCompression_SkipsVideoContentType(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "video/mp4")
-		resp.WriteHeader(http.StatusOK)
-		_, _ = resp.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
-
-	req := newTestRequest(http.MethodGet, "/", "")
-	req.Header.Set(headerAcceptEncoding, encodingGzip)
-
-	rec := newRecorder()
-
-	handler.ServeHTTP(rec, req)
-
-	if got := rec.Header().Get(headerContentEncoding); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty for video/mp4", got)
-	}
+	testCompressionSkipsContentType(t, "video/mp4", "video/mp4")
 }
 
 func TestCompression_SkipsGzipContentType(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "application/gzip")
-		resp.WriteHeader(http.StatusOK)
-		_, _ = resp.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
-
-	req := newTestRequest(http.MethodGet, "/", "")
-	req.Header.Set(headerAcceptEncoding, encodingGzip)
-
-	rec := newRecorder()
-
-	handler.ServeHTTP(rec, req)
-
-	if got := rec.Header().Get(headerContentEncoding); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty for application/gzip", got)
-	}
+	testCompressionSkipsContentType(t, "application/gzip", "application/gzip")
 }
 
 func TestCompression_Hijack_SetsPlainMode(t *testing.T) {

@@ -59,6 +59,21 @@ func assertHeader(t *testing.T, rec *httptest.ResponseRecorder, key, want string
 	}
 }
 
+// newFlushHandler returns an http.HandlerFunc that writes "partial", flushes
+// if the ResponseWriter implements http.Flusher, then writes " more".
+func newFlushHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("partial"))
+
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+
+		_, _ = w.Write([]byte(" more"))
+	})
+}
+
 // hijackRecorder is an httptest.ResponseRecorder that also implements http.Hijacker.
 type hijackRecorder struct {
 	*httptest.ResponseRecorder

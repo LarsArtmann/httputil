@@ -57,8 +57,8 @@ func TestETag_GeneratesWeakETag(t *testing.T) {
 	}
 }
 
-func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
-	t.Parallel()
+func testETagIfNoneMatchReturns304(t *testing.T, ifNoneMatchValue string) {
+	t.Helper()
 
 	cfg := DefaultETagConfig()
 	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +67,7 @@ func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
-	req.Header.Set(headerIfNoneMatch, `"other", "0d4a1185", "another"`)
+	req.Header.Set(headerIfNoneMatch, ifNoneMatchValue)
 
 	rec := newRecorder()
 
@@ -82,29 +82,16 @@ func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
 	}
 }
 
+func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
+	t.Parallel()
+
+	testETagIfNoneMatchReturns304(t, `"other", "0d4a1185", "another"`)
+}
+
 func TestETag_IfNoneMatch_Matches(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello world"))
-	}))
-
-	req := newTestRequest(http.MethodGet, "/", "")
-	req.Header.Set(headerIfNoneMatch, `"0d4a1185"`)
-
-	rec := newRecorder()
-
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusNotModified {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotModified)
-	}
-
-	if rec.Body.Len() != 0 {
-		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
-	}
+	testETagIfNoneMatchReturns304(t, `"0d4a1185"`)
 }
 
 func TestETag_IfNoneMatch_NoMatch(t *testing.T) {
@@ -326,16 +313,7 @@ func TestETag_Flush(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultETagConfig()
-	handler := ETag(cfg)(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		resp.WriteHeader(http.StatusOK)
-		_, _ = resp.Write([]byte("partial"))
-
-		if f, ok := resp.(http.Flusher); ok {
-			f.Flush()
-		}
-
-		_, _ = resp.Write([]byte(" more"))
-	}))
+	handler := ETag(cfg)(newFlushHandler())
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
