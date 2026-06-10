@@ -44,14 +44,14 @@ The library has ten bounded contexts, each with a distinct vocabulary and respon
 
 Objects with identity and lifecycle within the library.
 
-| Term             | Definition                                                                          | Context          |
-| ---------------- | ----------------------------------------------------------------------------------- | ---------------- |
-| ResponseRecorder | A wrapping `http.ResponseWriter` that captures the status code and write state      | Response Capture |
-| CORSConfig       | A configuration value object defining CORS policy (origins, methods, headers, etc.) | CORS             |
-| SecurityHeadersConfig | A configuration value object defining which security headers to set            | Security Headers |
-| RequestIDConfig  | A configuration value object defining request ID header name and generation logic   | Request ID       |
-| CompressionConfig | A configuration value object defining gzip compression parameters (level, min size) | Compression      |
-| ETagConfig       | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag    |
+| Term                  | Definition                                                                                    | Context          |
+| --------------------- | --------------------------------------------------------------------------------------------- | ---------------- |
+| ResponseRecorder      | A wrapping `http.ResponseWriter` that captures the status code and write state                | Response Capture |
+| CORSConfig            | A configuration value object defining CORS policy (origins, methods, headers, etc.)           | CORS             |
+| SecurityHeadersConfig | A configuration value object defining which security headers to set                           | Security Headers |
+| RequestIDConfig       | A configuration value object defining request ID header name and generation logic             | Request ID       |
+| CompressionConfig     | A configuration value object defining gzip compression parameters (level, min size)           | Compression      |
+| ETagConfig            | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
 
 ---
 
@@ -59,21 +59,21 @@ Objects with identity and lifecycle within the library.
 
 Immutable objects defined by their attributes.
 
-| Term              | Definition                                                                                  | Context          |
-| ----------------- | ------------------------------------------------------------------------------------------- | ---------------- |
-| Client IP         | The extracted IP address string identifying the originating client                          | Client IP        |
-| Origin            | The value of the `Origin` request header; identifies the requesting site's scheme+host+port | CORS             |
-| Allowed Origin    | An origin string permitted by the CORS policy; `*` means any origin is allowed              | CORS             |
-| Preflight Request | An `OPTIONS` request sent by the browser before the actual cross-origin request             | CORS             |
-| Actual Request    | The real request (GET, POST, etc.) following a successful preflight                         | CORS             |
-| Status Code       | The HTTP status code captured by the ResponseRecorder (e.g., 200, 404)                      | Response Capture |
-| Write State       | Whether `WriteHeader` has been called on the ResponseRecorder                               | Response Capture |
-| Request ID        | A unique string identifying a request, propagated via header or generated                    | Request ID       |
-| ETag Value        | An opaque string identifying a specific version of a response body                           | ETag             |
+| Term              | Definition                                                                                    | Context          |
+| ----------------- | --------------------------------------------------------------------------------------------- | ---------------- |
+| Client IP         | The extracted IP address string identifying the originating client                            | Client IP        |
+| Origin            | The value of the `Origin` request header; identifies the requesting site's scheme+host+port   | CORS             |
+| Allowed Origin    | An origin string permitted by the CORS policy; `*` means any origin is allowed                | CORS             |
+| Preflight Request | An `OPTIONS` request sent by the browser before the actual cross-origin request               | CORS             |
+| Actual Request    | The real request (GET, POST, etc.) following a successful preflight                           | CORS             |
+| Status Code       | The HTTP status code captured by the ResponseRecorder (e.g., 200, 404)                        | Response Capture |
+| Write State       | Whether `WriteHeader` has been called on the ResponseRecorder                                 | Response Capture |
+| Request ID        | A unique string identifying a request, propagated via header or generated                     | Request ID       |
+| ETag Value        | An opaque string identifying a specific version of a response body                            | ETag             |
 | Weak ETag         | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity | ETag             |
-| Compression Level | An integer controlling gzip compression tradeoff (speed vs ratio)                            | Compression      |
-| Min Size          | The minimum response body size (bytes) before compression is applied                        | Compression      |
-| Max Buffer Size   | The maximum bytes buffered for ETag computation before abandoning                           | ETag             |
+| Compression Level | An integer controlling gzip compression tradeoff (speed vs ratio)                             | Compression      |
+| Min Size          | The minimum response body size (bytes) before compression is applied                          | Compression      |
+| Max Buffer Size   | The maximum bytes buffered for ETag computation before abandoning                             | ETag             |
 
 ---
 
@@ -81,31 +81,31 @@ Immutable objects defined by their attributes.
 
 Actions the library performs.
 
-| Term                         | Definition                                                                                             | Context          |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- |
-| `ClientIP(r)`                | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr | Client IP        |
-| `ClientIPMiddleware(next)`   | Create middleware that injects the client IP into the request context                                  | Client IP        |
-| `ClientIPFromContext(ctx)`   | Retrieve the stored client IP from a context                                                           | Client IP        |
-| `WithClientIP(ctx, ip)`      | Store a client IP string in a context                                                                  | Client IP        |
-| `CORS(cfg)`                  | Create middleware that sets CORS response headers and handles preflight requests                       | CORS             |
-| `DefaultCORSConfig()`        | Return a permissive CORS config suitable for local development (allows all origins)                    | CORS             |
-| `NewResponseRecorder(w)`     | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state             | Response Capture |
-| `Chain(handler, mw...)`      | Compose multiple middleware around a handler; first middleware in list is outermost                    | Response Capture |
-| `HeaderSnapshot(rec)`        | Return an isolated copy of the response headers from a ResponseRecorder                                | Response Capture |
-| `SecurityHeaders(cfg)`       | Create middleware that sets security response headers (nosniff, frame-options, etc.)                    | Security Headers |
-| `DefaultSecurityHeadersConfig()` | Return a SecurityHeadersConfig with production defaults                                            | Security Headers |
-| `RequestID(cfg)`             | Create middleware that propagates or generates a request ID                                            | Request ID       |
-| `DefaultRequestIDConfig()`   | Return a RequestIDConfig that reads/generates X-Request-ID                                             | Request ID       |
-| `RequestIDFromContext(ctx)`  | Retrieve the stored request ID from a context                                                          | Request ID       |
-| `Recovery(logger)`           | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
-| `Timeout(duration)`          | Create middleware that sets a deadline on the request context                                          | Timeout          |
-| `Logging(logger)`            | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
-| `Compression(cfg)`           | Create middleware that gzip-compresses responses when the client accepts it                            | Compression      |
-| `DefaultCompressionConfig()` | Return a CompressionConfig with sensible defaults (level 6, 200-byte minimum)                          | Compression      |
-| `ETag(cfg)`                  | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
-| `DefaultETagConfig()`        | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
-| `RegisterErrorClassifications()` | Register stdlib HTTP error sentinels and message templates with go-error-family                    | Error Protocol   |
-| `Validate()`                 | Check a config for invalid values at startup; all config types implement this                          | Universal        |
+| Term                             | Definition                                                                                             | Context          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- |
+| `ClientIP(r)`                    | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr | Client IP        |
+| `ClientIPMiddleware(next)`       | Create middleware that injects the client IP into the request context                                  | Client IP        |
+| `ClientIPFromContext(ctx)`       | Retrieve the stored client IP from a context                                                           | Client IP        |
+| `WithClientIP(ctx, ip)`          | Store a client IP string in a context                                                                  | Client IP        |
+| `CORS(cfg)`                      | Create middleware that sets CORS response headers and handles preflight requests                       | CORS             |
+| `DefaultCORSConfig()`            | Return a permissive CORS config suitable for local development (allows all origins)                    | CORS             |
+| `NewResponseRecorder(w)`         | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state             | Response Capture |
+| `Chain(handler, mw...)`          | Compose multiple middleware around a handler; first middleware in list is outermost                    | Response Capture |
+| `HeaderSnapshot(rec)`            | Return an isolated copy of the response headers from a ResponseRecorder                                | Response Capture |
+| `SecurityHeaders(cfg)`           | Create middleware that sets security response headers (nosniff, frame-options, etc.)                   | Security Headers |
+| `DefaultSecurityHeadersConfig()` | Return a SecurityHeadersConfig with production defaults                                                | Security Headers |
+| `RequestID(cfg)`                 | Create middleware that propagates or generates a request ID                                            | Request ID       |
+| `DefaultRequestIDConfig()`       | Return a RequestIDConfig that reads/generates X-Request-ID                                             | Request ID       |
+| `RequestIDFromContext(ctx)`      | Retrieve the stored request ID from a context                                                          | Request ID       |
+| `Recovery(logger)`               | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
+| `Timeout(duration)`              | Create middleware that sets a deadline on the request context                                          | Timeout          |
+| `Logging(logger)`                | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
+| `Compression(cfg)`               | Create middleware that gzip-compresses responses when the client accepts it                            | Compression      |
+| `DefaultCompressionConfig()`     | Return a CompressionConfig with sensible defaults (level 6, 200-byte minimum)                          | Compression      |
+| `ETag(cfg)`                      | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
+| `DefaultETagConfig()`            | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
+| `RegisterErrorClassifications()` | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |
+| `Validate()`                     | Check a config for invalid values at startup; all config types implement this                          | Universal        |
 
 ---
 
@@ -113,23 +113,23 @@ Actions the library performs.
 
 State transitions within the library.
 
-| Term                   | Definition                                                                        | Context          |
-| ---------------------- | --------------------------------------------------------------------------------- | ---------------- |
-| Header Written         | `WriteHeader` called on ResponseRecorder; status is now captured and immutable    | Response Capture |
-| Body Written           | `Write` called on ResponseRecorder; implicitly sets status 200 if not yet written | Response Capture |
-| Preflight Handled      | CORS middleware intercepts an OPTIONS request and returns 204 No Content          | CORS             |
-| Request Passed         | CORS middleware delegates to the next handler (non-OPTIONS or passthrough mode)   | CORS             |
-| Request ID Generated   | RequestID middleware generates a new random ID because no header was present      | Request ID       |
-| Request ID Propagated  | RequestID middleware forwards an existing ID from the request header              | Request ID       |
-| Panic Recovered        | Recovery middleware catches a panic, logs it, and writes 500                      | Recovery         |
-| Deadline Exceeded      | Timeout middleware's context deadline is reached; handler should stop work        | Timeout          |
-| Request Logged         | Logging middleware records the request method, path, status, and duration         | Logging          |
-| Security Headers Set   | SecurityHeaders middleware writes security headers before delegating               | Security Headers |
-| Compression Applied    | Compression middleware gzip-encodes the response body                             | Compression      |
-| Compression Skipped    | Compression middleware passes through (no gzip accept, below min size, non-2xx)   | Compression      |
-| ETag Computed          | ETag middleware generates an ETag value from the response body                    | ETag             |
-| Not Modified Returned  | ETag middleware returns 304 because If-None-Match matched the computed ETag       | ETag             |
-| ETag Skipped           | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)            | ETag             |
+| Term                  | Definition                                                                        | Context          |
+| --------------------- | --------------------------------------------------------------------------------- | ---------------- |
+| Header Written        | `WriteHeader` called on ResponseRecorder; status is now captured and immutable    | Response Capture |
+| Body Written          | `Write` called on ResponseRecorder; implicitly sets status 200 if not yet written | Response Capture |
+| Preflight Handled     | CORS middleware intercepts an OPTIONS request and returns 204 No Content          | CORS             |
+| Request Passed        | CORS middleware delegates to the next handler (non-OPTIONS or passthrough mode)   | CORS             |
+| Request ID Generated  | RequestID middleware generates a new random ID because no header was present      | Request ID       |
+| Request ID Propagated | RequestID middleware forwards an existing ID from the request header              | Request ID       |
+| Panic Recovered       | Recovery middleware catches a panic, logs it, and writes 500                      | Recovery         |
+| Deadline Exceeded     | Timeout middleware's context deadline is reached; handler should stop work        | Timeout          |
+| Request Logged        | Logging middleware records the request method, path, status, and duration         | Logging          |
+| Security Headers Set  | SecurityHeaders middleware writes security headers before delegating              | Security Headers |
+| Compression Applied   | Compression middleware gzip-encodes the response body                             | Compression      |
+| Compression Skipped   | Compression middleware passes through (no gzip accept, below min size, non-2xx)   | Compression      |
+| ETag Computed         | ETag middleware generates an ETag value from the response body                    | ETag             |
+| Not Modified Returned | ETag middleware returns 304 because If-None-Match matched the computed ETag       | ETag             |
+| ETag Skipped          | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)            | ETag             |
 
 ---
 
@@ -239,13 +239,13 @@ Invariants and policies that the library enforces.
 
 ### Error Classification
 
-| Error Code                    | Family         | Retryable | When                                               |
-| ----------------------------- | -------------- | --------- | -------------------------------------------------- |
-| `http.write_failed`           | Transient      | Yes       | Underlying ResponseWriter.Write fails              |
-| `http.hijack_unsupported`     | Infrastructure | No        | Underlying writer doesn't implement Hijacker       |
-| `http.hijack_failed`          | Transient      | Yes       | Underlying Hijack call fails                       |
-| `http.compress_write_failed`  | Transient      | Yes       | Gzip writer Write fails                            |
-| `http.etag_write_failed`      | Transient      | Yes       | ETag writer Write fails                            |
+| Error Code                   | Family         | Retryable | When                                         |
+| ---------------------------- | -------------- | --------- | -------------------------------------------- |
+| `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
+| `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
+| `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
+| `http.compress_write_failed` | Transient      | Yes       | Gzip writer Write fails                      |
+| `http.etag_write_failed`     | Transient      | Yes       | ETag writer Write fails                      |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`.
 
@@ -255,14 +255,14 @@ All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retrya
 
 Patterns consumers and contributors should follow.
 
-| Convention               | Description                                                                      |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| Middleware signature     | Always `func(http.Handler) http.Handler` — the Go standard library convention    |
-| Middleware type alias    | `type Middleware func(http.Handler) http.Handler` in `recorder.go`               |
-| Classified errors        | Errors from ResponseRecorder use `go-error-family` for behavioral classification |
-| Zero-allocation hot path | Internal helpers (`join`, `itoa`) avoid `fmt` or `strconv` allocations           |
-| Config validation        | All config types implement `Validate() error` for startup checks                 |
-| `httputil` import name   | Consumers import as `httputil`; no aliases needed                                |
+| Convention               | Description                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| Middleware signature     | Always `func(http.Handler) http.Handler` — the Go standard library convention      |
+| Middleware type alias    | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                 |
+| Classified errors        | Errors from ResponseRecorder use `go-error-family` for behavioral classification   |
+| Zero-allocation hot path | Internal helpers (`join`, `itoa`) avoid `fmt` or `strconv` allocations             |
+| Config validation        | All config types implement `Validate() error` for startup checks                   |
+| `httputil` import name   | Consumers import as `httputil`; no aliases needed                                  |
 | Single dependency        | Only `go-error-family` is allowed as an external dependency (enforced by depguard) |
 
 ---

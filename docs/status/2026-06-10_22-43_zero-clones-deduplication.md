@@ -20,23 +20,24 @@
 
 ### 1. Core Middleware Suite (10 middlewares) — Complete
 
-| Middleware | File | Config + Validate | Tests | Examples | Benchmarks | Fuzz |
-|------------|------|-------------------|-------|----------|------------|------|
-| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` (467 ns) | `FuzzCORS` |
-| ClientIP | `clientip.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` (46 ns) | `FuzzClientIP` |
-| RequestID | `requestid.go` | `RequestIDConfig` + `Validate()` | Yes | `ExampleRequestID` | `BenchmarkRequestID` (357 ns) | `FuzzRequestID` |
-| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` (240 ns) | — |
-| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` (67 ns) | — |
-| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` (450 ns) | — |
-| Logging | `logging.go` | `*slog.Logger` | Yes | `ExampleLogging` | `BenchmarkLogging` (1,156 ns) | — |
-| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` (22 ns, 0 allocs) | — |
-| Compression | `compression.go` | `CompressionConfig` + `Validate()` | Yes | `ExampleCompression` | `BenchmarkCompression` (7.1 µs) | `FuzzCompression` |
-| ETag | `etag.go` | `ETagConfig` + `Validate()` | Yes | `ExampleETag` | `BenchmarkETag` (399 ns) | `FuzzETag` |
-| Chain | `recorder.go` | — | Yes | `ExampleChain` | `BenchmarkChain` (4.3 µs, 37 allocs) | — |
+| Middleware       | File             | Config + Validate                      | Tests | Examples                     | Benchmarks                                    | Fuzz              |
+| ---------------- | ---------------- | -------------------------------------- | ----- | ---------------------------- | --------------------------------------------- | ----------------- |
+| CORS             | `cors.go`        | `CORSConfig` + `Validate()`            | Yes   | `ExampleCORS`                | `BenchmarkCORS` (467 ns)                      | `FuzzCORS`        |
+| ClientIP         | `clientip.go`    | —                                      | Yes   | `ExampleClientIP`            | `BenchmarkClientIP` (46 ns)                   | `FuzzClientIP`    |
+| RequestID        | `requestid.go`   | `RequestIDConfig` + `Validate()`       | Yes   | `ExampleRequestID`           | `BenchmarkRequestID` (357 ns)                 | `FuzzRequestID`   |
+| SecurityHeaders  | `security.go`    | `SecurityHeadersConfig` + `Validate()` | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders` (240 ns)           | —                 |
+| Recovery         | `recovery.go`    | `*slog.Logger`                         | Yes   | `ExampleRecovery`            | `BenchmarkRecovery` (67 ns)                   | —                 |
+| Timeout          | `timeout.go`     | `time.Duration`                        | Yes   | `ExampleTimeout`             | `BenchmarkTimeout` (450 ns)                   | —                 |
+| Logging          | `logging.go`     | `*slog.Logger`                         | Yes   | `ExampleLogging`             | `BenchmarkLogging` (1,156 ns)                 | —                 |
+| ResponseRecorder | `recorder.go`    | —                                      | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` (22 ns, 0 allocs) | —                 |
+| Compression      | `compression.go` | `CompressionConfig` + `Validate()`     | Yes   | `ExampleCompression`         | `BenchmarkCompression` (7.1 µs)               | `FuzzCompression` |
+| ETag             | `etag.go`        | `ETagConfig` + `Validate()`            | Yes   | `ExampleETag`                | `BenchmarkETag` (399 ns)                      | `FuzzETag`        |
+| Chain            | `recorder.go`    | —                                      | Yes   | `ExampleChain`               | `BenchmarkChain` (4.3 µs, 37 allocs)          | —                 |
 
 ### 2. Error Classification System
 
 7 error codes registered via `go-error-family`:
+
 - `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`
 - `ErrCodePushUnsupported`, `ErrCodePushFailed`
 - `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`
@@ -50,6 +51,7 @@
 ### 4. Configuration Validation
 
 All config types have `Validate()` methods:
+
 - `CORSConfig.Validate()` — catches credentials+allow-all, negative MaxAge
 - `CompressionConfig.Validate()` — catches invalid levels, negative MinSize
 - `RequestIDConfig.Validate()` — catches nil GenerateID, empty header names
@@ -58,39 +60,39 @@ All config types have `Validate()` methods:
 
 ### 5. Documentation Suite
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `README.md` | Feature overview, API table, usage examples, middleware ordering | Current |
-| `doc.go` | Package-level godoc | Current |
-| `AGENTS.md` | Architecture reference, testing conventions, lint rules | Current |
-| `CHANGELOG.md` | v0.1.0 and v0.1.1 entries | Current |
-| `FEATURES.md` | Honest feature inventory with status indicators | Current |
-| `TODO_LIST.md` | Centralized task list with priority tiers | Current |
-| `docs/DOMAIN_LANGUAGE.md` | Complete domain glossary with 10 bounded contexts | Current |
-| `docs/status/` | 13 status reports (this is the 14th) | Current |
+| File                      | Purpose                                                          | Status  |
+| ------------------------- | ---------------------------------------------------------------- | ------- |
+| `README.md`               | Feature overview, API table, usage examples, middleware ordering | Current |
+| `doc.go`                  | Package-level godoc                                              | Current |
+| `AGENTS.md`               | Architecture reference, testing conventions, lint rules          | Current |
+| `CHANGELOG.md`            | v0.1.0 and v0.1.1 entries                                        | Current |
+| `FEATURES.md`             | Honest feature inventory with status indicators                  | Current |
+| `TODO_LIST.md`            | Centralized task list with priority tiers                        | Current |
+| `docs/DOMAIN_LANGUAGE.md` | Complete domain glossary with 10 bounded contexts                | Current |
+| `docs/status/`            | 13 status reports (this is the 14th)                             | Current |
 
 ### 6. Tooling & Quality Gates
 
-| Gate | Status |
-|------|--------|
-| `golangci-lint run` | 0 issues (~70 linters) |
-| `go test ./... -race` | 154 tests passing, race-free |
-| `go vet ./...` | Clean |
-| `go test -bench` | 15 benchmarks passing |
-| Coverage | 91.2% of statements |
-| `art-dupl -t 45 --semantic` | 0 clone groups |
-| GitHub Actions CI | test + lint + govulncheck |
-| Nix flake | Reproducible dev environment |
+| Gate                        | Status                       |
+| --------------------------- | ---------------------------- |
+| `golangci-lint run`         | 0 issues (~70 linters)       |
+| `go test ./... -race`       | 154 tests passing, race-free |
+| `go vet ./...`              | Clean                        |
+| `go test -bench`            | 15 benchmarks passing        |
+| Coverage                    | 91.2% of statements          |
+| `art-dupl -t 45 --semantic` | 0 clone groups               |
+| GitHub Actions CI           | test + lint + govulncheck    |
+| Nix flake                   | Reproducible dev environment |
 
 ### 7. Code Deduplication (NEW since v0.1.1)
 
 **This session:** Eliminated 3 clone groups at threshold 45 → **ZERO clones**.
 
-| Clone Group | What Changed | Lines Saved |
-|-------------|-------------|-------------|
-| Compression content-type skip tests (3 clones) | Extracted `testCompressionSkipsContentType()` helper | -42 |
-| ETag IfNoneMatch tests (2 clones) | Extracted `testETagIfNoneMatchReturns304()` helper | -24 |
-| Flush handler (compression + etag) | Extracted `newFlushHandler()` to `testutil_test.go` | -10 |
+| Clone Group                                    | What Changed                                         | Lines Saved |
+| ---------------------------------------------- | ---------------------------------------------------- | ----------- |
+| Compression content-type skip tests (3 clones) | Extracted `testCompressionSkipsContentType()` helper | -42         |
+| ETag IfNoneMatch tests (2 clones)              | Extracted `testETagIfNoneMatchReturns304()` helper   | -24         |
+| Flush handler (compression + etag)             | Extracted `newFlushHandler()` to `testutil_test.go`  | -10         |
 
 Net result: **-82 lines of duplicated test code**, 3 files changed (+40/-82).
 
@@ -102,20 +104,20 @@ Net result: **-82 lines of duplicated test code**, 3 files changed (+40/-82).
 
 Not 100%. Persistent gaps in error/edge-case branches:
 
-| File | Function | Coverage | Gap |
-|------|----------|----------|-----|
-| `compression.go` | `Flush` | 61.5% | Multiple flush-while-compressing branches untested |
-| `recorder.go` | `Hijack` | 42.9% | Hijack-failure error path untested |
-| `compression.go` | `startCompressAndStream` | 66.7% | Type-assertion failure branch |
-| `compression.go` | `writePlain` | 75.0% | Write error branch |
-| `compression.go` | `writeCompressed` | 75.0% | Write error branch |
-| `compression.go` | `flushPlainAndStream` | 76.9% | Flush error branches |
-| `etag.go` | `Flush` | 77.8% | Flush-while-buffering branches |
-| `etag.go` | `Write` | 80.0% | Buffer-limit exceeded branch |
-| `compression.go` | `Write` | 83.3% | Error during compression start |
-| `compression.go` | `isCompressibleContentType` | 83.3% | Unusual content-type edge cases |
-| `wrapper.go` | `Hijack` | 71.4% | Type-assertion failure |
-| `wrapper.go` | `Push` | 71.4% | Type-assertion failure |
+| File             | Function                    | Coverage | Gap                                                |
+| ---------------- | --------------------------- | -------- | -------------------------------------------------- |
+| `compression.go` | `Flush`                     | 61.5%    | Multiple flush-while-compressing branches untested |
+| `recorder.go`    | `Hijack`                    | 42.9%    | Hijack-failure error path untested                 |
+| `compression.go` | `startCompressAndStream`    | 66.7%    | Type-assertion failure branch                      |
+| `compression.go` | `writePlain`                | 75.0%    | Write error branch                                 |
+| `compression.go` | `writeCompressed`           | 75.0%    | Write error branch                                 |
+| `compression.go` | `flushPlainAndStream`       | 76.9%    | Flush error branches                               |
+| `etag.go`        | `Flush`                     | 77.8%    | Flush-while-buffering branches                     |
+| `etag.go`        | `Write`                     | 80.0%    | Buffer-limit exceeded branch                       |
+| `compression.go` | `Write`                     | 83.3%    | Error during compression start                     |
+| `compression.go` | `isCompressibleContentType` | 83.3%    | Unusual content-type edge cases                    |
+| `wrapper.go`     | `Hijack`                    | 71.4%    | Type-assertion failure                             |
+| `wrapper.go`     | `Push`                      | 71.4%    | Type-assertion failure                             |
 
 ---
 
@@ -123,17 +125,17 @@ Not 100%. Persistent gaps in error/edge-case branches:
 
 ### From TODO_LIST.md
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| Make content-type filtering configurable via `CompressionConfig` | Near-term | Currently hardcoded deny-list |
-| Add `MiddlewareStack` type with ordering validation | Near-term | Would catch misordered middleware at startup |
-| Add `ResponseWriter` capability interface for Hijack/Push/Flush | Near-term | Unify scattered type assertions |
-| Implement deflate support using `compress/flate` | Medium-term | Second compression algorithm |
-| Add `Accept-Encoding` quality value parsing per RFC 7231 | Medium-term | Proper content negotiation |
-| Evaluate streaming ETag option using rolling hash | Medium-term | Memory-efficient for large responses |
-| Consider request/response metrics middleware | Worth considering | `expvar` or custom histograms |
-| Consider rate-limiting middleware | Worth considering | Sliding window or token bucket |
-| Consider request body size limit middleware | Worth considering | Simple guard middleware |
+| Item                                                             | Priority          | Notes                                        |
+| ---------------------------------------------------------------- | ----------------- | -------------------------------------------- |
+| Make content-type filtering configurable via `CompressionConfig` | Near-term         | Currently hardcoded deny-list                |
+| Add `MiddlewareStack` type with ordering validation              | Near-term         | Would catch misordered middleware at startup |
+| Add `ResponseWriter` capability interface for Hijack/Push/Flush  | Near-term         | Unify scattered type assertions              |
+| Implement deflate support using `compress/flate`                 | Medium-term       | Second compression algorithm                 |
+| Add `Accept-Encoding` quality value parsing per RFC 7231         | Medium-term       | Proper content negotiation                   |
+| Evaluate streaming ETag option using rolling hash                | Medium-term       | Memory-efficient for large responses         |
+| Consider request/response metrics middleware                     | Worth considering | `expvar` or custom histograms                |
+| Consider rate-limiting middleware                                | Worth considering | Sliding window or token bucket               |
+| Consider request body size limit middleware                      | Worth considering | Simple guard middleware                      |
 
 ---
 
@@ -150,6 +152,7 @@ Not 100%. Persistent gaps in error/edge-case branches:
 - Documentation current
 
 The only "fucked up" item worth calling out is **pre-existing** and already documented:
+
 - `mnd` (magic number) violation: `86400` in `DefaultCORSConfig` — a known pre-existing violation documented in `AGENTS.md`
 
 ---
@@ -190,33 +193,33 @@ The only "fucked up" item worth calling out is **pre-existing** and already docu
 
 ## f) Top 25 Things We Should Get Done Next
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fix `ResponseRecorder.Hijack` error-path test (42.9% → 90%+) | High | Low | Coverage |
-| 2 | Fix `compression.Flush` coverage (61.5% → 85%+) | High | Medium | Coverage |
-| 3 | Fix `wrapper.go` Hijack/Push fallback tests (71.4% → 90%+) | High | Low | Coverage |
-| 4 | Make content-type filtering configurable via `CompressionConfig` | High | Medium | Feature |
-| 5 | Add `MiddlewareStack` type with ordering validation | Medium | Medium | Feature |
-| 6 | Add `ResponseWriter` capability interface for Hijack/Push/Flush | Medium | Medium | Architecture |
-| 7 | Fix `compression.startCompressAndStream` coverage (66.7% → 85%+) | Medium | Low | Coverage |
-| 8 | Fix `compression.writePlain`/`writeCompressed` coverage (75% → 90%+) | Medium | Low | Coverage |
-| 9 | Fix `etag.Flush` coverage (77.8% → 90%+) | Medium | Low | Coverage |
-| 10 | Fix `etag.Write` buffer-limit branch (80% → 90%+) | Medium | Low | Coverage |
-| 11 | Fix `compression.isCompressibleContentType` edge cases (83.3% → 95%+) | Medium | Low | Coverage |
-| 12 | Push overall coverage from 91.2% → 95% | Medium | Medium | Coverage |
-| 13 | Implement deflate support in compression middleware | High | High | Feature |
-| 14 | Add `Accept-Encoding` quality value parsing (RFC 7231) | High | Medium | Compliance |
-| 15 | Evaluate streaming ETag with rolling hash | Medium | High | Architecture |
-| 16 | Add response `Content-Length` test through full middleware stack | Low | Low | Test |
-| 17 | Add WebSocket upgrade test through Compression + ETag (if not covered) | Low | Low | Test |
-| 18 | Fix pre-existing `mnd` violation (`86400` in `DefaultCORSConfig`) | Low | Trivial | Lint |
-| 19 | Add request/response metrics middleware | Medium | High | Feature |
-| 20 | Add rate-limiting middleware | Medium | High | Feature |
-| 21 | Add request body size limit middleware | Low | Low | Feature |
-| 22 | Brotli support — decide on dependency policy | Medium | Decision | Policy |
-| 23 | Add `WriterFactory` plugin interface for compression extensibility | Medium | Medium | Architecture |
-| 24 | Verify `art-dupl` at threshold 40 stays clean as codebase grows | Low | Trivial | Quality |
-| 25 | Update `AGENTS.md` with new test helpers (`newFlushHandler`, `testCompressionSkipsContentType`, `testETagIfNoneMatchReturns304`) | Low | Trivial | Docs |
+| #   | Task                                                                                                                             | Impact | Effort   | Category     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
+| 1   | Fix `ResponseRecorder.Hijack` error-path test (42.9% → 90%+)                                                                     | High   | Low      | Coverage     |
+| 2   | Fix `compression.Flush` coverage (61.5% → 85%+)                                                                                  | High   | Medium   | Coverage     |
+| 3   | Fix `wrapper.go` Hijack/Push fallback tests (71.4% → 90%+)                                                                       | High   | Low      | Coverage     |
+| 4   | Make content-type filtering configurable via `CompressionConfig`                                                                 | High   | Medium   | Feature      |
+| 5   | Add `MiddlewareStack` type with ordering validation                                                                              | Medium | Medium   | Feature      |
+| 6   | Add `ResponseWriter` capability interface for Hijack/Push/Flush                                                                  | Medium | Medium   | Architecture |
+| 7   | Fix `compression.startCompressAndStream` coverage (66.7% → 85%+)                                                                 | Medium | Low      | Coverage     |
+| 8   | Fix `compression.writePlain`/`writeCompressed` coverage (75% → 90%+)                                                             | Medium | Low      | Coverage     |
+| 9   | Fix `etag.Flush` coverage (77.8% → 90%+)                                                                                         | Medium | Low      | Coverage     |
+| 10  | Fix `etag.Write` buffer-limit branch (80% → 90%+)                                                                                | Medium | Low      | Coverage     |
+| 11  | Fix `compression.isCompressibleContentType` edge cases (83.3% → 95%+)                                                            | Medium | Low      | Coverage     |
+| 12  | Push overall coverage from 91.2% → 95%                                                                                           | Medium | Medium   | Coverage     |
+| 13  | Implement deflate support in compression middleware                                                                              | High   | High     | Feature      |
+| 14  | Add `Accept-Encoding` quality value parsing (RFC 7231)                                                                           | High   | Medium   | Compliance   |
+| 15  | Evaluate streaming ETag with rolling hash                                                                                        | Medium | High     | Architecture |
+| 16  | Add response `Content-Length` test through full middleware stack                                                                 | Low    | Low      | Test         |
+| 17  | Add WebSocket upgrade test through Compression + ETag (if not covered)                                                           | Low    | Low      | Test         |
+| 18  | Fix pre-existing `mnd` violation (`86400` in `DefaultCORSConfig`)                                                                | Low    | Trivial  | Lint         |
+| 19  | Add request/response metrics middleware                                                                                          | Medium | High     | Feature      |
+| 20  | Add rate-limiting middleware                                                                                                     | Medium | High     | Feature      |
+| 21  | Add request body size limit middleware                                                                                           | Low    | Low      | Feature      |
+| 22  | Brotli support — decide on dependency policy                                                                                     | Medium | Decision | Policy       |
+| 23  | Add `WriterFactory` plugin interface for compression extensibility                                                               | Medium | Medium   | Architecture |
+| 24  | Verify `art-dupl` at threshold 40 stays clean as codebase grows                                                                  | Low    | Trivial  | Quality      |
+| 25  | Update `AGENTS.md` with new test helpers (`newFlushHandler`, `testCompressionSkipsContentType`, `testETagIfNoneMatchReturns304`) | Low    | Trivial  | Docs         |
 
 ---
 
@@ -236,14 +239,14 @@ This determines whether we invest in closing coverage gaps first, shipping new f
 
 ## Delta Since Last Report (2026-06-08)
 
-| Metric | Then | Now | Change |
-|--------|------|-----|--------|
-| Code clones (t45) | 0 | 0 | Stable |
-| Test count | 112 | 154 | +42 tests |
-| Coverage | 91.2% | 91.2% | Stable |
-| Lines of Go | 4,481 | 4,439 | -42 (dedup) |
-| Files changed | — | 3 | dedup session |
-| Lint issues | 0 | 0 | Stable |
+| Metric            | Then  | Now   | Change        |
+| ----------------- | ----- | ----- | ------------- |
+| Code clones (t45) | 0     | 0     | Stable        |
+| Test count        | 112   | 154   | +42 tests     |
+| Coverage          | 91.2% | 91.2% | Stable        |
+| Lines of Go       | 4,481 | 4,439 | -42 (dedup)   |
+| Files changed     | —     | 3     | dedup session |
+| Lint issues       | 0     | 0     | Stable        |
 
 ---
 

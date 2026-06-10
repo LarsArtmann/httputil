@@ -10,18 +10,18 @@ _Updated: 2026-06-08_
 
 ### Core Middleware Suite (10 middlewares)
 
-| Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz |
-|------------|------|-------------|-------|----------|------------|------|
-| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS` |
-| ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` |
-| RequestID | `requestid.go` | `RequestIDConfig` + `Validate()` | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` |
-| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — |
-| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — |
-| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — |
-| Logging | `logging.go` | `*slog.Logger` | Yes | `ExampleLogging` | `BenchmarkLogging` | — |
-| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — |
-| Compression | `compression.go` | `CompressionConfig` + `Validate()` | Yes | `ExampleCompression` | `BenchmarkCompression` | `FuzzCompression` |
-| ETag | `etag.go` | `ETagConfig` + `Validate()` | Yes | `ExampleETag` | `BenchmarkETag` | `FuzzETag` |
+| Middleware       | File                        | Config Type                            | Tests | Examples                     | Benchmarks                  | Fuzz              |
+| ---------------- | --------------------------- | -------------------------------------- | ----- | ---------------------------- | --------------------------- | ----------------- |
+| CORS             | `cors.go`                   | `CORSConfig` + `Validate()`            | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`        |
+| ClientIP         | `clientip.go`, `context.go` | —                                      | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`    |
+| RequestID        | `requestid.go`              | `RequestIDConfig` + `Validate()`       | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`   |
+| SecurityHeaders  | `security.go`               | `SecurityHeadersConfig` + `Validate()` | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                 |
+| Recovery         | `recovery.go`               | `*slog.Logger`                         | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                 |
+| Timeout          | `timeout.go`                | `time.Duration`                        | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                 |
+| Logging          | `logging.go`                | `*slog.Logger`                         | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                 |
+| ResponseRecorder | `recorder.go`               | —                                      | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                 |
+| Compression      | `compression.go`            | `CompressionConfig` + `Validate()`     | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
+| ETag             | `etag.go`                   | `ETagConfig` + `Validate()`            | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`        |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
@@ -84,6 +84,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Test Coverage (91.2%)
 
 Not 100%. Gaps exist in:
+
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
 - Edge cases in `CORS` wildcard matching with unusual patterns.
 - `ResponseRecorder` hijack failure paths.

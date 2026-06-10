@@ -17,94 +17,94 @@
 
 ### 1. Documentation Infrastructure (Inspired by `~/projects/overview`)
 
-| File | Status | Notes |
-|------|--------|-------|
-| `FEATURES.md` | Created | Honest feature inventory with FULLY DONE / PARTIALLY DONE / PLANNED / WORTH CONSIDERING |
-| `TODO_LIST.md` | Created | Centralized task list with completed and not-started sections, verified against code |
-| `README.md` | Updated | Added compression limitations section, expanded development commands |
+| File           | Status  | Notes                                                                                   |
+| -------------- | ------- | --------------------------------------------------------------------------------------- |
+| `FEATURES.md`  | Created | Honest feature inventory with FULLY DONE / PARTIALLY DONE / PLANNED / WORTH CONSIDERING |
+| `TODO_LIST.md` | Created | Centralized task list with completed and not-started sections, verified against code    |
+| `README.md`    | Updated | Added compression limitations section, expanded development commands                    |
 
 ### 2. flake.nix Improvements (Inspired by `~/projects/overview`)
 
-| Improvement | Before | After |
-|-------------|--------|-------|
-| App scripts | `writeShellScriptBin` (no `errexit`) | `writeShellApplication` (`set -euo pipefail`, `PATH` managed) |
-| Source filtering | Copies entire directory | `lib.fileset.toSource` with explicit fileset unions |
-| Format check | Missing | `checks.format = config.treefmt.build.check self` |
-| DevShell | Manual package list | Uses `inputsFrom` pattern (removed because library has no package) |
-| Build check | Broken (no vendor, sandboxed) | Removed for library; kept format check only |
+| Improvement      | Before                               | After                                                              |
+| ---------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| App scripts      | `writeShellScriptBin` (no `errexit`) | `writeShellApplication` (`set -euo pipefail`, `PATH` managed)      |
+| Source filtering | Copies entire directory              | `lib.fileset.toSource` with explicit fileset unions                |
+| Format check     | Missing                              | `checks.format = config.treefmt.build.check self`                  |
+| DevShell         | Manual package list                  | Uses `inputsFrom` pattern (removed because library has no package) |
+| Build check      | Broken (no vendor, sandboxed)        | Removed for library; kept format check only                        |
 
 ### 3. CI Workflow Improvements
 
-| Step | Before | After |
-|------|--------|-------|
-| Build | Missing | `go build ./...` added |
-| Vet | Missing | `go vet ./...` added |
-| Benchmark | Missing | `go test -bench=. -benchmem` added |
-| Test | `go test ./...` | `go test -race -count=1 ./...` |
+| Step      | Before          | After                              |
+| --------- | --------------- | ---------------------------------- |
+| Build     | Missing         | `go build ./...` added             |
+| Vet       | Missing         | `go vet ./...` added               |
+| Benchmark | Missing         | `go test -bench=. -benchmem` added |
+| Test      | `go test ./...` | `go test -race -count=1 ./...`     |
 
 ### 4. .golangci.yml Improvements
 
-| Improvement | Before | After |
-|-------------|--------|-------|
-| `gocognit` test exclusion | Missing | Added to test file exclusions |
-| `noctx` test exclusion | Missing | Already present, kept |
-| Build tags | `goexperiment.jsonv2` only | Added `arenas`, `goroutineleakprofile`, `runtimesecret`, `simd` |
-| `varnamelen` ignores | `err`, `ok`, `tt`, `fn`, `t`, `i`, `m`, `g`, `a`, `b`, `v` | Added `w`, `r`, `n`, `rw` for `http.ResponseWriter` and `bufio.ReadWriter` patterns |
+| Improvement               | Before                                                     | After                                                                               |
+| ------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `gocognit` test exclusion | Missing                                                    | Added to test file exclusions                                                       |
+| `noctx` test exclusion    | Missing                                                    | Already present, kept                                                               |
+| Build tags                | `goexperiment.jsonv2` only                                 | Added `arenas`, `goroutineleakprofile`, `runtimesecret`, `simd`                     |
+| `varnamelen` ignores      | `err`, `ok`, `tt`, `fn`, `t`, `i`, `m`, `g`, `a`, `b`, `v` | Added `w`, `r`, `n`, `rw` for `http.ResponseWriter` and `bufio.ReadWriter` patterns |
 
 ### 5. Benchmarks — All Middlewares Now Covered
 
-| Benchmark | File | Body Size | ~ns/op | ~allocs/op |
-|-----------|------|-----------|--------|------------|
-| `BenchmarkClientIP` | `clientip_test.go` | N/A | 52 | 1 |
-| `BenchmarkCORS` | `cors_test.go` | N/A | 511 | 12 |
-| `BenchmarkCompression` | `compression_test.go` | ~1KB | 6,639 | 12 |
-| `BenchmarkETag` | `etag_test.go` | ~31B | 439 | 12 |
-| `BenchmarkRequestID` | `middleware_test.go` | N/A | 407 | 11 |
-| `BenchmarkSecurityHeaders` | `middleware_test.go` | N/A | 231 | 7 |
-| `BenchmarkRecovery` | `middleware_test.go` | N/A | 61 | 3 |
-| `BenchmarkTimeout` | `middleware_test.go` | N/A | 387 | 8 |
-| `BenchmarkLogging` | `middleware_test.go` | N/A | 1,035 | 10 |
-| `BenchmarkResponseRecorder` | `recorder_test.go` | ~31B | 45 | 0 |
-| `BenchmarkChain` | `middleware_test.go` | N/A | 3,013 | 37 |
-| `BenchmarkItoa` | `util_test.go` | N/A | 69 | 0 |
-| `BenchmarkItoa_Strconv` | `util_test.go` | N/A | 101 | 4 |
-| `BenchmarkJoin` | `util_test.go` | N/A | 48 | 1 |
-| `BenchmarkJoin_StringsJoin` | `util_test.go` | N/A | 41 | 1 |
+| Benchmark                   | File                  | Body Size | ~ns/op | ~allocs/op |
+| --------------------------- | --------------------- | --------- | ------ | ---------- |
+| `BenchmarkClientIP`         | `clientip_test.go`    | N/A       | 52     | 1          |
+| `BenchmarkCORS`             | `cors_test.go`        | N/A       | 511    | 12         |
+| `BenchmarkCompression`      | `compression_test.go` | ~1KB      | 6,639  | 12         |
+| `BenchmarkETag`             | `etag_test.go`        | ~31B      | 439    | 12         |
+| `BenchmarkRequestID`        | `middleware_test.go`  | N/A       | 407    | 11         |
+| `BenchmarkSecurityHeaders`  | `middleware_test.go`  | N/A       | 231    | 7          |
+| `BenchmarkRecovery`         | `middleware_test.go`  | N/A       | 61     | 3          |
+| `BenchmarkTimeout`          | `middleware_test.go`  | N/A       | 387    | 8          |
+| `BenchmarkLogging`          | `middleware_test.go`  | N/A       | 1,035  | 10         |
+| `BenchmarkResponseRecorder` | `recorder_test.go`    | ~31B      | 45     | 0          |
+| `BenchmarkChain`            | `middleware_test.go`  | N/A       | 3,013  | 37         |
+| `BenchmarkItoa`             | `util_test.go`        | N/A       | 69     | 0          |
+| `BenchmarkItoa_Strconv`     | `util_test.go`        | N/A       | 101    | 4          |
+| `BenchmarkJoin`             | `util_test.go`        | N/A       | 48     | 1          |
+| `BenchmarkJoin_StringsJoin` | `util_test.go`        | N/A       | 41     | 1          |
 
 ### 6. Example Functions — All Middlewares Now Covered
 
-| Example | File | Output Verified |
-|---------|------|-----------------|
-| `ExampleClientIP` | `example_test.go` | `203.0.113.1` |
-| `ExampleCORS` | `example_test.go` | `204` |
-| `ExampleChain` | `example_test.go` | `[first second]` |
-| `ExampleNewResponseRecorder` | `example_test.go` | `404` |
-| `ExampleCompression` | `example_test.go` | `gzip` |
-| `ExampleETag` | `example_test.go` | `true` |
-| `ExampleRequestID` | `example_test.go` | `true` |
-| `ExampleSecurityHeaders` | `example_test.go` | `nosniff` |
-| `ExampleRecovery` | `example_test.go` | `500` |
-| `ExampleTimeout` | `example_test.go` | `true` |
-| `ExampleLogging` | `example_test.go` | `200` |
+| Example                      | File              | Output Verified  |
+| ---------------------------- | ----------------- | ---------------- |
+| `ExampleClientIP`            | `example_test.go` | `203.0.113.1`    |
+| `ExampleCORS`                | `example_test.go` | `204`            |
+| `ExampleChain`               | `example_test.go` | `[first second]` |
+| `ExampleNewResponseRecorder` | `example_test.go` | `404`            |
+| `ExampleCompression`         | `example_test.go` | `gzip`           |
+| `ExampleETag`                | `example_test.go` | `true`           |
+| `ExampleRequestID`           | `example_test.go` | `true`           |
+| `ExampleSecurityHeaders`     | `example_test.go` | `nosniff`        |
+| `ExampleRecovery`            | `example_test.go` | `500`            |
+| `ExampleTimeout`             | `example_test.go` | `true`           |
+| `ExampleLogging`             | `example_test.go` | `200`            |
 
 ### 7. Fuzz Tests
 
-| Fuzz Test | File | Seed Corpus | What It Tests |
-|-----------|------|-------------|---------------|
-| `FuzzClientIP` | `clientip_test.go` | 5 seeds | X-Forwarded-For parsing with arbitrary strings |
-| `FuzzCompression` | `compression_test.go` | 5 seeds | gzip compression with arbitrary bodies |
-| `FuzzETag` | `etag_test.go` | 5 seeds | ETag generation with arbitrary bodies |
-| `FuzzCORS` | `cors_test.go` | 7 seeds | CORS origin matching with arbitrary origins |
-| `FuzzRequestID` | `middleware_test.go` | 4 seeds | Request ID generation with arbitrary header values |
+| Fuzz Test         | File                  | Seed Corpus | What It Tests                                      |
+| ----------------- | --------------------- | ----------- | -------------------------------------------------- |
+| `FuzzClientIP`    | `clientip_test.go`    | 5 seeds     | X-Forwarded-For parsing with arbitrary strings     |
+| `FuzzCompression` | `compression_test.go` | 5 seeds     | gzip compression with arbitrary bodies             |
+| `FuzzETag`        | `etag_test.go`        | 5 seeds     | ETag generation with arbitrary bodies              |
+| `FuzzCORS`        | `cors_test.go`        | 7 seeds     | CORS origin matching with arbitrary origins        |
+| `FuzzRequestID`   | `middleware_test.go`  | 4 seeds     | Request ID generation with arbitrary header values |
 
 ### 8. Integration Tests for Common Middleware Chains
 
-| Test | File | Chain Under Test | Validates |
-|------|------|------------------|-----------|
-| `TestChain_RecoveryLoggingCORS` | `middleware_test.go` | `CORS → Recovery → Logging` | All three middlewares compose correctly, CORS headers present |
-| `TestChain_RecoveryCatchesPanicWithLogging` | `middleware_test.go` | `CORS → Recovery → Logging` | Panic caught, 500 returned, no crash |
-| `TestChain_RequestIDSecurityHeaders` | `middleware_test.go` | `SecurityHeaders → RequestID` | Both headers set correctly |
-| `TestChain_TimeoutThenRecovery` | `middleware_test.go` | `Recovery → Timeout` | Deadline set, 200 returned |
+| Test                                        | File                 | Chain Under Test              | Validates                                                     |
+| ------------------------------------------- | -------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `TestChain_RecoveryLoggingCORS`             | `middleware_test.go` | `CORS → Recovery → Logging`   | All three middlewares compose correctly, CORS headers present |
+| `TestChain_RecoveryCatchesPanicWithLogging` | `middleware_test.go` | `CORS → Recovery → Logging`   | Panic caught, 500 returned, no crash                          |
+| `TestChain_RequestIDSecurityHeaders`        | `middleware_test.go` | `SecurityHeaders → RequestID` | Both headers set correctly                                    |
+| `TestChain_TimeoutThenRecovery`             | `middleware_test.go` | `Recovery → Timeout`          | Deadline set, 200 returned                                    |
 
 ### 9. Data Race Fix
 
@@ -113,6 +113,7 @@
 **Fix:** Added `sync.RWMutex` around the map with double-checked locking pattern.
 
 Before:
+
 ```go
 var gzipWriterPools = make(map[int]*sync.Pool)
 func getGzipPool(level int) *sync.Pool {
@@ -126,6 +127,7 @@ func getGzipPool(level int) *sync.Pool {
 ```
 
 After:
+
 ```go
 var (
     gzipWriterPools   = make(map[int]*sync.Pool)
@@ -138,12 +140,12 @@ func getGzipPool(level int) *sync.Pool {
 
 ### 10. Code Quality Improvements
 
-| Issue | Fix |
-|-------|-----|
-| `goconst` "Content-Type" | Extracted to `headerContentType` constant, used in `compression.go`, `cors.go`, `recovery.go` |
-| `errcheck` in benchmark | `recorder.Write(body)` → `_, _ = recorder.Write(body)` |
-| `sloglint` example tests | `slog.NewTextHandler(io.Discard, nil)` → `slog.DiscardHandler` |
-| `wsl_v5` in `getGzipPool` | Added blank lines around RUnlock, fixed by `golangci-lint fmt` |
+| Issue                     | Fix                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| `goconst` "Content-Type"  | Extracted to `headerContentType` constant, used in `compression.go`, `cors.go`, `recovery.go` |
+| `errcheck` in benchmark   | `recorder.Write(body)` → `_, _ = recorder.Write(body)`                                        |
+| `sloglint` example tests  | `slog.NewTextHandler(io.Discard, nil)` → `slog.DiscardHandler`                                |
+| `wsl_v5` in `getGzipPool` | Added blank lines around RUnlock, fixed by `golangci-lint fmt`                                |
 
 ---
 
@@ -156,6 +158,7 @@ func getGzipPool(level int) *sync.Pool {
 ### 2. Test Coverage (87.1%)
 
 Still not 90%+. Gaps in:
+
 - `compression.go` error branches (`startCompression` type mismatch, `Close` errors)
 - `ResponseRecorder` hijack/push failure paths
 - `wrapper.go` hijack/push failure paths (same code, same gap)
@@ -192,6 +195,7 @@ RFC 7232 `If-None-Match` parsing splits on commas and trims spaces. `strings.Spl
 ### 4. Performance: `generateRequestID` Does a Syscall Per Request
 
 `crypto/rand.Read` calls into the kernel for 16 bytes. For high-throughput servers, this is expensive. Options:
+
 - Batch reads into a larger buffer and slice from it
 - Use `math/rand/v2` with a CSPRNG (Go 1.26 has `math/rand/v2.ChaCha8`)
 - Use a `sync.Pool` of pre-filled buffers
@@ -294,33 +298,33 @@ However, these are **architectural debts** that will cause pain as the project g
 
 Sorted by **impact / effort ratio** (highest impact per unit of work first):
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fix nix flake app `meta.description` warnings | Low | 5 min | Infrastructure |
-| 2 | Update AGENTS.md to current state | Medium | 10 min | Documentation |
-| 3 | Replace `getGzipPool` map+mutex with slice+atomic | High | 20 min | Performance |
-| 4 | Zero-allocation `etagInList` parsing | Medium | 15 min | Performance |
-| 5 | Batch `generateRequestID` reads | High | 15 min | Performance |
-| 6 | Add `CompressionConfig.SkipContentTypes` | Medium | 15 min | Configurability |
-| 7 | Add typed `StatusCode` | Medium | 20 min | Type Safety |
-| 8 | Improve test coverage to 90%+ | Medium | 30 min | Quality |
-| 9 | Add `MiddlewareStack` with ordering validation | High | 45 min | Architecture |
-| 10 | Add deflate support | Medium | 30 min | Feature |
-| 11 | Add `Accept-Encoding` quality value parsing | Low | 20 min | Correctness |
-| 12 | Add metrics middleware | Medium | 45 min | Feature |
-| 13 | Add `ResponseWriter` capability interface | Low | 30 min | Architecture |
-| 14 | Streaming ETag (rolling hash) | High | 60 min | Performance |
-| 15 | Rate-limiting middleware | Medium | 60 min | Feature |
-| 16 | Request body size limit middleware | Low | 20 min | Safety |
-| 17 | WebSocket upgrade test | Low | 15 min | Coverage |
-| 18 | Content-Length preservation test | Low | 10 min | Correctness |
-| 19 | HTTP/2 Server Push integration test | Low | 15 min | Coverage |
-| 20 | Evaluate brotli plugin interface | Medium | 30 min | Decision |
-| 21 | Add `ExampleResponseRecorder` | Low | 10 min | DX |
-| 22 | Add `BenchmarkChain` | Low | 10 min | Observability |
-| 23 | Improve benchmark suite with varying body sizes | Low | 20 min | Observability |
-| 24 | Add `go test -race` to CI | High | 5 min | Safety |
-| 25 | Add nix `build` check that works offline | Medium | 20 min | Infrastructure |
+| #   | Task                                              | Impact | Effort | Category        |
+| --- | ------------------------------------------------- | ------ | ------ | --------------- |
+| 1   | Fix nix flake app `meta.description` warnings     | Low    | 5 min  | Infrastructure  |
+| 2   | Update AGENTS.md to current state                 | Medium | 10 min | Documentation   |
+| 3   | Replace `getGzipPool` map+mutex with slice+atomic | High   | 20 min | Performance     |
+| 4   | Zero-allocation `etagInList` parsing              | Medium | 15 min | Performance     |
+| 5   | Batch `generateRequestID` reads                   | High   | 15 min | Performance     |
+| 6   | Add `CompressionConfig.SkipContentTypes`          | Medium | 15 min | Configurability |
+| 7   | Add typed `StatusCode`                            | Medium | 20 min | Type Safety     |
+| 8   | Improve test coverage to 90%+                     | Medium | 30 min | Quality         |
+| 9   | Add `MiddlewareStack` with ordering validation    | High   | 45 min | Architecture    |
+| 10  | Add deflate support                               | Medium | 30 min | Feature         |
+| 11  | Add `Accept-Encoding` quality value parsing       | Low    | 20 min | Correctness     |
+| 12  | Add metrics middleware                            | Medium | 45 min | Feature         |
+| 13  | Add `ResponseWriter` capability interface         | Low    | 30 min | Architecture    |
+| 14  | Streaming ETag (rolling hash)                     | High   | 60 min | Performance     |
+| 15  | Rate-limiting middleware                          | Medium | 60 min | Feature         |
+| 16  | Request body size limit middleware                | Low    | 20 min | Safety          |
+| 17  | WebSocket upgrade test                            | Low    | 15 min | Coverage        |
+| 18  | Content-Length preservation test                  | Low    | 10 min | Correctness     |
+| 19  | HTTP/2 Server Push integration test               | Low    | 15 min | Coverage        |
+| 20  | Evaluate brotli plugin interface                  | Medium | 30 min | Decision        |
+| 21  | Add `ExampleResponseRecorder`                     | Low    | 10 min | DX              |
+| 22  | Add `BenchmarkChain`                              | Low    | 10 min | Observability   |
+| 23  | Improve benchmark suite with varying body sizes   | Low    | 20 min | Observability   |
+| 24  | Add `go test -race` to CI                         | High   | 5 min  | Safety          |
+| 25  | Add nix `build` check that works offline          | Medium | 20 min | Infrastructure  |
 
 ---
 
@@ -362,7 +366,7 @@ Options:
    - `rs/cors` has mature CORS handling with more edge cases
    - `gorilla/handlers` has battle-tested logging/recovery patterns
    - `chi/middleware` has compression with more features
-   
+
    But our single-dependency policy is intentional. We should at least **document** what features we intentionally omit compared to these libraries.
 
 ### What Could Be Better

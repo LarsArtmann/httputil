@@ -4,6 +4,7 @@
 **Branch:** `master`
 **Commits ahead of origin:** 9
 **Last commits:**
+
 - `0f2a591` perf(compression,etag): reduce allocations and improve throughput
 - `3ce061e` test(compression,etag): add Hijack, Push, and fuzz tests for response wrappers
 - `20a174a` feat: benchmarks, examples, integration tests, and middleware ordering docs
@@ -16,6 +17,7 @@
 The "Make It Superb" pass for Compression and ETag middleware is **COMPLETE**. All Pareto-ranked correctness, safety, architecture, performance, and DX tasks have been implemented, tested, lint-cleaned, and committed.
 
 **Final state:**
+
 - **114 passing tests** across the package (up from 91)
 - **Zero lint issues** with ~70 linters enabled
 - **BenchmarkCompression:** 6160 ns/op, **1770 B/op**, 12 allocs/op
@@ -113,6 +115,7 @@ BenchmarkETag-32           3267972     371 ns/op    1136 B/op    12 allocs/op
 ```
 
 Top allocation sources in Compression/ETag code paths are now:
+
 1. Test infrastructure (`httptest.NewRecorder`, `Header.Clone`) — unavoidable in benchmarks.
 2. `newCompressWriter` / `newETagWriter` struct allocations — unavoidable per request.
 3. `etagWriter.Write` body append — unavoidable (must hold body for ETag hash).

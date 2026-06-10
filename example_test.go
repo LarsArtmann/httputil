@@ -128,9 +128,7 @@ func ExampleSecurityHeaders() {
 
 func ExampleRecovery() {
 	logger := slog.New(slog.DiscardHandler)
-	handler := Recovery(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		panic("test panic")
-	}))
+	handler := Recovery(logger)(newPanicHandler("test panic"))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 

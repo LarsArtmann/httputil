@@ -20,17 +20,11 @@ func TestCompression_NoAcceptEncoding(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
-	if got := rec.Header().Get(headerContentEncoding); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty", got)
-	}
+	assertHeader(t, rec, headerContentEncoding, "")
 
-	if got := rec.Body.String(); got != "hello" {
-		t.Errorf("body = %q, want %q", got, "hello")
-	}
+	assertBody(t, rec, "hello")
 }
 
 func TestCompression_AcceptEncoding_Gzip(t *testing.T) {
@@ -49,9 +43,7 @@ func TestCompression_AcceptEncoding_Gzip(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	assertHeader(t, rec, headerContentEncoding, encodingGzip)
 
@@ -89,13 +81,9 @@ func TestCompression_SmallResponse(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if got := rec.Header().Get(headerContentEncoding); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty", got)
-	}
+	assertHeader(t, rec, headerContentEncoding, "")
 
-	if got := rec.Body.String(); got != "small" {
-		t.Errorf("body = %q, want %q", got, "small")
-	}
+	assertBody(t, rec, "small")
 }
 
 func TestCompression_Non2xxStatus(t *testing.T) {
@@ -156,9 +144,7 @@ func TestCompression_Flush(t *testing.T) {
 		t.Errorf("Content-Encoding = %q, want empty after flush", got)
 	}
 
-	if got := rec.Body.String(); got != "partial more" {
-		t.Errorf("body = %q, want %q", got, "partial more")
-	}
+	assertBody(t, rec, "partial more")
 }
 
 func TestCompression_EmptyResponse(t *testing.T) {
@@ -303,9 +289,7 @@ func FuzzCompression(f *testing.F) {
 
 		handler.ServeHTTP(rec, req)
 
-		if rec.Code != http.StatusOK {
-			t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-		}
+		assertStatus(t, rec, http.StatusOK)
 	})
 }
 
@@ -364,9 +348,7 @@ func TestCompression_WriteCompressedPath(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	if rec.Header().Get("Content-Encoding") != "gzip" {
 		t.Error("Content-Encoding is not gzip")
@@ -397,9 +379,7 @@ func TestCompression_FlushWhileBuffering(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	if rec.Header().Get("Content-Encoding") == "gzip" {
 		t.Error("should not compress when flushed below min size")

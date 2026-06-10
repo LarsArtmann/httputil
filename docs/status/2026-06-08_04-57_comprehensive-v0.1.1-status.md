@@ -19,23 +19,24 @@
 
 ### 1. Core Middleware Suite (10 middlewares) — Complete Coverage
 
-| Middleware | File | Config + Validate | Tests | Examples | Benchmarks | Fuzz |
-|------------|------|-------------------|-------|----------|------------|------|
-| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` (444 ns) | `FuzzCORS` |
-| ClientIP | `clientip.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` (44 ns) | `FuzzClientIP` |
-| RequestID | `requestid.go` | `RequestIDConfig` + `Validate()` | Yes | `ExampleRequestID` | `BenchmarkRequestID` (381 ns) | `FuzzRequestID` |
-| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` (209 ns) | — |
-| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` (54 ns) | — |
-| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` (386 ns) | — |
-| Logging | `logging.go` | `*slog.Logger` | Yes | `ExampleLogging` | `BenchmarkLogging` (1,014 ns) | — |
-| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` (31 ns, 0 allocs) | — |
-| Compression | `compression.go` | `CompressionConfig` + `Validate()` | Yes | `ExampleCompression` | `BenchmarkCompression` (6.5 µs) | `FuzzCompression` |
-| ETag | `etag.go` | `ETagConfig` + `Validate()` | Yes | `ExampleETag` | `BenchmarkETag` (407 ns) | `FuzzETag` |
-| Chain | `recorder.go` | — | Yes | `ExampleChain` | `BenchmarkChain` (2.9 µs, 37 allocs) | — |
+| Middleware       | File             | Config + Validate                      | Tests | Examples                     | Benchmarks                                    | Fuzz              |
+| ---------------- | ---------------- | -------------------------------------- | ----- | ---------------------------- | --------------------------------------------- | ----------------- |
+| CORS             | `cors.go`        | `CORSConfig` + `Validate()`            | Yes   | `ExampleCORS`                | `BenchmarkCORS` (444 ns)                      | `FuzzCORS`        |
+| ClientIP         | `clientip.go`    | —                                      | Yes   | `ExampleClientIP`            | `BenchmarkClientIP` (44 ns)                   | `FuzzClientIP`    |
+| RequestID        | `requestid.go`   | `RequestIDConfig` + `Validate()`       | Yes   | `ExampleRequestID`           | `BenchmarkRequestID` (381 ns)                 | `FuzzRequestID`   |
+| SecurityHeaders  | `security.go`    | `SecurityHeadersConfig` + `Validate()` | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders` (209 ns)           | —                 |
+| Recovery         | `recovery.go`    | `*slog.Logger`                         | Yes   | `ExampleRecovery`            | `BenchmarkRecovery` (54 ns)                   | —                 |
+| Timeout          | `timeout.go`     | `time.Duration`                        | Yes   | `ExampleTimeout`             | `BenchmarkTimeout` (386 ns)                   | —                 |
+| Logging          | `logging.go`     | `*slog.Logger`                         | Yes   | `ExampleLogging`             | `BenchmarkLogging` (1,014 ns)                 | —                 |
+| ResponseRecorder | `recorder.go`    | —                                      | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` (31 ns, 0 allocs) | —                 |
+| Compression      | `compression.go` | `CompressionConfig` + `Validate()`     | Yes   | `ExampleCompression`         | `BenchmarkCompression` (6.5 µs)               | `FuzzCompression` |
+| ETag             | `etag.go`        | `ETagConfig` + `Validate()`            | Yes   | `ExampleETag`                | `BenchmarkETag` (407 ns)                      | `FuzzETag`        |
+| Chain            | `recorder.go`    | —                                      | Yes   | `ExampleChain`               | `BenchmarkChain` (2.9 µs, 37 allocs)          | —                 |
 
 ### 2. Error Classification System
 
 7 error codes registered via `go-error-family`:
+
 - `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`
 - `ErrCodePushUnsupported`, `ErrCodePushFailed`
 - `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`
@@ -49,6 +50,7 @@
 ### 4. Configuration Validation
 
 All config types have `Validate()` methods:
+
 - `CORSConfig.Validate()` — catches credentials+allow-all, negative MaxAge
 - `CompressionConfig.Validate()` — catches invalid levels, negative MinSize
 - `RequestIDConfig.Validate()` — catches nil GenerateID, empty header names
@@ -57,30 +59,30 @@ All config types have `Validate()` methods:
 
 ### 5. Documentation
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `README.md` | Feature overview, API table, usage examples, middleware ordering, compression limitations | Current |
-| `doc.go` | Package-level godoc | Current |
-| `AGENTS.md` | Architecture reference, testing conventions, lint rules | Current |
-| `CHANGELOG.md` | v0.1.0 and v0.1.1 entries | Current |
-| `FEATURES.md` | Honest feature inventory with status indicators | Current |
-| `TODO_LIST.md` | Centralized task list with priority tiers | Current |
-| `docs/DOMAIN_LANGUAGE.md` | Complete domain glossary with 10 bounded contexts | Current |
-| `docs/status/` | 10 status reports | Current |
-| `docs/planning/` | 1 execution plan | Current |
+| File                      | Purpose                                                                                   | Status  |
+| ------------------------- | ----------------------------------------------------------------------------------------- | ------- |
+| `README.md`               | Feature overview, API table, usage examples, middleware ordering, compression limitations | Current |
+| `doc.go`                  | Package-level godoc                                                                       | Current |
+| `AGENTS.md`               | Architecture reference, testing conventions, lint rules                                   | Current |
+| `CHANGELOG.md`            | v0.1.0 and v0.1.1 entries                                                                 | Current |
+| `FEATURES.md`             | Honest feature inventory with status indicators                                           | Current |
+| `TODO_LIST.md`            | Centralized task list with priority tiers                                                 | Current |
+| `docs/DOMAIN_LANGUAGE.md` | Complete domain glossary with 10 bounded contexts                                         | Current |
+| `docs/status/`            | 10 status reports                                                                         | Current |
+| `docs/planning/`          | 1 execution plan                                                                          | Current |
 
 ### 6. Tooling & Quality Gates
 
-| Gate | Status |
-|------|--------|
-| `golangci-lint run` | 0 issues (~70 linters) |
-| `go test ./... -race` | 112 tests passing, race-free |
-| `go vet ./...` | Clean |
-| `go test -bench` | 15 benchmarks passing |
-| Coverage | 91.2% of statements |
-| `nix flake check` | Format check passes |
-| GitHub Actions CI | Build + vet + test + benchmark + lint |
-| Release workflow | Test + lint + govulncheck + GitHub Release |
+| Gate                  | Status                                     |
+| --------------------- | ------------------------------------------ |
+| `golangci-lint run`   | 0 issues (~70 linters)                     |
+| `go test ./... -race` | 112 tests passing, race-free               |
+| `go vet ./...`        | Clean                                      |
+| `go test -bench`      | 15 benchmarks passing                      |
+| Coverage              | 91.2% of statements                        |
+| `nix flake check`     | Format check passes                        |
+| GitHub Actions CI     | Build + vet + test + benchmark + lint      |
+| Release workflow      | Test + lint + govulncheck + GitHub Release |
 
 ### 7. Race Fixes (v0.1.1)
 
@@ -96,22 +98,22 @@ All config types have `Validate()` methods:
 
 Functions below 90% coverage:
 
-| Function | Coverage | Gap |
-|----------|----------|-----|
-| `compressWriter.Flush` | 61.5% | Streaming flush with gzip active |
-| `compressWriter.startCompressAndStream` | 66.7% | Error branch when `startCompression` returns false |
-| `compressWriter.writePlain` | 75.0% | Error branch on plain write |
-| `compressWriter.writeCompressed` | 75.0% | Error branch on compressed write |
-| `compressWriter.flushPlainAndStream` | 76.9% | Error branches during flush transition |
-| `etagWriter.Write` | 80.0% | Streaming write error branch |
-| `etagWriter.Flush` | 77.8% | Flush after already flushed |
-| `compressWriter.isCompressibleContentType` | 83.3% | One deny-list entry untested |
-| `compressWriter.Write` | 83.3% | Error branch after compression started |
-| `compressWriter.Close` | 86.7% | GzipWriter.Close error path |
-| `getGzipPool` | 88.2% | Double-checked locking slow path |
-| `responseWrapper.Hijack` | 71.4% | Hijack error path |
-| `responseWrapper.Push` | 71.4% | Push error path |
-| `ResponseRecorder.Hijack` | 42.9% | Successful Hijack path (untested with real connection) |
+| Function                                   | Coverage | Gap                                                    |
+| ------------------------------------------ | -------- | ------------------------------------------------------ |
+| `compressWriter.Flush`                     | 61.5%    | Streaming flush with gzip active                       |
+| `compressWriter.startCompressAndStream`    | 66.7%    | Error branch when `startCompression` returns false     |
+| `compressWriter.writePlain`                | 75.0%    | Error branch on plain write                            |
+| `compressWriter.writeCompressed`           | 75.0%    | Error branch on compressed write                       |
+| `compressWriter.flushPlainAndStream`       | 76.9%    | Error branches during flush transition                 |
+| `etagWriter.Write`                         | 80.0%    | Streaming write error branch                           |
+| `etagWriter.Flush`                         | 77.8%    | Flush after already flushed                            |
+| `compressWriter.isCompressibleContentType` | 83.3%    | One deny-list entry untested                           |
+| `compressWriter.Write`                     | 83.3%    | Error branch after compression started                 |
+| `compressWriter.Close`                     | 86.7%    | GzipWriter.Close error path                            |
+| `getGzipPool`                              | 88.2%    | Double-checked locking slow path                       |
+| `responseWrapper.Hijack`                   | 71.4%    | Hijack error path                                      |
+| `responseWrapper.Push`                     | 71.4%    | Push error path                                        |
+| `ResponseRecorder.Hijack`                  | 42.9%    | Successful Hijack path (untested with real connection) |
 
 ### 2. flake.nix — No Build Check
 
@@ -156,6 +158,7 @@ No `go build` nix check because the sandbox can't download `go-error-family`. On
 ### Nothing is totally fucked up.
 
 The codebase is in excellent shape:
+
 - 112 tests passing with race detection
 - 91.2% coverage
 - 0 lint issues
@@ -206,33 +209,33 @@ The codebase is in excellent shape:
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fill compression `Flush` coverage (61.5% → 90%+) | Critical | 20 min | Quality |
-| 2 | Fill `ResponseRecorder.Hijack` coverage (42.9% → 90%+) | Critical | 15 min | Quality |
-| 3 | Update flake.lock (stale nixpkgs) | Low | 1 min | Infrastructure |
-| 4 | Replace `getGzipPool` map+mutex with slice+atomic | High | 20 min | Performance |
-| 5 | Zero-allocation `etagInList` | Medium | 15 min | Performance |
-| 6 | Batch `generateRequestID` reads | High | 15 min | Performance |
-| 7 | Add `CompressionConfig.SkipContentTypes` | Medium | 15 min | Configurability |
-| 8 | Fill `compressWriter.startCompressAndStream` coverage | Medium | 10 min | Quality |
-| 9 | Fill `compressWriter.writePlain/writeCompressed` coverage | Medium | 10 min | Quality |
-| 10 | Fill `responseWrapper.Hijack/Push` error paths | Medium | 10 min | Quality |
-| 11 | Fill `etagWriter.Write` streaming error branch | Medium | 5 min | Quality |
-| 12 | Fill `compressWriter.Close` error path | Medium | 5 min | Quality |
-| 13 | Fill `getGzipPool` slow path coverage | Low | 5 min | Quality |
-| 14 | Add `MiddlewareStack` with ordering validation | High | 45 min | Architecture |
-| 15 | Add `ResponseWriter` capability interface | Medium | 30 min | Architecture |
-| 16 | Implement deflate support | Medium | 30 min | Feature |
-| 17 | Add Accept-Encoding quality value parsing | Low | 20 min | Correctness |
-| 18 | Fill `etagWriter.Flush` after-flush path | Low | 5 min | Quality |
-| 19 | Streaming ETag (rolling hash) | High | 60 min | Performance |
-| 20 | Rate-limiting middleware | Medium | 60 min | Feature |
-| 21 | Request body size limit middleware | Low | 20 min | Safety |
-| 22 | Brotli plugin interface | Medium | 45 min | Extensibility |
-| 23 | HTTP/2 Server Push integration test | Low | 15 min | Coverage |
-| 24 | WebSocket upgrade test through Compression + ETag | Low | 15 min | Coverage |
-| 25 | Add nix build check that works offline | Medium | 20 min | Infrastructure |
+| #   | Task                                                      | Impact   | Effort | Category        |
+| --- | --------------------------------------------------------- | -------- | ------ | --------------- |
+| 1   | Fill compression `Flush` coverage (61.5% → 90%+)          | Critical | 20 min | Quality         |
+| 2   | Fill `ResponseRecorder.Hijack` coverage (42.9% → 90%+)    | Critical | 15 min | Quality         |
+| 3   | Update flake.lock (stale nixpkgs)                         | Low      | 1 min  | Infrastructure  |
+| 4   | Replace `getGzipPool` map+mutex with slice+atomic         | High     | 20 min | Performance     |
+| 5   | Zero-allocation `etagInList`                              | Medium   | 15 min | Performance     |
+| 6   | Batch `generateRequestID` reads                           | High     | 15 min | Performance     |
+| 7   | Add `CompressionConfig.SkipContentTypes`                  | Medium   | 15 min | Configurability |
+| 8   | Fill `compressWriter.startCompressAndStream` coverage     | Medium   | 10 min | Quality         |
+| 9   | Fill `compressWriter.writePlain/writeCompressed` coverage | Medium   | 10 min | Quality         |
+| 10  | Fill `responseWrapper.Hijack/Push` error paths            | Medium   | 10 min | Quality         |
+| 11  | Fill `etagWriter.Write` streaming error branch            | Medium   | 5 min  | Quality         |
+| 12  | Fill `compressWriter.Close` error path                    | Medium   | 5 min  | Quality         |
+| 13  | Fill `getGzipPool` slow path coverage                     | Low      | 5 min  | Quality         |
+| 14  | Add `MiddlewareStack` with ordering validation            | High     | 45 min | Architecture    |
+| 15  | Add `ResponseWriter` capability interface                 | Medium   | 30 min | Architecture    |
+| 16  | Implement deflate support                                 | Medium   | 30 min | Feature         |
+| 17  | Add Accept-Encoding quality value parsing                 | Low      | 20 min | Correctness     |
+| 18  | Fill `etagWriter.Flush` after-flush path                  | Low      | 5 min  | Quality         |
+| 19  | Streaming ETag (rolling hash)                             | High     | 60 min | Performance     |
+| 20  | Rate-limiting middleware                                  | Medium   | 60 min | Feature         |
+| 21  | Request body size limit middleware                        | Low      | 20 min | Safety          |
+| 22  | Brotli plugin interface                                   | Medium   | 45 min | Extensibility   |
+| 23  | HTTP/2 Server Push integration test                       | Low      | 15 min | Coverage        |
+| 24  | WebSocket upgrade test through Compression + ETag         | Low      | 15 min | Coverage        |
+| 25  | Add nix build check that works offline                    | Medium   | 20 min | Infrastructure  |
 
 ---
 
@@ -241,6 +244,7 @@ The codebase is in excellent shape:
 **Should httputil add middleware that doesn't exist in the stdlib (rate-limiting, metrics, body-size-limit) or stay focused on "stdlib patterns made composable"?**
 
 The library's identity is: stdlib `net/http` patterns composed into reusable middleware with zero surprises. Every middleware so far wraps stdlib behavior:
+
 - CORS = HTTP headers
 - Recovery = `defer/recover`
 - Timeout = `context.WithTimeout`

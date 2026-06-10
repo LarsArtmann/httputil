@@ -20,9 +20,7 @@ func TestETag_GeneratesStrongETag(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	etag := rec.Header().Get(headerETag)
 	if etag == "" {
@@ -64,9 +62,7 @@ func testETagIfNoneMatchReturns304(t *testing.T, ifNoneMatchValue string) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusNotModified {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotModified)
-	}
+	assertStatus(t, rec, http.StatusNotModified)
 
 	if rec.Body.Len() != 0 {
 		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
@@ -98,13 +94,9 @@ func TestETag_IfNoneMatch_NoMatch(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
-	if got := rec.Body.String(); got != "hello world" {
-		t.Errorf("body = %q, want %q", got, "hello world")
-	}
+	assertBody(t, rec, "hello world")
 }
 
 func TestETag_IfNoneMatch_Star(t *testing.T) {
@@ -120,9 +112,7 @@ func TestETag_IfNoneMatch_Star(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusNotModified {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotModified)
-	}
+	assertStatus(t, rec, http.StatusNotModified)
 }
 
 func TestETag_NonGetHead(t *testing.T) {
@@ -136,9 +126,7 @@ func TestETag_NonGetHead(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	if got := rec.Header().Get(headerETag); got != "" {
 		t.Errorf("ETag = %q, want empty for POST", got)
@@ -173,17 +161,13 @@ func TestETag_MemoryLimit_DisablesETag(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	if got := rec.Header().Get(headerETag); got != "" {
 		t.Errorf("ETag = %q, want empty when buffer limit exceeded", got)
 	}
 
-	if got := rec.Body.String(); got != "this body exceeds the limit" {
-		t.Errorf("body = %q, want %q", got, "this body exceeds the limit")
-	}
+	assertBody(t, rec, "this body exceeds the limit")
 }
 
 func TestETag_Hijack_SetsFlushedMode(t *testing.T) {
@@ -280,9 +264,7 @@ func TestETag_Flush(t *testing.T) {
 		t.Errorf("ETag = %q, want empty after flush", got)
 	}
 
-	if got := rec.Body.String(); got != "partial more" {
-		t.Errorf("body = %q, want %q", got, "partial more")
-	}
+	assertBody(t, rec, "partial more")
 }
 
 func TestETag_HeadRequest(t *testing.T) {

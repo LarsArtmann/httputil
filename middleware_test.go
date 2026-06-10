@@ -99,18 +99,14 @@ func TestRecovery_CatchesPanic(t *testing.T) {
 	t.Parallel()
 
 	logger := newTestLogger()
-	handler := Recovery(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		panic("test panic")
-	}))
+	handler := Recovery(logger)(newPanicHandler("test panic"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusInternalServerError {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
-	}
+	assertStatus(t, rec, http.StatusInternalServerError)
 }
 
 func TestRecovery_PassesThroughNormal(t *testing.T) {
@@ -196,13 +192,9 @@ func TestChain_ETagThenCompression_CorrectOrder(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
-	if got := rec.Header().Get(headerContentEncoding); got != encodingGzip {
-		t.Errorf("Content-Encoding = %q, want %q", got, encodingGzip)
-	}
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
 
 	etag := rec.Header().Get(headerETag)
 	if etag == "" {
@@ -230,9 +222,7 @@ func TestChain_ETagThenCompression_IfNoneMatch304(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusNotModified {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNotModified)
-	}
+	assertStatus(t, rec, http.StatusNotModified)
 
 	if rec.Body.Len() != 0 {
 		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
@@ -261,14 +251,10 @@ func TestChain_CompressionThenETag_WrongOrder(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	// Still has both headers, but ETag is computed on compressed body.
-	if got := rec.Header().Get(headerContentEncoding); got != encodingGzip {
-		t.Errorf("Content-Encoding = %q, want %q", got, encodingGzip)
-	}
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
 
 	if got := rec.Header().Get(headerETag); got == "" {
 		t.Error("ETag header is empty")
@@ -290,9 +276,7 @@ func TestChain_RecoveryLoggingCORS(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	assertHeader(t, rec, "Access-Control-Allow-Origin", "*")
 }
@@ -303,9 +287,7 @@ func TestChain_RecoveryCatchesPanicWithLogging(t *testing.T) {
 	logger := newTestLogger()
 	corsCfg := DefaultCORSConfig()
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		panic("integration test panic")
-	})
+	inner := newPanicHandler("integration test panic")
 
 	handler := Chain(inner, CORS(corsCfg), Recovery(logger), Logging(logger))
 
@@ -314,9 +296,7 @@ func TestChain_RecoveryCatchesPanicWithLogging(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusInternalServerError {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
-	}
+	assertStatus(t, rec, http.StatusInternalServerError)
 }
 
 func TestChain_RequestIDSecurityHeaders(t *testing.T) {
@@ -325,9 +305,7 @@ func TestChain_RequestIDSecurityHeaders(t *testing.T) {
 	reqCfg := DefaultRequestIDConfig()
 	secCfg := DefaultSecurityHeadersConfig()
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	inner := newWriteStatusHandler(http.StatusOK, "")
 
 	handler := Chain(inner, SecurityHeaders(secCfg), RequestID(reqCfg))
 
@@ -364,9 +342,7 @@ func TestChain_TimeoutThenRecovery(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 }
 
 func BenchmarkRequestID(b *testing.B) {
@@ -444,9 +420,7 @@ func BenchmarkChain(b *testing.B) {
 	reqCfg := DefaultRequestIDConfig()
 	secCfg := DefaultSecurityHeadersConfig()
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	inner := newWriteStatusHandler(http.StatusOK, "")
 
 	handler := Chain(
 		inner,
@@ -641,9 +615,7 @@ func TestChain_CompressionETag_SmallResponsePreservesContentLength(t *testing.T)
 
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
+	assertStatus(t, rec, http.StatusOK)
 
 	// Small response: compression skipped, Content-Length should remain.
 	if rec.Header().Get("Content-Length") != itoa(len(body)) {

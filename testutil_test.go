@@ -107,6 +107,31 @@ func (r *hijackRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, nil
 }
 
+// assertStatus checks that a response recorder has the expected status code.
+func assertStatus(t *testing.T, rec *httptest.ResponseRecorder, want int) {
+	t.Helper()
+
+	if rec.Code != want {
+		t.Errorf("status = %d, want %d", rec.Code, want)
+	}
+}
+
+// assertBody checks that a response recorder body matches the expected string.
+func assertBody(t *testing.T, rec *httptest.ResponseRecorder, want string) {
+	t.Helper()
+
+	if got := rec.Body.String(); got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
+// newPanicHandler returns an http.HandlerFunc that panics with msg.
+func newPanicHandler(msg string) http.HandlerFunc {
+	return http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		panic(msg)
+	})
+}
+
 // assertSliceEqual checks that two string slices are element-wise equal.
 func assertSliceEqual(t *testing.T, got, want []string) {
 	t.Helper()

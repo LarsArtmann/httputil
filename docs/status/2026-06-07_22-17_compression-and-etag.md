@@ -23,6 +23,7 @@ The project sits at **~2,500 lines** across 25 Go files, **91 passing tests**, *
 **What:** `Compression()` middleware transparently gzip-compresses responses when the client accepts `gzip` encoding and the response body exceeds a configurable minimum size (default: 512 bytes).
 
 **Design decisions:**
+
 - Buffers writes in memory until `minSize` is reached or the handler completes.
 - Only compresses 2xx responses. Non-2xx and already-encoded responses are passed through uncompressed.
 - Adds `Vary: Accept-Encoding` to all responses where compression is evaluated.
@@ -31,10 +32,12 @@ The project sits at **~2,500 lines** across 25 Go files, **91 passing tests**, *
 - Error classification via `go-error-family` for `Hijack` and `Push` failures (reuses existing `ErrCode*` constants).
 
 **Files:**
+
 - `compression.go` — 267 lines
 - `compression_test.go` — 209 lines, 9 tests
 
 **Tests cover:**
+
 - No `Accept-Encoding` header → passthrough
 - `Accept-Encoding: gzip` with large body → compressed
 - Small response below `minSize` → uncompressed passthrough
@@ -54,6 +57,7 @@ The project sits at **~2,500 lines** across 25 Go files, **91 passing tests**, *
 **What:** `ETag()` middleware generates `ETag` response headers from CRC-32 checksums of response bodies and handles `If-None-Match` conditional requests with `304 Not Modified`. Only applies to `GET` and `HEAD` requests.
 
 **Design decisions:**
+
 - Buffers the entire response body in memory to compute the ETag.
 - Uses `crc32.ChecksumIEEE` for fast hashing. Produces 8-hex-digit strong ETags (`"0d4a1185"`) or weak ETags (`W/"0d4a1185"`) depending on config.
 - Supports exact-match `If-None-Match` comparison and wildcard `*` match.
@@ -62,10 +66,12 @@ The project sits at **~2,500 lines** across 25 Go files, **91 passing tests**, *
 - `Flush()` disables ETag generation and writes buffered data immediately (streaming mode).
 
 **Files:**
+
 - `etag.go` — 215 lines
 - `etag_test.go` — 203 lines, 9 tests
 
 **Tests cover:**
+
 - Strong ETag generation
 - Weak ETag generation (`Weak: true`)
 - `If-None-Match` exact match → 304 with empty body
@@ -85,6 +91,7 @@ The project sits at **~2,500 lines** across 25 Go files, **91 passing tests**, *
 **What:** Updated all public-facing documentation to reflect the two new features.
 
 **Files changed:**
+
 - `doc.go` — Added compression and ETag to package description.
 - `README.md` — Added "Response Compression" and "ETag Generation" feature sections with usage examples. Updated API table with 4 new rows (`Compression`, `DefaultCompressionConfig`, `ETag`, `DefaultETagConfig`).
 - `AGENTS.md` — Updated architecture table with `compression.go` and `etag.go` entries. Updated date.
@@ -132,6 +139,7 @@ The project sits at **~2,500 lines** across 25 Go files, **91 passing tests**, *
 **What:** All tests exercise `Compression` and `ETag` in isolation.
 
 **Gap:** No test verifies that `Compression` and `ETag` compose correctly when chained together. For example:
+
 - Does `Chain(handler, ETag(cfg), Compression(cfg))` produce a correct gzipped response with an ETag?
 - Does the ETag get computed on the uncompressed or compressed body?
 - Does `If-None-Match` still work when compression is also active?
@@ -221,6 +229,7 @@ func (w *etagWriter) isCacheableStatus() bool {
 **Why it matters:** A server streaming a 100MB file would buffer all 100MB in the `etagWriter.body` slice.
 
 **Options:**
+
 - **Option A:** Skip ETag generation for responses above a size threshold (pass through).
 - **Option B:** Use a rolling hash (e.g., xxhash64, md5) and write chunks as they arrive, then compute the final ETag at close. This still requires buffering if `If-None-Match` needs to short-circuit to 304.
 - **Option C:** Require the handler to pre-compute and set its own ETag, making the middleware a passthrough validator only.
@@ -294,33 +303,33 @@ None of these are "fucked up" in the sense of breaking the build or causing pani
 
 Sorted by **impact / effort ratio** (Pareto principle — highest impact per unit of work first):
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Fix `If-None-Match` to parse comma-separated ETag lists | High | 5 min | Correctness |
-| 2 | Fix `isCacheableStatus` to accept all 2xx | High | 2 min | Correctness |
-| 3 | Add ETag memory limit (skip ETag if body > 1MB) | High | 15 min | Safety |
-| 4 | Add error classification for compression write errors | High | 20 min | Architecture |
-| 5 | Add `sync.Pool` for gzip.Writer reuse | High | 20 min | Performance |
-| 6 | Add content-type filtering for compression | Medium | 15 min | Performance |
-| 7 | Add benchmarks for Compression and ETag | Medium | 15 min | Observability |
-| 8 | Add example functions for godoc | Medium | 10 min | DX |
-| 9 | Add integration test for ETag + Compression chain | Medium | 15 min | Correctness |
-| 10 | Document recommended middleware ordering in README | Medium | 5 min | DX |
-| 11 | Extract shared ResponseWriter wrapper helper | Medium | 30 min | Architecture |
-| 12 | Add deflate support | Medium | 30 min | Feature |
-| 13 | Support `Accept-Encoding` quality value parsing | Low | 20 min | Correctness |
-| 14 | Add `Content-Length` preservation for small responses | Low | 15 min | Correctness |
-| 15 | Add `ETagConfig` max buffer size field | Low | 10 min | Configurability |
-| 16 | Add `CompressionConfig` content type allow/deny lists | Low | 15 min | Configurability |
-| 17 | Add weak ETag documentation clarifying "weak in name only" | Low | 5 min | DX |
-| 18 | Add streaming ETag option (no buffering) | Medium | 45 min | Performance |
-| 19 | Add brotli support (blocked: requires external dep) | High | 60 min | Feature |
-| 20 | Consider `MiddlewareStack` type with ordering rules | Low | 60 min | Architecture |
-| 21 | Fuzz test compression with random bodies | Medium | 20 min | Quality |
-| 22 | Fuzz test ETag with random bodies and headers | Medium | 20 min | Quality |
-| 23 | Add HTTP/2 Push test for compression writer | Low | 15 min | Coverage |
-| 24 | Add Hijack test for ETag writer | Low | 15 min | Coverage |
-| 25 | Profile allocation hot spots under benchmark load | Medium | 30 min | Performance |
+| #   | Task                                                       | Impact | Effort | Category        |
+| --- | ---------------------------------------------------------- | ------ | ------ | --------------- |
+| 1   | Fix `If-None-Match` to parse comma-separated ETag lists    | High   | 5 min  | Correctness     |
+| 2   | Fix `isCacheableStatus` to accept all 2xx                  | High   | 2 min  | Correctness     |
+| 3   | Add ETag memory limit (skip ETag if body > 1MB)            | High   | 15 min | Safety          |
+| 4   | Add error classification for compression write errors      | High   | 20 min | Architecture    |
+| 5   | Add `sync.Pool` for gzip.Writer reuse                      | High   | 20 min | Performance     |
+| 6   | Add content-type filtering for compression                 | Medium | 15 min | Performance     |
+| 7   | Add benchmarks for Compression and ETag                    | Medium | 15 min | Observability   |
+| 8   | Add example functions for godoc                            | Medium | 10 min | DX              |
+| 9   | Add integration test for ETag + Compression chain          | Medium | 15 min | Correctness     |
+| 10  | Document recommended middleware ordering in README         | Medium | 5 min  | DX              |
+| 11  | Extract shared ResponseWriter wrapper helper               | Medium | 30 min | Architecture    |
+| 12  | Add deflate support                                        | Medium | 30 min | Feature         |
+| 13  | Support `Accept-Encoding` quality value parsing            | Low    | 20 min | Correctness     |
+| 14  | Add `Content-Length` preservation for small responses      | Low    | 15 min | Correctness     |
+| 15  | Add `ETagConfig` max buffer size field                     | Low    | 10 min | Configurability |
+| 16  | Add `CompressionConfig` content type allow/deny lists      | Low    | 15 min | Configurability |
+| 17  | Add weak ETag documentation clarifying "weak in name only" | Low    | 5 min  | DX              |
+| 18  | Add streaming ETag option (no buffering)                   | Medium | 45 min | Performance     |
+| 19  | Add brotli support (blocked: requires external dep)        | High   | 60 min | Feature         |
+| 20  | Consider `MiddlewareStack` type with ordering rules        | Low    | 60 min | Architecture    |
+| 21  | Fuzz test compression with random bodies                   | Medium | 20 min | Quality         |
+| 22  | Fuzz test ETag with random bodies and headers              | Medium | 20 min | Quality         |
+| 23  | Add HTTP/2 Push test for compression writer                | Low    | 15 min | Coverage        |
+| 24  | Add Hijack test for ETag writer                            | Low    | 15 min | Coverage        |
+| 25  | Profile allocation hot spots under benchmark load          | Medium | 30 min | Performance     |
 
 ---
 
@@ -331,6 +340,7 @@ Sorted by **impact / effort ratio** (Pareto principle — highest impact per uni
 Brotli is table stakes for modern web compression (15–25% smaller than gzip). The standard library does not include brotli. `compress/flate` exists for deflate, but brotli is not there.
 
 Options:
+
 1. **Keep the constraint** and document that brotli is intentionally not supported. Users who need brotli should use a different middleware.
 2. **Relax the constraint** for a zero-dependency brotli implementation. `github.com/andybalholm/brotli` is pure Go with zero transitive deps — similar profile to our existing `go-error-family` dependency.
 3. **Provide a plugin/extension interface** where users inject their own compression writer factory, keeping the core stdlib-only.

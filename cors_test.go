@@ -20,9 +20,7 @@ func TestCORS_DefaultConfig_Preflight(t *testing.T) {
 
 	middleware(inner).ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusNoContent {
-		t.Errorf("status = %d, want %d", rec.Code, http.StatusNoContent)
-	}
+	assertStatus(t, rec, http.StatusNoContent)
 
 	assertAllowOrigin(t, rec, "*")
 }

@@ -245,15 +245,15 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `ResponseRecorder` methods
 
-| Method                            | Returns                                | Description                                            |
-| --------------------------------- | -------------------------------------- | ------------------------------------------------------ |
-| `Status()`                        | `int`                                  | Captured status code (0 if `WriteHeader` not called)   |
-| `WroteHeader()`                   | `bool`                                 | Whether `WriteHeader` was called                       |
-| `HeaderSnapshot()`                | `http.Header`                          | Isolated copy of response headers                      |
-| `WriteHeader(int)`                | —                                      | Capture status and delegate                            |
-| `Write([]byte)`                   | `(int, error)`                         | Write body, implicitly set 200                         |
-| `Flush()`                         | —                                      | Delegate if underlying writer supports `http.Flusher`  |
-| `Hijack()`                        | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker` |
+| Method             | Returns                                | Description                                            |
+| ------------------ | -------------------------------------- | ------------------------------------------------------ |
+| `Status()`         | `int`                                  | Captured status code (0 if `WriteHeader` not called)   |
+| `WroteHeader()`    | `bool`                                 | Whether `WriteHeader` was called                       |
+| `HeaderSnapshot()` | `http.Header`                          | Isolated copy of response headers                      |
+| `WriteHeader(int)` | —                                      | Capture status and delegate                            |
+| `Write([]byte)`    | `(int, error)`                         | Write body, implicitly set 200                         |
+| `Flush()`          | —                                      | Delegate if underlying writer supports `http.Flusher`  |
+| `Hijack()`         | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker` |
 
 ## Design
 
