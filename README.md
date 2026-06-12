@@ -1,6 +1,6 @@
 # httputil
 
-Composable HTTP middleware and utility primitives for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, and ETag generation.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, configurable HTTP server, and standard health checks.
 
 Minimal footprint — single same-author dependency. Pure stdlib `net/http`. Go 1.26+.
 
@@ -193,6 +193,51 @@ handler := httputil.ETag(httputil.DefaultETagConfig())(mux)
 
 Set `Weak: true` for weak ETags (`W/"..."`) if your content may change semantically but not byte-for-byte.
 
+### HTTP Server
+
+A configurable `http.Server` wrapper with sensible timeout defaults and lifecycle helpers.
+
+```go
+cfg := httputil.DefaultServerConfig()
+cfg.Addr = ":8080"
+
+srv, err := httputil.NewServer(cfg, handler)
+if err != nil {
+    log.Fatal(err)
+}
+
+errChan := srv.Start()
+
+// Wait for shutdown signal, then call srv.Shutdown(ctx).
+```
+
+Default timeouts match production recommendations:
+
+- `ReadTimeout`: 10s
+- `ReadHeaderTimeout`: 5s
+- `WriteTimeout`: 30s
+- `IdleTimeout`: 60s
+
+### Health Checks
+
+Standard Kubernetes-compatible health handlers.
+
+```go
+mux := http.NewServeMux()
+httputil.RegisterHealth(mux)
+
+// Registers:
+//   GET /health
+//   GET /health/live
+//   GET /health/ready
+```
+
+Or use individual handlers:
+
+```go
+mux.HandleFunc("GET /health", httputil.HealthHandler())
+```
+
 ### Error Classification
 
 `ResponseRecorder` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
@@ -229,6 +274,12 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `ETag`                         | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + 304 handling              |
 | `DefaultETagConfig`            | `func() ETagConfig`                                                   | Strong ETag defaults                        |
 | `RegisterErrorClassifications` | `func()`                                                              | Register stdlib error sentinels + templates |
+| `NewServer`                    | `func(ServerConfig, http.Handler) (*Server, error)`                   | Configurable HTTP server with timeouts      |
+| `DefaultServerConfig`          | `func() ServerConfig`                                                 | Sensible server timeout defaults            |
+| `RegisterHealth`               | `func(*http.ServeMux)`                                                | Register /health + /live + /ready           |
+| `HealthHandler`                | `func() http.HandlerFunc`                                             | Simple `{"status":"up"}` handler            |
+| `LiveHandler`                  | `func() http.HandlerFunc`                                             | Kubernetes liveness probe handler           |
+| `ReadyHandler`                 | `func() http.HandlerFunc`                                             | Kubernetes readiness probe handler          |
 
 ### `CORSConfig` fields
 
