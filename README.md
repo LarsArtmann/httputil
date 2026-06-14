@@ -175,13 +175,25 @@ handler := httputil.Logging(slog.Default())(mux)
 
 ### Response Compression
 
-Transparent gzip compression for responses when the client accepts it and the body exceeds a minimum size. Small responses, non-2xx statuses, and already-encoded responses are left uncompressed.
+Transparent response compression negotiated from the client's `Accept-Encoding` header. Supports gzip and deflate out of the box, respects RFC 7231 q-values, and leaves small responses, non-2xx statuses, and already-encoded responses uncompressed.
 
 ```go
 handler := httputil.Compression(httputil.DefaultCompressionConfig())(mux)
 ```
 
 Use `cfg.Validate()` to catch invalid configurations at startup (e.g., invalid compression levels or negative minimum sizes).
+
+To add encodings not bundled with this package (brotli, zstd, lz4), register a `WriterFactory`:
+
+```go
+cfg := httputil.DefaultCompressionConfig()
+cfg.WriterFactories["br"] = func(dst io.Writer) (io.WriteCloser, error) {
+    return brotli.NewWriterLevel(dst, brotli.DefaultCompression), nil
+}
+handler := httputil.Compression(cfg)(mux)
+```
+
+`DefaultWriterFactories()` returns a fresh map with gzip, deflate, and identity entries so you can extend rather than replace the built-ins.
 
 ### ETag Generation
 
@@ -269,8 +281,11 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Recovery`                     | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                              |
 | `Timeout`                      | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                |
 | `Logging`                      | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                  |
-| `Compression`                  | `func(CompressionConfig) func(http.Handler) http.Handler`             | Gzip response compression                   |
-| `DefaultCompressionConfig`     | `func() CompressionConfig`                                            | Sensible compression defaults               |
+| `Compression`                  | `func(CompressionConfig) func(http.Handler) http.Handler`             | Negotiated response compression                   |
+| `DefaultCompressionConfig`     | `func() CompressionConfig`                                            | gzip/deflate defaults               |
+| `DefaultWriterFactories`       | `func() map[string]WriterFactory`                                     | Built-in gzip/deflate/identity factories    |
+| `GzipWriterFactory`            | `func(int) WriterFactory`                                             | Stdlib gzip factory at a given level        |
+| `DeflateWriterFactory`         | `func(int) WriterFactory`                                             | Stdlib flate/raw-deflate factory            |
 | `ETag`                         | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + 304 handling              |
 | `DefaultETagConfig`            | `func() ETagConfig`                                                   | Strong ETag defaults                        |
 | `RegisterErrorClassifications` | `func()`                                                              | Register stdlib error sentinels + templates |
@@ -305,6 +320,15 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Write([]byte)`    | `(int, error)`                         | Write body, implicitly set 200                         |
 | `Flush()`          | —                                      | Delegate if underlying writer supports `http.Flusher`  |
 | `Hijack()`         | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker` |
+
+### `CompressionConfig` fields
+
+| Field              | Type                     | Default                                | Description                                                  |
+| ------------------ | ------------------------ | -------------------------------------- | ------------------------------------------------------------ |
+| `MinSize`          | `int`                    | `512`                                  | Minimum response body size before compression is attempted   |
+| `Level`            | `int`                    | `gzip.DefaultCompression`              | Gzip compression level (also passed to deflate by default)   |
+| `WriterFactories`  | `map[string]WriterFactory` | gzip, deflate, identity                | Encoding-name → factory map; replace or extend               |
+| `QValues`          | `map[string]float64`     | `nil`                                  | Server-side quality hints for clients without q-values       |
 
 ## Design
 
@@ -341,13 +365,19 @@ handler := Chain(mux, Compression(cfg), ETag(cfg))
 handler := Chain(mux, ETag(cfg), Compression(cfg)) // don't do this
 ```
 
-### Compression Limitations
+### Compression Extensibility
 
-Compression uses **gzip only**. Deflate and Brotli are not supported.
+The default configuration supports **gzip and deflate**. Brotli, zstd, and other modern encodings are supported via the `WriterFactory` plugin interface without adding dependencies to the core library.
 
-This is an intentional constraint: the library maintains a single-external-dependency policy (`go-error-family` only). Brotli would require either relaxing this policy or adding a plugin interface that increases API surface area.
+```go
+cfg := httputil.DefaultCompressionConfig()
+cfg.WriterFactories["zstd"] = func(dst io.Writer) (io.WriteCloser, error) {
+    return zstd.NewWriter(dst)
+}
+handler := httputil.Compression(cfg)(mux)
+```
 
-If you need Brotli or zstd, use a dedicated compression library (e.g., `klauspost/compress`, `chi/middleware`) alongside the other `httputil` middlewares.
+This keeps the core package dependency-free while allowing you to plug in any encoder that implements `io.WriteCloser`.
 
 ## Development
 

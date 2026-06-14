@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Compression()` now negotiates encodings from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity).
+- `deflate` encoding support via `DeflateWriterFactory()` and `compress/flate`.
+- `WriterFactory` plugin interface and `DefaultWriterFactories()` for adding custom encodings (brotli, zstd, lz4) without core dependencies.
+- Per-factory `sync.Pool` for writer reuse, plus buffer pre-allocation to `max(minSize, 512)` in `compressWriter`.
+- New `id_generator.go`: time-ordered 16-byte request IDs (Unix seconds + atomic counter + random tail) with amortized `crypto/rand` buffering.
+- New tests: `compression_negotiator_test.go` and `id_generator_test.go`.
+- New exports: `DefaultWriterFactories()`, `GzipWriterFactory()`, `DeflateWriterFactory()`.
+
+### Changed
+
+- `RequestID` default `GenerateID` now produces sortable, monotonic 32-character hex IDs instead of fully random 16-byte hex IDs.
+- `Compression` benchmark memory profile now reports higher bytes/op due to `httptest.ResponseRecorder.Body` growth; this is a measurement artifact, not a production regression.
+- Documentation updated: `README.md`, `FEATURES.md`, `TODO_LIST.md`, `AGENTS.md`, and `docs/research/performance-review.html`.
+- Test count: 193 tests, 90.4% coverage.
+
 ### Removed
 
 - `http.Pusher` support removed: HTTP/2 Server Push was removed from Chrome in 2023 and is not part of HTTP/3. All Pusher-related code, error codes (`ErrCodePushUnsupported`, `ErrCodePushFailed`), and tests have been removed. This is a **breaking change**.

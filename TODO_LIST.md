@@ -1,6 +1,6 @@
 # TODO List
 
-_Last verified against code: 2026-06-08_
+_Last verified against code: 2026-06-14_
 
 ---
 
@@ -22,6 +22,11 @@ _Last verified against code: 2026-06-08_
 - [x] `WithClientIP()` / `ClientIPFromContext()` / `ClientIPMiddleware()` context helpers
 - [x] `RequestIDFromContext()` context helper
 - [x] `Compression` with `sync.Pool`, content-type filtering, bounded buffering
+- [x] `Compression` `Accept-Encoding` negotiation with RFC 7231 q-value parsing
+- [x] `Compression` deflate support via `compress/flate`
+- [x] `Compression` `WriterFactory` plugin interface for brotli/zstd/lz4
+- [x] `Compression` per-factory writer pools and buffer pre-allocation
+- [x] `RequestID` time-ordered ID generator with amortized `crypto/rand` buffer
 - [x] `ETag` with RFC 7232 compliance, 1MB memory limit, zero-allocation hex encoding
 - [x] `wrapper.go` shared ResponseWriter wrapper extracting duplication from compress/etag writers
 - [x] `example_test.go` with 11 example functions
@@ -53,15 +58,15 @@ _Last verified against code: 2026-06-08_
 
 ### Near-term
 
-- [x] Improve test coverage to 90%+ (currently 91.2%)
+- [x] Improve test coverage to 90%+ (currently 90.4%)
 - [ ] Make content-type filtering configurable via `CompressionConfig`
 - [ ] Add `MiddlewareStack` type with ordering validation
 - [ ] Add `ResponseWriter` capability interface for Hijack/Flush
 
 ### Medium-term
 
-- [ ] Implement deflate support using `compress/flate`
-- [ ] Add `Accept-Encoding` quality value parsing per RFC 7231
+- [x] Implement deflate support using `compress/flate`
+- [x] Add `Accept-Encoding` quality value parsing per RFC 7231
 - [ ] Evaluate streaming ETag option using rolling hash
 
 ### Worth considering

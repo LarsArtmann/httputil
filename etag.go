@@ -255,6 +255,8 @@ func (w *etagWriter) Flush() {
 	w.writeHeaderToUnderlying()
 
 	if len(w.body) > 0 {
+		//nolint:gosec // w.body is response body content (not user-influenced
+		// in an XSS context); G705 taint analysis is a false positive here.
 		_, _ = w.ResponseWriter.Write(w.body)
 		w.body = w.body[:0]
 	}

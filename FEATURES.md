@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-06-08_
+_Updated: 2026-06-14_
 
 ---
 
@@ -14,13 +14,13 @@ _Updated: 2026-06-08_
 | ---------------- | --------------------------- | -------------------------------------- | ----- | ---------------------------- | --------------------------- | ----------------- |
 | CORS             | `cors.go`                   | `CORSConfig` + `Validate()`            | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`        |
 | ClientIP         | `clientip.go`, `context.go` | —                                      | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`    |
-| RequestID        | `requestid.go`              | `RequestIDConfig` + `Validate()`       | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`   |
+| RequestID        | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`   |
 | SecurityHeaders  | `security.go`               | `SecurityHeadersConfig` + `Validate()` | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                 |
 | Recovery         | `recovery.go`               | `*slog.Logger`                         | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                 |
 | Timeout          | `timeout.go`                | `time.Duration`                        | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                 |
 | Logging          | `logging.go`                | `*slog.Logger`                         | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                 |
 | ResponseRecorder | `recorder.go`               | —                                      | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                 |
-| Compression      | `compression.go`            | `CompressionConfig` + `Validate()`     | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
+| Compression      | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
 | ETag             | `etag.go`                   | `ETagConfig` + `Validate()`            | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`        |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
@@ -39,9 +39,11 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Compression Performance
 
-- `sync.Pool` keyed by gzip level reuses `gzip.Writer` instances.
+- Per-factory `sync.Pool` keyed by `WriterFactory` pointer reuses `gzip.Writer` and `flate.Writer` instances.
 - Content-type deny-list skips incompressible formats (`image/`, `video/`, `audio/`, `application/gzip`, `application/zip`, `application/pdf`, etc.).
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
+- Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
+- RFC 7231 `Accept-Encoding` negotiation with q-value parsing; server priority order is brotli > zstd > gzip > deflate > identity.
 
 ### ETag Correctness
 
@@ -57,6 +59,13 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `ClientIPMiddleware()` wraps a handler to inject client IP into context.
 - `RequestIDFromContext()` retrieves request ID from context.
 
+### Request ID Generator
+
+- 16-byte time-ordered ID: Unix seconds (4 B) + atomic counter (4 B) + random tail (8 B).
+- 32-character lowercase hex output, lexicographically sortable and monotonic within a second.
+- Amortized `crypto/rand` via a process-wide 2048-byte buffer (one syscall every ~256 IDs).
+- Thread-safe refill with mutex and double-checked atomic slot allocation.
+
 ### Documentation
 
 - `README.md` — feature overview, API table, usage examples, middleware ordering guidance.
@@ -70,8 +79,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` — 112 tests passing.
-- 91.2% coverage.
+- `go test ./...` — 193 tests passing.
+- 90.4% coverage.
 - `go vet` clean.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests and lint.
@@ -83,7 +92,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage (91.2%)
 
-Not 100%. Gaps exist in:
+Not 100% (target met at 90%+). Gaps exist in:
 
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
 - Edge cases in `CORS` wildcard matching with unusual patterns.
@@ -101,18 +110,15 @@ Not 100%. Gaps exist in:
 
 ### Medium-term
 
-- Implement deflate support using `compress/flate`.
-- Add `Accept-Encoding` quality value parsing per RFC 7231.
 - Make content-type filtering configurable via `CompressionConfig`.
 - Add `MiddlewareStack` type with ordering validation.
 - Add a `ResponseWriter` capability interface to unify Hijack/Flush detection.
-- Improve test coverage to 90%+.
 
 ---
 
 ## WORTH CONSIDERING
 
-- **Brotli support** — blocked by single-dependency policy. Options: keep constraint, relax for `andybalholm/brotli`, or add `WriterFactory` plugin interface.
+- **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Provide documented examples rather than built-in encoders to keep the dependency policy intact.
 - **Streaming ETag option** — compute ETag on a rolling hash and stream body without buffering. Would require breaking 304 short-circuit semantics or significant complexity.
 - **Request/response metrics middleware** — optional, using `expvar` or custom histograms.
 - **Rate-limiting middleware** — sliding window or token bucket.

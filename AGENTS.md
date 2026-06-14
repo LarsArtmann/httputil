@@ -69,10 +69,11 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `errors.go`          | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`, `RegisterErrorClassifications()`                         | Error codes + stdlib sentinel registration + message templates  |
 | `security.go`        | `SecurityHeadersConfig`, `DefaultSecurityHeadersConfig()`, `SecurityHeaders()`, `Validate()`                                                                                              | Security response headers middleware                            |
 | `requestid.go`       | `RequestIDConfig`, `DefaultRequestIDConfig()`, `RequestID()`, `RequestIDFromContext()`, `Validate()`                                                                                      | Request ID propagation/generation middleware                    |
+| `id_generator.go`    | `generateTimeOrderedID()` (unexported)                                                                                                                                                    | Time-ordered, amortized-random request ID generator             |
 | `recovery.go`        | `Recovery()`                                                                                                                                                                              | Panic recovery middleware                                       |
 | `timeout.go`         | `Timeout()`                                                                                                                                                                               | Request deadline enforcement middleware                         |
 | `logging.go`         | `Logging()`                                                                                                                                                                               | Structured request logging middleware                           |
-| `compression.go`     | `CompressionConfig`, `DefaultCompressionConfig()`, `Compression()`, `Validate()`                                                                                                          | Gzip response compression middleware                            |
+| `compression.go`     | `CompressionConfig`, `DefaultCompressionConfig()`, `DefaultWriterFactories()`, `GzipWriterFactory()`, `DeflateWriterFactory()`, `Compression()`, `Validate()`                                      | Response compression middleware with Accept-Encoding negotiation |
 | `compress_writer.go` | (unexported `compressWriter`)                                                                                                                                                             | Buffered compress-or-pass-through response writer               |
 | `etag.go`            | `ETagConfig`, `DefaultETagConfig()`, `ETag()`, `Validate()`                                                                                                                               | ETag generation + 304 conditional request middleware            |
 | `util.go`            | (unexported `join`, `itoa`)                                                                                                                                                               | Internal helpers avoiding strconv import                        |
@@ -101,6 +102,9 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **`ResponseRecorder.Status()` returns `0`** (not `200`) when `WriteHeader` hasn't been called. Check `WroteHeader()` to distinguish "no status set" from "status was actually 0".
 - **`ClientIP` trusts proxy headers blindly** — it does not validate X-Forwarded-For or X-Real-IP. Only safe behind a reverse proxy that strips/overwrites these headers.
 - **`util.go` has custom `itoa()` and `join()`** — these exist to avoid importing `strconv`/`strings.Join`. Use them for internal needs; don't add new stdlib imports for functionality already covered here.
+- **`Compression` negotiates encodings** per request from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity). If no header is present, the highest-priority configured encoding is chosen.
+- **`Compression` pools writers per `WriterFactory`** pointer, so gzip and deflate each have their own `sync.Pool`. Custom factories can opt into pooling by implementing `Reset(io.Writer)`.
+- **`RequestID` default generator** produces a 16-byte time-ordered ID (Unix seconds + atomic counter + random tail) and amortizes `crypto/rand` syscalls across ~256 IDs via a process-wide buffer.
 - **`CORS` closure captures `allowOrigin`** before the per-request handler — if no `Origin` header is present and `AllowAllOrigins` is false, the default `"*"` is used. This is a known limitation, not a bug to fix.
 
 ## Testing Conventions
@@ -111,7 +115,7 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **`t.Errorf`** for non-fatal, `t.Fatalf` for fatal assertions
 - **`httptest.NewRecorder()`** + `httptest.NewRequest()` for HTTP doubles
 - **Shared test helpers** in `testutil_test.go`: `newNoOpHandler()`, `newCountingHandler()`, `newTestRequest()`, `newRecorder()`
-- **Test files split by middleware** — each middleware has its own `*_test.go` (e.g., `security_test.go`, `requestid_test.go`, `recovery_test.go`, `timeout_test.go`, `logging_test.go`). Chain integration tests in `chain_test.go`.
+- **Test files split by middleware** — each middleware has its own `*_test.go` (e.g., `security_test.go`, `requestid_test.go`, `recovery_test.go`, `timeout_test.go`, `logging_test.go`). Compression negotiation tests are in `compression_negotiator_test.go`; the ID generator has `id_generator_test.go`. Chain integration tests in `chain_test.go`.
 
 ### Test File Lint Relaxations
 

@@ -2,35 +2,112 @@ package httputil
 
 import (
 	"bufio"
-	"compress/gzip"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// compressWriter wraps an http.ResponseWriter, buffering small responses to
+// avoid the compression cost on tiny payloads, then streaming the remainder
+// through a pluggable compression factory.
+//
+// It delegates to a WriterFactory supplied at construction time. The factory
+// pattern supports gzip, deflate, brotli, zstd, or any custom encoding.
 type compressWriter struct {
 	responseWrapper
 
+	encoding    string
+	factory     WriterFactory
 	minSize     int
-	level       int
 	buf         []byte
 	compressing bool
 	plain       bool
-	gzipWriter  *gzip.Writer
+	writer      writeCloseFlusher // concrete compress writer (gzip, flate, custom)
 }
 
-func newCompressWriter(resp http.ResponseWriter, minSize, level int) *compressWriter {
+// writeCloseFlusher combines io.WriteCloser and http.Flusher so we can
+// surface Flush() on gzip.Writer and flate.Writer.
+type writeCloseFlusher interface {
+	Write(p []byte) (int, error)
+	Close() error
+	Flush() error
+}
+
+// resettableWriter is an optional interface that compression writers can
+// implement to support pooling. gzip.Writer and flate.Writer both implement
+// Reset(io.Writer).
+type resettableWriter interface {
+	Reset(destination io.Writer)
+}
+
+var errUnexpectedPoolType = errors.New("unexpected pool element type")
+
+//nolint:gochecknoglobals // Per-factory writer pools amortize compression setup.
+var (
+	writerPoolsMu sync.RWMutex
+	writerPools   = make(map[*WriterFactory]*sync.Pool)
+)
+
+func getWriterPool(factory WriterFactory) *sync.Pool {
+	writerPoolsMu.RLock()
+
+	pool, ok := writerPools[&factory]
+
+	writerPoolsMu.RUnlock()
+
+	if ok {
+		return pool
+	}
+
+	writerPoolsMu.Lock()
+	defer writerPoolsMu.Unlock()
+
+	pool, ok = writerPools[&factory]
+	if ok {
+		return pool
+	}
+
+	pool = &sync.Pool{
+		New: func() any {
+			// Discard writer; will be Reset() before use.
+			w, err := factory(io.Discard)
+			if err != nil {
+				panic("httputil: writer factory failed: " + err.Error())
+			}
+
+			return w
+		},
+	}
+	writerPools[&factory] = pool
+
+	return pool
+}
+
+func newCompressWriter(
+	resp http.ResponseWriter,
+	minSize int,
+	encoding string,
+	factory WriterFactory,
+) *compressWriter {
+	// Pre-allocate buf to minSize capacity. This avoids 2-3 intermediate
+	// reallocations as the slice grows from 0 to minSize via append.
+	bufCap := max(minSize, defaultCompressionMinSize)
+
 	return &compressWriter{
 		responseWrapper: newResponseWrapper(resp),
+		encoding:        encoding,
+		factory:         factory,
 		minSize:         minSize,
-		level:           level,
-		buf:             nil,
+		buf:             make([]byte, 0, bufCap),
 		compressing:     false,
 		plain:           false,
-		gzipWriter:      nil,
+		writer:          nil,
 	}
 }
 
@@ -52,20 +129,24 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 func (w *compressWriter) writePlain(b []byte) (int, error) {
 	n, err := w.ResponseWriter.Write(b)
 	if err != nil {
-		return n, fmt.Errorf("failed to write to response writer: %w", err)
+		return n, errorfamily.WrapTransient(
+			err,
+			ErrCodeCompressWriteFailed,
+			"failed to write to response writer",
+		).WithContext("encoding", w.encoding)
 	}
 
 	return n, nil
 }
 
 func (w *compressWriter) writeCompressed(b []byte) (int, error) {
-	n, err := w.gzipWriter.Write(b)
+	n, err := w.writer.Write(b)
 	if err != nil {
 		return n, errorfamily.WrapTransient(
 			err,
 			ErrCodeCompressWriteFailed,
-			"gzip writer write failed",
-		)
+			"compression writer write failed",
+		).WithContext("encoding", w.encoding)
 	}
 
 	return n, nil
@@ -100,18 +181,20 @@ func (w *compressWriter) writeBuffered(b []byte) (int, error) {
 func (w *compressWriter) startCompressAndStream(b []byte, total int) (int, error) {
 	err := w.startCompression()
 	if err != nil {
-		return 0, fmt.Errorf("failed to start gzip compression: %w", err)
+		return 0, err
 	}
 
 	if len(b) == 0 {
 		return total, nil
 	}
 
-	_, err = w.gzipWriter.Write(b)
+	_, err = w.writer.Write(b)
 	if err != nil {
 		return total, errorfamily.WrapTransient(
-			err, ErrCodeCompressWriteFailed, "gzip writer streaming write failed",
-		)
+			err,
+			ErrCodeCompressWriteFailed,
+			"compression writer streaming write failed",
+		).WithContext("encoding", w.encoding)
 	}
 
 	return total, nil
@@ -122,9 +205,15 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
+		//nolint:gosec // w.buf is response body content (not user-influenced
+		// in an XSS context); G705 taint analysis is a false positive here.
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
-			return 0, fmt.Errorf("failed to write buffered plain response: %w", err)
+			return 0, errorfamily.WrapTransient(
+				err,
+				ErrCodeCompressWriteFailed,
+				"failed to write buffered plain response",
+			)
 		}
 
 		w.buf = w.buf[:0]
@@ -136,7 +225,11 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 
 	_, err := w.ResponseWriter.Write(b)
 	if err != nil {
-		return total, fmt.Errorf("failed to write plain response: %w", err)
+		return total, errorfamily.WrapTransient(
+			err,
+			ErrCodeCompressWriteFailed,
+			"failed to write plain response",
+		)
 	}
 
 	return total, nil
@@ -192,34 +285,62 @@ func isCompressibleContentType(contentType string) bool {
 }
 
 func (w *compressWriter) startCompression() error {
-	w.Header().Set(headerContentEncoding, encodingGzip)
+	w.Header().Set(headerContentEncoding, w.encoding)
 	w.Header().Del(headerContentLength)
 
-	pool := getGzipPool(w.level)
+	// Pull a writer from the per-factory pool. The pool key is the
+	// factory function pointer; each unique factory (e.g., the default
+	// gzip, deflate) has its own pool. The pool's New function creates
+	// a writer bound to io.Discard; we Reset() it to our real writer
+	// below to recycle the expensive internal state.
+	pool := getWriterPool(w.factory)
 	raw := pool.Get()
 
-	gzipWriter, ok := raw.(*gzip.Writer)
+	writer, ok := raw.(io.WriteCloser)
 	if !ok {
-		panic("unexpected type from gzip writer pool")
+		return errorfamily.WrapTransient(
+			fmt.Errorf("%w: %T", errUnexpectedPoolType, raw),
+			ErrCodeCompressWriteFailed,
+			"pool returned unexpected type",
+		).WithContext("encoding", w.encoding)
 	}
 
-	gzipWriter.Reset(w.ResponseWriter)
+	if resettable, ok := writer.(resettableWriter); ok {
+		resettable.Reset(w.ResponseWriter)
+	} else {
+		// Custom factory without Reset support: fall back to fresh writer.
+		fresh, err := w.factory(w.ResponseWriter)
+		if err != nil {
+			return errorfamily.WrapTransient(
+				err,
+				ErrCodeCompressWriteFailed,
+				"failed to create compression writer",
+			).WithContext("encoding", w.encoding)
+		}
 
-	w.gzipWriter = gzipWriter
+		writer = fresh
+	}
+
+	flusher, ok := writer.(writeCloseFlusher)
+	if !ok {
+		flusher = nopFlushCloser{writer}
+	}
+
+	w.writer = flusher
 	w.compressing = true
 
 	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
-		_, err := w.gzipWriter.Write(w.buf)
+		_, err := w.writer.Write(w.buf)
 		w.buf = w.buf[:0]
 
 		if err != nil {
 			return errorfamily.WrapTransient(
 				err,
 				ErrCodeCompressWriteFailed,
-				"gzip writer buffered write failed",
-			)
+				"compression writer buffered write failed",
+			).WithContext("encoding", w.encoding)
 		}
 	}
 
@@ -232,17 +353,23 @@ func (w *compressWriter) Close() error {
 	}
 
 	if w.compressing {
-		err := w.gzipWriter.Close()
+		err := w.writer.Close()
 		if err != nil {
 			return errorfamily.WrapTransient(
 				err,
 				ErrCodeCompressWriteFailed,
-				"gzip writer close failed",
-			)
+				"compression writer close failed",
+			).WithContext("encoding", w.encoding)
 		}
 
-		getGzipPool(w.level).Put(w.gzipWriter)
-		w.gzipWriter = nil
+		// Return the writer to the per-factory pool. Only writers that
+		// implement resettableWriter (gzip.Writer, flate.Writer) are
+		// poolable; others are released for GC.
+		if _, resettable := w.writer.(resettableWriter); resettable {
+			getWriterPool(w.factory).Put(w.writer)
+		}
+
+		w.writer = nil
 
 		return nil
 	}
@@ -250,6 +377,8 @@ func (w *compressWriter) Close() error {
 	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
+		//nolint:gosec // w.buf is response body content (not user-influenced
+		// in an XSS context); G705 taint analysis is a false positive here.
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
 			return errorfamily.WrapTransient(
@@ -265,7 +394,7 @@ func (w *compressWriter) Close() error {
 
 func (w *compressWriter) Flush() {
 	if w.compressing {
-		_ = w.gzipWriter.Flush()
+		_ = w.writer.Flush()
 
 		w.responseWrapper.Flush()
 
@@ -289,3 +418,20 @@ func (w *compressWriter) Flush() {
 
 	w.responseWrapper.Flush()
 }
+
+// nopCloserWriter wraps an io.Writer and implements io.WriteCloser with a
+// no-op Close. Used for the "identity" encoding (passthrough).
+type nopCloserWriter struct {
+	io.Writer
+}
+
+func (nopCloserWriter) Close() error { return nil }
+func (nopCloserWriter) Flush() error { return nil }
+
+// nopFlushCloser wraps a WriteCloser and adds a no-op Flush for encodings
+// that don't support flushing.
+type nopFlushCloser struct {
+	io.WriteCloser
+}
+
+func (nopFlushCloser) Flush() error { return nil }

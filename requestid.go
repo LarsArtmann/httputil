@@ -2,18 +2,13 @@ package httputil
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"net/http"
 )
 
 type requestIDKey struct{}
 
-const (
-	requestIDBytes         = 16
-	defaultRequestIDHeader = "X-Request-ID"
-)
+const defaultRequestIDHeader = "X-Request-ID"
 
 // RequestIDConfig holds the configuration for the request ID middleware.
 type RequestIDConfig struct {
@@ -23,12 +18,14 @@ type RequestIDConfig struct {
 }
 
 // DefaultRequestIDConfig returns a RequestIDConfig that reads the X-Request-ID
-// header and falls back to a generated 128-bit random hex ID if not present.
+// header and falls back to a generated 32-character time-ordered hex ID if
+// not present. The generated ID is sortable by creation time, monotonic
+// within a second, and unique across the process.
 func DefaultRequestIDConfig() RequestIDConfig {
 	return RequestIDConfig{
 		HeaderName:    defaultRequestIDHeader,
 		ForwardHeader: defaultRequestIDHeader,
-		GenerateID:    generateRequestID,
+		GenerateID:    generateTimeOrderedID,
 	}
 }
 
@@ -79,12 +76,4 @@ func RequestIDFromContext(ctx context.Context) string {
 	requestID, _ := ctx.Value(requestIDKey{}).(string)
 
 	return requestID
-}
-
-func generateRequestID() string {
-	buf := make([]byte, requestIDBytes)
-
-	_, _ = rand.Read(buf)
-
-	return hex.EncodeToString(buf)
 }
