@@ -2,13 +2,9 @@ package httputil
 
 import (
 	"bufio"
-	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
-	"strings"
-	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -44,49 +40,6 @@ type writeCloseFlusher interface {
 // Reset(io.Writer).
 type resettableWriter interface {
 	Reset(destination io.Writer)
-}
-
-var errUnexpectedPoolType = errors.New("unexpected pool element type")
-
-//nolint:gochecknoglobals // Per-factory writer pools amortize compression setup.
-var (
-	writerPoolsMu sync.RWMutex
-	writerPools   = make(map[*WriterFactory]*sync.Pool)
-)
-
-func getWriterPool(factory WriterFactory) *sync.Pool {
-	writerPoolsMu.RLock()
-
-	pool, ok := writerPools[&factory]
-
-	writerPoolsMu.RUnlock()
-
-	if ok {
-		return pool
-	}
-
-	writerPoolsMu.Lock()
-	defer writerPoolsMu.Unlock()
-
-	pool, ok = writerPools[&factory]
-	if ok {
-		return pool
-	}
-
-	pool = &sync.Pool{
-		New: func() any {
-			// Discard writer; will be Reset() before use.
-			w, err := factory(io.Discard)
-			if err != nil {
-				panic("httputil: writer factory failed: " + err.Error())
-			}
-
-			return w
-		},
-	}
-	writerPools[&factory] = pool
-
-	return pool
 }
 
 func newCompressWriter(
@@ -255,96 +208,6 @@ func (w *compressWriter) shouldCompress() bool {
 	}
 
 	return true
-}
-
-//nolint:gochecknoglobals // Immutable reference data for content-type filtering.
-var incompressiblePrefixes = []string{
-	"image/",
-	"video/",
-	"audio/",
-	"application/gzip",
-	"application/zip",
-	"application/pdf",
-	"application/x-rar",
-	"application/x-7z",
-	"application/x-compress",
-}
-
-func isCompressibleContentType(contentType string) bool {
-	if contentType == "" {
-		return true
-	}
-
-	for _, prefix := range incompressiblePrefixes {
-		if strings.HasPrefix(contentType, prefix) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (w *compressWriter) startCompression() error {
-	w.Header().Set(headerContentEncoding, w.encoding)
-	w.Header().Del(headerContentLength)
-
-	// Pull a writer from the per-factory pool. The pool key is the
-	// factory function pointer; each unique factory (e.g., the default
-	// gzip, deflate) has its own pool. The pool's New function creates
-	// a writer bound to io.Discard; we Reset() it to our real writer
-	// below to recycle the expensive internal state.
-	pool := getWriterPool(w.factory)
-	raw := pool.Get()
-
-	writer, ok := raw.(io.WriteCloser)
-	if !ok {
-		return errorfamily.WrapTransient(
-			fmt.Errorf("%w: %T", errUnexpectedPoolType, raw),
-			ErrCodeCompressWriteFailed,
-			"pool returned unexpected type",
-		).WithContext("encoding", w.encoding)
-	}
-
-	if resettable, ok := writer.(resettableWriter); ok {
-		resettable.Reset(w.ResponseWriter)
-	} else {
-		// Custom factory without Reset support: fall back to fresh writer.
-		fresh, err := w.factory(w.ResponseWriter)
-		if err != nil {
-			return errorfamily.WrapTransient(
-				err,
-				ErrCodeCompressWriteFailed,
-				"failed to create compression writer",
-			).WithContext("encoding", w.encoding)
-		}
-
-		writer = fresh
-	}
-
-	flusher, ok := writer.(writeCloseFlusher)
-	if !ok {
-		flusher = nopFlushCloser{writer}
-	}
-
-	w.writer = flusher
-	w.compressing = true
-
-	w.writeHeaderToUnderlying()
-
-	if len(w.buf) > 0 {
-		_, err := w.writer.Write(w.buf)
-		w.buf = w.buf[:0]
-
-		if err != nil {
-			return errorfamily.WrapTransient(
-				err,
-				ErrCodeCompressWriteFailed,
-				"compression writer buffered write failed",
-			).WithContext("encoding", w.encoding)
-		}
-	}
-
-	return nil
 }
 
 func (w *compressWriter) Close() error {
