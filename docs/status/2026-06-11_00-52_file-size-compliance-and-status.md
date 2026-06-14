@@ -54,11 +54,11 @@
 
 Split 3 files exceeding the 350-line limit:
 
-| Before | After | Change |
-|--------|-------|--------|
-| `middleware_test.go` (633 lines) | Deleted — split into 6 files | `security_test.go` (83), `requestid_test.go` (157), `recovery_test.go` (52), `timeout_test.go` (40), `logging_test.go` (46), `chain_test.go` (287) |
-| `compression.go` (405 lines) | 122 lines | Extracted `compress_writer.go` (291) |
-| `compression_test.go` (387 lines) | 341 lines | Extracted `compression_bench_test.go` (53) |
+| Before                            | After                        | Change                                                                                                                                             |
+| --------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `middleware_test.go` (633 lines)  | Deleted — split into 6 files | `security_test.go` (83), `requestid_test.go` (157), `recovery_test.go` (52), `timeout_test.go` (40), `logging_test.go` (46), `chain_test.go` (287) |
+| `compression.go` (405 lines)      | 122 lines                    | Extracted `compress_writer.go` (291)                                                                                                               |
+| `compression_test.go` (387 lines) | 341 lines                    | Extracted `compression_bench_test.go` (53)                                                                                                         |
 
 **Result:** Largest file is now `compression_test.go` at 341 lines (under 350 limit).
 
@@ -70,14 +70,14 @@ Split 3 files exceeding the 350-line limit:
 
 6 functions below 80% coverage — all in compression/etag error paths and flush paths:
 
-| Function | Coverage | File |
-|----------|----------|------|
-| `Flush` (compressWriter) | 61.5% | `compress_writer.go:266` |
-| `startCompressAndStream` | 66.7% | `compress_writer.go:100` |
-| `writePlain` | 75.0% | `compress_writer.go:52` |
-| `writeCompressed` | 75.0% | `compress_writer.go:61` |
-| `flushPlainAndStream` | 76.9% | `compress_writer.go:120` |
-| `Flush` (etagWriter) | 77.8% | `etag.go:246` |
+| Function                 | Coverage | File                     |
+| ------------------------ | -------- | ------------------------ |
+| `Flush` (compressWriter) | 61.5%    | `compress_writer.go:266` |
+| `startCompressAndStream` | 66.7%    | `compress_writer.go:100` |
+| `writePlain`             | 75.0%    | `compress_writer.go:52`  |
+| `writeCompressed`        | 75.0%    | `compress_writer.go:61`  |
+| `flushPlainAndStream`    | 76.9%    | `compress_writer.go:120` |
+| `Flush` (etagWriter)     | 77.8%    | `etag.go:246`            |
 
 These are mostly error branches (gzip write failures, pool type mismatches) and flush-while-buffering paths.
 
@@ -117,6 +117,7 @@ From `TODO_LIST.md` Not Started section:
 - 0 known bugs
 
 The codebase is in its cleanest state ever. The only "debt" items are:
+
 - Pre-existing `mnd` violation: magic number `86400` in `DefaultCORSConfig` (documented, accepted)
 - `noctx` warnings in test files (suppressed via `.golangci.yml`, acceptable)
 
@@ -204,46 +205,46 @@ This is a policy decision that affects the project's dependency philosophy. I ca
 
 ### Production Code (10 files, 997 lines)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `compression.go` | 122 | Compression middleware, config, validation |
-| `compress_writer.go` | 291 | Buffered compress-or-pass-through writer |
-| `etag.go` | 269 | ETag middleware, RFC 7232 compliance |
-| `cors.go` | 141 | CORS middleware, wildcard matching |
-| `requestid.go` | 90 | Request ID generation/forwarding |
-| `recorder.go` | 98 | ResponseRecorder + Chain() |
-| `errors.go` | 104 | Error codes + classification |
-| `wrapper.go` | 79 | Shared ResponseWriter wrapper |
-| `security.go` | 60 | Security headers middleware |
-| `clientip.go` | 18 | Client IP extraction |
-| `context.go` | 32 | Context helpers |
-| `recovery.go` | 34 | Panic recovery middleware |
-| `timeout.go` | 19 | Timeout middleware |
-| `logging.go` | 36 | Logging middleware |
-| `util.go` | 42 | Internal helpers (itoa, join) |
-| `doc.go` | 5 | Package godoc |
+| File                 | Lines | Purpose                                    |
+| -------------------- | ----- | ------------------------------------------ |
+| `compression.go`     | 122   | Compression middleware, config, validation |
+| `compress_writer.go` | 291   | Buffered compress-or-pass-through writer   |
+| `etag.go`            | 269   | ETag middleware, RFC 7232 compliance       |
+| `cors.go`            | 141   | CORS middleware, wildcard matching         |
+| `requestid.go`       | 90    | Request ID generation/forwarding           |
+| `recorder.go`        | 98    | ResponseRecorder + Chain()                 |
+| `errors.go`          | 104   | Error codes + classification               |
+| `wrapper.go`         | 79    | Shared ResponseWriter wrapper              |
+| `security.go`        | 60    | Security headers middleware                |
+| `clientip.go`        | 18    | Client IP extraction                       |
+| `context.go`         | 32    | Context helpers                            |
+| `recovery.go`        | 34    | Panic recovery middleware                  |
+| `timeout.go`         | 19    | Timeout middleware                         |
+| `logging.go`         | 36    | Logging middleware                         |
+| `util.go`            | 42    | Internal helpers (itoa, join)              |
+| `doc.go`             | 5     | Package godoc                              |
 
 ### Test Code (16 files, 3187 lines)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `compression_test.go` | 341 | Compression tests |
-| `etag_test.go` | 326 | ETag tests |
-| `cors_test.go` | 321 | CORS tests |
-| `chain_test.go` | 287 | Chain integration tests |
-| `errors_test.go` | 205 | Error classification tests |
-| `recorder_test.go` | 203 | ResponseRecorder tests |
-| `example_test.go` | 171 | Example functions |
-| `requestid_test.go` | 157 | RequestID tests |
-| `testutil_test.go` | 148 | Shared test helpers |
-| `clientip_test.go` | 98 | ClientIP tests |
-| `security_test.go` | 83 | SecurityHeaders tests |
-| `context_test.go` | 77 | Context tests |
-| `compression_bench_test.go` | 53 | Compression fuzz + bench |
-| `recovery_test.go` | 52 | Recovery tests |
-| `logging_test.go` | 46 | Logging tests |
-| `util_test.go` | 107 | Util tests |
-| `timeout_test.go` | 40 | Timeout tests |
+| File                        | Lines | Purpose                    |
+| --------------------------- | ----- | -------------------------- |
+| `compression_test.go`       | 341   | Compression tests          |
+| `etag_test.go`              | 326   | ETag tests                 |
+| `cors_test.go`              | 321   | CORS tests                 |
+| `chain_test.go`             | 287   | Chain integration tests    |
+| `errors_test.go`            | 205   | Error classification tests |
+| `recorder_test.go`          | 203   | ResponseRecorder tests     |
+| `example_test.go`           | 171   | Example functions          |
+| `requestid_test.go`         | 157   | RequestID tests            |
+| `testutil_test.go`          | 148   | Shared test helpers        |
+| `clientip_test.go`          | 98    | ClientIP tests             |
+| `security_test.go`          | 83    | SecurityHeaders tests      |
+| `context_test.go`           | 77    | Context tests              |
+| `compression_bench_test.go` | 53    | Compression fuzz + bench   |
+| `recovery_test.go`          | 52    | Recovery tests             |
+| `logging_test.go`           | 46    | Logging tests              |
+| `util_test.go`              | 107   | Util tests                 |
+| `timeout_test.go`           | 40    | Timeout tests              |
 
 ### Total: 4184 lines of Go (997 production + 3187 test)
 

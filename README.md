@@ -281,8 +281,8 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Recovery`                     | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                              |
 | `Timeout`                      | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                |
 | `Logging`                      | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                  |
-| `Compression`                  | `func(CompressionConfig) func(http.Handler) http.Handler`             | Negotiated response compression                   |
-| `DefaultCompressionConfig`     | `func() CompressionConfig`                                            | gzip/deflate defaults               |
+| `Compression`                  | `func(CompressionConfig) func(http.Handler) http.Handler`             | Negotiated response compression             |
+| `DefaultCompressionConfig`     | `func() CompressionConfig`                                            | gzip/deflate defaults                       |
 | `DefaultWriterFactories`       | `func() map[string]WriterFactory`                                     | Built-in gzip/deflate/identity factories    |
 | `GzipWriterFactory`            | `func(int) WriterFactory`                                             | Stdlib gzip factory at a given level        |
 | `DeflateWriterFactory`         | `func(int) WriterFactory`                                             | Stdlib flate/raw-deflate factory            |
@@ -323,12 +323,12 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `CompressionConfig` fields
 
-| Field              | Type                     | Default                                | Description                                                  |
-| ------------------ | ------------------------ | -------------------------------------- | ------------------------------------------------------------ |
-| `MinSize`          | `int`                    | `512`                                  | Minimum response body size before compression is attempted   |
-| `Level`            | `int`                    | `gzip.DefaultCompression`              | Gzip compression level (also passed to deflate by default)   |
-| `WriterFactories`  | `map[string]WriterFactory` | gzip, deflate, identity                | Encoding-name → factory map; replace or extend               |
-| `QValues`          | `map[string]float64`     | `nil`                                  | Server-side quality hints for clients without q-values       |
+| Field             | Type                       | Default                   | Description                                                |
+| ----------------- | -------------------------- | ------------------------- | ---------------------------------------------------------- |
+| `MinSize`         | `int`                      | `512`                     | Minimum response body size before compression is attempted |
+| `Level`           | `int`                      | `gzip.DefaultCompression` | Gzip compression level (also passed to deflate by default) |
+| `WriterFactories` | `map[string]WriterFactory` | gzip, deflate, identity   | Encoding-name → factory map; replace or extend             |
+| `QValues`         | `map[string]float64`       | `nil`                     | Server-side quality hints for clients without q-values     |
 
 ## Design
 

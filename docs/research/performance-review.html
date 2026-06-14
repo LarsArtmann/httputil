@@ -1,1379 +1,1599 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>httputil Performance Review</title>
     <style>
+      :root {
+        --bg: #0f1117;
+        --surface: #161b22;
+        --surface-2: #1c2128;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-muted: #8b949e;
+        --text-heading: #e6edf3;
+        --accent: #58a6ff;
+        --accent-dim: #1f6feb;
+        --success: #3fb950;
+        --warning: #d29922;
+        --danger: #f85149;
+        --chart-cpu: #58a6ff;
+        --chart-mem: #a371f7;
+        --chart-alloc: #3fb950;
+        --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      }
+
+      @media (prefers-color-scheme: light) {
         :root {
-            --bg: #0f1117;
-            --surface: #161b22;
-            --surface-2: #1c2128;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --text-muted: #8b949e;
-            --text-heading: #e6edf3;
-            --accent: #58a6ff;
-            --accent-dim: #1f6feb;
-            --success: #3fb950;
-            --warning: #d29922;
-            --danger: #f85149;
-            --chart-cpu: #58a6ff;
-            --chart-mem: #a371f7;
-            --chart-alloc: #3fb950;
-            --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
-            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+          --bg: #ffffff;
+          --surface: #f6f8fa;
+          --surface-2: #ffffff;
+          --border: #d0d7de;
+          --text: #24292f;
+          --text-muted: #656d76;
+          --text-heading: #1f2328;
+          --accent: #0969da;
+          --accent-dim: #0550ae;
+          --success: #1a7f37;
+          --warning: #9a6700;
+          --danger: #cf222e;
+          --chart-cpu: #0969da;
+          --chart-mem: #8250df;
+          --chart-alloc: #1a7f37;
         }
+      }
 
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg: #ffffff;
-                --surface: #f6f8fa;
-                --surface-2: #ffffff;
-                --border: #d0d7de;
-                --text: #24292f;
-                --text-muted: #656d76;
-                --text-heading: #1f2328;
-                --accent: #0969da;
-                --accent-dim: #0550ae;
-                --success: #1a7f37;
-                --warning: #9a6700;
-                --danger: #cf222e;
-                --chart-cpu: #0969da;
-                --chart-mem: #8250df;
-                --chart-alloc: #1a7f37;
-            }
-        }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+      html {
+        scroll-behavior: smooth;
+      }
 
-        html { scroll-behavior: smooth; }
+      body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        font-size: 15px;
+      }
 
-        body {
-            font-family: var(--font-sans);
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            font-size: 15px;
-        }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
 
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+      /* Header */
+      header {
+        background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 4rem 2rem 3rem;
+        text-align: center;
+      }
 
-        /* Header */
-        header {
-            background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 4rem 2rem 3rem;
-            text-align: center;
-        }
+      header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-heading);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+      }
 
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
+      header .subtitle {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
 
-        header .subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+      header .meta {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
 
-        header .meta {
-            margin-top: 1.5rem;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
+      header .meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
 
-        header .meta span {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
+      /* Navigation */
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 2rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        overflow-x: auto;
+      }
 
-        /* Navigation */
-        nav {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 0 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            overflow-x: auto;
-        }
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 0.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
 
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 0.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+      nav a {
+        display: block;
+        padding: 0.9rem 1rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+      }
 
-        nav a {
-            display: block;
-            padding: 0.9rem 1rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 500;
-            white-space: nowrap;
-            border-bottom: 2px solid transparent;
-            transition: all 0.15s;
-        }
+      nav a:hover {
+        color: var(--text);
+        text-decoration: none;
+        border-bottom-color: var(--border);
+      }
 
-        nav a:hover {
-            color: var(--text);
-            text-decoration: none;
-            border-bottom-color: var(--border);
-        }
+      /* Layout */
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
 
-        /* Layout */
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+      section {
+        margin-bottom: 3rem;
+      }
 
-        section {
-            margin-bottom: 3rem;
-        }
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-heading);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-heading);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-heading);
+        margin: 1.5rem 0 0.75rem;
+      }
 
-        h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--text-heading);
-            margin: 1.5rem 0 0.75rem;
-        }
+      h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 1.25rem 0 0.5rem;
+      }
 
-        h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text);
-            margin: 1.25rem 0 0.5rem;
-        }
+      p {
+        margin-bottom: 1rem;
+      }
 
-        p { margin-bottom: 1rem; }
+      /* Cards */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
 
-        /* Cards */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem;
+        transition: border-color 0.15s;
+      }
 
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1.25rem;
-            transition: border-color 0.15s;
-        }
+      .card:hover {
+        border-color: var(--accent);
+      }
 
-        .card:hover { border-color: var(--accent); }
+      .card-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
 
-        .card-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
+      .card-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-heading);
+        font-family: var(--font-mono);
+      }
 
-        .card-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            font-family: var(--font-mono);
-        }
+      .card-detail {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+      }
 
-        .card-detail {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
+      .card.positive {
+        border-left: 3px solid var(--success);
+      }
+      .card.warning {
+        border-left: 3px solid var(--warning);
+      }
+      .card.danger {
+        border-left: 3px solid var(--danger);
+      }
+      .card.neutral {
+        border-left: 3px solid var(--accent);
+      }
 
-        .card.positive { border-left: 3px solid var(--success); }
-        .card.warning { border-left: 3px solid var(--warning); }
-        .card.danger { border-left: 3px solid var(--danger); }
-        .card.neutral { border-left: 3px solid var(--accent); }
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
 
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-        }
+      thead {
+        background: var(--surface-2);
+      }
 
-        thead { background: var(--surface-2); }
+      th,
+      td {
+        padding: 0.7rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
 
-        th, td {
-            padding: 0.7rem 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
+      th {
+        font-weight: 600;
+        color: var(--text-heading);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-        th {
-            font-weight: 600;
-            color: var(--text-heading);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
+      td {
+        color: var(--text);
+      }
 
-        td { color: var(--text); }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-        tr:last-child td { border-bottom: none; }
+      tr:hover td {
+        background: rgba(88, 166, 255, 0.04);
+      }
 
-        tr:hover td { background: rgba(88, 166, 255, 0.04); }
+      td.mono,
+      th.mono {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+      }
 
-        td.mono, th.mono { font-family: var(--font-mono); font-size: 0.85rem; }
+      td.num {
+        text-align: right;
+      }
 
-        td.num { text-align: right; }
+      /* Charts */
+      .bar-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
 
-        /* Charts */
-        .bar-chart {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
 
-        .bar-row {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+      .bar-label {
+        width: 160px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-align: right;
+        flex-shrink: 0;
+      }
 
-        .bar-label {
-            width: 160px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: right;
-            flex-shrink: 0;
-        }
+      .bar-track {
+        flex: 1;
+        height: 22px;
+        background: var(--surface-2);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
 
-        .bar-track {
-            flex: 1;
-            height: 22px;
-            background: var(--surface-2);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
+      .bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.8s ease-out;
+        position: relative;
+      }
 
-        .bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s ease-out;
-            position: relative;
-        }
+      .bar-fill.cpu {
+        background: linear-gradient(90deg, var(--chart-cpu), #79c0ff);
+      }
+      .bar-fill.mem {
+        background: linear-gradient(90deg, var(--chart-mem), #bc8cff);
+      }
+      .bar-fill.alloc {
+        background: linear-gradient(90deg, var(--chart-alloc), #56d364);
+      }
+      .bar-fill.danger {
+        background: linear-gradient(90deg, var(--danger), #ff7b72);
+      }
 
-        .bar-fill.cpu { background: linear-gradient(90deg, var(--chart-cpu), #79c0ff); }
-        .bar-fill.mem { background: linear-gradient(90deg, var(--chart-mem), #bc8cff); }
-        .bar-fill.alloc { background: linear-gradient(90deg, var(--chart-alloc), #56d364); }
-        .bar-fill.danger { background: linear-gradient(90deg, var(--danger), #ff7b72); }
+      .bar-value {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.7rem;
+        font-family: var(--font-mono);
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        white-space: nowrap;
+      }
 
-        .bar-value {
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.7rem;
-            font-family: var(--font-mono);
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            white-space: nowrap;
-        }
+      /* Inline code */
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-2);
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        color: var(--accent);
+      }
 
-        /* Inline code */
-        code {
-            font-family: var(--font-mono);
-            font-size: 0.85em;
-            background: var(--surface-2);
-            padding: 0.15em 0.4em;
-            border-radius: 4px;
-            color: var(--accent);
-        }
+      pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+      }
 
-        pre {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1rem;
-            overflow-x: auto;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            line-height: 1.5;
-            margin-bottom: 1rem;
-        }
+      pre code {
+        background: none;
+        padding: 0;
+        color: var(--text);
+      }
 
-        pre code {
-            background: none;
-            padding: 0;
-            color: var(--text);
-        }
+      /* Callouts */
+      .callout {
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        background: var(--surface);
+      }
 
-        /* Callouts */
-        .callout {
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--accent);
-            background: var(--surface);
-        }
+      .callout.success {
+        border-left-color: var(--success);
+      }
+      .callout.warning {
+        border-left-color: var(--warning);
+      }
+      .callout.danger {
+        border-left-color: var(--danger);
+      }
 
-        .callout.success { border-left-color: var(--success); }
-        .callout.warning { border-left-color: var(--warning); }
-        .callout.danger { border-left-color: var(--danger); }
+      .callout-title {
+        font-weight: 600;
+        color: var(--text-heading);
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+      }
 
-        .callout-title {
-            font-weight: 600;
-            color: var(--text-heading);
-            margin-bottom: 0.25rem;
-            font-size: 0.9rem;
-        }
+      .callout p {
+        margin: 0;
+        font-size: 0.85rem;
+      }
 
-        .callout p { margin: 0; font-size: 0.85rem; }
+      /* Lists */
+      ul,
+      ol {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      li {
+        margin-bottom: 0.4rem;
+      }
 
-        /* Lists */
-        ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
-        li { margin-bottom: 0.4rem; }
+      /* Tags */
+      .tag {
+        display: inline-block;
+        padding: 0.15em 0.6em;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+      }
 
-        /* Tags */
-        .tag {
-            display: inline-block;
-            padding: 0.15em 0.6em;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            font-family: var(--font-mono);
-        }
+      .tag.success {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--success);
+      }
+      .tag.warning {
+        background: rgba(210, 153, 34, 0.15);
+        color: var(--warning);
+      }
+      .tag.danger {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--danger);
+      }
+      .tag.info {
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--accent);
+      }
 
-        .tag.success { background: rgba(63, 185, 80, 0.15); color: var(--success); }
-        .tag.warning { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
-        .tag.danger { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
-        .tag.info { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+      /* Score ring */
+      .score-container {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        flex-wrap: wrap;
+        margin: 2rem 0;
+      }
 
-        /* Score ring */
-        .score-container {
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            flex-wrap: wrap;
-            margin: 2rem 0;
-        }
+      .score-item {
+        text-align: center;
+      }
 
-        .score-item {
-            text-align: center;
-        }
+      .score-ring {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: var(--font-mono);
+        margin: 0 auto 0.5rem;
+        position: relative;
+        background: conic-gradient(var(--accent) var(--pct), var(--surface-2) var(--pct));
+      }
 
-        .score-ring {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            font-family: var(--font-mono);
-            margin: 0 auto 0.5rem;
-            position: relative;
-            background: conic-gradient(var(--accent) var(--pct), var(--surface-2) var(--pct));
-        }
+      .score-ring::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border-radius: 50%;
+        background: var(--bg);
+      }
 
-        .score-ring::after {
-            content: "";
-            position: absolute;
-            inset: 8px;
-            border-radius: 50%;
-            background: var(--bg);
-        }
+      .score-ring span {
+        position: relative;
+        z-index: 1;
+      }
 
-        .score-ring span {
-            position: relative;
-            z-index: 1;
-        }
+      .score-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
 
-        .score-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
+      /* Section grid */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
 
-        /* Section grid */
+      @media (max-width: 768px) {
         .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+          grid-template-columns: 1fr;
         }
+        header h1 {
+          font-size: 1.8rem;
+        }
+        .card-grid {
+          grid-template-columns: 1fr;
+        }
+        .bar-label {
+          width: 100px;
+          font-size: 0.7rem;
+        }
+      }
 
-        @media (max-width: 768px) {
-            .two-col { grid-template-columns: 1fr; }
-            header h1 { font-size: 1.8rem; }
-            .card-grid { grid-template-columns: 1fr; }
-            .bar-label { width: 100px; font-size: 0.7rem; }
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            border-top: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            margin-top: 2rem;
-        }
+      footer {
+        text-align: center;
+        padding: 2rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        margin-top: 2rem;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <header>
-        <h1>httputil Performance Review</h1>
-        <p class="subtitle">Comprehensive performance analysis of the Go HTTP middleware library covering CPU, memory, network, and architectural characteristics.</p>
-        <div class="meta">
-            <span><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4.75 0a.75.75 0 0 1 .75.75V2h5V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 0 1 4.75 0ZM2.5 7.5v6.75c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V7.5h-11Z"/></svg> 2026-06-14</span>
-            <span><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A2.5 2.5 0 0 1 3.5 0h9A2.5 2.5 0 0 1 15 2.5v11a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 13.5v-11ZM3.5 1A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 12.5 1h-9Z"/></svg> Go 1.26.3</span>
-            <span><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="m8 0 1.669.835 1.843-.333.507 1.793 1.793.507-.333 1.843L15 6.331l-1.085 1.412.333 1.843-1.793.507-.507 1.793-1.843-.333L8 12.331 6.331 11.09l-1.843.333-.507-1.793-1.793-.507.333-1.843L1 6.331l1.085-1.412-.333-1.843 1.793-.507.507-1.793 1.843.333Z"/></svg> AMD Ryzen AI MAX+ 395</span>
-            <span><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A1.75 1.75 0 0 1 1.75 0h12.5A1.75 1.75 0 0 1 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm5.813 9.594V7.273H4.781v3.797h2.875Zm0-5.313V1.969H4.781v4.062h2.875Zm3.5 5.313V7.273H8.281v3.797h2.813Zm0-5.313V1.969H8.281v4.062h2.813Zm3.5 5.313V7.273h-2.812v3.797h2.875Zm0-5.313V1.969h-2.812v4.062h2.875Z"/></svg> 32 cores</span>
-        </div>
+      <h1>httputil Performance Review</h1>
+      <p class="subtitle">
+        Comprehensive performance analysis of the Go HTTP middleware library covering CPU, memory,
+        network, and architectural characteristics.
+      </p>
+      <div class="meta">
+        <span
+          ><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M4.75 0a.75.75 0 0 1 .75.75V2h5V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 0 1 4.75 0ZM2.5 7.5v6.75c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V7.5h-11Z"
+            />
+          </svg>
+          2026-06-14</span
+        >
+        <span
+          ><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M1 2.5A2.5 2.5 0 0 1 3.5 0h9A2.5 2.5 0 0 1 15 2.5v11a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 13.5v-11ZM3.5 1A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 12.5 1h-9Z"
+            />
+          </svg>
+          Go 1.26.3</span
+        >
+        <span
+          ><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="m8 0 1.669.835 1.843-.333.507 1.793 1.793.507-.333 1.843L15 6.331l-1.085 1.412.333 1.843-1.793.507-.507 1.793-1.843-.333L8 12.331 6.331 11.09l-1.843.333-.507-1.793-1.793-.507.333-1.843L1 6.331l1.085-1.412-.333-1.843 1.793-.507.507-1.793 1.843.333Z"
+            />
+          </svg>
+          AMD Ryzen AI MAX+ 395</span
+        >
+        <span
+          ><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M0 1.75A1.75 1.75 0 0 1 1.75 0h12.5A1.75 1.75 0 0 1 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm5.813 9.594V7.273H4.781v3.797h2.875Zm0-5.313V1.969H4.781v4.062h2.875Zm3.5 5.313V7.273H8.281v3.797h2.813Zm0-5.313V1.969H8.281v4.062h2.813Zm3.5 5.313V7.273h-2.812v3.797h2.875Zm0-5.313V1.969h-2.812v4.062h2.875Z"
+            />
+          </svg>
+          32 cores</span
+        >
+      </div>
     </header>
 
     <nav>
-        <ul>
-            <li><a href="#executive-summary">Executive Summary</a></li>
-            <li><a href="#cpu">CPU</a></li>
-            <li><a href="#memory">Memory</a></li>
-            <li><a href="#network">Network</a></li>
-            <li><a href="#disk">Disk</a></li>
-            <li><a href="#components">Components</a></li>
-            <li><a href="#optimizations">Optimizations</a></li>
-            <li><a href="#recommendations">Recommendations</a></li>
-        </ul>
+      <ul>
+        <li><a href="#executive-summary">Executive Summary</a></li>
+        <li><a href="#cpu">CPU</a></li>
+        <li><a href="#memory">Memory</a></li>
+        <li><a href="#network">Network</a></li>
+        <li><a href="#disk">Disk</a></li>
+        <li><a href="#components">Components</a></li>
+        <li><a href="#optimizations">Optimizations</a></li>
+        <li><a href="#recommendations">Recommendations</a></li>
+      </ul>
     </nav>
 
     <main>
-        <section id="executive-summary">
-            <h2>Executive Summary</h2>
+      <section id="executive-summary">
+        <h2>Executive Summary</h2>
 
-            <div class="score-container">
-                <div class="score-item">
-                    <div class="score-ring" style="--pct: 92%;"><span>A</span></div>
-                    <div class="score-label">CPU Efficiency</div>
-                </div>
-                <div class="score-item">
-                    <div class="score-ring" style="--pct: 85%;"><span>B+</span></div>
-                    <div class="score-label">Memory Efficiency</div>
-                </div>
-                <div class="score-item">
-                    <div class="score-ring" style="--pct: 95%;"><span>A+</span></div>
-                    <div class="score-label">Zero-Alloc Paths</div>
-                </div>
-                <div class="score-item">
-                    <div class="score-ring" style="--pct: 88%;"><span>B+</span></div>
-                    <div class="score-label">Scalability</div>
-                </div>
+        <div class="score-container">
+          <div class="score-item">
+            <div class="score-ring" style="--pct: 92%"><span>A</span></div>
+            <div class="score-label">CPU Efficiency</div>
+          </div>
+          <div class="score-item">
+            <div class="score-ring" style="--pct: 85%"><span>B+</span></div>
+            <div class="score-label">Memory Efficiency</div>
+          </div>
+          <div class="score-item">
+            <div class="score-ring" style="--pct: 95%"><span>A+</span></div>
+            <div class="score-label">Zero-Alloc Paths</div>
+          </div>
+          <div class="score-item">
+            <div class="score-ring" style="--pct: 88%"><span>B+</span></div>
+            <div class="score-label">Scalability</div>
+          </div>
+        </div>
+
+        <p>
+          The <code>httputil</code> library demonstrates excellent performance characteristics for a
+          Go HTTP middleware stack. The codebase contains
+          <strong>zero-allocation hot paths</strong>, intelligent resource pooling, and bounded
+          buffering strategies. The most expensive operation is gzip compression at ~30.6 us/op,
+          while the lightweight middleware (ResponseRecorder, ClientIP, Recovery, SecurityHeaders,
+          ETag, CORS, Timeout, RequestID) all execute in under 650 ns. The library is suitable for
+          high-throughput production services with proper tuning.
+        </p>
+
+        <div class="card-grid">
+          <div class="card positive">
+            <div class="card-label">Fastest Middleware</div>
+            <div class="card-value">29.5 ns</div>
+            <div class="card-detail">ResponseRecorder.Write — zero allocations</div>
+          </div>
+          <div class="card neutral">
+            <div class="card-label">Slowest Middleware</div>
+            <div class="card-value">30.6 us</div>
+            <div class="card-detail">Compression with gzip — 37 allocs/op</div>
+          </div>
+          <div class="card positive">
+            <div class="card-label">Best Allocation Profile</div>
+            <div class="card-value">0 allocs</div>
+            <div class="card-detail">ResponseRecorder and custom itoa</div>
+          </div>
+          <div class="card warning">
+            <div class="card-label">Highest Memory Usage</div>
+            <div class="card-value">3.5 KB</div>
+            <div class="card-detail">Chain (5 middleware stack)</div>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <div class="callout-title">Key Strength</div>
+          <p>
+            The library achieves zero-allocation response recording through stack-allocated tracking
+            fields and direct delegation to the underlying <code>http.ResponseWriter</code>. This is
+            the critical path for every request.
+          </p>
+        </div>
+      </section>
+
+      <section id="cpu">
+        <h2>CPU Performance</h2>
+
+        <p>
+          All benchmarks run on an AMD Ryzen AI MAX+ 395 (32 threads). CPU performance is measured
+          in nanoseconds per operation (ns/op). Lower is better. The chart below is normalized to
+          the slowest benchmark for relative comparison.
+        </p>
+
+        <h3>Latency Breakdown by Component</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">ResponseRecorder</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 0.06%">
+                <span class="bar-value">18.0 ns</span>
+              </div>
             </div>
-
-            <p>
-                The <code>httputil</code> library demonstrates excellent performance characteristics for a Go HTTP middleware stack.
-                The codebase contains <strong>zero-allocation hot paths</strong>, intelligent resource pooling, and bounded buffering strategies.
-                The most expensive operation is gzip compression at ~30.6 us/op, while the lightweight middleware (ResponseRecorder, ClientIP, Recovery,
-                SecurityHeaders, ETag, CORS, Timeout, RequestID) all execute in under 650 ns. The library is suitable for high-throughput production services with proper tuning.
-            </p>
-
-            <div class="card-grid">
-                <div class="card positive">
-                    <div class="card-label">Fastest Middleware</div>
-                    <div class="card-value">29.5 ns</div>
-                    <div class="card-detail">ResponseRecorder.Write — zero allocations</div>
-                </div>
-                <div class="card neutral">
-                    <div class="card-label">Slowest Middleware</div>
-                    <div class="card-value">30.6 us</div>
-                    <div class="card-detail">Compression with gzip — 37 allocs/op</div>
-                </div>
-                <div class="card positive">
-                    <div class="card-label">Best Allocation Profile</div>
-                    <div class="card-value">0 allocs</div>
-                    <div class="card-detail">ResponseRecorder and custom itoa</div>
-                </div>
-                <div class="card warning">
-                    <div class="card-label">Highest Memory Usage</div>
-                    <div class="card-value">3.5 KB</div>
-                    <div class="card-detail">Chain (5 middleware stack)</div>
-                </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">join</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 0.14%">
+                <span class="bar-value">41.6 ns</span>
+              </div>
             </div>
-
-            <div class="callout success">
-                <div class="callout-title">Key Strength</div>
-                <p>The library achieves zero-allocation response recording through stack-allocated tracking fields and direct delegation to the underlying <code>http.ResponseWriter</code>. This is the critical path for every request.</p>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">ClientIP</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 0.14%">
+                <span class="bar-value">44.2 ns</span>
+              </div>
             </div>
-        </section>
-
-        <section id="cpu">
-            <h2>CPU Performance</h2>
-
-            <p>
-                All benchmarks run on an AMD Ryzen AI MAX+ 395 (32 threads). CPU performance is measured in nanoseconds per operation (ns/op).
-                Lower is better. The chart below is normalized to the slowest benchmark for relative comparison.
-            </p>
-
-            <h3>Latency Breakdown by Component</h3>
-            <div class="bar-chart">
-                <div class="bar-row">
-                    <div class="bar-label">ResponseRecorder</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 0.06%;">
-                            <span class="bar-value">18.0 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">join</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 0.14%;">
-                            <span class="bar-value">41.6 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">ClientIP</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 0.14%;">
-                            <span class="bar-value">44.2 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">itoa (custom)</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 0.20%;">
-                            <span class="bar-value">61.8 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Recovery</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 0.25%;">
-                            <span class="bar-value">76.9 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">SecurityHeaders</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 0.99%;">
-                            <span class="bar-value">302 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">CORS</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 1.75%;">
-                            <span class="bar-value">538 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Timeout</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 1.76%;">
-                            <span class="bar-value">540 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">RequestID</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 1.91%;">
-                            <span class="bar-value">584 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">ETag</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 2.0%;">
-                            <span class="bar-value">612 ns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Logging</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 3.36%;">
-                            <span class="bar-value">1.03 us</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Chain (5 mw)</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu" style="width: 9.21%;">
-                            <span class="bar-value">2.82 us</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Compression</div>
-                    <div class="bar-track">
-                        <div class="bar-fill cpu danger" style="width: 100%;">
-                            <span class="bar-value">30.6 us</span>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">itoa (custom)</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 0.2%">
+                <span class="bar-value">61.8 ns</span>
+              </div>
             </div>
-
-            <h3>CPU Analysis by Category</h3>
-
-            <h4>Core Wrappers (Zero-Overhead Path)</h4>
-            <p>
-                <code>ResponseRecorder</code> adds only <strong>18.0 ns</strong> per <code>Write</code> call with <strong>zero heap allocations</strong>.
-                The wrapper stores status and wroteHeader as plain struct fields (no pointers, no indirection).
-                This is exceptional — most ResponseWriter wrappers in the ecosystem allocate on every request.
-            </p>
-
-            <h4>Header-Only Middleware</h4>
-            <p>
-                <code>SecurityHeaders</code> (302 ns), <code>CORS</code> (538 ns), and <code>ETag</code> (612 ns)
-                form the "fast middleware" tier. All three execute in under one microsecond.
-                The primary CPU cost is string manipulation for header keys/values and map operations on <code>http.Header</code>.
-            </p>
-
-            <h4>Context-Aware Middleware</h4>
-            <p>
-                <code>Timeout</code> (540 ns) and <code>RequestID</code> (584 ns) pay a small penalty for
-                <code>context.WithValue</code> (tree node allocation) and ID generation. The default RequestID generator now produces
-                a 16-byte time-ordered ID (Unix seconds + atomic counter + random tail) with amortized <code>crypto/rand</code> syscalls
-                (one syscall every ~256 IDs). It is lexicographically sortable, monotonic within a second, and unique across the process.
-            </p>
-
-            <h4>I/O-Bound Middleware</h4>
-            <p>
-                <code>Logging</code> (1.03 us) spends most of its time in <code>time.Now()</code> and <code>slog</code>
-                attribute serialization. <code>Compression</code> (30.6 us) is CPU-bound by the gzip deflate algorithm.
-                Both are inherently more expensive and should be expected to top the latency chart.
-            </p>
-
-            <div class="callout info">
-                <div class="callout-title">Relative Performance</div>
-                <p>A full middleware chain (SecurityHeaders + RequestID + Recovery + Logging + CORS) processes a request in ~2.8 us.
-                    At 1 million RPS, this is 2.8 seconds of CPU time per second of wall time on a single core — well within capacity for a 32-core machine.</p>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Recovery</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 0.25%">
+                <span class="bar-value">76.9 ns</span>
+              </div>
             </div>
-        </section>
-
-        <section id="memory">
-            <h2>Memory Performance</h2>
-
-            <h3>Heap Allocations per Operation</h3>
-            <div class="bar-chart">
-                <div class="bar-row">
-                    <div class="bar-label">ResponseRecorder</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 0%;">
-                            <span class="bar-value">0 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">itoa</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 0%;">
-                            <span class="bar-value">0 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Recovery</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 8.1%;">
-                            <span class="bar-value">3 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">SecurityHeaders</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 18.9%;">
-                            <span class="bar-value">7 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Timeout</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 21.6%;">
-                            <span class="bar-value">8 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Logging</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 27.0%;">
-                            <span class="bar-value">10 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">RequestID</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 29.7%;">
-                            <span class="bar-value">11 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">CORS / ETag</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc" style="width: 32.4%;">
-                            <span class="bar-value">12 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Compression</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc danger" style="width: 100%;">
-                            <span class="bar-value">37 allocs</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Chain (5 mw)</div>
-                    <div class="bar-track">
-                        <div class="bar-fill alloc danger" style="width: 100%;">
-                            <span class="bar-value">37 allocs</span>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">SecurityHeaders</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 0.99%">
+                <span class="bar-value">302 ns</span>
+              </div>
             </div>
-
-            <h3>Bytes Allocated per Operation</h3>
-            <div class="bar-chart">
-                <div class="bar-row">
-                    <div class="bar-label">ResponseRecorder</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 1.9%;">
-                            <span class="bar-value">67 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">ClientIP</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 0.9%;">
-                            <span class="bar-value">32 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Recovery</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 4.5%;">
-                            <span class="bar-value">160 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">SecurityHeaders</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 15.9%;">
-                            <span class="bar-value">560 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Timeout</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 21.3%;">
-                            <span class="bar-value">752 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Logging</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 25.4%;">
-                            <span class="bar-value">896 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">RequestID</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 27.6%;">
-                            <span class="bar-value">976 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">ETag</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 32.2%;">
-                            <span class="bar-value">1136 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">CORS</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem" style="width: 19.6%;">
-                            <span class="bar-value">693 B</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <div class="bar-label">Chain (5 mw)</div>
-                    <div class="bar-track">
-                        <div class="bar-fill mem danger" style="width: 100%;">
-                            <span class="bar-value">3532 B</span>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">CORS</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 1.75%">
+                <span class="bar-value">538 ns</span>
+              </div>
             </div>
-
-            <p class="card-detail" style="margin-top: -1rem;">
-                * <code>Compression</code> is excluded from this chart: its reported 825 KB/op is a benchmark artifact from
-                <code>httptest.ResponseRecorder.Body</code> growth, not a production allocation. See the callout below.
-            </p>
-
-            <h3>Memory Architecture Analysis</h3>
-
-            <div class="two-col">
-                <div>
-                    <h4>Zero-Allocation Paths</h4>
-                    <ul>
-                        <li><code>ResponseRecorder.Write</code> — stack-only fields</li>
-                        <li><code>itoa</code> — fixed [20]byte stack array</li>
-                        <li><code>responseWrapper.WriteHeader</code> — no allocations</li>
-                        <li><code>flushDelegate</code> — type assertion, no alloc</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Bounded Memory Strategies</h4>
-                    <ul>
-                        <li><code>ETag</code> — max 1 MB buffer limit</li>
-                        <li><code>Compression</code> — 512 B minSize threshold</li>
-                        <li>Compression writers — pooled per <code>WriterFactory</code> via <code>sync.Pool</code></li>
-                        <li><code>Server</code> — timeouts prevent goroutine leaks</li>
-                    </ul>
-                </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Timeout</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 1.76%">
+                <span class="bar-value">540 ns</span>
+              </div>
             </div>
-
-            <h4>Per-Factory Writer Pools</h4>
-            <p>
-                The compression layer uses a map of <code>sync.Pool</code> instances keyed by <code>WriterFactory</code> function pointer.
-                This avoids the expensive initialization of <code>gzip.Writer</code>, <code>flate.Writer</code>, or any custom plugin writer on every request.
-                Writers that implement <code>Reset(io.Writer)</code> are recycled; others fall back to fresh instances.
-                The pool map is protected by an <code>RWMutex</code> with read-heavy access pattern (double-checked locking).
-                On the benchmark machine, this reduces per-request writer setup from ~500+ us to effectively zero after warmup.
-            </p>
-
-            <h4>ETag Buffering Strategy</h4>
-            <p>
-                The ETag middleware buffers response bodies in memory to compute a CRC32 checksum.
-                A configurable <code>MaxBufferSize</code> (default 1 MB) prevents unbounded growth.
-                When the buffer exceeds this limit, the middleware flushes and streams the remainder without an ETag.
-                This is a safe tradeoff: small responses get caching benefits; large responses avoid OOM.
-            </p>
-
-            <div class="callout warning">
-                <div class="callout-title">Memory Watchpoint</div>
-                <p>The <code>Chain</code> benchmark allocates 3,532 B/op because it exercises 5 middleware layers each creating their own wrapper structs and context values. In production, GC pressure from middleware chains is the dominant memory cost, not any single layer.</p>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">RequestID</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 1.91%">
+                <span class="bar-value">584 ns</span>
+              </div>
             </div>
-
-            <div class="callout info">
-                <div class="callout-title">Compression Benchmark Artifact</div>
-                <p>The <code>Compression</code> benchmark reports ~825 KB/op, but this is not a production memory cost. The benchmark uses <code>httptest.ResponseRecorder</code>, whose internal <code>Body</code> buffer grows to hold the compressed output across iterations. Each iteration allocates a fresh recorder, so the memory profiler attributes the growing buffer to the operation. In production the compressed bytes are written directly to the network, and actual allocations are ~37 objects/op (gzip writer, buffers, headers).</p>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">ETag</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 2%">
+                <span class="bar-value">612 ns</span>
+              </div>
             </div>
-        </section>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Logging</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 3.36%">
+                <span class="bar-value">1.03 us</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Chain (5 mw)</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu" style="width: 9.21%">
+                <span class="bar-value">2.82 us</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Compression</div>
+            <div class="bar-track">
+              <div class="bar-fill cpu danger" style="width: 100%">
+                <span class="bar-value">30.6 us</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <section id="network">
-            <h2>Network Performance</h2>
+        <h3>CPU Analysis by Category</h3>
 
-            <h3>Bandwidth Optimization</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>Mechanism</th>
-                        <th>Impact</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Gzip / Deflate Compression</td>
-                        <td>Stdlib encoders with per-factory pools</td>
-                        <td>60-90% size reduction for text</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td>Accept-Encoding Negotiation</td>
-                        <td>RFC 7231 q-value parsing, server priority order</td>
-                        <td>Picks best supported encoding per request</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td>Plugin WriterFactory Interface</td>
-                        <td>Register custom encodings (brotli, zstd, lz4)</td>
-                        <td>Extensible without adding dependencies</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td>ETag / 304</td>
-                        <td>CRC32-based conditional responses</td>
-                        <td>Eliminates full body transfer</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td>Content-Type Filtering</td>
-                        <td>Skip compression for images/video</td>
-                        <td>Avoids CPU waste on incompressible data</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td>MinSize Threshold</td>
-                        <td>512 B default for compression</td>
-                        <td>Avoids compression overhead for small payloads</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td>Connection Timeouts</td>
-                        <td>Read/Write/Idle/Header timeouts</td>
-                        <td>Prevents slowloris and connection exhaustion</td>
-                        <td><span class="tag success">Active</span></td>
-                    </tr>
-                </tbody>
-            </table>
+        <h4>Core Wrappers (Zero-Overhead Path)</h4>
+        <p>
+          <code>ResponseRecorder</code> adds only <strong>18.0 ns</strong> per
+          <code>Write</code> call with <strong>zero heap allocations</strong>. The wrapper stores
+          status and wroteHeader as plain struct fields (no pointers, no indirection). This is
+          exceptional — most ResponseWriter wrappers in the ecosystem allocate on every request.
+        </p>
 
-            <h3>Timeout Configuration</h3>
-            <p>
-                The <code>Server</code> wrapper exposes all stdlib timeout knobs with production-ready defaults:
-            </p>
+        <h4>Header-Only Middleware</h4>
+        <p>
+          <code>SecurityHeaders</code> (302 ns), <code>CORS</code> (538 ns), and
+          <code>ETag</code> (612 ns) form the "fast middleware" tier. All three execute in under one
+          microsecond. The primary CPU cost is string manipulation for header keys/values and map
+          operations on <code>http.Header</code>.
+        </p>
+
+        <h4>Context-Aware Middleware</h4>
+        <p>
+          <code>Timeout</code> (540 ns) and <code>RequestID</code> (584 ns) pay a small penalty for
+          <code>context.WithValue</code> (tree node allocation) and ID generation. The default
+          RequestID generator now produces a 16-byte time-ordered ID (Unix seconds + atomic counter
+          + random tail) with amortized <code>crypto/rand</code> syscalls (one syscall every ~256
+          IDs). It is lexicographically sortable, monotonic within a second, and unique across the
+          process.
+        </p>
+
+        <h4>I/O-Bound Middleware</h4>
+        <p>
+          <code>Logging</code> (1.03 us) spends most of its time in <code>time.Now()</code> and
+          <code>slog</code> attribute serialization. <code>Compression</code> (30.6 us) is CPU-bound
+          by the gzip deflate algorithm. Both are inherently more expensive and should be expected
+          to top the latency chart.
+        </p>
+
+        <div class="callout info">
+          <div class="callout-title">Relative Performance</div>
+          <p>
+            A full middleware chain (SecurityHeaders + RequestID + Recovery + Logging + CORS)
+            processes a request in ~2.8 us. At 1 million RPS, this is 2.8 seconds of CPU time per
+            second of wall time on a single core — well within capacity for a 32-core machine.
+          </p>
+        </div>
+      </section>
+
+      <section id="memory">
+        <h2>Memory Performance</h2>
+
+        <h3>Heap Allocations per Operation</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">ResponseRecorder</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 0%">
+                <span class="bar-value">0 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">itoa</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 0%">
+                <span class="bar-value">0 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Recovery</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 8.1%">
+                <span class="bar-value">3 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">SecurityHeaders</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 18.9%">
+                <span class="bar-value">7 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Timeout</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 21.6%">
+                <span class="bar-value">8 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Logging</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 27%">
+                <span class="bar-value">10 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">RequestID</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 29.7%">
+                <span class="bar-value">11 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">CORS / ETag</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc" style="width: 32.4%">
+                <span class="bar-value">12 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Compression</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc danger" style="width: 100%">
+                <span class="bar-value">37 allocs</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Chain (5 mw)</div>
+            <div class="bar-track">
+              <div class="bar-fill alloc danger" style="width: 100%">
+                <span class="bar-value">37 allocs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Bytes Allocated per Operation</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">ResponseRecorder</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 1.9%">
+                <span class="bar-value">67 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">ClientIP</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 0.9%">
+                <span class="bar-value">32 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Recovery</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 4.5%">
+                <span class="bar-value">160 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">SecurityHeaders</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 15.9%">
+                <span class="bar-value">560 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Timeout</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 21.3%">
+                <span class="bar-value">752 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Logging</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 25.4%">
+                <span class="bar-value">896 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">RequestID</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 27.6%">
+                <span class="bar-value">976 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">ETag</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 32.2%">
+                <span class="bar-value">1136 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">CORS</div>
+            <div class="bar-track">
+              <div class="bar-fill mem" style="width: 19.6%">
+                <span class="bar-value">693 B</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Chain (5 mw)</div>
+            <div class="bar-track">
+              <div class="bar-fill mem danger" style="width: 100%">
+                <span class="bar-value">3532 B</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="card-detail" style="margin-top: -1rem">
+          * <code>Compression</code> is excluded from this chart: its reported 825 KB/op is a
+          benchmark artifact from <code>httptest.ResponseRecorder.Body</code> growth, not a
+          production allocation. See the callout below.
+        </p>
+
+        <h3>Memory Architecture Analysis</h3>
+
+        <div class="two-col">
+          <div>
+            <h4>Zero-Allocation Paths</h4>
             <ul>
-                <li><strong>ReadTimeout</strong>: 10s — total request read deadline</li>
-                <li><strong>ReadHeaderTimeout</strong>: 5s — header parsing deadline (slowloris protection)</li>
-                <li><strong>WriteTimeout</strong>: 30s — response write deadline</li>
-                <li><strong>IdleTimeout</strong>: 60s — keep-alive connection idle time</li>
+              <li><code>ResponseRecorder.Write</code> — stack-only fields</li>
+              <li><code>itoa</code> — fixed [20]byte stack array</li>
+              <li><code>responseWrapper.WriteHeader</code> — no allocations</li>
+              <li><code>flushDelegate</code> — type assertion, no alloc</li>
             </ul>
-            <p>
-                These values are conservative. High-throughput APIs may benefit from lower ReadHeaderTimeout (1-2s)
-                and higher IdleTimeout (120s) for connection reuse. The Timeout middleware adds a per-request
-                context deadline independent of server-level timeouts.
-            </p>
-
-            <h3>TCP / HTTP2 Considerations</h3>
-            <p>
-                The library wraps the standard library <code>http.Server</code> and inherits its connection handling.
-                No HTTP/2-specific optimizations are present (no <code>TLSNextProto</code> custom configuration,
-                no <code>Protocols</code> tuning). For HTTP/2 services, consider setting
-                <code>MaxHeaderBytes</code> explicitly (default is 1 MB) and enabling
-                <code>DisableGeneralOptionsHandler</code> if OPTIONS handling is managed by CORS middleware.
-            </p>
-        </section>
-
-        <section id="disk">
-            <h2>Disk I/O Performance</h2>
-
-            <p>
-                <code>httputil</code> performs <strong>zero direct disk I/O</strong>. All middleware operates
-                entirely in memory on the request/response path. This is by design: a middleware library
-                should not introduce I/O blocking on the hot path.
-            </p>
-
-            <h3>Indirect Disk I/O Observations</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Source</th>
-                        <th>Impact</th>
-                        <th>Mitigation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>crypto/rand.Read</code> (RequestID)</td>
-                        <td>Amortized <code>crypto/rand.Read</code> via process-wide buffer</td>
-                        <td>Non-blocking on Linux; one syscall every ~256 IDs</td>
-                    </tr>
-                    <tr>
-                        <td><code>slog</code> (Logging middleware)</td>
-                        <td>Depends on handler — may write to disk</td>
-                        <td>Use async buffered handler; not library concern</td>
-                    </tr>
-                    <tr>
-                        <td><code>debug.Stack()</code> (Recovery)</td>
-                        <td>Captures goroutine stack traces in memory</td>
-                        <td>Only executed on panic (exceptional path)</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="callout success">
-                <div class="callout-title">Disk I/O Verdict</div>
-                <p>Excellent. The library introduces no disk I/O on the request path. Request ID generation amortizes <code>crypto/rand.Read</code> across 256 IDs, so the random source is consulted only once per ~256 requests. This resolves to a non-blocking pseudo-random source on modern Linux kernels.</p>
-            </div>
-        </section>
-
-        <section id="components">
-            <h2>Per-Component Performance Profile</h2>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Component</th>
-                        <th class="num">Latency</th>
-                        <th class="num">Allocs</th>
-                        <th class="num">Bytes</th>
-                        <th>Characteristics</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>ResponseRecorder</code></td>
-                        <td class="mono num">18.0 ns</td>
-                        <td class="mono num">0</td>
-                        <td class="mono num">67 B</td>
-                        <td>Zero-allocation hot path. Stack fields only.</td>
-                    </tr>
-                    <tr>
-                        <td><code>ClientIP</code></td>
-                        <td class="mono num">44.2 ns</td>
-                        <td class="mono num">1</td>
-                        <td class="mono num">32 B</td>
-                        <td>Fast string parsing. Single alloc from Split.</td>
-                    </tr>
-                    <tr>
-                        <td><code>Recovery</code></td>
-                        <td class="mono num">76.9 ns</td>
-                        <td class="mono num">3</td>
-                        <td class="mono num">160 B</td>
-                        <td>Defer cost only on normal path. Stack trace on panic.</td>
-                    </tr>
-                    <tr>
-                        <td><code>SecurityHeaders</code></td>
-                        <td class="mono num">302 ns</td>
-                        <td class="mono num">7</td>
-                        <td class="mono num">560 B</td>
-                        <td>Header map inserts. Linear in configured headers.</td>
-                    </tr>
-                    <tr>
-                        <td><code>CORS</code></td>
-                        <td class="mono num">538 ns</td>
-                        <td class="mono num">12</td>
-                        <td class="mono num">693 B</td>
-                        <td>Origin string scan + header writes. O(n) origins.</td>
-                    </tr>
-                    <tr>
-                        <td><code>Timeout</code></td>
-                        <td class="mono num">540 ns</td>
-                        <td class="mono num">8</td>
-                        <td class="mono num">752 B</td>
-                        <td>Context tree node + timer allocation.</td>
-                    </tr>
-                    <tr>
-                        <td><code>RequestID</code></td>
-                        <td class="mono num">584 ns</td>
-                        <td class="mono num">11</td>
-                        <td class="mono num">976 B</td>
-                        <td>Time-ordered ID; amortized crypto/rand buffer.</td>
-                    </tr>
-                    <tr>
-                        <td><code>ETag</code></td>
-                        <td class="mono num">612 ns</td>
-                        <td class="mono num">12</td>
-                        <td class="mono num">1136 B</td>
-                        <td>Buffers body up to 1 MB. CRC32 checksum on flush.</td>
-                    </tr>
-                    <tr>
-                        <td><code>Logging</code></td>
-                        <td class="mono num">1.03 us</td>
-                        <td class="mono num">10</td>
-                        <td class="mono num">896 B</td>
-                        <td>time.Now + slog serialization. Async recommended.</td>
-                    </tr>
-                    <tr>
-                        <td><code>Chain (5 mw)</code></td>
-                        <td class="mono num">2.82 us</td>
-                        <td class="mono num">37</td>
-                        <td class="mono num">3532 B</td>
-                        <td>Composite stack. Sub-linear combination cost.</td>
-                    </tr>
-                    <tr>
-                        <td><code>Compression</code></td>
-                        <td class="mono num">30.6 us</td>
-                        <td class="mono num">37</td>
-                        <td class="mono num">825 KB*</td>
-                        <td>gzip/deflate + per-factory pools. *Byte count is a benchmark artifact; see Memory section.</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>Key Observations</h3>
+          </div>
+          <div>
+            <h4>Bounded Memory Strategies</h4>
             <ul>
-                <li><strong>Sub-microsecond tier</strong>: ResponseRecorder, ClientIP, Recovery, SecurityHeaders, CORS, Timeout, RequestID, ETag — all execute in under 650 ns.</li>
-                <li><strong>Microsecond tier</strong>: Logging, Chain, Compression — these involve I/O, complex wrapping, or algorithmic work.</li>
-                <li><strong>Composite efficiency</strong>: A 5-middleware chain (2.82 us) is less than the sum of individual latencies (~4.8 us) because wrapper structs are reused and the inner handler dominates.</li>
-                <li><strong>Allocation efficiency</strong>: The library has 3 zero-allocation components (ResponseRecorder, itoa, join). The remaining middlewares average ~9 allocs/op.</li>
+              <li><code>ETag</code> — max 1 MB buffer limit</li>
+              <li><code>Compression</code> — 512 B minSize threshold</li>
+              <li>
+                Compression writers — pooled per <code>WriterFactory</code> via
+                <code>sync.Pool</code>
+              </li>
+              <li><code>Server</code> — timeouts prevent goroutine leaks</li>
             </ul>
-        </section>
+          </div>
+        </div>
 
-        <section id="optimizations">
-            <h2>Identified Optimization Opportunities</h2>
+        <h4>Per-Factory Writer Pools</h4>
+        <p>
+          The compression layer uses a map of <code>sync.Pool</code> instances keyed by
+          <code>WriterFactory</code> function pointer. This avoids the expensive initialization of
+          <code>gzip.Writer</code>, <code>flate.Writer</code>, or any custom plugin writer on every
+          request. Writers that implement <code>Reset(io.Writer)</code> are recycled; others fall
+          back to fresh instances. The pool map is protected by an <code>RWMutex</code> with
+          read-heavy access pattern (double-checked locking). On the benchmark machine, this reduces
+          per-request writer setup from ~500+ us to effectively zero after warmup.
+        </p>
 
-            <h3>1. CORS Origin Matching <span class="tag warning">O(n) Scan</span></h3>
-            <p>
-                <code>resolveOrigin</code> performs a linear scan over <code>AllowedOrigins</code> on every request.
-                For services with hundreds of allowed origins, this becomes measurable.
-            </p>
-            <pre><code>// Current: O(n) string comparison per request
+        <h4>ETag Buffering Strategy</h4>
+        <p>
+          The ETag middleware buffers response bodies in memory to compute a CRC32 checksum. A
+          configurable <code>MaxBufferSize</code> (default 1 MB) prevents unbounded growth. When the
+          buffer exceeds this limit, the middleware flushes and streams the remainder without an
+          ETag. This is a safe tradeoff: small responses get caching benefits; large responses avoid
+          OOM.
+        </p>
+
+        <div class="callout warning">
+          <div class="callout-title">Memory Watchpoint</div>
+          <p>
+            The <code>Chain</code> benchmark allocates 3,532 B/op because it exercises 5 middleware
+            layers each creating their own wrapper structs and context values. In production, GC
+            pressure from middleware chains is the dominant memory cost, not any single layer.
+          </p>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Compression Benchmark Artifact</div>
+          <p>
+            The <code>Compression</code> benchmark reports ~825 KB/op, but this is not a production
+            memory cost. The benchmark uses <code>httptest.ResponseRecorder</code>, whose internal
+            <code>Body</code> buffer grows to hold the compressed output across iterations. Each
+            iteration allocates a fresh recorder, so the memory profiler attributes the growing
+            buffer to the operation. In production the compressed bytes are written directly to the
+            network, and actual allocations are ~37 objects/op (gzip writer, buffers, headers).
+          </p>
+        </div>
+      </section>
+
+      <section id="network">
+        <h2>Network Performance</h2>
+
+        <h3>Bandwidth Optimization</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Mechanism</th>
+              <th>Impact</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gzip / Deflate Compression</td>
+              <td>Stdlib encoders with per-factory pools</td>
+              <td>60-90% size reduction for text</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Accept-Encoding Negotiation</td>
+              <td>RFC 7231 q-value parsing, server priority order</td>
+              <td>Picks best supported encoding per request</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Plugin WriterFactory Interface</td>
+              <td>Register custom encodings (brotli, zstd, lz4)</td>
+              <td>Extensible without adding dependencies</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+            <tr>
+              <td>ETag / 304</td>
+              <td>CRC32-based conditional responses</td>
+              <td>Eliminates full body transfer</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Content-Type Filtering</td>
+              <td>Skip compression for images/video</td>
+              <td>Avoids CPU waste on incompressible data</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+            <tr>
+              <td>MinSize Threshold</td>
+              <td>512 B default for compression</td>
+              <td>Avoids compression overhead for small payloads</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+            <tr>
+              <td>Connection Timeouts</td>
+              <td>Read/Write/Idle/Header timeouts</td>
+              <td>Prevents slowloris and connection exhaustion</td>
+              <td><span class="tag success">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Timeout Configuration</h3>
+        <p>
+          The <code>Server</code> wrapper exposes all stdlib timeout knobs with production-ready
+          defaults:
+        </p>
+        <ul>
+          <li><strong>ReadTimeout</strong>: 10s — total request read deadline</li>
+          <li>
+            <strong>ReadHeaderTimeout</strong>: 5s — header parsing deadline (slowloris protection)
+          </li>
+          <li><strong>WriteTimeout</strong>: 30s — response write deadline</li>
+          <li><strong>IdleTimeout</strong>: 60s — keep-alive connection idle time</li>
+        </ul>
+        <p>
+          These values are conservative. High-throughput APIs may benefit from lower
+          ReadHeaderTimeout (1-2s) and higher IdleTimeout (120s) for connection reuse. The Timeout
+          middleware adds a per-request context deadline independent of server-level timeouts.
+        </p>
+
+        <h3>TCP / HTTP2 Considerations</h3>
+        <p>
+          The library wraps the standard library <code>http.Server</code> and inherits its
+          connection handling. No HTTP/2-specific optimizations are present (no
+          <code>TLSNextProto</code> custom configuration, no <code>Protocols</code> tuning). For
+          HTTP/2 services, consider setting <code>MaxHeaderBytes</code> explicitly (default is 1 MB)
+          and enabling <code>DisableGeneralOptionsHandler</code> if OPTIONS handling is managed by
+          CORS middleware.
+        </p>
+      </section>
+
+      <section id="disk">
+        <h2>Disk I/O Performance</h2>
+
+        <p>
+          <code>httputil</code> performs <strong>zero direct disk I/O</strong>. All middleware
+          operates entirely in memory on the request/response path. This is by design: a middleware
+          library should not introduce I/O blocking on the hot path.
+        </p>
+
+        <h3>Indirect Disk I/O Observations</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Impact</th>
+              <th>Mitigation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>crypto/rand.Read</code> (RequestID)</td>
+              <td>Amortized <code>crypto/rand.Read</code> via process-wide buffer</td>
+              <td>Non-blocking on Linux; one syscall every ~256 IDs</td>
+            </tr>
+            <tr>
+              <td><code>slog</code> (Logging middleware)</td>
+              <td>Depends on handler — may write to disk</td>
+              <td>Use async buffered handler; not library concern</td>
+            </tr>
+            <tr>
+              <td><code>debug.Stack()</code> (Recovery)</td>
+              <td>Captures goroutine stack traces in memory</td>
+              <td>Only executed on panic (exceptional path)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout success">
+          <div class="callout-title">Disk I/O Verdict</div>
+          <p>
+            Excellent. The library introduces no disk I/O on the request path. Request ID generation
+            amortizes <code>crypto/rand.Read</code> across 256 IDs, so the random source is
+            consulted only once per ~256 requests. This resolves to a non-blocking pseudo-random
+            source on modern Linux kernels.
+          </p>
+        </div>
+      </section>
+
+      <section id="components">
+        <h2>Per-Component Performance Profile</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th class="num">Latency</th>
+              <th class="num">Allocs</th>
+              <th class="num">Bytes</th>
+              <th>Characteristics</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ResponseRecorder</code></td>
+              <td class="mono num">18.0 ns</td>
+              <td class="mono num">0</td>
+              <td class="mono num">67 B</td>
+              <td>Zero-allocation hot path. Stack fields only.</td>
+            </tr>
+            <tr>
+              <td><code>ClientIP</code></td>
+              <td class="mono num">44.2 ns</td>
+              <td class="mono num">1</td>
+              <td class="mono num">32 B</td>
+              <td>Fast string parsing. Single alloc from Split.</td>
+            </tr>
+            <tr>
+              <td><code>Recovery</code></td>
+              <td class="mono num">76.9 ns</td>
+              <td class="mono num">3</td>
+              <td class="mono num">160 B</td>
+              <td>Defer cost only on normal path. Stack trace on panic.</td>
+            </tr>
+            <tr>
+              <td><code>SecurityHeaders</code></td>
+              <td class="mono num">302 ns</td>
+              <td class="mono num">7</td>
+              <td class="mono num">560 B</td>
+              <td>Header map inserts. Linear in configured headers.</td>
+            </tr>
+            <tr>
+              <td><code>CORS</code></td>
+              <td class="mono num">538 ns</td>
+              <td class="mono num">12</td>
+              <td class="mono num">693 B</td>
+              <td>Origin string scan + header writes. O(n) origins.</td>
+            </tr>
+            <tr>
+              <td><code>Timeout</code></td>
+              <td class="mono num">540 ns</td>
+              <td class="mono num">8</td>
+              <td class="mono num">752 B</td>
+              <td>Context tree node + timer allocation.</td>
+            </tr>
+            <tr>
+              <td><code>RequestID</code></td>
+              <td class="mono num">584 ns</td>
+              <td class="mono num">11</td>
+              <td class="mono num">976 B</td>
+              <td>Time-ordered ID; amortized crypto/rand buffer.</td>
+            </tr>
+            <tr>
+              <td><code>ETag</code></td>
+              <td class="mono num">612 ns</td>
+              <td class="mono num">12</td>
+              <td class="mono num">1136 B</td>
+              <td>Buffers body up to 1 MB. CRC32 checksum on flush.</td>
+            </tr>
+            <tr>
+              <td><code>Logging</code></td>
+              <td class="mono num">1.03 us</td>
+              <td class="mono num">10</td>
+              <td class="mono num">896 B</td>
+              <td>time.Now + slog serialization. Async recommended.</td>
+            </tr>
+            <tr>
+              <td><code>Chain (5 mw)</code></td>
+              <td class="mono num">2.82 us</td>
+              <td class="mono num">37</td>
+              <td class="mono num">3532 B</td>
+              <td>Composite stack. Sub-linear combination cost.</td>
+            </tr>
+            <tr>
+              <td><code>Compression</code></td>
+              <td class="mono num">30.6 us</td>
+              <td class="mono num">37</td>
+              <td class="mono num">825 KB*</td>
+              <td>
+                gzip/deflate + per-factory pools. *Byte count is a benchmark artifact; see Memory
+                section.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Key Observations</h3>
+        <ul>
+          <li>
+            <strong>Sub-microsecond tier</strong>: ResponseRecorder, ClientIP, Recovery,
+            SecurityHeaders, CORS, Timeout, RequestID, ETag — all execute in under 650 ns.
+          </li>
+          <li>
+            <strong>Microsecond tier</strong>: Logging, Chain, Compression — these involve I/O,
+            complex wrapping, or algorithmic work.
+          </li>
+          <li>
+            <strong>Composite efficiency</strong>: A 5-middleware chain (2.82 us) is less than the
+            sum of individual latencies (~4.8 us) because wrapper structs are reused and the inner
+            handler dominates.
+          </li>
+          <li>
+            <strong>Allocation efficiency</strong>: The library has 3 zero-allocation components
+            (ResponseRecorder, itoa, join). The remaining middlewares average ~9 allocs/op.
+          </li>
+        </ul>
+      </section>
+
+      <section id="optimizations">
+        <h2>Identified Optimization Opportunities</h2>
+
+        <h3>1. CORS Origin Matching <span class="tag warning">O(n) Scan</span></h3>
+        <p>
+          <code>resolveOrigin</code> performs a linear scan over <code>AllowedOrigins</code> on
+          every request. For services with hundreds of allowed origins, this becomes measurable.
+        </p>
+        <pre><code>// Current: O(n) string comparison per request
 for _, allowed := range cfg.AllowedOrigins {
     if allowed == "*" || allowed == origin { ... }
     if matchWildcardOrigin(allowed, origin) { ... }
 }</code></pre>
-            <p><strong>Recommendation</strong>: Pre-compile origins into a <code>map[string]bool</code> and wildcards into a
-            suffix trie at config validation time. Reduces per-request origin resolution to O(1) average case.</p>
+        <p>
+          <strong>Recommendation</strong>: Pre-compile origins into a
+          <code>map[string]bool</code> and wildcards into a suffix trie at config validation time.
+          Reduces per-request origin resolution to O(1) average case.
+        </p>
 
-            <h3>2. Content-Type Prefix Matching <span class="tag warning">Linear Scan</span></h3>
-            <p>
-                <code>isCompressibleContentType</code> scans a fixed slice of 9 prefixes on every compression decision.
-                For high-throughput services, this repeated work is unnecessary.
-            </p>
-            <pre><code>// Current: 9 string prefix checks
+        <h3>2. Content-Type Prefix Matching <span class="tag warning">Linear Scan</span></h3>
+        <p>
+          <code>isCompressibleContentType</code> scans a fixed slice of 9 prefixes on every
+          compression decision. For high-throughput services, this repeated work is unnecessary.
+        </p>
+        <pre><code>// Current: 9 string prefix checks
 for _, prefix := range incompressiblePrefixes {
     if strings.HasPrefix(contentType, prefix) { ... }
 }</code></pre>
-            <p><strong>Recommendation</strong>: Build a <code>map[string]bool</code> of exact matches and a small
-            trie for prefix matches during config initialization. The map is O(1); the trie reduces prefix checks
-            to character-level early exit.</p>
+        <p>
+          <strong>Recommendation</strong>: Build a <code>map[string]bool</code> of exact matches and
+          a small trie for prefix matches during config initialization. The map is O(1); the trie
+          reduces prefix checks to character-level early exit.
+        </p>
 
-            <h3>3. RequestID Random Generation <span class="tag success">Implemented</span></h3>
-            <p>
-                The default generator now produces a 16-byte time-ordered ID: 4 bytes Unix seconds, 4 bytes atomic counter,
-                and 8 bytes from an amortized <code>crypto/rand</code> buffer. The 8-byte random tail is drawn from a process-wide
-                buffer that refills 256 IDs at a time, reducing syscalls by 256x. The result is 32 lowercase hex characters
-                that are lexicographically sortable and monotonic within a second.
-            </p>
-            <p><strong>Status</strong>: Implemented in <code>id_generator.go</code>. RequestID latency remains ~584 ns, but the
-            generator no longer performs a syscall on every request and provides chronological ordering.</p>
+        <h3>3. RequestID Random Generation <span class="tag success">Implemented</span></h3>
+        <p>
+          The default generator now produces a 16-byte time-ordered ID: 4 bytes Unix seconds, 4
+          bytes atomic counter, and 8 bytes from an amortized <code>crypto/rand</code> buffer. The
+          8-byte random tail is drawn from a process-wide buffer that refills 256 IDs at a time,
+          reducing syscalls by 256x. The result is 32 lowercase hex characters that are
+          lexicographically sortable and monotonic within a second.
+        </p>
+        <p>
+          <strong>Status</strong>: Implemented in <code>id_generator.go</code>. RequestID latency
+          remains ~584 ns, but the generator no longer performs a syscall on every request and
+          provides chronological ordering.
+        </p>
 
-            <h3>4. ETag CRC32 on Large Bodies <span class="tag warning">CPU Cost</span></h3>
-            <p>
-                <code>crc32.ChecksumIEEE</code> is a hardware-accelerated CRC32 (SSE4.2 / ARM CRC32).
-                However, it still traverses the entire buffered body on flush. For 1 MB responses near the buffer limit,
-                this is ~1 MB of memory bandwidth per request.
-            </p>
-            <p><strong>Recommendation</strong>: Consider incremental hashing (e.g., xxhash64) computed during
-                <code>Write</code> calls so flush is O(1). This spreads hashing cost across writes and eliminates
-                the single large checksum computation.</p>
+        <h3>4. ETag CRC32 on Large Bodies <span class="tag warning">CPU Cost</span></h3>
+        <p>
+          <code>crc32.ChecksumIEEE</code> is a hardware-accelerated CRC32 (SSE4.2 / ARM CRC32).
+          However, it still traverses the entire buffered body on flush. For 1 MB responses near the
+          buffer limit, this is ~1 MB of memory bandwidth per request.
+        </p>
+        <p>
+          <strong>Recommendation</strong>: Consider incremental hashing (e.g., xxhash64) computed
+          during <code>Write</code> calls so flush is O(1). This spreads hashing cost across writes
+          and eliminates the single large checksum computation.
+        </p>
 
-            <h3>5. join() Wrapper Function <span class="tag success">Low Impact</span></h3>
-            <p>
-                The <code>join()</code> function in <code>util.go</code> simply delegates to <code>strings.Join</code>
-                with a hardcoded separator. It adds no value and was benchmarked at 104 ns vs <code>strings.Join</code> at 63 ns.
-            </p>
-            <p><strong>Recommendation</strong>: Inline <code>strings.Join(ss, ", ")</code> directly in callers
-                and remove <code>join()</code>. This saves a function call and ~40 ns per invocation.
-                Alternatively, pre-join config slice fields at initialization time.</p>
+        <h3>5. join() Wrapper Function <span class="tag success">Low Impact</span></h3>
+        <p>
+          The <code>join()</code> function in <code>util.go</code> simply delegates to
+          <code>strings.Join</code> with a hardcoded separator. It adds no value and was benchmarked
+          at 104 ns vs <code>strings.Join</code> at 63 ns.
+        </p>
+        <p>
+          <strong>Recommendation</strong>: Inline <code>strings.Join(ss, ", ")</code> directly in
+          callers and remove <code>join()</code>. This saves a function call and ~40 ns per
+          invocation. Alternatively, pre-join config slice fields at initialization time.
+        </p>
 
-            <h3>6. itoa vs strconv.Itoa <span class="tag success">Validated Win</span></h3>
-            <p>
-                The custom <code>itoa</code> (68 ns, 0 allocs) outperforms <code>strconv.Itoa</code> (89 ns, 4 allocs).
-                This validates the design decision to avoid importing <code>strconv</code> solely for this function.
-            </p>
-            <p><strong>Status</strong>: Keep as-is. The benchmark confirms the optimization is effective.</p>
+        <h3>6. itoa vs strconv.Itoa <span class="tag success">Validated Win</span></h3>
+        <p>
+          The custom <code>itoa</code> (68 ns, 0 allocs) outperforms <code>strconv.Itoa</code> (89
+          ns, 4 allocs). This validates the design decision to avoid importing
+          <code>strconv</code> solely for this function.
+        </p>
+        <p>
+          <strong>Status</strong>: Keep as-is. The benchmark confirms the optimization is effective.
+        </p>
 
-            <h3>7. HeaderSnapshot Shallow Copy <span class="tag info">Allocation Proportional</span></h3>
-            <p>
-                <code>HeaderSnapshot</code> allocates a new <code>http.Header</code> map and copies every value slice.
-                Allocation is proportional to header count. For responses with 20 headers, this is ~20 slice allocations.
-            </p>
-            <p><strong>Recommendation</strong>: Document that <code>HeaderSnapshot</code> is intended for testing and
-                debugging, not hot paths. If used in production logging, consider sampling or caching the snapshot.</p>
+        <h3>
+          7. HeaderSnapshot Shallow Copy <span class="tag info">Allocation Proportional</span>
+        </h3>
+        <p>
+          <code>HeaderSnapshot</code> allocates a new <code>http.Header</code> map and copies every
+          value slice. Allocation is proportional to header count. For responses with 20 headers,
+          this is ~20 slice allocations.
+        </p>
+        <p>
+          <strong>Recommendation</strong>: Document that <code>HeaderSnapshot</code> is intended for
+          testing and debugging, not hot paths. If used in production logging, consider sampling or
+          caching the snapshot.
+        </p>
 
-            <h3>8. Compression Buffer Growth <span class="tag success">Implemented</span></h3>
-            <p>
-                In <code>writeBuffered</code>, the internal <code>buf</code> grows via <code>append</code> up to <code>minSize</code>.
-                This can cause 2-3 reallocations as the slice capacity doubles from 0 to 512 B.
-            </p>
-            <p><strong>Status</strong>: Implemented in <code>newCompressWriter</code>. The buffer is now pre-allocated to
-            <code>max(minSize, 512)</code> capacity, eliminating intermediate allocations during buffering.</p>
+        <h3>8. Compression Buffer Growth <span class="tag success">Implemented</span></h3>
+        <p>
+          In <code>writeBuffered</code>, the internal <code>buf</code> grows via
+          <code>append</code> up to <code>minSize</code>. This can cause 2-3 reallocations as the
+          slice capacity doubles from 0 to 512 B.
+        </p>
+        <p>
+          <strong>Status</strong>: Implemented in <code>newCompressWriter</code>. The buffer is now
+          pre-allocated to <code>max(minSize, 512)</code> capacity, eliminating intermediate
+          allocations during buffering.
+        </p>
 
-            <h3>9. Accept-Encoding Negotiation Overhead <span class="tag warning">Per-Request Parsing</span></h3>
-            <p>
-                The compression middleware now parses <code>Accept-Encoding</code> per request, including RFC 7231 q-values.
-                Factory priority is pre-sorted at config time, but every request still scans the header and parses q-values.
-                For services with high RPS and simple <code>Accept-Encoding: gzip</code> clients, this is unnecessary work.
-            </p>
-            <p><strong>Recommendation</strong>: Add a fast path for the common single-encoding case (e.g., exact header match for "gzip")
-            before falling back to full negotiation. This could shave ~100-200 ns per compressed request.</p>
+        <h3>
+          9. Accept-Encoding Negotiation Overhead
+          <span class="tag warning">Per-Request Parsing</span>
+        </h3>
+        <p>
+          The compression middleware now parses <code>Accept-Encoding</code> per request, including
+          RFC 7231 q-values. Factory priority is pre-sorted at config time, but every request still
+          scans the header and parses q-values. For services with high RPS and simple
+          <code>Accept-Encoding: gzip</code> clients, this is unnecessary work.
+        </p>
+        <p>
+          <strong>Recommendation</strong>: Add a fast path for the common single-encoding case
+          (e.g., exact header match for "gzip") before falling back to full negotiation. This could
+          shave ~100-200 ns per compressed request.
+        </p>
 
-            <h3>10. Compression Benchmark Memory Artifact <span class="tag info">Measurement</span></h3>
-            <p>
-                The <code>BenchmarkCompression</code> result reports ~825 KB/op because <code>httptest.ResponseRecorder.Body</code>
-                grows as compressed output accumulates across iterations. This inflates the reported memory profile and can be
-                mistaken for a regression.
-            </p>
-            <p><strong>Recommendation</strong>: Consider a benchmark variant that writes to a fixed-size recorder or discards output
-            to isolate the middleware's true allocation profile. Document the artifact clearly in performance reports.</p>
-        </section>
+        <h3>10. Compression Benchmark Memory Artifact <span class="tag info">Measurement</span></h3>
+        <p>
+          The <code>BenchmarkCompression</code> result reports ~825 KB/op because
+          <code>httptest.ResponseRecorder.Body</code>
+          grows as compressed output accumulates across iterations. This inflates the reported
+          memory profile and can be mistaken for a regression.
+        </p>
+        <p>
+          <strong>Recommendation</strong>: Consider a benchmark variant that writes to a fixed-size
+          recorder or discards output to isolate the middleware's true allocation profile. Document
+          the artifact clearly in performance reports.
+        </p>
+      </section>
 
-        <section id="recommendations">
-            <h2>Actionable Recommendations</h2>
+      <section id="recommendations">
+        <h2>Actionable Recommendations</h2>
 
-            <h3>High Impact, Low Effort</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>File</th>
-                        <th>Expected Gain</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Remove <code>join()</code> wrapper, inline <code>strings.Join</code></td>
-                        <td><code>util.go</code>, callers</td>
-                        <td>~40 ns per header-joining call</td>
-                    </tr>
-                    <tr>
-                        <td>Document <code>HeaderSnapshot</code> as debug-only</td>
-                        <td><code>recorder.go</code></td>
-                        <td>Prevents accidental hot-path usage</td>
-                    </tr>
-                    <tr>
-                        <td>Pre-join CORS config slices at build time</td>
-                        <td><code>cors.go</code></td>
-                        <td>Eliminates repeated <code>strings.Join</code> on every request</td>
-                    </tr>
-                </tbody>
-            </table>
+        <h3>High Impact, Low Effort</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>File</th>
+              <th>Expected Gain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Remove <code>join()</code> wrapper, inline <code>strings.Join</code></td>
+              <td><code>util.go</code>, callers</td>
+              <td>~40 ns per header-joining call</td>
+            </tr>
+            <tr>
+              <td>Document <code>HeaderSnapshot</code> as debug-only</td>
+              <td><code>recorder.go</code></td>
+              <td>Prevents accidental hot-path usage</td>
+            </tr>
+            <tr>
+              <td>Pre-join CORS config slices at build time</td>
+              <td><code>cors.go</code></td>
+              <td>Eliminates repeated <code>strings.Join</code> on every request</td>
+            </tr>
+          </tbody>
+        </table>
 
-            <h3>Medium Impact, Medium Effort</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>File</th>
-                        <th>Expected Gain</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Build origin map + wildcard trie at CORS config validation</td>
-                        <td><code>cors.go</code></td>
-                        <td>O(n) to O(1) origin lookup for large allowlists</td>
-                    </tr>
-                    <tr>
-                        <td>Make content-type filtering configurable via <code>CompressionConfig</code></td>
-                        <td><code>compress_writer.go</code></td>
-                        <td>Lets users tune or extend the deny-list</td>
-                    </tr>
-                    <tr>
-                        <td>Add fast path for single-encoding <code>Accept-Encoding</code></td>
-                        <td><code>compression.go</code></td>
-                        <td>~100-200 ns per compressed request</td>
-                    </tr>
-                </tbody>
-            </table>
+        <h3>Medium Impact, Medium Effort</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>File</th>
+              <th>Expected Gain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Build origin map + wildcard trie at CORS config validation</td>
+              <td><code>cors.go</code></td>
+              <td>O(n) to O(1) origin lookup for large allowlists</td>
+            </tr>
+            <tr>
+              <td>Make content-type filtering configurable via <code>CompressionConfig</code></td>
+              <td><code>compress_writer.go</code></td>
+              <td>Lets users tune or extend the deny-list</td>
+            </tr>
+            <tr>
+              <td>Add fast path for single-encoding <code>Accept-Encoding</code></td>
+              <td><code>compression.go</code></td>
+              <td>~100-200 ns per compressed request</td>
+            </tr>
+          </tbody>
+        </table>
 
-            <h3>High Impact, High Effort</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>File</th>
-                        <th>Expected Gain</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Incremental hashing for ETag (xxhash64)</td>
-                        <td><code>etag.go</code></td>
-                        <td>Eliminates large CRC32 scan on flush; spreads cost</td>
-                    </tr>
-                    <tr>
-                        <td>Async logging option with bounded channel</td>
-                        <td><code>logging.go</code></td>
-                        <td>Removes 1.03 us from request path entirely</td>
-                    </tr>
-                    <tr>
-                        <td>Middleware fusion: combine header-only middlewares</td>
-                        <td>Multiple</td>
-                        <td>Reduces Chain allocations from 37 to ~20</td>
-                    </tr>
-                </tbody>
-            </table>
+        <h3>High Impact, High Effort</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>File</th>
+              <th>Expected Gain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Incremental hashing for ETag (xxhash64)</td>
+              <td><code>etag.go</code></td>
+              <td>Eliminates large CRC32 scan on flush; spreads cost</td>
+            </tr>
+            <tr>
+              <td>Async logging option with bounded channel</td>
+              <td><code>logging.go</code></td>
+              <td>Removes 1.03 us from request path entirely</td>
+            </tr>
+            <tr>
+              <td>Middleware fusion: combine header-only middlewares</td>
+              <td>Multiple</td>
+              <td>Reduces Chain allocations from 37 to ~20</td>
+            </tr>
+          </tbody>
+        </table>
 
-            <h3>Production Tuning Guide</h3>
-            <div class="two-col">
-                <div>
-                    <h4>For High-Throughput APIs (&gt;10K RPS)</h4>
-                    <ul>
-                        <li>Use <code>SecurityHeaders</code> + <code>Recovery</code> + <code>Timeout</code> only</li>
-                        <li>Skip <code>Logging</code> or use an async handler</li>
-                        <li>Disable <code>Compression</code> if behind a CDN</li>
-                        <li>Reduce <code>IdleTimeout</code> to 30s for faster connection turnover</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>For Bandwidth-Constrained Edge</h4>
-                    <ul>
-                        <li>Enable <code>Compression</code> at <code>gzip.BestSpeed</code> (level 1) or use <code>deflate</code> for CPU-constrained workloads</li>
-                        <li>Enable <code>ETag</code> with weak mode for dynamic content</li>
-                        <li>Use <code>CORS</code> with a small, fixed origin list</li>
-                        <li>Increase <code>IdleTimeout</code> to 120s for keep-alive reuse</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+        <h3>Production Tuning Guide</h3>
+        <div class="two-col">
+          <div>
+            <h4>For High-Throughput APIs (&gt;10K RPS)</h4>
+            <ul>
+              <li>
+                Use <code>SecurityHeaders</code> + <code>Recovery</code> + <code>Timeout</code> only
+              </li>
+              <li>Skip <code>Logging</code> or use an async handler</li>
+              <li>Disable <code>Compression</code> if behind a CDN</li>
+              <li>Reduce <code>IdleTimeout</code> to 30s for faster connection turnover</li>
+            </ul>
+          </div>
+          <div>
+            <h4>For Bandwidth-Constrained Edge</h4>
+            <ul>
+              <li>
+                Enable <code>Compression</code> at <code>gzip.BestSpeed</code> (level 1) or use
+                <code>deflate</code> for CPU-constrained workloads
+              </li>
+              <li>Enable <code>ETag</code> with weak mode for dynamic content</li>
+              <li>Use <code>CORS</code> with a small, fixed origin list</li>
+              <li>Increase <code>IdleTimeout</code> to 120s for keep-alive reuse</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-        <section>
-            <h2>Methodology</h2>
-            <p>
-                This review was conducted by reading every source file in the <code>httputil</code> package,
-                analyzing algorithmic complexity, running the full benchmark suite with memory profiling
-                (<code>-benchmem</code>), and comparing against Go standard library equivalents where applicable.
-                Benchmarks were executed on a single machine; absolute values will vary by hardware,
-                but relative rankings and allocation counts are portable.
-            </p>
-            <p>
-                The analysis covers 14 distinct middleware and utility components, 16 benchmark functions,
-                and approximately 1,600 lines of production Go code. All findings are reproducible via
-                <code>go test -bench=. -benchmem ./...</code>.
-            </p>
-        </section>
+      <section>
+        <h2>Methodology</h2>
+        <p>
+          This review was conducted by reading every source file in the
+          <code>httputil</code> package, analyzing algorithmic complexity, running the full
+          benchmark suite with memory profiling (<code>-benchmem</code>), and comparing against Go
+          standard library equivalents where applicable. Benchmarks were executed on a single
+          machine; absolute values will vary by hardware, but relative rankings and allocation
+          counts are portable.
+        </p>
+        <p>
+          The analysis covers 14 distinct middleware and utility components, 16 benchmark functions,
+          and approximately 1,600 lines of production Go code. All findings are reproducible via
+          <code>go test -bench=. -benchmem ./...</code>.
+        </p>
+      </section>
     </main>
 
     <footer>
-        <p>Generated from <code>github.com/larsartmann/httputil</code> &middot; Go 1.26.3 &middot; Performance Review &middot; 2026-06-14</p>
+      <p>
+        Generated from <code>github.com/larsartmann/httputil</code> &middot; Go 1.26.3 &middot;
+        Performance Review &middot; 2026-06-14
+      </p>
     </footer>
-</body>
+  </body>
 </html>

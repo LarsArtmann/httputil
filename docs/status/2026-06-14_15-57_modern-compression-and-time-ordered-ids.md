@@ -19,15 +19,15 @@ All quality gates pass: `go test`, race tests, `go vet`, and `golangci-lint run`
 
 ### Current Metrics
 
-| Metric | Value | Status |
-| --- | --- | --- |
-| Tests | 193 | ✅ passing |
-| Coverage | 90.4% | ✅ above 90% target |
-| Lint | 0 issues | ✅ clean |
-| Race | 0 races (`-count=3`) | ✅ clean |
-| Production `.go` files | 19 | — |
-| Test files | 21 | — |
-| Total Go LOC | ~5,949 | — |
+| Metric                 | Value                | Status              |
+| ---------------------- | -------------------- | ------------------- |
+| Tests                  | 193                  | ✅ passing          |
+| Coverage               | 90.4%                | ✅ above 90% target |
+| Lint                   | 0 issues             | ✅ clean            |
+| Race                   | 0 races (`-count=3`) | ✅ clean            |
+| Production `.go` files | 19                   | —                   |
+| Test files             | 21                   | —                   |
+| Total Go LOC           | ~5,949               | —                   |
 
 ---
 
@@ -184,7 +184,7 @@ Nothing is **totally fucked up** in the sense of broken builds, failing tests, o
 
 > **`CompressionConfig.QValues` is declared, documented, and exposed in the README, but it is never read by the negotiation logic. Was this field intended to be a server-side quality hint that influences encoding selection when the client omits q-values, or is it dead API surface that should be removed?**
 
-The README says: *"Server-side quality hints for clients without q-values."* That implies it should affect negotiation, yet `buildNegotiator` and `negotiateEncoding` ignore it entirely. I need a product decision:
+The README says: _"Server-side quality hints for clients without q-values."_ That implies it should affect negotiation, yet `buildNegotiator` and `negotiateEncoding` ignore it entirely. I need a product decision:
 
 - **If it should work:** I will implement it (merge client q-values with server q-values, validate ranges in `Validate()`).
 - **If it should not exist:** I will remove the field, its docs, and the README table entry before the next release to avoid lying API.
@@ -205,14 +205,14 @@ golangci-lint fmt --diff      no changes
 
 ## Risk Assessment
 
-| Risk | Level | Notes |
-| --- | --- | --- |
-| Broken builds | 🟢 Low | All gates pass. |
-| Misleading public API | 🟡 Medium | `QValues` field is documented but unused. |
-| Misleading benchmarks | 🟡 Medium | `BenchmarkCompression` memory metric is artifact. |
-| Editor/CI linter drift | 🟡 Medium | Confuses contributors. |
-| Coverage gaps | 🟢 Low | 90.4% meets target. |
-| Dependency policy | 🟢 Low | Still only `go-error-family`. |
+| Risk                   | Level     | Notes                                             |
+| ---------------------- | --------- | ------------------------------------------------- |
+| Broken builds          | 🟢 Low    | All gates pass.                                   |
+| Misleading public API  | 🟡 Medium | `QValues` field is documented but unused.         |
+| Misleading benchmarks  | 🟡 Medium | `BenchmarkCompression` memory metric is artifact. |
+| Editor/CI linter drift | 🟡 Medium | Confuses contributors.                            |
+| Coverage gaps          | 🟢 Low    | 90.4% meets target.                               |
+| Dependency policy      | 🟢 Low    | Still only `go-error-family`.                     |
 
 ## Recommendation
 

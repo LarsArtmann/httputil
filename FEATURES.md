@@ -10,18 +10,18 @@ _Updated: 2026-06-14_
 
 ### Core Middleware Suite (10 middlewares)
 
-| Middleware       | File                        | Config Type                            | Tests | Examples                     | Benchmarks                  | Fuzz              |
-| ---------------- | --------------------------- | -------------------------------------- | ----- | ---------------------------- | --------------------------- | ----------------- |
-| CORS             | `cors.go`                   | `CORSConfig` + `Validate()`            | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`        |
-| ClientIP         | `clientip.go`, `context.go` | —                                      | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`    |
-| RequestID        | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`   |
-| SecurityHeaders  | `security.go`               | `SecurityHeadersConfig` + `Validate()` | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                 |
-| Recovery         | `recovery.go`               | `*slog.Logger`                         | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                 |
-| Timeout          | `timeout.go`                | `time.Duration`                        | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                 |
-| Logging          | `logging.go`                | `*slog.Logger`                         | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                 |
-| ResponseRecorder | `recorder.go`               | —                                      | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                 |
-| Compression      | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
-| ETag             | `etag.go`                   | `ETagConfig` + `Validate()`            | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`        |
+| Middleware       | File                                   | Config Type                                                 | Tests | Examples                     | Benchmarks                  | Fuzz              |
+| ---------------- | -------------------------------------- | ----------------------------------------------------------- | ----- | ---------------------------- | --------------------------- | ----------------- |
+| CORS             | `cors.go`                              | `CORSConfig` + `Validate()`                                 | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`        |
+| ClientIP         | `clientip.go`, `context.go`            | —                                                           | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`    |
+| RequestID        | `requestid.go`, `id_generator.go`      | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`   |
+| SecurityHeaders  | `security.go`                          | `SecurityHeadersConfig` + `Validate()`                      | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                 |
+| Recovery         | `recovery.go`                          | `*slog.Logger`                                              | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                 |
+| Timeout          | `timeout.go`                           | `time.Duration`                                             | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                 |
+| Logging          | `logging.go`                           | `*slog.Logger`                                              | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                 |
+| ResponseRecorder | `recorder.go`                          | —                                                           | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                 |
+| Compression      | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
+| ETag             | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`        |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
