@@ -60,9 +60,7 @@ func TestChain_ETagThenCompression_IfNoneMatch304(t *testing.T) {
 
 	assertStatus(t, rec, http.StatusNotModified)
 
-	if rec.Body.Len() != 0 {
-		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
-	}
+	assertBodyEmpty(t, rec, "for 304")
 }
 
 func TestChain_CompressionThenETag_WrongOrder(t *testing.T) {

@@ -226,9 +226,7 @@ func TestCORS_MaxAgeZero(t *testing.T) {
 
 	middleware(inner).ServeHTTP(rec, req)
 
-	if got := rec.Header().Get("Access-Control-Max-Age"); got != "" {
-		t.Errorf("Max-Age header = %q, want empty when MaxAge is 0", got)
-	}
+	assertHeader(t, rec, "Access-Control-Max-Age", "")
 }
 
 func BenchmarkCORS(b *testing.B) {

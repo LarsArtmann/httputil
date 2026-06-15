@@ -31,10 +31,7 @@ func TestCompression_AcceptEncoding_Gzip(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)

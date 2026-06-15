@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"io"
 	"net/http"
-	"strings"
 	"testing"
 )
 
@@ -13,23 +12,16 @@ import (
 func TestNegotiator_PrefersGzip(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	encoding, _, ok := neg.negotiateEncoding("gzip, deflate")
-	if !ok {
-		t.Fatal("negotiation failed")
-	}
-
-	if encoding != encodingGzip {
-		t.Errorf("encoding = %q, want %q", encoding, encodingGzip)
-	}
+	assertNegotiatedEncoding(
+		t, newTestNegotiator(), "gzip, deflate", encodingGzip, "by default order",
+	)
 }
 
 // TestNegotiator_RespectsQValue verifies q-values determine priority.
 func TestNegotiator_RespectsQValue(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
+	neg := newTestNegotiator()
 
 	encoding, quality, ok := neg.negotiateEncoding("gzip;q=0.1, deflate;q=0.9")
 	if !ok {
@@ -49,16 +41,9 @@ func TestNegotiator_RespectsQValue(t *testing.T) {
 func TestNegotiator_QZeroDisables(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	encoding, _, ok := neg.negotiateEncoding("gzip;q=0, deflate")
-	if !ok {
-		t.Fatal("negotiation failed")
-	}
-
-	if encoding != encodingDeflate {
-		t.Errorf("encoding = %q, want %q (gzip should be disabled by q=0)", encoding, encodingDeflate)
-	}
+	assertNegotiatedEncoding(
+		t, newTestNegotiator(), "gzip;q=0, deflate", encodingDeflate, "gzip should be disabled by q=0",
+	)
 }
 
 // TestNegotiator_EmptyHeader verifies empty header picks first configured
@@ -66,65 +51,41 @@ func TestNegotiator_QZeroDisables(t *testing.T) {
 func TestNegotiator_EmptyHeader(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	encoding, _, ok := neg.negotiateEncoding("")
-	if !ok {
-		t.Fatal("negotiation failed on empty header")
-	}
-
 	// gzip ranks higher than deflate in preferredEncodingOrder.
-	if encoding != encodingGzip {
-		t.Errorf("encoding = %q, want %q", encoding, encodingGzip)
-	}
+	assertNegotiatedEncoding(
+		t, newTestNegotiator(), "", encodingGzip, "empty header picks top of priority order",
+	)
 }
 
 // TestNegotiator_UnsupportedEncoding verifies unsupported encodings are skipped.
 func TestNegotiator_UnsupportedEncoding(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	encoding, _, ok := neg.negotiateEncoding("br, deflate, snappy")
-	if !ok {
-		t.Fatal("negotiation failed")
-	}
-
-	if encoding != encodingDeflate {
-		t.Errorf("encoding = %q, want %q (br and snappy are unsupported)", encoding, encodingDeflate)
-	}
+	assertNegotiatedEncoding(
+		t, newTestNegotiator(), "br, deflate, snappy", encodingDeflate, "br and snappy are unsupported",
+	)
 }
 
 // TestNegotiator_AllExcludedFallsBackToIdentity verifies graceful fallback.
 func TestNegotiator_AllExcludedFallsBackToIdentity(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	encoding, _, ok := neg.negotiateEncoding("gzip;q=0, deflate;q=0")
-	if !ok {
-		t.Fatal("negotiation failed")
-	}
-
-	if encoding != encodingIdentity {
-		t.Errorf("encoding = %q, want %q (identity fallback)", encoding, encodingIdentity)
-	}
+	assertNegotiatedEncoding(
+		t, newTestNegotiator(), "gzip;q=0, deflate;q=0", encodingIdentity, "identity fallback when all excluded",
+	)
 }
 
 // TestNegotiator_WhitespaceHandled verifies header whitespace is tolerated.
 func TestNegotiator_WhitespaceHandled(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	encoding, _, ok := neg.negotiateEncoding("  gzip  ;  q=0.5  ,  deflate  ;  q=0.8  ")
-	if !ok {
-		t.Fatal("negotiation failed")
-	}
-
-	if encoding != encodingDeflate {
-		t.Errorf("encoding = %q, want %q (whitespace should be trimmed)", encoding, encodingDeflate)
-	}
+	assertNegotiatedEncoding(
+		t,
+		newTestNegotiator(),
+		"  gzip  ;  q=0.5  ,  deflate  ;  q=0.8  ",
+		encodingDeflate,
+		"whitespace should be trimmed",
+	)
 }
 
 // TestCompression_Deflate verifies deflate encoding works end-to-end.
@@ -132,10 +93,7 @@ func TestCompression_Deflate(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set("Accept-Encoding", "deflate")
@@ -166,10 +124,7 @@ func TestCompression_QValuePicksDeflate(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set("Accept-Encoding", "gzip;q=0.1, deflate;q=0.9")
@@ -206,9 +161,7 @@ func TestCompression_CustomFactory(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	// No compression should occur.
-	if got := rec.Header().Get("Content-Encoding"); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty (passthrough)", got)
-	}
+	assertHeader(t, rec, "Content-Encoding", "")
 
 	if got := rec.Body.String(); got != "hello world" {
 		t.Errorf("body = %q, want %q", got, "hello world")

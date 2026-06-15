@@ -161,12 +161,7 @@ func TestServerStartAndShutdown(t *testing.T) {
 
 	errChan := srv.Start()
 
-	select {
-	case err := <-errChan:
-		t.Fatalf("server failed to start: %v", err)
-	case <-time.After(100 * time.Millisecond):
-		// Server started successfully.
-	}
+	waitForServerStart(t, errChan, 100*time.Millisecond)
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -215,12 +210,7 @@ func TestServerServesRequests(t *testing.T) {
 
 	errChan := srv.Start()
 
-	select {
-	case err := <-errChan:
-		t.Fatalf("server failed to start: %v", err)
-	case <-time.After(100 * time.Millisecond):
-		// Server started successfully.
-	}
+	waitForServerStart(t, errChan, 100*time.Millisecond)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

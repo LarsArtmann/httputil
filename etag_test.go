@@ -64,9 +64,7 @@ func testETagIfNoneMatchReturns304(t *testing.T, ifNoneMatchValue string) {
 
 	assertStatus(t, rec, http.StatusNotModified)
 
-	if rec.Body.Len() != 0 {
-		t.Errorf("body length = %d, want 0 for 304", rec.Body.Len())
-	}
+	assertBodyEmpty(t, rec, "for 304")
 }
 
 func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
@@ -128,9 +126,7 @@ func TestETag_NonGetHead(t *testing.T) {
 
 	assertStatus(t, rec, http.StatusOK)
 
-	if got := rec.Header().Get(headerETag); got != "" {
-		t.Errorf("ETag = %q, want empty for POST", got)
-	}
+	assertETagEmpty(t, rec, "for POST")
 }
 
 func TestETag_201Created_IsCacheable(t *testing.T) {
@@ -163,9 +159,7 @@ func TestETag_MemoryLimit_DisablesETag(t *testing.T) {
 
 	assertStatus(t, rec, http.StatusOK)
 
-	if got := rec.Header().Get(headerETag); got != "" {
-		t.Errorf("ETag = %q, want empty when buffer limit exceeded", got)
-	}
+	assertETagEmpty(t, rec, "when buffer limit exceeded")
 
 	assertBody(t, rec, "this body exceeds the limit")
 }
@@ -260,9 +254,7 @@ func TestETag_Flush(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if got := rec.Header().Get(headerETag); got != "" {
-		t.Errorf("ETag = %q, want empty after flush", got)
-	}
+	assertETagEmpty(t, rec, "after flush")
 
 	assertBody(t, rec, "partial more")
 }

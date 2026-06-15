@@ -107,11 +107,7 @@ func TestRequestIDConfig_Validate_NilGenerateID(t *testing.T) {
 func TestRequestIDConfig_Validate_EmptyHeaderName(t *testing.T) {
 	t.Parallel()
 
-	cfg := RequestIDConfig{
-		HeaderName:    "",
-		ForwardHeader: "X-Request-ID",
-		GenerateID:    func() string { return "id" },
-	}
+	cfg := newRequestIDConfigForTest("", "X-Request-ID")
 
 	err := cfg.Validate()
 	if err == nil {
@@ -126,11 +122,7 @@ func TestRequestIDConfig_Validate_EmptyHeaderName(t *testing.T) {
 func TestRequestIDConfig_Validate_EmptyForwardHeader(t *testing.T) {
 	t.Parallel()
 
-	cfg := RequestIDConfig{
-		HeaderName:    "X-Request-ID",
-		ForwardHeader: "",
-		GenerateID:    func() string { return "id" },
-	}
+	cfg := newRequestIDConfigForTest("X-Request-ID", "")
 
 	err := cfg.Validate()
 	if err == nil {

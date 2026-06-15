@@ -8,7 +8,9 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 )
 
 // newNoOpHandler returns an http.HandlerFunc that does nothing.
@@ -67,6 +69,16 @@ func newWriteStatusHandler(status int, body string) http.HandlerFunc {
 	})
 }
 
+// newWriteLargeBodyHandler returns an http.HandlerFunc that writes StatusOK
+// and a body of size defaultCompressionMinSize+1, which is just above the
+// compression threshold used in middleware tests.
+func newWriteLargeBodyHandler() http.HandlerFunc {
+	return newWriteStatusHandler(
+		http.StatusOK,
+		strings.Repeat("a", defaultCompressionMinSize+1),
+	)
+}
+
 // newWriteBodyHandler returns an http.HandlerFunc that writes OK status and body.
 func newWriteBodyHandler(body []byte) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -122,6 +134,78 @@ func assertBody(t *testing.T, rec *httptest.ResponseRecorder, want string) {
 
 	if got := rec.Body.String(); got != want {
 		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
+// assertBodyEmpty checks that a response recorder has no body, formatted with
+// msg to clarify the test intent (e.g. "for 304").
+func assertBodyEmpty(t *testing.T, rec *httptest.ResponseRecorder, msg string) {
+	t.Helper()
+
+	if rec.Body.Len() != 0 {
+		t.Errorf("body length = %d, want 0 %s", rec.Body.Len(), msg)
+	}
+}
+
+// assertETagEmpty checks that a response recorder has no ETag header,
+// formatted with msg to clarify the test intent (e.g. "for POST").
+func assertETagEmpty(t *testing.T, rec *httptest.ResponseRecorder, msg string) {
+	t.Helper()
+
+	if got := rec.Header().Get(headerETag); got != "" {
+		t.Errorf("ETag = %q, want empty %s", got, msg)
+	}
+}
+
+// waitForServerStart blocks until errChan receives an error or the timeout
+// elapses. It fails the test if an error is received and silently returns on
+// timeout, indicating the server started successfully.
+func waitForServerStart(t *testing.T, errChan <-chan error, timeout time.Duration) {
+	t.Helper()
+
+	select {
+	case err := <-errChan:
+		t.Fatalf("server failed to start: %v", err)
+	case <-time.After(timeout):
+		// Server started successfully.
+	}
+}
+
+// assertNegotiatedEncoding runs the negotiator on header, fails the test on
+// negotiation failure, and verifies the result matches wantEncoding. The
+// contextMsg is appended to the failure message to clarify the test intent
+// (e.g. "gzip should be disabled by q=0").
+func assertNegotiatedEncoding(
+	t *testing.T,
+	neg *negotiator,
+	header, wantEncoding, contextMsg string,
+) {
+	t.Helper()
+
+	encoding, _, ok := neg.negotiateEncoding(header)
+	if !ok {
+		t.Fatalf("negotiation failed: %s", contextMsg)
+	}
+
+	if encoding != wantEncoding {
+		t.Errorf("encoding = %q, want %q (%s)", encoding, wantEncoding, contextMsg)
+	}
+}
+
+// newTestNegotiator returns a negotiator built from the default writer
+// factories, the standard fixture for negotiation tests.
+func newTestNegotiator() *negotiator {
+	return buildNegotiator(DefaultWriterFactories())
+}
+
+// newRequestIDConfigForTest returns a RequestIDConfig with a stub ID
+// generator and the supplied header names. Used by validation tests where
+// the exact header field under test is the only varying input.
+func newRequestIDConfigForTest(headerName, forwardHeader string) RequestIDConfig {
+	return RequestIDConfig{
+		HeaderName:    headerName,
+		ForwardHeader: forwardHeader,
+		GenerateID:    func() string { return "id" },
 	}
 }
 
