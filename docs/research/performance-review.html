@@ -635,7 +635,7 @@
           <div class="card positive">
             <div class="card-label">Best Allocation Profile</div>
             <div class="card-value">0 allocs</div>
-            <div class="card-detail">ResponseRecorder and custom itoa</div>
+            <div class="card-detail">ResponseRecorder — zero allocations</div>
           </div>
           <div class="card warning">
             <div class="card-label">Highest Memory Usage</div>
@@ -686,14 +686,6 @@
             <div class="bar-track">
               <div class="bar-fill cpu" style="width: 0.14%">
                 <span class="bar-value">44.2 ns</span>
-              </div>
-            </div>
-          </div>
-          <div class="bar-row">
-            <div class="bar-label">itoa (custom)</div>
-            <div class="bar-track">
-              <div class="bar-fill cpu" style="width: 0.2%">
-                <span class="bar-value">61.8 ns</span>
               </div>
             </div>
           </div>
@@ -824,14 +816,6 @@
         <div class="bar-chart">
           <div class="bar-row">
             <div class="bar-label">ResponseRecorder</div>
-            <div class="bar-track">
-              <div class="bar-fill alloc" style="width: 0%">
-                <span class="bar-value">0 allocs</span>
-              </div>
-            </div>
-          </div>
-          <div class="bar-row">
-            <div class="bar-label">itoa</div>
             <div class="bar-track">
               <div class="bar-fill alloc" style="width: 0%">
                 <span class="bar-value">0 allocs</span>
@@ -1001,7 +985,6 @@
             <h4>Zero-Allocation Paths</h4>
             <ul>
               <li><code>ResponseRecorder.Write</code> — stack-only fields</li>
-              <li><code>itoa</code> — fixed [20]byte stack array</li>
               <li><code>responseWrapper.WriteHeader</code> — no allocations</li>
               <li><code>flushDelegate</code> — type assertion, no alloc</li>
             </ul>
@@ -1312,8 +1295,8 @@
             handler dominates.
           </li>
           <li>
-            <strong>Allocation efficiency</strong>: The library has 3 zero-allocation components
-            (ResponseRecorder, itoa, join). The remaining middlewares average ~9 allocs/op.
+            <strong>Allocation efficiency</strong>: ResponseRecorder is the single zero-allocation
+            component. The remaining middlewares average ~9 allocs/op.
           </li>
         </ul>
       </section>
@@ -1378,26 +1361,28 @@ for _, prefix := range incompressiblePrefixes {
           and eliminates the single large checksum computation.
         </p>
 
-        <h3>5. join() Wrapper Function <span class="tag success">Low Impact</span></h3>
+        <h3>5. join() Wrapper Function <span class="tag success">Removed</span></h3>
         <p>
-          The <code>join()</code> function in <code>util.go</code> simply delegates to
-          <code>strings.Join</code> with a hardcoded separator. It adds no value and was benchmarked
+          The <code>join()</code> function in <code>util.go</code> simply delegated to
+          <code>strings.Join</code> with a hardcoded separator. It added no value and was benchmarked
           at 104 ns vs <code>strings.Join</code> at 63 ns.
         </p>
         <p>
-          <strong>Recommendation</strong>: Inline <code>strings.Join(ss, ", ")</code> directly in
-          callers and remove <code>join()</code>. This saves a function call and ~40 ns per
-          invocation. Alternatively, pre-join config slice fields at initialization time.
+          <strong>Status</strong>: Removed. <code>util.go</code> has been deleted; callers now use
+          <code>strings.Join(ss, ", ")</code> directly.
         </p>
 
-        <h3>6. itoa vs strconv.Itoa <span class="tag success">Validated Win</span></h3>
+        <h3>6. itoa vs strconv.Itoa <span class="tag success">Removed</span></h3>
         <p>
-          The custom <code>itoa</code> (68 ns, 0 allocs) outperforms <code>strconv.Itoa</code> (89
-          ns, 4 allocs). This validates the design decision to avoid importing
-          <code>strconv</code> solely for this function.
+          The custom <code>itoa</code> was hand-rolled to avoid importing <code>strconv</code>.
+          Benchmarks showed it appeared to outperform <code>strconv.Itoa</code>, but the apparent win
+          was a benchmark artifact: the custom <code>itoa</code> result was dead-code-elided by the
+          compiler (0 allocs), while <code>strconv.Itoa</code> was not (4 allocs). In real usage
+          where the result is consumed, <code>strconv.Itoa</code> is allocation-free.
         </p>
         <p>
-          <strong>Status</strong>: Keep as-is. The benchmark confirms the optimization is effective.
+          <strong>Status</strong>: Removed. <code>util.go</code> has been deleted; callers now use
+          <code>strconv.Itoa</code> directly.
         </p>
 
         <h3>
@@ -1472,7 +1457,7 @@ for _, prefix := range incompressiblePrefixes {
             <tr>
               <td>Remove <code>join()</code> wrapper, inline <code>strings.Join</code></td>
               <td><code>util.go</code>, callers</td>
-              <td>~40 ns per header-joining call</td>
+              <td>Done — <code>util.go</code> deleted, callers use <code>strings.Join</code> directly</td>
             </tr>
             <tr>
               <td>Document <code>HeaderSnapshot</code> as debug-only</td>

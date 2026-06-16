@@ -97,7 +97,6 @@ Not 100% (target met at 90%+). Gaps exist in:
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
 - Edge cases in `CORS` wildcard matching with unusual patterns.
 - `ResponseRecorder` hijack failure paths.
-- Some `util.go` branches (`itoa` negative numbers, `join` empty slices).
 
 ---
 
