@@ -1,5 +1,9 @@
 package httputil
 
+import (
+	"sync"
+)
+
 // negotiator pre-compiles encoding priority at config time so per-request
 // parsing only does simple string matching.
 type negotiator struct {
@@ -8,6 +12,9 @@ type negotiator struct {
 	order []string
 	// factories maps encoding name to its factory.
 	factories map[string]WriterFactory
+	// pools maps encoding name to a sync.Pool of reusable writers for that
+	// factory. Owned per Compression middleware instance so it is bounded.
+	pools map[string]*sync.Pool
 }
 
 // buildNegotiator pre-parses the factory map and assigns each encoding a
@@ -44,7 +51,26 @@ func buildNegotiator(factories map[string]WriterFactory) *negotiator {
 	return &negotiator{
 		order:     order,
 		factories: factories,
+		pools:     buildWriterPools(factories),
 	}
+}
+
+// buildWriterPools creates one writer pool per factory, keyed by encoding
+// name. Pools live for the negotiator's lifetime (one Compression instance).
+func buildWriterPools(factories map[string]WriterFactory) map[string]*sync.Pool {
+	pools := make(map[string]*sync.Pool, len(factories))
+
+	for name, factory := range factories {
+		pools[name] = newWriterPool(factory)
+	}
+
+	return pools
+}
+
+// poolFor returns the writer pool for the given encoding, or nil if the
+// encoding is not registered.
+func (n *negotiator) poolFor(encoding string) *sync.Pool {
+	return n.pools[encoding]
 }
 
 // nameOffset returns a stable hash of name's bytes for ordering unknown
@@ -83,6 +109,15 @@ var preferredEncodingOrder = []string{
 func (n *negotiator) negotiateEncoding(header string) (string, float64, bool) {
 	if header == "" {
 		return n.negotiateEmptyHeader()
+	}
+
+	// Fast path: a single clean token with no list separators or q-values
+	// (e.g. "gzip"). This is the common case for non-browser clients and skips
+	// the q-value scanner (which allocates a lowercased copy of the token).
+	// Multi-token headers, q-values, whitespace, and case variants all miss the
+	// map lookup and fall through to the full RFC 7231 parser.
+	if _, ok := n.factories[header]; ok {
+		return header, defaultQValue, true
 	}
 
 	bestName, bestQ := n.scanAcceptEncoding(header)

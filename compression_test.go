@@ -253,7 +253,13 @@ func TestCompression_Hijack_SetsPlainMode(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	compressWriter := newCompressWriter(newHijackRecorder(), cfg.MinSize, encodingGzip, GzipWriterFactory(cfg.Level))
+	compressWriter := newCompressWriter(
+		newHijackRecorder(),
+		cfg.MinSize,
+		encodingGzip,
+		GzipWriterFactory(cfg.Level),
+		newWriterPool(GzipWriterFactory(cfg.Level)),
+	)
 
 	_, _, err := compressWriter.Hijack()
 	if err != nil {

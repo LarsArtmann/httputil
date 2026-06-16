@@ -11,12 +11,11 @@ func (w *compressWriter) startCompression() error {
 	w.Header().Set(headerContentEncoding, w.encoding)
 	w.Header().Del(headerContentLength)
 
-	// Pull a writer from the per-factory pool. The pool key is the
-	// factory function pointer; each unique factory (e.g., the default
-	// gzip, deflate) has its own pool. The pool's New function creates
-	// a writer bound to io.Discard; we Reset() it to our real writer
-	// below to recycle the expensive internal state.
-	pool := getWriterPool(w.factory)
+	// Pull a writer from this middleware instance's pool (owned by the
+	// negotiator and keyed by encoding name). The pool's New function creates
+	// a writer bound to io.Discard; we Reset() it to our real writer below to
+	// recycle the expensive internal state.
+	pool := w.pool
 	raw := pool.Get()
 
 	writer, ok := raw.(io.WriteCloser)

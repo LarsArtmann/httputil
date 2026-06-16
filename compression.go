@@ -184,7 +184,7 @@ func Compression(cfg CompressionConfig) Middleware {
 
 			factory := cfg.WriterFactories[encoding]
 
-			cw := newCompressWriter(resp, cfg.MinSize, encoding, factory)
+			cw := newCompressWriter(resp, cfg.MinSize, encoding, factory, neg.poolFor(encoding))
 			defer func() { _ = cw.Close() }()
 
 			next.ServeHTTP(cw, req)

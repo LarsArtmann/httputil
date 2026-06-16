@@ -78,6 +78,19 @@ func CORS(cfg CORSConfig) Middleware {
 		allowCredentials = "true"
 	}
 
+	// Pre-compute the joined header values once. cfg is captured per middleware
+	// instance and never mutated, so recomputing these joins on every request
+	// was pure waste (2-3 allocations per response).
+	allowMethods := strings.Join(cfg.AllowedMethods, ", ")
+	allowHeaders := strings.Join(cfg.AllowedHeaders, ", ")
+	exposeHeaders := strings.Join(cfg.ExposedHeaders, ", ")
+	hasExposeHeaders := len(cfg.ExposedHeaders) > 0
+
+	maxAge := ""
+	if cfg.MaxAge > 0 {
+		maxAge = strconv.Itoa(cfg.MaxAge)
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			allowOrigin := "*"
@@ -88,16 +101,16 @@ func CORS(cfg CORSConfig) Middleware {
 			}
 
 			resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-			resp.Header().Set("Access-Control-Allow-Methods", strings.Join(cfg.AllowedMethods, ", "))
-			resp.Header().Set("Access-Control-Allow-Headers", strings.Join(cfg.AllowedHeaders, ", "))
+			resp.Header().Set("Access-Control-Allow-Methods", allowMethods)
+			resp.Header().Set("Access-Control-Allow-Headers", allowHeaders)
 			resp.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
 
-			if len(cfg.ExposedHeaders) > 0 {
-				resp.Header().Set("Access-Control-Expose-Headers", strings.Join(cfg.ExposedHeaders, ", "))
+			if hasExposeHeaders {
+				resp.Header().Set("Access-Control-Expose-Headers", exposeHeaders)
 			}
 
-			if cfg.MaxAge > 0 {
-				resp.Header().Set("Access-Control-Max-Age", strconv.Itoa(cfg.MaxAge))
+			if maxAge != "" {
+				resp.Header().Set("Access-Control-Max-Age", maxAge)
 			}
 
 			if req.Method == http.MethodOptions && !cfg.OptionsPassthrough {

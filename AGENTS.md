@@ -1,6 +1,6 @@
 # httputil — AGENTS.md
 
-**Updated:** 2026-06-08
+**Updated:** 2026-06-17
 
 ## Hard Constraints (Will Break Your Code)
 
@@ -78,9 +78,11 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `compression_qvalue.go`       | (unexported q-value parsers)                                                                                                                                                              | RFC 7231 q-value parsing helpers                                 |
 | `compress_writer.go`          | (unexported `compressWriter`)                                                                                                                                                             | Buffered compress-or-pass-through response writer state machine  |
 | `compress_writer_compress.go` | (unexported `compressWriter.startCompression`)                                                                                                                                            | Compression writer setup and pool integration                    |
-| `compress_pool.go`            | (unexported `getWriterPool`)                                                                                                                                                              | Per-`WriterFactory` `sync.Pool` for compression writers          |
+| `compress_pool.go`            | (unexported `newWriterPool`)                                                                                                                                                              | Per-encoding writer pools owned by the negotiator                |
 | `compress_content_type.go`    | (unexported `isCompressibleContentType`)                                                                                                                                                  | Deny-list content-type filtering for compression                 |
 | `etag.go`                     | `ETagConfig`, `DefaultETagConfig()`, `ETag()`, `Validate()`                                                                                                                               | ETag generation + 304 conditional request middleware             |
+| `health.go`                   | `HealthStatus`, `HealthResponse`, `HealthHandler()`, `LiveHandler()`, `ReadyHandler()`, `RegisterHealth()`                                                                                | Kubernetes-compatible health endpoints                           |
+| `server.go`                   | `ServerConfig`, `DefaultServerConfig()`, `NewServer()`, `Server`, `Start()`, `Shutdown()`, `Addr()`                                                                                       | Server lifecycle: config, start, graceful shutdown               |
 | `wrapper.go`                  | (unexported `responseWrapper`)                                                                                                                                                            | Shared ResponseWriter wrapper for compress/etag writers          |
 | `testutil_test.go`            | (unexported `newNoOpHandler`, `newCountingHandler`, `newWriteStatusHandler`, `newWriteBodyHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertSliceEqual`) | Shared test helpers for consistent test patterns                 |
 | `doc.go`                      | (package doc only)                                                                                                                                                                        | Package-level GoDoc documentation                                |
@@ -106,7 +108,7 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **`ResponseRecorder.Status()` returns `0`** (not `200`) when `WriteHeader` hasn't been called. Check `WroteHeader()` to distinguish "no status set" from "status was actually 0".
 - **`ClientIP` trusts proxy headers blindly** — it does not validate X-Forwarded-For or X-Real-IP. Only safe behind a reverse proxy that strips/overwrites these headers.
 - **`Compression` negotiates encodings** per request from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity). If no header is present, the highest-priority configured encoding is chosen.
-- **`Compression` pools writers per `WriterFactory`** pointer, so gzip and deflate each have their own `sync.Pool`. Custom factories can opt into pooling by implementing `Reset(io.Writer)`.
+- **`Compression` pools writers per encoding**, so gzip and deflate each have their own `sync.Pool` owned by the negotiator (one pool per encoding per `Compression` instance). Custom factories can opt into pooling by implementing `Reset(io.Writer)`.
 - **`RequestID` default generator** produces a 16-byte time-ordered ID (Unix seconds + atomic counter + random tail) and amortizes `crypto/rand` syscalls across ~256 IDs via a process-wide buffer.
 - **`CORS` closure captures `allowOrigin`** before the per-request handler — if no `Origin` header is present and `AllowAllOrigins` is false, the default `"*"` is used. This is a known limitation, not a bug to fix.
 

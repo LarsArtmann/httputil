@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Compression()` now negotiates encodings from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity).
 - `deflate` encoding support via `DeflateWriterFactory()` and `compress/flate`.
 - `WriterFactory` plugin interface and `DefaultWriterFactories()` for adding custom encodings (brotli, zstd, lz4) without core dependencies.
-- Per-factory `sync.Pool` for writer reuse, plus buffer pre-allocation to `max(minSize, 512)` in `compressWriter`.
+- Per-encoding `sync.Pool` for writer reuse (owned by the negotiator for each `Compression` instance), plus buffer pre-allocation to `max(minSize, 512)` in `compressWriter`.
 - New `id_generator.go`: time-ordered 16-byte request IDs (Unix seconds + atomic counter + random tail) with amortized `crypto/rand` buffering.
 - New tests: `compression_negotiator_test.go` and `id_generator_test.go`.
 - New exports: `DefaultWriterFactories()`, `GzipWriterFactory()`, `DeflateWriterFactory()`.
@@ -20,12 +20,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `RequestID` default `GenerateID` now produces sortable, monotonic 32-character hex IDs instead of fully random 16-byte hex IDs.
 - `Compression` benchmark memory profile now reports higher bytes/op due to `httptest.ResponseRecorder.Body` growth; this is a measurement artifact, not a production regression.
+- `CORS()` pre-computes the joined `Access-Control-Allow-Methods/Headers/Expose-Headers` and `Max-Age` strings once at construction instead of on every request (removes 2-3 allocations/response, ~36% faster).
+- `Compression` negotiator fast-paths single-token `Accept-Encoding` headers (e.g. `gzip`), skipping the q-value scanner (~7x faster for that common case).
 - Documentation updated: `README.md`, `FEATURES.md`, `TODO_LIST.md`, `AGENTS.md`, and `docs/research/performance-review.html`.
-- Test count: 193 tests, 90.4% coverage.
+- Test suite passes with >90% statement coverage; adds `FuzzCORSWildcardPattern`, compression writer error-branch tests, and a `ResponseRecorder` hijack-failure test.
 
 ### Removed
 
+- `util.go` deleted: the unexported `itoa()` and `join()` helpers are replaced by stdlib `strconv` and `strings`. No public API change. The prior benchmark portraying `strconv.Itoa` as allocating was a dead-code-elision measurement artifact — in real usage `strconv.Itoa` is allocation-free.
+
 - `http.Pusher` support removed: HTTP/2 Server Push was removed from Chrome in 2023 and is not part of HTTP/3. All Pusher-related code, error codes (`ErrCodePushUnsupported`, `ErrCodePushFailed`), and tests have been removed. This is a **breaking change**.
+
+### Fixed
+
+- `Compression` writer pool leak: pools were keyed by the address of a function parameter, which is unique per call, so a new pool entry was created on every request and writers were never reused (an unbounded memory leak that also defeated the documented pooling). Pools are now owned by the negotiator and keyed by encoding name, bounded to one pool per encoding per `Compression` instance.
 
 ## [0.1.1] - 2026-06-08
 

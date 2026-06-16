@@ -8,32 +8,17 @@ import (
 
 var errUnexpectedPoolType = errors.New("unexpected pool element type")
 
-//nolint:gochecknoglobals // Per-factory writer pools amortize compression setup.
-var (
-	writerPoolsMu sync.RWMutex
-	writerPools   = make(map[*WriterFactory]*sync.Pool)
-)
-
-func getWriterPool(factory WriterFactory) *sync.Pool {
-	writerPoolsMu.RLock()
-
-	pool, ok := writerPools[&factory]
-
-	writerPoolsMu.RUnlock()
-
-	if ok {
-		return pool
-	}
-
-	writerPoolsMu.Lock()
-	defer writerPoolsMu.Unlock()
-
-	pool, ok = writerPools[&factory]
-	if ok {
-		return pool
-	}
-
-	pool = &sync.Pool{
+// newWriterPool builds a sync.Pool whose New constructs fresh compression
+// writers via factory bound to io.Discard. Callers Reset() the pooled writer
+// to a concrete destination before use.
+//
+// The pool is owned by the negotiator for the lifetime of a single Compression
+// middleware instance and keyed by encoding name, so it is bounded rather than
+// process-global. A global registry keyed by the factory value is impossible
+// (function values are not comparable in Go) and keying by the factory's
+// parameter address created a fresh entry on every call (a leak).
+func newWriterPool(factory WriterFactory) *sync.Pool {
+	return &sync.Pool{
 		New: func() any {
 			// Discard writer; will be Reset() before use.
 			w, err := factory(io.Discard)
@@ -44,7 +29,4 @@ func getWriterPool(factory WriterFactory) *sync.Pool {
 			return w
 		},
 	}
-	writerPools[&factory] = pool
-
-	return pool
 }

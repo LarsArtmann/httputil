@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -316,4 +317,35 @@ func TestCORS_ConcurrentRequests_NoRace(t *testing.T) {
 	}
 
 	waitGroup.Wait()
+}
+
+// FuzzCORSWildcardPattern fuzzes matchWildcardOrigin with unusual and
+// adversarial pattern/origin pairs (*.*, .*, a.*.b, empty, unicode, etc.).
+// It enforces that the matcher never panics, is deterministic, and only ever
+// returns true for "*."-prefixed patterns.
+func FuzzCORSWildcardPattern(f *testing.F) {
+	f.Add("*.example.com", "https://sub.example.com")
+	f.Add("*.*", "http://a.b")
+	f.Add(".*", "http://x")
+	f.Add("a.*.b", "http://a.x.b")
+	f.Add("*.", "http://.")
+	f.Add("*..", "http://a..")
+	f.Add("", "")
+	f.Add("*", "http://anything")
+	f.Add("*.example.com", "http://example.com")
+	f.Add("*.exämple.com", "http://ö.exämple.com")
+
+	f.Fuzz(func(t *testing.T, pattern, origin string) {
+		got := matchWildcardOrigin(pattern, origin)
+
+		// A pure matcher must be stable across calls.
+		if matchWildcardOrigin(pattern, origin) != got {
+			t.Fatalf("matchWildcardOrigin not deterministic for pattern=%q origin=%q", pattern, origin)
+		}
+
+		// Contract: only "*."-prefixed patterns can ever match.
+		if !strings.HasPrefix(pattern, "*.") && got {
+			t.Fatalf("matched non-wildcard pattern=%q origin=%q", pattern, origin)
+		}
+	})
 }

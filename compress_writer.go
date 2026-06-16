@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -20,6 +21,7 @@ type compressWriter struct {
 
 	encoding    string
 	factory     WriterFactory
+	pool        *sync.Pool
 	minSize     int
 	buf         []byte
 	compressing bool
@@ -47,6 +49,7 @@ func newCompressWriter(
 	minSize int,
 	encoding string,
 	factory WriterFactory,
+	pool *sync.Pool,
 ) *compressWriter {
 	// Pre-allocate buf to minSize capacity. This avoids 2-3 intermediate
 	// reallocations as the slice grows from 0 to minSize via append.
@@ -56,6 +59,7 @@ func newCompressWriter(
 		responseWrapper: newResponseWrapper(resp),
 		encoding:        encoding,
 		factory:         factory,
+		pool:            pool,
 		minSize:         minSize,
 		buf:             make([]byte, 0, bufCap),
 		compressing:     false,
@@ -229,7 +233,7 @@ func (w *compressWriter) Close() error {
 		// implement resettableWriter (gzip.Writer, flate.Writer) are
 		// poolable; others are released for GC.
 		if _, resettable := w.writer.(resettableWriter); resettable {
-			getWriterPool(w.factory).Put(w.writer)
+			w.pool.Put(w.writer)
 		}
 
 		w.writer = nil

@@ -183,3 +183,38 @@ func TestCompressionConfig_Validate_EmptyFactories(t *testing.T) {
 		t.Fatal("Validate() error = nil, want error for empty factories")
 	}
 }
+
+// TestNegotiator_SingleTokenFastPath verifies a single clean encoding token
+// (the common non-browser case) resolves directly without q-value parsing.
+func TestNegotiator_SingleTokenFastPath(t *testing.T) {
+	t.Parallel()
+
+	assertNegotiatedEncoding(
+		t, newTestNegotiator(), "gzip", encodingGzip, "single-token fast path",
+	)
+}
+
+// BenchmarkNegotiateEncoding measures negotiation cost for the common
+// single-token header (fast path) versus multi-token browser-style headers.
+func BenchmarkNegotiateEncoding(b *testing.B) {
+	neg := buildNegotiator(DefaultWriterFactories())
+
+	cases := []struct {
+		name   string
+		header string
+	}{
+		{"single_token", "gzip"},
+		{"multi_token", "gzip, deflate, br"},
+		{"qvalues", "gzip;q=0.1, deflate;q=0.9"},
+	}
+
+	for _, tc := range cases {
+		b.Run(tc.name, func(b *testing.B) {
+			b.ReportAllocs()
+
+			for range b.N {
+				_, _, _ = neg.negotiateEncoding(tc.header)
+			}
+		})
+	}
+}

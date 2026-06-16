@@ -161,6 +161,44 @@ func TestHijack_ErrNotSupported_InErrorChain(t *testing.T) {
 	assertErrNotSupported(t, err)
 }
 
+// TestHijack_Failure_ClassifiedAsTransient covers the path where the
+// underlying writer implements Hijacker but its Hijack() returns an error.
+func TestHijack_Failure_ClassifiedAsTransient(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(newFailingHijacker())
+
+	conn, rw, err := recorder.Hijack()
+	if conn != nil || rw != nil {
+		t.Error("expected nil conn and rw on hijack failure")
+	}
+
+	if err == nil {
+		t.Fatal("Hijack() error = nil, want non-nil")
+	}
+
+	if !errors.Is(err, errHijackFailed) {
+		t.Errorf("errors.Is(err, errHijackFailed) = false, want true")
+	}
+
+	if errorfamily.Classify(err) != errorfamily.Transient {
+		t.Errorf("Classify(err) = %v, want Transient", errorfamily.Classify(err))
+	}
+
+	if !errorfamily.IsRetryable(err) {
+		t.Error("IsRetryable(err) = false, want true")
+	}
+
+	coded, ok := errors.AsType[errorfamily.Coded](err)
+	if !ok {
+		t.Fatal("error does not implement Coded")
+	}
+
+	if coded.ErrorCode() != ErrCodeHijackFailed {
+		t.Errorf("ErrorCode() = %q, want %q", coded.ErrorCode(), ErrCodeHijackFailed)
+	}
+}
+
 func assertErrorContext(t *testing.T, err error, key, want string) {
 	t.Helper()
 

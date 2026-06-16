@@ -1,6 +1,6 @@
 # TODO List
 
-_Last verified against code: 2026-06-14_
+_Last verified against code: 2026-06-17_
 
 ---
 
@@ -30,7 +30,7 @@ _Last verified against code: 2026-06-14_
 - [x] `ETag` with RFC 7232 compliance, 1MB memory limit, zero-allocation hex encoding
 - [x] `wrapper.go` shared ResponseWriter wrapper extracting duplication from compress/etag writers
 - [x] `example_test.go` with 11 example functions
-- [x] Benchmarks for all middlewares (CORS, ClientIP, Compression, ETag, Itoa, Join, RequestID, SecurityHeaders, Recovery, Timeout, Logging, ResponseRecorder, Chain)
+- [x] Benchmarks for all middlewares (CORS, ClientIP, Compression, ETag, RequestID, SecurityHeaders, Recovery, Timeout, Logging, ResponseRecorder, Chain)
 - [x] Fuzz tests for ClientIP, Compression, ETag, CORS, RequestID
 - [x] Integration tests for `Chain(Compression, ETag)` and `Chain(Recovery, Logging, CORS)` ordering
 - [x] Integration test for WebSocket upgrade (Hijack) through Compression + ETag
@@ -50,7 +50,7 @@ _Last verified against code: 2026-06-14_
 - [x] `docs/DOMAIN_LANGUAGE.md` with domain glossary
 - [x] `doc.go` package-level godoc
 - [x] `golangci-lint` ~70 linters, 0 issues
-- [x] 112 tests passing, `go vet` clean, 91.2% coverage
+- [x] `go test ./...` and `go vet ./...` clean, >90% coverage
 - [x] FEATURES.md — honest feature inventory
 - [x] TODO_LIST.md — centralized task list
 
@@ -58,7 +58,7 @@ _Last verified against code: 2026-06-14_
 
 ### Near-term
 
-- [x] Improve test coverage to 90%+ (currently 90.4%)
+- [x] Improve test coverage to 90%+ (achieved)
 - [ ] Make content-type filtering configurable via `CompressionConfig`
 - [ ] Add `MiddlewareStack` type with ordering validation
 - [ ] Add `ResponseWriter` capability interface for Hijack/Flush

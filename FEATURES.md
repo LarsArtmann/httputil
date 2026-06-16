@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-06-14_
+_Updated: 2026-06-17_
 
 ---
 
@@ -39,7 +39,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Compression Performance
 
-- Per-factory `sync.Pool` keyed by `WriterFactory` pointer reuses `gzip.Writer` and `flate.Writer` instances.
+- Per-encoding `sync.Pool` (owned by the negotiator, one pool per encoding per `Compression` instance) reuses `gzip.Writer` and `flate.Writer` instances.
 - Content-type deny-list skips incompressible formats (`image/`, `video/`, `audio/`, `application/gzip`, `application/zip`, `application/pdf`, etc.).
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
@@ -66,6 +66,21 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - Amortized `crypto/rand` via a process-wide 2048-byte buffer (one syscall every ~256 IDs).
 - Thread-safe refill with mutex and double-checked atomic slot allocation.
 
+### Server Lifecycle
+
+- `ServerConfig` with `Validate()` — read, header, write, and idle timeout validation.
+- `DefaultServerConfig()` — production defaults (`:8080`, 10s/5s/30s/60s timeouts).
+- `NewServer()` wraps `http.Server` with lifecycle helpers.
+- `Start()` is non-blocking and returns a `<-chan error` for listen errors.
+- `Shutdown()` performs graceful shutdown respecting a context deadline.
+- `Addr()` returns the configured listen address.
+
+### Health Checks
+
+- `HealthHandler()`, `LiveHandler()`, `ReadyHandler()` — Kubernetes-compatible endpoints.
+- `RegisterHealth(mux)` registers `/health`, `/health/live`, and `/health/ready`.
+- `HealthStatus` enum (`"up"` / `"down"`) and `HealthResponse` JSON type.
+
 ### Documentation
 
 - `README.md` — feature overview, API table, usage examples, middleware ordering guidance.
@@ -79,8 +94,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` — 193 tests passing.
-- 90.4% coverage.
+- `go test ./...` passes across the full suite with >90% statement coverage.
+- Fuzz tests for CORS, ClientIP, Compression, ETag, and RequestID.
 - `go vet` clean.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests and lint.
@@ -90,7 +105,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage (91.2%)
+### Test Coverage
 
 Not 100% (target met at 90%+). Gaps exist in:
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"log/slog"
 	"net"
 	"net/http"
@@ -117,6 +118,23 @@ func (r *hijackRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	r.hijacked = true
 
 	return nil, nil, nil
+}
+
+// errHijackFailed is the sentinel returned by failingHijacker.Hijack.
+var errHijackFailed = errors.New("hijack failed")
+
+// failingHijacker is an http.ResponseWriter that implements http.Hijacker
+// whose Hijack always fails. Used to exercise the ErrCodeHijackFailed path.
+type failingHijacker struct {
+	*httptest.ResponseRecorder
+}
+
+func newFailingHijacker() failingHijacker {
+	return failingHijacker{ResponseRecorder: httptest.NewRecorder()}
+}
+
+func (failingHijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return nil, nil, errHijackFailed
 }
 
 // assertStatus checks that a response recorder has the expected status code.
