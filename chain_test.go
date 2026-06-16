@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -228,7 +229,7 @@ func TestChain_CompressionETag_SmallResponsePreservesContentLength(t *testing.T)
 	body := []byte("small response under min size")
 
 	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Length", itoa(len(body)))
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(body)
 	})
@@ -245,11 +246,11 @@ func TestChain_CompressionETag_SmallResponsePreservesContentLength(t *testing.T)
 	assertStatus(t, rec, http.StatusOK)
 
 	// Small response: compression skipped, Content-Length should remain.
-	if rec.Header().Get("Content-Length") != itoa(len(body)) {
+	if rec.Header().Get("Content-Length") != strconv.Itoa(len(body)) {
 		t.Errorf(
 			"Content-Length = %q, want %q for uncompressed response",
 			rec.Header().Get("Content-Length"),
-			itoa(len(body)),
+			strconv.Itoa(len(body)),
 		)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -87,16 +88,16 @@ func CORS(cfg CORSConfig) Middleware {
 			}
 
 			resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-			resp.Header().Set("Access-Control-Allow-Methods", join(cfg.AllowedMethods))
-			resp.Header().Set("Access-Control-Allow-Headers", join(cfg.AllowedHeaders))
+			resp.Header().Set("Access-Control-Allow-Methods", strings.Join(cfg.AllowedMethods, ", "))
+			resp.Header().Set("Access-Control-Allow-Headers", strings.Join(cfg.AllowedHeaders, ", "))
 			resp.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
 
 			if len(cfg.ExposedHeaders) > 0 {
-				resp.Header().Set("Access-Control-Expose-Headers", join(cfg.ExposedHeaders))
+				resp.Header().Set("Access-Control-Expose-Headers", strings.Join(cfg.ExposedHeaders, ", "))
 			}
 
 			if cfg.MaxAge > 0 {
-				resp.Header().Set("Access-Control-Max-Age", itoa(cfg.MaxAge))
+				resp.Header().Set("Access-Control-Max-Age", strconv.Itoa(cfg.MaxAge))
 			}
 
 			if req.Method == http.MethodOptions && !cfg.OptionsPassthrough {

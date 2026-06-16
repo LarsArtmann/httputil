@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"slices"
+	"strconv"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -69,7 +70,7 @@ func (r *ResponseRecorder) Write(b []byte) (int, error) {
 	written, err := r.ResponseWriter.Write(b)
 	if err != nil {
 		return written, errorfamily.WrapTransient(err, ErrCodeWriteFailed, "response writer write failed").
-			WithContext("status", itoa(r.status))
+			WithContext("status", strconv.Itoa(r.status))
 	}
 
 	return written, nil

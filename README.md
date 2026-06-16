@@ -332,7 +332,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ## Design
 
-- **Zero-cost abstractions** — internal helpers avoid `fmt` and `strconv` allocations on the hot path
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Single dependency** — only `go-error-family` (same author, zero transitive deps)
