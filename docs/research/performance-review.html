@@ -1364,8 +1364,8 @@ for _, prefix := range incompressiblePrefixes {
         <h3>5. join() Wrapper Function <span class="tag success">Removed</span></h3>
         <p>
           The <code>join()</code> function in <code>util.go</code> simply delegated to
-          <code>strings.Join</code> with a hardcoded separator. It added no value and was benchmarked
-          at 104 ns vs <code>strings.Join</code> at 63 ns.
+          <code>strings.Join</code> with a hardcoded separator. It added no value and was
+          benchmarked at 104 ns vs <code>strings.Join</code> at 63 ns.
         </p>
         <p>
           <strong>Status</strong>: Removed. <code>util.go</code> has been deleted; callers now use
@@ -1375,9 +1375,9 @@ for _, prefix := range incompressiblePrefixes {
         <h3>6. itoa vs strconv.Itoa <span class="tag success">Removed</span></h3>
         <p>
           The custom <code>itoa</code> was hand-rolled to avoid importing <code>strconv</code>.
-          Benchmarks showed it appeared to outperform <code>strconv.Itoa</code>, but the apparent win
-          was a benchmark artifact: the custom <code>itoa</code> result was dead-code-elided by the
-          compiler (0 allocs), while <code>strconv.Itoa</code> was not (4 allocs). In real usage
+          Benchmarks showed it appeared to outperform <code>strconv.Itoa</code>, but the apparent
+          win was a benchmark artifact: the custom <code>itoa</code> result was dead-code-elided by
+          the compiler (0 allocs), while <code>strconv.Itoa</code> was not (4 allocs). In real usage
           where the result is consumed, <code>strconv.Itoa</code> is allocation-free.
         </p>
         <p>
@@ -1457,7 +1457,9 @@ for _, prefix := range incompressiblePrefixes {
             <tr>
               <td>Remove <code>join()</code> wrapper, inline <code>strings.Join</code></td>
               <td><code>util.go</code>, callers</td>
-              <td>Done — <code>util.go</code> deleted, callers use <code>strings.Join</code> directly</td>
+              <td>
+                Done — <code>util.go</code> deleted, callers use <code>strings.Join</code> directly
+              </td>
             </tr>
             <tr>
               <td>Document <code>HeaderSnapshot</code> as debug-only</td>

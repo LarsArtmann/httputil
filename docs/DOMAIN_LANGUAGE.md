@@ -255,14 +255,14 @@ All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retrya
 
 Patterns consumers and contributors should follow.
 
-| Convention               | Description                                                                        |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| Middleware signature     | Always `func(http.Handler) http.Handler` — the Go standard library convention      |
-| Middleware type alias    | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                 |
-| Classified errors        | Errors from ResponseRecorder use `go-error-family` for behavioral classification   |
-| Config validation        | All config types implement `Validate() error` for startup checks                   |
-| `httputil` import name   | Consumers import as `httputil`; no aliases needed                                  |
-| Single dependency        | Only `go-error-family` is allowed as an external dependency (enforced by depguard) |
+| Convention             | Description                                                                        |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention      |
+| Middleware type alias  | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                 |
+| Classified errors      | Errors from ResponseRecorder use `go-error-family` for behavioral classification   |
+| Config validation      | All config types implement `Validate() error` for startup checks                   |
+| `httputil` import name | Consumers import as `httputil`; no aliases needed                                  |
+| Single dependency      | Only `go-error-family` is allowed as an external dependency (enforced by depguard) |
 
 ---
 

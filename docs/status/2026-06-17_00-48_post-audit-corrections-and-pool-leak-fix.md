@@ -1,29 +1,29 @@
 # Comprehensive Status Report
 
 **Date:** 2026-06-17 00:48  
-**Commit:** *work in progress* (based on b88eaf5)  
+**Commit:** _work in progress_ (based on b88eaf5)  
 **Trigger:** Follow-up execution on the 2026-06-16 post-`util.go`-removal audit; documentation sync, test-gap closure, performance wins, and a real production defect discovered in the compression writer pool.
 
 ---
 
 ## Project Metrics (Live)
 
-| Metric | Value | Notes |
-| --- | --- | --- |
-| Go version | 1.26.3 | `go.mod` |
-| Source files | 46 `.go` files total (source + test) | +1 new `compress_writer_test.go` |
-| Lines of code | ~6,050 total (source + test) | approx. +210 from previous report |
-| External dependencies | 1 (`go-error-family` v0.3.0) | zero transitive deps |
-| Tests | **148 passing** | +10 from previous count |
-| Test coverage | **91.3%** | up from 90.2% |
-| Fuzz tests | 6 | +1 `FuzzCORSWildcardPattern` |
-| Benchmarks | 12 | +1 `BenchmarkNegotiateEncoding` |
-| Examples | 11 | unchanged |
-| Lint | **0 issues** across ~70 linters | `golangci-lint run` |
-| Race detector | **Clean** | `go test -race ./...` |
-| CI | GitHub Actions (test + lint) | `.github/workflows/ci.yml` |
-| Release CI | `govulncheck` + tag-triggered | `.github/workflows/release.yml` |
-| Dev env | Nix flake | reproducible |
+| Metric                | Value                                | Notes                             |
+| --------------------- | ------------------------------------ | --------------------------------- |
+| Go version            | 1.26.3                               | `go.mod`                          |
+| Source files          | 46 `.go` files total (source + test) | +1 new `compress_writer_test.go`  |
+| Lines of code         | ~6,050 total (source + test)         | approx. +210 from previous report |
+| External dependencies | 1 (`go-error-family` v0.3.0)         | zero transitive deps              |
+| Tests                 | **148 passing**                      | +10 from previous count           |
+| Test coverage         | **91.3%**                            | up from 90.2%                     |
+| Fuzz tests            | 6                                    | +1 `FuzzCORSWildcardPattern`      |
+| Benchmarks            | 12                                   | +1 `BenchmarkNegotiateEncoding`   |
+| Examples              | 11                                   | unchanged                         |
+| Lint                  | **0 issues** across ~70 linters      | `golangci-lint run`               |
+| Race detector         | **Clean**                            | `go test -race ./...`             |
+| CI                    | GitHub Actions (test + lint)         | `.github/workflows/ci.yml`        |
+| Release CI            | `govulncheck` + tag-triggered        | `.github/workflows/release.yml`   |
+| Dev env               | Nix flake                            | reproducible                      |
 
 ### Benchmark Snapshot (Live, 2026-06-17)
 
@@ -53,12 +53,12 @@ BenchmarkTimeout-32                           2324130    512.5 ns/op      752 B/
 
 ### Documentation Sync (Items 1-9 from 2026-06-16 Audit)
 
-| Document | Fix |
-| --- | --- |
-| `FEATURES.md` | Removed rotting "193 tests / 90.4% coverage" numbers; switched to qualitative coverage claims. Added **Server Lifecycle** and **Health Checks** sections. Updated date to 2026-06-17. |
-| `TODO_LIST.md` | Removed stale "112 tests, 91.2% coverage". Removed deleted `Itoa`/`Join` benchmarks from the benchmark list. Marked coverage >90% as achieved. Updated verification date. |
-| `AGENTS.md` | Added `health.go` and `server.go` to the architecture table. Updated the compression pooling note to reflect the new per-encoding design. Updated date. |
-| `CHANGELOG.md` | Added `[Unreleased]` entries for `util.go` removal, pool leak fix, CORS pre-computation, and `Accept-Encoding` fast path. Removed stale "193 tests, 90.4% coverage" claim. |
+| Document       | Fix                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FEATURES.md`  | Removed rotting "193 tests / 90.4% coverage" numbers; switched to qualitative coverage claims. Added **Server Lifecycle** and **Health Checks** sections. Updated date to 2026-06-17. |
+| `TODO_LIST.md` | Removed stale "112 tests, 91.2% coverage". Removed deleted `Itoa`/`Join` benchmarks from the benchmark list. Marked coverage >90% as achieved. Updated verification date.             |
+| `AGENTS.md`    | Added `health.go` and `server.go` to the architecture table. Updated the compression pooling note to reflect the new per-encoding design. Updated date.                               |
+| `CHANGELOG.md` | Added `[Unreleased]` entries for `util.go` removal, pool leak fix, CORS pre-computation, and `Accept-Encoding` fast path. Removed stale "193 tests, 90.4% coverage" claim.            |
 
 ### Test-Gap Closure (Items 13-15 from 2026-06-16 Audit)
 
@@ -79,6 +79,7 @@ BenchmarkTimeout-32                           2324130    512.5 ns/op      752 B/
 The previous global pool registry in `compress_pool.go` keyed pools by `&factory` — the address of the `WriterFactory` function parameter. Because Go function parameters are re-allocated on every call, **every request created a new `sync.Pool` entry** while writers were never reused. This was both an unbounded memory leak and a complete defeat of the documented pooling optimization.
 
 **Fix:**
+
 - Removed the global `writerPools` map.
 - Added `negotiator.pools`, a `map[string]*sync.Pool` owned per `Compression` middleware instance and keyed by encoding name.
 - `buildWriterPools()` constructs one pool per configured encoding at middleware creation time.
@@ -125,18 +126,18 @@ Up from 90.2%. Remaining gaps are narrow:
 
 From `TODO_LIST.md` and `FEATURES.md`:
 
-| Item | Priority |
-| --- | --- |
-| Configurable content-type filtering via `CompressionConfig` | Near-term |
-| `MiddlewareStack` type with ordering validation | Near-term |
-| `ResponseWriter` capability interface for unified Hijack/Flush detection | Near-term |
-| Streaming ETag option using rolling hash | Medium-term |
-| Request/response metrics middleware | Worth considering |
-| Rate-limiting middleware | Worth considering |
-| Request body size limit middleware | Worth considering |
-| Brotli/zstd/lz4 documented factory examples | Worth considering |
-| Server graceful shutdown integration test | Worth considering |
-| Configurable readiness checker for `HealthHandler` | Worth considering |
+| Item                                                                     | Priority          |
+| ------------------------------------------------------------------------ | ----------------- |
+| Configurable content-type filtering via `CompressionConfig`              | Near-term         |
+| `MiddlewareStack` type with ordering validation                          | Near-term         |
+| `ResponseWriter` capability interface for unified Hijack/Flush detection | Near-term         |
+| Streaming ETag option using rolling hash                                 | Medium-term       |
+| Request/response metrics middleware                                      | Worth considering |
+| Rate-limiting middleware                                                 | Worth considering |
+| Request body size limit middleware                                       | Worth considering |
+| Brotli/zstd/lz4 documented factory examples                              | Worth considering |
+| Server graceful shutdown integration test                                | Worth considering |
+| Configurable readiness checker for `HealthHandler`                       | Worth considering |
 
 ---
 
@@ -147,6 +148,7 @@ From `TODO_LIST.md` and `FEATURES.md`:
 The "per-factory `sync.Pool`" feature documented in `AGENTS.md` and `FEATURES.md` did not actually work. Keying pools by `&factory` (the address of a function parameter) meant every call to `getWriterPool(factory)` created a brand-new map entry. Writers were never reused, and the global `writerPools` map grew without bound for the lifetime of the process.
 
 **Why it mattered:**
+
 - Defeated the entire pooling optimization.
 - Memory leak proportional to request volume.
 - Misled users reading the docs ("per-factory pooling" was fiction).

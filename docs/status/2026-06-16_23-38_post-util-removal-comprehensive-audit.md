@@ -8,22 +8,22 @@
 
 ## Project Metrics (Live)
 
-| Metric | Value | Notes |
-| --- | --- | --- |
-| Go version | 1.26.3 | `go.mod` |
-| Source files | 25 `.go` files (44 total with tests) | — |
-| Lines of code | ~5,839 total (source + test) | — |
-| External dependencies | 1 (`go-error-family` v0.3.0) | zero transitive deps |
-| Tests | **158 passing** | 0 failures |
-| Test coverage | **90.2%** | `go test -cover` |
-| Fuzz tests | 5 | CORS, ClientIP, Compression, ETag, RequestID |
-| Benchmarks | 13 | all middlewares + Chain |
-| Examples | 11 | all public API surfaces |
-| Lint | **0 issues** across ~70 linters | `golangci-lint run` |
-| Race detector | **Clean** | `go test -race ./...` |
-| CI | GitHub Actions (test + lint) | `.github/workflows/ci.yml` |
-| Release CI | `govulncheck` + tag-triggered | `.github/workflows/release.yml` |
-| Dev env | Nix flake | reproducible |
+| Metric                | Value                                | Notes                                        |
+| --------------------- | ------------------------------------ | -------------------------------------------- |
+| Go version            | 1.26.3                               | `go.mod`                                     |
+| Source files          | 25 `.go` files (44 total with tests) | —                                            |
+| Lines of code         | ~5,839 total (source + test)         | —                                            |
+| External dependencies | 1 (`go-error-family` v0.3.0)         | zero transitive deps                         |
+| Tests                 | **158 passing**                      | 0 failures                                   |
+| Test coverage         | **90.2%**                            | `go test -cover`                             |
+| Fuzz tests            | 5                                    | CORS, ClientIP, Compression, ETag, RequestID |
+| Benchmarks            | 13                                   | all middlewares + Chain                      |
+| Examples              | 11                                   | all public API surfaces                      |
+| Lint                  | **0 issues** across ~70 linters      | `golangci-lint run`                          |
+| Race detector         | **Clean**                            | `go test -race ./...`                        |
+| CI                    | GitHub Actions (test + lint)         | `.github/workflows/ci.yml`                   |
+| Release CI            | `govulncheck` + tag-triggered        | `.github/workflows/release.yml`              |
+| Dev env               | Nix flake                            | reproducible                                 |
 
 ---
 
@@ -33,18 +33,18 @@
 
 All 10 middlewares are production-ready with tests, benchmarks, examples, and validation:
 
-| Middleware | File | Tests | Benchmarks | Fuzz | Validate |
-| --- | --- | --- | --- | --- | --- |
-| CORS | `cors.go` | Yes | `540.6 ns/op` | `FuzzCORS` | `CORSConfig.Validate()` |
-| ClientIP | `clientip.go`, `context.go` | Yes | `42.71 ns/op` | `FuzzClientIP` | — |
-| RequestID | `requestid.go`, `id_generator.go` | Yes | `595.6 ns/op` | `FuzzRequestID` | `RequestIDConfig.Validate()` |
-| SecurityHeaders | `security.go` | Yes | `349.2 ns/op` | — | `SecurityHeadersConfig.Validate()` |
-| Recovery | `recovery.go` | Yes | `77.15 ns/op` | — | — |
-| Timeout | `timeout.go` | Yes | `576.8 ns/op` | — | — |
-| Logging | `logging.go` | Yes | `1028 ns/op` | — | — |
-| ResponseRecorder | `recorder.go` | Yes | `24.96 ns/op, 0 allocs` | — | — |
-| Compression | `compression.go` + 5 split files | Yes | `29869 ns/op (gzip)` | `FuzzCompression` | `CompressionConfig.Validate()` |
-| ETag | `etag.go` | Yes | `603.5 ns/op` | `FuzzETag` | `ETagConfig.Validate()` |
+| Middleware       | File                              | Tests | Benchmarks              | Fuzz              | Validate                           |
+| ---------------- | --------------------------------- | ----- | ----------------------- | ----------------- | ---------------------------------- |
+| CORS             | `cors.go`                         | Yes   | `540.6 ns/op`           | `FuzzCORS`        | `CORSConfig.Validate()`            |
+| ClientIP         | `clientip.go`, `context.go`       | Yes   | `42.71 ns/op`           | `FuzzClientIP`    | —                                  |
+| RequestID        | `requestid.go`, `id_generator.go` | Yes   | `595.6 ns/op`           | `FuzzRequestID`   | `RequestIDConfig.Validate()`       |
+| SecurityHeaders  | `security.go`                     | Yes   | `349.2 ns/op`           | —                 | `SecurityHeadersConfig.Validate()` |
+| Recovery         | `recovery.go`                     | Yes   | `77.15 ns/op`           | —                 | —                                  |
+| Timeout          | `timeout.go`                      | Yes   | `576.8 ns/op`           | —                 | —                                  |
+| Logging          | `logging.go`                      | Yes   | `1028 ns/op`            | —                 | —                                  |
+| ResponseRecorder | `recorder.go`                     | Yes   | `24.96 ns/op, 0 allocs` | —                 | —                                  |
+| Compression      | `compression.go` + 5 split files  | Yes   | `29869 ns/op (gzip)`    | `FuzzCompression` | `CompressionConfig.Validate()`     |
+| ETag             | `etag.go`                         | Yes   | `603.5 ns/op`           | `FuzzETag`        | `ETagConfig.Validate()`            |
 
 ### Server Lifecycle (`server.go`)
 
@@ -100,15 +100,15 @@ All 10 middlewares are production-ready with tests, benchmarks, examples, and va
 
 ### Documentation Sync (STALE NUMBERS)
 
-| Document | Claims | Actual | Status |
-| --- | --- | --- | --- |
-| `FEATURES.md:82` | "193 tests passing" | **158** | **WRONG** |
-| `FEATURES.md:83` | "90.4% coverage" | **90.2%** | **WRONG** |
-| `FEATURES.md:93` | Section header "91.2%" | **90.2%** | **WRONG** |
-| `TODO_LIST.md:53` | "112 tests, 91.2% coverage" | **158, 90.2%** | **WRONG** (stale from v0.1.0) |
-| `TODO_LIST.md:33` | Lists "Itoa, Join" benchmarks | **Deleted** | **WRONG** (util.go removed) |
-| `AGENTS.md` | Architecture table | **Missing `health.go` and `server.go`** | **INCOMPLETE** |
-| `FEATURES.md` | Feature inventory | **Missing Server and Health Check sections** | **INCOMPLETE** |
+| Document          | Claims                        | Actual                                       | Status                        |
+| ----------------- | ----------------------------- | -------------------------------------------- | ----------------------------- |
+| `FEATURES.md:82`  | "193 tests passing"           | **158**                                      | **WRONG**                     |
+| `FEATURES.md:83`  | "90.4% coverage"              | **90.2%**                                    | **WRONG**                     |
+| `FEATURES.md:93`  | Section header "91.2%"        | **90.2%**                                    | **WRONG**                     |
+| `TODO_LIST.md:53` | "112 tests, 91.2% coverage"   | **158, 90.2%**                               | **WRONG** (stale from v0.1.0) |
+| `TODO_LIST.md:33` | Lists "Itoa, Join" benchmarks | **Deleted**                                  | **WRONG** (util.go removed)   |
+| `AGENTS.md`       | Architecture table            | **Missing `health.go` and `server.go`**      | **INCOMPLETE**                |
+| `FEATURES.md`     | Feature inventory             | **Missing Server and Health Check sections** | **INCOMPLETE**                |
 
 ### Test Coverage (90.2%)
 
@@ -129,15 +129,15 @@ Gaps remain in:
 
 From `TODO_LIST.md` and `FEATURES.md`:
 
-| Item | Priority |
-| --- | --- |
-| Configurable content-type filtering via `CompressionConfig` | Near-term |
-| `MiddlewareStack` type with ordering validation | Near-term |
-| `ResponseWriter` capability interface for unified Hijack/Flush detection | Near-term |
-| Streaming ETag option using rolling hash | Medium-term |
-| Request/response metrics middleware | Worth considering |
-| Rate-limiting middleware | Worth considering |
-| Request body size limit middleware | Worth considering |
+| Item                                                                     | Priority          |
+| ------------------------------------------------------------------------ | ----------------- |
+| Configurable content-type filtering via `CompressionConfig`              | Near-term         |
+| `MiddlewareStack` type with ordering validation                          | Near-term         |
+| `ResponseWriter` capability interface for unified Hijack/Flush detection | Near-term         |
+| Streaming ETag option using rolling hash                                 | Medium-term       |
+| Request/response metrics middleware                                      | Worth considering |
+| Rate-limiting middleware                                                 | Worth considering |
+| Request body size limit middleware                                       | Worth considering |
 
 ---
 

@@ -62,7 +62,7 @@ type nonWriter struct{}
 
 // assertCompressClassified verifies err is a Transient, retryable error
 // carrying ErrCodeCompressWriteFailed and wrapping the given sentinel.
-func assertCompressClassified(t *testing.T, err error, sentinel error) {
+func assertCompressClassified(t *testing.T, err, sentinel error) {
 	t.Helper()
 
 	if err == nil {

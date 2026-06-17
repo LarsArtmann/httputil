@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"slices"
 	"sync"
 )
 
@@ -227,12 +228,4 @@ func trimRightWhitespace(header string, start, end int) int {
 
 // indexOf returns the index of target in list, or -1 if not found.
 // Linear scan; n is tiny (1-5 encodings).
-func indexOf(list []string, target string) int {
-	for i, item := range list {
-		if item == target {
-			return i
-		}
-	}
-
-	return -1
-}
+func indexOf(list []string, target string) int { return slices.Index(list, target) }
