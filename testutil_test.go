@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // newNoOpHandler returns an http.HandlerFunc that does nothing.
@@ -214,6 +216,21 @@ func assertNegotiatedEncoding(
 // factories, the standard fixture for negotiation tests.
 func newTestNegotiator() *negotiator {
 	return buildNegotiator(DefaultWriterFactories())
+}
+
+// assertClassified verifies err belongs to wantFamily and that retryability
+// matches wantRetryable. Used by error-classification tests across the
+// recorder, hijack, and compression paths.
+func assertClassified(t *testing.T, err error, wantFamily errorfamily.Family, wantRetryable bool) {
+	t.Helper()
+
+	if got := errorfamily.Classify(err); got != wantFamily {
+		t.Errorf("Classify(err) = %v, want %v", got, wantFamily)
+	}
+
+	if got := errorfamily.IsRetryable(err); got != wantRetryable {
+		t.Errorf("IsRetryable(err) = %v, want %v", got, wantRetryable)
+	}
 }
 
 // newRequestIDConfigForTest returns a RequestIDConfig with a stub ID

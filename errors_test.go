@@ -33,14 +33,7 @@ func TestWrite_ClassifiedAsTransient_OnFailure(t *testing.T) {
 		t.Fatal("Write() error = nil, want non-nil")
 	}
 
-	family := errorfamily.Classify(err)
-	if family != errorfamily.Transient {
-		t.Errorf("Classify(err) = %v, want Transient", family)
-	}
-
-	if !errorfamily.IsRetryable(err) {
-		t.Error("IsRetryable(err) = false, want true")
-	}
+	assertClassified(t, err, errorfamily.Transient, true)
 }
 
 func TestWrite_HasErrorCode(t *testing.T) {
@@ -122,14 +115,7 @@ func TestHijack_ClassifiedAsInfrastructure_WhenUnsupported(t *testing.T) {
 		t.Fatal("Hijack() error = nil, want non-nil")
 	}
 
-	family := errorfamily.Classify(err)
-	if family != errorfamily.Infrastructure {
-		t.Errorf("Classify(err) = %v, want Infrastructure", family)
-	}
-
-	if errorfamily.IsRetryable(err) {
-		t.Error("IsRetryable(err) = true, want false for Infrastructure")
-	}
+	assertClassified(t, err, errorfamily.Infrastructure, false)
 }
 
 func TestHijack_HasErrorCode_WhenUnsupported(t *testing.T) {
@@ -181,13 +167,7 @@ func TestHijack_Failure_ClassifiedAsTransient(t *testing.T) {
 		t.Errorf("errors.Is(err, errHijackFailed) = false, want true")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Transient {
-		t.Errorf("Classify(err) = %v, want Transient", errorfamily.Classify(err))
-	}
-
-	if !errorfamily.IsRetryable(err) {
-		t.Error("IsRetryable(err) = false, want true")
-	}
+	assertClassified(t, err, errorfamily.Transient, true)
 
 	coded, ok := errors.AsType[errorfamily.Coded](err)
 	if !ok {

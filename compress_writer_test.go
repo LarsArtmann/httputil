@@ -73,13 +73,7 @@ func assertCompressClassified(t *testing.T, err, sentinel error) {
 		t.Errorf("errors.Is(err, sentinel) = false, want true")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Transient {
-		t.Errorf("Classify(err) = %v, want Transient", errorfamily.Classify(err))
-	}
-
-	if !errorfamily.IsRetryable(err) {
-		t.Error("IsRetryable(err) = false, want true")
-	}
+	assertClassified(t, err, errorfamily.Transient, true)
 
 	coded, ok := errors.AsType[errorfamily.Coded](err)
 	if !ok {
