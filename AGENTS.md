@@ -1,6 +1,6 @@
 # httputil — AGENTS.md
 
-**Updated:** 2026-06-17
+**Updated:** 2026-07-02
 
 ## Hard Constraints (Will Break Your Code)
 
@@ -58,7 +58,7 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
 ## Architecture
 
-Single flat `httputil` package. One external dependency: `github.com/larsartmann/go-error-family`. Go 1.26+.
+Two packages: the flat `httputil` package (middleware + server lifecycle) and the `httputil/httpspec` subpackage (reusable HTTP behavior specs). One external dependency: `github.com/larsartmann/go-error-family`. Go 1.26+.
 
 | File                          | Exports                                                                                                                                                                     | Purpose                                                          |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
@@ -86,6 +86,17 @@ Single flat `httputil` package. One external dependency: `github.com/larsartmann
 | `wrapper.go`                  | (unexported `responseWrapper`)                                                                                                                                              | Shared ResponseWriter wrapper for compress/etag writers          |
 | `testutil_test.go`            | (unexported `newNoOpHandler`, `newCountingHandler`, `newWriteStatusHandler`, `newWriteBodyHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertSliceEqual`) | Shared test helpers for consistent test patterns                 |
 | `doc.go`                      | (package doc only)                                                                                                                                                          | Package-level GoDoc documentation                                |
+
+### `httpspec` subpackage
+
+Reusable BDD-style HTTP behavior specifications. Point `httpspec.Run(t, handler)` at any `http.Handler` to validate standard HTTP conventions via parallel subtests with human-readable names.
+
+| File                        | Exports                                                                                                                                                                    | Purpose                                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `httpspec/doc.go`           | (package doc only)                                                                                                                                                         | Package-level GoDoc with usage examples                                                                         |
+| `httpspec/httpspec.go`      | `Run()`, `Spec`, `Check`, `Result`, `Category`, `Option`, `WithIndexPath()`, `SkipSpec()`, `WithExtraSpecs()`, `Pass()`, `Fail()`, `ExpectStatus()`, `SpecName*` constants | Public API: types, options, spec runner, spec-name constants                                                    |
+| `httpspec/specs.go`         | (unexported `standardSpecs`, check functions)                                                                                                                              | Seven standard specs: index reachability, 404 routing, Content-Type, HEAD/OPTIONS handling, no leaked internals |
+| `httpspec/httpspec_test.go` | (unexported test handlers, check tests)                                                                                                                                    | Tests for every spec, option, and helper                                                                        |
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler`. `Chain()` applies them in declaration order (first = outermost) via `slices.Backward`.
 
