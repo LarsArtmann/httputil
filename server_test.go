@@ -19,19 +19,35 @@ func TestDefaultServerConfig(t *testing.T) {
 	}
 
 	if cfg.ReadTimeout != defaultReadTimeoutSeconds*time.Second {
-		t.Errorf("ReadTimeout = %v, want %v", cfg.ReadTimeout, defaultReadTimeoutSeconds*time.Second)
+		t.Errorf(
+			"ReadTimeout = %v, want %v",
+			cfg.ReadTimeout,
+			defaultReadTimeoutSeconds*time.Second,
+		)
 	}
 
 	if cfg.ReadHeaderTimeout != defaultReadHeaderTimeoutSeconds*time.Second {
-		t.Errorf("ReadHeaderTimeout = %v, want %v", cfg.ReadHeaderTimeout, defaultReadHeaderTimeoutSeconds*time.Second)
+		t.Errorf(
+			"ReadHeaderTimeout = %v, want %v",
+			cfg.ReadHeaderTimeout,
+			defaultReadHeaderTimeoutSeconds*time.Second,
+		)
 	}
 
 	if cfg.WriteTimeout != defaultWriteTimeoutSeconds*time.Second {
-		t.Errorf("WriteTimeout = %v, want %v", cfg.WriteTimeout, defaultWriteTimeoutSeconds*time.Second)
+		t.Errorf(
+			"WriteTimeout = %v, want %v",
+			cfg.WriteTimeout,
+			defaultWriteTimeoutSeconds*time.Second,
+		)
 	}
 
 	if cfg.IdleTimeout != defaultIdleTimeoutSeconds*time.Second {
-		t.Errorf("IdleTimeout = %v, want %v", cfg.IdleTimeout, defaultIdleTimeoutSeconds*time.Second)
+		t.Errorf(
+			"IdleTimeout = %v, want %v",
+			cfg.IdleTimeout,
+			defaultIdleTimeoutSeconds*time.Second,
+		)
 	}
 }
 

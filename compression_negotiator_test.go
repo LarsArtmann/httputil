@@ -42,7 +42,11 @@ func TestNegotiator_QZeroDisables(t *testing.T) {
 	t.Parallel()
 
 	assertNegotiatedEncoding(
-		t, newTestNegotiator(), "gzip;q=0, deflate", encodingDeflate, "gzip should be disabled by q=0",
+		t,
+		newTestNegotiator(),
+		"gzip;q=0, deflate",
+		encodingDeflate,
+		"gzip should be disabled by q=0",
 	)
 }
 
@@ -62,7 +66,11 @@ func TestNegotiator_UnsupportedEncoding(t *testing.T) {
 	t.Parallel()
 
 	assertNegotiatedEncoding(
-		t, newTestNegotiator(), "br, deflate, snappy", encodingDeflate, "br and snappy are unsupported",
+		t,
+		newTestNegotiator(),
+		"br, deflate, snappy",
+		encodingDeflate,
+		"br and snappy are unsupported",
 	)
 }
 
@@ -71,7 +79,11 @@ func TestNegotiator_AllExcludedFallsBackToIdentity(t *testing.T) {
 	t.Parallel()
 
 	assertNegotiatedEncoding(
-		t, newTestNegotiator(), "gzip;q=0, deflate;q=0", encodingIdentity, "identity fallback when all excluded",
+		t,
+		newTestNegotiator(),
+		"gzip;q=0, deflate;q=0",
+		encodingIdentity,
+		"identity fallback when all excluded",
 	)
 }
 

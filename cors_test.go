@@ -340,7 +340,11 @@ func FuzzCORSWildcardPattern(f *testing.F) {
 
 		// A pure matcher must be stable across calls.
 		if matchWildcardOrigin(pattern, origin) != got {
-			t.Fatalf("matchWildcardOrigin not deterministic for pattern=%q origin=%q", pattern, origin)
+			t.Fatalf(
+				"matchWildcardOrigin not deterministic for pattern=%q origin=%q",
+				pattern,
+				origin,
+			)
 		}
 
 		// Contract: only "*."-prefixed patterns can ever match.
