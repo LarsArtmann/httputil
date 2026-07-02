@@ -82,7 +82,10 @@ const hexDigitsLower = "0123456789abcdef"
 // path aside from the output string. src length must be even; out is allocated
 // to 2*len(src) bytes.
 func hexEncodeLower(src []byte) string {
-	out := make([]byte, len(src)*hexEncodedBytes)
+	out := make(
+		[]byte,
+		len(src)*hexEncodedBytes,
+	) //nolint:makezero // pre-allocated for direct index writes, not append
 
 	for i, b := range src {
 		out[i*hexEncodedBytes] = hexDigitsLower[b>>4]

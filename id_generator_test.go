@@ -123,7 +123,10 @@ func TestDrawRandomBytes_Concurrent(t *testing.T) {
 		go func() {
 			defer func() { done <- struct{}{} }()
 
-			dst := make([]byte, idRandBytes)
+			dst := make(
+				[]byte,
+				idRandBytes,
+			) //nolint:makezero // pre-allocated buffer for crypto/rand.Read
 			for range callsEach {
 				drawRandomBytes(dst)
 			}

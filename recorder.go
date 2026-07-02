@@ -41,7 +41,10 @@ func (r *ResponseRecorder) HeaderSnapshot() http.Header {
 	snapshot := make(http.Header, len(r.Header()))
 
 	for key, values := range r.Header() {
-		copied := make([]string, len(values))
+		copied := make(
+			[]string,
+			len(values),
+		) //nolint:makezero // pre-allocated for copy(), not append
 		copy(copied, values)
 		snapshot[key] = copied
 	}
