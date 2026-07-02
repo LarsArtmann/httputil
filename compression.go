@@ -196,7 +196,7 @@ func Compression(cfg CompressionConfig) Middleware {
 
 			factory := cfg.WriterFactories[encoding]
 
-			cw := newCompressWriter(
+			writer := newCompressWriter(
 				resp,
 				cfg.MinSize,
 				encoding,
@@ -204,9 +204,9 @@ func Compression(cfg CompressionConfig) Middleware {
 				neg.poolFor(encoding),
 				skipTypes,
 			)
-			defer func() { _ = cw.Close() }()
+			defer func() { _ = writer.Close() }()
 
-			next.ServeHTTP(cw, req)
+			next.ServeHTTP(writer, req)
 		})
 	}
 }
