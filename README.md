@@ -129,6 +129,32 @@ handler := httputil.Chain(
 // Execution: CORS → auth → logging → mux
 ```
 
+### Behavioral Spec Suite
+
+Validate any `http.Handler` against standard HTTP conventions with a single call. The `httpspec` subpackage runs 13 behavioral specs as parallel subtests.
+
+```go
+import "github.com/larsartmann/httputil/httpspec"
+
+func TestHTTPBehavior(t *testing.T) {
+    t.Parallel()
+    httpspec.Run(t, handler)
+}
+```
+
+Specs checked: index page reachability, unknown path 404s, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE handling, redirect Location correctness, no leaked internals, no Server version fingerprinting, no X-Powered-By header. Skip inapplicable specs or add custom ones:
+
+```go
+httpspec.Run(t, handler,
+    httpspec.SkipSpec(httpspec.SpecNameUnknownPathReturns404), // SPA fallback
+    httpspec.WithExtraSpecs(httpspec.Spec{
+        Name:     "GET /health returns 200",
+        Category: httpspec.CategoryRouting,
+        Check:    httpspec.ExpectStatus(http.MethodGet, "/health", http.StatusOK),
+    }),
+)
+```
+
 ### Security Headers
 
 Sets common security response headers with sensible defaults.

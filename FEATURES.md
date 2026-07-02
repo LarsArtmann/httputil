@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-06-17_
+_Updated: 2026-07-02_
 
 ---
 
@@ -100,6 +100,14 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests and lint.
 - Release workflow with `govulncheck`.
+
+### Behavioral Spec Suite (`httpspec` subpackage)
+
+- `httpspec.Run(t, handler)` validates any `http.Handler` against 13 standard HTTP behavior specs.
+- Specs cover routing (index reachability, unknown paths), method handling (HEAD, OPTIONS, TRACE, POST), response headers (Content-Type, Location on redirects), and security (no leaked internals, no version fingerprints, no X-Powered-By).
+- Extensible via `SkipSpec`, `WithExtraSpecs`, `WithIndexPath`.
+- Helper builders: `ExpectStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`.
+- Pure stdlib, no third-party dependencies. 96.4% coverage.
 
 ---
 

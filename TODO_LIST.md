@@ -1,6 +1,6 @@
 # TODO List
 
-_Last verified against code: 2026-06-17_
+_Last verified against code: 2026-07-02_
 
 ---
 
@@ -36,6 +36,7 @@ _Last verified against code: 2026-06-17_
 - [x] Integration test for WebSocket upgrade (Hijack) through Compression + ETag
 - [x] Content-Length preservation test for small responses through Compression + ETag
 - [x] Example functions for all public API (11 examples)
+- [x] `httpspec` behavioral spec subpackage (13 standard specs + 4 helper builders)
 - [x] Document brotli policy decision in README
 - [x] Fix data race in `getGzipPool()` (added `sync.RWMutex`)
 - [x] Improve flake.nix (source filtering, writeShellApplication, format check)

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New `httputil/httpspec` subpackage: reusable behavioral HTTP spec suite with 13 standard specs that validate any `http.Handler` against common HTTP conventions. Specs cover routing (index reachability, unknown path 404s), method safety (HEAD, OPTIONS, TRACE, POST handling), response headers (Content-Type on bodies and errors, Location on redirects), and security (no leaked internals, no Server version fingerprinting, no X-Powered-By header). Includes helper builders (`ExpectStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`) for custom specs and options (`SkipSpec`, `WithExtraSpecs`, `WithIndexPath`) for configuration.
+
 ## [0.3.0] - 2026-06-18
 
 ### Added
