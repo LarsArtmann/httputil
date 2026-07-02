@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -67,13 +68,19 @@ func Fail(format string, args ...any) Result {
 
 // SpecName constants identify each standard spec for use with [SkipSpec].
 const (
-	SpecNameIndexNot404           = "the index page should not return 404 Not Found"
-	SpecNameIndexNotServerError   = "the index page should not return a server error"
-	SpecNameUnknownPathReturns404 = "unknown paths should return 404 or a redirect"
-	SpecNameBodyHasContentType    = "responses with a body should include Content-Type"
-	SpecNameHeadHandled           = "HEAD requests should be handled without a server error"
-	SpecNameOptionsHandled        = "OPTIONS requests should be handled without a server error"
-	SpecNameNoLeakedInternals     = "error responses should not leak internal details"
+	SpecNameIndexNot404                   = "the index page should not return 404 Not Found"
+	SpecNameIndexNotServerError           = "the index page should not return a server error"
+	SpecNameUnknownPathReturns404         = "unknown paths should return 404 or a redirect"
+	SpecNamePostUnknownNotServerError     = "POST to unknown paths should not trigger server errors"
+	SpecNameBodyHasContentType            = "responses with a body should include Content-Type"
+	SpecNameErrorResponsesHaveContentType = "error responses with a body should include Content-Type"
+	SpecNameHeadHandled                   = "HEAD requests should be handled without a server error"
+	SpecNameOptionsHandled                = "OPTIONS requests should be handled without a server error"
+	SpecNameTraceNotEnabled               = "TRACE method should be disabled to prevent Cross-Site Tracing"
+	SpecNameRedirectHasLocation           = "redirect responses should include a Location header"
+	SpecNameNoServerVersionHeader         = "Server header should not leak version information"
+	SpecNameNoPoweredByHeader             = "X-Powered-By header should not be present"
+	SpecNameNoLeakedInternals             = "error responses should not leak internal details"
 )
 
 // Option configures the spec runner.
@@ -123,11 +130,58 @@ func WithExtraSpecs(specs ...Spec) Option {
 // Use it to build custom specs for application-specific routes.
 func ExpectStatus(method, path string, expectedCode int) Check {
 	return func(handler http.Handler) Result {
-		req := mustRequest(method, path)
-		rec := serve(handler, req)
+		rec := serve(handler, mustRequest(method, path))
 
 		if rec.Code != expectedCode {
 			return Fail("%s %s returned status %d, want %d", method, path, rec.Code, expectedCode)
+		}
+
+		return Pass()
+	}
+}
+
+// ExpectHeader returns a [Check] that verifies a response header equals the
+// expected value.
+func ExpectHeader(method, path, header, expectedValue string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		if got := rec.Header().Get(header); got != expectedValue {
+			return Fail(
+				"%s %s header %q = %q, want %q",
+				method, path, header, got, expectedValue,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+// ExpectHeaderAbsent returns a [Check] that verifies a response header is not
+// present.
+func ExpectHeaderAbsent(method, path, header string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		if got := rec.Header().Get(header); got != "" {
+			return Fail("%s %s should not set header %q, but got %q", method, path, header, got)
+		}
+
+		return Pass()
+	}
+}
+
+// ExpectBodyContains returns a [Check] that verifies the response body
+// contains the given substring.
+func ExpectBodyContains(method, path, substring string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		if !strings.Contains(rec.Body.String(), substring) {
+			return Fail(
+				"%s %s response body does not contain %q",
+				method, path, substring,
+			)
 		}
 
 		return Pass()

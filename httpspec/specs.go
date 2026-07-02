@@ -2,11 +2,10 @@ package httpspec
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 )
 
-// unknownPath is a path that no reasonable handler should serve.
-// It includes a random-looking suffix to avoid accidental matches.
 const unknownPath = "/httpspec-nonexistent-a7f3e2d1c9b4"
 
 // leakPatterns are substrings that indicate an error response is leaking
@@ -24,6 +23,15 @@ func leakPatterns() []string {
 }
 
 func standardSpecs(cfg config) []Spec {
+	return slices.Concat(
+		routingSpecs(cfg),
+		methodSpecs(cfg),
+		headerSpecs(cfg),
+		securitySpecs(),
+	)
+}
+
+func routingSpecs(cfg config) []Spec {
 	return []Spec{
 		{
 			Name:     SpecNameIndexNot404,
@@ -40,10 +48,15 @@ func standardSpecs(cfg config) []Spec {
 			Category: CategoryRouting,
 			Check:    unknownPathCheck(),
 		},
+	}
+}
+
+func methodSpecs(cfg config) []Spec {
+	return []Spec{
 		{
-			Name:     SpecNameBodyHasContentType,
-			Category: CategoryHeaders,
-			Check:    bodyHasContentTypeCheck(cfg.indexPath),
+			Name:     SpecNamePostUnknownNotServerError,
+			Category: CategoryMethods,
+			Check:    postUnknownNotServerErrorCheck(),
 		},
 		{
 			Name:     SpecNameHeadHandled,
@@ -54,6 +67,46 @@ func standardSpecs(cfg config) []Spec {
 			Name:     SpecNameOptionsHandled,
 			Category: CategoryMethods,
 			Check:    optionsHandledCheck(cfg.indexPath),
+		},
+		{
+			Name:     SpecNameTraceNotEnabled,
+			Category: CategorySecurity,
+			Check:    traceNotEnabledCheck(),
+		},
+	}
+}
+
+func headerSpecs(cfg config) []Spec {
+	return []Spec{
+		{
+			Name:     SpecNameBodyHasContentType,
+			Category: CategoryHeaders,
+			Check:    bodyHasContentTypeCheck(cfg.indexPath),
+		},
+		{
+			Name:     SpecNameErrorResponsesHaveContentType,
+			Category: CategoryHeaders,
+			Check:    errorResponsesHaveContentTypeCheck(),
+		},
+		{
+			Name:     SpecNameRedirectHasLocation,
+			Category: CategoryHeaders,
+			Check:    redirectHasLocationCheck(cfg.indexPath),
+		},
+	}
+}
+
+func securitySpecs() []Spec {
+	return []Spec{
+		{
+			Name:     SpecNameNoServerVersionHeader,
+			Category: CategorySecurity,
+			Check:    noServerVersionHeaderCheck(),
+		},
+		{
+			Name:     SpecNameNoPoweredByHeader,
+			Category: CategorySecurity,
+			Check:    noPoweredByHeaderCheck(),
 		},
 		{
 			Name:     SpecNameNoLeakedInternals,
@@ -111,6 +164,21 @@ func unknownPathCheck() Check {
 	}
 }
 
+func postUnknownNotServerErrorCheck() Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodPost, unknownPath))
+
+		if rec.Code >= http.StatusInternalServerError {
+			return Fail(
+				"POST %s returned status %d, but unknown paths should not trigger server errors",
+				unknownPath, rec.Code,
+			)
+		}
+
+		return Pass()
+	}
+}
+
 func bodyHasContentTypeCheck(indexPath string) Check {
 	return func(handler http.Handler) Result {
 		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
@@ -121,6 +189,25 @@ func bodyHasContentTypeCheck(indexPath string) Check {
 
 		if rec.Header().Get("Content-Type") == "" {
 			return Fail("GET %s returned a response body without a Content-Type header", indexPath)
+		}
+
+		return Pass()
+	}
+}
+
+func errorResponsesHaveContentTypeCheck() Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodGet, unknownPath))
+
+		if rec.Body.Len() == 0 {
+			return Pass()
+		}
+
+		if rec.Code >= http.StatusBadRequest && rec.Header().Get("Content-Type") == "" {
+			return Fail(
+				"GET %s returned error status %d with a body but no Content-Type header",
+				unknownPath, rec.Code,
+			)
 		}
 
 		return Pass()
@@ -158,6 +245,73 @@ func optionsHandledCheck(indexPath string) Check {
 	}
 }
 
+func traceNotEnabledCheck() Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodTrace, unknownPath))
+
+		if rec.Code == http.StatusOK {
+			return Fail(
+				"TRACE %s returned 200 OK, TRACE should be disabled to prevent Cross-Site Tracing (XST)",
+				unknownPath,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func redirectHasLocationCheck(indexPath string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
+
+		isRedirect := rec.Code >= http.StatusMultipleChoices && rec.Code < http.StatusBadRequest
+		if !isRedirect {
+			return Pass()
+		}
+
+		if rec.Header().Get("Location") == "" {
+			return Fail(
+				"GET %s returned redirect status %d without a Location header",
+				indexPath, rec.Code,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func noServerVersionHeaderCheck() Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodGet, unknownPath))
+
+		server := rec.Header().Get("Server")
+
+		if hasVersionLeak(server) {
+			return Fail(
+				"Server header %q leaks version information, which helps attackers fingerprint the stack",
+				server,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func noPoweredByHeaderCheck() Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodGet, unknownPath))
+
+		if rec.Header().Get("X-Powered-By") != "" {
+			return Fail(
+				"X-Powered-By header is set to %q, this leaks framework information",
+				rec.Header().Get("X-Powered-By"),
+			)
+		}
+
+		return Pass()
+	}
+}
+
 func noLeakedInternalsCheck() Check {
 	return func(handler http.Handler) Result {
 		rec := serve(handler, mustRequest(http.MethodGet, unknownPath))
@@ -174,4 +328,16 @@ func noLeakedInternalsCheck() Check {
 
 		return Pass()
 	}
+}
+
+// hasVersionLeak checks if a Server header value contains a version number
+// pattern like "nginx/1.21.3" or "Apache/2.4.41 (Ubuntu)".
+func hasVersionLeak(server string) bool {
+	for i := range len(server) - 1 {
+		if server[i] == '/' && i+1 < len(server) && server[i+1] >= '0' && server[i+1] <= '9' {
+			return true
+		}
+	}
+
+	return false
 }

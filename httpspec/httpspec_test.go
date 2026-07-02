@@ -2,6 +2,7 @@ package httpspec
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -60,6 +61,43 @@ func newLeakingHandler() http.Handler {
 	})
 }
 
+func newTraceEchoingHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodTrace {
+			w.Header().Set("Content-Type", "message/http")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("TRACE response echoing request headers"))
+
+			return
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+	})
+}
+
+func newServerVersionLeakingHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Server", "nginx/1.21.3")
+		w.WriteHeader(http.StatusNotFound)
+	})
+}
+
+func newPoweredByHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("X-Powered-By", "Express")
+		w.WriteHeader(http.StatusNotFound)
+	})
+}
+
+func newRedirectWithoutLocationHandler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusFound)
+	})
+
+	return mux
+}
+
 // --- Run-level tests -----------------------------------------------------
 
 func TestRunAllSpecsPassForGoodHandler(t *testing.T) {
@@ -71,7 +109,12 @@ func TestRunAllSpecsPassForGoodHandler(t *testing.T) {
 
 func TestSkipSpecExcludesSpec(t *testing.T) {
 	t.Parallel()
-	Run(t, newSPAHandler(), SkipSpec(SpecNameUnknownPathReturns404))
+	Run(
+		t, newSPAHandler(),
+		SkipSpec(SpecNameUnknownPathReturns404),
+		SkipSpec(SpecNamePostUnknownNotServerError),
+		SkipSpec(SpecNameTraceNotEnabled),
+	)
 }
 
 func TestWithExtraSpecsPassingSpec(t *testing.T) {
@@ -99,7 +142,7 @@ func TestWithIndexPathChangesTestedPath(t *testing.T) {
 	Run(t, mux, WithIndexPath("/app"))
 }
 
-// --- Individual check tests ----------------------------------------------
+// --- Individual check tests: routing -------------------------------------
 
 func TestIndexNot404PassesFor200(t *testing.T) {
 	t.Parallel()
@@ -169,34 +212,23 @@ func TestUnknownPathReturns404FailsFor200(t *testing.T) {
 	}
 }
 
-func TestBodyHasContentTypePasses(t *testing.T) {
+// --- Individual check tests: methods -------------------------------------
+
+func TestPostUnknownNotServerErrorPassesFor404(t *testing.T) {
 	t.Parallel()
 
-	result := bodyHasContentTypeCheck("/")(newGoodHandler())
+	result := postUnknownNotServerErrorCheck()(newGoodHandler())
 	if !result.OK {
 		t.Errorf("expected pass, got: %s", result.Message)
 	}
 }
 
-func TestBodyHasContentTypeFailsWhenMissing(t *testing.T) {
+func TestPostUnknownNotServerErrorFailsFor500(t *testing.T) {
 	t.Parallel()
 
-	result := bodyHasContentTypeCheck("/")(newNoContentTypeHandler())
+	result := postUnknownNotServerErrorCheck()(newAlways500Handler())
 	if result.OK {
-		t.Error("expected failure when body lacks Content-Type")
-	}
-}
-
-func TestBodyHasContentTypePassesForEmptyBody(t *testing.T) {
-	t.Parallel()
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	result := bodyHasContentTypeCheck("/")(handler)
-	if !result.OK {
-		t.Errorf("expected pass for empty body, got: %s", result.Message)
+		t.Error("expected failure when POST to unknown path returns 500")
 	}
 }
 
@@ -233,6 +265,190 @@ func TestOptionsHandledFailsFor500(t *testing.T) {
 	result := optionsHandledCheck("/")(newAlways500Handler())
 	if result.OK {
 		t.Error("expected failure when OPTIONS returns 500")
+	}
+}
+
+func TestTraceNotEnabledPassesFor404(t *testing.T) {
+	t.Parallel()
+
+	result := traceNotEnabledCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestTraceNotEnabledPassesFor405(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	})
+
+	result := traceNotEnabledCheck()(handler)
+	if !result.OK {
+		t.Errorf("expected pass for 405, got: %s", result.Message)
+	}
+}
+
+func TestTraceNotEnabledFailsFor200(t *testing.T) {
+	t.Parallel()
+
+	result := traceNotEnabledCheck()(newTraceEchoingHandler())
+	if result.OK {
+		t.Error("expected failure when TRACE returns 200 (XST vulnerability)")
+	}
+}
+
+// --- Individual check tests: headers -------------------------------------
+
+func TestBodyHasContentTypePasses(t *testing.T) {
+	t.Parallel()
+
+	result := bodyHasContentTypeCheck("/")(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestBodyHasContentTypeFailsWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	result := bodyHasContentTypeCheck("/")(newNoContentTypeHandler())
+	if result.OK {
+		t.Error("expected failure when body lacks Content-Type")
+	}
+}
+
+func TestBodyHasContentTypePassesForEmptyBody(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := bodyHasContentTypeCheck("/")(handler)
+	if !result.OK {
+		t.Errorf("expected pass for empty body, got: %s", result.Message)
+	}
+}
+
+func TestErrorResponsesHaveContentTypePasses(t *testing.T) {
+	t.Parallel()
+
+	result := errorResponsesHaveContentTypeCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestErrorResponsesHaveContentTypeFailsWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte("Not Found"))
+	})
+
+	result := errorResponsesHaveContentTypeCheck()(handler)
+	if result.OK {
+		t.Error("expected failure when error response body lacks Content-Type")
+	}
+}
+
+func TestErrorResponsesHaveContentTypePassesForEmptyBody(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	result := errorResponsesHaveContentTypeCheck()(handler)
+	if !result.OK {
+		t.Errorf("expected pass for empty error body, got: %s", result.Message)
+	}
+}
+
+func TestRedirectHasLocationPasses(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Location", "/new")
+		w.WriteHeader(http.StatusMovedPermanently)
+	})
+
+	result := redirectHasLocationCheck("/")(handler)
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestRedirectHasLocationPassesForNonRedirect(t *testing.T) {
+	t.Parallel()
+
+	result := redirectHasLocationCheck("/")(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass for non-redirect, got: %s", result.Message)
+	}
+}
+
+func TestRedirectHasLocationFailsWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	result := redirectHasLocationCheck("/")(newRedirectWithoutLocationHandler())
+	if result.OK {
+		t.Error("expected failure when redirect lacks Location header")
+	}
+}
+
+// --- Individual check tests: security ------------------------------------
+
+func TestNoServerVersionHeaderPasses(t *testing.T) {
+	t.Parallel()
+
+	result := noServerVersionHeaderCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestNoServerVersionHeaderPassesForBareServerName(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Server", "nginx")
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	result := noServerVersionHeaderCheck()(handler)
+	if !result.OK {
+		t.Errorf("expected pass for bare Server name, got: %s", result.Message)
+	}
+}
+
+func TestNoServerVersionHeaderFailsForVersionLeak(t *testing.T) {
+	t.Parallel()
+
+	result := noServerVersionHeaderCheck()(newServerVersionLeakingHandler())
+	if result.OK {
+		t.Error("expected failure when Server header leaks version")
+	}
+}
+
+func TestNoPoweredByHeaderPasses(t *testing.T) {
+	t.Parallel()
+
+	result := noPoweredByHeaderCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestNoPoweredByHeaderFailsWhenPresent(t *testing.T) {
+	t.Parallel()
+
+	result := noPoweredByHeaderCheck()(newPoweredByHandler())
+	if result.OK {
+		t.Error("expected failure when X-Powered-By header is present")
 	}
 }
 
@@ -310,6 +526,8 @@ func TestResultStringFailed(t *testing.T) {
 	}
 }
 
+// --- Builder tests -------------------------------------------------------
+
 func TestExpectStatusPasses(t *testing.T) {
 	t.Parallel()
 
@@ -332,19 +550,93 @@ func TestExpectStatusFails(t *testing.T) {
 	}
 }
 
+func TestExpectHeaderPasses(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectHeader(http.MethodGet, "/", "Content-Type", "text/plain; charset=utf-8")
+	result := check(newGoodHandler())
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectHeaderFails(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectHeader(http.MethodGet, "/", "Content-Type", "application/json")
+	result := check(newGoodHandler())
+
+	if result.OK {
+		t.Error("expected failure when header value does not match")
+	}
+}
+
+func TestExpectHeaderAbsentPasses(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectHeaderAbsent(http.MethodGet, "/", "X-Powered-By")
+	result := check(newGoodHandler())
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectHeaderAbsentFails(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectHeaderAbsent(http.MethodGet, "/", "X-Powered-By")
+	result := check(newPoweredByHandler())
+
+	if result.OK {
+		t.Error("expected failure when header is present")
+	}
+}
+
+func TestExpectBodyContainsPasses(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectBodyContains(http.MethodGet, "/", "hello")
+	result := check(newGoodHandler())
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectBodyContainsFails(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectBodyContains(http.MethodGet, "/", "goodbye")
+	result := check(newGoodHandler())
+
+	if result.OK {
+		t.Error("expected failure when body does not contain substring")
+	}
+}
+
+// --- Internal helper tests -----------------------------------------------
+
 func TestStandardSpecsHasAllExpectedNames(t *testing.T) {
 	t.Parallel()
 
 	specs := standardSpecs(newConfig())
 
 	expected := map[string]bool{
-		SpecNameIndexNot404:           false,
-		SpecNameIndexNotServerError:   false,
-		SpecNameUnknownPathReturns404: false,
-		SpecNameBodyHasContentType:    false,
-		SpecNameHeadHandled:           false,
-		SpecNameOptionsHandled:        false,
-		SpecNameNoLeakedInternals:     false,
+		SpecNameIndexNot404:                   false,
+		SpecNameIndexNotServerError:           false,
+		SpecNameUnknownPathReturns404:         false,
+		SpecNamePostUnknownNotServerError:     false,
+		SpecNameBodyHasContentType:            false,
+		SpecNameErrorResponsesHaveContentType: false,
+		SpecNameHeadHandled:                   false,
+		SpecNameOptionsHandled:                false,
+		SpecNameTraceNotEnabled:               false,
+		SpecNameRedirectHasLocation:           false,
+		SpecNameNoServerVersionHeader:         false,
+		SpecNameNoPoweredByHeader:             false,
+		SpecNameNoLeakedInternals:             false,
 	}
 
 	for _, s := range specs {
@@ -371,13 +663,34 @@ func TestLeakPatternsCoversCommonLeaks(t *testing.T) {
 	}
 
 	body := "panic: goroutine 1 [running]:\n/usr/local/go/src/runtime/panic.go:123"
-	for _, p := range patterns {
-		if strings.Contains(body, p) {
-			return
-		}
+	found := slices.ContainsFunc(patterns, func(p string) bool {
+		return strings.Contains(body, p)
+	})
+
+	if !found {
+		t.Error("expected at least one pattern to match a typical panic output")
+	}
+}
+
+func TestHasVersionLeakDetectsVersionPattern(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		server string
+		leak   bool
+	}{
+		{"nginx/1.21.3", true},
+		{"Apache/2.4.41 (Ubuntu)", true},
+		{"nginx", false},
+		{"", false},
+		{"MyServer", false},
 	}
 
-	t.Error("expected at least one pattern to match a typical panic output")
+	for _, tc := range cases {
+		if got := hasVersionLeak(tc.server); got != tc.leak {
+			t.Errorf("hasVersionLeak(%q) = %v, want %v", tc.server, got, tc.leak)
+		}
+	}
 }
 
 func TestServeReturnsRecorder(t *testing.T) {
