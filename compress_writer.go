@@ -23,10 +23,11 @@ type compressWriter struct {
 	factory     WriterFactory
 	pool        *sync.Pool
 	minSize     int
+	skipTypes   []string
 	buf         []byte
 	compressing bool
 	plain       bool
-	writer      writeCloseFlusher // concrete compress writer (gzip, flate, custom)
+	writer      writeCloseFlusher
 }
 
 // writeCloseFlusher combines io.WriteCloser and http.Flusher so we can
@@ -50,9 +51,8 @@ func newCompressWriter(
 	encoding string,
 	factory WriterFactory,
 	pool *sync.Pool,
+	skipTypes []string,
 ) *compressWriter {
-	// Pre-allocate buf to minSize capacity. This avoids 2-3 intermediate
-	// reallocations as the slice grows from 0 to minSize via append.
 	bufCap := max(minSize, defaultCompressionMinSize)
 
 	return &compressWriter{
@@ -61,6 +61,7 @@ func newCompressWriter(
 		factory:         factory,
 		pool:            pool,
 		minSize:         minSize,
+		skipTypes:       skipTypes,
 		buf:             make([]byte, 0, bufCap),
 		compressing:     false,
 		plain:           false,
@@ -207,7 +208,7 @@ func (w *compressWriter) shouldCompress() bool {
 		return false
 	}
 
-	if !isCompressibleContentType(w.Header().Get(headerContentType)) {
+	if !isCompressibleContentType(w.Header().Get(headerContentType), w.skipTypes) {
 		return false
 	}
 

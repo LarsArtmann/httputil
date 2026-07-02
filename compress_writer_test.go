@@ -28,6 +28,7 @@ func newTestCompressWriter() *compressWriter {
 		encodingGzip,
 		testPassthroughFactory,
 		newWriterPool(testPassthroughFactory),
+		nil,
 	)
 }
 

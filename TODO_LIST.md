@@ -60,18 +60,18 @@ _Last verified against code: 2026-07-02_
 ### Near-term
 
 - [x] Improve test coverage to 90%+ (achieved)
-- [ ] Make content-type filtering configurable via `CompressionConfig`
-- [ ] Add `MiddlewareStack` type with ordering validation
-- [ ] Add `ResponseWriter` capability interface for Hijack/Flush
+- [x] Make content-type filtering configurable via `CompressionConfig`
+- [x] Add `MiddlewareStack` type with ordering validation
+- [x] Add `ResponseWriter` capability interface for Hijack/Flush
 
 ### Medium-term
 
 - [x] Implement deflate support using `compress/flate`
 - [x] Add `Accept-Encoding` quality value parsing per RFC 7231
-- [ ] Evaluate streaming ETag option using rolling hash
+- [x] Evaluate streaming ETag option using rolling hash — **Rejected**: HTTP requires headers before body, buffering is mandatory
 
 ### Worth considering
 
-- [ ] Consider request/response metrics middleware
-- [ ] Consider rate-limiting middleware
-- [ ] Consider request body size limit middleware
+- [x] Consider request/response metrics middleware — implemented as `Metrics()` with pluggable `MetricsRecorder` interface
+- [x] Consider rate-limiting middleware — implemented as `RateLimit()` with pluggable `RateLimiter` interface and `TokenBucketLimiter` built-in
+- [x] Consider request body size limit middleware — implemented as `MaxBodySize()`

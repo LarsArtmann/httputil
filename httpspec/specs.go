@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
-const unknownPath = "/httpspec-nonexistent-a7f3e2d1c9b4"
+const (
+	unknownPath   = "/httpspec-nonexistent-a7f3e2d1c9b4"
+	longURLLength = 8192
+)
 
 // leakPatterns are substrings that indicate an error response is leaking
 // internal details such as stack traces, source file paths, or runtime errors.
@@ -27,7 +30,7 @@ func standardSpecs(cfg config) []Spec {
 		routingSpecs(cfg),
 		methodSpecs(cfg),
 		headerSpecs(cfg),
-		securitySpecs(),
+		securitySpecs(cfg),
 	)
 }
 
@@ -47,6 +50,11 @@ func routingSpecs(cfg config) []Spec {
 			Name:     SpecNameUnknownPathReturns404,
 			Category: CategoryRouting,
 			Check:    unknownPathCheck(),
+		},
+		{
+			Name:     SpecNameLongURLHandled,
+			Category: CategoryRouting,
+			Check:    longURLHandledCheck(),
 		},
 	}
 }
@@ -73,6 +81,11 @@ func methodSpecs(cfg config) []Spec {
 			Category: CategorySecurity,
 			Check:    traceNotEnabledCheck(),
 		},
+		{
+			Name:     SpecNameConnectRejected,
+			Category: CategorySecurity,
+			Check:    connectRejectedCheck(),
+		},
 	}
 }
 
@@ -93,10 +106,20 @@ func headerSpecs(cfg config) []Spec {
 			Category: CategoryHeaders,
 			Check:    redirectHasLocationCheck(cfg.indexPath),
 		},
+		{
+			Name:     SpecNameNoDuplicateHeaders,
+			Category: CategoryHeaders,
+			Check:    noDuplicateHeadersCheck(cfg.indexPath),
+		},
+		{
+			Name:     SpecNameRespectsAcceptHeader,
+			Category: CategoryHeaders,
+			Check:    respectsAcceptHeaderCheck(cfg.indexPath),
+		},
 	}
 }
 
-func securitySpecs() []Spec {
+func securitySpecs(cfg config) []Spec {
 	return []Spec{
 		{
 			Name:     SpecNameNoServerVersionHeader,
@@ -112,6 +135,11 @@ func securitySpecs() []Spec {
 			Name:     SpecNameNoLeakedInternals,
 			Category: CategorySecurity,
 			Check:    noLeakedInternalsCheck(),
+		},
+		{
+			Name:     SpecNameXContentTypeOptions,
+			Category: CategorySecurity,
+			Check:    xContentTypeOptionsCheck(cfg.indexPath),
 		},
 	}
 }
@@ -340,4 +368,89 @@ func hasVersionLeak(server string) bool {
 	}
 
 	return false
+}
+
+func connectRejectedCheck() Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodConnect, unknownPath))
+
+		if rec.Code == http.StatusOK {
+			return Fail(
+				"CONNECT %s returned 200 OK, CONNECT should be rejected to prevent HTTP tunneling",
+				unknownPath,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func xContentTypeOptionsCheck(indexPath string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
+
+		if rec.Header().Get("X-Content-Type-Options") == "" {
+			return Fail(
+				"GET %s does not set X-Content-Type-Options: nosniff, which prevents MIME-type sniffing attacks",
+				indexPath,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func noDuplicateHeadersCheck(indexPath string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
+
+		for key, values := range rec.Header() {
+			if len(values) > 1 {
+				return Fail(
+					"GET %s response has duplicate %q headers (%d values), which can confuse clients and proxies",
+					indexPath,
+					key,
+					len(values),
+				)
+			}
+		}
+
+		return Pass()
+	}
+}
+
+func respectsAcceptHeaderCheck(indexPath string) Check {
+	return func(handler http.Handler) Result {
+		req := mustRequest(http.MethodGet, indexPath)
+		req.Header.Set("Accept", "application/json")
+
+		rec := serve(handler, req)
+
+		if rec.Code >= http.StatusInternalServerError {
+			return Fail(
+				"GET %s with Accept: application/json returned status %d, servers should handle Accept headers without crashing",
+				indexPath,
+				rec.Code,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func longURLHandledCheck() Check {
+	return func(handler http.Handler) Result {
+		longPath := "/" + strings.Repeat("a", longURLLength)
+		rec := serve(handler, mustRequest(http.MethodGet, longPath))
+
+		if rec.Code >= http.StatusInternalServerError {
+			return Fail(
+				"GET with a %d-byte URL returned status %d, long URLs should not trigger server errors",
+				longURLLength,
+				rec.Code,
+			)
+		}
+
+		return Pass()
+	}
 }

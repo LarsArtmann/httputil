@@ -259,6 +259,7 @@ func TestCompression_Hijack_SetsPlainMode(t *testing.T) {
 		encodingGzip,
 		GzipWriterFactory(cfg.Level),
 		newWriterPool(GzipWriterFactory(cfg.Level)),
+		nil,
 	)
 
 	_, _, err := compressWriter.Hijack()
@@ -340,5 +341,74 @@ func TestCompression_FlushWhileBuffering(t *testing.T) {
 
 	if rec.Header().Get("Content-Encoding") == "gzip" {
 		t.Error("should not compress when flushed below min size")
+	}
+}
+
+func TestCompression_CustomIncompressibleTypes(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.IncompressibleTypes = []string{"text/"}
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding = %q, want empty for custom-skipped text/plain", got)
+	}
+}
+
+func TestCompression_EmptyIncompressibleTypesCompressesAll(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.IncompressibleTypes = []string{}
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get(headerContentEncoding); got != encodingGzip {
+		t.Errorf("Content-Encoding = %q, want %q for empty skip list", got, encodingGzip)
+	}
+}
+
+func TestCompression_NilIncompressibleTypesUsesDefaults(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.IncompressibleTypes = nil
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding = %q, want empty for image/png with default skip list", got)
 	}
 }

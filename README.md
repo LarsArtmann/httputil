@@ -131,7 +131,7 @@ handler := httputil.Chain(
 
 ### Behavioral Spec Suite
 
-Validate any `http.Handler` against standard HTTP conventions with a single call. The `httpspec` subpackage runs 13 behavioral specs as parallel subtests.
+Validate any `http.Handler` against standard HTTP conventions with a single call. The `httpspec` subpackage runs 18 behavioral specs as parallel subtests.
 
 ```go
 import "github.com/larsartmann/httputil/httpspec"
@@ -142,7 +142,7 @@ func TestHTTPBehavior(t *testing.T) {
 }
 ```
 
-Specs checked: index page reachability, unknown path 404s, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE handling, redirect Location correctness, no leaked internals, no Server version fingerprinting, no X-Powered-By header. Skip inapplicable specs or add custom ones:
+Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence. Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
 
 ```go
 httpspec.Run(t, handler,

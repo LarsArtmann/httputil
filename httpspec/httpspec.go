@@ -81,6 +81,11 @@ const (
 	SpecNameNoServerVersionHeader         = "Server header should not leak version information"
 	SpecNameNoPoweredByHeader             = "X-Powered-By header should not be present"
 	SpecNameNoLeakedInternals             = "error responses should not leak internal details"
+	SpecNameXContentTypeOptions           = "responses should include X-Content-Type-Options: nosniff"
+	SpecNameNoDuplicateHeaders            = "responses should not contain duplicate headers"
+	SpecNameConnectRejected               = "CONNECT method should be rejected to prevent tunneling"
+	SpecNameRespectsAcceptHeader          = "servers should respect Accept header for content negotiation"
+	SpecNameLongURLHandled                = "servers should handle very long URLs without server errors"
 )
 
 // Option configures the spec runner.
@@ -140,6 +145,21 @@ func ExpectStatus(method, path string, expectedCode int) Check {
 	}
 }
 
+// ExpectNotStatus returns a [Check] that verifies a request to the given path
+// with the given method does NOT return the specified HTTP status code.
+// Useful for asserting that certain endpoints avoid specific error codes.
+func ExpectNotStatus(method, path string, notCode int) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		if rec.Code == notCode {
+			return Fail("%s %s returned status %d, which should be avoided", method, path, notCode)
+		}
+
+		return Pass()
+	}
+}
+
 // ExpectHeader returns a [Check] that verifies a response header equals the
 // expected value.
 func ExpectHeader(method, path, header, expectedValue string) Check {
@@ -192,12 +212,28 @@ func ExpectBodyContains(method, path, substring string) Check {
 // handler. Each spec runs as a parallel subtest, producing output that reads
 // like a behavior specification document.
 //
-// The handler must not be nil.
+// The handler must not be nil. For handlers with shared mutable state that
+// cannot handle concurrent requests, use [RunSerial] instead.
 func Run(t *testing.T, handler http.Handler, opts ...Option) {
 	t.Helper()
 
+	runSpecs(t, handler, true, opts...)
+}
+
+// RunSerial is like [Run] but runs each spec sequentially instead of in
+// parallel. Use this when the handler has shared mutable state that cannot
+// safely handle concurrent requests.
+func RunSerial(t *testing.T, handler http.Handler, opts ...Option) {
+	t.Helper()
+
+	runSpecs(t, handler, false, opts...)
+}
+
+func runSpecs(t *testing.T, handler http.Handler, parallel bool, opts ...Option) {
+	t.Helper()
+
 	if handler == nil {
-		t.Fatal("httpspec.Run: handler must not be nil")
+		t.Fatal("httpspec: handler must not be nil")
 	}
 
 	cfg := newConfig()
@@ -215,7 +251,9 @@ func Run(t *testing.T, handler http.Handler, opts ...Option) {
 		}
 
 		t.Run(spec.Name, func(t *testing.T) {
-			t.Parallel()
+			if parallel {
+				t.Parallel()
+			}
 
 			result := spec.Check(handler)
 			if !result.OK {

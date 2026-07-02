@@ -13,6 +13,7 @@ func newGoodHandler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("hello"))
 	})
@@ -105,6 +106,23 @@ func TestRunAllSpecsPassForGoodHandler(t *testing.T) {
 	Run(t, newGoodHandler())
 }
 
+func TestRunSerialAllSpecsPassForGoodHandler(t *testing.T) {
+	t.Parallel()
+	RunSerial(t, newGoodHandler())
+}
+
+func TestRunSerialWorksWithSkip(t *testing.T) {
+	t.Parallel()
+	RunSerial(
+		t, newSPAHandler(),
+		SkipSpec(SpecNameUnknownPathReturns404),
+		SkipSpec(SpecNamePostUnknownNotServerError),
+		SkipSpec(SpecNameTraceNotEnabled),
+		SkipSpec(SpecNameConnectRejected),
+		SkipSpec(SpecNameXContentTypeOptions),
+	)
+}
+
 // --- Option tests --------------------------------------------------------
 
 func TestSkipSpecExcludesSpec(t *testing.T) {
@@ -114,6 +132,8 @@ func TestSkipSpecExcludesSpec(t *testing.T) {
 		SkipSpec(SpecNameUnknownPathReturns404),
 		SkipSpec(SpecNamePostUnknownNotServerError),
 		SkipSpec(SpecNameTraceNotEnabled),
+		SkipSpec(SpecNameConnectRejected),
+		SkipSpec(SpecNameXContentTypeOptions),
 	)
 }
 
@@ -135,6 +155,7 @@ func TestWithIndexPathChangesTestedPath(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/app", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("app"))
 	})
@@ -637,6 +658,11 @@ func TestStandardSpecsHasAllExpectedNames(t *testing.T) {
 		SpecNameNoServerVersionHeader:         false,
 		SpecNameNoPoweredByHeader:             false,
 		SpecNameNoLeakedInternals:             false,
+		SpecNameXContentTypeOptions:           false,
+		SpecNameNoDuplicateHeaders:            false,
+		SpecNameConnectRejected:               false,
+		SpecNameRespectsAcceptHeader:          false,
+		SpecNameLongURLHandled:                false,
 	}
 
 	for _, s := range specs {
@@ -716,5 +742,186 @@ func TestMustRequestCreatesValidRequest(t *testing.T) {
 
 	if req.URL.Path != "/test" {
 		t.Errorf("got path %q, want %q", req.URL.Path, "/test")
+	}
+}
+
+// --- Test handlers for new specs ----------------------------------------
+
+func newNoSniffHandler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("hello"))
+	})
+
+	return mux
+}
+
+func newDuplicateHeaderHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header()["Set-Cookie"] = []string{"a=1", "b=2"}
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+func newConnectAllowingHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodConnect {
+			w.WriteHeader(http.StatusOK)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+	})
+}
+
+func newLongURLCrashingHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if len(r.URL.Path) > 1000 {
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+	})
+}
+
+// --- ExpectNotStatus tests ----------------------------------------------
+
+func TestExpectNotStatusPasses(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectNotStatus(http.MethodGet, "/", http.StatusInternalServerError)
+	result := check(newGoodHandler())
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectNotStatusFails(t *testing.T) {
+	t.Parallel()
+
+	check := ExpectNotStatus(http.MethodGet, "/", http.StatusOK)
+	result := check(newGoodHandler())
+
+	if result.OK {
+		t.Error("expected failure when status matches the excluded code")
+	}
+}
+
+// --- X-Content-Type-Options tests ---------------------------------------
+
+func TestXContentTypeOptionsPasses(t *testing.T) {
+	t.Parallel()
+
+	result := xContentTypeOptionsCheck("/")(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestXContentTypeOptionsFailsWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	result := xContentTypeOptionsCheck("/")(newNoSniffHandler())
+	if result.OK {
+		t.Error("expected failure when X-Content-Type-Options is missing")
+	}
+}
+
+// --- No duplicate headers tests -----------------------------------------
+
+func TestNoDuplicateHeadersPasses(t *testing.T) {
+	t.Parallel()
+
+	result := noDuplicateHeadersCheck("/")(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestNoDuplicateHeadersFailsWhenDuplicates(t *testing.T) {
+	t.Parallel()
+
+	result := noDuplicateHeadersCheck("/")(newDuplicateHeaderHandler())
+	if result.OK {
+		t.Error("expected failure when response has duplicate headers")
+	}
+}
+
+// --- CONNECT method tests -----------------------------------------------
+
+func TestConnectRejectedPassesFor404(t *testing.T) {
+	t.Parallel()
+
+	result := connectRejectedCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestConnectRejectedPassesFor405(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	})
+
+	result := connectRejectedCheck()(handler)
+	if !result.OK {
+		t.Errorf("expected pass for 405, got: %s", result.Message)
+	}
+}
+
+func TestConnectRejectedFailsFor200(t *testing.T) {
+	t.Parallel()
+
+	result := connectRejectedCheck()(newConnectAllowingHandler())
+	if result.OK {
+		t.Error("expected failure when CONNECT returns 200")
+	}
+}
+
+// --- Accept header tests ------------------------------------------------
+
+func TestRespectsAcceptHeaderPasses(t *testing.T) {
+	t.Parallel()
+
+	result := respectsAcceptHeaderCheck("/")(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestRespectsAcceptHeaderFailsFor500(t *testing.T) {
+	t.Parallel()
+
+	result := respectsAcceptHeaderCheck("/")(newAlways500Handler())
+	if result.OK {
+		t.Error("expected failure when Accept header causes 500")
+	}
+}
+
+// --- Long URL tests -----------------------------------------------------
+
+func TestLongURLHandledPasses(t *testing.T) {
+	t.Parallel()
+
+	result := longURLHandledCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestLongURLHandledFailsFor500(t *testing.T) {
+	t.Parallel()
+
+	result := longURLHandledCheck()(newLongURLCrashingHandler())
+	if result.OK {
+		t.Error("expected failure when long URL causes 500")
 	}
 }

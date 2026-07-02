@@ -8,7 +8,7 @@ _Updated: 2026-07-02_
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (10 middlewares)
+### Core Middleware Suite (13 middlewares)
 
 | Middleware       | File                                   | Config Type                                                 | Tests | Examples                     | Benchmarks                  | Fuzz              |
 | ---------------- | -------------------------------------- | ----------------------------------------------------------- | ----- | ---------------------------- | --------------------------- | ----------------- |
@@ -22,6 +22,9 @@ _Updated: 2026-07-02_
 | ResponseRecorder | `recorder.go`                          | —                                                           | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                 |
 | Compression      | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
 | ETag             | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`        |
+| MaxBodySize      | `maxbodysize.go`                       | `int64`                                                     | Yes   | —                            | —                           | —                 |
+| RateLimit        | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                            | —                           | —                 |
+| Metrics          | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes   | —                            | —                           | —                 |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
@@ -103,11 +106,12 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Behavioral Spec Suite (`httpspec` subpackage)
 
-- `httpspec.Run(t, handler)` validates any `http.Handler` against 13 standard HTTP behavior specs.
-- Specs cover routing (index reachability, unknown paths), method handling (HEAD, OPTIONS, TRACE, POST), response headers (Content-Type, Location on redirects), and security (no leaked internals, no version fingerprints, no X-Powered-By).
+- `httpspec.Run(t, handler)` validates any `http.Handler` against 18 standard HTTP behavior specs.
+- `httpspec.RunSerial(t, handler)` variant for handlers with shared mutable state.
+- Specs cover routing (index reachability, unknown paths, long URLs), method handling (HEAD, OPTIONS, TRACE, POST, CONNECT), response headers (Content-Type, Location on redirects, no duplicate headers, Accept header handling), and security (no leaked internals, no version fingerprints, no X-Powered-By, X-Content-Type-Options: nosniff).
 - Extensible via `SkipSpec`, `WithExtraSpecs`, `WithIndexPath`.
-- Helper builders: `ExpectStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`.
-- Pure stdlib, no third-party dependencies. 96.4% coverage.
+- Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`.
+- Pure stdlib, no third-party dependencies.
 
 ---
 
@@ -130,19 +134,25 @@ Not 100% (target met at 90%+). Gaps exist in:
 - Add WebSocket upgrade test through Compression + ETag.
 - Add `Content-Length` preservation test for small responses.
 
-### Medium-term
+### Infrastructure Types
 
-- Make content-type filtering configurable via `CompressionConfig`.
-- Add `MiddlewareStack` type with ordering validation.
-- Add a `ResponseWriter` capability interface to unify Hijack/Flush detection.
+- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost).
+- `DetectCapabilities()` inspects ResponseWriter for Hijacker/Flusher support.
+- `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
+
+---
+
+## PLANNED
+
+### Near-term
+
+- Add WebSocket upgrade test through Compression + ETag.
+- Add `Content-Length` preservation test for small responses.
 
 ---
 
 ## WORTH CONSIDERING
 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Provide documented examples rather than built-in encoders to keep the dependency policy intact.
-- **Streaming ETag option** — compute ETag on a rolling hash and stream body without buffering. Would require breaking 304 short-circuit semantics or significant complexity.
-- **Request/response metrics middleware** — optional, using `expvar` or custom histograms.
-- **Rate-limiting middleware** — sliding window or token bucket.
-- **Request body size limit middleware**.
+- **Streaming ETag option** — evaluated and rejected. HTTP requires headers before body, so buffering is mandatory. The current CRC-32 + 1MB buffer approach is correct and optimal.
 - **HTTP/2 Server Push integration test** — removed, HTTP/2 push is deprecated.

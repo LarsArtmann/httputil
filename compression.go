@@ -74,6 +74,12 @@ type CompressionConfig struct {
 	// defaults via DefaultWriterFactories() to extend rather than replace.
 	WriterFactories map[string]WriterFactory
 
+	// IncompressibleTypes is a list of content-type prefixes that should
+	// not be compressed (e.g., "image/", "video/"). When nil, the defaults
+	// from DefaultIncompressibleTypes() are used. Set to an empty slice to
+	// compress all content types.
+	IncompressibleTypes []string
+
 	// QValues maps encoding name to its quality value override (0.0-1.0).
 	// An encoding with q=0 in the client header is excluded from selection.
 	// This map does not affect parsing of client q-values; it only lets
@@ -114,10 +120,11 @@ func DeflateWriterFactory(level int) WriterFactory {
 // >= 512 B at gzip's default level.
 func DefaultCompressionConfig() CompressionConfig {
 	return CompressionConfig{
-		MinSize:         defaultCompressionMinSize,
-		Level:           gzip.DefaultCompression,
-		WriterFactories: DefaultWriterFactories(),
-		QValues:         nil,
+		MinSize:             defaultCompressionMinSize,
+		Level:               gzip.DefaultCompression,
+		WriterFactories:     DefaultWriterFactories(),
+		QValues:             nil,
+		IncompressibleTypes: nil,
 	}
 }
 
@@ -168,6 +175,11 @@ func Compression(cfg CompressionConfig) Middleware {
 
 	neg := buildNegotiator(cfg.WriterFactories)
 
+	skipTypes := cfg.IncompressibleTypes
+	if skipTypes == nil {
+		skipTypes = DefaultIncompressibleTypes()
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			encoding, _, ok := neg.negotiateEncoding(req.Header.Get(headerAcceptEncoding))
@@ -184,7 +196,14 @@ func Compression(cfg CompressionConfig) Middleware {
 
 			factory := cfg.WriterFactories[encoding]
 
-			cw := newCompressWriter(resp, cfg.MinSize, encoding, factory, neg.poolFor(encoding))
+			cw := newCompressWriter(
+				resp,
+				cfg.MinSize,
+				encoding,
+				factory,
+				neg.poolFor(encoding),
+				skipTypes,
+			)
 			defer func() { _ = cw.Close() }()
 
 			next.ServeHTTP(cw, req)

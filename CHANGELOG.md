@@ -8,7 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- New `httputil/httpspec` subpackage: reusable behavioral HTTP spec suite with 13 standard specs that validate any `http.Handler` against common HTTP conventions. Specs cover routing (index reachability, unknown path 404s), method safety (HEAD, OPTIONS, TRACE, POST handling), response headers (Content-Type on bodies and errors, Location on redirects), and security (no leaked internals, no Server version fingerprinting, no X-Powered-By header). Includes helper builders (`ExpectStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`) for custom specs and options (`SkipSpec`, `WithExtraSpecs`, `WithIndexPath`) for configuration.
+- New `httputil/httpspec` subpackage: reusable behavioral HTTP spec suite with 18 standard specs that validate any `http.Handler` against common HTTP conventions. Specs cover routing (index reachability, unknown path 404s, long URL handling), method safety (HEAD, OPTIONS, TRACE, POST, CONNECT rejection), response headers (Content-Type on bodies and errors, Location on redirects, no duplicate headers, Accept header handling), and security (no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence). Includes helper builders (`ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`) for custom specs and options (`SkipSpec`, `WithExtraSpecs`, `WithIndexPath`) for configuration. `RunSerial` variant for handlers with shared mutable state.
+- New `MaxBodySize(maxBytes)` middleware: limits request body size via `http.MaxBytesReader`.
+- New `RateLimit(cfg)` middleware: token bucket rate limiting with pluggable `RateLimiter` interface. Includes `TokenBucketLimiter` built-in implementation with per-key buckets, configurable key extraction, and custom denial handlers.
+- New `Metrics(cfg)` middleware: records per-request metrics (method, path, status, duration) via pluggable `MetricsRecorder` interface.
+- New `MiddlewareStack` type: collects named middleware with duplicate prevention, ordering validation (Recovery must be outermost), and `Build()` method. Well-known name constants for all built-in middleware.
+- New `DetectCapabilities(w)` function and `Capabilities` type: reports which optional `http.ResponseWriter` interfaces (Hijacker, Flusher) a writer supports.
+- New `DefaultIncompressibleTypes()` function: returns the default content-type deny-list for compression, enabling users to extend rather than replace the list.
+- `CompressionConfig.IncompressibleTypes` field: configurable content-type filtering for compression middleware. Nil uses defaults, empty slice compresses everything.
 
 ## [0.3.0] - 2026-06-18
 
