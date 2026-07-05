@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-07-05_
+_Updated: 2026-07-06_
 
 ---
 
@@ -46,8 +46,16 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
+### CORS Security
+
+- `DenyUnmatched` option on `CORSConfig` — when true, withholds `Access-Control-Allow-Origin` for origins not in `AllowedOrigins`, preventing allowlist bypass via wildcard fallback.
+- Wildcard origin matching (e.g., `*.example.com`) rejects lookalike domains (`*.example.com.evil.com`).
+- `AllowCredentials: true` + `AllowAllOrigins: true` rejected at `Validate()` time (browsers reject this combination).
+
 ### Compression Performance
 
+- `DefaultWriterFactoriesForLevel(level int)` returns a fresh default factory map (gzip + deflate + identity) at any compression level.
+- `Compression()` uses `cfg.Level` to build default factories when `WriterFactories` is empty — `Level` is no longer ignored.
 - Per-encoding `sync.Pool` (owned by the negotiator, one pool per encoding per `Compression` instance) reuses `gzip.Writer` and `flate.Writer` instances.
 - Content-type deny-list skips incompressible formats (`image/`, `video/`, `audio/`, `application/gzip`, `application/zip`, `application/pdf`, etc.).
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
@@ -56,10 +64,19 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### ETag Correctness
 
+- FNV-64a hash (64-bit, birthday bound ~4 billion) via configurable `HashFunc` field — replaced CRC32 to eliminate collision risk.
 - RFC 7232 compliant `If-None-Match` list parsing (`etagInList`).
 - All 2xx statuses cacheable (`isCacheableStatus()`).
 - 1MB memory safety limit (`MaxBufferSize`).
 - Zero-allocation hex encoding via stack arrays and lookup table.
+
+### Rate Limiting
+
+- Token bucket algorithm via `TokenBucketLimiter` — per-key buckets with fixed-rate refill up to burst capacity.
+- `NewTokenBucketLimiter(rate, burst)` validates inputs — returns error if rate or burst is not positive.
+- `EvictionTTL` field enables opt-in lazy eviction of idle buckets (amortized sweep at most once per TTL interval). Zero (default) preserves unbounded-growth behavior.
+- Pluggable `RateLimiter` interface for custom backends (Redis, etc.).
+- Configurable key extraction and custom denial handlers via `RateLimitConfig`.
 
 ### Context Helpers
 
@@ -87,6 +104,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Health Checks
 
 - `HealthHandler()`, `LiveHandler()`, `ReadyHandler()` — Kubernetes-compatible endpoints.
+- `ReadyHandlerWithProbe(ready func() bool)` — dependency-based readiness: returns 200 when ready, 503 when not.
 - `RegisterHealth(mux)` registers `/health`, `/health/live`, and `/health/ready`.
 - `HealthStatus` enum (`"up"` / `"down"`) and `HealthResponse` JSON type.
 
@@ -145,5 +163,5 @@ Not 100% (target met at 90%+). Gaps exist in:
 ## WORTH CONSIDERING
 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Provide documented examples rather than built-in encoders to keep the dependency policy intact.
-- **Streaming ETag option** — evaluated and rejected. HTTP requires headers before body, so buffering is mandatory. The current CRC-32 + 1MB buffer approach is correct and optimal.
+- **Streaming ETag option** — evaluated and rejected. HTTP requires headers before body, so buffering is mandatory. The current FNV-64a + 1MB buffer approach is correct and optimal.
 - **HTTP/2 Server Push integration test** — removed, HTTP/2 push is deprecated.

@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-06
+
+### Added
+
+- New `ReadyHandlerWithProbe(ready func() bool)` health handler: returns 200 `{"status":"up"}` when the probe function returns true, or 503 `{"status":"down"}` when it returns false. Enables Kubernetes to route traffic away from instances that are alive but not yet ready to serve (e.g., warming caches, waiting on dependencies).
+- New `TokenBucketLimiter.EvictionTTL` field: opt-in lazy eviction of idle buckets. When non-zero, buckets not accessed within the TTL are swept on the next `Allow` call (amortized, at most one sweep per TTL interval). Zero (default) preserves the original unbounded-growth behavior.
+- New `ETagConfig.HashFunc` field: pluggable hash algorithm for ETag computation. Defaults to FNV-64a (`defaultETagHash`). Provide a custom `func([]byte) uint64` for application-specific hashing.
+- New `DefaultWriterFactoriesForLevel(level int)` function: returns a fresh default factory map at any compression level. `DefaultWriterFactories()` delegates to this at `gzip.DefaultCompression`.
+- New `CORSConfig.DenyUnmatched` field: when true, withholds the `Access-Control-Allow-Origin` header for origins that match no `AllowedOrigins` entry (when `AllowAllOrigins` is false). Causes browsers to deny the cross-origin request, preventing the configured allowlist from being bypassed via the wildcard fallback.
+
+### Changed
+
+- **Breaking:** `NewTokenBucketLimiter` now returns `(*TokenBucketLimiter, error)` and validates that rate and burst are positive. Previously silently created broken limiters (rate <= 0 never refills tokens; burst <= 0 rejects every request). Acceptable at pre-1.0.
+- `Compression()` now builds default factories from `cfg.Level` when `WriterFactories` is empty, instead of ignoring `Level` entirely. Previously `Level` had no effect unless custom factories were supplied.
+- Upgraded `go-error-family` from v0.5.1 to v0.6.1 (module metadata correction, no API change).
+- Excluded gosec G705 (XSS via taint analysis) globally in `.golangci.yml`. G705 is structurally a false positive for a response-writing library — every `ResponseWriter.Write` is intentional output.
+
+### Removed
+
+- **Breaking:** `CompressionConfig.QValues` field removed. It was documented and exposed but never read by the negotiator — a lying public API.
+
+### Fixed
+
+- **Security:** CORS allowlist bypass — when `AllowAllOrigins` is false and a request origin matched no `AllowedOrigins` entry, the middleware fell back to `Access-Control-Allow-Origin: *`, making the configured allowlist decorative. Set `DenyUnmatched: true` to suppress the header for unmatched origins.
+- **Correctness:** ETag collision risk — replaced CRC32 (32-bit checksum, 50% collision probability at ~65K distinct bodies) with FNV-64a (64-bit, birthday bound ~4 billion). ETag values change from 8 to 16 hex characters, requiring one-time cache invalidation.
+
 ## [0.4.0] - 2026-07-02
 
 ### Added
