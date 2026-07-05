@@ -9,12 +9,12 @@ import (
 // it is implemented. They document intentionally surprising behaviors (notably the
 // allowlist fallback) so that any future change to them is a deliberate decision.
 
-// TestCORS_AllowlistFallsBackToWildcardForUnmatchedOrigin documents a security-relevant
-// behavior: when AllowAllOrigins is false and a request origin matches no entry in
-// AllowedOrigins, the middleware still responds with Access-Control-Allow-Origin: *.
-// This is documented as intentional in DOMAIN_LANGUAGE.md but is surprising — a
-// configured allowlist is effectively bypassed for non-matching origins.
-func TestCORS_AllowlistFallsBackToWildcardForUnmatchedOrigin(t *testing.T) {
+// TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault documents a
+// security-relevant default: when AllowAllOrigins is false and a request origin
+// matches no entry in AllowedOrigins, the middleware still responds with
+// Access-Control-Allow-Origin: *. Consumers who want unmatched origins denied
+// must set DenyUnmatched: true (see TestCORS_DenyUnmatchedSuppressesHeader).
+func TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault(t *testing.T) {
 	t.Parallel()
 
 	cfg := CORSConfig{
@@ -30,8 +30,36 @@ func TestCORS_AllowlistFallsBackToWildcardForUnmatchedOrigin(t *testing.T) {
 
 	middleware(inner).ServeHTTP(rec, req)
 
-	// Current behavior: unmatched origin still gets "*".
+	// Default behavior: unmatched origin still gets "*".
 	assertAllowOrigin(t, rec, "*")
+}
+
+// TestCORS_DenyUnmatchedSuppressesHeader specifies that when DenyUnmatched is
+// true, an origin matching no entry in AllowedOrigins produces no
+// Access-Control-Allow-Origin header at all — the allowlist is enforced.
+func TestCORS_DenyUnmatchedSuppressesHeader(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"https://allowed.example.com"},
+		AllowedMethods: []string{http.MethodGet},
+		AllowedHeaders: []string{"Content-Type"},
+		DenyUnmatched:  true,
+	}
+	middleware := CORS(cfg)
+
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "https://attacker.evil")
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf(
+			"Allow-Origin = %q, want absent (DenyUnmatched=true)",
+			got,
+		)
+	}
 }
 
 // TestCORS_NoOriginHeaderDefaultsToWildcard documents that when no Origin header is
@@ -91,8 +119,34 @@ func TestCORS_WildcardPatternRejectsLookalikeDomain(t *testing.T) {
 
 	middleware(inner).ServeHTTP(rec, req)
 
-	// Lookalike does not match the wildcard, so the fallback applies.
+	// Lookalike does not match the wildcard, so the default fallback applies.
 	assertAllowOrigin(t, rec, "*")
+}
+
+// TestCORS_WildcardPatternRejectsLookalikeWithDenyUnmatched verifies that the
+// lookalike domain is also denied the header when DenyUnmatched is set.
+func TestCORS_WildcardPatternRejectsLookalikeWithDenyUnmatched(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"*.example.com"},
+		AllowedMethods: []string{http.MethodGet},
+		DenyUnmatched:  true,
+	}
+	middleware := CORS(cfg)
+
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "https://notexample.com")
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf(
+			"Allow-Origin = %q, want absent (DenyUnmatched=true for lookalike)",
+			got,
+		)
+	}
 }
 
 // TestCORS_WildcardPatternMatchesNestedSubdomain specifies that "*.example.com" also
