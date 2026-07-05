@@ -30,17 +30,28 @@ type RateLimiter interface {
 
 // TokenBucketLimiter is a simple in-memory rate limiter using a token bucket
 // per key. Tokens refill at a fixed rate up to the burst capacity.
+//
+// Set EvictionTTL to a non-zero duration to enable lazy eviction of idle
+// buckets — buckets that have not been accessed within EvictionTTL are
+// removed on the next Allow call that triggers a sweep. Zero (the default)
+// disables eviction, preserving the original unbounded-growth behavior.
 type TokenBucketLimiter struct {
-	mu      sync.Mutex
-	buckets map[string]*tokenBucket
-	rate    float64 // tokens per second
-	burst   float64 // maximum tokens
-	now     func() time.Time
+	mu sync.Mutex
+	// EvictionTTL controls idle-bucket eviction. When non-zero, buckets not
+	// accessed for this duration are evicted lazily on Allow calls.
+	EvictionTTL time.Duration
+
+	buckets   map[string]*tokenBucket
+	rate      float64 // tokens per second
+	burst     float64 // maximum tokens
+	now       func() time.Time
+	lastSweep time.Time
 }
 
 type tokenBucket struct {
 	tokens     float64
 	lastRefill time.Time
+	lastAccess time.Time
 }
 
 // NewTokenBucketLimiter creates a RateLimiter that allows requests at the
@@ -56,11 +67,13 @@ func NewTokenBucketLimiter(rate, burst float64) (*TokenBucketLimiter, error) {
 	}
 
 	return &TokenBucketLimiter{
-		mu:      sync.Mutex{},
-		buckets: make(map[string]*tokenBucket),
-		rate:    rate,
-		burst:   burst,
-		now:     time.Now,
+		mu:          sync.Mutex{},
+		EvictionTTL: 0,
+		buckets:     make(map[string]*tokenBucket),
+		rate:        rate,
+		burst:       burst,
+		now:         time.Now,
+		lastSweep:   time.Time{},
 	}, nil
 }
 
@@ -69,13 +82,20 @@ func (l *TokenBucketLimiter) Allow(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	bucket, ok := l.buckets[key]
 	now := l.now()
 
+	if l.EvictionTTL > 0 && now.Sub(l.lastSweep) >= l.EvictionTTL {
+		l.sweep(now)
+	}
+
+	bucket, ok := l.buckets[key]
+
 	if !ok {
-		bucket = &tokenBucket{tokens: l.burst, lastRefill: now}
+		bucket = &tokenBucket{tokens: l.burst, lastRefill: now, lastAccess: now}
 		l.buckets[key] = bucket
 	}
+
+	bucket.lastAccess = now
 
 	elapsed := now.Sub(bucket.lastRefill).Seconds()
 	bucket.tokens = math.Min(l.burst, bucket.tokens+elapsed*l.rate)
@@ -88,6 +108,18 @@ func (l *TokenBucketLimiter) Allow(key string) bool {
 	}
 
 	return false
+}
+
+// sweep removes buckets that have been idle for longer than EvictionTTL.
+// Must be called with the mutex held.
+func (l *TokenBucketLimiter) sweep(now time.Time) {
+	l.lastSweep = now
+
+	for key, bucket := range l.buckets {
+		if now.Sub(bucket.lastAccess) > l.EvictionTTL {
+			delete(l.buckets, key)
+		}
+	}
 }
 
 // RateLimitConfig holds configuration for the rate limiting middleware.

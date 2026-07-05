@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestTokenBucketLimiterAllowsWithinBurst(t *testing.T) {
@@ -228,5 +229,61 @@ func TestNewTokenBucketLimiterRejectsNonPositiveBurst(t *testing.T) {
 	_, err = NewTokenBucketLimiter(5, -1)
 	if err == nil {
 		t.Fatal("expected error for negative burst, got nil")
+	}
+}
+
+func TestTokenBucketLimiterEvictsIdleBuckets(t *testing.T) {
+	t.Parallel()
+
+	clock := time.Now()
+
+	limiter, err := NewTokenBucketLimiter(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	limiter.EvictionTTL = 5 * time.Minute
+	limiter.now = func() time.Time { return clock }
+
+	limiter.Allow("active")
+	limiter.Allow("idle")
+
+	if len(limiter.buckets) != 2 {
+		t.Fatalf("expected 2 buckets, got %d", len(limiter.buckets))
+	}
+
+	clock = clock.Add(6 * time.Minute)
+
+	limiter.Allow("active")
+
+	if _, ok := limiter.buckets["idle"]; ok {
+		t.Error("expected idle bucket to be evicted after TTL")
+	}
+
+	if _, ok := limiter.buckets["active"]; !ok {
+		t.Error("expected active bucket to still exist after sweep")
+	}
+}
+
+func TestTokenBucketLimiterNoEvictionByDefault(t *testing.T) {
+	t.Parallel()
+
+	clock := time.Now()
+
+	limiter, err := NewTokenBucketLimiter(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	limiter.now = func() time.Time { return clock }
+
+	limiter.Allow("key1")
+
+	clock = clock.Add(24 * time.Hour)
+
+	limiter.Allow("key2")
+
+	if len(limiter.buckets) != 2 {
+		t.Errorf("expected 2 buckets (no eviction by default), got %d", len(limiter.buckets))
 	}
 }
