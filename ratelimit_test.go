@@ -9,7 +9,10 @@ import (
 func TestTokenBucketLimiterAllowsWithinBurst(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewTokenBucketLimiter(1, 2)
+	limiter, err := NewTokenBucketLimiter(1, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !limiter.Allow("key1") {
 		t.Error("first Allow should succeed within burst")
@@ -27,7 +30,10 @@ func TestTokenBucketLimiterAllowsWithinBurst(t *testing.T) {
 func TestTokenBucketLimiterKeysAreIndependent(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewTokenBucketLimiter(1, 1)
+	limiter, err := NewTokenBucketLimiter(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !limiter.Allow("key1") {
 		t.Error("Allow key1 should succeed")
@@ -41,7 +47,11 @@ func TestTokenBucketLimiterKeysAreIndependent(t *testing.T) {
 func TestRateLimitAllowsWithinLimit(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewTokenBucketLimiter(100, 10)
+	limiter, err := NewTokenBucketLimiter(100, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	cfg := DefaultRateLimitConfig()
 	cfg.Limiter = limiter
 
@@ -63,7 +73,11 @@ func TestRateLimitAllowsWithinLimit(t *testing.T) {
 func TestRateLimitDeniesWhenExceeded(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewTokenBucketLimiter(0.01, 1)
+	limiter, err := NewTokenBucketLimiter(0.01, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	cfg := DefaultRateLimitConfig()
 	cfg.Limiter = limiter
 
@@ -95,7 +109,11 @@ func TestRateLimitDeniesWhenExceeded(t *testing.T) {
 func TestRateLimitCustomKeyFunc(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewTokenBucketLimiter(0.01, 1)
+	limiter, err := NewTokenBucketLimiter(0.01, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	cfg := DefaultRateLimitConfig()
 	cfg.Limiter = limiter
 	cfg.KeyFunc = func(r *http.Request) string {
@@ -136,7 +154,11 @@ func TestRateLimitCustomKeyFunc(t *testing.T) {
 func TestRateLimitCustomOnDenied(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewTokenBucketLimiter(0.01, 1)
+	limiter, err := NewTokenBucketLimiter(0.01, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	cfg := DefaultRateLimitConfig()
 	cfg.Limiter = limiter
 	cfg.OnDenied = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -178,5 +200,33 @@ func TestRateLimitConfigValidateRejectsNilLimiter(t *testing.T) {
 	err := cfg.Validate()
 	if err == nil {
 		t.Fatal("expected error for nil Limiter, got nil")
+	}
+}
+
+func TestNewTokenBucketLimiterRejectsNonPositiveRate(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewTokenBucketLimiter(0, 5)
+	if err == nil {
+		t.Fatal("expected error for zero rate, got nil")
+	}
+
+	_, err = NewTokenBucketLimiter(-1, 5)
+	if err == nil {
+		t.Fatal("expected error for negative rate, got nil")
+	}
+}
+
+func TestNewTokenBucketLimiterRejectsNonPositiveBurst(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewTokenBucketLimiter(5, 0)
+	if err == nil {
+		t.Fatal("expected error for zero burst, got nil")
+	}
+
+	_, err = NewTokenBucketLimiter(5, -1)
+	if err == nil {
+		t.Fatal("expected error for negative burst, got nil")
 	}
 }

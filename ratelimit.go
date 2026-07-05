@@ -8,7 +8,11 @@ import (
 	"time"
 )
 
-var errNilRateLimiter = errors.New("rate limit config: Limiter must not be nil")
+var (
+	errNilRateLimiter = errors.New("rate limit config: Limiter must not be nil")
+	errInvalidRate    = errors.New("rate must be greater than zero")
+	errInvalidBurst   = errors.New("burst must be greater than zero")
+)
 
 const (
 	defaultRateLimitStatus = http.StatusTooManyRequests
@@ -41,15 +45,23 @@ type tokenBucket struct {
 
 // NewTokenBucketLimiter creates a RateLimiter that allows requests at the
 // given rate (tokens per second) with a burst capacity. Each unique key
-// gets its own bucket.
-func NewTokenBucketLimiter(rate, burst float64) *TokenBucketLimiter {
+// gets its own bucket. Returns an error if rate or burst is not positive.
+func NewTokenBucketLimiter(rate, burst float64) (*TokenBucketLimiter, error) {
+	if rate <= 0 {
+		return nil, errInvalidRate
+	}
+
+	if burst <= 0 {
+		return nil, errInvalidBurst
+	}
+
 	return &TokenBucketLimiter{
 		mu:      sync.Mutex{},
 		buckets: make(map[string]*tokenBucket),
 		rate:    rate,
 		burst:   burst,
 		now:     time.Now,
-	}
+	}, nil
 }
 
 // Allow returns true if the key has tokens remaining, consuming one token.
