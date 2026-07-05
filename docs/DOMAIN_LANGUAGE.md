@@ -24,19 +24,26 @@ If a word means something different to a contributor than to a consumer, define 
 
 The library has these bounded contexts, each with a distinct vocabulary and responsibility.
 
-| Context          | Description                                                                            | Key Type(s)                    |
-| ---------------- | -------------------------------------------------------------------------------------- | ------------------------------ |
-| Client IP        | Extracting the true client IP from proxied requests                                    | `ClientIP`                     |
-| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                         | `CORSConfig`, `CORS`           |
-| Response Capture | Recording response state for inspection (status, headers, body)                        | `ResponseRecorder`, `Chain`    |
-| Error Protocol   | Classified errors with behavioral families for retry decisions                         | Error codes, `go-error-family` |
-| Security Headers | Setting common browser security headers on responses                                   | `SecurityHeadersConfig`        |
-| Request ID       | Propagating or generating unique request identifiers                                   | `RequestIDConfig`              |
-| Recovery         | Catching panics and returning 500 responses                                            | `Recovery`                     |
-| Timeout          | Enforcing request deadlines via context cancellation                                   | `Timeout`                      |
-| Compression      | Response compression (gzip/deflate + pluggable encodings) with pool-based writer reuse | `CompressionConfig`            |
-| ETag             | Entity tag generation and conditional 304 responses                                    | `ETagConfig`                   |
-| Logging          | Structured request/response logging                                                    | `Logging`                      |
+| Context          | Description                                                                            | Key Type(s)                              |
+| ---------------- | -------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Client IP        | Extracting the true client IP from proxied requests                                    | `ClientIP`                               |
+| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                         | `CORSConfig`, `CORS`                     |
+| Response Capture | Recording response state for inspection (status, headers, body)                        | `ResponseRecorder`, `Chain`              |
+| Error Protocol   | Classified errors with behavioral families for retry decisions                         | Error codes, `go-error-family`           |
+| Security Headers | Setting common browser security headers on responses                                   | `SecurityHeadersConfig`                  |
+| Request ID       | Propagating or generating unique request identifiers                                   | `RequestIDConfig`                        |
+| Recovery         | Catching panics and returning 500 responses                                            | `Recovery`                               |
+| Timeout          | Enforcing request deadlines via context cancellation                                   | `Timeout`                                |
+| Compression      | Response compression (gzip/deflate + pluggable encodings) with pool-based writer reuse | `CompressionConfig`                      |
+| ETag             | Entity tag generation and conditional 304 responses                                    | `ETagConfig`                             |
+| Logging          | Structured request/response logging                                                    | `Logging`                                |
+| Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                | `ServerConfig`, `Server`                 |
+| Health           | Kubernetes-compatible health, liveness, and readiness endpoints                        | `HealthHandler`, `ReadyHandlerWithProbe` |
+| Rate Limiting    | Token bucket rate limiting with pluggable limiter and optional TTL eviction            | `RateLimitConfig`, `TokenBucketLimiter`  |
+| Metrics          | Request metrics recording with pluggable recorder interface                            | `MetricsConfig`, `MetricsRecorder`       |
+| Body Size Limit  | Enforcing maximum request body size                                                    | `MaxBodySize`                            |
+| Middleware Stack | Named middleware ordering with duplicate prevention                                    | `MiddlewareStack`                        |
+| HTTP Spec        | Reusable BDD-style HTTP behavior specifications                                        | `httpspec.Run`, `httpspec.Spec`          |
 
 ---
 
@@ -52,6 +59,11 @@ Objects with identity and lifecycle within the library.
 | RequestIDConfig       | A configuration value object defining request ID header name and generation logic             | Request ID       |
 | CompressionConfig     | A configuration value object defining gzip compression parameters (level, min size)           | Compression      |
 | ETagConfig            | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
+| RateLimitConfig       | A configuration value object defining rate limiting policy (limiter, key func, denial)        | Rate Limiting    |
+| TokenBucketLimiter    | An in-memory token bucket rate limiter with per-key buckets and optional TTL eviction         | Rate Limiting    |
+| MetricsConfig         | A configuration value object defining metrics recording behavior                              | Metrics          |
+| ServerConfig          | A configuration value object defining server address, timeouts, and TLS settings              | Server Lifecycle |
+| MiddlewareStack       | A named middleware collection with duplicate prevention and ordering validation               | Middleware Stack |
 
 ---
 
@@ -74,6 +86,10 @@ Immutable objects defined by their attributes.
 | Compression Level | An integer controlling gzip compression tradeoff (speed vs ratio)                             | Compression      |
 | Min Size          | The minimum response body size (bytes) before compression is applied                          | Compression      |
 | Max Buffer Size   | The maximum bytes buffered for ETag computation before abandoning                             | ETag             |
+| Token Bucket      | A per-key container holding token count and last-refill timestamp                             | Rate Limiting    |
+| Eviction TTL      | Duration after which idle token buckets are lazily removed; zero disables eviction            | Rate Limiting    |
+| Health Status     | The operational state reported by health endpoints: `up` or `down`                            | Health           |
+| Ready Probe       | A function that returns true when the service is ready to accept traffic                      | Health           |
 
 ---
 
@@ -81,31 +97,43 @@ Immutable objects defined by their attributes.
 
 Actions the library performs.
 
-| Term                             | Definition                                                                                             | Context          |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- |
-| `ClientIP(r)`                    | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr | Client IP        |
-| `ClientIPMiddleware(next)`       | Create middleware that injects the client IP into the request context                                  | Client IP        |
-| `ClientIPFromContext(ctx)`       | Retrieve the stored client IP from a context                                                           | Client IP        |
-| `WithClientIP(ctx, ip)`          | Store a client IP string in a context                                                                  | Client IP        |
-| `CORS(cfg)`                      | Create middleware that sets CORS response headers and handles preflight requests                       | CORS             |
-| `DefaultCORSConfig()`            | Return a permissive CORS config suitable for local development (allows all origins)                    | CORS             |
-| `NewResponseRecorder(w)`         | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state             | Response Capture |
-| `Chain(handler, mw...)`          | Compose multiple middleware around a handler; first middleware in list is outermost                    | Response Capture |
-| `HeaderSnapshot(rec)`            | Return an isolated copy of the response headers from a ResponseRecorder                                | Response Capture |
-| `SecurityHeaders(cfg)`           | Create middleware that sets security response headers (nosniff, frame-options, etc.)                   | Security Headers |
-| `DefaultSecurityHeadersConfig()` | Return a SecurityHeadersConfig with production defaults                                                | Security Headers |
-| `RequestID(cfg)`                 | Create middleware that propagates or generates a request ID                                            | Request ID       |
-| `DefaultRequestIDConfig()`       | Return a RequestIDConfig that reads/generates X-Request-ID                                             | Request ID       |
-| `RequestIDFromContext(ctx)`      | Retrieve the stored request ID from a context                                                          | Request ID       |
-| `Recovery(logger)`               | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
-| `Timeout(duration)`              | Create middleware that sets a deadline on the request context                                          | Timeout          |
-| `Logging(logger)`                | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
-| `Compression(cfg)`               | Create middleware that gzip-compresses responses when the client accepts it                            | Compression      |
-| `DefaultCompressionConfig()`     | Return a CompressionConfig with sensible defaults (gzip default level, 512-byte minimum)               | Compression      |
-| `ETag(cfg)`                      | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
-| `DefaultETagConfig()`            | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
-| `RegisterErrorClassifications()` | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |
-| `Validate()`                     | Check a config for invalid values at startup; all config types implement this                          | Universal        |
+| Term                                | Definition                                                                                             | Context          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- |
+| `ClientIP(r)`                       | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr | Client IP        |
+| `ClientIPMiddleware(next)`          | Create middleware that injects the client IP into the request context                                  | Client IP        |
+| `ClientIPFromContext(ctx)`          | Retrieve the stored client IP from a context                                                           | Client IP        |
+| `WithClientIP(ctx, ip)`             | Store a client IP string in a context                                                                  | Client IP        |
+| `CORS(cfg)`                         | Create middleware that sets CORS response headers and handles preflight requests                       | CORS             |
+| `DefaultCORSConfig()`               | Return a permissive CORS config suitable for local development (allows all origins)                    | CORS             |
+| `NewResponseRecorder(w)`            | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state             | Response Capture |
+| `Chain(handler, mw...)`             | Compose multiple middleware around a handler; first middleware in list is outermost                    | Response Capture |
+| `HeaderSnapshot(rec)`               | Return an isolated copy of the response headers from a ResponseRecorder                                | Response Capture |
+| `SecurityHeaders(cfg)`              | Create middleware that sets security response headers (nosniff, frame-options, etc.)                   | Security Headers |
+| `DefaultSecurityHeadersConfig()`    | Return a SecurityHeadersConfig with production defaults                                                | Security Headers |
+| `RequestID(cfg)`                    | Create middleware that propagates or generates a request ID                                            | Request ID       |
+| `DefaultRequestIDConfig()`          | Return a RequestIDConfig that reads/generates X-Request-ID                                             | Request ID       |
+| `RequestIDFromContext(ctx)`         | Retrieve the stored request ID from a context                                                          | Request ID       |
+| `Recovery(logger)`                  | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
+| `Timeout(duration)`                 | Create middleware that sets a deadline on the request context                                          | Timeout          |
+| `Logging(logger)`                   | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
+| `Compression(cfg)`                  | Create middleware that gzip-compresses responses when the client accepts it                            | Compression      |
+| `DefaultCompressionConfig()`        | Return a CompressionConfig with sensible defaults (gzip default level, 512-byte minimum)               | Compression      |
+| `ETag(cfg)`                         | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
+| `DefaultETagConfig()`               | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
+| `HealthHandler()`                   | Return a handler that responds with `{"status":"up"}`                                                  | Health           |
+| `LiveHandler()`                     | Alias for `HealthHandler()` for Kubernetes liveness probes                                             | Health           |
+| `ReadyHandler()`                    | Return a handler for Kubernetes readiness probes (always up by default)                                | Health           |
+| `ReadyHandlerWithProbe(ready)`      | Return a handler that calls `ready()` and responds 200 up or 503 down                                  | Health           |
+| `RegisterHealth(mux)`               | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                      | Health           |
+| `NewTokenBucketLimiter(rate,burst)` | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0)                       | Rate Limiting    |
+| `RateLimit(cfg)`                    | Create middleware that enforces rate limiting using the configured limiter                             | Rate Limiting    |
+| `DefaultRateLimitConfig()`          | Return a RateLimitConfig with 429 status and RemoteAddr key func                                       | Rate Limiting    |
+| `Metrics(cfg)`                      | Create middleware that records request metrics via a pluggable recorder                                | Metrics          |
+| `MaxBodySize(limit)`                | Create middleware that rejects request bodies exceeding the limit                                      | Body Size Limit  |
+| `NewServer(cfg)`                    | Create an HTTP server with configurable timeouts and graceful shutdown                                 | Server Lifecycle |
+| `NewMiddlewareStack()`              | Create a named middleware stack with duplicate prevention and ordering validation                      | Middleware Stack |
+| `RegisterErrorClassifications()`    | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |
+| `Validate()`                        | Check a config for invalid values at startup; all config types implement this                          | Universal        |
 
 ---
 
@@ -130,6 +158,14 @@ State transitions within the library.
 | ETag Computed         | ETag middleware generates an ETag value from the response body                    | ETag             |
 | Not Modified Returned | ETag middleware returns 304 because If-None-Match matched the computed ETag       | ETag             |
 | ETag Skipped          | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)            | ETag             |
+| Rate Limited          | RateLimit middleware rejects a request because the token bucket was empty         | Rate Limiting    |
+| Bucket Evicted        | An idle token bucket is removed during lazy sweep (EvictionTTL > 0)               | Rate Limiting    |
+| Health Checked        | Health endpoint responds with current status                                      | Health           |
+| Readiness Failed      | ReadyHandlerWithProbe calls ready() and it returns false; responds 503            | Health           |
+| Metrics Recorded      | Metrics middleware records request duration, status, and method                   | Metrics          |
+| Body Rejected         | MaxBodySize middleware rejects a request body exceeding the configured limit      | Body Size Limit  |
+| Server Starting       | Server begins listening on the configured address                                 | Server Lifecycle |
+| Server Shutting Down  | Server enters graceful shutdown, draining in-flight requests                      | Server Lifecycle |
 
 ---
 
@@ -150,7 +186,7 @@ Invariants and policies that the library enforces.
 - If `AllowAllOrigins` is true → always respond with `Access-Control-Allow-Origin: *`
 - If the request `Origin` matches an entry in `AllowedOrigins` → echo that origin back
 - Wildcard patterns like `*.example.com` match subdomains
-- If no match → fall back to `*`
+- If no match → fall back to `*` (default), or suppress the header entirely when `DenyUnmatched=true`
 - Preflight `OPTIONS` requests receive `204 No Content` (unless `OptionsPassthrough` is set)
 - `MaxAge` is sent as `Access-Control-Max-Age` in seconds (default: 86400 = 24 hours)
 - `Validate()` rejects `AllowCredentials=true` with `AllowAllOrigins=true` (browsers reject this)
@@ -203,13 +239,13 @@ Invariants and policies that the library enforces.
 
 ### Compression Rules
 
-- Only applies when the client sends `Accept-Encoding: gzip`
-- Only compresses responses with status 200 (configurable for all 2xx)
-- Skips responses smaller than `MinSize` (default: 200 bytes)
-- Skips known-incompressible content types (images, video, audio, archives)
-- Uses `sync.Pool` keyed by compression level to reuse `gzip.Writer` instances
-- `Validate()` rejects compression levels outside `[gzip.HuffmanOnly, gzip.BestCompression]` and negative `MinSize`
-- Only gzip is supported (no deflate or brotli) — intentional single-dependency constraint
+- Negotiates between configured encodings (gzip, deflate by default) based on client `Accept-Encoding` and RFC 7231 q-values
+- Server priority order: brotli > zstd > gzip > deflate > identity (only gzip and deflate are bundled)
+- Skips responses smaller than `MinSize` (default: 512 bytes)
+- Skips known-incompressible content types (images, video, audio, pre-compressed types)
+- Uses per-encoding `sync.Pool` to reuse writer instances; custom factories opt into pooling via `Reset(io.Writer)`
+- `Level` field controls compression level when `WriterFactories` is not supplied (applies to both gzip and deflate)
+- `Validate()` rejects compression levels outside `[gzip.HuffmanOnly, gzip.BestCompression]`, negative `MinSize`, and empty `WriterFactories`
 
 ### ETag Rules
 
@@ -217,7 +253,7 @@ Invariants and policies that the library enforces.
 - Only generates ETags for cacheable (2xx) responses
 - Reads `If-None-Match` header for conditional request evaluation
 - Returns `304 Not Modified` if the computed ETag matches
-- Uses CRC32 for hash computation with zero-allocation hex encoding
+- Uses FNV-64a for hash computation (64-bit, collision-resistant) with zero-allocation hex encoding; `HashFunc` field allows customization
 - Buffers response body up to `MaxBufferSize` (default: 1MB); larger responses skip ETag
 - `Validate()` rejects non-positive `MaxBufferSize`
 - Strong ETags by default; set `Weak: true` for `W/"..."` prefix
@@ -227,6 +263,39 @@ Invariants and policies that the library enforces.
 - `Chain` applies middleware in **reverse order** so the first middleware in the variadic list is the outermost handler
 - Execution order: first middleware → ... → last middleware → final handler
 - When using Compression and ETag together: ETag must be **inner** (closer to handler) so it sees uncompressed bytes
+
+### Server Lifecycle Rules
+
+- `NewServer(cfg)` creates an `http.Server` with configurable read/write/idle timeouts
+- `Start()` begins listening; blocks until the server stops
+- `Shutdown(ctx)` gracefully drains in-flight requests within the context deadline
+- `Addr()` returns the actual listening address (useful when port 0 is assigned)
+
+### Health Rules
+
+- `/health` and `/health/live` always return `{"status":"up"}` with 200
+- `/health/ready` returns `{"status":"up"}` with 200 by default
+- `ReadyHandlerWithProbe(ready)` returns 503 `{"status":"down"}` when `ready()` returns false
+- All health responses use `Content-Type: application/json`
+
+### Rate Limiting Rules
+
+- `TokenBucketLimiter` creates per-key token buckets; tokens refill at the configured rate up to burst capacity
+- `NewTokenBucketLimiter` rejects rate <= 0 or burst <= 0
+- `EvictionTTL` (zero by default) controls lazy eviction of idle buckets — non-zero enables sweeping
+- Each `Allow(key)` consumes one token; returns false when the bucket is empty
+- Custom `RateLimiter` implementations can replace the in-memory limiter (e.g., Redis-backed)
+
+### Metrics Rules
+
+- `MetricsRecorder` is a pluggable interface for recording request metrics
+- Records method, path, status, and duration for each request
+- Default implementation is a no-op; consumers provide their own recorder
+
+### Body Size Limit Rules
+
+- Wraps the request body in `http.MaxBytesReader`
+- Returns 413 Request Entity Too Large when the limit is exceeded
 
 ### Config Validation
 
