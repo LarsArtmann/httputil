@@ -39,10 +39,33 @@ func LiveHandler() http.HandlerFunc {
 
 // ReadyHandler returns an http.HandlerFunc for Kubernetes readiness probes.
 // The default implementation always reports up. To supply a readiness check
-// that verifies dependencies (database, cache, etc.), do not use this helper —
-// register your own handler at /health/ready instead.
+// that verifies dependencies (database, cache, etc.), use ReadyHandlerWithProbe.
 func ReadyHandler() http.HandlerFunc {
 	return HealthHandler()
+}
+
+// ReadyHandlerWithProbe returns an http.HandlerFunc that calls the provided
+// readiness function on each request. When ready returns true, the handler
+// responds with 200 {"status":"up"}. When it returns false, the handler
+// responds with 503 {"status":"down"}. This lets Kubernetes route traffic
+// away from instances that are alive but not yet ready to serve (e.g., still
+// warming caches or waiting on dependencies).
+func ReadyHandlerWithProbe(ready func() bool) http.HandlerFunc {
+	return func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "application/json")
+
+		if ready() {
+			resp.WriteHeader(http.StatusOK)
+
+			_ = json.NewEncoder(resp).Encode(HealthResponse{Status: HealthStatusUp})
+
+			return
+		}
+
+		resp.WriteHeader(http.StatusServiceUnavailable)
+
+		_ = json.NewEncoder(resp).Encode(HealthResponse{Status: HealthStatusDown})
+	}
 }
 
 // RegisterHealth registers /health, /health/live, and /health/ready on the

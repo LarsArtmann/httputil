@@ -60,3 +60,29 @@ func TestRegisterHealth(t *testing.T) {
 		assertStatus(t, rec, http.StatusOK)
 	}
 }
+
+func TestReadyHandlerWithProbeReady(t *testing.T) {
+	t.Parallel()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil)
+
+	ReadyHandlerWithProbe(func() bool { return true }).ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertHeader(t, rec, "Content-Type", "application/json")
+	assertBody(t, rec, `{"status":"up"}`+"\n")
+}
+
+func TestReadyHandlerWithProbeNotReady(t *testing.T) {
+	t.Parallel()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil)
+
+	ReadyHandlerWithProbe(func() bool { return false }).ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusServiceUnavailable)
+	assertHeader(t, rec, "Content-Type", "application/json")
+	assertBody(t, rec, `{"status":"down"}`+"\n")
+}
