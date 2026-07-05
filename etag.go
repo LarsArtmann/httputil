@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash/crc32"
+	"hash/fnv"
 	"net"
 	"net/http"
 	"strings"
@@ -19,17 +19,24 @@ const (
 )
 
 const (
-	crc32ByteSize            = 4
-	crc32HexSize             = 8
-	etagWeakLen              = 12
-	etagStrongLen            = 10
-	defaultETagMaxBufferSize = 1024 * 1024 // 1 MB
+	hashUint64Bytes          = 8
+	hashUint64HexSize        = 16
+	etagWeakLen              = hashUint64HexSize + 4 // W/"" + hex + "
+	etagStrongLen            = hashUint64HexSize + 2 // "" + hex + "
+	defaultETagMaxBufferSize = 1024 * 1024           // 1 MB
 )
 
 // ETagConfig holds configuration for ETag generation.
 type ETagConfig struct {
-	Weak          bool
+	Weak bool
+	// MaxBufferSize is the maximum bytes buffered for ETag computation
+	// before abandoning ETag generation and streaming the response.
 	MaxBufferSize int
+	// HashFunc computes a 64-bit hash of the response body for ETag
+	// generation. If nil, FNV-64a is used (fast, 64-bit, collision-resistant
+	// for practical body counts). Provide a custom function for
+	// application-specific hashing needs.
+	HashFunc func([]byte) uint64
 }
 
 // DefaultETagConfig returns an ETagConfig with sensible defaults.
@@ -37,7 +44,19 @@ func DefaultETagConfig() ETagConfig {
 	return ETagConfig{
 		Weak:          false,
 		MaxBufferSize: defaultETagMaxBufferSize,
+		HashFunc:      defaultETagHash,
 	}
+}
+
+// defaultETagHash computes FNV-64a of data. FNV-64a is a non-cryptographic
+// hash with a 64-bit output, making accidental collisions astronomically
+// unlikely for practical response-body counts (birthday bound: ~4 billion).
+func defaultETagHash(data []byte) uint64 {
+	h := fnv.New64a()
+
+	_, _ = h.Write(data)
+
+	return h.Sum64()
 }
 
 var errNonPositiveMaxBufferSize = errors.New("ETagConfig.MaxBufferSize must be positive")
@@ -77,15 +96,22 @@ type etagWriter struct {
 	weak          bool
 	flushed       bool
 	maxBufferSize int
+	hashFunc      func([]byte) uint64
 }
 
 func newETagWriter(resp http.ResponseWriter, cfg ETagConfig) *etagWriter {
+	hashFunc := cfg.HashFunc
+	if hashFunc == nil {
+		hashFunc = defaultETagHash
+	}
+
 	return &etagWriter{
 		responseWrapper: newResponseWrapper(resp),
 		body:            nil,
 		weak:            cfg.Weak,
 		flushed:         false,
 		maxBufferSize:   cfg.MaxBufferSize,
+		hashFunc:        hashFunc,
 	}
 }
 
@@ -157,10 +183,10 @@ func (w *etagWriter) computeETag() string {
 		return ""
 	}
 
-	checksum := crc32.ChecksumIEEE(w.body)
+	hash := w.hashFunc(w.body)
 
-	var buf [crc32ByteSize]byte
-	binary.BigEndian.PutUint32(buf[:], checksum)
+	var buf [hashUint64Bytes]byte
+	binary.BigEndian.PutUint64(buf[:], hash)
 
 	if w.weak {
 		var etag [etagWeakLen]byte

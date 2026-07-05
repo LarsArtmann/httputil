@@ -53,7 +53,7 @@ func TestChain_ETagThenCompression_IfNoneMatch304(t *testing.T) {
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)
-	req.Header.Set(headerIfNoneMatch, `"7c5597b9"`)
+	req.Header.Set(headerIfNoneMatch, `"ff4925a7cfa0f725"`)
 
 	rec := newRecorder()
 

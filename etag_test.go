@@ -27,8 +27,8 @@ func TestETag_GeneratesStrongETag(t *testing.T) {
 		t.Error("ETag header is empty, want generated ETag")
 	}
 
-	if etag != `"0d4a1185"` {
-		t.Errorf("ETag = %q, want %q", etag, `"0d4a1185"`)
+	if etag != `"779a65e7023cd2e7"` {
+		t.Errorf("ETag = %q, want %q", etag, `"779a65e7023cd2e7"`)
 	}
 }
 
@@ -44,8 +44,8 @@ func TestETag_GeneratesWeakETag(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	etag := rec.Header().Get(headerETag)
-	if etag != `W/"0d4a1185"` {
-		t.Errorf("ETag = %q, want %q", etag, `W/"0d4a1185"`)
+	if etag != `W/"779a65e7023cd2e7"` {
+		t.Errorf("ETag = %q, want %q", etag, `W/"779a65e7023cd2e7"`)
 	}
 }
 
@@ -70,13 +70,13 @@ func testETagIfNoneMatchReturns304(t *testing.T, ifNoneMatchValue string) {
 func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
 	t.Parallel()
 
-	testETagIfNoneMatchReturns304(t, `"other", "0d4a1185", "another"`)
+	testETagIfNoneMatchReturns304(t, `"other", "779a65e7023cd2e7", "another"`)
 }
 
 func TestETag_IfNoneMatch_Matches(t *testing.T) {
 	t.Parallel()
 
-	testETagIfNoneMatchReturns304(t, `"0d4a1185"`)
+	testETagIfNoneMatchReturns304(t, `"779a65e7023cd2e7"`)
 }
 
 func TestETag_IfNoneMatch_NoMatch(t *testing.T) {
@@ -238,8 +238,8 @@ func TestETag_EmptyBody(t *testing.T) {
 		t.Error("ETag header is empty, want generated ETag for empty body")
 	}
 
-	if etag != `"00000000"` {
-		t.Errorf("ETag = %q, want %q", etag, `"00000000"`)
+	if etag != `"cbf29ce484222325"` {
+		t.Errorf("ETag = %q, want %q", etag, `"cbf29ce484222325"`)
 	}
 }
 
