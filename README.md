@@ -349,12 +349,11 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `CompressionConfig` fields
 
-| Field             | Type                       | Default                   | Description                                                |
-| ----------------- | -------------------------- | ------------------------- | ---------------------------------------------------------- |
-| `MinSize`         | `int`                      | `512`                     | Minimum response body size before compression is attempted |
-| `Level`           | `int`                      | `gzip.DefaultCompression` | Gzip compression level (also passed to deflate by default) |
-| `WriterFactories` | `map[string]WriterFactory` | gzip, deflate, identity   | Encoding-name → factory map; replace or extend             |
-| `QValues`         | `map[string]float64`       | `nil`                     | Server-side quality hints for clients without q-values     |
+| Field             | Type                       | Default                   | Description                                                                                     |
+| ----------------- | -------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `MinSize`         | `int`                      | `512`                     | Minimum response body size before compression is attempted                                      |
+| `Level`           | `int`                      | `gzip.DefaultCompression` | Compression level used when `WriterFactories` is not supplied; applies to both gzip and deflate |
+| `WriterFactories` | `map[string]WriterFactory` | gzip, deflate, identity   | Encoding-name → factory map; replace or extend                                                  |
 
 ## Design
 
@@ -403,6 +402,26 @@ handler := httputil.Compression(cfg)(mux)
 ```
 
 This keeps the core package dependency-free while allowing you to plug in any encoder that implements `io.WriteCloser`.
+
+### Framework Integration
+
+httputil composes cleanly with declarative API frameworks like [Huma](https://huma.rocks/), which generates OpenAPI 3.1 + JSON Schema from Go types but deliberately ships no middleware. Both target the same Go 1.22+ `http.ServeMux` via the [`humago`](https://pkg.go.dev/github.com/danielgtaylor/huma/v2/adapters/humago) adapter — no third-party router required:
+
+```go
+router := http.NewServeMux()
+api := humago.New(router, huma.DefaultConfig("My API", "1.0.0"))
+huma.Get(api, "/things/{id}", getThing) // huma: types, validation, OpenAPI
+
+handler := httputil.Chain(router, // httputil: compression, security, logging
+    httputil.Logging(slog.Default()),
+    httputil.Recovery(slog.Default()),
+    httputil.Compression(httputil.DefaultCompressionConfig()),
+    httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+    httputil.CORS(httputil.DefaultCORSConfig()),
+)
+```
+
+See the [full integration example](docs/integrations/huma.md) and the [detailed comparison](docs/research/2026-07-05_httputil-vs-huma.md).
 
 ## Development
 

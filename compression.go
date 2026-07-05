@@ -61,8 +61,10 @@ type CompressionConfig struct {
 	// is attempted. Responses smaller than this are sent uncompressed.
 	MinSize int
 
-	// Level is the gzip compression level (when gzip is selected). Ignored
-	// for other encodings unless their factory consults cfg.Level via closure.
+	// Level is the compression level passed to default factories when
+	// WriterFactories is not supplied. Ignored when WriterFactories is set.
+	// Valid range: gzip.HuffmanOnly to gzip.BestCompression, or
+	// gzip.DefaultCompression (-1).
 	Level int
 
 	// WriterFactories maps canonical encoding names to factory functions.
@@ -79,21 +81,23 @@ type CompressionConfig struct {
 	// from DefaultIncompressibleTypes() are used. Set to an empty slice to
 	// compress all content types.
 	IncompressibleTypes []string
-
-	// QValues maps encoding name to its quality value override (0.0-1.0).
-	// An encoding with q=0 in the client header is excluded from selection.
-	// This map does not affect parsing of client q-values; it only lets
-	// the server hint at preference for clients that omit a quality value.
-	QValues map[string]float64
 }
 
 // DefaultWriterFactories returns a fresh map containing the stdlib encodings
-// (gzip, deflate, identity). Useful when extending WriterFactories without
-// dropping the built-ins.
+// (gzip, deflate, identity) at gzip.DefaultCompression. Useful when extending
+// WriterFactories without dropping the built-ins.
 func DefaultWriterFactories() map[string]WriterFactory {
+	return DefaultWriterFactoriesForLevel(gzip.DefaultCompression)
+}
+
+// DefaultWriterFactoriesForLevel returns a fresh map containing the stdlib
+// encodings (gzip, deflate, identity) at the given compression level. Use this
+// when you want CompressionConfig.Level to take effect without supplying a
+// custom WriterFactories map.
+func DefaultWriterFactoriesForLevel(level int) map[string]WriterFactory {
 	return map[string]WriterFactory{
-		encodingGzip:     GzipWriterFactory(gzip.DefaultCompression),
-		encodingDeflate:  DeflateWriterFactory(gzip.DefaultCompression),
+		encodingGzip:     GzipWriterFactory(level),
+		encodingDeflate:  DeflateWriterFactory(level),
 		encodingIdentity: passthroughFactory,
 	}
 }
@@ -123,7 +127,6 @@ func DefaultCompressionConfig() CompressionConfig {
 		MinSize:             defaultCompressionMinSize,
 		Level:               gzip.DefaultCompression,
 		WriterFactories:     DefaultWriterFactories(),
-		QValues:             nil,
 		IncompressibleTypes: nil,
 	}
 }
@@ -170,7 +173,12 @@ func Compression(cfg CompressionConfig) Middleware {
 	// This preserves backward compatibility with configs created before
 	// the WriterFactories field existed.
 	if len(cfg.WriterFactories) == 0 {
-		cfg.WriterFactories = DefaultWriterFactories()
+		level := cfg.Level
+		if level == 0 {
+			level = gzip.DefaultCompression
+		}
+
+		cfg.WriterFactories = DefaultWriterFactoriesForLevel(level)
 	}
 
 	neg := buildNegotiator(cfg.WriterFactories)
