@@ -42,6 +42,16 @@ func (w *responseWrapper) writeHeaderToUnderlying() {
 	}
 }
 
+// writeDefaultOK commits a 200 OK status to the underlying ResponseWriter if
+// no status has been written yet. Use this at the top of Write methods on
+// wrapper types to honor Go's net/http contract: the first Write implicitly
+// sends 200 if WriteHeader was not called.
+func (w *responseWrapper) writeDefaultOK() {
+	if !w.wroteHeader {
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func hijackDelegate(w http.ResponseWriter) (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {

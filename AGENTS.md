@@ -175,6 +175,24 @@ In `_test.go` files: `exhaustruct`, `testpackage`, `gochecknoglobals`, `funlen`,
 
 There are **0 active warnings** across ~70 linters. `makezero` false positives (`make([]T, n)` for direct-index writes) are suppressed with `//nolint:makezero` directives above the statements in `recorder.go` and `stack.go`. `varnamelen` ignores `w`, `r`, `n`, `rw` for `http.ResponseWriter` and `bufio.ReadWriter` patterns. `noctx` warnings in test files are suppressed via `.golangci.yml` exclusions.
 
+## Accepted Code Duplication
+
+`art-dupl` at `-t 1` reports ~23 clone groups that are **intentional and not refactored**:
+
+- **`t.Parallel()` in every test (142 sites)** — mandated by the `paralleltest` lint rule. Every `Test*` function must call it as the first line.
+- **`return X` (single-identifier return statements, 12 sites)** — `art-dupl` matches `return IDENT` across all functions. Different identifiers, different functions; pure coincidence.
+- **`return n, nil` / `return total, nil` / `return written, nil` (5 sites)** — standard early-return idiom after successful `ResponseWriter.Write` in `compress_writer.go` and `recorder.go`. Idiomatic Go.
+- **`flushDelegate(...)` / `hijackDelegate(...)` cross-file calls (4 sites)** — the helpers exist; the tool groups the call sites. False positive.
+- **`LiveHandler()` returns `HealthHandler()` and `ReadyHandler()` returns `HealthHandler()` (2 sites)** — intentional API design. `LiveHandler`'s doc comment explicitly states "functionally equivalent to HealthHandler but semantically distinct." Removing the duplication would erase the public API.
+- **Single-line state mutations** (`w.plain = true`, `w.flushed = true`, `w.writeHeaderToUnderlying()`) at multiple call sites — each is a lifecycle transition at a different point in the state machine. Extracting would require more parameters than the line itself.
+- **`pos = newPos` after `parseQValueInt` / `parseQValueFrac`** — Go idiom for threaded positions in a parser. Idiomatic.
+- **`offset := 0` / `frac := 0` / `m.mu.Lock(); defer m.mu.Unlock()`** — local-variable initialization and mutex locking patterns. Idiomatic.
+
+The two real cross-file duplications that **were** extracted:
+
+- `if !w.wroteHeader { w.WriteHeader(http.StatusOK) }` (compress_writer.go:73, etag.go:119) → `responseWrapper.writeDefaultOK()` in `wrapper.go`.
+- `w.plain = true; w.writeHeaderToUnderlying()` in `compressWriter.Hijack` → reuses `beginPlainResponse()`.
+
 ## Additional Active Linters Worth Knowing
 
 These won't surprise you on every edit, but may trigger on specific patterns:

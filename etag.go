@@ -116,9 +116,7 @@ func newETagWriter(resp http.ResponseWriter, cfg ETagConfig) *etagWriter {
 }
 
 func (w *etagWriter) Write(b []byte) (int, error) {
-	if !w.wroteHeader {
-		w.WriteHeader(http.StatusOK)
-	}
+	w.writeDefaultOK()
 
 	if w.flushed {
 		n, err := w.ResponseWriter.Write(b)

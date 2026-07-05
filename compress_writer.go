@@ -70,9 +70,7 @@ func newCompressWriter(
 }
 
 func (w *compressWriter) Write(b []byte) (int, error) {
-	if !w.wroteHeader {
-		w.WriteHeader(http.StatusOK)
-	}
+	w.writeDefaultOK()
 
 	switch {
 	case w.plain:
@@ -194,7 +192,7 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 }
 
 func (w *compressWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	w.plain = true
+	w.beginPlainResponse()
 
 	return w.responseWrapper.Hijack()
 }
