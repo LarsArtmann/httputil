@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-07-02_
+_Updated: 2026-07-05_
 
 ---
 
@@ -39,6 +39,12 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, and `Flush` delegation.
 - Embedded by `compressWriter` and `etagWriter`, eliminating ~80 lines of duplication.
+
+### Infrastructure Types
+
+- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present).
+- `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
+- `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
 ### Compression Performance
 
@@ -124,21 +130,6 @@ Not 100% (target met at 90%+). Gaps exist in:
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
 - Edge cases in `CORS` wildcard matching with unusual patterns.
 - `ResponseRecorder` hijack failure paths.
-
----
-
-## PLANNED
-
-### Near-term
-
-- Add WebSocket upgrade test through Compression + ETag.
-- Add `Content-Length` preservation test for small responses.
-
-### Infrastructure Types
-
-- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost).
-- `DetectCapabilities()` inspects ResponseWriter for Hijacker/Flusher support.
-- `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
 ---
 

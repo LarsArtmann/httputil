@@ -74,8 +74,11 @@ func (n *negotiator) poolFor(encoding string) *sync.Pool {
 	return n.pools[encoding]
 }
 
-// nameOffset returns a stable hash of name's bytes for ordering unknown
-// encodings alphabetically without importing "sort".
+// nameOffset returns a deterministic ordering key for an unknown encoding
+// name by interpreting its bytes as a base-256 number. This gives a stable,
+// reproducible tiebreak among custom encodings of equal length; it is not
+// true alphabetical order for names of differing lengths. The value is only
+// used for relative comparison, never directly.
 func nameOffset(name string) int {
 	const byteBase = 256
 

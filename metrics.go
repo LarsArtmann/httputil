@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -39,7 +38,7 @@ func DefaultMetricsConfig() MetricsConfig {
 // Validate checks the MetricsConfig for invalid values.
 func (c MetricsConfig) Validate() error {
 	if c.Recorder == nil {
-		return fmt.Errorf("%w", errNilMetricsRecorder)
+		return errNilMetricsRecorder
 	}
 
 	return nil

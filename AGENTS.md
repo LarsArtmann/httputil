@@ -36,7 +36,11 @@ All doc comments and regular comments must end with a period.
 
 ### `mnd` — No Magic Numbers
 
-Extract numeric literals into named constants. The `86400` in `DefaultCORSConfig` is a pre-existing violation.
+Extract numeric literals into named constants (e.g. `defaultMaxAge`, `defaultCompressionMinSize`, `defaultETagMaxBufferSize`).
+
+### `gosec` — G705 Excluded Globally
+
+G705 ("XSS via taint analysis") is excluded in `.golangci.yml` gosec settings. This library's purpose is writing HTTP response bodies, so every `ResponseWriter.Write` is intentional output — G705 is structurally a false positive here. Do **not** re-add per-site `//nolint:gosec` directives for response writes; they are fragile under `nolintlint` (flagged as "unused" because gosec taint analysis is non-deterministic across cache states).
 
 ### `paralleltest` — Every Test Must Call `t.Parallel()`
 

@@ -22,21 +22,21 @@ If a word means something different to a contributor than to a consumer, define 
 
 ## Bounded Contexts
 
-The library has ten bounded contexts, each with a distinct vocabulary and responsibility.
+The library has these bounded contexts, each with a distinct vocabulary and responsibility.
 
-| Context          | Description                                                     | Key Type(s)                    |
-| ---------------- | --------------------------------------------------------------- | ------------------------------ |
-| Client IP        | Extracting the true client IP from proxied requests             | `ClientIP`                     |
-| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy  | `CORSConfig`, `CORS`           |
-| Response Capture | Recording response state for inspection (status, headers, body) | `ResponseRecorder`, `Chain`    |
-| Error Protocol   | Classified errors with behavioral families for retry decisions  | Error codes, `go-error-family` |
-| Security Headers | Setting common browser security headers on responses            | `SecurityHeadersConfig`        |
-| Request ID       | Propagating or generating unique request identifiers            | `RequestIDConfig`              |
-| Recovery         | Catching panics and returning 500 responses                     | `Recovery`                     |
-| Timeout          | Enforcing request deadlines via context cancellation            | `Timeout`                      |
-| Compression      | Gzip response compression with pool-based writer reuse          | `CompressionConfig`            |
-| ETag             | Entity tag generation and conditional 304 responses             | `ETagConfig`                   |
-| Logging          | Structured request/response logging                             | `Logging`                      |
+| Context          | Description                                                                            | Key Type(s)                    |
+| ---------------- | -------------------------------------------------------------------------------------- | ------------------------------ |
+| Client IP        | Extracting the true client IP from proxied requests                                    | `ClientIP`                     |
+| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                         | `CORSConfig`, `CORS`           |
+| Response Capture | Recording response state for inspection (status, headers, body)                        | `ResponseRecorder`, `Chain`    |
+| Error Protocol   | Classified errors with behavioral families for retry decisions                         | Error codes, `go-error-family` |
+| Security Headers | Setting common browser security headers on responses                                   | `SecurityHeadersConfig`        |
+| Request ID       | Propagating or generating unique request identifiers                                   | `RequestIDConfig`              |
+| Recovery         | Catching panics and returning 500 responses                                            | `Recovery`                     |
+| Timeout          | Enforcing request deadlines via context cancellation                                   | `Timeout`                      |
+| Compression      | Response compression (gzip/deflate + pluggable encodings) with pool-based writer reuse | `CompressionConfig`            |
+| ETag             | Entity tag generation and conditional 304 responses                                    | `ETagConfig`                   |
+| Logging          | Structured request/response logging                                                    | `Logging`                      |
 
 ---
 
@@ -101,7 +101,7 @@ Actions the library performs.
 | `Timeout(duration)`              | Create middleware that sets a deadline on the request context                                          | Timeout          |
 | `Logging(logger)`                | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
 | `Compression(cfg)`               | Create middleware that gzip-compresses responses when the client accepts it                            | Compression      |
-| `DefaultCompressionConfig()`     | Return a CompressionConfig with sensible defaults (level 6, 200-byte minimum)                          | Compression      |
+| `DefaultCompressionConfig()`     | Return a CompressionConfig with sensible defaults (gzip default level, 512-byte minimum)               | Compression      |
 | `ETag(cfg)`                      | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
 | `DefaultETagConfig()`            | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
 | `RegisterErrorClassifications()` | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |

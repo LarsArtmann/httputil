@@ -1,0 +1,99 @@
+direction: down
+
+consumer: Consumer App {
+  shape: page
+  style.fill: "#0e0e10"
+  style.font-color: "#f4f4f0"
+}
+
+package httputil: {
+  style.fill: "#18181d"
+  style.font-color: "#f4f4f0"
+  style.stroke: "#ffb347"
+
+  package compress: {
+    style.fill: "#16161a"
+    style.font-color: "#f4f4f0"
+    style.stroke-dash: 4
+
+    negotiator: Negotiator
+    writer: compressWriter
+    pool: WriterPool
+    qvalue: Q-Value Parser
+    content_type: Content-Type Filter
+  }
+
+  middleware_chain: Middleware Chain (func(Handler) Handler) {
+    shape: package
+    style.fill: "#16161a"
+    style.font-color: "#f4f4f0"
+
+    recovery -> logging -> requestid -> timeout -> cors -> security -> compress_mw -> etag -> handler
+  }
+
+  compress_mw: Compression {
+    style.fill: "#6eb5ff"
+    style.font-color: "#0e0e10"
+  }
+
+  infra: Shared Infrastructure {
+    shape: package
+    style.fill: "#16161a"
+    style.font-color: "#f4f4f0"
+
+    wrapper: responseWrapper (composition root)
+    recorder: ResponseRecorder
+    stack: MiddlewareStack
+    server: Server Lifecycle
+    errors: Typed Errors (ErrCode branded)
+  }
+
+  handler: Consumer Handler {
+    shape: page
+    style.fill: "#0e0e10"
+    style.font-color: "#f4f4f0"
+  }
+}
+
+package httpspec: {
+  style.fill: "#18181d"
+  style.font-color: "#f4f4f0"
+  style.stroke: "#6eb5ff"
+
+  runner: Run / RunSerial
+  specs: Standard + Custom Specs
+  runner -> specs
+}
+
+extension: Extension Interfaces {
+  shape: package
+  style.fill: "#16161a"
+  style.font-color: "#f4f4f0"
+  style.stroke: "#6eb5ff"
+
+  ratelimiter: RateLimiter (with TTL option)
+  metricsrecorder: MetricsRecorder
+  writerfactory: WriterFactory
+}
+
+stdlib: Go stdlib {
+  shape: stored_data
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
+errorfamily: go-error-family {
+  shape: rectangle
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
+consumer -> middleware_chain: import
+compress_mw -> compress: uses
+compress.writer -> wrapper: embeds
+etag -> wrapper: embeds
+errors -> errorfamily: branded ErrCode
+middleware_chain -> extension: injects
+middleware_chain -> stdlib: depends on
+httpspec -> stdlib: depends on (only)
+httpspec -> handler: validates any http.Handler

@@ -8,15 +8,11 @@ import (
 // parseEncodingEntry parses a single entry like "gzip" or "gzip;q=0.8"
 // and returns the canonical encoding name and q-value.
 func parseEncodingEntry(entry string) (string, float64) {
-	semi := indexByte(entry, ';')
-	if semi < 0 {
-		return strings.ToLower(trim(entry)), defaultQValue
-	}
+	name, rest, found := strings.Cut(entry, ";")
+	name = strings.ToLower(trim(name))
+	rest = trim(rest)
 
-	name := strings.ToLower(trim(entry[:semi]))
-	rest := trim(entry[semi+1:])
-
-	if !strings.HasPrefix(rest, qValuePrefix) {
+	if !found || !strings.HasPrefix(rest, qValuePrefix) {
 		return name, defaultQValue
 	}
 
@@ -151,15 +147,4 @@ func trim(input string) string {
 // isSpace reports whether b is an HTTP header whitespace character.
 func isSpace(b byte) bool {
 	return b == ' ' || b == '\t'
-}
-
-// indexByte is a local version of strings.IndexByte to avoid the import.
-func indexByte(input string, target byte) int {
-	for i := range len(input) {
-		if input[i] == target {
-			return i
-		}
-	}
-
-	return -1
 }

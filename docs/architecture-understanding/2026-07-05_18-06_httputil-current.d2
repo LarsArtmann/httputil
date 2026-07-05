@@ -1,0 +1,90 @@
+direction: down
+
+consumer: Consumer App {
+  shape: page
+  style.fill: "#0e0e10"
+  style.font-color: "#f4f4f0"
+}
+
+package httputil: {
+  style.fill: "#18181d"
+  style.font-color: "#f4f4f0"
+  style.stroke: "#ffb347"
+
+  middleware_chain: Middleware Chain {
+    shape: package
+    style.fill: "#16161a"
+    style.font-color: "#f4f4f0"
+
+    recovery: Recovery
+    logging: Logging
+    requestid: RequestID
+    timeout: Timeout
+    cors: CORS
+    security: SecurityHeaders
+    compression: Compression
+    etag: ETag
+    ratelimit: RateLimit
+    metrics: Metrics
+    maxbody: MaxBodySize
+
+    recovery -> logging -> requestid -> timeout -> cors -> security -> compression -> etag -> handler
+    ratelimit -> handler
+    metrics -> handler
+    maxbody -> handler
+  }
+
+  infra: Infrastructure {
+    shape: package
+    style.fill: "#16161a"
+    style.font-color: "#f4f4f0"
+
+    recorder: ResponseRecorder
+    wrapper: responseWrapper
+    stack: MiddlewareStack
+    server: Server Lifecycle
+    health: Health Checks
+    capabilities: DetectCapabilities
+    errors: Error Classification
+    idgen: Time-Ordered ID Gen
+  }
+
+  handler: Consumer Handler {
+    shape: page
+    style.fill: "#0e0e10"
+    style.font-color: "#f4f4f0"
+  }
+}
+
+package httpspec: {
+  style.fill: "#18181d"
+  style.font-color: "#f4f4f0"
+  style.stroke: "#6eb5ff"
+
+  runner: Run / RunSerial
+  specs: 18 Standard Specs
+  builders: Check Builders
+  runner -> specs
+  runner -> builders
+}
+
+stdlib: Go stdlib (net/http, compress, crypto/rand, log/slog) {
+  shape: stored_data
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
+errorfamily: go-error-family {
+  shape: rectangle
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
+consumer -> middleware_chain: import
+compression -> wrapper: embeds
+etag -> wrapper: embeds
+wrapper -> recorder: delegates
+errors -> errorfamily: classifies via
+middleware_chain -> stdlib: depends on
+httpspec -> stdlib: depends on (only)
+httpspec -> handler: validates any http.Handler

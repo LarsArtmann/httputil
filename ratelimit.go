@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"net/http"
 	"sync"
@@ -111,7 +110,7 @@ func DefaultRateLimitConfig() RateLimitConfig {
 // Validate checks the RateLimitConfig for invalid values.
 func (c RateLimitConfig) Validate() error {
 	if c.Limiter == nil {
-		return fmt.Errorf("%w", errNilRateLimiter)
+		return errNilRateLimiter
 	}
 
 	return nil

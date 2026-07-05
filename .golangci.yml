@@ -147,6 +147,12 @@ linters:
         - ifElseChain
     gomoddirectives:
       replace-local: true
+    gosec:
+      # G705 (XSS via taint analysis) is structurally a false positive in a
+      # response-writing middleware library: every ResponseWriter.Write emits
+      # intentional response output, never unsanitized HTML rendering.
+      excludes:
+        - G705
     ireturn:
       allow:
         - error

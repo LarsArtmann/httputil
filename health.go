@@ -38,8 +38,9 @@ func LiveHandler() http.HandlerFunc {
 }
 
 // ReadyHandler returns an http.HandlerFunc for Kubernetes readiness probes.
-// The default implementation always returns up. Override with a custom handler
-// that checks database connections, cache health, etc.
+// The default implementation always reports up. To supply a readiness check
+// that verifies dependencies (database, cache, etc.), do not use this helper —
+// register your own handler at /health/ready instead.
 func ReadyHandler() http.HandlerFunc {
 	return HealthHandler()
 }

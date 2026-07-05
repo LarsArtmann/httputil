@@ -163,7 +163,6 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
-		// in an XSS context); G705 taint analysis is a false positive here.
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
 			return 0, errorfamily.WrapTransient(
@@ -244,8 +243,6 @@ func (w *compressWriter) Close() error {
 	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
-		//nolint:gosec // w.buf is response body content (not user-influenced
-		// in an XSS context); G705 taint analysis is a false positive here.
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
 			return errorfamily.WrapTransient(
