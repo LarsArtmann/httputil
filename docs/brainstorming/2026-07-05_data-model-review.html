@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Architecture Review — httputil</title>
+    <title>Data Model Review — httputil</title>
     <style>
       :root {
         --color-graphite: #0e0e10;
@@ -297,10 +297,6 @@
         border-left-color: var(--solution);
         background: color-mix(in srgb, var(--solution) 10%, transparent);
       }
-      .callout-warning {
-        border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 10%, transparent);
-      }
       .stat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -410,84 +406,44 @@
       tr:hover td {
         background: var(--surface-raised);
       }
-      .dep-tree {
+      pre {
         background: var(--surface-sunken);
         border: 1px solid var(--border);
         padding: 1rem 1.2rem;
         margin: 1rem 0;
         font-family: var(--font-mono);
         font-size: 0.82rem;
-        line-height: 1.7;
-        white-space: pre;
+        line-height: 1.65;
         overflow-x: auto;
       }
-      .dep-tree .root {
-        color: var(--accent);
-        font-weight: 700;
+      code {
+        font-family: var(--font-mono);
       }
-      .dep-tree .ok {
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
         color: var(--solution);
       }
-      .dep-tree .unwanted {
-        color: var(--problem);
-      }
-      .diagram {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        margin: 1rem 0;
-        background: var(--surface-raised);
-        border: 1px solid var(--border);
-      }
-      .node {
-        display: inline-block;
-        padding: 0.35rem 0.7rem;
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        font-weight: 600;
-        background: var(--surface-sunken);
-        border: 1px solid var(--border-strong);
-      }
-      .node-core {
-        background: var(--accent);
-        color: var(--surface);
-        border-color: var(--accent);
-      }
-      .node-good {
-        background: var(--solution);
-        color: var(--surface);
-        border-color: var(--solution);
-      }
-      .arrow {
+      .tok-comment {
         color: var(--text-faint);
-        font-family: var(--font-mono);
+        font-style: italic;
       }
-      .migration-step {
-        display: grid;
-        grid-template-columns: 48px 1fr;
-        gap: 1rem;
-        margin: 1rem 0;
-        padding: 1rem;
-        background: var(--surface-raised);
-        border: 1px solid var(--border);
-        border-left: 3px solid var(--accent);
+      .tok-func {
+        color: #74a9ff;
       }
-      .migration-num {
-        font-family: var(--font-mono);
-        font-weight: 800;
-        font-size: 1.5rem;
-        color: var(--accent);
-        line-height: 1;
-      }
-      .migration-content h4 {
-        margin-bottom: 0.2rem;
-      }
-      .migration-content p {
-        margin-bottom: 0;
-        color: var(--text-muted);
-        font-size: 0.92rem;
+      .tok-builtin {
+        color: #4dd9ff;
       }
       .footer {
         margin-top: 2rem;
@@ -515,179 +471,212 @@
         .stat-grid {
           grid-template-columns: repeat(2, 1fr);
         }
-        .migration-step {
-          grid-template-columns: 1fr;
-        }
       }
     </style>
   </head>
   <body>
     <div class="top-bar">
-      <span>Architecture Review</span><span>2026-07-05</span><span>httputil · modularity</span>
+      <span>Data Model Review</span><span>2026-07-05</span><span>httputil · types-first</span>
     </div>
     <div class="layout">
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
-          <a href="#metrics">Metrics</a>
-          <a href="#structure">Structure</a>
-          <a href="#coupling">Coupling</a>
-          <a href="#roadmap">Roadmap</a>
+          <a href="#current">Current State</a>
+          <a href="#catalog">Problem Catalog</a>
+          <a href="#vision">The Vision</a>
+          <a href="#design">Design Decisions</a>
           <a href="#strengths">Strengths</a>
         </nav>
       </aside>
       <main class="main">
         <div class="hero">
-          <div class="hero-badge">Architecture Review</div>
-          <h1>Scalability · Modularity · Composability</h1>
+          <div class="hero-badge">Data Model Review</div>
+          <h1>Type Safety &amp; Domain Model Audit</h1>
           <p class="hero-subtitle">
-            How well-structured is httputil as a reusable Go library? Assessment of package
-            boundaries, dependency direction, coupling hotspots, and service-orientation at
-            extension points.
+            A first-principles review of every type in httputil: config structs, middleware writers,
+            error codes, enums, and context values. Goal — make invalid states unrepresentable.
           </p>
         </div>
 
-        <h2 id="metrics"><span class="num">00</span>Architecture Metrics</h2>
+        <h2 id="current"><span class="num">00</span>Current State</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">2</div>
-            <div class="stat-label">Packages</div>
-          </div>
-          <div class="stat-card stat-good">
-            <div class="stat-value">1</div>
-            <div class="stat-label">External Deps</div>
-          </div>
-          <div class="stat-card stat-good">
-            <div class="stat-value">3</div>
-            <div class="stat-label">Extension Interfaces</div>
-          </div>
-          <div class="stat-card stat-good">
-            <div class="stat-value">Low</div>
-            <div class="stat-label">Coupling</div>
+            <div class="stat-value">11</div>
+            <div class="stat-label">Config Structs</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">28</div>
-            <div class="stat-label">Files (root pkg)</div>
+            <div class="stat-value">4</div>
+            <div class="stat-label">Interfaces</div>
           </div>
-        </div>
-
-        <h2 id="structure"><span class="num">01</span>Structure &amp; Dependency Direction</h2>
-        <div class="dep-tree">
-          <span class="root">github.com/larsartmann/httputil</span> ├──
-          <span class="ok">net/http (stdlib)</span> ├──
-          <span class="ok">log/slog, crypto/rand, compress/* (stdlib)</span> └──
-          <span class="ok"
-            >github.com/larsartmann/go-error-family (same author, 0 transitive deps)</span
-          >
-
-          <span class="root">github.com/larsartmann/httputil/httpspec</span>
-          └──
-          <span class="ok"
-            >net/http, net/http/httptest, testing (stdlib only — NO dependency on parent
-            package)</span
-          >
+          <div class="stat-card stat-good">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Validate() impls</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Problems</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Branded types</div>
+          </div>
         </div>
         <p>
-          The dependency graph is a strict tree pointing only at stdlib and one same-author library.
-          <code>depguard</code> enforces this at lint time — no third-party imports can sneak in.
-          Critically, the <code>httpspec</code> subpackage depends only on stdlib; it validates
-          <em>any</em> <code>http.Handler</code>, so it is reusable far beyond this library.
+          The model is <strong>mostly strong</strong>: every config is an explicit struct with a
+          <code>Validate()</code> entry point, middleware is a clean
+          <code>func(http.Handler) http.Handler</code> alias, and classified errors use a consistent
+          <code>http.*</code> code namespace. The problems below are real but bounded — no anemic
+          god-objects, no stringly-typed state machines.
         </p>
 
-        <h2 id="coupling"><span class="num">02</span>Coupling Assessment</h2>
-        <div class="card card-solution">
-          <h4>Composability score: Excellent</h4>
-          <div class="diagram">
-            <span class="node node-core">Consumer Handler</span><span class="arrow">→</span>
-            <span class="node">Recovery</span><span class="arrow">→</span>
-            <span class="node">Logging</span><span class="arrow">→</span>
-            <span class="node">Timeout</span><span class="arrow">→</span>
-            <span class="node node-good">Your Handler</span>
-          </div>
-          <p style="margin-top: 0.6rem">
-            Every middleware shares one signature — <code>func(http.Handler) http.Handler</code> —
-            so any of them composes with any other, in any order, with zero adapters.
-            <code>Chain()</code> and <code>MiddlewareStack</code> are thin orchestrators over this
-            universal interface. This is the highest-composability design available in Go HTTP.
-          </p>
-        </div>
-        <div class="card card-warning">
-          <h4>Single flat package — deliberate tradeoff, watch the size</h4>
+        <h2 id="catalog"><span class="num">01</span>Problem Catalog</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical · Contract</span>
+          <h3>CORS allowlist is bypassable: unmatched origin returns "*"</h3>
+          <div class="where">cors.go:142 — resolveOrigin()</div>
+          <pre><code><span class="tok-keyword">func</span> <span class="tok-func">resolveOrigin</span>(origin <span class="tok-type">string</span>, cfg CORSConfig) <span class="tok-type">string</span> {
+    <span class="tok-keyword">if</span> cfg.AllowAllOrigins { <span class="tok-keyword">return</span> <span class="tok-string">"*"</span> }
+    <span class="tok-keyword">for</span> _, allowed := <span class="tok-keyword">range</span> cfg.AllowedOrigins { ... <span class="tok-keyword">return</span> origin }
+    <span class="tok-keyword">return</span> <span class="tok-string">"*"</span> <span class="tok-comment">// ← unmatched origin still gets "*"</span>
+}</code></pre>
           <p>
-            All 28 root files live in one <code>httputil</code> package. Benefit: one import
-            (<code>httputil.CORS</code>, <code>httputil.ETag</code>), no subpackage spelunking.
-            Cost: the package surface is large and will grow.
-            <strong>This is the correct tradeoff for a utility library</strong> — consumers want
-            flat ergonomics, not a deep package tree. But at 28 files it is approaching the point
-            where grouping (e.g. an internal <code>compress/</code> for the 7 compression files)
-            would aid navigation without breaking the public import path. Not urgent; track it.
+            When <code>AllowAllOrigins</code> is false and a request origin matches no entry in
+            <code>AllowedOrigins</code>, the middleware responds with
+            <code>Access-Control-Allow-Origin: *</code>. For simple requests this lets
+            <em>any</em> origin read the response — the allowlist is decorative. This is
+            <strong>documented as intentional</strong> in <code>DOMAIN_LANGUAGE.md</code> ("If no
+            match → fall back to *"), but it is a security surprise: a consumer configuring an
+            allowlist reasonably expects non-matching origins to be denied.
           </p>
+          <div class="callout callout-warning">
+            <strong>Why not auto-fixed:</strong> Changing the fallback to "deny" (empty header) is a
+            behavior change to a documented contract and could break consumers who rely on the open
+            fallback. Flagged for a deliberate v1 decision.
+          </div>
         </div>
 
-        <h2 id="roadmap"><span class="num">03</span>Service-Orientation Roadmap</h2>
-        <p>
-          The library already practices service-orientation at its extension seams — three pluggable
-          interfaces let consumers inject their own implementations without forking:
-        </p>
+        <div class="issue issue-important">
+          <span class="severity severity-important">High · Dead field</span>
+          <h3>CompressionConfig.QValues is declared, documented, never read</h3>
+          <div class="where">compression.go:83-87 — read nowhere in negotiator</div>
+          <p>
+            The field doc claims it "lets the server hint at preference for clients that omit a
+            quality value," but <code>buildNegotiator</code> and
+            <code>negotiateEncoding</code> never consult <code>cfg.QValues</code>. A consumer
+            setting it gets silently no effect. This is a <strong>lying type</strong> — the field's
+            existence implies behavior that does not happen.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Options:</strong> (a) wire it into the negotiator as the server-side default
+            q-value, or (b) remove it (breaking). Wiring is preferred — the design intent is sound,
+            only the implementation is missing.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">High · Split-brain</span>
+          <h3>CompressionConfig.Level is decoupled from WriterFactories</h3>
+          <div class="where">compression.go:62 — vs WriterFactories map</div>
+          <p>
+            <code>Level</code> is validated but never passed to the factories in
+            <code>Compression()</code>. The actual compression level comes from whatever level the
+            <code>WriterFactories</code> map was built with (<code>DefaultWriterFactories()</code>
+            hardcodes <code>gzip.DefaultCompression</code>). So a consumer who sets
+            <code>cfg.Level = gzip.BestCompression</code> <strong>gets no change</strong> unless
+            they also rebuild the factory map. Two places encode the same concept; they can
+            disagree.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix direction:</strong> Make <code>Level</code> the single source of truth and
+            have <code>DefaultWriterFactories</code> (or <code>Compression()</code>) honor it, or
+            remove <code>Level</code> and document factories as the only level control.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Medium · Correctness risk</span>
+          <h3>ETag uses CRC32 — a checksum, not a collision-resistant hash</h3>
+          <div class="where">etag.go:180 — crc32.ChecksumIEEE</div>
+          <p>
+            CRC32 has a 32-bit output. Two different response bodies can share an ETag, yielding a
+            false <code>304 Not Modified</code> and serving stale content. For a general-purpose
+            library this is a real (if rare) correctness bug. The tradeoff (zero-alloc, fast) is
+            reasonable, but the collision risk should be opt-out, not silent.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix direction:</strong> Add an <code>Algorithm</code> option (CRC32 default for
+            speed, xxhash/SHA for correctness) or document the collision semantics explicitly.
+          </div>
+        </div>
+
+        <h2 id="vision"><span class="num">02</span>The Vision</h2>
+        <div class="card card-solution">
+          <h4>What "right" looks like</h4>
+          <p>The model is already close. The improvements are surgical, not structural:</p>
+          <ul style="padding-left: 1.4rem; margin: 0.5rem 0 0">
+            <li>
+              <strong>Branded error codes</strong> — promote the <code>http.*</code> code strings to
+              a named <code>type ErrCode string</code> so they can't be confused with arbitrary
+              strings at call sites.
+            </li>
+            <li>
+              <strong>One level knob</strong> — <code>Level</code> becomes the single source;
+              factories derive from it.
+            </li>
+            <li>
+              <strong>Honest CORS</strong> — unmatched origin returns no allow-origin header (deny),
+              with an explicit <code>DenyUnmatched bool</code> escape hatch preserving the old
+              behavior.
+            </li>
+            <li>
+              <strong>Pluggable ETag hash</strong> — <code>HashFunc func([]byte) uint64</code> on
+              the config.
+            </li>
+          </ul>
+        </div>
+
+        <h2 id="design"><span class="num">03</span>Design Decisions (what to preserve)</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Interface</th>
-                <th>Default impl</th>
-                <th>Service it abstracts</th>
+                <th>Decision</th>
+                <th>Rationale</th>
+                <th>Keep</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><code>RateLimiter</code></td>
-                <td><code>TokenBucketLimiter</code> (in-memory)</td>
-                <td>Rate-limit store (swap in Redis/Memcached)</td>
+                <td>Config structs are values, not pointers</td>
+                <td>
+                  Configs are immutable after construction; pass-by-value prevents aliasing bugs
+                </td>
+                <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
               <tr>
-                <td><code>MetricsRecorder</code></td>
-                <td>none (consumer supplies)</td>
-                <td>Metrics sink (Prometheus, OTel, Datadog)</td>
+                <td>Middleware = <code>func(http.Handler) http.Handler</code></td>
+                <td>Matches stdlib convention; composes with any framework</td>
+                <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
               <tr>
-                <td><code>WriterFactory</code></td>
-                <td>gzip/deflate</td>
-                <td>Compression backend (brotli, zstd — no core dep added)</td>
+                <td>Unexported context key types</td>
+                <td><code>requestIDKey struct{}</code> prevents key collisions</td>
+                <td><span class="badge badge-fixed">Yes</span></td>
+              </tr>
+              <tr>
+                <td><code>HealthStatus</code> branded string enum</td>
+                <td>Type-safe up/down; can't pass an arbitrary status</td>
+                <td><span class="badge badge-fixed">Yes</span></td>
+              </tr>
+              <tr>
+                <td>Embedded <code>responseWrapper</code> composition</td>
+                <td>Shares WriteHeader/Hijack/Flush logic without inheritance</td>
+                <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
             </tbody>
           </table>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">1</div>
-          <div class="migration-content">
-            <h4>Keep extension points interface-minimal</h4>
-            <p>
-              Each has exactly one method — the ideal size. Resist adding convenience methods; let
-              adapters compose.
-            </p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">2</div>
-          <div class="migration-content">
-            <h4>Address the unbounded-memory RateLimiter</h4>
-            <p>
-              <code>TokenBucketLimiter</code> grows its key map without eviction. For production
-              per-IP limiting, document that a custom <code>RateLimiter</code> with eviction (or
-              TTL) is required — or add an optional TTL to the default.
-            </p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">3</div>
-          <div class="migration-content">
-            <h4>Consider an internal split for compression</h4>
-            <p>
-              The 7 compression files are a cohesive subsystem; an internal
-              <code>compress</code> folder (unexported) would reduce root-package noise while
-              preserving the flat public API.
-            </p>
-          </div>
         </div>
 
         <h2 id="strengths">Strengths</h2>
@@ -695,57 +684,48 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>One universal middleware signature</strong
+              <strong>No anemic god-objects</strong
               ><span
-                >Everything is <code>func(http.Handler) http.Handler</code> — maximal composability,
-                zero adapters.</span
+                >Each config has a single, focused responsibility; fields are few and named for
+                their domain.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>httpspec is a pure stdlib consumer</strong
+              <strong>Validate() is a uniform contract</strong
               ><span
-                >The spec package validates any handler — it is a reusable contract, not coupled to
-                httputil internals.</span
+                >Every config the middleware needs implements <code>Validate() error</code> —
+                invalid configs fail at startup, not at request time.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Composition over inheritance via responseWrapper</strong
+              <strong>Pluggable interfaces where they matter</strong
               ><span
-                >Two writers share behavior through embedding, not a base class hierarchy.</span
+                ><code>RateLimiter</code>, <code>MetricsRecorder</code>,
+                <code>WriterFactory</code> open extension without core deps.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Dependency policy is machine-enforced</strong
+              <strong>Errors are structured, not strings</strong
               ><span
-                ><code>depguard</code> makes the zero-third-party-dep guarantee structural, not
-                aspirational.</span
-              >
-            </div>
-          </div>
-          <div class="strength">
-            <div class="check">+</div>
-            <div class="text">
-              <strong>Server lifecycle is encapsulated</strong
-              ><span
-                ><code>Server</code> hides <code>*http.Server</code>; consumers get
-                <code>Start()</code>/<code>Shutdown()</code>/<code>Addr()</code> only.</span
+                >Codes + family + context via go-error-family; <code>errors.Is</code> and retry
+                decisions work.</span
               >
             </div>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; Reviewed package boundaries, import graph, interface design,
-          and coupling
+          Generated 2026-07-05 &middot; Reviewed all 11 config types, 4 interfaces, 5 Validate()
+          implementations
         </footer>
       </main>
     </div>

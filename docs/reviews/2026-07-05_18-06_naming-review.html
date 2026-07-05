@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Architecture Review — httputil</title>
+    <title>Naming Review — httputil</title>
     <style>
       :root {
         --color-graphite: #0e0e10;
@@ -410,84 +410,25 @@
       tr:hover td {
         background: var(--surface-raised);
       }
-      .dep-tree {
+      pre {
         background: var(--surface-sunken);
         border: 1px solid var(--border);
         padding: 1rem 1.2rem;
         margin: 1rem 0;
         font-family: var(--font-mono);
         font-size: 0.82rem;
-        line-height: 1.7;
-        white-space: pre;
+        line-height: 1.65;
         overflow-x: auto;
       }
-      .dep-tree .root {
-        color: var(--accent);
-        font-weight: 700;
-      }
-      .dep-tree .ok {
-        color: var(--solution);
-      }
-      .dep-tree .unwanted {
-        color: var(--problem);
-      }
-      .diagram {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        margin: 1rem 0;
-        background: var(--surface-raised);
-        border: 1px solid var(--border);
-      }
-      .node {
-        display: inline-block;
-        padding: 0.35rem 0.7rem;
+      code {
         font-family: var(--font-mono);
-        font-size: 0.8rem;
-        font-weight: 600;
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
         background: var(--surface-sunken);
-        border: 1px solid var(--border-strong);
-      }
-      .node-core {
-        background: var(--accent);
-        color: var(--surface);
-        border-color: var(--accent);
-      }
-      .node-good {
-        background: var(--solution);
-        color: var(--surface);
-        border-color: var(--solution);
-      }
-      .arrow {
-        color: var(--text-faint);
-        font-family: var(--font-mono);
-      }
-      .migration-step {
-        display: grid;
-        grid-template-columns: 48px 1fr;
-        gap: 1rem;
-        margin: 1rem 0;
-        padding: 1rem;
-        background: var(--surface-raised);
-        border: 1px solid var(--border);
-        border-left: 3px solid var(--accent);
-      }
-      .migration-num {
-        font-family: var(--font-mono);
-        font-weight: 800;
-        font-size: 1.5rem;
-        color: var(--accent);
-        line-height: 1;
-      }
-      .migration-content h4 {
-        margin-bottom: 0.2rem;
-      }
-      .migration-content p {
-        margin-bottom: 0;
-        color: var(--text-muted);
-        font-size: 0.92rem;
+        padding: 0.1rem 0.35rem;
       }
       .footer {
         margin-top: 2rem;
@@ -515,179 +456,170 @@
         .stat-grid {
           grid-template-columns: repeat(2, 1fr);
         }
-        .migration-step {
-          grid-template-columns: 1fr;
-        }
       }
     </style>
   </head>
   <body>
     <div class="top-bar">
-      <span>Architecture Review</span><span>2026-07-05</span><span>httputil · modularity</span>
+      <span>Naming Review</span><span>2026-07-05</span><span>httputil · identifiers</span>
     </div>
     <div class="layout">
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
-          <a href="#metrics">Metrics</a>
-          <a href="#structure">Structure</a>
-          <a href="#coupling">Coupling</a>
-          <a href="#roadmap">Roadmap</a>
+          <a href="#summary">Summary</a>
+          <a href="#honesty">Honesty</a>
+          <a href="#clarity">Clarity</a>
+          <a href="#glossary">Glossary</a>
           <a href="#strengths">Strengths</a>
         </nav>
       </aside>
       <main class="main">
         <div class="hero">
-          <div class="hero-badge">Architecture Review</div>
-          <h1>Scalability · Modularity · Composability</h1>
+          <div class="hero-badge">Naming Review</div>
+          <h1>Identifier Quality Audit</h1>
           <p class="hero-subtitle">
-            How well-structured is httputil as a reusable Go library? Assessment of package
-            boundaries, dependency direction, coupling hotspots, and service-orientation at
-            extension points.
+            Every exported type, function, field, and constant reviewed for honesty, clarity, domain
+            alignment, and Go convention. Verdict: the naming is unusually disciplined — one
+            material issue found.
           </p>
         </div>
 
-        <h2 id="metrics"><span class="num">00</span>Architecture Metrics</h2>
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
-          <div class="stat-card">
-            <div class="stat-value">2</div>
-            <div class="stat-label">Packages</div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">~120</div>
+            <div class="stat-label">Identifiers reviewed</div>
           </div>
           <div class="stat-card stat-good">
             <div class="stat-value">1</div>
-            <div class="stat-label">External Deps</div>
+            <div class="stat-label">Material issue</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Minor</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">3</div>
-            <div class="stat-label">Extension Interfaces</div>
+            <div class="stat-value">0</div>
+            <div class="stat-label">Manager/Handler/Util</div>
           </div>
-          <div class="stat-card stat-good">
-            <div class="stat-value">Low</div>
-            <div class="stat-label">Coupling</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">28</div>
-            <div class="stat-label">Files (root pkg)</div>
-          </div>
-        </div>
-
-        <h2 id="structure"><span class="num">01</span>Structure &amp; Dependency Direction</h2>
-        <div class="dep-tree">
-          <span class="root">github.com/larsartmann/httputil</span> ├──
-          <span class="ok">net/http (stdlib)</span> ├──
-          <span class="ok">log/slog, crypto/rand, compress/* (stdlib)</span> └──
-          <span class="ok"
-            >github.com/larsartmann/go-error-family (same author, 0 transitive deps)</span
-          >
-
-          <span class="root">github.com/larsartmann/httputil/httpspec</span>
-          └──
-          <span class="ok"
-            >net/http, net/http/httptest, testing (stdlib only — NO dependency on parent
-            package)</span
-          >
         </div>
         <p>
-          The dependency graph is a strict tree pointing only at stdlib and one same-author library.
-          <code>depguard</code> enforces this at lint time — no third-party imports can sneak in.
-          Critically, the <code>httpspec</code> subpackage depends only on stdlib; it validates
-          <em>any</em> <code>http.Handler</code>, so it is reusable far beyond this library.
+          Automated checks first: <code>revive</code>/<code>golangci-lint</code> var-naming,
+          exported, and receiver-naming rules all pass (0 issues). No grep hits for
+          <code>Manager|Handler|Processor|Helper|Util</code> class names, no
+          <code>Impl</code> suffixes, no <code>Data|Info|Record|Item</code> vague nouns on types.
+          The findings below are the semantic issues linters cannot catch.
         </p>
 
-        <h2 id="coupling"><span class="num">02</span>Coupling Assessment</h2>
-        <div class="card card-solution">
-          <h4>Composability score: Excellent</h4>
-          <div class="diagram">
-            <span class="node node-core">Consumer Handler</span><span class="arrow">→</span>
-            <span class="node">Recovery</span><span class="arrow">→</span>
-            <span class="node">Logging</span><span class="arrow">→</span>
-            <span class="node">Timeout</span><span class="arrow">→</span>
-            <span class="node node-good">Your Handler</span>
-          </div>
-          <p style="margin-top: 0.6rem">
-            Every middleware shares one signature — <code>func(http.Handler) http.Handler</code> —
-            so any of them composes with any other, in any order, with zero adapters.
-            <code>Chain()</code> and <code>MiddlewareStack</code> are thin orchestrators over this
-            universal interface. This is the highest-composability design available in Go HTTP.
-          </p>
-        </div>
-        <div class="card card-warning">
-          <h4>Single flat package — deliberate tradeoff, watch the size</h4>
+        <h2 id="honesty"><span class="num">01</span>Honesty Issues</h2>
+        <div class="issue issue-important">
+          <span class="severity severity-important">High · Lying name</span>
+          <h3>RequestIDConfig.ForwardHeader names the wrong direction</h3>
+          <div class="where">requestid.go:17 — field; used at :60 as the request READ header</div>
           <p>
-            All 28 root files live in one <code>httputil</code> package. Benefit: one import
-            (<code>httputil.CORS</code>, <code>httputil.ETag</code>), no subpackage spelunking.
-            Cost: the package surface is large and will grow.
-            <strong>This is the correct tradeoff for a utility library</strong> — consumers want
-            flat ergonomics, not a deep package tree. But at 28 files it is approaching the point
-            where grouping (e.g. an internal <code>compress/</code> for the 7 compression files)
-            would aid navigation without breaking the public import path. Not urgent; track it.
+            <code>ForwardHeader</code> reads as "the header we forward <em>out</em>," but the code
+            uses it as the <strong>incoming</strong> header to read a propagated ID from
+            (<code>req.Header.Get(cfg.ForwardHeader)</code>). The outgoing response header is the
+            separate <code>HeaderName</code> field. A reader trusts "Forward" = outbound and is
+            misled. <code>HeaderName</code> is also vague — "which header?"
+          </p>
+          <div class="callout callout-solution">
+            <strong>Better names (v1):</strong> <code>IncomingHeader</code> (the request header
+            read) and <code>OutgoingHeader</code> or <code>ResponseHeader</code> (the response
+            header written). Direction becomes self-evident.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low · Fixed</span>
+          <h3>ReadyHandler doc implied an override that doesn't exist</h3>
+          <div class="where">health.go:40 — comment</div>
+          <p>
+            The doc said "Override with a custom handler that checks database connections" but
+            <code>ReadyHandler()</code> takes no arguments and always returns up.
+            <strong>Fixed:</strong> the comment now tells the user to register their own handler at
+            <code>/health/ready</code> instead.
           </p>
         </div>
 
-        <h2 id="roadmap"><span class="num">03</span>Service-Orientation Roadmap</h2>
-        <p>
-          The library already practices service-orientation at its extension seams — three pluggable
-          interfaces let consumers inject their own implementations without forking:
-        </p>
+        <h2 id="clarity"><span class="num">02</span>Clarity / Consistency</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Interface</th>
-                <th>Default impl</th>
-                <th>Service it abstracts</th>
+                <th>#</th>
+                <th>Severity</th>
+                <th>Identifier</th>
+                <th>Issue</th>
+                <th>Better</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><code>RateLimiter</code></td>
-                <td><code>TokenBucketLimiter</code> (in-memory)</td>
-                <td>Rate-limit store (swap in Redis/Memcached)</td>
+                <td>1</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td><code>ForwardHeader</code></td>
+                <td>Direction is backwards (see above)</td>
+                <td><code>IncomingHeader</code></td>
               </tr>
               <tr>
-                <td><code>MetricsRecorder</code></td>
-                <td>none (consumer supplies)</td>
-                <td>Metrics sink (Prometheus, OTel, Datadog)</td>
+                <td>2</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td><code>HeaderName</code></td>
+                <td>Vague — which header?</td>
+                <td><code>ResponseHeader</code></td>
               </tr>
               <tr>
-                <td><code>WriterFactory</code></td>
-                <td>gzip/deflate</td>
-                <td>Compression backend (brotli, zstd — no core dep added)</td>
+                <td>3</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td><code>LiveHandler</code></td>
+                <td>
+                  Returns <code>HealthHandler()</code> verbatim; "semantically distinct" but
+                  identical
+                </td>
+                <td>Acceptable for k8s semantics; document clearly</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td><code>QValues</code></td>
+                <td>Name implies active behavior; field is dead (see data-model review)</td>
+                <td>Remove or wire</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="migration-step">
-          <div class="migration-num">1</div>
-          <div class="migration-content">
-            <h4>Keep extension points interface-minimal</h4>
-            <p>
-              Each has exactly one method — the ideal size. Resist adding convenience methods; let
-              adapters compose.
-            </p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">2</div>
-          <div class="migration-content">
-            <h4>Address the unbounded-memory RateLimiter</h4>
-            <p>
-              <code>TokenBucketLimiter</code> grows its key map without eviction. For production
-              per-IP limiting, document that a custom <code>RateLimiter</code> with eviction (or
-              TTL) is required — or add an optional TTL to the default.
-            </p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">3</div>
-          <div class="migration-content">
-            <h4>Consider an internal split for compression</h4>
-            <p>
-              The 7 compression files are a cohesive subsystem; an internal
-              <code>compress</code> folder (unexported) would reduce root-package noise while
-              preserving the flat public API.
-            </p>
-          </div>
+
+        <h2 id="glossary"><span class="num">03</span>Glossary — no split-brain terminology</h2>
+        <div class="card card-solution">
+          <h4>One concept = one name (consistency win)</h4>
+          <p>
+            The codebase uses a single, consistent vocabulary throughout. No synonym drift was
+            found:
+          </p>
+          <ul style="padding-left: 1.4rem; margin: 0.5rem 0 0">
+            <li>
+              <strong>Middleware</strong> — always <code>Middleware</code> /
+              <code>func(http.Handler) http.Handler</code>, never "interceptor", "filter",
+              "wrapper".
+            </li>
+            <li>
+              <strong>Config</strong> — every options type ends in <code>Config</code>; every
+              constructor is <code>Default*Config()</code>.
+            </li>
+            <li>
+              <strong>Validate</strong> — one method name for startup checks across all configs.
+            </li>
+            <li>
+              <strong>Factory</strong> — <code>WriterFactory</code>, <code>GzipWriterFactory</code>,
+              <code>DeflateWriterFactory</code> — consistent factory naming.
+            </li>
+            <li>
+              <strong>Recorder / Wrapper / Writer</strong> — three distinct roles, three distinct
+              names, never conflated.
+            </li>
+          </ul>
         </div>
 
         <h2 id="strengths">Strengths</h2>
@@ -695,57 +627,56 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>One universal middleware signature</strong
+              <strong>Zero trash-can class names</strong
+              ><span>No Manager, Handler, Processor, Helper, or Util types anywhere.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Verbs reveal intent</strong
               ><span
-                >Everything is <code>func(http.Handler) http.Handler</code> — maximal composability,
-                zero adapters.</span
+                ><code>resolveOrigin</code>, <code>matchWildcardOrigin</code>,
+                <code>negotiateEncoding</code>, <code>computeETag</code> — each name says what
+                happens.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>httpspec is a pure stdlib consumer</strong
+              <strong>Domain-aligned error sentinels</strong
               ><span
-                >The spec package validates any handler — it is a reusable contract, not coupled to
-                httputil internals.</span
+                ><code>errCredentialsWithAllOrigins</code>, <code>errRecoveryNotFirst</code> — the
+                name is the diagnosis.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Composition over inheritance via responseWrapper</strong
+              <strong>Honest failure names</strong
               ><span
-                >Two writers share behavior through embedding, not a base class hierarchy.</span
+                ><code>ErrCodeHijackUnsupported</code> vs <code>ErrCodeHijackFailed</code> —
+                distinguish unsupported from transient failure.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Dependency policy is machine-enforced</strong
+              <strong>No abbreviations</strong
               ><span
-                ><code>depguard</code> makes the zero-third-party-dep guarantee structural, not
-                aspirational.</span
-              >
-            </div>
-          </div>
-          <div class="strength">
-            <div class="check">+</div>
-            <div class="text">
-              <strong>Server lifecycle is encapsulated</strong
-              ><span
-                ><code>Server</code> hides <code>*http.Server</code>; consumers get
-                <code>Start()</code>/<code>Shutdown()</code>/<code>Addr()</code> only.</span
+                >No <code>usr</code>, <code>cnt</code>, <code>mgr</code>; receiver names are full
+                words (<code>cfg</code> for config is the one accepted shortening).</span
               >
             </div>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; Reviewed package boundaries, import graph, interface design,
-          and coupling
+          Generated 2026-07-05 &middot; Reviewed via golangci-lint revive + manual semantic analysis
+          of all exports
         </footer>
       </main>
     </div>
