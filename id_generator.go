@@ -75,9 +75,6 @@ func generateTimeOrderedID() string {
 	return hexEncodeLower(raw[:])
 }
 
-// hexDigitsLower is the lowercase hex alphabet (0-9, a-f).
-const hexDigitsLower = "0123456789abcdef"
-
 // hexEncodeLower encodes src as lowercase hex, no allocations on the data
 // path aside from the output string. src length must be even; out is allocated
 // to 2*len(src) bytes.

@@ -26,26 +26,6 @@ const (
 	defaultETagMaxBufferSize = 1024 * 1024 // 1 MB
 )
 
-//nolint:gochecknoglobals // Immutable lookup table for hex digit encoding.
-var hexDigits = [16]byte{
-	'0',
-	'1',
-	'2',
-	'3',
-	'4',
-	'5',
-	'6',
-	'7',
-	'8',
-	'9',
-	'a',
-	'b',
-	'c',
-	'd',
-	'e',
-	'f',
-}
-
 // ETagConfig holds configuration for ETag generation.
 type ETagConfig struct {
 	Weak          bool
@@ -210,8 +190,8 @@ func (w *etagWriter) computeETag() string {
 // encodeHex writes the hex encoding of src into dst. dst must have length >= 2*len(src).
 func encodeHex(dst, src []byte) {
 	for i, b := range src {
-		dst[i*2] = hexDigits[b>>4]
-		dst[i*2+1] = hexDigits[b&0x0f]
+		dst[i*2] = hexDigitsLower[b>>4]
+		dst[i*2+1] = hexDigitsLower[b&0x0f]
 	}
 }
 
