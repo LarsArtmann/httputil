@@ -158,9 +158,11 @@ func (w *compressWriter) startCompressAndStream(b []byte, total int) (int, error
 	return total, nil
 }
 
+// flushPlainAndStream switches the writer into plain (uncompressed) mode,
+// drains any buffered bytes, then streams the remaining payload through
+// the underlying ResponseWriter.
 func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
-	w.plain = true
-	w.writeHeaderToUnderlying()
+	w.beginPlainResponse()
 
 	if len(w.buf) > 0 {
 		_, err := w.ResponseWriter.Write(w.buf)
@@ -271,9 +273,7 @@ func (w *compressWriter) Flush() {
 		return
 	}
 
-	w.plain = true
-
-	w.writeHeaderToUnderlying()
+	w.beginPlainResponse()
 
 	if len(w.buf) > 0 {
 		_, _ = w.ResponseWriter.Write(w.buf)
@@ -281,6 +281,15 @@ func (w *compressWriter) Flush() {
 	}
 
 	w.responseWrapper.Flush()
+}
+
+// beginPlainResponse transitions the writer into plain (uncompressed) mode
+// and commits any pending status header to the underlying ResponseWriter.
+// Callers must subsequently drain w.buf and forward further writes to the
+// underlying ResponseWriter directly.
+func (w *compressWriter) beginPlainResponse() {
+	w.plain = true
+	w.writeHeaderToUnderlying()
 }
 
 // nopCloserWriter wraps an io.Writer and implements io.WriteCloser with a
