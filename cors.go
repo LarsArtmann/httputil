@@ -20,6 +20,12 @@ type CORSConfig struct {
 	MaxAge             int
 	AllowAllOrigins    bool
 	OptionsPassthrough bool
+	// DenyUnmatched controls the behavior when a request origin does not
+	// match any entry in AllowedOrigins and AllowAllOrigins is false. When
+	// false (default), the middleware falls back to Access-Control-Allow-Origin: *,
+	// allowing all origins. When true, no Access-Control-Allow-Origin header is
+	// set, causing the browser to deny the cross-origin request.
+	DenyUnmatched bool
 }
 
 // DefaultCORSConfig returns a permissive development-friendly CORS config
@@ -41,6 +47,7 @@ func DefaultCORSConfig() CORSConfig {
 		AllowCredentials:   false,
 		MaxAge:             defaultMaxAge,
 		OptionsPassthrough: false,
+		DenyUnmatched:      false,
 	}
 }
 
@@ -100,7 +107,10 @@ func CORS(cfg CORSConfig) Middleware {
 				allowOrigin = resolveOrigin(origin, cfg)
 			}
 
-			resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			if allowOrigin != "" {
+				resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			}
+
 			resp.Header().Set("Access-Control-Allow-Methods", allowMethods)
 			resp.Header().Set("Access-Control-Allow-Headers", allowHeaders)
 			resp.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
@@ -137,6 +147,10 @@ func resolveOrigin(origin string, cfg CORSConfig) string {
 		if matchWildcardOrigin(allowed, origin) {
 			return origin
 		}
+	}
+
+	if cfg.DenyUnmatched {
+		return ""
 	}
 
 	return "*"
