@@ -1,7 +1,7 @@
 package httputil
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 )
 
@@ -27,7 +27,7 @@ func HealthHandler() http.HandlerFunc {
 		resp.Header().Set("Content-Type", "application/json")
 		resp.WriteHeader(http.StatusOK)
 
-		_ = json.NewEncoder(resp).Encode(HealthResponse{Status: HealthStatusUp})
+		_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusUp})
 	}
 }
 
@@ -57,14 +57,14 @@ func ReadyHandlerWithProbe(ready func() bool) http.HandlerFunc {
 		if ready() {
 			resp.WriteHeader(http.StatusOK)
 
-			_ = json.NewEncoder(resp).Encode(HealthResponse{Status: HealthStatusUp})
+			_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusUp})
 
 			return
 		}
 
 		resp.WriteHeader(http.StatusServiceUnavailable)
 
-		_ = json.NewEncoder(resp).Encode(HealthResponse{Status: HealthStatusDown})
+		_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusDown})
 	}
 }
 

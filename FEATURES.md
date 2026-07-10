@@ -155,8 +155,7 @@ Not 100% (target met at 90%+). Gaps exist in:
 
 ### Near-term
 
-- Add WebSocket upgrade test through Compression + ETag.
-- Add `Content-Length` preservation test for small responses.
+- _(none — all near-term items are implemented)_
 
 ---
 

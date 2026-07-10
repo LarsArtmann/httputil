@@ -12,15 +12,15 @@ _Updated: 2026-07-05. Statuses: `[open]`, `[done]`. Source reviews live in `docs
 
 - [ ] `[open]` **`RequestIDConfig.ForwardHeader` misnames the direction** — it's the incoming read header, not an outgoing forward. `HeaderName` is also vague. _Action:_ rename to `IncomingHeader`/`ResponseHeader` in a major version. _(naming review)_
 
-### Polish (optional)
-
-- [ ] `[open]` **`Validate()` "required nil" pattern duplicated** — same 3-line check repeated in `RateLimitConfig`, `MetricsConfig`, `RequestIDConfig`. _Action:_ extract a small helper or accept the (minor) repetition. _(code-quality-scan)_
-- [ ] `[open]` **Consider internal `compress/` split** — the 7 compression files are cohesive; an unexported subfolder would reduce root-package noise while preserving the flat public API. _(architecture review)_
-- [ ] `[open]` **WebSocket upgrade test through Compression + ETag** — verify the upgrade path isn't broken by buffering middleware. _(FEATURES.md)_
-
 ---
 
 ## Done
+
+### Session 3 (2026-07-10): WebSocket upgrade + open-item triage
+
+- [x] `[done]` **Added WebSocket upgrade integration test** — `TestCompressionETag_WebSocketUpgrade_Passthrough` drives a real TCP connection through Compression + ETag, performs a full 101 Switching Protocols handshake, and asserts no Content-Encoding/ETag injection plus intact post-hijack byte exchange. Mutation-tested: a premature status flush is caught. _(websocket_upgrade_test.go)_
+- [x] `[done]` **Accepted `Validate()` duplication (no code change)** — the 3-line "required nil" check repeats in only 2 configs (below rule-of-three). A shared helper is infeasible: Go generics cannot express a nil-comparable constraint, and an `any`-typed helper silently misses nil `func` fields (the typed-nil-in-interface footgun). Accepted as idiomatic repetition. _(code-quality-scan)_
+- [x] `[done]` **Rejected `compress/` subfolder split** — infeasible: the compression files depend on root-package symbols (`Middleware`, `responseWrapper`, `ErrCode*`), while the root must re-export the compression types, forming a circular import. The flat layout is structural, not cosmetic. _(architecture review)_
 
 ### Session 2 (2026-07-05): Brutal self-review execution
 
