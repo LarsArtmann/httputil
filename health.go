@@ -28,6 +28,7 @@ func HealthHandler() http.HandlerFunc {
 		resp.WriteHeader(http.StatusOK)
 
 		_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusUp})
+		_, _ = resp.Write([]byte("\n"))
 	}
 }
 
@@ -58,6 +59,7 @@ func ReadyHandlerWithProbe(ready func() bool) http.HandlerFunc {
 			resp.WriteHeader(http.StatusOK)
 
 			_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusUp})
+			_, _ = resp.Write([]byte("\n"))
 
 			return
 		}
@@ -65,6 +67,7 @@ func ReadyHandlerWithProbe(ready func() bool) http.HandlerFunc {
 		resp.WriteHeader(http.StatusServiceUnavailable)
 
 		_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusDown})
+		_, _ = resp.Write([]byte("\n"))
 	}
 }
 
