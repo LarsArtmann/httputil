@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>httputil Status — Rate Limiter Library Switch</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.2rem;
+      }
+      li {
+        margin-bottom: 0.4rem;
+      }
+      .footer {
+        border-top: 2px solid var(--border-strong);
+        padding-top: 1.5rem;
+        margin-top: 2.5rem;
+        color: var(--text-faint);
+        font-size: 0.85rem;
+      }
+      @media (max-width: 900px) {
+        .sidebar {
+          display: none;
+        }
+        .layout {
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>httputil status report</span>
+      <span>2026-07-16 07:30 CEST</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Sections</div>
+          <a href="#hero">Overview</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#not-started">Not Started</a>
+          <a href="#fucked-up">Totally Fucked Up</a>
+          <a href="#improve">What We Should Improve</a>
+          <a href="#next">Next Tasks</a>
+          <a href="#questions">Top Questions</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="hero" class="hero">
+          <div class="hero-badge">Session Snapshot</div>
+          <h1>Rate Limiter Library Switch</h1>
+          <p class="hero-subtitle">
+            Replaced the hand-rolled token bucket in <code>ratelimit.go</code> with
+            <code>golang.org/x/time/rate</code>. Tests and lint pass. Two structural problems
+            surfaced during the run: the repo is currently unbuildable without
+            <code>GOEXPERIMENT=jsonv2</code>, and <code>flake.lock</code> was modified outside this
+            session.
+          </p>
+        </section>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Files Changed</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Lint Issues</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">PASS</div>
+            <div class="stat-label">Tests / Race</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Partially Done</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Totally Fucked Up</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Open Questions</div>
+          </div>
+        </div>
+
+        <section id="done">
+          <h2><span class="num">01</span> Fully Done</h2>
+
+          <div class="card card-solution">
+            <h3>Switched <code>TokenBucketLimiter</code> to <code>golang.org/x/time/rate</code></h3>
+            <p>
+              Each key now owns a <code>*rate.Limiter</code>. Idle-bucket eviction and the
+              <code>now</code> clock injection for deterministic tests are preserved. The internal
+              bucket type is gone; token-refill math is now the library's responsibility.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Added dependency and updated policy</h3>
+            <p>
+              <code>go.mod</code> and <code>go.sum</code> now include
+              <code>golang.org/x/time v0.15.0</code>. <code>.golangci.yml</code> depguard was
+              updated to allow it. <code>AGENTS.md</code> documents the new allowed dependency.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>API alignment</h3>
+            <p>
+              <code>NewTokenBucketLimiter(rate float64, burst int)</code> now matches
+              <code>rate.NewLimiter(r Limit, b int)</code>. Tokens are discrete, so
+              <code>burst</code> being an <code>int</code> is the correct type.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Tests and lint pass</h3>
+            <p>
+              <code>GOEXPERIMENT=jsonv2 go test ./... -race -count=1</code> passes.
+              <code>GOEXPERIMENT=jsonv2 golangci-lint run ./...</code> reports 0 issues.
+            </p>
+          </div>
+        </section>
+
+        <section id="partial">
+          <h2><span class="num">02</span> Partially Done</h2>
+
+          <div class="card card-warning">
+            <h3>Test environment is not self-documenting</h3>
+            <p>
+              The <code>AGENTS.md</code> Commands section still lists plain
+              <code>go test ./...</code> and <code>golangci-lint run</code>, but both now require
+              <code>GOEXPERIMENT=jsonv2</code> to work because <code>health.go</code> imports
+              <code>encoding/json/v2</code>. A new contributor following the documented commands
+              will hit a build failure immediately.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Fix:</strong> update the Commands block in <code>AGENTS.md</code> to prefix
+              every Go command with <code>GOEXPERIMENT=jsonv2</code>.
+            </div>
+          </div>
+
+          <div class="card card-warning">
+            <h3>Status report not committed</h3>
+            <p>
+              The skill says to commit the report, but the user explicitly said to wait for
+              instructions after writing it. This report is therefore written but uncommitted.
+            </p>
+          </div>
+        </section>
+
+        <section id="not-started">
+          <h2><span class="num">03</span> Not Started</h2>
+
+          <div class="card">
+            <h3>Items from this session that were not touched</h3>
+            <ul>
+              <li>Committing the rate-limiter changes.</li>
+              <li>Updating <code>CHANGELOG.md</code> with the breaking API change.</li>
+              <li>Updating <code>TODO_LIST.md</code> if there are open rate-limiter items.</li>
+              <li>Adding a benchmark comparing the old and new <code>TokenBucketLimiter</code>.</li>
+              <li>
+                Adding a usage example or updating <code>README.md</code> for the new signature.
+              </li>
+              <li>Adding a distributed / Redis-backed <code>RateLimiter</code> example.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="fucked-up">
+          <h2><span class="num">04</span> Totally Fucked Up!</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3>Build is broken without <code>GOEXPERIMENT=jsonv2</code></h3>
+            <div class="where">health.go — encoding/json/v2</div>
+            <p>
+              Running <code>go test ./...</code> without <code>GOEXPERIMENT=jsonv2</code> fails
+              with:
+            </p>
+            <pre>imports encoding/json/v2: build constraints exclude all Go files</pre>
+            <p>
+              The recent commit <code>f616f9f</code> added <code>GOEXPERIMENT=jsonv2</code>, but the
+              flake provides Go 1.26.4, which appears to lack the experiment files. This is a hard
+              blocker for any contributor not in the exact nix environment.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Fix:</strong> either pin Go 1.27+ in <code>flake.nix</code> (if jsonv2 is
+              available there) or downgrade <code>health.go</code> to <code>encoding/json</code> v1.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3><code>health.go</code> uses Go 1.27-only API on Go 1.26</h3>
+            <div class="where">health.go:30,61,69 — gopls stdversion warnings</div>
+            <p>
+              <code>json.MarshalWrite</code> requires Go 1.27 or later, but the module declares
+              <code>go 1.26.4</code> and the flake installs <code>go_1_26</code>. This is a version
+              mismatch independent of the experiment flag.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Important</span>
+            <h3><code>flake.lock</code> was modified outside this session</h3>
+            <div class="where">flake.lock</div>
+            <p>
+              <code>git status</code> shows <code>flake.lock</code> as modified with a nixpkgs bump
+              from <code>0bb7ec54</code> to <code>18b9261c</code>. I did not run any nix command. It
+              may have been pre-existing or updated by the environment, but it is currently
+              uncommitted and unexplained.
+            </p>
+          </div>
+        </section>
+
+        <section id="improve">
+          <h2><span class="num">05</span> What We Should Improve</h2>
+
+          <div class="issue issue-nice">
+            <h3>1. Make build commands reproducible without magic env vars</h3>
+            <p>
+              If <code>GOEXPERIMENT=jsonv2</code> is required, it should be encoded in the flake
+              devShell or in a <code>GOEXPERIMENT</code> wrapper, not rely on users remembering it.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h3>2. Add deterministic benchmark for the rate limiter</h3>
+            <p>
+              We now rely on an external library. A benchmark would prove the switch was a net win
+              and guard against regressions in future dependency updates.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h3>3. Expose richer rate-limit primitives</h3>
+            <p>
+              <code>rate.Limiter</code> supports <code>AllowN</code>, <code>Reserve</code>, and
+              <code>Wait</code>. The current <code>RateLimiter</code> interface only allows one
+              token at a time. Consider extending the interface or adding a separate advanced
+              limiter for consumers who need burst > 1 per request.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h3>4. Document the breaking API change</h3>
+            <p>
+              <code>NewTokenBucketLimiter</code>'s second parameter changed from
+              <code>float64</code> to <code>int</code>. This needs a CHANGELOG entry and possibly a
+              migration note in the README.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h3>5. Audit for other hand-rolled algorithms</h3>
+            <p>
+              The project is now more open to stdlib-adjacent dependencies. Other middlewares may
+              have custom parsing or state machines that could be replaced by well-tested libraries
+              (e.g., q-value parsing, compression negotiation).
+            </p>
+          </div>
+        </section>
+
+        <section id="next">
+          <h2><span class="num">06</span> Up to 50 Things We Should Get Done Next</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem">
+            Sorted roughly by impact: unblock contributors first, then harden, then extend.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Task</th>
+                  <th>Impact</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>
+                    Resolve Go 1.26 vs 1.27 mismatch in <code>flake.nix</code> /
+                    <code>health.go</code>
+                  </td>
+                  <td><span class="badge badge-critical">Critical</span></td>
+                  <td><span class="badge badge-critical">Open</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Document or automate <code>GOEXPERIMENT=jsonv2</code> requirement</td>
+                  <td><span class="badge badge-critical">Critical</span></td>
+                  <td><span class="badge badge-critical">Open</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Investigate and explain the uncommitted <code>flake.lock</code> diff</td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td><span class="badge badge-high">Open</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Commit or revert the rate-limiter changes</td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td><span class="badge badge-high">Open</span></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>Update <code>CHANGELOG.md</code> with the breaking signature change</td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td><span class="badge badge-high">Open</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>Add <code>TokenBucketLimiter</code> benchmark</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>Add stress/concurrency test for per-key limiter map</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>Add usage example to <code>README.md</code> or package examples</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>
+                    Evaluate exposing <code>AllowN</code> on the <code>RateLimiter</code> interface
+                  </td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>
+                    Consider adding <code>Retry-After</code> header support to
+                    <code>RateLimit</code>
+                  </td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>11</td>
+                  <td>Add a distributed rate-limiter example (Redis-backed)</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>12</td>
+                  <td>Review and update <code>TODO_LIST.md</code> for rate-limiter items</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>13</td>
+                  <td>Run the full code-quality scan skill on the current state</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>14</td>
+                  <td>Run architecture-review skill on middleware boundaries</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>15</td>
+                  <td>Audit other custom parsers for stdlib-equivalent replacements</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>16</td>
+                  <td>
+                    Add test for <code>Allow</code> behavior across many keys (memory pressure)
+                  </td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>17</td>
+                  <td>Add negative/float input validation tests</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>18</td>
+                  <td>
+                    Evaluate whether <code>rate.Inf</code> should be exposed for unlimited paths
+                  </td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>19</td>
+                  <td>Ensure CI uses the same Go/nixpkgs versions as the flake</td>
+                  <td><span class="badge badge-medium">Medium</span></td>
+                  <td><span class="badge badge-medium">Open</span></td>
+                </tr>
+                <tr>
+                  <td>20</td>
+                  <td>Re-enable or document any suppressed linters</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>21</td>
+                  <td>
+                    Add test for zero <code>EvictionTTL</code> (no eviction) with deterministic time
+                  </td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>22</td>
+                  <td>Verify the <code>golang.org/x/time</code> transitive dependency tree</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>23</td>
+                  <td>
+                    Update nix apps to set <code>GOEXPERIMENT=jsonv2</code> if it remains required
+                  </td>
+                  <td><span class="badge badge-high">High</span></td>
+                  <td><span class="badge badge-high">Open</span></td>
+                </tr>
+                <tr>
+                  <td>24</td>
+                  <td>Consider vendoring or pinning the exact Go toolchain in the flake</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+                <tr>
+                  <td>25</td>
+                  <td>Schedule a naming-review pass for the rate-limiter symbols</td>
+                  <td><span class="badge badge-low">Low</span></td>
+                  <td><span class="badge badge-low">Open</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="questions">
+          <h2><span class="num">07</span> Top 2 Questions I Cannot Figure Out Myself</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Question 1</span>
+            <h3>Why is <code>flake.lock</code> modified?</h3>
+            <p>
+              <code>git diff</code> shows nixpkgs was bumped from
+              <code>0bb7ec54c8483066ec9d7720e780a5caa71f8612</code> to
+              <code>18b9261cb3294b6d2a06d03f96872827b8fe2698</code>. I did not run
+              <code>nix flake update</code> or any nix command. Was this done by another agent, by
+              the environment, or was it pre-existing from before the session snapshot? Should it be
+              committed, reverted, or left alone?
+            </p>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Question 2</span>
+            <h3>Should we upgrade Go or downgrade <code>health.go</code>?</h3>
+            <p>
+              <code>health.go</code> uses <code>json.MarshalWrite</code> (Go 1.27+), but the flake
+              pins Go 1.26.4. The intended fix is unclear: is the project committed to jsonv2 and
+              should therefore move to Go 1.27+, or is the flake the source of truth and
+              <code>health.go</code> should be reverted to <code>encoding/json</code> v1?
+            </p>
+          </div>
+        </section>
+
+        <div class="footer">
+          <p>
+            Report generated from session on <strong>2026-07-16 07:30 CEST</strong>. Based on the
+            current working tree and the run of tests/lint performed during this session. Does not
+            include external research.
+          </p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

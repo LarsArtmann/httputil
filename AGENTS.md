@@ -6,7 +6,7 @@ These are the non-obvious rules that cause immediate lint failures. Read these b
 
 ### Allowed Dependencies
 
-`depguard` allows `$gostd`, `$module`, and `github.com/larsartmann/go-error-family` (same author, zero transitive deps). No other third-party libraries.
+`depguard` allows `$gostd`, `$module`, `github.com/larsartmann/go-error-family` (same author, zero transitive deps), and `golang.org/x/time` (canonical Go extension for rate limiting). No other third-party libraries.
 
 ### `exhaustruct` — Every Struct Field Must Be Set
 
@@ -76,7 +76,7 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
 ## Architecture
 
-Two packages: the flat `httputil` package (middleware + server lifecycle) and the `httputil/httpspec` subpackage (reusable HTTP behavior specs). One external dependency: `github.com/larsartmann/go-error-family`. Go 1.26+.
+Two packages: the flat `httputil` package (middleware + server lifecycle) and the `httputil/httpspec` subpackage (reusable HTTP behavior specs). Two external dependencies: `github.com/larsartmann/go-error-family` and `golang.org/x/time`. Go 1.26+.
 
 | File                          | Exports                                                                                                                                                                                           | Purpose                                                            |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -92,7 +92,7 @@ Two packages: the flat `httputil` package (middleware + server lifecycle) and th
 | `timeout.go`                  | `Timeout()`                                                                                                                                                                                       | Request deadline enforcement middleware                            |
 | `logging.go`                  | `Logging()`                                                                                                                                                                                       | Structured request logging middleware                              |
 | `maxbodysize.go`              | `MaxBodySize()`                                                                                                                                                                                   | Request body size limit middleware (wraps `http.MaxBytesReader`)   |
-| `ratelimit.go`                | `RateLimit()`, `RateLimiter`, `TokenBucketLimiter`, `NewTokenBucketLimiter()`, `RateLimitConfig`, `DefaultRateLimitConfig()`, `Validate()`                                                        | Token bucket rate limiting with pluggable limiter + TTL eviction   |
+| `ratelimit.go`                | `RateLimit()`, `RateLimiter`, `TokenBucketLimiter`, `NewTokenBucketLimiter()`, `RateLimitConfig`, `DefaultRateLimitConfig()`, `Validate()`                                                        | Token bucket rate limiting via `golang.org/x/time/rate`            |
 | `metrics.go`                  | `Metrics()`, `MetricsRecorder`, `MetricsConfig`, `DefaultMetricsConfig()`, `Validate()`                                                                                                           | Request metrics recording with pluggable recorder interface        |
 | `compression.go`              | `CompressionConfig`, `DefaultCompressionConfig()`, `DefaultWriterFactories()`, `DefaultWriterFactoriesForLevel()`, `GzipWriterFactory()`, `DeflateWriterFactory()`, `Compression()`, `Validate()` | Response compression middleware with Accept-Encoding negotiation   |
 | `compression_negotiator.go`   | (unexported `negotiator`, `buildNegotiator`)                                                                                                                                                      | Accept-Encoding negotiation and encoding priority ordering         |
@@ -148,8 +148,8 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **`Compression` pools writers per encoding**, so gzip and deflate each have their own `sync.Pool` owned by the negotiator (one pool per encoding per `Compression` instance). Custom factories can opt into pooling by implementing `Reset(io.Writer)`.
 - **`RequestID` default generator** produces a 16-byte time-ordered ID (Unix seconds + atomic counter + random tail) and amortizes `crypto/rand` syscalls across ~256 IDs via a process-wide buffer.
 - **`CORS` defaults to wildcard for unmatched origins** — when `AllowAllOrigins` is false and the origin matches no `AllowedOrigins` entry, the middleware falls back to `"*"`. Set `DenyUnmatched: true` on `CORSConfig` to suppress the `Access-Control-Allow-Origin` header entirely for unmatched origins (security-hardening, non-breaking).
-- **`TokenBucketLimiter` supports opt-in eviction** — set `EvictionTTL` to a non-zero duration to enable lazy eviction of idle buckets. Zero (default) means unbounded growth; for large-scale per-IP rate limiting, either set `EvictionTTL` or provide a custom `RateLimiter` implementation (e.g., Redis-backed).
-- **`NewTokenBucketLimiter` validates inputs** — returns an error if rate or burst is not positive.
+- **`TokenBucketLimiter` uses `golang.org/x/time/rate`** per key with opt-in eviction — set `EvictionTTL` to a non-zero duration to enable lazy eviction of idle buckets. Zero (default) means unbounded growth; for large-scale per-IP rate limiting, either set `EvictionTTL` or provide a custom `RateLimiter` implementation (e.g., Redis-backed).
+- **`NewTokenBucketLimiter` validates inputs** — `rate` is a positive `float64` (tokens per second), `burst` is a positive `int`; returns an error if either is not positive.
 - **`ETag` uses FNV-64a by default** — the `HashFunc func([]byte) uint64` field on `ETagConfig` allows replacing the hash algorithm. Default is FNV-64a (fast, 64-bit, collision-resistant).
 - **`Compression` uses `Level` when `WriterFactories` is empty** — `Compression()` builds factories from `cfg.Level` (defaulting to `gzip.DefaultCompression` when Level is 0). When `WriterFactories` is supplied, it takes precedence and `Level` is ignored.
 - **`CompressionConfig.IncompressibleTypes`** — nil uses `DefaultIncompressibleTypes()` (backward compatible); an empty slice compresses everything (including images/video). Use `DefaultIncompressibleTypes()` to extend rather than replace the list.

@@ -2,10 +2,11 @@ package httputil
 
 import (
 	"errors"
-	"math"
 	"net/http"
 	"sync"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -16,7 +17,6 @@ var (
 
 const (
 	defaultRateLimitStatus = http.StatusTooManyRequests
-	tokenCost              = 1.0
 )
 
 // RateLimiter decides whether a request should be allowed based on a key.
@@ -28,8 +28,16 @@ type RateLimiter interface {
 	Allow(key string) bool
 }
 
-// TokenBucketLimiter is a simple in-memory rate limiter using a token bucket
-// per key. Tokens refill at a fixed rate up to the burst capacity.
+// rateBucket wraps a per-key rate.Limiter together with the last access
+// time needed for idle-bucket eviction. The zero value is not usable.
+type rateBucket struct {
+	lim        *rate.Limiter
+	lastAccess time.Time
+}
+
+// TokenBucketLimiter is an in-memory rate limiter using a token bucket per
+// key, backed by golang.org/x/time/rate. Tokens refill at a fixed rate up to
+// the burst capacity.
 //
 // Set EvictionTTL to a non-zero duration to enable lazy eviction of idle
 // buckets — buckets that have not been accessed within EvictionTTL are
@@ -41,24 +49,18 @@ type TokenBucketLimiter struct {
 	// accessed for this duration are evicted lazily on Allow calls.
 	EvictionTTL time.Duration
 
-	buckets   map[string]*tokenBucket
-	rate      float64 // tokens per second
-	burst     float64 // maximum tokens
+	buckets   map[string]*rateBucket
+	rate      rate.Limit
+	burst     int
 	now       func() time.Time
 	lastSweep time.Time
 }
 
-type tokenBucket struct {
-	tokens     float64
-	lastRefill time.Time
-	lastAccess time.Time
-}
-
 // NewTokenBucketLimiter creates a RateLimiter that allows requests at the
-// given rate (tokens per second) with a burst capacity. Each unique key
-// gets its own bucket. Returns an error if rate or burst is not positive.
-func NewTokenBucketLimiter(rate, burst float64) (*TokenBucketLimiter, error) {
-	if rate <= 0 {
+// given rate (tokens per second) with a burst capacity. Each unique key gets
+// its own bucket. Returns an error if rate or burst is not positive.
+func NewTokenBucketLimiter(rateValue float64, burst int) (*TokenBucketLimiter, error) {
+	if rateValue <= 0 {
 		return nil, errInvalidRate
 	}
 
@@ -69,8 +71,8 @@ func NewTokenBucketLimiter(rate, burst float64) (*TokenBucketLimiter, error) {
 	return &TokenBucketLimiter{
 		mu:          sync.Mutex{},
 		EvictionTTL: 0,
-		buckets:     make(map[string]*tokenBucket),
-		rate:        rate,
+		buckets:     make(map[string]*rateBucket),
+		rate:        rate.Limit(rateValue),
 		burst:       burst,
 		now:         time.Now,
 		lastSweep:   time.Time{},
@@ -89,25 +91,14 @@ func (l *TokenBucketLimiter) Allow(key string) bool {
 	}
 
 	bucket, ok := l.buckets[key]
-
 	if !ok {
-		bucket = &tokenBucket{tokens: l.burst, lastRefill: now, lastAccess: now}
+		bucket = &rateBucket{lim: rate.NewLimiter(l.rate, l.burst), lastAccess: now}
 		l.buckets[key] = bucket
 	}
 
 	bucket.lastAccess = now
 
-	elapsed := now.Sub(bucket.lastRefill).Seconds()
-	bucket.tokens = math.Min(l.burst, bucket.tokens+elapsed*l.rate)
-	bucket.lastRefill = now
-
-	if bucket.tokens >= tokenCost {
-		bucket.tokens -= tokenCost
-
-		return true
-	}
-
-	return false
+	return bucket.lim.AllowN(now, 1)
 }
 
 // sweep removes buckets that have been idle for longer than EvictionTTL.

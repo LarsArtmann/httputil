@@ -136,6 +136,7 @@ linters:
             - $gostd
             - $module
             - github.com/larsartmann/go-error-family
+            - golang.org/x/time
     exhaustruct:
       exclude:
         - os/exec.Cmd
