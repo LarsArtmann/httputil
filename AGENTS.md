@@ -1,7 +1,5 @@
 # httputil — AGENTS.md
 
-**Updated:** 2026-07-02
-
 ## Hard Constraints (Will Break Your Code)
 
 These are the non-obvious rules that cause immediate lint failures. Read these before writing any code.
