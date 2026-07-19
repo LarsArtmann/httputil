@@ -7,13 +7,7 @@ import (
 )
 
 func BenchmarkCheck(b *testing.B) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello"))
-	})
+	mux := newTypedHelloMux()
 
 	checks := []struct {
 		name  string
@@ -39,13 +33,7 @@ func BenchmarkCheck(b *testing.B) {
 }
 
 func BenchmarkCheckServesRequest(b *testing.B) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello"))
-	})
+	mux := newTypedHelloMux()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()

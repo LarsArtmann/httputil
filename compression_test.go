@@ -350,11 +350,7 @@ func TestCompression_CustomIncompressibleTypes(t *testing.T) {
 	cfg := DefaultCompressionConfig()
 	cfg.IncompressibleTypes = []string{"text/"}
 
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
+	handler := Compression(cfg)(newTypedBodyHandler("text/plain", strings.Repeat("a", defaultCompressionMinSize+1)))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)
@@ -373,11 +369,7 @@ func TestCompression_EmptyIncompressibleTypesCompressesAll(t *testing.T) {
 	cfg := DefaultCompressionConfig()
 	cfg.IncompressibleTypes = []string{}
 
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "image/png")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
+	handler := Compression(cfg)(newTypedBodyHandler("image/png", strings.Repeat("a", defaultCompressionMinSize+1)))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)
@@ -396,11 +388,7 @@ func TestCompression_NilIncompressibleTypesUsesDefaults(t *testing.T) {
 	cfg := DefaultCompressionConfig()
 	cfg.IncompressibleTypes = nil
 
-	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "image/png")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
-	}))
+	handler := Compression(cfg)(newTypedBodyHandler("image/png", strings.Repeat("a", defaultCompressionMinSize+1)))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)

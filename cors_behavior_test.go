@@ -62,24 +62,42 @@ func TestCORS_DenyUnmatchedSuppressesHeader(t *testing.T) {
 	}
 }
 
-// TestCORS_NoOriginHeaderDefaultsToWildcard documents that when no Origin header is
-// present and AllowAllOrigins is false, the default wildcard is used.
-func TestCORS_NoOriginHeaderDefaultsToWildcard(t *testing.T) {
-	t.Parallel()
+// assertCORSForOrigin runs the CORS middleware with the given allowed origins
+// and request origin, then asserts that Access-Control-Allow-Origin matches
+// wantOrigin. If wantOrigin is empty, asserts the header is absent (used when
+// DenyUnmatched is enabled).
+func assertCORSForOrigin(t *testing.T, allowedOrigins []string, requestOrigin, wantOrigin string) {
+	t.Helper()
 
 	cfg := CORSConfig{
-		AllowedOrigins: []string{"https://allowed.example.com"},
+		AllowedOrigins: allowedOrigins,
 		AllowedMethods: []string{http.MethodGet},
 	}
 	middleware := CORS(cfg)
 
 	inner := newNoOpHandler()
-	req := newTestRequest(http.MethodGet, "/", "")
+	req := newTestRequest(http.MethodGet, "/", requestOrigin)
 	rec := newRecorder()
 
 	middleware(inner).ServeHTTP(rec, req)
 
-	assertAllowOrigin(t, rec, "*")
+	if wantOrigin == "" {
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+			t.Errorf("Allow-Origin = %q, want absent", got)
+		}
+
+		return
+	}
+
+	assertAllowOrigin(t, rec, wantOrigin)
+}
+
+// TestCORS_NoOriginHeaderDefaultsToWildcard documents that when no Origin header is
+// present and AllowAllOrigins is false, the default wildcard is used.
+func TestCORS_NoOriginHeaderDefaultsToWildcard(t *testing.T) {
+	t.Parallel()
+
+	assertCORSForOrigin(t, []string{"https://allowed.example.com"}, "", "*")
 }
 
 // TestCORS_WildcardPatternMatchesSubdomain specifies that "*.example.com" matches a
@@ -87,19 +105,7 @@ func TestCORS_NoOriginHeaderDefaultsToWildcard(t *testing.T) {
 func TestCORS_WildcardPatternMatchesSubdomain(t *testing.T) {
 	t.Parallel()
 
-	cfg := CORSConfig{
-		AllowedOrigins: []string{"*.example.com"},
-		AllowedMethods: []string{http.MethodGet},
-	}
-	middleware := CORS(cfg)
-
-	inner := newNoOpHandler()
-	req := newTestRequest(http.MethodGet, "/", "https://api.example.com")
-	rec := newRecorder()
-
-	middleware(inner).ServeHTTP(rec, req)
-
-	assertAllowOrigin(t, rec, "https://api.example.com")
+	assertCORSForOrigin(t, []string{"*.example.com"}, "https://api.example.com", "https://api.example.com")
 }
 
 // TestCORS_WildcardPatternRejectsLookalikeDomain is a security edge case: "*.example.com"
@@ -107,20 +113,8 @@ func TestCORS_WildcardPatternMatchesSubdomain(t *testing.T) {
 func TestCORS_WildcardPatternRejectsLookalikeDomain(t *testing.T) {
 	t.Parallel()
 
-	cfg := CORSConfig{
-		AllowedOrigins: []string{"*.example.com"},
-		AllowedMethods: []string{http.MethodGet},
-	}
-	middleware := CORS(cfg)
-
-	inner := newNoOpHandler()
-	req := newTestRequest(http.MethodGet, "/", "https://notexample.com")
-	rec := newRecorder()
-
-	middleware(inner).ServeHTTP(rec, req)
-
 	// Lookalike does not match the wildcard, so the default fallback applies.
-	assertAllowOrigin(t, rec, "*")
+	assertCORSForOrigin(t, []string{"*.example.com"}, "https://notexample.com", "*")
 }
 
 // TestCORS_WildcardPatternRejectsLookalikeWithDenyUnmatched verifies that the
@@ -154,17 +148,10 @@ func TestCORS_WildcardPatternRejectsLookalikeWithDenyUnmatched(t *testing.T) {
 func TestCORS_WildcardPatternMatchesNestedSubdomain(t *testing.T) {
 	t.Parallel()
 
-	cfg := CORSConfig{
-		AllowedOrigins: []string{"*.example.com"},
-		AllowedMethods: []string{http.MethodGet},
-	}
-	middleware := CORS(cfg)
-
-	inner := newNoOpHandler()
-	req := newTestRequest(http.MethodGet, "/", "https://a.b.example.com")
-	rec := newRecorder()
-
-	middleware(inner).ServeHTTP(rec, req)
-
-	assertAllowOrigin(t, rec, "https://a.b.example.com")
+	assertCORSForOrigin(
+		t,
+		[]string{"*.example.com"},
+		"https://a.b.example.com",
+		"https://a.b.example.com",
+	)
 }

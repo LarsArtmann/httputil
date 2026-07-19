@@ -19,9 +19,7 @@ func ExampleExpectStatus() {
 }
 
 func ExampleExpectNotStatus() {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	handler := newStatusOnlyHandler(http.StatusOK)
 
 	check := ExpectNotStatus(http.MethodGet, "/", http.StatusInternalServerError)
 	result := check(handler)
@@ -44,9 +42,7 @@ func ExampleExpectHeader() {
 }
 
 func ExampleExpectHeaderAbsent() {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	handler := newStatusOnlyHandler(http.StatusOK)
 
 	check := ExpectHeaderAbsent(http.MethodGet, "/", "X-Powered-By")
 	result := check(handler)

@@ -10,15 +10,7 @@ import (
 // --- Test handlers -------------------------------------------------------
 
 func newGoodHandler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello"))
-	})
-
-	return mux
+	return newTypedHelloMux()
 }
 
 func newAlways404Handler() http.Handler {
@@ -44,11 +36,7 @@ func newNoContentTypeHandler() http.Handler {
 }
 
 func newSPAHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("<html>SPA fallback</html>"))
-	})
+	return newTypedBodyHandler("text/html; charset=utf-8", "<html>SPA fallback</html>")
 }
 
 func newLeakingHandler() http.Handler {
@@ -77,17 +65,11 @@ func newTraceEchoingHandler() http.Handler {
 }
 
 func newServerVersionLeakingHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Server", "nginx/1.21.3")
-		w.WriteHeader(http.StatusNotFound)
-	})
+	return newHeaderNotFoundHandler("Server", "nginx/1.21.3")
 }
 
 func newPoweredByHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("X-Powered-By", "Express")
-		w.WriteHeader(http.StatusNotFound)
-	})
+	return newHeaderNotFoundHandler("X-Powered-By", "Express")
 }
 
 func newRedirectWithoutLocationHandler() http.Handler {
@@ -152,13 +134,7 @@ func TestWithExtraSpecsPassingSpec(t *testing.T) {
 func TestWithIndexPathChangesTestedPath(t *testing.T) {
 	t.Parallel()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/app", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("app"))
-	})
+	mux := newTypedMux("/app", "text/plain", "app")
 
 	Run(t, mux, WithIndexPath("/app"))
 }
@@ -301,9 +277,7 @@ func TestTraceNotEnabledPassesFor404(t *testing.T) {
 func TestTraceNotEnabledPassesFor405(t *testing.T) {
 	t.Parallel()
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	})
+	handler := newStatusOnlyHandler(http.StatusMethodNotAllowed)
 
 	result := traceNotEnabledCheck()(handler)
 	if !result.OK {
@@ -343,9 +317,7 @@ func TestBodyHasContentTypeFailsWhenMissing(t *testing.T) {
 func TestBodyHasContentTypePassesForEmptyBody(t *testing.T) {
 	t.Parallel()
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	handler := newStatusOnlyHandler(http.StatusOK)
 
 	result := bodyHasContentTypeCheck("/")(handler)
 	if !result.OK {
@@ -435,10 +407,7 @@ func TestNoServerVersionHeaderPasses(t *testing.T) {
 func TestNoServerVersionHeaderPassesForBareServerName(t *testing.T) {
 	t.Parallel()
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Server", "nginx")
-		w.WriteHeader(http.StatusNotFound)
-	})
+	handler := newBareServerNameHandler("nginx")
 
 	result := noServerVersionHeaderCheck()(handler)
 	if !result.OK {
@@ -722,9 +691,7 @@ func TestHasVersionLeakDetectsVersionPattern(t *testing.T) {
 func TestServeReturnsRecorder(t *testing.T) {
 	t.Parallel()
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusTeapot)
-	})
+	handler := newStatusOnlyHandler(http.StatusTeapot)
 
 	rec := serve(handler, mustRequest(http.MethodGet, "/"))
 	if rec.Code != http.StatusTeapot {
@@ -748,14 +715,7 @@ func TestMustRequestCreatesValidRequest(t *testing.T) {
 // --- Test handlers for new specs ----------------------------------------
 
 func newNoSniffHandler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello"))
-	})
-
-	return mux
+	return newTypedBodyHandler("text/plain; charset=utf-8", "hello")
 }
 
 func newDuplicateHeaderHandler() http.Handler {
@@ -867,9 +827,7 @@ func TestConnectRejectedPassesFor404(t *testing.T) {
 func TestConnectRejectedPassesFor405(t *testing.T) {
 	t.Parallel()
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	})
+	handler := newStatusOnlyHandler(http.StatusMethodNotAllowed)
 
 	result := connectRejectedCheck()(handler)
 	if !result.OK {

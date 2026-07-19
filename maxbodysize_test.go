@@ -58,9 +58,7 @@ func TestMaxBodySizeRejectsOversizedBody(t *testing.T) {
 func TestMaxBodySizeHandlesNilBody(t *testing.T) {
 	t.Parallel()
 
-	handler := MaxBodySize(1024)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := MaxBodySize(1024)(newStatusOnlyHandler(http.StatusOK))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()

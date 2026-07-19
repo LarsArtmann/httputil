@@ -56,9 +56,7 @@ func TestRateLimitAllowsWithinLimit(t *testing.T) {
 	cfg := DefaultRateLimitConfig()
 	cfg.Limiter = limiter
 
-	handler := RateLimit(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := RateLimit(cfg)(newStatusOnlyHandler(http.StatusOK))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.RemoteAddr = "1.2.3.4:1234"
@@ -82,9 +80,7 @@ func TestRateLimitDeniesWhenExceeded(t *testing.T) {
 	cfg := DefaultRateLimitConfig()
 	cfg.Limiter = limiter
 
-	handler := RateLimit(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := RateLimit(cfg)(newStatusOnlyHandler(http.StatusOK))
 
 	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.RemoteAddr = "1.2.3.4:1234"
@@ -121,9 +117,7 @@ func TestRateLimitCustomKeyFunc(t *testing.T) {
 		return r.Header.Get("X-Api-Key")
 	}
 
-	handler := RateLimit(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := RateLimit(cfg)(newStatusOnlyHandler(http.StatusOK))
 
 	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.Header.Set("X-Api-Key", "key-a")
@@ -168,9 +162,7 @@ func TestRateLimitCustomOnDenied(t *testing.T) {
 		_, _ = w.Write([]byte(`{"error":"slow down"}`))
 	})
 
-	handler := RateLimit(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := RateLimit(cfg)(newStatusOnlyHandler(http.StatusOK))
 
 	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.RemoteAddr = "1.2.3.4:1234"

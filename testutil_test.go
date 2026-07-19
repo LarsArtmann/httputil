@@ -72,6 +72,27 @@ func newWriteStatusHandler(status int, body string) http.HandlerFunc {
 	})
 }
 
+// newTypedBodyHandler returns an http.HandlerFunc that sets Content-Type and
+// writes body with StatusOK. Used to construct content-typed handlers for
+// compression tests that need a specific Content-Type to drive the
+// incompressible-type filter.
+func newTypedBodyHandler(contentType, body string) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", contentType)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(body))
+	})
+}
+
+// newStatusOnlyHandler returns an http.HandlerFunc that writes only the given
+// status code, without a body. Useful when a test asserts on rate-limit /
+// status-only middleware behavior and the body is irrelevant.
+func newStatusOnlyHandler(status int) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(status)
+	})
+}
+
 // newWriteLargeBodyHandler returns an http.HandlerFunc that writes StatusOK
 // and a body of size defaultCompressionMinSize+1, which is just above the
 // compression threshold used in middleware tests.

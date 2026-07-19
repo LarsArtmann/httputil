@@ -39,9 +39,7 @@ func TestMetricsRecordsRequestData(t *testing.T) {
 	cfg := DefaultMetricsConfig()
 	cfg.Recorder = recorder
 
-	handler := Metrics(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusTeapot)
-	}))
+	handler := Metrics(cfg)(newStatusOnlyHandler(http.StatusTeapot))
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
