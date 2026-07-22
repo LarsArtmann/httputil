@@ -264,3 +264,29 @@ The `GOEXPERIMENT=jsonv2` build requirement was introduced in `f616f9f` ("Add GO
 | Lint                       | **3 FAILURES** (`paralleltest` in `queryparam_test.go`) |
 | Git state                  | Clean working tree (auto-committed as `78bb583`)        |
 | Tags                       | v0.5.0 local only (origin latest: v0.4.0)               |
+
+---
+
+## Resolution — 2026-07-22 11:01 (session 2)
+
+The metrics snapshot above was accurate at the time of writing but is now stale. The following claims were resolved by subsequent commits:
+
+| Claim in this report | Resolution | Commit(s) |
+| -------------------- | ---------- | --------- |
+| Lint: **3 FAILURES** (`paralleltest` in `queryparam_test.go`) | Fixed — `t.Parallel()` calls added to all 3 test functions | `2c0cf36` |
+| Tags: v0.5.0 local only (origin latest: v0.4.0) | Resolved — both v0.5.0 and v0.6.0 pushed to origin | `6d7c10a`, `497b711` |
+| D2/SVG architecture diagrams untouched (4 files) | Resolved — both D2 files updated with `golang.org/x/time` node, both SVGs regenerated | `5ac9571`, `46351f1` |
+| GOEXPERIMENT not in flake (contributors hit build failure) | Mitigated — `GOEXPERIMENT=jsonv2` now in `flake.nix` shellHook + all 6 app scripts | `a933df1` |
+| CHANGELOG `[Unreleased]` populated (Q1 from section g) | Done for v0.6.0 release, but `[Unreleased]` is empty again post-v0.6.0 | `d8cf648` |
+| 3 HTML files have stale openings (section b.1) | Resolved — inline correction banners added to all 3 HTML files in first screenful | `71e0fd4` |
+| DOMAIN_LANGUAGE.md not audited (section c) | Resolved — 8 corrections applied (gzip-only → multi-encoding, dep count, ParseUintQuery) | `71e0fd4` |
+| CONTRIBUTING.md not checked (section c) | Resolved — all commands prefixed with GOEXPERIMENT, dep claim updated | `71e0fd4` |
+
+**Still open from this report's section f:**
+- Item 1 (paralleltest) — resolved
+- Items 2–4 (HTML inline corrections) — resolved
+- Items 5–7 (GOEXPERIMENT root cause) — flake workaround in place, permanent fix still pending
+- Item 8 (push v0.5.0 tag) — resolved (v0.5.0 + v0.6.0 pushed)
+- Item 9 (release strategy) — v0.6.0 tagged, strategy for v0.7.0 still TBD
+
+See `2026-07-22_11-01_flake-fix-and-doc-corrections.md` for the follow-up session that resolved these items.
