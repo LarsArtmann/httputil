@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `GOEXPERIMENT=jsonv2` is now set automatically in `flake.nix` (`shellHook` and all `nix run .#*` apps). Contributors in `nix develop` no longer need to set it manually.
+- `CONTRIBUTING.md` rewritten: all commands prefixed with `GOEXPERIMENT=jsonv2`, dependency claim updated from 1 to 2 (`go-error-family` + `golang.org/x/time`).
+- `docs/DOMAIN_LANGUAGE.md` corrected: compression descriptions updated from gzip-only to multi-encoding, dependency convention updated, `ParseUintQuery` command and Query Parameters bounded context added.
+- Inline correction banners added to 3 historical HTML reports (`modularity.html`, `full-code-review.html`, `code-quality-scan.html`) — stale metric cards (dependency count, file count, coverage) now corrected in the first screenful.
+
+### Added
+
+- `golang.org/x/time/rate` node added to both D2 architecture diagrams (`httputil-current.d2`, `httputil-current-improved.d2`), wired to the rate limiter. Both SVGs regenerated.
+
 ## [0.6.0] - 2026-07-22
 
 ### Added
