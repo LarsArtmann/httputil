@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-22
+
 ### Added
 
 - New `ParseUintQuery(r *http.Request, key string) uint` function: extracts a base-10 unsigned integer from a named query parameter. Returns 0 if missing, empty, or invalid.
