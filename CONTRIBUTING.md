@@ -5,10 +5,10 @@ Thank you for your interest in contributing to httputil.
 ## Development Setup
 
 ```bash
-go test ./...              # Run tests
-golangci-lint run          # Lint (~70 linters)
-golangci-lint run --fix    # Auto-fix what's possible
-golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
+GOEXPERIMENT=jsonv2 go test ./...              # Run tests
+GOEXPERIMENT=jsonv2 golangci-lint run          # Lint (~70 linters)
+golangci-lint run --fix                        # Auto-fix what's possible
+golangci-lint fmt                              # Format (gofumpt + golines@120 + gci)
 ```
 
 `golangci-lint run` is the authoritative quality gate.
@@ -16,7 +16,7 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 ## Code Style
 
 - Follow `func(http.Handler) http.Handler` middleware signature
-- No third-party dependencies (only `$gostd` and `go-error-family`)
+- Allowed dependencies: `$gostd`, `go-error-family`, and `golang.org/x/time` only (enforced by `depguard`)
 - Every struct field must be set (`exhaustruct` linter)
 - Package-level sentinel errors only (no inline `errors.New`)
 - Comments end with periods (`godot`)
@@ -25,7 +25,7 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
 ## Pull Requests
 
-- Ensure `go test ./...` passes
+- Ensure `GOEXPERIMENT=jsonv2 go test ./...` passes
 - Ensure `golangci-lint run` reports zero issues
 - Add tests for new functionality
 - Update documentation (README, CHANGELOG) as needed

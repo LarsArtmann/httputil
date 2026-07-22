@@ -24,26 +24,27 @@ If a word means something different to a contributor than to a consumer, define 
 
 The library has these bounded contexts, each with a distinct vocabulary and responsibility.
 
-| Context          | Description                                                                            | Key Type(s)                              |
-| ---------------- | -------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Client IP        | Extracting the true client IP from proxied requests                                    | `ClientIP`                               |
-| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                         | `CORSConfig`, `CORS`                     |
-| Response Capture | Recording response state for inspection (status, headers, body)                        | `ResponseRecorder`, `Chain`              |
-| Error Protocol   | Classified errors with behavioral families for retry decisions                         | Error codes, `go-error-family`           |
-| Security Headers | Setting common browser security headers on responses                                   | `SecurityHeadersConfig`                  |
-| Request ID       | Propagating or generating unique request identifiers                                   | `RequestIDConfig`                        |
-| Recovery         | Catching panics and returning 500 responses                                            | `Recovery`                               |
-| Timeout          | Enforcing request deadlines via context cancellation                                   | `Timeout`                                |
-| Compression      | Response compression (gzip/deflate + pluggable encodings) with pool-based writer reuse | `CompressionConfig`                      |
-| ETag             | Entity tag generation and conditional 304 responses                                    | `ETagConfig`                             |
-| Logging          | Structured request/response logging                                                    | `Logging`                                |
-| Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                | `ServerConfig`, `Server`                 |
-| Health           | Kubernetes-compatible health, liveness, and readiness endpoints                        | `HealthHandler`, `ReadyHandlerWithProbe` |
-| Rate Limiting    | Token bucket rate limiting with pluggable limiter and optional TTL eviction            | `RateLimitConfig`, `TokenBucketLimiter`  |
-| Metrics          | Request metrics recording with pluggable recorder interface                            | `MetricsConfig`, `MetricsRecorder`       |
-| Body Size Limit  | Enforcing maximum request body size                                                    | `MaxBodySize`                            |
-| Middleware Stack | Named middleware ordering with duplicate prevention                                    | `MiddlewareStack`                        |
-| HTTP Spec        | Reusable BDD-style HTTP behavior specifications                                        | `httpspec.Run`, `httpspec.Spec`          |
+| Context          | Description                                                                                        | Key Type(s)                              |
+| ---------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Client IP        | Extracting the true client IP from proxied requests                                                | `ClientIP`                               |
+| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                                     | `CORSConfig`, `CORS`                     |
+| Response Capture | Recording response state for inspection (status, headers, body)                                    | `ResponseRecorder`, `Chain`              |
+| Error Protocol   | Classified errors with behavioral families for retry decisions                                     | Error codes, `go-error-family`           |
+| Security Headers | Setting common browser security headers on responses                                               | `SecurityHeadersConfig`                  |
+| Request ID       | Propagating or generating unique request identifiers                                               | `RequestIDConfig`                        |
+| Recovery         | Catching panics and returning 500 responses                                                        | `Recovery`                               |
+| Timeout          | Enforcing request deadlines via context cancellation                                               | `Timeout`                                |
+| Compression      | Response compression (gzip/deflate/brotli/zstd + pluggable encodings) with pool-based writer reuse | `CompressionConfig`                      |
+| ETag             | Entity tag generation and conditional 304 responses                                                | `ETagConfig`                             |
+| Logging          | Structured request/response logging                                                                | `Logging`                                |
+| Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                            | `ServerConfig`, `Server`                 |
+| Health           | Kubernetes-compatible health, liveness, and readiness endpoints                                    | `HealthHandler`, `ReadyHandlerWithProbe` |
+| Rate Limiting    | Token bucket rate limiting with pluggable limiter and optional TTL eviction                        | `RateLimitConfig`, `TokenBucketLimiter`  |
+| Metrics          | Request metrics recording with pluggable recorder interface                                        | `MetricsConfig`, `MetricsRecorder`       |
+| Body Size Limit  | Enforcing maximum request body size                                                                | `MaxBodySize`                            |
+| Query Parameters | Parsing typed values from URL query parameters                                                     | `ParseUintQuery`                         |
+| Middleware Stack | Named middleware ordering with duplicate prevention                                                | `MiddlewareStack`                        |
+| HTTP Spec        | Reusable BDD-style HTTP behavior specifications                                                    | `httpspec.Run`, `httpspec.Spec`          |
 
 ---
 
@@ -57,7 +58,7 @@ Objects with identity and lifecycle within the library.
 | CORSConfig            | A configuration value object defining CORS policy (origins, methods, headers, etc.)           | CORS             |
 | SecurityHeadersConfig | A configuration value object defining which security headers to set                           | Security Headers |
 | RequestIDConfig       | A configuration value object defining request ID header name and generation logic             | Request ID       |
-| CompressionConfig     | A configuration value object defining gzip compression parameters (level, min size)           | Compression      |
+| CompressionConfig     | A configuration value object defining compression parameters (encodings, level, min size)     | Compression      |
 | ETagConfig            | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
 | RateLimitConfig       | A configuration value object defining rate limiting policy (limiter, key func, denial)        | Rate Limiting    |
 | TokenBucketLimiter    | An in-memory token bucket rate limiter with per-key buckets and optional TTL eviction         | Rate Limiting    |
@@ -116,8 +117,8 @@ Actions the library performs.
 | `Recovery(logger)`                  | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
 | `Timeout(duration)`                 | Create middleware that sets a deadline on the request context                                          | Timeout          |
 | `Logging(logger)`                   | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
-| `Compression(cfg)`                  | Create middleware that gzip-compresses responses when the client accepts it                            | Compression      |
-| `DefaultCompressionConfig()`        | Return a CompressionConfig with sensible defaults (gzip default level, 512-byte minimum)               | Compression      |
+| `Compression(cfg)`                  | Create middleware that compresses responses based on Accept-Encoding negotiation                       | Compression      |
+| `DefaultCompressionConfig()`        | Return a CompressionConfig with sensible defaults (default level, 512-byte minimum)                    | Compression      |
 | `ETag(cfg)`                         | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
 | `DefaultETagConfig()`               | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
 | `HealthHandler()`                   | Return a handler that responds with `{"status":"up"}`                                                  | Health           |
@@ -134,6 +135,7 @@ Actions the library performs.
 | `NewMiddlewareStack()`              | Create a named middleware stack with duplicate prevention and ordering validation                      | Middleware Stack |
 | `RegisterErrorClassifications()`    | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |
 | `Validate()`                        | Check a config for invalid values at startup; all config types implement this                          | Universal        |
+| `ParseUintQuery(r, key)`            | Parse a uint value from a query parameter; returns 0 on missing, empty, or invalid values              | Query Parameters |
 
 ---
 
@@ -153,7 +155,7 @@ State transitions within the library.
 | Deadline Exceeded     | Timeout middleware's context deadline is reached; handler should stop work        | Timeout          |
 | Request Logged        | Logging middleware records the request method, path, status, and duration         | Logging          |
 | Security Headers Set  | SecurityHeaders middleware writes security headers before delegating              | Security Headers |
-| Compression Applied   | Compression middleware gzip-encodes the response body                             | Compression      |
+| Compression Applied   | Compression middleware encodes the response body using the negotiated encoding    | Compression      |
 | Compression Skipped   | Compression middleware passes through (no gzip accept, below min size, non-2xx)   | Compression      |
 | ETag Computed         | ETag middleware generates an ETag value from the response body                    | ETag             |
 | Not Modified Returned | ETag middleware returns 304 because If-None-Match matched the computed ETag       | ETag             |
@@ -313,7 +315,7 @@ Invariants and policies that the library enforces.
 | `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
 | `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
 | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
-| `http.compress_write_failed` | Transient      | Yes       | Gzip writer Write fails                      |
+| `http.compress_write_failed` | Transient      | Yes       | Compression writer Write fails               |
 | `http.etag_write_failed`     | Transient      | Yes       | ETag writer Write fails                      |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`.
@@ -324,14 +326,14 @@ All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retrya
 
 Patterns consumers and contributors should follow.
 
-| Convention             | Description                                                                        |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention      |
-| Middleware type alias  | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                 |
-| Classified errors      | Errors from ResponseRecorder use `go-error-family` for behavioral classification   |
-| Config validation      | All config types implement `Validate() error` for startup checks                   |
-| `httputil` import name | Consumers import as `httputil`; no aliases needed                                  |
-| Single dependency      | Only `go-error-family` is allowed as an external dependency (enforced by depguard) |
+| Convention             | Description                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention                       |
+| Middleware type alias  | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                                  |
+| Classified errors      | Errors from ResponseRecorder use `go-error-family` for behavioral classification                    |
+| Config validation      | All config types implement `Validate() error` for startup checks                                    |
+| `httputil` import name | Consumers import as `httputil`; no aliases needed                                                   |
+| Allowed dependencies   | `go-error-family` and `golang.org/x/time` are the only external dependencies (enforced by depguard) |
 
 ---
 

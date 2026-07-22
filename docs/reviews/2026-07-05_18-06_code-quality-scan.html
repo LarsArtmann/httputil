@@ -483,8 +483,8 @@
           <h1>Build · Lint · Duplication Baseline</h1>
           <p class="hero-subtitle">
             A point-in-time scan of the httputil codebase: ~70 golangci-lint linters, go vet, go
-            build, the test suite (93.4% coverage), and duplicate-code detection via the enabled
-            <code>dupl</code> linter.
+            build, the test suite (93.4% coverage at time of scan), and duplicate-code detection via
+            the enabled <code>dupl</code> linter.
           </p>
         </div>
 
@@ -515,6 +515,20 @@
             <div class="stat-label">Linters Enabled</div>
           </div>
         </div>
+
+        <p
+          style="
+            border-left: 3px solid #e8a838;
+            padding: 8px 12px;
+            margin: 12px 0;
+            background: rgba(232, 168, 56, 0.08);
+            font-size: 0.9em;
+          "
+        >
+          <strong>Correction (2026-07-22):</strong> Coverage (93.4%) is point-in-time as of
+          2026-07-05 and may differ now. Dependencies increased from 1 to 2 (added
+          <code>golang.org/x/time</code> v0.15.0 for rate limiting).
+        </p>
 
         <h2 id="gate"><span class="num">01</span>Quality Gate Results</h2>
         <div class="table-wrap">

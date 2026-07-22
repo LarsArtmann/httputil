@@ -493,6 +493,19 @@
             <div class="stat-label">Coverage</div>
           </div>
         </div>
+        <p
+          style="
+            border-left: 3px solid #e8a838;
+            padding: 8px 12px;
+            margin: 12px 0;
+            background: rgba(232, 168, 56, 0.08);
+            font-size: 0.9em;
+          "
+        >
+          <strong>Correction (2026-07-22):</strong> Coverage and file count are point-in-time as of
+          2026-07-05. The codebase has since grown to ~69 .go files. Coverage percentage may differ.
+          Dependencies increased from 1 to 2 (added <code>golang.org/x/time</code> v0.15.0).
+        </p>
         <p>
           Overall verdict: <strong>this is a high-quality, disciplined codebase.</strong> After the
           fixes below, <code>golangci-lint run</code> (≈70 linters) reports 0 issues,
@@ -814,8 +827,8 @@
             <div class="text">
               <strong>Disciplined dependency boundary</strong
               ><span
-                >1 same-author dep, machine-enforced by depguard — consumers get zero transitive
-                bloat.</span
+                >2 deps (<code>go-error-family</code> + <code>golang.org/x/time</code>),
+                machine-enforced by depguard — consumers get zero transitive bloat.</span
               >
             </div>
           </div>

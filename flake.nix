@@ -70,6 +70,7 @@
             ];
 
             shellHook = ''
+              export GOEXPERIMENT=jsonv2
               echo "httputil dev shell — $(go version)"
             '';
           };
@@ -89,6 +90,7 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
+                      export GOEXPERIMENT=jsonv2
                       exec ${goPkg}/bin/go test ./... -race -count=1 "$@"
                     '';
                   };
@@ -106,6 +108,7 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
+                      export GOEXPERIMENT=jsonv2
                       exec ${goPkg}/bin/go test ./... -race -count=1 "$@"
                     '';
                   };
@@ -123,6 +126,7 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
+                      export GOEXPERIMENT=jsonv2
                       exec ${goPkg}/bin/go build ./...
                     '';
                   };
@@ -140,6 +144,7 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
+                      export GOEXPERIMENT=jsonv2
                       exec ${goPkg}/bin/go vet ./...
                     '';
                   };
@@ -160,6 +165,7 @@
                     ];
                     text = ''
                       export GOWORK=off
+                      export GOEXPERIMENT=jsonv2
                       exec ${pkgs.golangci-lint}/bin/golangci-lint run ./...
                     '';
                   };
@@ -177,6 +183,7 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
+                      export GOEXPERIMENT=jsonv2
                       ${goPkg}/bin/go test ./... -coverprofile=coverage.out -covermode=atomic "$@"
                       ${goPkg}/bin/go tool cover -func=coverage.out
                     '';
