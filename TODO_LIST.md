@@ -8,14 +8,12 @@ _Updated: 2026-07-22._
 
 ## High Priority
 
-- [ ] **Resolve `GOEXPERIMENT=jsonv2` build requirement** — `health.go` imports `encoding/json/v2` and uses `json.MarshalWrite` (Go 1.27 API), but the module declares `go 1.26.4` and the flake installs Go 1.26. The build fails without `GOEXPERIMENT=jsonv2`. Either pin Go 1.27+ in `flake.nix` or downgrade to `encoding/json` v1. _(rate-limiter status report, item d.1)_
-- [ ] **Document `GOEXPERIMENT=jsonv2` in AGENTS.md commands** — the Commands section lists plain `go test ./...` and `golangci-lint run` without the env var. A contributor following the docs hits an immediate build failure. _(rate-limiter status report, item b.1)_
-- [ ] **Populate CHANGELOG `[Unreleased]`** — empty since v0.5.0 despite: rate-limiter library switch (`4ce4fdf`, breaking: `burst` param `float64`→`int`), `ParseUintQuery` (`94030f4`), WebSocket upgrade test (`f6c4860`), `GOEXPERIMENT=jsonv2` (`f616f9f`), `go-error-family` upgrade to v0.7.0, new dependency `golang.org/x/time` v0.15.0.
+- [ ] **Resolve `encoding/json/v2` permanently** — `health.go` imports `encoding/json/v2` and uses `json.MarshalWrite` (Go 1.27 API), but the module declares `go 1.26.4` and the flake pins Go 1.26. `GOEXPERIMENT=jsonv2` is now set in `flake.nix` shellHook and all app scripts as a workaround. For a permanent fix: either upgrade the flake to Go 1.27+ or downgrade `health.go` to `encoding/json` v1. _(rate-limiter status report, item d.1)_
 
 ## Medium Priority
 
 - [ ] **Add remaining config field tables to README** — only `CORSConfig`, `ResponseRecorder`, and `CompressionConfig` have field detail tables. Missing: `ETagConfig`, `RateLimitConfig`, `MetricsConfig`, `SecurityHeadersConfig`, `RequestIDConfig`, `ServerConfig`. _(v0.5.0 status report, item b)_
-- [ ] **Push v0.5.0 tag to origin** — `git ls-remote --tags origin` shows v0.4.0 as latest remote tag. The v0.5.0 tag exists locally only (commit `204feb9` is on `origin/master`). Decide whether to push v0.5.0 or skip to the next version. _(v0.5.0 status report)_
+- [ ] **Decide release strategy post-v0.6.0** — v0.6.0 tagged and pushed. Next release should resolve the `encoding/json/v2` question (Go version bump or revert). Determine whether the jsonv2 experiment stays or goes before tagging v0.7.0.
 
 ## Low Priority
 

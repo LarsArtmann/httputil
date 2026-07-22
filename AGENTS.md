@@ -72,7 +72,7 @@ golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 ```
 
-All Go commands require `GOEXPERIMENT=jsonv2` because `health.go` imports `encoding/json/v2`. This is a known issue — see `TODO_LIST.md`.
+All Go commands require `GOEXPERIMENT=jsonv2` because `health.go` imports `encoding/json/v2`. The `flake.nix` devShell sets this automatically via `shellHook`, and all `nix run .#*` apps export it as well. Manual `go` invocations outside the devShell still need the env var. This is a known issue — see `TODO_LIST.md`.
 
 `golangci-lint run` is the authoritative quality gate — it's configured with ~70 linters (see `.golangci.yml`). `go vet` alone is insufficient.
 
