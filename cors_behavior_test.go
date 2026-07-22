@@ -105,7 +105,12 @@ func TestCORS_NoOriginHeaderDefaultsToWildcard(t *testing.T) {
 func TestCORS_WildcardPatternMatchesSubdomain(t *testing.T) {
 	t.Parallel()
 
-	assertCORSForOrigin(t, []string{"*.example.com"}, "https://api.example.com", "https://api.example.com")
+	assertCORSForOrigin(
+		t,
+		[]string{"*.example.com"},
+		"https://api.example.com",
+		"https://api.example.com",
+	)
 }
 
 // TestCORS_WildcardPatternRejectsLookalikeDomain is a security edge case: "*.example.com"
