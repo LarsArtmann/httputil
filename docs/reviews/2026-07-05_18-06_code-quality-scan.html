@@ -784,6 +784,63 @@
           </div>
         </div>
 
+        <h2 id="resolution">Resolution (2026-07-22)</h2>
+        <div class="card card-solution">
+          <p style="margin-top: 0">
+            All 7 open issues documented here are resolved or deferred. 6 fixed, 1 deferred to v1.0.
+          </p>
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 4px 8px">Item</th>
+                <th style="text-align: left; padding: 4px 8px">Status</th>
+                <th style="text-align: left; padding: 4px 8px">Commit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 4px 8px">CORS allowlist bypass</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>85c3d49</code></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Dead QValues field</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>fa6b19a</code></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Level decoupled</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>fa6b19a</code></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">CRC32 collision risk</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>857cc61</code></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">No rate/burst validation</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>e197003</code></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Hex table duplication</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>2f2038b</code></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">ForwardHeader name</td>
+                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">v1.0</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            The "1 dependency" and "93.4% coverage" claims are point-in-time as of 2026-07-05. The
+            project now has 2 dependencies; coverage shifted as new code paths were added.
+          </p>
+        </div>
+
         <footer class="footer">
           Generated 2026-07-05 &middot; All findings verified against source via golangci-lint v2,
           go vet, go test

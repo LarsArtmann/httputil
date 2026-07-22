@@ -14,9 +14,9 @@ They solve **different problems at different layers**, and are **complementary, 
 | Layer             | Infrastructure / plumbing                                              | API contract / productivity                                           |
 | Shape             | Bag of `func(http.Handler) http.Handler` middleware + server lifecycle | Declarative framework: `huma.Get(api, path, handler)` over any router |
 | Killer feature    | Compression + ETag + security + observability middleware               | OpenAPI 3.1 + JSON Schema generated from Go types                     |
-| Dependency policy | 1 dep (same author)                                                    | Minimal (famously reduced over time)                                  |
+| Dependency policy | 2 deps (`go-error-family` same-author + `golang.org/x/time`)           | Minimal (famously reduced over time)                                  |
 | Router            | Agnostic (pure stdlib signature)                                       | Bring-your-own (chi, stdlib mux, …)                                   |
-| Maturity          | v0.4.0, single author, personal                                        | v2, large community, sponsors, many companies                         |
+| Maturity          | v0.5.0, single author, personal                                        | v2, large community, sponsors, many companies                         |
 
 ## Feature matrix (accurate to huma v2)
 

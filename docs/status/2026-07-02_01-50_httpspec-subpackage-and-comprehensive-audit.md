@@ -174,3 +174,9 @@ This is a judgment call about lint policy that depends on the project owner's ph
 | Lint issues           | 3 (all `makezero`, all pre-existing in root) |
 | Tags/releases         | 4 (v0.1.0 → v0.3.0)                          |
 | Packages              | 2 (`httputil`, `httputil/httpspec`)          |
+
+---
+
+## Resolution (2026-07-22)
+
+The "NOT STARTED" items in section c) are **all shipped**: `MiddlewareStack` (v0.4.0), `DetectCapabilities` (v0.4.0), rate limiting (v0.4.0), body size limit (v0.4.0), metrics middleware (v0.4.0), configurable content-type filtering (v0.4.0). The `makezero` warnings (section d) were suppressed with `//nolint:makezero` directives. The project is now at v0.5.0 with 13 middlewares, 18 specs, and 2 dependencies (`go-error-family` + `golang.org/x/time`).

@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New `ParseUintQuery(r *http.Request, key string) uint` function: extracts a base-10 unsigned integer from a named query parameter. Returns 0 if missing, empty, or invalid.
+- WebSocket upgrade integration test (`websocket_upgrade_test.go`): drives a real TCP connection through Compression + ETag, performs a full 101 Switching Protocols handshake, and asserts no Content-Encoding/ETag injection plus intact post-hijack byte exchange.
+
+### Changed
+
+- **Breaking:** `TokenBucketLimiter` now uses `golang.org/x/time/rate` internally. `NewTokenBucketLimiter(rate float64, burst int)` — the `burst` parameter changed from `float64` to `int` to match `rate.NewLimiter`. Token-refill math is now the library's responsibility; idle-bucket eviction and clock injection for tests are preserved.
+- New dependency: `golang.org/x/time v0.15.0` (canonical Go extension for rate limiting). `.golangci.yml` depguard updated to allow it.
+- Upgraded `go-error-family` from v0.6.1 to v0.7.0.
+- `GOEXPERIMENT=jsonv2` is now required to build — `health.go` imports `encoding/json/v2` and uses `json.MarshalWrite`. Contributors must set this env var or pin Go 1.27+.
+- Health handlers now write a trailing newline after the JSON response body.
+- Replaced deprecated `mkShell` with `mkShellNoCC` in `flake.nix`.
+- CI: replaced `govulncheck-action@v1` with a `go run` approach.
+
 ## [0.5.0] - 2026-07-06
 
 ### Added

@@ -674,6 +674,46 @@
           </div>
         </div>
 
+        <h2 id="resolution">Resolution (2026-07-22)</h2>
+        <div class="card card-solution">
+          <p style="margin-top: 0">
+            The 1 material issue remains deferred; the <code>QValues</code> minor issue is resolved.
+          </p>
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 4px 8px">Identifier</th>
+                <th style="text-align: left; padding: 4px 8px">Status</th>
+                <th style="text-align: left; padding: 4px 8px">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 4px 8px"><code>RequestIDConfig.ForwardHeader</code></td>
+                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">
+                  Still the most dishonest name; rename to <code>IncomingHeader</code> planned for
+                  v1.0
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px"><code>RequestIDConfig.HeaderName</code></td>
+                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">
+                  Rename to <code>ResponseHeader</code> planned for v1.0
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px"><code>CompressionConfig.QValues</code></td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  Removed entirely (<code>fa6b19a</code>) — was dead code
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <footer class="footer">
           Generated 2026-07-05 &middot; Reviewed via golangci-lint revive + manual semantic analysis
           of all exports

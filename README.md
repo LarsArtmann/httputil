@@ -2,7 +2,7 @@
 
 Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, configurable HTTP server, and standard health checks.
 
-Minimal footprint — single same-author dependency. Pure stdlib `net/http`. Go 1.26+.
+Minimal footprint — two dependencies (`go-error-family` same-author + `golang.org/x/time`). Pure stdlib `net/http`. Go 1.26+ (requires `GOEXPERIMENT=jsonv2`).
 
 ## Install
 
@@ -326,7 +326,8 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultETagConfig`              | `func() ETagConfig`                                                   | Strong ETag defaults                            |
 | `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting                      |
 | `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config                       |
-| `NewTokenBucketLimiter`          | `func(float64, float64) (*TokenBucketLimiter, error)`                 | Token bucket limiter constructor                |
+| `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor                |
+| `ParseUintQuery`                 | `func(*http.Request, string) uint`                                    | Parse uint from query param                     |
 | `Metrics`                        | `func(MetricsConfig) func(http.Handler) http.Handler`                 | Request metrics recording                       |
 | `DefaultMetricsConfig`           | `func() MetricsConfig`                                                | Default metrics config                          |
 | `NewMiddlewareStack`             | `func() *MiddlewareStack`                                             | Named middleware stack builder                  |
@@ -379,7 +380,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
-- **Single dependency** — only `go-error-family` (same author, zero transitive deps)
+- **Minimal dependencies** — `go-error-family` (same author, zero transitive deps) and `golang.org/x/time` (canonical Go rate-limit extension)
 
 ### Middleware Ordering
 
@@ -446,10 +447,10 @@ See the [full integration example](docs/integrations/huma.md) and the [detailed 
 ## Development
 
 ```bash
-go test ./...              # Run tests
-go test -race ./...        # Race detection
-go vet ./...               # Vet
-go test -bench=. ./...     # Benchmarks
+GOEXPERIMENT=jsonv2 go test ./...   # Run tests (jsonv2 required)
+GOEXPERIMENT=jsonv2 go test -race ./...   # Race detection
+GOEXPERIMENT=jsonv2 go vet ./...    # Vet
+GOEXPERIMENT=jsonv2 go test -bench=. ./...     # Benchmarks
 golangci-lint run          # Lint (~70 linters)
 ```
 

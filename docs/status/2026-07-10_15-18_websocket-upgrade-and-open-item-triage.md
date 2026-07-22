@@ -231,3 +231,9 @@ New:
 ```
 
 **Not committed** — awaiting user instruction per project rules.
+
+---
+
+## Resolution (2026-07-22)
+
+The WebSocket upgrade test and all doc changes were committed as `f6c4860` ("Add WebSocket upgrade integration test + open-item triage") and are on `origin/master`. The test lives in `websocket_upgrade_test.go` as planned. However, the `AGENTS.md` file table was **not** updated with a row for `websocket_upgrade_test.go` (section E item 1 remains open). The body-before-hijack coverage gap (section B) and the ETag mutation test (section E item 4) are still open.

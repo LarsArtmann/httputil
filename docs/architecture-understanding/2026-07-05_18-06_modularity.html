@@ -743,6 +743,49 @@
           </div>
         </div>
 
+        <h2 id="resolution">Resolution (2026-07-22)</h2>
+        <div class="card card-solution">
+          <p style="margin-top: 0">
+            Two of three roadmap items were acted on; the compress/ subfolder was rejected.
+          </p>
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 4px 8px">Roadmap item</th>
+                <th style="text-align: left; padding: 4px 8px">Status</th>
+                <th style="text-align: left; padding: 4px 8px">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 4px 8px">TokenBucketLimiter unbounded memory</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <code>EvictionTTL</code> field added (<code>a44b0b9</code>); limiter rewritten
+                  with <code>golang.org/x/time/rate</code> (<code>4ce4fdf</code>)
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Internal compress/ subfolder</td>
+                <td style="padding: 4px 8px"><span class="badge badge-medium">Rejected</span></td>
+                <td style="padding: 4px 8px">
+                  Circular import: compression files depend on root symbols; root must re-export
+                  compression types
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Keep extension interfaces minimal</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Preserved</span></td>
+                <td style="padding: 4px 8px">All 3 interfaces remain one-method</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            The "1 external dep" and "28 files (root pkg)" claims are point-in-time as of
+            2026-07-05. The project now has 2 dependencies and ~69 .go files.
+          </p>
+        </div>
+
         <footer class="footer">
           Generated 2026-07-05 &middot; Reviewed package boundaries, import graph, interface design,
           and coupling

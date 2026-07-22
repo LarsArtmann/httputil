@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-07-06_
+_Updated: 2026-07-22_
 
 ---
 
@@ -72,11 +72,15 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Rate Limiting
 
-- Token bucket algorithm via `TokenBucketLimiter` — per-key buckets with fixed-rate refill up to burst capacity.
+- Token bucket algorithm via `TokenBucketLimiter` (backed by `golang.org/x/time/rate`) — per-key limiters with fixed-rate refill up to burst capacity.
 - `NewTokenBucketLimiter(rate, burst)` validates inputs — returns error if rate or burst is not positive.
 - `EvictionTTL` field enables opt-in lazy eviction of idle buckets (amortized sweep at most once per TTL interval). Zero (default) preserves unbounded-growth behavior.
 - Pluggable `RateLimiter` interface for custom backends (Redis, etc.).
 - Configurable key extraction and custom denial handlers via `RateLimitConfig`.
+
+### Query Parameter Helpers
+
+- `ParseUintQuery(r *http.Request, key string) uint` — extracts a base-10 unsigned integer from a named query parameter. Returns 0 if missing, empty, or invalid.
 
 ### Context Helpers
 

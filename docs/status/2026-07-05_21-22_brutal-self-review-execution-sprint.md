@@ -166,6 +166,12 @@ fa6b19a refactor: remove dead QValues field and wire Level into default compress
 
 ---
 
+## Resolution (2026-07-22)
+
+All 11 commits (`2f2038b` → `bd27ea1`) are now on `origin/master`. The deferred items remain open: `ForwardHeader` rename (deferred to v1.0), `Validate()` dedup (accepted as idiomatic), `compress/` subfolder (rejected — circular import), and the WebSocket upgrade test (subsequently implemented in `f6c4860`, 2026-07-10).
+
+---
+
 ## Metrics
 
 | Metric                   | Before | After                             |

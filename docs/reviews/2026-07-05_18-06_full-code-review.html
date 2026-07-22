@@ -883,6 +883,67 @@
           </ul>
         </div>
 
+        <h2 id="resolution">Resolution (2026-07-22)</h2>
+        <div class="card card-solution">
+          <p style="margin-top: 0">
+            6 of 7 open items are <strong>fixed</strong>; 1 remains deferred.
+          </p>
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 4px 8px">Item</th>
+                <th style="text-align: left; padding: 4px 8px">Status</th>
+                <th style="text-align: left; padding: 4px 8px">Commit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 4px 8px">CORS allowlist bypass</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>85c3d49</code> (DenyUnmatched)</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Dead QValues field</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>fa6b19a</code> (removed)</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Level decoupled from WriterFactories</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>fa6b19a</code> (wired)</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">CRC32 ETag collision risk</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>857cc61</code> (FNV-64a + HashFunc)</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">No rate/burst validation</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <code>e197003</code> + rewritten with
+                  <code>x/time/rate</code> (<code>4ce4fdf</code>)
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Duplicated hex lookup tables</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px"><code>2f2038b</code> (hex.go)</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">ForwardHeader misleading name</td>
+                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">v1.0 breaking rename</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Dependency count is now 2 (<code>go-error-family</code> v0.7.0 +
+            <code>golang.org/x/time</code> v0.15.0). File count is now ~69 .go files. Build requires
+            <code>GOEXPERIMENT=jsonv2</code>.
+          </p>
+        </div>
+
         <footer class="footer">
           Generated 2026-07-05 &middot; 34 files visited · build/vet/lint/test all green after fixes
         </footer>

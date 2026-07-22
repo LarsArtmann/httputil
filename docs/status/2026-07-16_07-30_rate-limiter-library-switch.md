@@ -10,6 +10,8 @@
 
 Replaced the hand-rolled token bucket in `ratelimit.go` with `golang.org/x/time/rate`. Tests and lint pass. Two structural problems surfaced during the run: the repo is currently unbuildable without `GOEXPERIMENT=jsonv2`, and `flake.lock` was modified outside this session.
 
+> **Update 2026-07-22 (commit `4ce4fdf`):** the rate-limiter switch was committed and `flake.lock` was committed (`32528ff`). The two build issues (`GOEXPERIMENT=jsonv2` requirement, Go 1.27 API on Go 1.26) are **still unresolved**. Full item-by-item status in [Resolution](#resolution-2026-07-22) below.
+
 | Metric            | Value |
 | ----------------- | ----- |
 | Files changed     | 5     |
@@ -51,11 +53,11 @@ Replaced the hand-rolled token bucket in `ratelimit.go` with `golang.org/x/time/
 
 ## c) Not Started
 
-- Committing the rate-limiter changes.
-- Updating `CHANGELOG.md` with the breaking API change.
-- Updating `TODO_LIST.md` if there are open rate-limiter items.
+- ~~Committing the rate-limiter changes.~~ Done — `4ce4fdf`.
+- Updating `CHANGELOG.md` with the breaking API change. _(Still open as of 2026-07-22.)_
+- Updating `TODO_LIST.md` if there are open rate-limiter items. _(Still open.)_
 - Adding a benchmark comparing the old and new `TokenBucketLimiter`.
-- Adding a usage example or updating `README.md` for the new signature.
+- Adding a usage example or updating `README.md` for the new signature. _(README still shows old `float64` burst param.)_
 - Adding a distributed / Redis-backed `RateLimiter` example.
 
 ---
@@ -184,3 +186,19 @@ Sorted roughly by impact: unblock contributors first, then harden, then extend.
 ---
 
 _Report generated from session on 2026-07-16 07:30 CEST. Based on the current working tree and the run of tests/lint performed during this session. Does not include external research._
+
+---
+
+## Resolution (2026-07-22)
+
+| Item in report          | Status   | Detail                                                                                                          |
+| ----------------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| Rate-limiter committed  | **Done** | Committed as `4ce4fdf` ("feat(ratelimit): switch token bucket to golang.org/x/time/rate")                       |
+| `flake.lock` diff       | **Done** | Committed as `32528ff` ("chore: update flake.lock with latest nixpkgs and treefmt-nix revisions")               |
+| Build needs `jsonv2`    | **Open** | `health.go` still imports `encoding/json/v2`; `go build ./...` fails without `GOEXPERIMENT=jsonv2` on Go 1.26.4 |
+| `health.go` Go 1.27 API | **Open** | `json.MarshalWrite` still in use; module still declares `go 1.26.4`                                             |
+| CHANGELOG updated       | **Open** | `[Unreleased]` section still empty as of 2026-07-22                                                             |
+| TODO_LIST updated       | **Open** | Rate-limiter items not yet tracked in `TODO_LIST.md`                                                            |
+| `GOEXPERIMENT` in flake | **Open** | `flake.nix` does not set `GOEXPERIMENT=jsonv2` in the devShell; contributors must remember the env var          |
+
+The rate-limiter switch shipped, but the two critical build issues (jsonv2 requirement, Go 1.27 API on Go 1.26) remain unresolved.

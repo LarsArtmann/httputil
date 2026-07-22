@@ -63,14 +63,16 @@ Any function taking `*testing.T` that calls `t.Fatal`/`t.Error` must start with 
 ## Commands
 
 ```bash
-go test ./...              # Run tests
-go test -race ./...        # Race detection
-go vet ./...               # Vet
-go test -bench=. ./...     # Benchmarks
+GOEXPERIMENT=jsonv2 go test ./...   # Run tests (jsonv2 required — see below)
+GOEXPERIMENT=jsonv2 go test -race ./...   # Race detection
+GOEXPERIMENT=jsonv2 go vet ./...    # Vet
+GOEXPERIMENT=jsonv2 go test -bench=. ./...     # Benchmarks
 golangci-lint run          # Lint (~70 linters, 0 issues)
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 ```
+
+All Go commands require `GOEXPERIMENT=jsonv2` because `health.go` imports `encoding/json/v2`. This is a known issue — see `TODO_LIST.md`.
 
 `golangci-lint run` is the authoritative quality gate — it's configured with ~70 linters (see `.golangci.yml`). `go vet` alone is insufficient.
 
@@ -108,7 +110,9 @@ Two packages: the flat `httputil` package (middleware + server lifecycle) and th
 | `capabilities.go`             | `DetectCapabilities()`, `Capabilities`                                                                                                                                                                                     | Reports Hijacker/Flusher support on a ResponseWriter               |
 | `stack.go`                    | `MiddlewareStack`, `NewMiddlewareStack()`, `Middleware*` name constants                                                                                                                                                    | Named middleware stack: duplicate prevention + ordering validation |
 | `hex.go`                      | (unexported `hexDigitsLower`)                                                                                                                                                                                              | Shared lowercase hex lookup table for ETag + RequestID encoding    |
+| `queryparam.go`               | `ParseUintQuery()`                                                                                                                                                                                                         | Parse uint values from HTTP query parameters                       |
 | `testutil_test.go`            | (unexported `newNoOpHandler`, `newCountingHandler`, `newWriteStatusHandler`, `newWriteBodyHandler`, `newStatusOnlyHandler`, `newTypedBodyHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertSliceEqual`) | Shared test helpers for consistent test patterns                   |
+| `websocket_upgrade_test.go`   | `TestCompressionETag_WebSocketUpgrade_Passthrough`                                                                                                                                                                         | WebSocket upgrade integration test through Compression + ETag      |
 | `doc.go`                      | (package doc only)                                                                                                                                                                                                         | Package-level GoDoc documentation                                  |
 
 ### `httpspec` subpackage

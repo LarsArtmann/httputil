@@ -723,6 +723,51 @@
           </div>
         </div>
 
+        <h2 id="resolution">Resolution (2026-07-22)</h2>
+        <div class="card card-solution">
+          <p style="margin-top: 0">
+            All 4 problems in the catalog are <strong>fixed</strong>. The vision section is
+            partially realized.
+          </p>
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 4px 8px">Problem</th>
+                <th style="text-align: left; padding: 4px 8px">Status</th>
+                <th style="text-align: left; padding: 4px 8px">How</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 4px 8px">CORS allowlist bypassable</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <code>DenyUnmatched bool</code> field (<code>85c3d49</code>)
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">QValues dead field</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">Removed entirely (<code>fa6b19a</code>)</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">Level decoupled from WriterFactories</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <code>DefaultWriterFactoriesForLevel</code> (<code>fa6b19a</code>)
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 8px">CRC32 collision risk</td>
+                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <code>HashFunc</code> field + FNV-64a default (<code>857cc61</code>)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <footer class="footer">
           Generated 2026-07-05 &middot; Reviewed all 11 config types, 4 interfaces, 5 Validate()
           implementations

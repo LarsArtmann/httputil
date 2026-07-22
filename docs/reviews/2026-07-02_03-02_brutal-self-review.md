@@ -132,3 +132,9 @@ Sorted by impact / effort ratio (highest first):
 | 8   | Add CONNECT method handling spec         | Low    | 15 min |
 | 9   | Add content negotiation spec             | Low    | 30 min |
 | 10  | Add benchmarks for spec suite            | Low    | 30 min |
+
+---
+
+## Resolution (2026-07-22)
+
+All 10 execution-plan items were addressed. v0.4.0 was tagged. `ExpectNotStatus`, X-Content-Type-Options spec, duplicate header detection spec, CONNECT method handling spec, content negotiation (Accept header) spec, and `httpspec` examples all shipped in v0.4.0. Content-type filtering was made configurable in v0.4.0. `MiddlewareStack` shipped in v0.4.0. Benchmarks for the spec suite shipped in v0.4.0. The project is now at v0.5.0.
