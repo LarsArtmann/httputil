@@ -88,12 +88,19 @@ errorfamily: go-error-family {
   style.font-color: "#f4f4f0"
 }
 
+xtime: golang.org/x/time/rate {
+  shape: rectangle
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
 consumer -> middleware_chain: import
 compress_mw -> compress: uses
 compress.writer -> wrapper: embeds
 etag -> wrapper: embeds
 errors -> errorfamily: branded ErrCode
 middleware_chain -> extension: injects
+extension.ratelimiter -> xtime: token bucket via
 middleware_chain -> stdlib: depends on
 httpspec -> stdlib: depends on (only)
 httpspec -> handler: validates any http.Handler
