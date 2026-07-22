@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseUintQuery(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name  string
 		query string
@@ -29,6 +31,8 @@ func TestParseUintQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			req := httptest.NewRequest(http.MethodGet, "/?"+tt.query, nil)
 
 			got := ParseUintQuery(req, tt.key)
@@ -40,6 +44,8 @@ func TestParseUintQuery(t *testing.T) {
 }
 
 func TestParseUintQueryMultipleParams(t *testing.T) {
+	t.Parallel()
+
 	req := httptest.NewRequest(http.MethodGet, "/?page=2&page_size=50", nil)
 	if got := ParseUintQuery(req, "page"); got != 2 {
 		t.Errorf("page = %d, want 2", got)
@@ -55,7 +61,7 @@ func BenchmarkParseUintQuery(b *testing.B) {
 
 	b.ReportAllocs()
 
-	for range b.N {
+	for b.Loop() {
 		_ = ParseUintQuery(req, "page")
 	}
 }
