@@ -33,20 +33,10 @@
           config,
           pkgs,
           lib,
-          system,
           ...
         }:
         let
           goPkg = pkgs.go_1_26;
-
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = lib.fileset.unions [
-              (lib.fileset.fileFilter (file: lib.hasSuffix ".go" file.name) ./.)
-              ./go.mod
-              ./go.sum
-            ];
-          };
         in
         {
           treefmt = {
