@@ -180,16 +180,15 @@ There are **0 active warnings** across ~70 linters. `makezero` false positives (
 
 ## Accepted Code Duplication
 
-`art-dupl` at `-t 25` reports **2 clone groups** that are **intentional and not refactored**:
+`art-dupl --type-aware` reports **0 clone groups at every threshold from `-t 2` up to `-t 25`**. `art-dupl` auto-excludes test files by default, so the two structural clones below do not appear in reports; they remain in the code intentionally:
 
-- **`mw1` / `mw2` middleware definitions in `stack_test.go:16-34`** — these record `mw1-before` / `mw2-before` / `mw1-after` / `mw2-after` into a shared `order` slice; the integer label is intrinsic to the test (it asserts the order of middleware execution). Extracting to a name-parameterized helper would obscure test intent.
-- **`newTypedBodyHandler` defined in both `testutil_test.go:79` (httputil) and `httpspec/handlers_test.go:61` (httpspec)** — the same helper shape exists in two test packages; the `httputil` package cannot import from `httpspec` (wrong dependency direction), so the duplication is structural.
+- **`mw1` / `mw2` middleware definitions in `stack_test.go`** — these record `mw1-before` / `mw2-before` / `mw1-after` / `mw2-after` into a shared `order` slice; the integer label is intrinsic to the test (it asserts the order of middleware execution). Extracting to a name-parameterized helper would obscure test intent.
+- **`newTypedBodyHandler` defined in both `testutil_test.go` (httputil) and `httpspec/handlers_test.go` (httpspec)** — the same helper shape exists in two test packages; the `httputil` package cannot import from `httpspec` (wrong dependency direction), so the duplication is structural.
 
-At `-t 5` there are 321 additional groups — all are single-line idioms (`t.Parallel()`, `return n, nil`, single-statement patterns) that the threshold of 25 skips.
+Non-test duplication that **was** extracted:
 
-The two real cross-file duplications that **were** extracted:
-
-- `if !w.wroteHeader { w.WriteHeader(http.StatusOK) }` (compress_writer.go:73, etag.go:119) → `responseWrapper.writeDefaultOK()` in `wrapper.go`.
+- `errorfamily.WrapTransient(...).WithContext("encoding", w.encoding)` write/close error wrapping (formerly repeated across `writePlain`, `writeCompressed`, `startCompressAndStream`, `flushPlainAndStream`, and both `Close` branches) → consolidated behind `compressWriteError`, with every fallible write routed through the `writeClassified` / `streamClassified` choke points so the wrapping lives in one place.
+- `if !w.wroteHeader { w.WriteHeader(http.StatusOK) }` (compress_writer.go, etag.go) → `responseWrapper.writeDefaultOK()` in `wrapper.go`.
 - `w.plain = true; w.writeHeaderToUnderlying()` in `compressWriter.Hijack` → reuses `beginPlainResponse()`.
 
 ## Additional Active Linters Worth Knowing
