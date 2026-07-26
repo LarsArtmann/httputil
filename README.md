@@ -2,7 +2,7 @@
 
 Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, configurable HTTP server, and standard health checks.
 
-Minimal footprint — two dependencies (`go-error-family` same-author + `golang.org/x/time`). Pure stdlib `net/http`. Go 1.26+ (requires `GOEXPERIMENT=jsonv2`).
+Minimal footprint — two dependencies (`go-error-family` same-author + `golang.org/x/time`). Pure stdlib `net/http`. Go 1.26+.
 
 ## Install
 
@@ -447,11 +447,11 @@ See the [full integration example](docs/integrations/huma.md) and the [detailed 
 ## Development
 
 ```bash
-GOEXPERIMENT=jsonv2 go test ./...   # Run tests (jsonv2 required)
-GOEXPERIMENT=jsonv2 go test -race ./...   # Race detection
-GOEXPERIMENT=jsonv2 go vet ./...    # Vet
-GOEXPERIMENT=jsonv2 go test -bench=. ./...     # Benchmarks
-golangci-lint run          # Lint (~70 linters)
+go test ./...             # Run tests
+go test -race ./...       # Race detection
+go vet ./...              # Vet
+go test -bench=. ./...    # Benchmarks
+golangci-lint run         # Lint (~70 linters)
 ```
 
 ## License
