@@ -6,14 +6,9 @@ _Updated: 2026-07-26._
 
 ---
 
-## High Priority
-
-- [ ] **Resolve `encoding/json/v2` permanently** — `health.go` imports `encoding/json/v2` and uses `json.MarshalWrite` (Go 1.27 API), but the module declares `go 1.26.5` and the flake pins Go 1.26. `GOEXPERIMENT=jsonv2` is set in `flake.nix` shellHook and all app scripts as a workaround (so `nix develop` and `nix run .#*` work), but `go get` consumers outside Nix still hit a build failure. For a permanent fix: either upgrade the flake to Go 1.27+ or downgrade `health.go` to `encoding/json` v1. _(rate-limiter status report, item d.1)_
-
 ## Medium Priority
 
 - [ ] **Add remaining config field tables to README** — only `CORSConfig`, `ResponseRecorder`, and `CompressionConfig` have field detail tables. Missing: `ETagConfig`, `RateLimitConfig`, `MetricsConfig`, `SecurityHeadersConfig`, `RequestIDConfig`, `ServerConfig`. _(v0.5.0 status report, item b)_
-- [ ] **Decide release strategy post-v0.6.0** — v0.6.0 tagged and pushed. Next release should resolve the `encoding/json/v2` question (Go version bump or revert). Determine whether the jsonv2 experiment stays or goes before tagging v0.7.0.
 
 ## Low Priority
 

@@ -19,9 +19,6 @@ Raw ideas:
   outgoing response header.
 - Evaluate flipping `DenyUnmatched` default to `true` so the CORS allowlist is
   secure by default rather than by opt-in.
-- Resolve the `encoding/json/v2` build question before v1.0 — either commit to
-  Go 1.27+ in the flake or revert `health.go` to `encoding/json` v1, so a plain
-  `go get` works without a secret env var.
 - Define which APIs are frozen at v1.0 and document the stability guarantee.
 
 ### 2. Extensibility without new dependencies

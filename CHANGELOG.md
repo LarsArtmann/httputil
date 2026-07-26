@@ -6,21 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-26
+
+### Fixed
+
+- **Build no longer requires `GOEXPERIMENT=jsonv2`.** `health.go` used `encoding/json/v2` and `json.MarshalWrite` (a Go 1.27 API), which broke `go build ./...` for anyone consuming the library via `go get` without the experiment flag. Reverted to `encoding/json` v1 (`json.NewEncoder`); response bytes are identical (`{"status":"up"}\n`). The `GOEXPERIMENT=jsonv2` workaround was removed from `flake.nix` (7 insertion points), `.github/workflows/ci.yml`, `README.md`, `CONTRIBUTING.md`, and `AGENTS.md`.
+
 ### Changed
 
-- `GOEXPERIMENT=jsonv2` is now set automatically in `flake.nix` (`shellHook` and all `nix run .#*` apps). Contributors in `nix develop` no longer need to set it manually.
-- `CONTRIBUTING.md` rewritten: all commands prefixed with `GOEXPERIMENT=jsonv2`, dependency claim updated from 1 to 2 (`go-error-family` + `golang.org/x/time`).
-- `docs/DOMAIN_LANGUAGE.md` corrected: compression descriptions updated from gzip-only to multi-encoding, dependency convention updated, `ParseUintQuery` command and Query Parameters bounded context added.
-- Inline correction banners added to 3 historical HTML reports (`modularity.html`, `full-code-review.html`, `code-quality-scan.html`) — stale metric cards (dependency count, file count, coverage) now corrected in the first screenful.
+- Compression writer error paths unified through a shared `compressWriteError` helper — every `ErrCodeCompressWriteFailed` now carries the negotiated `encoding` context uniformly (two buffered-write paths previously omitted it).
 - `go-error-family` upgraded from v0.7.0 to v0.9.0.
 - Go toolchain directive bumped from `1.26.4` to `1.26.5`.
 - Nix flake inputs refreshed (nixpkgs, treefmt-nix) for reproducible builds.
-- Compression writer error paths unified through a shared `compressWriteError` helper — every `ErrCodeCompressWriteFailed` now carries the negotiated `encoding` context uniformly (two buffered-write paths previously omitted it).
+- `docs/DOMAIN_LANGUAGE.md` corrected: compression descriptions updated from gzip-only to multi-encoding.
+- Inline correction banners added to 3 historical HTML reports (`modularity.html`, `full-code-review.html`, `code-quality-scan.html`) — stale metric cards corrected in the first screenful.
 
 ### Added
 
-- `golang.org/x/time/rate` node added to both D2 architecture diagrams (`httputil-current.d2`, `httputil-current-improved.d2`), wired to the rate limiter. Both SVGs regenerated.
-- `.editorconfig` added — enforces consistent tab indentation, trailing-whitespace trimming, UTF-8, and final-newline policy across editors and IDEs.
+- `.editorconfig` — enforces consistent tab indentation, trailing-whitespace trimming, UTF-8, and final-newline policy across editors and IDEs.
+- `golang.org/x/time/rate` node added to both D2 architecture diagrams; both SVGs regenerated.
 
 ## [0.6.0] - 2026-07-22
 
@@ -170,7 +174,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/larsartmann/httputil/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/larsartmann/httputil/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/larsartmann/httputil/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/larsartmann/httputil/compare/v0.3.0...v0.4.0
