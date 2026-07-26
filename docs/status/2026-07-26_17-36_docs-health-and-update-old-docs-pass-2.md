@@ -273,3 +273,15 @@ During this session, commit `b3920ee` landed (authored by the repo owner, not me
 ---
 
 _Metrics snapshot: 3 historical files annotated, 4 living docs rebuilt, 1 living doc created (ROADMAP), 0 lint issues, 92.5%/98.3% coverage. Known unfixed gap: CONTRIBUTING.md lines 10–11 missing GOEXPERIMENT prefix._
+
+---
+
+## Resolution (v0.6.1, 2026-07-26)
+
+Every open item in this report was resolved in the v0.6.1 release session:
+
+- **Q1 / items 6–7 (the `encoding/json/v2` blocker):** RESOLVED by downgrading `health.go` to `encoding/json` v1 (`json.NewEncoder`). Plain `go build ./...` now works with no env var. Go 1.27 was not yet released at the time (ships August 2026), so the downgrade was the only viable path. The `GOEXPERIMENT=jsonv2` workaround was removed from `flake.nix` (7 insertion points), `.github/workflows/ci.yml`, `README.md`, `CONTRIBUTING.md`, and `AGENTS.md`.
+- **Items 1, 9, 10 (CONTRIBUTING.md lines 10–11 + cleanup):** MOOT — the `GOEXPERIMENT` prefix is gone entirely, so the documented inconsistency dissolved.
+- **Item 11 (run flake apps end-to-end):** DONE — `nix run .#build`, `.#vet`, `.#test`, `.#lint` all verified clean. First end-to-end flake verification since the workaround landed; the workaround is no longer needed.
+
+The "biggest open risk" framing in section 5 and Q1 above is now historical. See `CHANGELOG.md` [0.6.1] for the authoritative record.
