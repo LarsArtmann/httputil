@@ -74,9 +74,9 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 
 	switch {
 	case w.plain:
-		return w.writePlain(b)
+		return w.writeClassified(w.ResponseWriter, b, "failed to write to response writer")
 	case w.compressing:
-		return w.writeCompressed(b)
+		return w.writeClassified(w.writer, b, "compression writer write failed")
 	default:
 		return w.writeBuffered(b)
 	}
@@ -84,8 +84,8 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 
 // compressWriteError classifies err as a Transient, retryable compress-writer
 // failure (ErrCodeCompressWriteFailed) annotated with the negotiated encoding
-// for diagnostics. Centralizes every Write and Close error path so the
-// wrapping stays uniform across buffered, streamed, and compressed code paths.
+// for diagnostics. It is the single wrapping site so every Write and Close
+// error path reports a consistent family, code, and context.
 func (w *compressWriter) compressWriteError(err error, message string) error {
 	return errorfamily.WrapTransient(
 		err,
@@ -94,22 +94,35 @@ func (w *compressWriter) compressWriteError(err error, message string) error {
 	).WithContext("encoding", w.encoding)
 }
 
-func (w *compressWriter) writePlain(b []byte) (int, error) {
-	n, err := w.ResponseWriter.Write(b)
+// writeClassified is the single error-handling choke point for compressWriter
+// output: it writes b to dst and, on failure, returns the bytes written plus a
+// classified error. Routing every fallible write through here keeps the
+// WrapTransient + encoding annotation in one place instead of duplicated
+// across the plain, compressed, and streaming code paths.
+func (w *compressWriter) writeClassified(dst io.Writer, b []byte, message string) (int, error) {
+	n, err := dst.Write(b)
 	if err != nil {
-		return n, w.compressWriteError(err, "failed to write to response writer")
+		return n, w.compressWriteError(err, message)
 	}
 
 	return n, nil
 }
 
-func (w *compressWriter) writeCompressed(b []byte) (int, error) {
-	n, err := w.writer.Write(b)
+// streamClassified writes b to dst but reports total (the full payload size)
+// rather than bytes written, so buffered-then-streamed callers can advertise
+// complete consumption while still surfacing the classified write error.
+func (w *compressWriter) streamClassified(
+	dst io.Writer,
+	b []byte,
+	total int,
+	message string,
+) (int, error) {
+	_, err := w.writeClassified(dst, b, message)
 	if err != nil {
-		return n, w.compressWriteError(err, "compression writer write failed")
+		return total, err
 	}
 
-	return n, nil
+	return total, nil
 }
 
 func (w *compressWriter) writeBuffered(b []byte) (int, error) {
@@ -148,12 +161,7 @@ func (w *compressWriter) startCompressAndStream(b []byte, total int) (int, error
 		return total, nil
 	}
 
-	_, err = w.writer.Write(b)
-	if err != nil {
-		return total, w.compressWriteError(err, "compression writer streaming write failed")
-	}
-
-	return total, nil
+	return w.streamClassified(w.writer, b, total, "compression writer streaming write failed")
 }
 
 // flushPlainAndStream switches the writer into plain (uncompressed) mode,
@@ -175,12 +183,7 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 		return total, nil
 	}
 
-	_, err := w.ResponseWriter.Write(b)
-	if err != nil {
-		return total, w.compressWriteError(err, "failed to write plain response")
-	}
-
-	return total, nil
+	return w.streamClassified(w.ResponseWriter, b, total, "failed to write plain response")
 }
 
 func (w *compressWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
