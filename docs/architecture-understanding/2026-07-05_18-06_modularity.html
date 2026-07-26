@@ -636,6 +636,11 @@
             flat ergonomics, not a deep package tree. But at 28 files it is approaching the point
             where grouping (e.g. an internal <code>compress/</code> for the 7 compression files)
             would aid navigation without breaking the public import path. Not urgent; track it.
+            <em>(Update 2026-07-26: the <code>compress/</code> split was evaluated and rejected —
+            compression files depend on root symbols (<code>Middleware</code>,
+            <code>responseWrapper</code>, <code>ErrCode*</code>), so extracting them creates a
+            circular import. The flat layout is structural, not a debt item. Root package now has
+            62 files.)</em>
           </p>
         </div>
 

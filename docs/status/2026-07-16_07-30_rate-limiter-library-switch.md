@@ -197,7 +197,7 @@ _Report generated from session on 2026-07-16 07:30 CEST. Based on the current wo
 | `flake.lock` diff       | **Done** | Committed as `32528ff` ("chore: update flake.lock with latest nixpkgs and treefmt-nix revisions")               |
 | Build needs `jsonv2`    | **Open** | `health.go` still imports `encoding/json/v2`; `go build ./...` fails without `GOEXPERIMENT=jsonv2` on Go 1.26.4 |
 | `health.go` Go 1.27 API | **Open** | `json.MarshalWrite` still in use; module still declares `go 1.26.4`                                             |
-| CHANGELOG updated       | **Open** | `[Unreleased]` section still empty as of 2026-07-22                                                             |
+| CHANGELOG updated       | **Done** | Documented in v0.6.0 CHANGELOG (breaking `burst int` signature change)     |
 | TODO_LIST updated       | **Open** | Rate-limiter items not yet tracked in `TODO_LIST.md`                                                            |
 | `GOEXPERIMENT` in flake | **Open** | `flake.nix` does not set `GOEXPERIMENT=jsonv2` in the devShell; contributors must remember the env var          |
 

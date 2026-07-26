@@ -286,3 +286,19 @@ The module declares `go 1.26.4` and the flake pins `go_1_26`. If we commit to js
 | Git state                        | Clean (auto-committed across `a933df1`..`71e0fd4`) |
 | CHANGELOG `[Unreleased]`         | **Empty** (should have entries)                    |
 | Previous status report annotated | **No** (should be)                                 |
+
+---
+
+## Resolution (2026-07-26)
+
+The metrics snapshot above was accurate at session close. Subsequent commits resolved the two items flagged as gaps:
+
+| Claim in this report                                | Resolution                                                                                                          | Commit(s)                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| CHANGELOG `[Unreleased]` **Empty** (section c, d.2) | Populated — the rate-limiter breaking change and post-v0.6.0 changes are now logged under `[Unreleased]` / `[0.6.0]` | `793de5a`, this session   |
+| Previous status report annotated (07-46)            | Done — see the `## Resolution — 2026-07-22 11:01` appendix in that report                                           | `dcdb190`                 |
+| `go.mod` version `1.26.4` (section g, Q3)           | Bumped to `go 1.26.5`                                                                                               | `5d96ae4`                 |
+| `go-error-family` at v0.7.0                         | Bumped to `v0.9.0`                                                                                                  | `7f87aa3`                 |
+| `modularity.html` body prose "at 28 files" (b.1)    | Inline-corrected — notes the `compress/` split was evaluated and rejected (circular import); root pkg now 62 files  | this session              |
+
+**Still open:** the `encoding/json/v2` root cause (sections g.Q1 / e.5) remains unresolved — `health.go` still imports `encoding/json/v2` and `GOEXPERIMENT=jsonv2` is still set in `flake.nix` (7 insertion points). The flake workaround (this session's deliverable) means `nix develop` and all `nix run .#*` apps build without manual env vars, but `go get` consumers outside Nix still hit a build failure. See TODO_LIST "Resolve `encoding/json/v2` permanently".
