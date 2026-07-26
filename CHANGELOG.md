@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `go-error-family` upgraded from v0.7.0 to v0.9.0.
 - Go toolchain directive bumped from `1.26.4` to `1.26.5`.
 - Nix flake inputs refreshed (nixpkgs, treefmt-nix) for reproducible builds.
+- Compression writer error paths unified through a shared `compressWriteError` helper — every `ErrCodeCompressWriteFailed` now carries the negotiated `encoding` context uniformly (two buffered-write paths previously omitted it).
 
 ### Added
 
