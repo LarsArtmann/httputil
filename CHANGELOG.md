@@ -12,10 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `CONTRIBUTING.md` rewritten: all commands prefixed with `GOEXPERIMENT=jsonv2`, dependency claim updated from 1 to 2 (`go-error-family` + `golang.org/x/time`).
 - `docs/DOMAIN_LANGUAGE.md` corrected: compression descriptions updated from gzip-only to multi-encoding, dependency convention updated, `ParseUintQuery` command and Query Parameters bounded context added.
 - Inline correction banners added to 3 historical HTML reports (`modularity.html`, `full-code-review.html`, `code-quality-scan.html`) — stale metric cards (dependency count, file count, coverage) now corrected in the first screenful.
+- `go-error-family` upgraded from v0.7.0 to v0.9.0.
+- Go toolchain directive bumped from `1.26.4` to `1.26.5`.
+- Nix flake inputs refreshed (nixpkgs, treefmt-nix) for reproducible builds.
 
 ### Added
 
 - `golang.org/x/time/rate` node added to both D2 architecture diagrams (`httputil-current.d2`, `httputil-current-improved.d2`), wired to the rate limiter. Both SVGs regenerated.
+- `.editorconfig` added — enforces consistent tab indentation, trailing-whitespace trimming, UTF-8, and final-newline policy across editors and IDEs.
 
 ## [0.6.0] - 2026-07-22
 
@@ -162,3 +166,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `ResponseRecorder`: `Write`, `Hijack` return classified errors instead of bare `fmt.Errorf`
 - `ResponseRecorder`: Fixed nil-wrapping bug where successful operations returned non-nil errors
 - `CORS()`: Fixed data race where `allowOrigin` was a shared mutable closure variable across concurrent requests
+
+---
+
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/larsartmann/httputil/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/larsartmann/httputil/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/larsartmann/httputil/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/larsartmann/httputil/compare/v0.2.0...v0.3.0
+[0.1.1]: https://github.com/larsartmann/httputil/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/larsartmann/httputil/releases/tag/v0.1.0

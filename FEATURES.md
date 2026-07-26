@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-07-22_
+_Updated: 2026-07-26_
 
 ---
 
@@ -128,6 +128,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `go test ./...` passes across the full suite with >90% statement coverage.
 - Fuzz tests for CORS, ClientIP, Compression, ETag, and RequestID.
 - `go vet` clean.
+- `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests and lint.
 - Release workflow with `govulncheck`.

@@ -82,14 +82,22 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 	}
 }
 
+// compressWriteError classifies err as a Transient, retryable compress-writer
+// failure (ErrCodeCompressWriteFailed) annotated with the negotiated encoding
+// for diagnostics. Centralizes every Write and Close error path so the
+// wrapping stays uniform across buffered, streamed, and compressed code paths.
+func (w *compressWriter) compressWriteError(err error, message string) error {
+	return errorfamily.WrapTransient(
+		err,
+		ErrCodeCompressWriteFailed,
+		message,
+	).WithContext("encoding", w.encoding)
+}
+
 func (w *compressWriter) writePlain(b []byte) (int, error) {
 	n, err := w.ResponseWriter.Write(b)
 	if err != nil {
-		return n, errorfamily.WrapTransient(
-			err,
-			ErrCodeCompressWriteFailed,
-			"failed to write to response writer",
-		).WithContext("encoding", w.encoding)
+		return n, w.compressWriteError(err, "failed to write to response writer")
 	}
 
 	return n, nil
@@ -98,11 +106,7 @@ func (w *compressWriter) writePlain(b []byte) (int, error) {
 func (w *compressWriter) writeCompressed(b []byte) (int, error) {
 	n, err := w.writer.Write(b)
 	if err != nil {
-		return n, errorfamily.WrapTransient(
-			err,
-			ErrCodeCompressWriteFailed,
-			"compression writer write failed",
-		).WithContext("encoding", w.encoding)
+		return n, w.compressWriteError(err, "compression writer write failed")
 	}
 
 	return n, nil
@@ -146,11 +150,7 @@ func (w *compressWriter) startCompressAndStream(b []byte, total int) (int, error
 
 	_, err = w.writer.Write(b)
 	if err != nil {
-		return total, errorfamily.WrapTransient(
-			err,
-			ErrCodeCompressWriteFailed,
-			"compression writer streaming write failed",
-		).WithContext("encoding", w.encoding)
+		return total, w.compressWriteError(err, "compression writer streaming write failed")
 	}
 
 	return total, nil
@@ -165,11 +165,7 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 	if len(w.buf) > 0 {
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
-			return 0, errorfamily.WrapTransient(
-				err,
-				ErrCodeCompressWriteFailed,
-				"failed to write buffered plain response",
-			)
+			return 0, w.compressWriteError(err, "failed to write buffered plain response")
 		}
 
 		w.buf = w.buf[:0]
@@ -181,11 +177,7 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 
 	_, err := w.ResponseWriter.Write(b)
 	if err != nil {
-		return total, errorfamily.WrapTransient(
-			err,
-			ErrCodeCompressWriteFailed,
-			"failed to write plain response",
-		)
+		return total, w.compressWriteError(err, "failed to write plain response")
 	}
 
 	return total, nil
@@ -221,11 +213,7 @@ func (w *compressWriter) Close() error {
 	if w.compressing {
 		err := w.writer.Close()
 		if err != nil {
-			return errorfamily.WrapTransient(
-				err,
-				ErrCodeCompressWriteFailed,
-				"compression writer close failed",
-			).WithContext("encoding", w.encoding)
+			return w.compressWriteError(err, "compression writer close failed")
 		}
 
 		// Return the writer to the per-factory pool. Only writers that
@@ -245,11 +233,7 @@ func (w *compressWriter) Close() error {
 	if len(w.buf) > 0 {
 		_, err := w.ResponseWriter.Write(w.buf)
 		if err != nil {
-			return errorfamily.WrapTransient(
-				err,
-				ErrCodeCompressWriteFailed,
-				"buffered response write failed",
-			)
+			return w.compressWriteError(err, "buffered response write failed")
 		}
 	}
 
