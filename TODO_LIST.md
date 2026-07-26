@@ -23,7 +23,7 @@ _Updated: 2026-07-26._
 
 ---
 
-## Deferred to v1.0 (breaking naming changes)
+_Breaking naming changes (`ForwardHeader`, `HeaderName`) and the v1.0 stability
+plan live in [ROADMAP.md](ROADMAP.md) — they are gated on a major version and are
+not short-term actionable._
 
-- [ ] **`RequestIDConfig.ForwardHeader` → `IncomingHeader`** — names the wrong direction; it reads an incoming header, not forwards one. The most dishonest name in the codebase. _(naming review, data-model review)_
-- [ ] **`RequestIDConfig.HeaderName` → `ResponseHeader`** — vague name for the outgoing response header. _(naming review)_

@@ -118,6 +118,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `doc.go` — package-level godoc.
 - `AGENTS.md` — architecture reference, testing conventions, lint rules.
 - `CHANGELOG.md` — version history.
+- `ROADMAP.md` — long-term direction and v1.0 vision.
 - `docs/DOMAIN_LANGUAGE.md` — domain glossary.
 - Status reports in `docs/status/`.
 - Execution plans in `docs/planning/`.

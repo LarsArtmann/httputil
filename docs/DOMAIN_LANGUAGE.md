@@ -84,7 +84,7 @@ Immutable objects defined by their attributes.
 | Request ID        | A unique string identifying a request, propagated via header or generated                     | Request ID       |
 | ETag Value        | An opaque string identifying a specific version of a response body                            | ETag             |
 | Weak ETag         | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity | ETag             |
-| Compression Level | An integer controlling gzip compression tradeoff (speed vs ratio)                             | Compression      |
+| Compression Level | An integer controlling the compression tradeoff (speed vs ratio)                                | Compression      |
 | Min Size          | The minimum response body size (bytes) before compression is applied                          | Compression      |
 | Max Buffer Size   | The maximum bytes buffered for ETag computation before abandoning                             | ETag             |
 | Token Bucket      | A per-key container holding token count and last-refill timestamp                             | Rate Limiting    |
