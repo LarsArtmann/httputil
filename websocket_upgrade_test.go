@@ -198,3 +198,116 @@ func readUpgradeHeaders(r *bufio.Reader) (map[string]string, error) {
 		headers[http.CanonicalHeaderKey(name)] = strings.TrimSpace(value)
 	}
 }
+
+// TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack verifies that when a
+// handler writes partial body content before calling Hijack, the middleware
+// does not panic and the raw post-hijack byte exchange still works. Writing
+// body before hijacking commits a 200 status (via beginPlainResponse), so the
+// client receives a normal HTTP response followed by the raw exchange rather
+// than a 101 upgrade. This exercises the beginPlainResponse() code path.
+func TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack(t *testing.T) {
+	t.Parallel()
+
+	const preBody = "pre-hijack-body"
+	const echoPayload = "post-hijack-echo"
+
+	upgradeHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		// Write body before hijacking — triggers beginPlainResponse path.
+		_, _ = w.Write([]byte(preBody))
+
+		hijacker, ok := w.(http.Hijacker)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Hijacker")
+		}
+
+		conn, bufrw, err := hijacker.Hijack()
+		if err != nil {
+			t.Fatalf("Hijack() failed: %v", err)
+		}
+
+		defer func() {
+			_ = conn.Close()
+		}()
+
+		// Flush the committed 200 status + headers so the client can read them.
+		err = bufrw.Flush()
+		if err != nil {
+			t.Fatalf("initial flush failed: %v", err)
+		}
+
+		// Raw frame echo after hijack.
+		line, err := bufrw.ReadString('\n')
+		if err != nil {
+			t.Fatalf("read client frame failed: %v", err)
+		}
+
+		_, err = bufrw.WriteString(strings.TrimSpace(line) + "\n")
+		if err != nil {
+			t.Fatalf("write echo frame failed: %v", err)
+		}
+
+		err = bufrw.Flush()
+		if err != nil {
+			t.Fatalf("flush echo frame failed: %v", err)
+		}
+	})
+
+	handler := Chain(
+		upgradeHandler,
+		Compression(DefaultCompressionConfig()),
+		ETag(DefaultETagConfig()),
+	)
+
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	conn, err := net.Dial("tcp", server.Listener.Addr().String())
+	if err != nil {
+		t.Fatalf("dial server failed: %v", err)
+	}
+
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	request := "GET /ws HTTP/1.1\r\n" +
+		"Host: " + server.Listener.Addr().String() + "\r\n" +
+		"Connection: Upgrade\r\n" +
+		"Accept-Encoding: gzip\r\n" +
+		"\r\n"
+
+	_, err = conn.Write([]byte(request))
+	if err != nil {
+		t.Fatalf("write request failed: %v", err)
+	}
+
+	reader := bufio.NewReader(conn)
+
+	statusLine, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("read status line failed: %v", err)
+	}
+
+	if !strings.Contains(statusLine, "200") {
+		t.Fatalf("status line = %q, want 200 (body written before hijack)", statusLine)
+	}
+
+	_, err = readUpgradeHeaders(reader)
+	if err != nil {
+		t.Fatalf("read headers failed: %v", err)
+	}
+
+	_, err = conn.Write([]byte(echoPayload + "\n"))
+	if err != nil {
+		t.Fatalf("write echo payload failed: %v", err)
+	}
+
+	echo, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatalf("read echo response failed: %v", err)
+	}
+
+	if strings.TrimSpace(echo) != echoPayload {
+		t.Errorf("post-hijack echo = %q, want %q", echo, echoPayload)
+	}
+}
