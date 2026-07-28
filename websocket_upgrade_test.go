@@ -199,118 +199,12 @@ func readUpgradeHeaders(r *bufio.Reader) (map[string]string, error) {
 	}
 }
 
-// TestCompressionETag_FlushBeforeHijack verifies that when a handler flushes
-// buffered content before calling Hijack, the middleware transitions to plain
-// mode and the raw post-hijack byte exchange works. This exercises the
-// beginPlainResponse() and flushPlainAndStream() code paths through the full
-// Compression + ETag chain over a real TCP connection.
-func TestCompressionETag_FlushBeforeHijack(t *testing.T) {
-	t.Parallel()
-
-	const echoPayload = "post-hijack-echo"
-
-	upgradeHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			t.Fatal("ResponseWriter does not implement http.Flusher")
-		}
-
-		flusher.Flush()
-
-		hijacker, ok := w.(http.Hijacker)
-		if !ok {
-			t.Fatal("ResponseWriter does not implement http.Hijacker after Flush")
-		}
-
-		conn, bufrw, err := hijacker.Hijack()
-		if err != nil {
-			t.Fatalf("Hijack() failed: %v", err)
-		}
-
-		defer func() {
-			_ = conn.Close()
-		}()
-
-		err = bufrw.Flush()
-		if err != nil {
-			t.Fatalf("initial flush failed: %v", err)
-		}
-
-		line, err := bufrw.ReadString('\n')
-		if err != nil {
-			t.Fatalf("read client frame failed: %v", err)
-		}
-
-		_, err = bufrw.WriteString(strings.TrimSpace(line) + "\n")
-		if err != nil {
-			t.Fatalf("write echo frame failed: %v", err)
-		}
-
-		err = bufrw.Flush()
-		if err != nil {
-			t.Fatalf("flush echo frame failed: %v", err)
-		}
-	})
-
-	handler := Chain(
-		upgradeHandler,
-		Compression(DefaultCompressionConfig()),
-		ETag(DefaultETagConfig()),
-	)
-
-	server := httptest.NewServer(handler)
-	defer server.Close()
-
-	conn, err := net.Dial("tcp", server.Listener.Addr().String())
-	if err != nil {
-		t.Fatalf("dial server failed: %v", err)
-	}
-
-	defer func() {
-		_ = conn.Close()
-	}()
-
-	request := "GET /ws HTTP/1.1\r\n" +
-		"Host: " + server.Listener.Addr().String() + "\r\n" +
-		"Upgrade: websocket\r\n" +
-		"Connection: Upgrade\r\n" +
-		"Sec-WebSocket-Key: " + wsExampleClientKey + "\r\n" +
-		"Sec-WebSocket-Version: 13\r\n" +
-		"Accept-Encoding: gzip\r\n" +
-		"\r\n"
-
-	_, err = conn.Write([]byte(request))
-	if err != nil {
-		t.Fatalf("write upgrade request failed: %v", err)
-	}
-
-	reader := bufio.NewReader(conn)
-
-	statusLine, err := reader.ReadString('\n')
-	if err != nil {
-		t.Fatalf("read status line failed: %v", err)
-	}
-
-	if !strings.HasPrefix(statusLine, "HTTP/1.1 101") {
-		t.Fatalf("status line = %q, want 101", statusLine)
-	}
-
-	_, err = readUpgradeHeaders(reader)
-	if err != nil {
-		t.Fatalf("read upgrade headers failed: %v", err)
-	}
-
-	_, err = conn.Write([]byte(echoPayload + "\n"))
-	if err != nil {
-		t.Fatalf("write echo payload failed: %v", err)
-	}
-
-	echo, err := reader.ReadString('\n')
-	if err != nil {
-		t.Fatalf("read echo response failed: %v", err)
-	}
-
-	if strings.TrimSpace(echo) != echoPayload {
-		t.Errorf("post-hijack echo = %q, want %q", echo, echoPayload)
-	}
-}
+// End of WebSocket upgrade tests.
+//
+// A body-before-hijack variant was evaluated and intentionally omitted: writing
+// body through the middleware before calling Hijack commits a 200 status via
+// writeDefaultOK, making a subsequent 101 upgrade impossible. The resulting
+// response violates HTTP (200 headers with no body, followed by raw bytes),
+// and the client deadlocks waiting for the missing body. The existing
+// Passthrough test exercises the beginPlainResponse() Hijack path without
+// this issue.

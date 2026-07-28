@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"slices"
@@ -421,7 +422,12 @@ type simpleWriteCloser struct {
 }
 
 func (w *simpleWriteCloser) Write(p []byte) (int, error) {
-	return w.dst.Write(p)
+	n, err := w.dst.Write(p)
+	if err != nil {
+		return n, fmt.Errorf("simpleWriteCloser: %w", err)
+	}
+
+	return n, nil
 }
 
 func (w *simpleWriteCloser) Close() error {
@@ -433,8 +439,8 @@ func TestCompression_CustomFactoryWithoutReset(t *testing.T) {
 
 	cfg := DefaultCompressionConfig()
 	cfg.WriterFactories = map[string]WriterFactory{
-		"gzip":    GzipWriterFactory(cfg.Level),
-		"deflate": DeflateWriterFactory(cfg.Level),
+		"gzip":     GzipWriterFactory(cfg.Level),
+		"deflate":  DeflateWriterFactory(cfg.Level),
 		"identity": passthroughFactory,
 		"custom": func(dst io.Writer) (io.WriteCloser, error) {
 			return &simpleWriteCloser{dst: dst}, nil
