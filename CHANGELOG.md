@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** `RequestIDConfig.HeaderName` renamed to `ResponseHeader` — the field sets the outgoing response header, not a vague "header name."
+- **Breaking:** `RequestIDConfig.ForwardHeader` renamed to `IncomingHeader` — the field reads an incoming request header, not forwards one.
+- Corresponding sentinel errors renamed: `errEmptyHeaderName` → `errEmptyResponseHeader`, `errEmptyForwardHdr` → `errEmptyIncomingHeader` (unexported, but test-visible).
+
+### Added
+
+- `docs/RELEASE.md` — release runbook with pre-release, release-time, and post-release checklists.
+- `SECURITY.md` — vulnerability reporting policy, supported versions, and security posture documentation.
+- Six config field tables in README: `ETagConfig`, `RateLimitConfig`, `MetricsConfig`, `SecurityHeadersConfig`, `RequestIDConfig`, `ServerConfig`.
+- `docs/v1-stability.md` — v1.0 frozen API surface definition.
+- `docs/research/deny-unmatched-default-evaluation.md` — CORS secure-by-default analysis.
+- Extensibility examples: `docs/integrations/brotli-zstd.md`, `docs/integrations/redis-ratelimiter.md`, `docs/integrations/prometheus-metrics.md`.
+- Fuzz tests: `FuzzParseUintQuery`, `FuzzCORSOriginMatching`, `FuzzEvictionTTL`, `FuzzHealthHandler`.
+- Benchmark: `BenchmarkTokenBucketLimiter` and `BenchmarkTokenBucketLimiterWithEviction`.
+- Example functions: `ExampleParseUintQuery`, `ExampleReadyHandlerWithProbe`.
+- CONTRIBUTING.md expanded: govulncheck in quality gate, versioning policy, CHANGELOG contribution rules, nix flake app inventory, minimum Go version policy.
+
 ## [0.6.1] - 2026-07-26
 
 ### Fixed

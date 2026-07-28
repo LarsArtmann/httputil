@@ -47,7 +47,7 @@ func DefaultCORSConfig() CORSConfig {
 		AllowCredentials:   false,
 		MaxAge:             defaultMaxAge,
 		OptionsPassthrough: false,
-		DenyUnmatched:      false,
+		DenyUnmatched:      true,
 	}
 }
 
