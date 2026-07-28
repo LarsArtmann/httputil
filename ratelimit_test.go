@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -277,5 +278,66 @@ func TestTokenBucketLimiterNoEvictionByDefault(t *testing.T) {
 
 	if len(limiter.buckets) != 2 {
 		t.Errorf("expected 2 buckets (no eviction by default), got %d", len(limiter.buckets))
+	}
+}
+
+func FuzzEvictionTTL(f *testing.F) {
+	f.Add("key1", int64(1))
+	f.Add("key2", int64(100))
+	f.Add("", int64(0))
+	f.Add("unicode-key", int64(5000))
+
+	f.Fuzz(func(t *testing.T, key string, advanceNanos int64) {
+		t.Parallel()
+
+		clock := time.Now()
+
+		limiter, err := NewTokenBucketLimiter(1, 10)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		limiter.EvictionTTL = 5 * time.Second
+		limiter.now = func() time.Time { return clock }
+
+		limiter.Allow(key)
+
+		if advanceNanos > 0 {
+			clock = clock.Add(time.Duration(advanceNanos))
+		}
+
+		limiter.Allow(key + "-2")
+	})
+}
+
+func BenchmarkTokenBucketLimiter(b *testing.B) {
+	limiter, err := NewTokenBucketLimiter(1000, 100)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	keys := []string{"10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4", "10.0.0.5"}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for b.Loop() {
+		limiter.Allow(keys[b.N%len(keys)])
+	}
+}
+
+func BenchmarkTokenBucketLimiterWithEviction(b *testing.B) {
+	limiter, err := NewTokenBucketLimiter(1000, 100)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	limiter.EvictionTTL = 5 * time.Second
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := range b.N {
+		limiter.Allow(fmt.Sprintf("ip-%d", i%1000))
 	}
 }

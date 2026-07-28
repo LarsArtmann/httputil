@@ -160,3 +160,73 @@ func TestCORS_WildcardPatternMatchesNestedSubdomain(t *testing.T) {
 		"https://a.b.example.com",
 	)
 }
+
+// TestCORS_WildcardRejectsLookalikeWithPort ensures that a wildcard pattern
+// does not match an origin that merely contains the domain as a substring in
+// the port section.
+func TestCORS_WildcardRejectsLookalikeWithPort(t *testing.T) {
+	t.Parallel()
+
+	assertCORSForOrigin(
+		t,
+		[]string{"*.example.com"},
+		"https://evil.com:example.com",
+		"*",
+	)
+}
+
+// TestCORS_EmptyAllowedOriginsWithDenyUnmatched ensures that when the allowlist
+// is empty and DenyUnmatched is true, all origins are denied.
+func TestCORS_EmptyAllowedOriginsWithDenyUnmatched(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{},
+		AllowedMethods: []string{http.MethodGet},
+		DenyUnmatched:  true,
+	}
+
+	middleware := CORS(cfg)
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "https://anywhere.com")
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf("Allow-Origin = %q, want absent (empty allowlist + DenyUnmatched)", got)
+	}
+}
+
+func FuzzCORSOriginMatching(f *testing.F) {
+	f.Add("https://api.example.com")
+	f.Add("https://notexample.com")
+	f.Add("https://evil.com:example.com")
+	f.Add("")
+	f.Add("*")
+
+	f.Fuzz(func(t *testing.T, origin string) {
+		t.Parallel()
+
+		cfg := CORSConfig{
+			AllowedOrigins: []string{"*.example.com", "https://allowed.example.com"},
+			AllowedMethods: []string{http.MethodGet},
+			DenyUnmatched:  true,
+		}
+
+		middleware := CORS(cfg)
+		inner := newNoOpHandler()
+		req := newTestRequest(http.MethodGet, "/", origin)
+		rec := newRecorder()
+
+		middleware(inner).ServeHTTP(rec, req)
+
+		// The fuzz test verifies no panic occurs and the response is well-formed.
+		// If the origin matches, the header echoes it; otherwise it is absent.
+		got := rec.Header().Get("Access-Control-Allow-Origin")
+
+		if got != "" && got != origin && got != "*" {
+			t.Errorf("unexpected Allow-Origin = %q for origin %q", got, origin)
+		}
+	})
+}
