@@ -444,6 +444,8 @@ handler := httputil.Chain(router, // httputil: compression, security, logging
 
 See the [full integration example](docs/integrations/huma.md) and the [detailed comparison](docs/research/2026-07-05_httputil-vs-huma.md).
 
+For dependency injection and graceful lifecycle management, pair httputil with [samber/do](https://do.samber.dev/) — `httputil.Server.Shutdown(context.Context) error` satisfies `do.ShutdownerWithContextAndError` structurally, so the container discovers and shuts down the HTTP server automatically. See the [composition-root example](docs/integrations/samber-do.md).
+
 ## Development
 
 ```bash
