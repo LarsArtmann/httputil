@@ -199,25 +199,27 @@ func readUpgradeHeaders(r *bufio.Reader) (map[string]string, error) {
 	}
 }
 
-// TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack verifies that when a
-// handler writes partial body content before calling Hijack, the middleware
-// does not panic and the raw post-hijack byte exchange still works. Writing
-// body before hijacking commits a 200 status (via beginPlainResponse), so the
-// client receives a normal HTTP response followed by the raw exchange rather
-// than a 101 upgrade. This exercises the beginPlainResponse() code path.
-func TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack(t *testing.T) {
+// TestCompressionETag_FlushBeforeHijack verifies that when a handler flushes
+// buffered content before calling Hijack, the middleware transitions to plain
+// mode and the raw post-hijack byte exchange works. This exercises the
+// beginPlainResponse() and flushPlainAndStream() code paths through the full
+// Compression + ETag chain over a real TCP connection.
+func TestCompressionETag_FlushBeforeHijack(t *testing.T) {
 	t.Parallel()
 
-	const preBody = "pre-hijack-body"
 	const echoPayload = "post-hijack-echo"
 
 	upgradeHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		// Write body before hijacking — triggers beginPlainResponse path.
-		_, _ = w.Write([]byte(preBody))
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Flusher")
+		}
+
+		flusher.Flush()
 
 		hijacker, ok := w.(http.Hijacker)
 		if !ok {
-			t.Fatal("ResponseWriter does not implement http.Hijacker")
+			t.Fatal("ResponseWriter does not implement http.Hijacker after Flush")
 		}
 
 		conn, bufrw, err := hijacker.Hijack()
@@ -229,13 +231,11 @@ func TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack(t *testing.T) {
 			_ = conn.Close()
 		}()
 
-		// Flush the committed 200 status + headers so the client can read them.
 		err = bufrw.Flush()
 		if err != nil {
 			t.Fatalf("initial flush failed: %v", err)
 		}
 
-		// Raw frame echo after hijack.
 		line, err := bufrw.ReadString('\n')
 		if err != nil {
 			t.Fatalf("read client frame failed: %v", err)
@@ -272,13 +272,16 @@ func TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack(t *testing.T) {
 
 	request := "GET /ws HTTP/1.1\r\n" +
 		"Host: " + server.Listener.Addr().String() + "\r\n" +
+		"Upgrade: websocket\r\n" +
 		"Connection: Upgrade\r\n" +
+		"Sec-WebSocket-Key: " + wsExampleClientKey + "\r\n" +
+		"Sec-WebSocket-Version: 13\r\n" +
 		"Accept-Encoding: gzip\r\n" +
 		"\r\n"
 
 	_, err = conn.Write([]byte(request))
 	if err != nil {
-		t.Fatalf("write request failed: %v", err)
+		t.Fatalf("write upgrade request failed: %v", err)
 	}
 
 	reader := bufio.NewReader(conn)
@@ -288,13 +291,13 @@ func TestCompressionETag_WebSocketUpgrade_BodyBeforeHijack(t *testing.T) {
 		t.Fatalf("read status line failed: %v", err)
 	}
 
-	if !strings.Contains(statusLine, "200") {
-		t.Fatalf("status line = %q, want 200 (body written before hijack)", statusLine)
+	if !strings.HasPrefix(statusLine, "HTTP/1.1 101") {
+		t.Fatalf("status line = %q, want 101", statusLine)
 	}
 
 	_, err = readUpgradeHeaders(reader)
 	if err != nil {
-		t.Fatalf("read headers failed: %v", err)
+		t.Fatalf("read upgrade headers failed: %v", err)
 	}
 
 	_, err = conn.Write([]byte(echoPayload + "\n"))
