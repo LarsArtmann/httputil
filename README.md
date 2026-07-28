@@ -376,6 +376,58 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `WriterFactories`     | `map[string]WriterFactory` | gzip, deflate, identity        | Encoding-name → factory map; replace or extend                                                  |
 | `IncompressibleTypes` | `[]string`                 | `DefaultIncompressibleTypes()` | Content-types to skip (nil = defaults, empty = compress all)                                    |
 
+### `ETagConfig` fields
+
+| Field           | Type                 | Default   | Description                                                                         |
+| --------------- | -------------------- | --------- | ----------------------------------------------------------------------------------- |
+| `Weak`          | `bool`               | `false`   | Emit weak ETags (`W/"..."`) for semantically-volatile content                       |
+| `MaxBufferSize` | `int`                | `1048576` | Max bytes buffered for ETag computation before abandoning and streaming (1 MB)      |
+| `HashFunc`      | `func([]byte) uint64` | FNV-64a   | Body hash function for ETag generation; replace for application-specific hashing    |
+
+### `RateLimitConfig` fields
+
+| Field       | Type                          | Default             | Description                                                       |
+| ----------- | ----------------------------- | ------------------- | ----------------------------------------------------------------- |
+| `Limiter`   | `RateLimiter`                 | `nil`               | Decides whether to allow each request (required)                  |
+| `KeyFunc`   | `func(*http.Request) string`  | `nil` (RemoteAddr)  | Extracts the rate-limiting key from the request (e.g., client IP) |
+| `Status`    | `int`                         | `429`               | HTTP status when rate limited (ignored when `OnDenied` is set)    |
+| `OnDenied`  | `http.HandlerFunc`            | `nil`               | Custom handler for rejected requests; overrides default response  |
+
+### `MetricsConfig` fields
+
+| Field      | Type                         | Default      | Description                                              |
+| ---------- | ---------------------------- | ------------ | -------------------------------------------------------- |
+| `Recorder` | `MetricsRecorder`            | `nil`        | Receives one observation per request (required)          |
+| `PathFunc` | `func(*http.Request) string` | `nil` (`r.URL.Path`) | Extracts the path to record from the request    |
+
+### `SecurityHeadersConfig` fields
+
+| Field                     | Type     | Default                        | Description                                              |
+| ------------------------- | -------- | ------------------------------ | -------------------------------------------------------- |
+| `ContentTypeNosniff`      | `bool`   | `true`                         | Set `X-Content-Type-Options: nosniff`                   |
+| `FrameOptions`            | `string` | `"DENY"`                       | `X-Frame-Options` value (empty = header omitted)        |
+| `StrictTransportSecurity` | `string` | `""`                           | `Strict-Transport-Security` value (empty = omitted)     |
+| `ReferrerPolicy`          | `string` | `"strict-origin-when-cross-origin"` | `Referrer-Policy` value (empty = omitted)          |
+| `ContentSecurityPolicy`   | `string` | `""`                           | `Content-Security-Policy` value (empty = omitted)       |
+
+### `RequestIDConfig` fields
+
+| Field           | Type           | Default        | Description                                                        |
+| --------------- | -------------- | -------------- | ------------------------------------------------------------------ |
+| `HeaderName`    | `string`       | `"X-Request-ID"` | Response header to set with the resolved request ID              |
+| `GenerateID`    | `func() string` | Time-ordered hex | ID generator invoked when no incoming header is present        |
+| `ForwardHeader` | `string`       | `"X-Request-ID"` | Incoming request header to read the upstream ID from           |
+
+### `ServerConfig` fields
+
+| Field                | Type            | Default | Description                                                |
+| -------------------- | --------------- | ------- | ---------------------------------------------------------- |
+| `Addr`               | `string`        | `":8080"` | Listen address                                           |
+| `ReadTimeout`        | `time.Duration` | `10s`   | Maximum duration for reading the entire request            |
+| `ReadHeaderTimeout`  | `time.Duration` | `5s`    | Maximum duration for reading request headers               |
+| `WriteTimeout`       | `time.Duration` | `30s`   | Maximum duration before timing out writes                  |
+| `IdleTimeout`        | `time.Duration` | `60s`   | Maximum time to wait for the next request on a connection   |
+
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework

@@ -126,7 +126,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` passes across the full suite with >90% statement coverage.
+- `go test ./...` passes across the full suite with 92.7% statement coverage (`httputil`), 98.3% (`httpspec`), 93.9% total — measured 2026-07-29 with race detection enabled.
 - Fuzz tests for CORS, ClientIP, Compression, ETag, and RequestID.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
@@ -149,7 +149,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage
 
-Not 100% (target met at 90%+). Gaps exist in:
+Measured 2026-07-29 with `go test -race -coverprofile`: **92.7%** (`httputil`), **98.3%** (`httpspec`), **93.9%** total. Gaps remain in:
 
 - Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
 - Edge cases in `CORS` wildcard matching with unusual patterns.
