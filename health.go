@@ -22,6 +22,11 @@ type HealthResponse struct {
 
 // HealthHandler returns an http.HandlerFunc that responds with a simple
 // {"status": "up"} JSON payload. Use this for basic liveness probes.
+//
+// json.Encoder.Encode appends a trailing newline after the JSON body,
+// producing `{"status":"up"}\n` (16 bytes). This is intentional: the newline
+// improves terminal output and matches the convention of json.Marshal followed
+// by fmt.Println. The exact-byte test in health_test.go guards this behavior.
 func HealthHandler() http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "application/json")

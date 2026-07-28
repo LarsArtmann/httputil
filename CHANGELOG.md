@@ -6,12 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-29
+
 ### Changed
 
 - **Breaking:** `RequestIDConfig.HeaderName` renamed to `ResponseHeader` — the field sets the outgoing response header, not a vague "header name."
 - **Breaking:** `RequestIDConfig.ForwardHeader` renamed to `IncomingHeader` — the field reads an incoming request header, not forwards one.
 - **Breaking:** `DefaultCORSConfig()` now sets `DenyUnmatched: true` — unmatched origins are denied by default instead of falling back to wildcard `*`. Set `DenyUnmatched: false` to preserve old behavior.
 - Corresponding sentinel errors renamed: `errEmptyHeaderName` → `errEmptyResponseHeader`, `errEmptyForwardHdr` → `errEmptyIncomingHeader` (unexported, but test-visible).
+- Test coverage improved from 93.9% to 95.2% total (94.4% `httputil`, 98.3% `httpspec`).
+- Four historical status reports annotated with jsonv2 resolution notes (v0.6.1 fixed the build permanently).
 
 ### Added
 
@@ -24,7 +28,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fuzz tests: `FuzzParseUintQuery`, `FuzzCORSOriginMatching`, `FuzzEvictionTTL`, `FuzzHealthHandler`.
 - Benchmark: `BenchmarkTokenBucketLimiter` and `BenchmarkTokenBucketLimiterWithEviction`.
 - Example functions: `ExampleParseUintQuery`, `ExampleReadyHandlerWithProbe`.
+- Test for compression custom factory without Reset support (covers `startCompression` fresh-writer path).
+- Validate success-path tests for `MetricsConfig` and `RateLimitConfig`.
+- CORS edge-case tests: wildcard with port, empty allowlist with DenyUnmatched.
+- Health handler exact-byte test guarding JSON encoding stability.
 - CONTRIBUTING.md expanded: govulncheck in quality gate, versioning policy, CHANGELOG contribution rules, nix flake app inventory, minimum Go version policy.
+- README badges: coverage, govulncheck, Go version, license.
+- `health.go` doc comment documenting `json.Encoder` trailing newline behavior.
 
 ## [0.6.1] - 2026-07-26
 

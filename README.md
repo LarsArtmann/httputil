@@ -1,5 +1,11 @@
 # httputil
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
+[![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
+[![Coverage](https://img.shields.io/badge/coverage-95.2%25-brightgreen)](#)
+[![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+
 Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, configurable HTTP server, and standard health checks.
 
 Minimal footprint — two dependencies (`go-error-family` same-author + `golang.org/x/time`). Pure stdlib `net/http`. Go 1.26+.
@@ -476,6 +482,8 @@ handler := httputil.Compression(cfg)(mux)
 
 This keeps the core package dependency-free while allowing you to plug in any encoder that implements `io.WriteCloser`.
 
+For a complete guide including pool reuse and brotli/zstd patterns, see the [compression extensibility example](docs/integrations/brotli-zstd.md).
+
 ### Framework Integration
 
 httputil composes cleanly with declarative API frameworks like [Huma](https://huma.rocks/), which generates OpenAPI 3.1 + JSON Schema from Go types but deliberately ships no middleware. Both target the same Go 1.22+ `http.ServeMux` via the [`humago`](https://pkg.go.dev/github.com/danielgtaylor/huma/v2/adapters/humago) adapter — no third-party router required:
@@ -497,6 +505,8 @@ handler := httputil.Chain(router, // httputil: compression, security, logging
 See the [full integration example](docs/integrations/huma.md) and the [detailed comparison](docs/research/2026-07-05_httputil-vs-huma.md).
 
 For dependency injection and graceful lifecycle management, pair httputil with [samber/do](https://do.samber.dev/) — `httputil.Server.Shutdown(context.Context) error` satisfies `do.ShutdownerWithContextAndError` structurally, so the container discovers and shuts down the HTTP server automatically. See the [composition-root example](docs/integrations/samber-do.md).
+
+For distributed rate limiting, see the [Redis-backed RateLimiter example](docs/integrations/redis-ratelimiter.md). For observability, see the [Prometheus MetricsRecorder example](docs/integrations/prometheus-metrics.md).
 
 ## Development
 
