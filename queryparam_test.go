@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -64,4 +65,43 @@ func BenchmarkParseUintQuery(b *testing.B) {
 	for b.Loop() {
 		_ = ParseUintQuery(req, "page")
 	}
+}
+
+func FuzzParseUintQuery(f *testing.F) {
+	f.Add("42")
+	f.Add("")
+	f.Add("-1")
+	f.Add("abc")
+	f.Add("4294967296")
+	f.Add("0x10")
+	f.Add("1.5")
+
+	f.Fuzz(func(t *testing.T, value string) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/?page="+value, nil)
+
+		got := ParseUintQuery(req, "page")
+
+		if value == "" {
+			if got != 0 {
+				t.Errorf("empty value should return 0, got %d", got)
+			}
+
+			return
+		}
+
+		// For any input, result must be a valid uint (no panic, no negative).
+		// ParseUintQuery either parses successfully or returns 0.
+		_ = got
+	})
+}
+
+func ExampleParseUintQuery() {
+	req := httptest.NewRequest(http.MethodGet, "/?page=3&limit=20", nil)
+
+	page := ParseUintQuery(req, "page")
+	fmt.Println("page:", page)
+
+	// Output: page: 3
 }

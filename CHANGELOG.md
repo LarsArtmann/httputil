@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Breaking:** `RequestIDConfig.HeaderName` renamed to `ResponseHeader` — the field sets the outgoing response header, not a vague "header name."
 - **Breaking:** `RequestIDConfig.ForwardHeader` renamed to `IncomingHeader` — the field reads an incoming request header, not forwards one.
+- **Breaking:** `DefaultCORSConfig()` now sets `DenyUnmatched: true` — unmatched origins are denied by default instead of falling back to wildcard `*`. Set `DenyUnmatched: false` to preserve old behavior.
 - Corresponding sentinel errors renamed: `errEmptyHeaderName` → `errEmptyResponseHeader`, `errEmptyForwardHdr` → `errEmptyIncomingHeader` (unexported, but test-visible).
 
 ### Added

@@ -353,7 +353,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `MaxAge`             | `int`      | `86400`                                                | Preflight cache duration in seconds                                              |
 | `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin                                                  |
 | `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler                                              |
-| `DenyUnmatched`      | `bool`     | `false`                                                | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (security hardening) |
+| `DenyUnmatched`      | `bool`     | `true`                                                 | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (secure by default) |
 
 ### `ResponseRecorder` methods
 
