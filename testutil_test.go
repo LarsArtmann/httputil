@@ -257,11 +257,11 @@ func assertClassified(t *testing.T, err error, wantFamily errorfamily.Family, wa
 // newRequestIDConfigForTest returns a RequestIDConfig with a stub ID
 // generator and the supplied header names. Used by validation tests where
 // the exact header field under test is the only varying input.
-func newRequestIDConfigForTest(headerName, forwardHeader string) RequestIDConfig {
+func newRequestIDConfigForTest(responseHeader, incomingHeader string) RequestIDConfig {
 	return RequestIDConfig{
-		HeaderName:    headerName,
-		ForwardHeader: forwardHeader,
-		GenerateID:    func() string { return "id" },
+		ResponseHeader: responseHeader,
+		IncomingHeader: incomingHeader,
+		GenerateID:     func() string { return "id" },
 	}
 }
 

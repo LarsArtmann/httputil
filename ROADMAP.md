@@ -13,10 +13,8 @@ question, then committing to stability for the public surface.
 
 Raw ideas:
 
-- Rename `RequestIDConfig.ForwardHeader` to `IncomingHeader` — it reads an
-  incoming header, not forwards one. The most dishonest name in the codebase.
-- Rename `RequestIDConfig.HeaderName` to `ResponseHeader` — vague name for the
-  outgoing response header.
+- ~~Rename `RequestIDConfig.ForwardHeader` to `IncomingHeader`~~ — done in v0.7.0.
+- ~~Rename `RequestIDConfig.HeaderName` to `ResponseHeader`~~ — done in v0.7.0.
 - Evaluate flipping `DenyUnmatched` default to `true` so the CORS allowlist is
   secure by default rather than by opt-in.
 - Define which APIs are frozen at v1.0 and document the stability guarantee.

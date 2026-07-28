@@ -215,10 +215,10 @@ Invariants and policies that the library enforces.
 
 ### Request ID Rules
 
-- If the `ForwardHeader` is present on the request, its value is used as the request ID
+- If the `IncomingHeader` is present on the request, its value is used as the request ID
 - If absent, `GenerateID` is called to produce a new ID
-- The ID is stored in the request context and set as a response header named `HeaderName`
-- `Validate()` rejects nil `GenerateID`, empty `HeaderName`, and empty `ForwardHeader`
+- The ID is stored in the request context and set as a response header named `ResponseHeader`
+- `Validate()` rejects nil `GenerateID`, empty `ResponseHeader`, and empty `IncomingHeader`
 
 ### Recovery Rules
 

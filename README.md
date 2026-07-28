@@ -414,9 +414,9 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 | Field           | Type           | Default        | Description                                                        |
 | --------------- | -------------- | -------------- | ------------------------------------------------------------------ |
-| `HeaderName`    | `string`       | `"X-Request-ID"` | Response header to set with the resolved request ID              |
+| `ResponseHeader` | `string`       | `"X-Request-ID"` | Response header to set with the resolved request ID              |
 | `GenerateID`    | `func() string` | Time-ordered hex | ID generator invoked when no incoming header is present        |
-| `ForwardHeader` | `string`       | `"X-Request-ID"` | Incoming request header to read the upstream ID from           |
+| `IncomingHeader` | `string`       | `"X-Request-ID"` | Incoming request header to read the upstream ID from           |
 
 ### `ServerConfig` fields
 

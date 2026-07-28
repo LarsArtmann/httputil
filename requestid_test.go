@@ -62,12 +62,12 @@ func FuzzRequestID(f *testing.F) {
 		handler := RequestID(cfg)(newNoOpHandler())
 
 		req := newTestRequest(http.MethodGet, "/", "")
-		req.Header.Set(cfg.ForwardHeader, headerValue)
+		req.Header.Set(cfg.IncomingHeader, headerValue)
 
 		rec := newRecorder()
 		handler.ServeHTTP(rec, req)
 
-		got := rec.Header().Get(cfg.HeaderName)
+		got := rec.Header().Get(cfg.ResponseHeader)
 		if got == "" {
 			t.Error("request ID header is empty")
 		}
@@ -89,9 +89,9 @@ func TestRequestIDConfig_Validate_NilGenerateID(t *testing.T) {
 	t.Parallel()
 
 	cfg := RequestIDConfig{
-		HeaderName:    "X-Request-ID",
-		ForwardHeader: "X-Request-ID",
-		GenerateID:    nil,
+		ResponseHeader: "X-Request-ID",
+		IncomingHeader: "X-Request-ID",
+		GenerateID:     nil,
 	}
 
 	err := cfg.Validate()
@@ -104,33 +104,33 @@ func TestRequestIDConfig_Validate_NilGenerateID(t *testing.T) {
 	}
 }
 
-func TestRequestIDConfig_Validate_EmptyHeaderName(t *testing.T) {
+func TestRequestIDConfig_Validate_EmptyResponseHeader(t *testing.T) {
 	t.Parallel()
 
 	cfg := newRequestIDConfigForTest("", "X-Request-ID")
 
 	err := cfg.Validate()
 	if err == nil {
-		t.Fatal("Validate() error = nil, want error for empty HeaderName")
+		t.Fatal("Validate() error = nil, want error for empty ResponseHeader")
 	}
 
-	if !errors.Is(err, errEmptyHeaderName) {
-		t.Errorf("Validate() error = %v, want errEmptyHeaderName", err)
+	if !errors.Is(err, errEmptyResponseHeader) {
+		t.Errorf("Validate() error = %v, want errEmptyResponseHeader", err)
 	}
 }
 
-func TestRequestIDConfig_Validate_EmptyForwardHeader(t *testing.T) {
+func TestRequestIDConfig_Validate_EmptyIncomingHeader(t *testing.T) {
 	t.Parallel()
 
 	cfg := newRequestIDConfigForTest("X-Request-ID", "")
 
 	err := cfg.Validate()
 	if err == nil {
-		t.Fatal("Validate() error = nil, want error for empty ForwardHeader")
+		t.Fatal("Validate() error = nil, want error for empty IncomingHeader")
 	}
 
-	if !errors.Is(err, errEmptyForwardHdr) {
-		t.Errorf("Validate() error = %v, want errEmptyForwardHdr", err)
+	if !errors.Is(err, errEmptyIncomingHeader) {
+		t.Errorf("Validate() error = %v, want errEmptyIncomingHeader", err)
 	}
 }
 

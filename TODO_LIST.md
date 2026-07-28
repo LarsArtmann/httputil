@@ -18,6 +18,6 @@ _Updated: 2026-07-26._
 
 ---
 
-_Breaking naming changes (`ForwardHeader`, `HeaderName`) and the v1.0 stability
-plan live in [ROADMAP.md](ROADMAP.md) — they are gated on a major version and are
-not short-term actionable._
+_The breaking naming changes (`ForwardHeader`→`IncomingHeader`,
+`HeaderName`→`ResponseHeader`) were completed in v0.7.0. The v1.0 stability plan
+lives in [ROADMAP.md](ROADMAP.md)._

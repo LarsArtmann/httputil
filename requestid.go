@@ -12,9 +12,9 @@ const defaultRequestIDHeader = "X-Request-ID"
 
 // RequestIDConfig holds the configuration for the request ID middleware.
 type RequestIDConfig struct {
-	HeaderName    string
-	GenerateID    func() string
-	ForwardHeader string
+	ResponseHeader string
+	GenerateID     func() string
+	IncomingHeader string
 }
 
 // DefaultRequestIDConfig returns a RequestIDConfig that reads the X-Request-ID
@@ -23,16 +23,16 @@ type RequestIDConfig struct {
 // within a second, and unique across the process.
 func DefaultRequestIDConfig() RequestIDConfig {
 	return RequestIDConfig{
-		HeaderName:    defaultRequestIDHeader,
-		ForwardHeader: defaultRequestIDHeader,
-		GenerateID:    generateTimeOrderedID,
+		ResponseHeader: defaultRequestIDHeader,
+		IncomingHeader: defaultRequestIDHeader,
+		GenerateID:     generateTimeOrderedID,
 	}
 }
 
 var (
-	errNilGenerateID   = errors.New("RequestIDConfig.GenerateID must not be nil")
-	errEmptyHeaderName = errors.New("RequestIDConfig.HeaderName must not be empty")
-	errEmptyForwardHdr = errors.New("RequestIDConfig.ForwardHeader must not be empty")
+	errNilGenerateID       = errors.New("RequestIDConfig.GenerateID must not be nil")
+	errEmptyResponseHeader = errors.New("RequestIDConfig.ResponseHeader must not be empty")
+	errEmptyIncomingHeader = errors.New("RequestIDConfig.IncomingHeader must not be empty")
 )
 
 // Validate checks the RequestIDConfig for invalid values.
@@ -41,12 +41,12 @@ func (c RequestIDConfig) Validate() error {
 		return errNilGenerateID
 	}
 
-	if c.HeaderName == "" {
-		return errEmptyHeaderName
+	if c.ResponseHeader == "" {
+		return errEmptyResponseHeader
 	}
 
-	if c.ForwardHeader == "" {
-		return errEmptyForwardHdr
+	if c.IncomingHeader == "" {
+		return errEmptyIncomingHeader
 	}
 
 	return nil
@@ -57,12 +57,12 @@ func (c RequestIDConfig) Validate() error {
 func RequestID(cfg RequestIDConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			requestID := req.Header.Get(cfg.ForwardHeader)
+			requestID := req.Header.Get(cfg.IncomingHeader)
 			if requestID == "" {
 				requestID = cfg.GenerateID()
 			}
 
-			resp.Header().Set(cfg.HeaderName, requestID)
+			resp.Header().Set(cfg.ResponseHeader, requestID)
 
 			ctx := context.WithValue(req.Context(), requestIDKey{}, requestID)
 			next.ServeHTTP(resp, req.WithContext(ctx))
