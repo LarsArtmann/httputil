@@ -291,3 +291,7 @@ The metrics snapshot above was accurate at the time of writing but is now stale.
 - Item 9 (release strategy) — v0.6.0 tagged, strategy for v0.7.0 still TBD
 
 See `2026-07-22_11-01_flake-fix-and-doc-corrections.md` for the follow-up session that resolved these items.
+
+---
+
+> **Resolution (2026-07-26, v0.6.1):** The `GOEXPERIMENT=jsonv2` build requirement referenced throughout this report (sections d, e.5, f.5-7, g.Q3) was fully eliminated in v0.6.1. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1. The `GOEXPERIMENT` workaround was removed from `flake.nix` (all insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...`, `go test ./...`, and `go get` now work without any experiment flag. Item f.15 (6 config field tables) is also now done.

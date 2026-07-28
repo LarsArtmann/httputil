@@ -202,3 +202,7 @@ _Report generated from session on 2026-07-16 07:30 CEST. Based on the current wo
 | `GOEXPERIMENT` in flake | **Open** | `flake.nix` does not set `GOEXPERIMENT=jsonv2` in the devShell; contributors must remember the env var          |
 
 The rate-limiter switch shipped, but the two critical build issues (jsonv2 requirement, Go 1.27 API on Go 1.26) remain unresolved.
+
+---
+
+> **Resolution (2026-07-26, v0.6.1):** All three "Open" build items above are now resolved. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1, eliminating the `GOEXPERIMENT=jsonv2` requirement and the Go 1.27 API dependency entirely. The `GOEXPERIMENT` workaround was removed from `flake.nix` (7 insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...` and `go get` now work without any experiment flag.

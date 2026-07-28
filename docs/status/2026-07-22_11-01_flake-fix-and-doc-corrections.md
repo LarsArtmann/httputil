@@ -302,3 +302,7 @@ The metrics snapshot above was accurate at session close. Subsequent commits res
 | `modularity.html` body prose "at 28 files" (b.1)    | Inline-corrected — notes the `compress/` split was evaluated and rejected (circular import); root pkg now 62 files   | this session            |
 
 **Still open:** the `encoding/json/v2` root cause (sections g.Q1 / e.5) remains unresolved — `health.go` still imports `encoding/json/v2` and `GOEXPERIMENT=jsonv2` is still set in `flake.nix` (7 insertion points). The flake workaround (this session's deliverable) means `nix develop` and all `nix run .#*` apps build without manual env vars, but `go get` consumers outside Nix still hit a build failure. See TODO_LIST "Resolve `encoding/json/v2` permanently".
+
+---
+
+> **Final Resolution (2026-07-26, v0.6.1):** The `encoding/json/v2` root cause described above as "still open" is now **fully resolved**. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1 (`json.NewEncoder`), eliminating the `GOEXPERIMENT=jsonv2` requirement and the Go 1.27 API dependency entirely. The `GOEXPERIMENT` workaround was removed from `flake.nix` (all 7 insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...` and `go get` now work without any experiment flag. The answer to Q1 ("should jsonv2 be kept or reverted?") was: **reverted** — the health handler's tiny 2-field struct gains nothing from jsonv2.

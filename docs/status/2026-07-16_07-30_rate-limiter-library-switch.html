@@ -887,6 +887,14 @@
             The two build issues (GOEXPERIMENT=jsonv2 requirement, Go 1.27 API on Go 1.26) remain
             unresolved. CHANGELOG and TODO_LIST are still not updated for this change.
           </p>
+          <p class="callout callout-success" style="margin-top: 12px; padding: 12px; border-radius: 6px; background: #d4edda; border-left: 4px solid #28a745;">
+            <strong>Final Resolution (2026-07-26, v0.6.1):</strong> All build issues are now
+            <strong>fully resolved</strong>. <code>health.go</code> was reverted from
+            <code>encoding/json/v2</code> to <code>encoding/json</code> v1, eliminating the
+            <code>GOEXPERIMENT=jsonv2</code> requirement entirely. The workaround was removed from
+            <code>flake.nix</code>, CI, and all docs. Plain <code>go build ./...</code> and
+            <code>go get</code> now work without any experiment flag.
+          </p>
         </div>
       </main>
     </div>
