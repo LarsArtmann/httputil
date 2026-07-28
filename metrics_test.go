@@ -112,3 +112,15 @@ func TestMetricsConfigValidateRejectsNilRecorder(t *testing.T) {
 		t.Fatal("expected error for nil Recorder, got nil")
 	}
 }
+
+func TestMetricsConfigValidateAcceptsValidConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultMetricsConfig()
+	cfg.Recorder = &mockMetricsRecorder{}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("expected nil for valid config, got %v", err)
+	}
+}

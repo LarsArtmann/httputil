@@ -412,3 +412,53 @@ func TestCompression_NilIncompressibleTypesUsesDefaults(t *testing.T) {
 		t.Errorf("Content-Encoding = %q, want empty for image/png with default skip list", got)
 	}
 }
+
+// simpleWriteCloser implements io.WriteCloser but NOT Reset or Flush,
+// exercising the fresh-writer fallback and nopFlushCloser wrapper in
+// startCompression.
+type simpleWriteCloser struct {
+	dst io.Writer
+}
+
+func (w *simpleWriteCloser) Write(p []byte) (int, error) {
+	return w.dst.Write(p)
+}
+
+func (w *simpleWriteCloser) Close() error {
+	return nil
+}
+
+func TestCompression_CustomFactoryWithoutReset(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.WriterFactories = map[string]WriterFactory{
+		"gzip":    GzipWriterFactory(cfg.Level),
+		"deflate": DeflateWriterFactory(cfg.Level),
+		"identity": passthroughFactory,
+		"custom": func(dst io.Writer) (io.WriteCloser, error) {
+			return &simpleWriteCloser{dst: dst}, nil
+		},
+	}
+
+	handler := Compression(cfg)(
+		newTypedBodyHandler("text/plain", strings.Repeat("a", defaultCompressionMinSize+1)),
+	)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, "custom")
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertHeader(t, rec, headerContentEncoding, "custom")
+
+	if rec.Body.Len() != defaultCompressionMinSize+1 {
+		t.Errorf(
+			"body length = %d, want %d (passthrough, no compression)",
+			rec.Body.Len(),
+			defaultCompressionMinSize+1,
+		)
+	}
+}

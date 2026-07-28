@@ -197,6 +197,23 @@ func TestRateLimitConfigValidateRejectsNilLimiter(t *testing.T) {
 	}
 }
 
+func TestRateLimitConfigValidateAcceptsValidConfig(t *testing.T) {
+	t.Parallel()
+
+	limiter, err := NewTokenBucketLimiter(10, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := DefaultRateLimitConfig()
+	cfg.Limiter = limiter
+
+	err = cfg.Validate()
+	if err != nil {
+		t.Errorf("expected nil for valid config, got %v", err)
+	}
+}
+
 func TestNewTokenBucketLimiterRejectsNonPositiveRate(t *testing.T) {
 	t.Parallel()
 
