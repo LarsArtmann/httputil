@@ -358,3 +358,28 @@ func BenchmarkTokenBucketLimiterWithEviction(b *testing.B) {
 		limiter.Allow(fmt.Sprintf("ip-%d", i%1000))
 	}
 }
+
+// TestRateLimit_DefaultStatusWhenZero covers the status==0 branch of RateLimit:
+// when cfg.Status is zero (not set), the middleware defaults to 429.
+func TestRateLimit_DefaultStatusWhenZero(t *testing.T) {
+	t.Parallel()
+
+	cfg := RateLimitConfig{
+		Limiter: &alwaysDenyLimiter{},
+	}
+	handler := RateLimit(cfg)(newStatusOnlyHandler(http.StatusOK))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusTooManyRequests {
+		t.Errorf("status = %d, want %d (default when Status=0)", rec.Code, http.StatusTooManyRequests)
+	}
+}
+
+type alwaysDenyLimiter struct{}
+
+func (*alwaysDenyLimiter) Allow(string) bool { return false }
