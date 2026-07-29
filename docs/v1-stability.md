@@ -127,7 +127,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ----------------------- | -------- | ---------------------------------- |
 | `RateLimiter`           | Frozen   | Interface                          |
 | `RateLimitConfig`       | Additive |                                    |
-| `TokenBucketLimiter`    | Additive | `EvictionTTL` field may be added   |
+| `TokenBucketLimiter`    | Additive | `EvictionTTL` field exists since v0.6.0; additional fields may be added |
 | `NewTokenBucketLimiter` | Frozen   |                                    |
 
 ### Compression (Frozen at v1.0)
