@@ -310,3 +310,134 @@ func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
 
 	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }
+
+// TestCompressWriter_StartCompression_BufferedWriteError verifies that a
+// failure while writing the buffered prefix during startCompression surfaces a
+// classified error. This also covers the startCompression-error branch of
+// startCompressAndStream.
+func TestCompressWriter_StartCompression_BufferedWriteError(t *testing.T) {
+	t.Parallel()
+
+	factory := func(io.Writer) (io.WriteCloser, error) {
+		return &failingCompressWriter{failWrite: true}, nil
+	}
+
+	cw := newCompressWriter(
+		newRecorder(),
+		1,
+		encodingGzip,
+		factory,
+		&sync.Pool{New: func() any { return &failingCompressWriter{} }},
+		nil,
+	)
+	cw.WriteHeader(http.StatusOK)
+
+	_, err := cw.Write([]byte("a"))
+
+	assertCompressClassified(t, err, errMockCompressWriteFailed)
+}
+
+// TestCompressWriter_StartCompressAndStream_PoolError covers the
+// startCompression-error propagation branch of startCompressAndStream.
+func TestCompressWriter_StartCompressAndStream_PoolError(t *testing.T) {
+	t.Parallel()
+
+	cw := newTestCompressWriter()
+	cw.pool = &sync.Pool{New: func() any { return &nonWriter{} }}
+	cw.WriteHeader(http.StatusOK)
+
+	_, err := cw.startCompressAndStream([]byte("x"), 1)
+
+	assertCompressClassified(t, err, errUnexpectedPoolType)
+}
+
+// TestCompressWriter_StartCompressAndStream_EmptyRemainder covers the
+// len(b)==0 early-return branch of startCompressAndStream.
+func TestCompressWriter_StartCompressAndStream_EmptyRemainder(t *testing.T) {
+	t.Parallel()
+
+	cw := newTestCompressWriter()
+	cw.WriteHeader(http.StatusOK)
+
+	n, err := cw.startCompressAndStream([]byte{}, 0)
+	if err != nil {
+		t.Fatalf("error = %v, want nil", err)
+	}
+
+	if n != 0 {
+		t.Errorf("returned %d, want 0", n)
+	}
+}
+
+// TestCompressWriter_FlushInPlainMode covers the plain-mode branch of Flush:
+// after the first Flush transitions the writer to plain mode and drains the
+// buffer, a second Flush must take the w.plain early-return path.
+func TestCompressWriter_FlushInPlainMode(t *testing.T) {
+	t.Parallel()
+
+	cw := newTestCompressWriter()
+	cw.WriteHeader(http.StatusOK)
+
+	_, _ = cw.Write([]byte("small"))
+	cw.Flush()
+	cw.Flush()
+}
+
+// TestCompressWriter_FlushPlainAndStream_EmptyRemainder covers the len(b)==0
+// early-return branch of flushPlainAndStream. This branch is unreachable
+// through the public Write path (writeBuffered always forwards a non-empty
+// remainder), so it is exercised via a direct method call.
+func TestCompressWriter_FlushPlainAndStream_EmptyRemainder(t *testing.T) {
+	t.Parallel()
+
+	cw := newTestCompressWriter()
+	cw.WriteHeader(http.StatusNotFound)
+
+	_, _ = cw.Write([]byte("x"))
+
+	n, err := cw.flushPlainAndStream([]byte{}, 0)
+	if err != nil {
+		t.Fatalf("error = %v, want nil", err)
+	}
+
+	if n != 0 {
+		t.Errorf("returned %d, want 0", n)
+	}
+}
+
+// TestNewWriterPool_PanicsOnFactoryError covers the panic branch in
+// newWriterPool when the factory fails to construct a writer.
+func TestNewWriterPool_PanicsOnFactoryError(t *testing.T) {
+	t.Parallel()
+
+	badFactory := WriterFactory(func(io.Writer) (io.WriteCloser, error) {
+		return nil, errMockCompressWriteFailed
+	})
+
+	pool := newWriterPool(badFactory)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("pool.Get() did not panic on factory error")
+		}
+	}()
+
+	_ = pool.Get()
+}
+
+// TestPassthroughFactory covers passthroughFactory directly. It is part of the
+// DefaultWriterFactories contract but never reached through the Compression
+// middleware, which short-circuits the identity encoding before the factory is
+// invoked.
+func TestPassthroughFactory(t *testing.T) {
+	t.Parallel()
+
+	w, err := passthroughFactory(io.Discard)
+	if err != nil {
+		t.Fatalf("passthroughFactory error = %v", err)
+	}
+
+	if err := w.Close(); err != nil {
+		t.Errorf("Close error = %v", err)
+	}
+}
