@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -113,24 +114,38 @@ func TestHealthHandler_ExactBytes(t *testing.T) {
 	}
 }
 
-func FuzzHealthHandler(f *testing.F) {
+// FuzzHealthResponse_Encoding fuzzes arbitrary HealthStatus values through the
+// JSON encoder to verify the response is always valid, parseable JSON that
+// round-trips cleanly and never panics — regardless of the status string. This
+// guards the encoding contract that Kubernetes probes and monitoring tools
+// depend on. It replaces an earlier version that fuzzed request paths, which the
+// health handler ignores entirely.
+func FuzzHealthResponse_Encoding(f *testing.F) {
+	f.Add("up")
+	f.Add("down")
 	f.Add("")
-	f.Add("GET")
-	f.Add("/health/ready")
+	f.Add("status with spaces")
+	f.Add(`value"with"quotes`)
+	f.Add("unicode: ✓ café")
 
-	f.Fuzz(func(t *testing.T, path string) {
+	f.Fuzz(func(t *testing.T, status string) {
 		t.Parallel()
 
-		handler := HealthHandler()
-		rec := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/"+path, nil)
+		var buf bytes.Buffer
 
-		handler.ServeHTTP(rec, req)
+		err := json.NewEncoder(&buf).Encode(HealthResponse{Status: HealthStatus(status)})
+		if err != nil {
+			t.Fatalf("Encode error = %v, want nil for status %q", err, status)
+		}
 
-		// Primary assertion: no panic. Secondary: 200 for the health handler.
-		if rec.Code != http.StatusOK {
-			// HealthHandler always returns 200 regardless of path.
-			t.Errorf("HealthHandler status = %d, want 200", rec.Code)
+		var resp HealthResponse
+
+		if err := json.Unmarshal(buf.Bytes(), &resp); err != nil {
+			t.Fatalf("Unmarshal error = %v, want nil for encoded %q", err, buf.String())
+		}
+
+		if resp.Status != HealthStatus(status) {
+			t.Errorf("round-trip status = %q, want %q", resp.Status, status)
 		}
 	})
 }
