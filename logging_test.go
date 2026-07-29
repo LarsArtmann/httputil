@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log/slog"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -28,6 +29,27 @@ func TestLogging_RecordsRequest(t *testing.T) {
 
 	if buf.Len() == 0 {
 		t.Error("expected log output")
+	}
+}
+
+// TestLogging_DefaultStatus covers the status==0 branch: when the handler
+// does not call WriteHeader, Logging defaults to 200.
+func TestLogging_DefaultStatus(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(buf, nil))
+
+	handler := Logging(logger)(newNoOpHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	output := buf.String()
+	if !strings.Contains(output, "status=200") {
+		t.Errorf("log output does not contain status=200: %s", output)
 	}
 }
 

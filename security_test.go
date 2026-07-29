@@ -57,6 +57,58 @@ func TestSecurityHeadersConfig_Validate_ValidDefault(t *testing.T) {
 	}
 }
 
+// TestSecurityHeaders_AllSet covers every header branch including HSTS,
+// which the existing tests omit.
+func TestSecurityHeaders_AllSet(t *testing.T) {
+	t.Parallel()
+
+	cfg := SecurityHeadersConfig{
+		ContentTypeNosniff:      true,
+		FrameOptions:            "SAMEORIGIN",
+		ReferrerPolicy:          "no-referrer",
+		ContentSecurityPolicy:   "default-src 'self'",
+		StrictTransportSecurity: "max-age=31536000",
+	}
+
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertHeader(t, rec, "X-Content-Type-Options", "nosniff")
+	assertHeader(t, rec, "X-Frame-Options", "SAMEORIGIN")
+	assertHeader(t, rec, "Referrer-Policy", "no-referrer")
+	assertHeader(t, rec, "Content-Security-Policy", "default-src 'self'")
+	assertHeader(t, rec, "Strict-Transport-Security", "max-age=31536000")
+}
+
+// TestSecurityHeaders_EmptyConfig covers the all-false/empty branch where
+// no security headers are set.
+func TestSecurityHeaders_EmptyConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := SecurityHeadersConfig{}
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	for _, header := range []string{
+		"X-Content-Type-Options",
+		"X-Frame-Options",
+		"Referrer-Policy",
+		"Content-Security-Policy",
+		"Strict-Transport-Security",
+	} {
+		if got := rec.Header().Get(header); got != "" {
+			t.Errorf("%s = %q, want empty", header, got)
+		}
+	}
+}
+
 func TestSecurityHeadersConfig_Validate_EmptyConfig(t *testing.T) {
 	t.Parallel()
 
