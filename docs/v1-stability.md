@@ -34,6 +34,21 @@ This document enumerates every exported symbol and classifies its stability comm
 | `ServerConfig`             | Additive  |                                                             |
 | `ResponseRecorder`         | Additive  | Existing methods frozen; new methods may be added           |
 
+### Default Config Constructors (all Frozen at v1.0)
+
+Each returns a config with sensible defaults. Frozen at v1.0.
+
+| Constructor                      | Config                      |
+| -------------------------------- | --------------------------- |
+| `DefaultCORSConfig`              | `CORSConfig`                |
+| `DefaultCompressionConfig`       | `CompressionConfig`         |
+| `DefaultETagConfig`              | `ETagConfig`                |
+| `DefaultMetricsConfig`           | `MetricsConfig`             |
+| `DefaultRateLimitConfig`         | `RateLimitConfig`           |
+| `DefaultRequestIDConfig`         | `RequestIDConfig`           |
+| `DefaultSecurityHeadersConfig`   | `SecurityHeadersConfig`     |
+| `DefaultServerConfig`            | `ServerConfig`              |
+
 ### Middleware Factory Functions (all Frozen at v1.0)
 
 | Function              | Signature                                                      |
@@ -132,6 +147,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | --------------------- | -------- |
 | `NewMiddlewareStack`  | Frozen   |
 | `MiddlewareStack`     | Additive |
+| `Middleware*` constants (9) | Frozen | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareETag`, `MiddlewareTimeout`, `MiddlewareClientIP`) |
 
 ### Query Parsing (Frozen at v1.0)
 

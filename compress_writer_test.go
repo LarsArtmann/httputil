@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 
@@ -167,13 +168,13 @@ type flakyWriteCloser struct {
 	writes int
 }
 
-func (w *flakyWriteCloser) Write(p []byte) (int, error) {
+func (w *flakyWriteCloser) Write(data []byte) (int, error) {
 	w.writes++
 	if w.writes > 1 {
 		return 0, errMockCompressWriteFailed
 	}
 
-	return len(p), nil
+	return len(data), nil
 }
 
 func (*flakyWriteCloser) Close() error { return nil }
@@ -207,17 +208,17 @@ var erroringFactory = WriterFactory(func(io.Writer) (io.WriteCloser, error) {
 func TestCompressWriter_PassthroughWriterRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	cw := newTestCompressWriter()
-	cw.WriteHeader(http.StatusOK)
+	compressWriter := newTestCompressWriter()
+	compressWriter.WriteHeader(http.StatusOK)
 
-	err := cw.startCompression()
+	err := compressWriter.startCompression()
 	if err != nil {
 		t.Fatalf("startCompression error = %v", err)
 	}
 
-	cw.Flush()
+	compressWriter.Flush()
 
-	err = cw.Close()
+	err = compressWriter.Close()
 	if err != nil {
 		t.Fatalf("Close error = %v, want nil", err)
 	}
@@ -230,7 +231,7 @@ func TestCompressWriter_StreamWriteError(t *testing.T) {
 	t.Parallel()
 
 	factory := func(io.Writer) (io.WriteCloser, error) { return &flakyWriteCloser{}, nil }
-	cw := newCompressWriter(
+	compressWriter := newCompressWriter(
 		newRecorder(),
 		1,
 		encodingGzip,
@@ -238,9 +239,9 @@ func TestCompressWriter_StreamWriteError(t *testing.T) {
 		&sync.Pool{New: func() any { return &flakyWriteCloser{} }},
 		nil,
 	)
-	cw.WriteHeader(http.StatusOK)
+	compressWriter.WriteHeader(http.StatusOK)
 
-	_, err := cw.Write([]byte("ab"))
+	_, err := compressWriter.Write([]byte("ab"))
 
 	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }
@@ -251,7 +252,7 @@ func TestCompressWriter_StreamWriteError(t *testing.T) {
 func TestCompressWriter_FlushPlainBufferedWriteError(t *testing.T) {
 	t.Parallel()
 
-	cw := newCompressWriter(
+	compressWriter := newCompressWriter(
 		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
 		defaultCompressionMinSize,
 		encodingGzip,
@@ -259,10 +260,10 @@ func TestCompressWriter_FlushPlainBufferedWriteError(t *testing.T) {
 		newWriterPool(testPassthroughFactory),
 		nil,
 	)
-	cw.WriteHeader(http.StatusNotFound)
+	compressWriter.WriteHeader(http.StatusNotFound)
 
-	body := make([]byte, defaultCompressionMinSize+1)
-	_, err := cw.Write(body)
+	body := strings.Repeat("x", defaultCompressionMinSize+1)
+	_, err := compressWriter.Write([]byte(body))
 
 	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }
@@ -273,7 +274,7 @@ func TestCompressWriter_FlushPlainBufferedWriteError(t *testing.T) {
 func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
 	t.Parallel()
 
-	cw := newCompressWriter(
+	compressWriter := newCompressWriter(
 		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
 		defaultCompressionMinSize,
 		encodingGzip,
@@ -281,11 +282,11 @@ func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
 		newWriterPool(testPassthroughFactory),
 		nil,
 	)
-	cw.WriteHeader(http.StatusOK)
+	compressWriter.WriteHeader(http.StatusOK)
 
-	_, _ = cw.Write([]byte("tiny"))
+	_, _ = compressWriter.Write([]byte("tiny"))
 
-	err := cw.Close()
+	err := compressWriter.Close()
 
 	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }
@@ -296,7 +297,7 @@ func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
 func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
 	t.Parallel()
 
-	cw := newCompressWriter(
+	compressWriter := newCompressWriter(
 		newRecorder(),
 		defaultCompressionMinSize,
 		encodingGzip,
@@ -304,9 +305,9 @@ func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
 		newWriterPool(testPassthroughFactory),
 		nil,
 	)
-	cw.WriteHeader(http.StatusOK)
+	compressWriter.WriteHeader(http.StatusOK)
 
-	err := cw.startCompression()
+	err := compressWriter.startCompression()
 
 	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }
@@ -322,7 +323,7 @@ func TestCompressWriter_StartCompression_BufferedWriteError(t *testing.T) {
 		return &failingCompressWriter{failWrite: true}, nil
 	}
 
-	cw := newCompressWriter(
+	compressWriter := newCompressWriter(
 		newRecorder(),
 		1,
 		encodingGzip,
@@ -330,9 +331,9 @@ func TestCompressWriter_StartCompression_BufferedWriteError(t *testing.T) {
 		&sync.Pool{New: func() any { return &failingCompressWriter{} }},
 		nil,
 	)
-	cw.WriteHeader(http.StatusOK)
+	compressWriter.WriteHeader(http.StatusOK)
 
-	_, err := cw.Write([]byte("a"))
+	_, err := compressWriter.Write([]byte("a"))
 
 	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }
@@ -342,11 +343,11 @@ func TestCompressWriter_StartCompression_BufferedWriteError(t *testing.T) {
 func TestCompressWriter_StartCompressAndStream_PoolError(t *testing.T) {
 	t.Parallel()
 
-	cw := newTestCompressWriter()
-	cw.pool = &sync.Pool{New: func() any { return &nonWriter{} }}
-	cw.WriteHeader(http.StatusOK)
+	compressWriter := newTestCompressWriter()
+	compressWriter.pool = &sync.Pool{New: func() any { return &nonWriter{} }}
+	compressWriter.WriteHeader(http.StatusOK)
 
-	_, err := cw.startCompressAndStream([]byte("x"), 1)
+	_, err := compressWriter.startCompressAndStream([]byte("x"), 1)
 
 	assertCompressClassified(t, err, errUnexpectedPoolType)
 }
@@ -356,10 +357,10 @@ func TestCompressWriter_StartCompressAndStream_PoolError(t *testing.T) {
 func TestCompressWriter_StartCompressAndStream_EmptyRemainder(t *testing.T) {
 	t.Parallel()
 
-	cw := newTestCompressWriter()
-	cw.WriteHeader(http.StatusOK)
+	compressWriter := newTestCompressWriter()
+	compressWriter.WriteHeader(http.StatusOK)
 
-	n, err := cw.startCompressAndStream([]byte{}, 0)
+	n, err := compressWriter.startCompressAndStream([]byte{}, 0)
 	if err != nil {
 		t.Fatalf("error = %v, want nil", err)
 	}
@@ -375,12 +376,12 @@ func TestCompressWriter_StartCompressAndStream_EmptyRemainder(t *testing.T) {
 func TestCompressWriter_FlushInPlainMode(t *testing.T) {
 	t.Parallel()
 
-	cw := newTestCompressWriter()
-	cw.WriteHeader(http.StatusOK)
+	compressWriter := newTestCompressWriter()
+	compressWriter.WriteHeader(http.StatusOK)
 
-	_, _ = cw.Write([]byte("small"))
-	cw.Flush()
-	cw.Flush()
+	_, _ = compressWriter.Write([]byte("small"))
+	compressWriter.Flush()
+	compressWriter.Flush()
 }
 
 // TestCompressWriter_FlushPlainAndStream_EmptyRemainder covers the len(b)==0
@@ -390,12 +391,12 @@ func TestCompressWriter_FlushInPlainMode(t *testing.T) {
 func TestCompressWriter_FlushPlainAndStream_EmptyRemainder(t *testing.T) {
 	t.Parallel()
 
-	cw := newTestCompressWriter()
-	cw.WriteHeader(http.StatusNotFound)
+	compressWriter := newTestCompressWriter()
+	compressWriter.WriteHeader(http.StatusNotFound)
 
-	_, _ = cw.Write([]byte("x"))
+	_, _ = compressWriter.Write([]byte("x"))
 
-	n, err := cw.flushPlainAndStream([]byte{}, 0)
+	n, err := compressWriter.flushPlainAndStream([]byte{}, 0)
 	if err != nil {
 		t.Fatalf("error = %v, want nil", err)
 	}
@@ -437,7 +438,8 @@ func TestPassthroughFactory(t *testing.T) {
 		t.Fatalf("passthroughFactory error = %v", err)
 	}
 
-	if err := w.Close(); err != nil {
-		t.Errorf("Close error = %v", err)
+	closeErr := w.Close()
+	if closeErr != nil {
+		t.Errorf("Close error = %v", closeErr)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -79,7 +80,7 @@ func FuzzParseUintQuery(f *testing.F) {
 	f.Fuzz(func(t *testing.T, value string) {
 		t.Parallel()
 
-		req := httptest.NewRequest(http.MethodGet, "/?page="+value, nil)
+		req := httptest.NewRequest(http.MethodGet, "/?page="+url.QueryEscape(value), nil)
 
 		got := ParseUintQuery(req, "page")
 
