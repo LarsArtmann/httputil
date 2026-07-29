@@ -110,3 +110,40 @@ func TestParseQValue_TrailingCharsError(t *testing.T) {
 
 	assertQValueError(t, "1.0a")
 }
+
+// TestParseQValue_PositiveSign covers the '+' sign branch of parseQValueSign.
+func TestParseQValue_PositiveSign(t *testing.T) {
+	t.Parallel()
+
+	assertQValue(t, "+1", 1.0)
+}
+
+// TestParseQValue_NegativeSign covers the '-' sign branch of parseQValueSign
+// and the neg branch of composeQValue.
+func TestParseQValue_NegativeSign(t *testing.T) {
+	t.Parallel()
+
+	got, err := parseQValue("-0.5")
+	if err != nil {
+		t.Fatalf("error = %v, want nil", err)
+	}
+
+	if got >= 0 {
+		t.Errorf("parseQValue(\"-0.5\") = %f, want negative", got)
+	}
+}
+
+// TestParseEncodingEntry_MalformedQValue exercises the error-fallback branch
+// of parseEncodingEntry: when parseQValue fails, the default q-value is used.
+func TestParseEncodingEntry_MalformedQValue(t *testing.T) {
+	t.Parallel()
+
+	name, q := parseEncodingEntry("gzip;q=abc")
+	if name != "gzip" {
+		t.Errorf("name = %q, want %q", name, "gzip")
+	}
+
+	if q != defaultQValue {
+		t.Errorf("q = %f, want default %f (malformed q-value should fall back)", q, defaultQValue)
+	}
+}

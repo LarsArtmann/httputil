@@ -284,3 +284,23 @@ The v0.7.0 breaking changes (honest names, secure-by-default CORS) are the last 
 - **(c) Wait for external feedback** — let v0.7.0 sit, gather consumer feedback, then decide.
 
 This is a strategic judgment I can't make alone — it depends on your consumer landscape and timeline.
+
+---
+
+## Resolution — v0.7.1 (2026-07-29 10:11 CEST)
+
+All issues identified in sections b, c, and d above were addressed in v0.7.1. See `docs/status/2026-07-29_10-13_v0-7-1-self-review.md` for the full follow-up report.
+
+| Section | Issue | Resolution |
+| ------- | ----- | ---------- |
+| b.1 | Compression error branches uncovered | **Closed.** All `compress_writer.go` + `compress_pool.go` functions at 100%. |
+| b.2 | Fuzz tests never run with `-fuzztime` | **Done.** 4 targets, 8.5M+ execs. Found 2 real bugs (URL panic, UTF-8 assertion). |
+| b.4 | CHANGELOG missing `[0.7.0]` link | **Fixed.** Both `[0.7.0]` and `[0.7.1]` links added. |
+| b.5 | ROADMAP not updated for extensibility | **Fixed.** All items marked with documented-example notes. |
+| d.1 | WebSocket body-before-hijack test — zero value | **Accepted as limitation.** The interaction is genuinely hard to test; existing passthrough test covers the Hijack path. |
+| d.2 | FuzzHealthHandler is pointless | **Fixed.** Rewritten as `FuzzHealthResponse_Encoding`, fuzzes JSON encoding round-trip. |
+| d.4 | CORS test name stale | **Fixed.** Renamed to `TestCORS_BareLiteralFallsBackToWildcardForUnmatchedOrigin`. |
+
+**Decisions (Q1-Q3):** (Q1) Tag v0.7.1 rather than re-tag v0.7.0. (Q2) Leave auto-commit daemon as-is. (Q3) One more cycle (v0.8.0) before v1.0.
+
+**Remaining for v0.8.0:** CORS (96.6%), ETag (77.8-94.4%), q-value parsing (66-90%), and other non-plan coverage gaps still open. See the v0.7.1 self-review for details.

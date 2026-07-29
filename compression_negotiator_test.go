@@ -206,6 +206,51 @@ func TestNegotiator_SingleTokenFastPath(t *testing.T) {
 	)
 }
 
+// TestNegotiator_EmptyOrderReturnsFalse covers the len(order)==0 branch of
+// negotiateEmptyHeader. A negotiator with no configured encodings cannot
+// serve anything.
+func TestNegotiator_EmptyOrderReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	neg := buildNegotiator(map[string]WriterFactory{})
+
+	_, _, ok := neg.negotiateEncoding("")
+	if ok {
+		t.Error("negotiateEncoding(empty) with no encodings = true, want false")
+	}
+}
+
+// TestNegotiator_FallbackNoIdentity covers the branch of fallbackToIdentity
+// where identity is not registered. When all encodings are q=0 and identity
+// is absent from the factory map, negotiation fails.
+func TestNegotiator_FallbackNoIdentity(t *testing.T) {
+	t.Parallel()
+
+	neg := buildNegotiator(map[string]WriterFactory{
+		encodingGzip:    GzipWriterFactory(gzip.DefaultCompression),
+		encodingDeflate: DeflateWriterFactory(gzip.DefaultCompression),
+	})
+
+	_, _, ok := neg.negotiateEncoding("gzip;q=0, deflate;q=0")
+	if ok {
+		t.Error("negotiateEncoding with all q=0 and no identity = true, want false")
+	}
+}
+
+// TestNegotiator_ScanAcceptEncoding_OnlyUnsupported covers the scanAcceptEncoding
+// path where the header contains only unsupported encodings (not q=0, just
+// not in the factory map), causing bestName to remain empty.
+func TestNegotiator_ScanAcceptEncoding_OnlyUnsupported(t *testing.T) {
+	t.Parallel()
+
+	neg := newTestNegotiator()
+
+	_, _, ok := neg.negotiateEncoding("br, zstd, lz4")
+	if ok {
+		t.Error("negotiateEncoding with only unsupported encodings = true, want false")
+	}
+}
+
 // BenchmarkNegotiateEncoding measures negotiation cost for the common
 // single-token header (fast path) versus multi-token browser-style headers.
 func BenchmarkNegotiateEncoding(b *testing.B) {
