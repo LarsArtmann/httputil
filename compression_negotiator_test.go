@@ -238,16 +238,20 @@ func TestNegotiator_FallbackNoIdentity(t *testing.T) {
 }
 
 // TestNegotiator_ScanAcceptEncoding_OnlyUnsupported covers the scanAcceptEncoding
-// path where the header contains only unsupported encodings (not q=0, just
-// not in the factory map), causing bestName to remain empty.
+// path where the header contains only unsupported encodings. This exercises
+// the bestName=="" → fallbackToIdentity branch in negotiateEncoding.
 func TestNegotiator_ScanAcceptEncoding_OnlyUnsupported(t *testing.T) {
 	t.Parallel()
 
 	neg := newTestNegotiator()
 
-	_, _, ok := neg.negotiateEncoding("br, zstd, lz4")
-	if ok {
-		t.Error("negotiateEncoding with only unsupported encodings = true, want false")
+	encoding, _, ok := neg.negotiateEncoding("br, zstd, lz4")
+	if !ok {
+		t.Fatal("negotiateEncoding with only unsupported encodings = false, want identity fallback")
+	}
+
+	if encoding != encodingIdentity {
+		t.Errorf("encoding = %q, want %q (identity fallback)", encoding, encodingIdentity)
 	}
 }
 

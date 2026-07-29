@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -315,4 +316,75 @@ func TestETagConfig_Validate_NegativeMaxBufferSize(t *testing.T) {
 	if !errors.Is(err, errNonPositiveMaxBufferSize) {
 		t.Errorf("Validate() error = %v, want errNonPositiveMaxBufferSize", err)
 	}
+}
+
+// TestETag_WriteAfterFlush_StreamingError verifies that a Write failure after
+// the ETag writer has been flushed (streaming mode) surfaces a classified error.
+func TestETag_WriteAfterFlush_StreamingError(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("first chunk"))
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Flusher")
+		}
+
+		flusher.Flush()
+		_, _ = w.Write([]byte("second chunk"))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := &failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()}
+
+	handler.ServeHTTP(rec, req)
+}
+
+// TestETag_OverflowWriteError verifies that a Write failure during the buffer
+// overflow path surfaces a classified error.
+func TestETag_OverflowWriteError(t *testing.T) {
+	t.Parallel()
+
+	cfg := ETagConfig{MaxBufferSize: 10}
+
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Repeat("x", 100)))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := &failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()}
+
+	handler.ServeHTTP(rec, req)
+}
+
+// TestETag_FlushAlreadyFlushed covers the already-flushed branch of Flush:
+// after the first Flush transitions the writer, a second Flush must take the
+// w.flushed early-return path.
+func TestETag_FlushAlreadyFlushed(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+
+	handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("data"))
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Flusher")
+		}
+
+		flusher.Flush()
+		flusher.Flush()
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
 }
