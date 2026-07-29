@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
-[![Coverage](https://img.shields.io/badge/coverage-95.2%25-brightgreen)](#)
+[![Coverage](https://img.shields.io/badge/coverage-97.2%25-brightgreen)](#)
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
@@ -349,16 +349,16 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `CORSConfig` fields
 
-| Field                | Type       | Default                                                | Description                                                                      |
-| -------------------- | ---------- | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `AllowedOrigins`     | `[]string` | `["*"]`                                                | Origins permitted in CORS responses (supports `*.example.com`)                   |
-| `AllowedMethods`     | `[]string` | `["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]` | Allowed HTTP methods                                                             |
-| `AllowedHeaders`     | `[]string` | `["Content-Type", "Authorization", "X-Request-ID"]`    | Accepted request headers                                                         |
-| `ExposedHeaders`     | `[]string` | `[]`                                                   | Headers the browser may access                                                   |
-| `AllowCredentials`   | `bool`     | `false`                                                | Whether to send credentials                                                      |
-| `MaxAge`             | `int`      | `86400`                                                | Preflight cache duration in seconds                                              |
-| `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin                                                  |
-| `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler                                              |
+| Field                | Type       | Default                                                | Description                                                                     |
+| -------------------- | ---------- | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `AllowedOrigins`     | `[]string` | `["*"]`                                                | Origins permitted in CORS responses (supports `*.example.com`)                  |
+| `AllowedMethods`     | `[]string` | `["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]` | Allowed HTTP methods                                                            |
+| `AllowedHeaders`     | `[]string` | `["Content-Type", "Authorization", "X-Request-ID"]`    | Accepted request headers                                                        |
+| `ExposedHeaders`     | `[]string` | `[]`                                                   | Headers the browser may access                                                  |
+| `AllowCredentials`   | `bool`     | `false`                                                | Whether to send credentials                                                     |
+| `MaxAge`             | `int`      | `86400`                                                | Preflight cache duration in seconds                                             |
+| `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin                                                 |
+| `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler                                             |
 | `DenyUnmatched`      | `bool`     | `true`                                                 | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (secure by default) |
 
 ### `ResponseRecorder` methods
@@ -384,55 +384,55 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `ETagConfig` fields
 
-| Field           | Type                 | Default   | Description                                                                         |
-| --------------- | -------------------- | --------- | ----------------------------------------------------------------------------------- |
-| `Weak`          | `bool`               | `false`   | Emit weak ETags (`W/"..."`) for semantically-volatile content                       |
-| `MaxBufferSize` | `int`                | `1048576` | Max bytes buffered for ETag computation before abandoning and streaming (1 MB)      |
-| `HashFunc`      | `func([]byte) uint64` | FNV-64a   | Body hash function for ETag generation; replace for application-specific hashing    |
+| Field           | Type                  | Default   | Description                                                                      |
+| --------------- | --------------------- | --------- | -------------------------------------------------------------------------------- |
+| `Weak`          | `bool`                | `false`   | Emit weak ETags (`W/"..."`) for semantically-volatile content                    |
+| `MaxBufferSize` | `int`                 | `1048576` | Max bytes buffered for ETag computation before abandoning and streaming (1 MB)   |
+| `HashFunc`      | `func([]byte) uint64` | FNV-64a   | Body hash function for ETag generation; replace for application-specific hashing |
 
 ### `RateLimitConfig` fields
 
-| Field       | Type                          | Default             | Description                                                       |
-| ----------- | ----------------------------- | ------------------- | ----------------------------------------------------------------- |
-| `Limiter`   | `RateLimiter`                 | `nil`               | Decides whether to allow each request (required)                  |
-| `KeyFunc`   | `func(*http.Request) string`  | `nil` (RemoteAddr)  | Extracts the rate-limiting key from the request (e.g., client IP) |
-| `Status`    | `int`                         | `429`               | HTTP status when rate limited (ignored when `OnDenied` is set)    |
-| `OnDenied`  | `http.HandlerFunc`            | `nil`               | Custom handler for rejected requests; overrides default response  |
+| Field      | Type                         | Default            | Description                                                       |
+| ---------- | ---------------------------- | ------------------ | ----------------------------------------------------------------- |
+| `Limiter`  | `RateLimiter`                | `nil`              | Decides whether to allow each request (required)                  |
+| `KeyFunc`  | `func(*http.Request) string` | `nil` (RemoteAddr) | Extracts the rate-limiting key from the request (e.g., client IP) |
+| `Status`   | `int`                        | `429`              | HTTP status when rate limited (ignored when `OnDenied` is set)    |
+| `OnDenied` | `http.HandlerFunc`           | `nil`              | Custom handler for rejected requests; overrides default response  |
 
 ### `MetricsConfig` fields
 
-| Field      | Type                         | Default      | Description                                              |
-| ---------- | ---------------------------- | ------------ | -------------------------------------------------------- |
-| `Recorder` | `MetricsRecorder`            | `nil`        | Receives one observation per request (required)          |
+| Field      | Type                         | Default              | Description                                     |
+| ---------- | ---------------------------- | -------------------- | ----------------------------------------------- |
+| `Recorder` | `MetricsRecorder`            | `nil`                | Receives one observation per request (required) |
 | `PathFunc` | `func(*http.Request) string` | `nil` (`r.URL.Path`) | Extracts the path to record from the request    |
 
 ### `SecurityHeadersConfig` fields
 
-| Field                     | Type     | Default                        | Description                                              |
-| ------------------------- | -------- | ------------------------------ | -------------------------------------------------------- |
-| `ContentTypeNosniff`      | `bool`   | `true`                         | Set `X-Content-Type-Options: nosniff`                   |
-| `FrameOptions`            | `string` | `"DENY"`                       | `X-Frame-Options` value (empty = header omitted)        |
-| `StrictTransportSecurity` | `string` | `""`                           | `Strict-Transport-Security` value (empty = omitted)     |
-| `ReferrerPolicy`          | `string` | `"strict-origin-when-cross-origin"` | `Referrer-Policy` value (empty = omitted)          |
-| `ContentSecurityPolicy`   | `string` | `""`                           | `Content-Security-Policy` value (empty = omitted)       |
+| Field                     | Type     | Default                             | Description                                         |
+| ------------------------- | -------- | ----------------------------------- | --------------------------------------------------- |
+| `ContentTypeNosniff`      | `bool`   | `true`                              | Set `X-Content-Type-Options: nosniff`               |
+| `FrameOptions`            | `string` | `"DENY"`                            | `X-Frame-Options` value (empty = header omitted)    |
+| `StrictTransportSecurity` | `string` | `""`                                | `Strict-Transport-Security` value (empty = omitted) |
+| `ReferrerPolicy`          | `string` | `"strict-origin-when-cross-origin"` | `Referrer-Policy` value (empty = omitted)           |
+| `ContentSecurityPolicy`   | `string` | `""`                                | `Content-Security-Policy` value (empty = omitted)   |
 
 ### `RequestIDConfig` fields
 
-| Field           | Type           | Default        | Description                                                        |
-| --------------- | -------------- | -------------- | ------------------------------------------------------------------ |
-| `ResponseHeader` | `string`       | `"X-Request-ID"` | Response header to set with the resolved request ID              |
-| `GenerateID`    | `func() string` | Time-ordered hex | ID generator invoked when no incoming header is present        |
-| `IncomingHeader` | `string`       | `"X-Request-ID"` | Incoming request header to read the upstream ID from           |
+| Field            | Type            | Default          | Description                                             |
+| ---------------- | --------------- | ---------------- | ------------------------------------------------------- |
+| `ResponseHeader` | `string`        | `"X-Request-ID"` | Response header to set with the resolved request ID     |
+| `GenerateID`     | `func() string` | Time-ordered hex | ID generator invoked when no incoming header is present |
+| `IncomingHeader` | `string`        | `"X-Request-ID"` | Incoming request header to read the upstream ID from    |
 
 ### `ServerConfig` fields
 
-| Field                | Type            | Default | Description                                                |
-| -------------------- | --------------- | ------- | ---------------------------------------------------------- |
-| `Addr`               | `string`        | `":8080"` | Listen address                                           |
-| `ReadTimeout`        | `time.Duration` | `10s`   | Maximum duration for reading the entire request            |
-| `ReadHeaderTimeout`  | `time.Duration` | `5s`    | Maximum duration for reading request headers               |
-| `WriteTimeout`       | `time.Duration` | `30s`   | Maximum duration before timing out writes                  |
-| `IdleTimeout`        | `time.Duration` | `60s`   | Maximum time to wait for the next request on a connection   |
+| Field               | Type            | Default   | Description                                               |
+| ------------------- | --------------- | --------- | --------------------------------------------------------- |
+| `Addr`              | `string`        | `":8080"` | Listen address                                            |
+| `ReadTimeout`       | `time.Duration` | `10s`     | Maximum duration for reading the entire request           |
+| `ReadHeaderTimeout` | `time.Duration` | `5s`      | Maximum duration for reading request headers              |
+| `WriteTimeout`      | `time.Duration` | `30s`     | Maximum duration before timing out writes                 |
+| `IdleTimeout`       | `time.Duration` | `60s`     | Maximum time to wait for the next request on a connection |
 
 ## Design
 

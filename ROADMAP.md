@@ -7,9 +7,10 @@
 
 ### 1. v1.0 — API honesty and stability commitment
 
-The library is at v0.7.0 with a complete, tested middleware suite and a
-frozen v1.0 API surface documented in `docs/v1-stability.md`. The path to
-v1.0 is about closing the remaining depth gaps, then committing to stability.
+The library is at v0.7.1 with a complete, tested middleware suite and a
+frozen v1.0 API surface documented in `docs/v1-stability.md`. One more
+stabilization cycle (v0.8.0) will close remaining depth gaps before the v1.0
+commitment.
 
 Resolved in v0.7.0:
 

@@ -126,8 +126,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` passes across the full suite with 94.4% statement coverage (`httputil`), 98.3% (`httpspec`), 95.2% total — measured 2026-07-29 with race detection enabled.
-- Fuzz tests for CORS, ClientIP, Compression, ETag, and RequestID.
+- `go test ./...` passes across the full suite with 96.9% statement coverage (`httputil`), 98.3% (`httpspec`), 97.2% total — measured 2026-07-29 with race detection enabled.
+- Fuzz tests for CORS origin matching, `ParseUintQuery`, `EvictionTTL`, and `HealthResponse` JSON encoding — all verified with `-fuzztime`.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
@@ -149,11 +149,11 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage
 
-Measured 2026-07-29 with `go test -race -coverprofile`: **94.4%** (`httputil`), **98.3%** (`httpspec`), **95.2%** total. Gaps remain in:
+Measured 2026-07-29 with `go test -race -coverprofile`: **96.9%** (`httputil`), **98.3%** (`httpspec`), **97.2%** total. All compression writer/pool functions are at 100%. Remaining gaps:
 
-- Error branches in `compression.go` (`startCompression` type mismatch, `Close` errors).
-- Edge cases in `CORS` wildcard matching with unusual patterns.
-- `ResponseRecorder` hijack failure paths.
+- Accept-Encoding q-value parsing edge cases (`parseQValueSign`, `composeQValue`, `negotiateEmptyHeader`).
+- ETag `Flush` and `Write` error branches.
+- `Server.Shutdown` context-cancellation path.
 
 ---
 

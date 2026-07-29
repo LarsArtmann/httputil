@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-07-29
+
+### Fixed
+
+- `FuzzParseUintQuery` panicked on query values containing characters invalid in URLs (e.g. spaces). Now uses `url.QueryEscape` so any string input is exercised safely.
+- `FuzzHealthResponse_Encoding` (formerly `FuzzHealthHandler`) failed on invalid UTF-8 status values because the strict round-trip assertion did not account for JSON encoder normalization. Rewritten to verify no-panic and valid parseable JSON without asserting exact round-trip.
+
+### Changed
+
+- `FuzzHealthHandler` renamed to `FuzzHealthResponse_Encoding` and rewritten to fuzz `HealthStatus` JSON encoding instead of request paths (which the health handler ignores).
+
+### Added
+
+- Compression writer error-branch tests: all `compress_writer.go` and `compress_pool.go` functions now at 100% coverage (overall 95.2% → 97.2%).
+- `TestCompression_FlushWhileCompressing`, `TestCompression_FlushNonFlushableCustomWriter`, `TestCompressWriter_PassthroughWriterRoundTrip`, and 9 more unit tests covering Flush, Close, streaming, pool, and factory error paths.
+- v1-stability.md now lists all 8 `Default*` config constructors and 9 `Middleware*` name constants (previously missing).
+- Integration docs (brotli-zstd, redis-ratelimiter, prometheus-metrics) fixed: undefined `mux` variables resolved, external-dependency notes added.
+
+### Removed
+
+- Stale CORS test name `TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault` renamed to `TestCORS_BareLiteralFallsBackToWildcardForUnmatchedOrigin` (the "ByDefault" was misleading after the `DenyUnmatched` default flip in v0.7.0).
+
 ## [0.7.0] - 2026-07-29
 
 ### Changed
@@ -204,7 +226,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/larsartmann/httputil/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/larsartmann/httputil/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/larsartmann/httputil/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/larsartmann/httputil/compare/v0.5.0...v0.6.0
