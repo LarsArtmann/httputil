@@ -17,10 +17,13 @@ The interface is intentionally minimal: one method, one boolean. This makes it t
 Using a sliding-window counter with Lua for atomicity:
 
 ```go
+// This example references github.com/redis/go-redis/v9, which is NOT a
+// dependency of httputil — add it to your go.mod to compile.
 package main
 
 import (
     "context"
+    "net/http"
     "time"
 
     "github.com/larsartmann/httputil"
@@ -80,7 +83,9 @@ func main() {
     cfg := httputil.DefaultRateLimitConfig()
     cfg.Limiter = limiter
 
+    mux := http.NewServeMux()
     handler := httputil.RateLimit(cfg)(mux)
+    _ = handler
 }
 ```
 

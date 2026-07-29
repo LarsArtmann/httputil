@@ -36,6 +36,30 @@ The library is at v0.6.1 locally (SSH-signed annotated tag `7371dac`, **not push
 
 ---
 
+## Execution Resolution
+
+**Status:** Executed in v0.7.0 (2026-07-29). All 26 tasks from the plan below were addressed.
+
+| Phase          | Outcome                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| v0.6.1 push    | Done — tag pushed, GitHub Release created                                                          |
+| v0.7.0 renames | Done — `ForwardHeader`→`IncomingHeader`, `HeaderName`→`ResponseHeader`, `DenyUnmatched` default flip |
+| Docs           | Done — RELEASE.md, SECURITY.md, v1-stability.md, 6 README config tables, integration examples      |
+| Tests          | Done — fuzz tests, benchmarks, coverage closure                                                    |
+| Release        | v0.7.0 tagged (SSH-signed) and published on GitHub                                                 |
+
+**Self-review** (`docs/status/2026-07-29_08-58_v0-7-0-pareto-execution-self-review.md`) identified gaps that were fixed in a follow-up session:
+
+- Compression error-branch coverage: all `compress_writer.go` / `compress_pool.go` functions now at **100%** (overall **97.2%**, up from 95.2%).
+- Fuzz tests run with `-fuzztime` — found and fixed 2 real test bugs (unescaped URL input, strict UTF-8 round-trip).
+- `FuzzHealthHandler` rewritten to fuzz `HealthStatus` JSON encoding (was tautological).
+- CORS stale test renamed; CHANGELOG links fixed; ROADMAP/v1-stability updated; integration examples corrected.
+- ETag assertions mutation-tested (5 tests catch a broken hash).
+
+**Remaining (deferred to v1.0 cycle):** request body decompression middleware, CHANGELOG CI lint check, q-value parsing edge-case coverage.
+
+---
+
 ## Step 1: Pareto Breakdown
 
 ### The 1% that delivers 51% of the result

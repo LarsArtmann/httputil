@@ -7,15 +7,17 @@ httputil ships with gzip and deflate support out of the box. Modern encodings li
 Register a factory for each encoding you want to support. The factory receives an `io.Writer` (the underlying `http.ResponseWriter`) and returns an `io.WriteCloser` that compresses data written to it.
 
 ```go
+// This example illustrates the WriterFactory pattern. It references an
+// external compression library (e.g. github.com/andybalholm/brotli) that is
+// NOT a dependency of httputil — add it to your go.mod to compile.
 package main
 
 import (
     "io"
+    "net/http"
 
     "github.com/larsartmann/httputil"
-    // Import your compression library of choice, e.g.:
-    //   "github.com/andybalholm/brotli"
-    //   "github.com/klauspost/compress/zstd"
+    // "github.com/andybalholm/brotli"  // external dependency
 )
 
 // BrotliWriter is a minimal adapter. Replace with your library's writer.
@@ -34,7 +36,7 @@ func (w *BrotliWriter) Close() error {
 // ResettableBrotliWriter implements resettableWriter (optional but recommended
 // for pool reuse — avoids allocating a new encoder per request).
 type ResettableBrotliWriter struct {
-    enc  *brotli.Writer
+    enc  io.WriteCloser // in real code: *brotli.Writer
     dst  io.Writer
     lvl  int
 }
@@ -52,13 +54,13 @@ func (w *ResettableBrotliWriter) Close() error {
 // the pool recycle the encoder instead of allocating a new one per request.
 func (w *ResettableBrotliWriter) Reset(dst io.Writer) {
     w.dst = dst
-    w.enc = brotli.NewWriterLevel(dst, w.lvl)
+    // w.enc = brotli.NewWriterLevel(dst, w.lvl) // external library constructor
 }
 
 func brotliFactory(level int) httputil.WriterFactory {
     return func(dst io.Writer) (io.WriteCloser, error) {
         return &ResettableBrotliWriter{
-            enc: brotli.NewWriterLevel(dst, level),
+            // enc: brotli.NewWriterLevel(dst, level), // external library
             dst: dst,
             lvl: level,
         }, nil
@@ -72,12 +74,14 @@ func main() {
     factories := httputil.DefaultWriterFactories()
 
     // Add brotli and zstd.
-    factories["br"] = brotliFactory(brotli.DefaultCompression)
+    factories["br"] = brotliFactory(4) // 4 = brotli.DefaultCompression
     // factories["zstd"] = zstdFactory(zstd.SpeedDefault)
 
     cfg.WriterFactories = factories
 
+    mux := http.NewServeMux()
     handler := httputil.Compression(cfg)(mux)
+    _ = handler
 }
 ```
 

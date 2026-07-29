@@ -13,9 +13,12 @@ type MetricsRecorder interface {
 ## Prometheus Implementation
 
 ```go
+// This example references github.com/prometheus/client_golang, which is NOT a
+// dependency of httputil — add it to your go.mod to compile.
 package main
 
 import (
+    "net/http"
     "time"
 
     "github.com/larsartmann/httputil"
@@ -66,7 +69,9 @@ func main() {
     cfg := httputil.DefaultMetricsConfig()
     cfg.Recorder = recorder
 
+    mux := http.NewServeMux()
     handler := httputil.Metrics(cfg)(mux)
+    _ = handler
 }
 ```
 

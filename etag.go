@@ -181,7 +181,7 @@ func (w *etagWriter) computeETag() string {
 		return ""
 	}
 
-	hash := uint64(0) // MUTATION TEST - temporarily broken
+	hash := w.hashFunc(w.body)
 
 	var buf [hashUint64Bytes]byte
 	binary.BigEndian.PutUint64(buf[:], hash)
