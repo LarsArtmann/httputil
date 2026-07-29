@@ -468,3 +468,74 @@ func TestCompression_CustomFactoryWithoutReset(t *testing.T) {
 		)
 	}
 }
+
+// TestCompression_FlushWhileCompressing exercises the compressing branch of
+// compressWriter.Flush: a response large enough to start compression is
+// written, then Flush is called mid-stream. This drives the w.writer.Flush() +
+// responseWrapper.Flush() path that the existing FlushWhileBuffering test
+// (which flushes below the threshold) does not reach.
+func TestCompression_FlushWhileCompressing(t *testing.T) {
+	t.Parallel()
+
+	cfg := CompressionConfig{MinSize: 1, Level: gzip.DefaultCompression}
+	body := strings.Repeat("a", defaultCompressionMinSize+1)
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(body))
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Flusher")
+		}
+
+		flusher.Flush()
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
+}
+
+// TestCompression_FlushNonFlushableCustomWriter exercises the nopFlushCloser
+// wrapper: a custom factory writer without a Flush method is wrapped in
+// nopFlushCloser by startCompression, and a mid-stream Flush calls
+// nopFlushCloser.Flush (the no-op path for encodings that cannot flush).
+func TestCompression_FlushNonFlushableCustomWriter(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.WriterFactories = map[string]WriterFactory{
+		"gzip":     GzipWriterFactory(cfg.Level),
+		"deflate":  DeflateWriterFactory(cfg.Level),
+		"identity": passthroughFactory,
+		"custom": func(dst io.Writer) (io.WriteCloser, error) {
+			return &simpleWriteCloser{dst: dst}, nil
+		},
+	}
+
+	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Repeat("a", defaultCompressionMinSize+1)))
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Flusher")
+		}
+
+		flusher.Flush()
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, "custom")
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, req)
+
+	assertHeader(t, rec, headerContentEncoding, "custom")
+}

@@ -9,12 +9,16 @@ import (
 // it is implemented. They document intentionally surprising behaviors (notably the
 // allowlist fallback) so that any future change to them is a deliberate decision.
 
-// TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault documents a
-// security-relevant default: when AllowAllOrigins is false and a request origin
-// matches no entry in AllowedOrigins, the middleware still responds with
-// Access-Control-Allow-Origin: *. Consumers who want unmatched origins denied
-// must set DenyUnmatched: true (see TestCORS_DenyUnmatchedSuppressesHeader).
-func TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault(t *testing.T) {
+// TestCORS_BareLiteralFallsBackToWildcardForUnmatchedOrigin documents the
+// zero-value behavior of a bare CORSConfig literal: when DenyUnmatched is left
+// at its zero value (false) and AllowAllOrigins is false, a request origin that
+// matches no entry in AllowedOrigins still responds with
+// Access-Control-Allow-Origin: *. Note that DefaultCORSConfig() sets
+// DenyUnmatched: true, so this wildcard fallback only applies to literals
+// constructed without the default helper. Consumers who want unmatched origins
+// denied should use DefaultCORSConfig() or set DenyUnmatched: true explicitly
+// (see TestCORS_DenyUnmatchedSuppressesHeader).
+func TestCORS_BareLiteralFallsBackToWildcardForUnmatchedOrigin(t *testing.T) {
 	t.Parallel()
 
 	cfg := CORSConfig{
@@ -30,7 +34,7 @@ func TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault(t *testing
 
 	middleware(inner).ServeHTTP(rec, req)
 
-	// Default behavior: unmatched origin still gets "*".
+	// Zero-value behavior: bare literal with DenyUnmatched=false still yields "*".
 	assertAllowOrigin(t, rec, "*")
 }
 

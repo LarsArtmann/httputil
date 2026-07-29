@@ -3,6 +3,8 @@ package httputil
 import (
 	"errors"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"sync"
 	"testing"
 
@@ -155,4 +157,156 @@ func TestNegotiator_PoolsAreStablePerEncoding(t *testing.T) {
 	if first != second {
 		t.Error("poolFor(gzip) returned distinct pools for the same encoding")
 	}
+}
+
+// flakyWriteCloser succeeds on its first Write then fails on every subsequent
+// Write. This exercises the streaming-write error path in streamClassified that
+// a uniformly-failing writer cannot reach: startCompression's buffered Write
+// must succeed so the later streaming Write is the one that fails.
+type flakyWriteCloser struct {
+	writes int
+}
+
+func (w *flakyWriteCloser) Write(p []byte) (int, error) {
+	w.writes++
+	if w.writes > 1 {
+		return 0, errMockCompressWriteFailed
+	}
+
+	return len(p), nil
+}
+
+func (*flakyWriteCloser) Close() error { return nil }
+func (*flakyWriteCloser) Flush() error { return nil }
+
+// failingResponseRecorder is an httptest.ResponseRecorder whose Write always
+// fails, exercising the buffered-write error branches in Close and
+// flushPlainAndStream that require the underlying ResponseWriter to reject data.
+type failingResponseRecorder struct {
+	*httptest.ResponseRecorder
+}
+
+func (*failingResponseRecorder) Write([]byte) (int, error) {
+	return 0, errMockCompressWriteFailed
+}
+
+// erroringFactory is a WriterFactory that always returns an error, exercising
+// the fresh-writer creation error path in startCompression. It must only be
+// used as the compressWriter.factory field, never as a pool source (the pool's
+// New panics on factory errors).
+var erroringFactory = WriterFactory(func(io.Writer) (io.WriteCloser, error) {
+	return nil, errMockCompressWriteFailed
+})
+
+// TestCompressWriter_PassthroughWriterRoundTrip drives startCompression through
+// the testPassthroughFactory (which yields nopCloserWriter), then exercises
+// Flush and Close on that writer. This covers nopCloserWriter.Flush,
+// nopCloserWriter.Close, and passthroughFactory — code reachable only via
+// direct compressWriter construction since the Compression middleware
+// short-circuits the identity encoding.
+func TestCompressWriter_PassthroughWriterRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	cw := newTestCompressWriter()
+	cw.WriteHeader(http.StatusOK)
+
+	err := cw.startCompression()
+	if err != nil {
+		t.Fatalf("startCompression error = %v", err)
+	}
+
+	cw.Flush()
+
+	err = cw.Close()
+	if err != nil {
+		t.Fatalf("Close error = %v, want nil", err)
+	}
+}
+
+// TestCompressWriter_StreamWriteError verifies that a streaming Write failure
+// (after the buffered Write in startCompression succeeds) surfaces a classified
+// error through streamClassified.
+func TestCompressWriter_StreamWriteError(t *testing.T) {
+	t.Parallel()
+
+	factory := func(io.Writer) (io.WriteCloser, error) { return &flakyWriteCloser{}, nil }
+	cw := newCompressWriter(
+		newRecorder(),
+		1,
+		encodingGzip,
+		factory,
+		&sync.Pool{New: func() any { return &flakyWriteCloser{} }},
+		nil,
+	)
+	cw.WriteHeader(http.StatusOK)
+
+	_, err := cw.Write([]byte("ab"))
+
+	assertCompressClassified(t, err, errMockCompressWriteFailed)
+}
+
+// TestCompressWriter_FlushPlainBufferedWriteError verifies that a buffered
+// plain-mode Write failure (non-compressible status) surfaces a classified
+// error through flushPlainAndStream.
+func TestCompressWriter_FlushPlainBufferedWriteError(t *testing.T) {
+	t.Parallel()
+
+	cw := newCompressWriter(
+		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
+		defaultCompressionMinSize,
+		encodingGzip,
+		testPassthroughFactory,
+		newWriterPool(testPassthroughFactory),
+		nil,
+	)
+	cw.WriteHeader(http.StatusNotFound)
+
+	body := make([]byte, defaultCompressionMinSize+1)
+	_, err := cw.Write(body)
+
+	assertCompressClassified(t, err, errMockCompressWriteFailed)
+}
+
+// TestCompressWriter_CloseBufferedWriteError verifies that a buffered Write
+// failure during Close (small response, not compressed, not plain) surfaces a
+// classified error.
+func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
+	t.Parallel()
+
+	cw := newCompressWriter(
+		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
+		defaultCompressionMinSize,
+		encodingGzip,
+		testPassthroughFactory,
+		newWriterPool(testPassthroughFactory),
+		nil,
+	)
+	cw.WriteHeader(http.StatusOK)
+
+	_, _ = cw.Write([]byte("tiny"))
+
+	err := cw.Close()
+
+	assertCompressClassified(t, err, errMockCompressWriteFailed)
+}
+
+// TestCompressWriter_StartCompression_FreshFactoryError verifies that a
+// fresh-writer factory error (reached when the pooled writer is not resettable)
+// surfaces a classified error.
+func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
+	t.Parallel()
+
+	cw := newCompressWriter(
+		newRecorder(),
+		defaultCompressionMinSize,
+		encodingGzip,
+		erroringFactory,
+		newWriterPool(testPassthroughFactory),
+		nil,
+	)
+	cw.WriteHeader(http.StatusOK)
+
+	err := cw.startCompression()
+
+	assertCompressClassified(t, err, errMockCompressWriteFailed)
 }

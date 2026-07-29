@@ -7,17 +7,19 @@
 
 ### 1. v1.0 — API honesty and stability commitment
 
-The library is at v0.6.0 with a complete, tested middleware suite. The path to
-v1.0 is about resolving the few dishonest names and the build-environment
-question, then committing to stability for the public surface.
+The library is at v0.7.0 with a complete, tested middleware suite and a
+frozen v1.0 API surface documented in `docs/v1-stability.md`. The path to
+v1.0 is about closing the remaining depth gaps, then committing to stability.
 
-Raw ideas:
+Resolved in v0.7.0:
 
 - ~~Rename `RequestIDConfig.ForwardHeader` to `IncomingHeader`~~ — done in v0.7.0.
 - ~~Rename `RequestIDConfig.HeaderName` to `ResponseHeader`~~ — done in v0.7.0.
-- Evaluate flipping `DenyUnmatched` default to `true` so the CORS allowlist is
-  secure by default rather than by opt-in.
-- Define which APIs are frozen at v1.0 and document the stability guarantee.
+- ~~Evaluate flipping `DenyUnmatched` default to `true`~~ — done in v0.7.0
+  (see `docs/research/deny-unmatched-default-evaluation.md`).
+- ~~Define which APIs are frozen at v1.0~~ — done: `docs/v1-stability.md`.
+
+Remaining raw ideas:
 
 ### 2. Extensibility without new dependencies
 
@@ -27,11 +29,12 @@ plugin seams, not core dependencies.
 
 Raw ideas:
 
-- Brotli / zstd / lz4 encoder examples via the `WriterFactory` plugin pattern.
-- A distributed (Redis-backed) `RateLimiter` implementation as a documented
-  example.
-- A Prometheus-compatible `MetricsRecorder` implementation as a documented
-  example.
+- ~~Brotli / zstd / lz4 encoder examples via the `WriterFactory` plugin
+  pattern~~ — documented example exists: `docs/integrations/brotli-zstd.md`.
+- ~~A distributed (Redis-backed) `RateLimiter` implementation~~ — documented
+  example exists: `docs/integrations/redis-ratelimiter.md`.
+- ~~A Prometheus-compatible `MetricsRecorder` implementation~~ — documented
+  example exists: `docs/integrations/prometheus-metrics.md`.
 - Request body decompression middleware as a counterpart to `Compression`.
 
 ### 3. Depth and confidence
@@ -41,9 +44,11 @@ The suite is broad; v1.0 should make it deep enough to trust without audit.
 Raw ideas:
 
 - Fuzz tests and `Example*` functions for the newer surface (`ParseUintQuery`,
-  `ReadyHandlerWithProbe`, `DenyUnmatched`, `EvictionTTL`).
-- Close the documented coverage gaps in compression error branches, CORS
-  wildcard edge cases, and `ResponseRecorder` hijack failure paths.
+  `ReadyHandlerWithProbe`, `DenyUnmatched`, `EvictionTTL`) — seeds added in
+  v0.7.0; `-fuzztime` runs pending.
+- Close the remaining coverage gaps in compression error branches (Flush,
+  Close, streaming write errors). Several gaps closed in v0.7.0; a handful of
+  error branches remain below 100%.
 - An `httpspec` spec covering common CORS header behavior.
 
 ## Non-goals

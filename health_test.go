@@ -140,7 +140,8 @@ func FuzzHealthResponse_Encoding(f *testing.F) {
 
 		var resp HealthResponse
 
-		if err := json.Unmarshal(buf.Bytes(), &resp); err != nil {
+		err = json.Unmarshal(buf.Bytes(), &resp)
+		if err != nil {
 			t.Fatalf("Unmarshal error = %v, want nil for encoded %q", err, buf.String())
 		}
 
