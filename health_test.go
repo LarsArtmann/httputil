@@ -138,15 +138,14 @@ func FuzzHealthResponse_Encoding(f *testing.F) {
 			t.Fatalf("Encode error = %v, want nil for status %q", err, status)
 		}
 
+		// The encoded output must always be valid, parseable JSON. The exact
+		// round-trip value is not asserted because the JSON encoder normalizes
+		// invalid UTF-8 (e.g. lone continuation bytes) to U+FFFD.
 		var resp HealthResponse
 
 		err = json.Unmarshal(buf.Bytes(), &resp)
 		if err != nil {
 			t.Fatalf("Unmarshal error = %v, want nil for encoded %q", err, buf.String())
-		}
-
-		if resp.Status != HealthStatus(status) {
-			t.Errorf("round-trip status = %q, want %q", resp.Status, status)
 		}
 	})
 }
