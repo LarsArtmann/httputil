@@ -138,12 +138,12 @@ func TestParseQValue_NegativeSign(t *testing.T) {
 func TestParseEncodingEntry_MalformedQValue(t *testing.T) {
 	t.Parallel()
 
-	name, q := parseEncodingEntry("gzip;q=abc")
+	name, quality := parseEncodingEntry("gzip;q=abc")
 	if name != "gzip" {
 		t.Errorf("name = %q, want %q", name, "gzip")
 	}
 
-	if q != defaultQValue {
-		t.Errorf("q = %f, want default %f (malformed q-value should fall back)", q, defaultQValue)
+	if quality != defaultQValue {
+		t.Errorf("q = %f, want default %f (malformed q-value should fall back)", quality, defaultQValue)
 	}
 }

@@ -353,3 +353,26 @@ func FuzzCORSWildcardPattern(f *testing.F) {
 		}
 	})
 }
+
+// TestCORS_ExposedHeadersAndMaxAge covers the ExposedHeaders and MaxAge header
+// branches that existing tests don't exercise.
+func TestCORS_ExposedHeadersAndMaxAge(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{http.MethodGet},
+		ExposedHeaders: []string{"X-Custom-Header"},
+		MaxAge:         7200,
+	}
+	middleware := CORS(cfg)
+
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	assertHeader(t, rec, "Access-Control-Expose-Headers", "X-Custom-Header")
+	assertHeader(t, rec, "Access-Control-Max-Age", "7200")
+}

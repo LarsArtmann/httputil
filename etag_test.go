@@ -335,6 +335,7 @@ func TestETag_WriteAfterFlush_StreamingError(t *testing.T) {
 		}
 
 		flusher.Flush()
+
 		_, _ = w.Write([]byte("second chunk"))
 	}))
 
