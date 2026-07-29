@@ -376,7 +376,11 @@ func TestRateLimit_DefaultStatusWhenZero(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusTooManyRequests {
-		t.Errorf("status = %d, want %d (default when Status=0)", rec.Code, http.StatusTooManyRequests)
+		t.Errorf(
+			"status = %d, want %d (default when Status=0)",
+			rec.Code,
+			http.StatusTooManyRequests,
+		)
 	}
 }
 

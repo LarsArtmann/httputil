@@ -178,11 +178,11 @@ httputil runs **outside** the router, so every route benefits from compression, 
 
 Neither `do` nor httputil provides type-safe routing — by design. For typed handlers, input validation, path parameters, and OpenAPI generation, pair both with [huma](./huma.md). The three-layer split stays clean:
 
-| Layer               | Library     | Responsibility                                              |
-| ------------------- | ----------- | ---------------------------------------------------------- |
-| Composition & lifecycle | samber/do   | Dependency wiring, lazy singletons, graceful shutdown      |
-| Type-safe routing   | huma        | Typed handlers, validation, OpenAPI from Go structs        |
-| HTTP plumbing       | httputil    | Compression, ETags, security headers, logging, recovery    |
+| Layer                   | Library   | Responsibility                                          |
+| ----------------------- | --------- | ------------------------------------------------------- |
+| Composition & lifecycle | samber/do | Dependency wiring, lazy singletons, graceful shutdown   |
+| Type-safe routing       | huma      | Typed handlers, validation, OpenAPI from Go structs     |
+| HTTP plumbing           | httputil  | Compression, ETags, security headers, logging, recovery |
 
 `samber/do`'s generics (`[T any]`) cannot express heterogeneous handler signatures — Go has no variadic type parameters. Type-safe routing requires code generation (huma) or a generic builder, not a DI container. See the [research comparison](../research/2026-07-05_httputil-vs-huma.md) for details.
 

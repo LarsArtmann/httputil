@@ -11,30 +11,30 @@
 
 These items are complete, verified, and correct.
 
-| #   | Task                                                                                           | Verification                                                |
-| --- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 1   | CHANGELOG `[0.7.0]` + `[0.7.1]` comparison links                                               | Links resolve correctly                                     |
-| 2   | `FuzzHealthHandler` → `FuzzHealthResponse_Encoding` rewrite                                   | Fuzzes JSON encoding round-trip; verified with -fuzztime     |
-| 3   | Stale CORS test rename: `...ByDefault` → `...BareLiteral...`                                  | Name matches bare-literal behavior                          |
-| 4   | ROADMAP.md: DenyUnmatched done, extensibility examples documented                             | All items marked correctly                                  |
-| 5   | All compression writer/pool functions at 100% coverage                                         | 11 new tests; verified via `go tool cover`                  |
-| 6   | v1-stability.md: added 8 missing `Default*` + 9 `Middleware*` constants                        | Diffed against `go doc -all` output                         |
-| 7   | Fuzz tests run with `-fuzztime` (4 targets, 8.5M+ execs)                                       | Found 2 real bugs, both fixed                               |
-| 8   | ETag mutation test                                                                             | 5 tests catch broken hash; restored                         |
-| 9   | Integration examples: undefined `mux` fixed, external-dep notes added                          | All 3 docs corrected                                        |
-| 10  | Pareto plan doc annotated with resolution summary                                              | Resolution section at top                                   |
-| 11  | v1-stability.md EvictionTTL lie fixed                                                          | "exists since v0.6.0", not "may be added"                   |
-| 12  | CHANGELOG CORS test rename moved from "Removed" to "Changed"                                   | Semantically correct                                        |
-| 13  | v0.7.0 self-review annotated with resolution table                                             | Resolution section appended                                 |
-| 14  | q-value parsing coverage closed (parseQValueSign, composeQValue, parseEncodingEntry → 100%)    | Verified via coverage report                                |
-| 15  | Negotiator coverage closed (negotiateEmptyHeader, fallbackToIdentity → 100%)                   | Verified                                                    |
-| 16  | ETag Write + Flush error branches closed (→ 100%)                                              | Verified                                                    |
-| 17  | CORS ExposedHeaders + MaxAge branches closed (→ 100%)                                          | Verified                                                    |
-| 18  | SecurityHeaders all-set + empty-config branches closed (→ 100%)                               | Verified                                                    |
-| 19  | Logging status=0 default branch closed (→ 100%)                                                | Verified                                                    |
-| 20  | RateLimit status=0 default branch closed (→ 100%)                                              | Verified                                                    |
-| 21  | Coverage re-measured: 95.2% → 98.7%                                                            | FEATURES.md + README badge updated                          |
-| 22  | Full quality gate: test -race ✓, vet ✓, lint 0 ✓, govulncheck ✓                               | All passed                                                  |
+| #   | Task                                                                                        | Verification                                             |
+| --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| 1   | CHANGELOG `[0.7.0]` + `[0.7.1]` comparison links                                            | Links resolve correctly                                  |
+| 2   | `FuzzHealthHandler` → `FuzzHealthResponse_Encoding` rewrite                                 | Fuzzes JSON encoding round-trip; verified with -fuzztime |
+| 3   | Stale CORS test rename: `...ByDefault` → `...BareLiteral...`                                | Name matches bare-literal behavior                       |
+| 4   | ROADMAP.md: DenyUnmatched done, extensibility examples documented                           | All items marked correctly                               |
+| 5   | All compression writer/pool functions at 100% coverage                                      | 11 new tests; verified via `go tool cover`               |
+| 6   | v1-stability.md: added 8 missing `Default*` + 9 `Middleware*` constants                     | Diffed against `go doc -all` output                      |
+| 7   | Fuzz tests run with `-fuzztime` (4 targets, 8.5M+ execs)                                    | Found 2 real bugs, both fixed                            |
+| 8   | ETag mutation test                                                                          | 5 tests catch broken hash; restored                      |
+| 9   | Integration examples: undefined `mux` fixed, external-dep notes added                       | All 3 docs corrected                                     |
+| 10  | Pareto plan doc annotated with resolution summary                                           | Resolution section at top                                |
+| 11  | v1-stability.md EvictionTTL lie fixed                                                       | "exists since v0.6.0", not "may be added"                |
+| 12  | CHANGELOG CORS test rename moved from "Removed" to "Changed"                                | Semantically correct                                     |
+| 13  | v0.7.0 self-review annotated with resolution table                                          | Resolution section appended                              |
+| 14  | q-value parsing coverage closed (parseQValueSign, composeQValue, parseEncodingEntry → 100%) | Verified via coverage report                             |
+| 15  | Negotiator coverage closed (negotiateEmptyHeader, fallbackToIdentity → 100%)                | Verified                                                 |
+| 16  | ETag Write + Flush error branches closed (→ 100%)                                           | Verified                                                 |
+| 17  | CORS ExposedHeaders + MaxAge branches closed (→ 100%)                                       | Verified                                                 |
+| 18  | SecurityHeaders all-set + empty-config branches closed (→ 100%)                             | Verified                                                 |
+| 19  | Logging status=0 default branch closed (→ 100%)                                             | Verified                                                 |
+| 20  | RateLimit status=0 default branch closed (→ 100%)                                           | Verified                                                 |
+| 21  | Coverage re-measured: 95.2% → 98.7%                                                         | FEATURES.md + README badge updated                       |
+| 22  | Full quality gate: test -race ✓, vet ✓, lint 0 ✓, govulncheck ✓                             | All passed                                               |
 
 ---
 
@@ -44,16 +44,16 @@ These items are complete, verified, and correct.
 
 Closed 23 functions this session (31→8 below 100%). The remaining 8 are genuinely hard:
 
-| Function                | Coverage | Why it's hard                                              |
-| ----------------------- | -------- | ---------------------------------------------------------- |
-| `drawRandomBytes`       | 66.7%    | Requires crypto/rand to fail (syscall error injection)     |
-| `refillRandomBuffer`   | 87.5%    | Same — crypto/rand error path                              |
-| `Server.Shutdown`       | 75.0%    | Requires a real server + context cancellation race         |
-| `mustRequest`           | 75.0%    | httpspec internal — malformed HTTP construction error      |
-| `runSpecs`              | 88.2%    | httpspec runner — option error paths                       |
-| `computeETag`           | 94.4%    | Empty-body-with-header edge case                           |
-| `Compression`           | 95.5%    | Vary-header identity-append edge                           |
-| `scanAcceptEncoding`    | 95.5%    | Ordering tie-break with identical q-values                 |
+| Function             | Coverage | Why it's hard                                          |
+| -------------------- | -------- | ------------------------------------------------------ |
+| `drawRandomBytes`    | 66.7%    | Requires crypto/rand to fail (syscall error injection) |
+| `refillRandomBuffer` | 87.5%    | Same — crypto/rand error path                          |
+| `Server.Shutdown`    | 75.0%    | Requires a real server + context cancellation race     |
+| `mustRequest`        | 75.0%    | httpspec internal — malformed HTTP construction error  |
+| `runSpecs`           | 88.2%    | httpspec runner — option error paths                   |
+| `computeETag`        | 94.4%    | Empty-body-with-header edge case                       |
+| `Compression`        | 95.5%    | Vary-header identity-append edge                       |
+| `scanAcceptEncoding` | 95.5%    | Ordering tie-break with identical q-values             |
 
 ### 2. v0.7.1 GitHub Release notes are stale
 
@@ -67,13 +67,13 @@ The ETag coverage task was marked "completed" in the todo list because Write and
 
 ## c) NOT STARTED
 
-| #   | Task                                                                              |
-| --- | --------------------------------------------------------------------------------- |
-| 1   | Close the 8 remaining coverage gaps (crypto/rand, server, httpspec internals)     |
-| 2   | Update v0.7.1 GitHub Release notes to match corrected CHANGELOG                   |
-| 3   | Pin GitHub Actions to commit SHAs (BuildFlow flagged 9 tag-pinned actions)        |
-| 4   | Request body decompression middleware (P26 from original plan)                    |
-| 5   | CHANGELOG lint CI check (documented in CONTRIBUTING.md but no automation)         |
+| #   | Task                                                                          |
+| --- | ----------------------------------------------------------------------------- |
+| 1   | Close the 8 remaining coverage gaps (crypto/rand, server, httpspec internals) |
+| 2   | Update v0.7.1 GitHub Release notes to match corrected CHANGELOG               |
+| 3   | Pin GitHub Actions to commit SHAs (BuildFlow flagged 9 tag-pinned actions)    |
+| 4   | Request body decompression middleware (P26 from original plan)                |
+| 5   | CHANGELOG lint CI check (documented in CONTRIBUTING.md but no automation)     |
 
 ---
 
@@ -100,6 +100,7 @@ This is the exact same failure mode as v0.7.0: release first, review second, dis
 **Severity:** Medium — unilateral decisions on scope.
 
 The v0.7.1 self-review posed 3 questions:
+
 - Q1: Close all 20 coverage gaps or just plan-specified ones?
 - Q2: Re-release v0.7.1 after doc fixes?
 - Q3: Remove nopCloserWriter/nopFlushCloser as dead code?
@@ -142,73 +143,73 @@ The report header was never updated after the second round of coverage closures.
 
 ### Critical — fix the release/repo split
 
-| #   | Task                                                                                  | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------- |
-| 1   | **Decide v0.7.2 or amend v0.7.1** — the tag is stale, repo HEAD is better             | High   | decision|
-| 2   | **Update v0.7.1 GitHub Release notes** to match corrected CHANGELOG                   | Medium | 5 min   |
-| 3   | **Run `nix flake check`** after the latest batch of changes                            | Low    | 2 min   |
-| 4   | **Fix the 10:13 report** — update header to 98.7%, reconcile sections with final state| Low    | 5 min   |
+| #   | Task                                                                                   | Impact | Effort   |
+| --- | -------------------------------------------------------------------------------------- | ------ | -------- |
+| 1   | **Decide v0.7.2 or amend v0.7.1** — the tag is stale, repo HEAD is better              | High   | decision |
+| 2   | **Update v0.7.1 GitHub Release notes** to match corrected CHANGELOG                    | Medium | 5 min    |
+| 3   | **Run `nix flake check`** after the latest batch of changes                            | Low    | 2 min    |
+| 4   | **Fix the 10:13 report** — update header to 98.7%, reconcile sections with final state | Low    | 5 min    |
 
 ### High — close remaining coverage (if pursuing 100%)
 
-| #   | Task                                                                                  | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------- |
-| 5   | **Close `computeETag`** — empty-body-with-wroteHeader edge (94.4%)                    | Medium | 10 min  |
-| 6   | **Close `scanAcceptEncoding`** — ordering tie-break with identical q-values (95.5%)   | Low    | 10 min  |
-| 7   | **Close `Compression` middleware** — Vary-header identity-append edge (95.5%)         | Low    | 10 min  |
-| 8   | **Close `drawRandomBytes`** — crypto/rand error injection (66.7%)                     | Low    | 20 min  |
-| 9   | **Close `refillRandomBuffer`** — crypto/rand partial-read error (87.5%)               | Low    | 15 min  |
-| 10  | **Close `Server.Shutdown`** — context cancellation on real server (75%)               | Medium | 20 min  |
-| 11  | **Close `mustRequest`** — httpspec malformed HTTP construction (75%)                  | Low    | 10 min  |
-| 12  | **Close `runSpecs`** — httpspec option error paths (88.2%)                            | Low    | 15 min  |
+| #   | Task                                                                                | Impact | Effort |
+| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
+| 5   | **Close `computeETag`** — empty-body-with-wroteHeader edge (94.4%)                  | Medium | 10 min |
+| 6   | **Close `scanAcceptEncoding`** — ordering tie-break with identical q-values (95.5%) | Low    | 10 min |
+| 7   | **Close `Compression` middleware** — Vary-header identity-append edge (95.5%)       | Low    | 10 min |
+| 8   | **Close `drawRandomBytes`** — crypto/rand error injection (66.7%)                   | Low    | 20 min |
+| 9   | **Close `refillRandomBuffer`** — crypto/rand partial-read error (87.5%)             | Low    | 15 min |
+| 10  | **Close `Server.Shutdown`** — context cancellation on real server (75%)             | Medium | 20 min |
+| 11  | **Close `mustRequest`** — httpspec malformed HTTP construction (75%)                | Low    | 10 min |
+| 12  | **Close `runSpecs`** — httpspec option error paths (88.2%)                          | Low    | 15 min |
 
 ### Medium — v0.8.0 preparation
 
-| #   | Task                                                                                  | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------- |
-| 13  | **Define v0.8.0 scope** — what goes in before v1.0?                                   | High   | decision|
-| 14  | **Add fuzz tests for `scanAcceptEncoding`** — malformed Accept-Encoding values        | Medium | 15 min  |
-| 15  | **Pin GitHub Actions to commit SHAs** — 9 tag-pinned actions flagged by BuildFlow      | Medium | 15 min  |
-| 16  | **Add CHANGELOG comparison-link CI check** — automated format enforcement             | Low    | 30 min  |
-| 17  | **Make README coverage badge dynamic** — wire to CI output                            | Low    | 30 min  |
-| 18  | **Add `Retry-After` header support to RateLimit** — standard 429 companion            | Low    | 20 min  |
-| 19  | **Test rate limiter with IPv6 RemoteAddr strings**                                    | Low    | 10 min  |
-| 20  | **Add `ServerConfig.TLSConfig` validation**                                           | Low    | 30 min  |
-| 21  | **Document middleware ordering recommendations**                                      | Low    | 15 min  |
-| 22  | **Add request body decompression middleware**                                         | Low    | 2 hr    |
-| 23  | **Consider `httpspec` spec for CORS headers**                                         | Low    | 30 min  |
-| 24  | **Add property-based tests for token bucket behavior**                                | Low    | 1 hr    |
-| 25  | **Add `context.Context` support in rate limiter interface**                           | Low    | 30 min  |
-| 26  | **Add `MetricsRecorder` test for custom PathFunc**                                    | Low    | 10 min  |
-| 27  | **Add `go mod verify` to release runbook**                                            | Low    | 2 min   |
-| 28  | **Add `MustNewTokenBucketLimiter`** — panic variant                                  | Low    | 15 min  |
-| 29  | **Add integration test for full middleware stack**                                    | Low    | 30 min  |
-| 30  | **Evaluate `nopCloserWriter`/`nopFlushCloser` — dead code?**                          | Low    | decision|
-| 31  | **Add `httpspec.ExpectJSON`/`ExpectHTML` builders**                                   | Low    | 15 min  |
-| 32  | **Review timeout middleware for clock injectability**                                 | Low    | 30 min  |
-| 33  | **Add `Content-Length` preservation test**                                            | Low    | 30 min  |
+| #   | Task                                                                              | Impact | Effort   |
+| --- | --------------------------------------------------------------------------------- | ------ | -------- |
+| 13  | **Define v0.8.0 scope** — what goes in before v1.0?                               | High   | decision |
+| 14  | **Add fuzz tests for `scanAcceptEncoding`** — malformed Accept-Encoding values    | Medium | 15 min   |
+| 15  | **Pin GitHub Actions to commit SHAs** — 9 tag-pinned actions flagged by BuildFlow | Medium | 15 min   |
+| 16  | **Add CHANGELOG comparison-link CI check** — automated format enforcement         | Low    | 30 min   |
+| 17  | **Make README coverage badge dynamic** — wire to CI output                        | Low    | 30 min   |
+| 18  | **Add `Retry-After` header support to RateLimit** — standard 429 companion        | Low    | 20 min   |
+| 19  | **Test rate limiter with IPv6 RemoteAddr strings**                                | Low    | 10 min   |
+| 20  | **Add `ServerConfig.TLSConfig` validation**                                       | Low    | 30 min   |
+| 21  | **Document middleware ordering recommendations**                                  | Low    | 15 min   |
+| 22  | **Add request body decompression middleware**                                     | Low    | 2 hr     |
+| 23  | **Consider `httpspec` spec for CORS headers**                                     | Low    | 30 min   |
+| 24  | **Add property-based tests for token bucket behavior**                            | Low    | 1 hr     |
+| 25  | **Add `context.Context` support in rate limiter interface**                       | Low    | 30 min   |
+| 26  | **Add `MetricsRecorder` test for custom PathFunc**                                | Low    | 10 min   |
+| 27  | **Add `go mod verify` to release runbook**                                        | Low    | 2 min    |
+| 28  | **Add `MustNewTokenBucketLimiter`** — panic variant                               | Low    | 15 min   |
+| 29  | **Add integration test for full middleware stack**                                | Low    | 30 min   |
+| 30  | **Evaluate `nopCloserWriter`/`nopFlushCloser` — dead code?**                      | Low    | decision |
+| 31  | **Add `httpspec.ExpectJSON`/`ExpectHTML` builders**                               | Low    | 15 min   |
+| 32  | **Review timeout middleware for clock injectability**                             | Low    | 30 min   |
+| 33  | **Add `Content-Length` preservation test**                                        | Low    | 30 min   |
 
 ### Lower — polish
 
-| #   | Task                                                                                  | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------- |
-| 34  | **Run full benchmark suite** with `-benchtime=3s -count=5`                            | Low    | 15 min  |
-| 35  | **Add optional logging when rate limit is exceeded**                                  | Low    | 20 min  |
-| 36  | **Audit all `Validate()` methods for completeness**                                   | Low    | 1 hr    |
-| 37  | **Add `RateLimitConfig` test for custom `OnDenied` handler**                          | Low    | 10 min  |
-| 38  | **Consider whether v1.0 should be tagged after v0.8.0**                               | High   | decision|
-| 39  | **Evaluate `AllowN` on the RateLimiter interface**                                    | Low    | decision|
-| 40  | **Test compression with `Accept-Encoding: br` when only gzip configured**             | Low    | 10 min  |
-| 41  | **Add fuzz test for `parseEncodingEntry`** — malformed entries                        | Low    | 15 min  |
-| 42  | **Consider `httpspec` spec for rate-limit headers**                                   | Low    | 30 min  |
-| 43  | **Schedule full-code-review skill pass** on current state                             | Low    | 2 hr    |
-| 44  | **Establish a "self-review before tag" hard rule** in RELEASE.md                      | High   | 5 min   |
-| 45  | **Add pre-release checklist: run self-review skill BEFORE tagging**                   | High   | 10 min  |
-| 46  | **Consider squashing auto-commit commits before release tags**                        | Medium | decision|
-| 47  | **Verify `testdata/fuzz/` is in `.gitignore`** — fuzz corpus should not be committed  | Low    | 2 min   |
-| 48  | **Check if `alwaysDenyLimiter` duplicates an existing test mock**                     | Low    | 5 min   |
-| 49  | **Update AGENTS.md with the remaining coverage gap details**                          | Low    | 10 min  |
-| 50  | **Add a CONTRIBUTING.md note: "coverage gaps must have an issue or a PR"**            | Low    | 5 min   |
+| #   | Task                                                                                 | Impact | Effort   |
+| --- | ------------------------------------------------------------------------------------ | ------ | -------- |
+| 34  | **Run full benchmark suite** with `-benchtime=3s -count=5`                           | Low    | 15 min   |
+| 35  | **Add optional logging when rate limit is exceeded**                                 | Low    | 20 min   |
+| 36  | **Audit all `Validate()` methods for completeness**                                  | Low    | 1 hr     |
+| 37  | **Add `RateLimitConfig` test for custom `OnDenied` handler**                         | Low    | 10 min   |
+| 38  | **Consider whether v1.0 should be tagged after v0.8.0**                              | High   | decision |
+| 39  | **Evaluate `AllowN` on the RateLimiter interface**                                   | Low    | decision |
+| 40  | **Test compression with `Accept-Encoding: br` when only gzip configured**            | Low    | 10 min   |
+| 41  | **Add fuzz test for `parseEncodingEntry`** — malformed entries                       | Low    | 15 min   |
+| 42  | **Consider `httpspec` spec for rate-limit headers**                                  | Low    | 30 min   |
+| 43  | **Schedule full-code-review skill pass** on current state                            | Low    | 2 hr     |
+| 44  | **Establish a "self-review before tag" hard rule** in RELEASE.md                     | High   | 5 min    |
+| 45  | **Add pre-release checklist: run self-review skill BEFORE tagging**                  | High   | 10 min   |
+| 46  | **Consider squashing auto-commit commits before release tags**                       | Medium | decision |
+| 47  | **Verify `testdata/fuzz/` is in `.gitignore`** — fuzz corpus should not be committed | Low    | 2 min    |
+| 48  | **Check if `alwaysDenyLimiter` duplicates an existing test mock**                    | Low    | 5 min    |
+| 49  | **Update AGENTS.md with the remaining coverage gap details**                         | Low    | 10 min   |
+| 50  | **Add a CONTRIBUTING.md note: "coverage gaps must have an issue or a PR"**           | Low    | 5 min    |
 
 ---
 

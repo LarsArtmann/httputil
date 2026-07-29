@@ -40,13 +40,13 @@ The library is at v0.6.1 locally (SSH-signed annotated tag `7371dac`, **not push
 
 **Status:** Executed in v0.7.0 (2026-07-29). All 26 tasks from the plan below were addressed.
 
-| Phase          | Outcome                                                                                            |
-| -------------- | -------------------------------------------------------------------------------------------------- |
-| v0.6.1 push    | Done — tag pushed, GitHub Release created                                                          |
+| Phase          | Outcome                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| v0.6.1 push    | Done — tag pushed, GitHub Release created                                                            |
 | v0.7.0 renames | Done — `ForwardHeader`→`IncomingHeader`, `HeaderName`→`ResponseHeader`, `DenyUnmatched` default flip |
-| Docs           | Done — RELEASE.md, SECURITY.md, v1-stability.md, 6 README config tables, integration examples      |
-| Tests          | Done — fuzz tests, benchmarks, coverage closure                                                    |
-| Release        | v0.7.0 tagged (SSH-signed) and published on GitHub                                                 |
+| Docs           | Done — RELEASE.md, SECURITY.md, v1-stability.md, 6 README config tables, integration examples        |
+| Tests          | Done — fuzz tests, benchmarks, coverage closure                                                      |
+| Release        | v0.7.0 tagged (SSH-signed) and published on GitHub                                                   |
 
 **Self-review** (`docs/status/2026-07-29_08-58_v0-7-0-pareto-execution-self-review.md`) identified gaps that were fixed in a follow-up session:
 

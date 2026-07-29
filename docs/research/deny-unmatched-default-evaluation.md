@@ -23,12 +23,12 @@ return "*"     // wildcard → browser allows any origin
 
 ## Security Analysis
 
-| Scenario | Current (default false) | After flip (default true) |
-| -------- | ----------------------- | ------------------------- |
-| `AllowAllOrigins: true` | `*` for all (correct) | `*` for all (unchanged) |
-| Origin in `AllowedOrigins` | Echo origin (correct) | Echo origin (unchanged) |
-| Origin NOT in list, `DenyUnmatched: false` | Falls back to `*` (insecure) | Falls back to `*` (opt-in) |
-| Origin NOT in list, default behavior | Falls back to `*` (**insecure**) | No header (**secure**) |
+| Scenario                                   | Current (default false)          | After flip (default true)  |
+| ------------------------------------------ | -------------------------------- | -------------------------- |
+| `AllowAllOrigins: true`                    | `*` for all (correct)            | `*` for all (unchanged)    |
+| Origin in `AllowedOrigins`                 | Echo origin (correct)            | Echo origin (unchanged)    |
+| Origin NOT in list, `DenyUnmatched: false` | Falls back to `*` (insecure)     | Falls back to `*` (opt-in) |
+| Origin NOT in list, default behavior       | Falls back to `*` (**insecure**) | No header (**secure**)     |
 
 The only behavioral change affects: `AllowAllOrigins: false` + unmatched origin + default config. This is the exact scenario where the current behavior is wrong.
 

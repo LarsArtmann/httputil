@@ -4,10 +4,10 @@
 
 httputil is pre-1.0. Only the latest release receives security fixes.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest  | :white_check_mark: |
-| < latest | :x:               |
+| Version  | Supported          |
+| -------- | ------------------ |
+| latest   | :white_check_mark: |
+| < latest | :x:                |
 
 Once v1.0 is released, the latest minor within the current major will be supported.
 
@@ -33,6 +33,7 @@ Email **git@lars.software** with a description of the issue, reproduction steps,
 This policy covers the `httputil` package and its `httpspec` subpackage.
 
 Out of scope:
+
 - Vulnerabilities in dependencies (`go-error-family`, `golang.org/x/time`) — report to the respective upstream maintainers.
 - Social engineering attacks against the maintainer.
 - Issues requiring access to an already-compromised system.

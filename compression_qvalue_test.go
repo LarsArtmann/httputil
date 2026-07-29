@@ -144,6 +144,10 @@ func TestParseEncodingEntry_MalformedQValue(t *testing.T) {
 	}
 
 	if quality != defaultQValue {
-		t.Errorf("q = %f, want default %f (malformed q-value should fall back)", quality, defaultQValue)
+		t.Errorf(
+			"q = %f, want default %f (malformed q-value should fall back)",
+			quality,
+			defaultQValue,
+		)
 	}
 }

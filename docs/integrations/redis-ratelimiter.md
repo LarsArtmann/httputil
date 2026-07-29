@@ -103,18 +103,19 @@ cfg.KeyFunc = func(r *http.Request) string {
 
 ## Tradeoffs
 
-| Aspect               | TokenBucketLimiter (in-memory) | RedisRateLimiter            |
-| -------------------- | ------------------------------- | --------------------------- |
-| Scope                | Single process                  | All instances sharing Redis |
-| Latency              | ~100ns per call                 | ~0.5-1ms per call (network) |
-| Consistency          | Per-instance                    | Global                      |
-| Eviction             | Built-in via `EvictionTTL`      | Redis TTL on keys           |
-| Failure mode         | N/A (always available)          | Configurable (fail open/closed) |
-| External dependency  | None                            | Redis                       |
+| Aspect              | TokenBucketLimiter (in-memory) | RedisRateLimiter                |
+| ------------------- | ------------------------------ | ------------------------------- |
+| Scope               | Single process                 | All instances sharing Redis     |
+| Latency             | ~100ns per call                | ~0.5-1ms per call (network)     |
+| Consistency         | Per-instance                   | Global                          |
+| Eviction            | Built-in via `EvictionTTL`     | Redis TTL on keys               |
+| Failure mode        | N/A (always available)         | Configurable (fail open/closed) |
+| External dependency | None                           | Redis                           |
 
 ## Fail-Open vs Fail-Closed
 
 When Redis is unavailable, you must decide:
+
 - **Fail open** (allow): maximizes availability, risks over-serving during outages.
 - **Fail closed** (deny): maximizes protection, risks blocking legitimate traffic during outages.
 

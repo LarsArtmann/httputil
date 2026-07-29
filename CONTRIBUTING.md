@@ -20,14 +20,14 @@ govulncheck ./...          # Vulnerability scan
 
 The `flake.nix` provides task automation apps. Use these for canonical entry points:
 
-| App                 | Command              | Purpose                                  |
-| ------------------- | -------------------- | ---------------------------------------- |
-| `nix run .#test`    | `go test -race`      | Run tests with race detection            |
-| `nix run .#build`   | `go build ./...`     | Build all packages                       |
-| `nix run .#vet`     | `go vet ./...`       | Run go vet                               |
-| `nix run .#lint`    | `golangci-lint run`  | Run the full linter suite                |
-| `nix run .#coverage`| `go test -cover`     | Generate coverage report                 |
-| `nix run .#clean`   | `go clean -testcache`| Clean test cache and coverage artifacts  |
+| App                  | Command               | Purpose                                 |
+| -------------------- | --------------------- | --------------------------------------- |
+| `nix run .#test`     | `go test -race`       | Run tests with race detection           |
+| `nix run .#build`    | `go build ./...`      | Build all packages                      |
+| `nix run .#vet`      | `go vet ./...`        | Run go vet                              |
+| `nix run .#lint`     | `golangci-lint run`   | Run the full linter suite               |
+| `nix run .#coverage` | `go test -cover`      | Generate coverage report                |
+| `nix run .#clean`    | `go clean -testcache` | Clean test cache and coverage artifacts |
 
 ### Minimum Go Version
 
