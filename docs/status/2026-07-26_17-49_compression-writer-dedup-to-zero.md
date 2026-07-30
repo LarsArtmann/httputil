@@ -109,3 +109,18 @@ Nothing catastrophic. No data loss, no broken builds, no reverted commits, no fa
 
 - `health.go` jsonv2/goversion gopls warnings (3) — pre-existing, tracked.
 - Untested compression error paths (buffer drain, Close buffered write) — pre-existing, now slightly more reachable via the new helpers.
+
+---
+
+## Resolution (2026-07-30)
+
+| Item | Status |
+| ---- | ------ |
+| f.1 — Fix `writeClassified` doc comment ("single choke point" overclaim) | **Still open.** The comment at `compress_writer.go` still reads "single error-handling choke point for compressWriter output" but the `flushPlainAndStream` drain (line ~176) bypasses it. TODO_LIST "Fix writeClassified doc comment overclaim". |
+| f.3 — Add tests for untested classified-error paths (flushPlainAndStream drain, Close buffered write) | **Done at `b847277` (v0.7.1).** All `compress_writer.go` and `compress_pool.go` functions reached 100% coverage. |
+| f.4 — Update CHANGELOG with the dedup pass | **Done at `6977bf7` (v0.6.1).** CHANGELOG `[0.6.1]` "Changed" section documents the `compressWriteError` unification. |
+| Q1 — Route flushPlainAndStream drain through streamClassified, or fix comment? | **Still open** — see f.1 above. |
+| Q2 — Update CHANGELOG for this pass, under which version? | **Answered: `[0.6.1]`** — the refactor shipped as part of the v0.6.1 release. |
+| Q3 — Pin `benchstat` in flake.nix? | **Not done.** `benchstat` is not in the devShell; benchmark A/B still relies on allocs as the gate. |
+
+The core deliverable (0 clone groups at all thresholds) was confirmed correct and remains true as of v0.7.1.
