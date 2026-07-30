@@ -129,8 +129,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` passes across the full suite with 98.7% statement coverage (`httputil`), 98.3% (`httpspec`) — measured 2026-07-29 with race detection enabled.
-- Fuzz tests for CORS origin matching, `ParseUintQuery`, `EvictionTTL`, and `HealthResponse` JSON encoding — all verified with `-fuzztime`.
+- `go test ./...` passes across the full suite with 91.0% statement coverage (`httputil`), 98.3% (`httpspec`) — measured 2026-07-30 with race detection enabled. Coverage dropped from 98.7% after three new middleware features (CSRF, Server-Timing, KeyedRateLimit) were added without full coverage closure.
+- 12 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag, RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, and Server-Timing (header value + middleware). CORS, query params, eviction, health, and compression fuzz tests verified with `-fuzztime`.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
@@ -152,7 +152,14 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage
 
-Measured 2026-07-29 with `go test -race -coverprofile`: **98.7%** (`httputil`), **98.3%** (`httpspec`). All compression writer/pool, CORS, SecurityHeaders, Logging, and RateLimit functions at 100%. Remaining gaps:
+Measured 2026-07-30 with `go test -race -coverprofile`: **91.0%** (`httputil`), **98.3%** (`httpspec`). The pre-v0.7.1 codebase was at 98.7%; three new middleware features (CSRF, Server-Timing, KeyedRateLimit) dropped the overall number because their error branches and helpers are not yet fully tested.
+
+New middleware gaps (priority for v0.8.0):
+
+- `csrf.go`: `ValidateCSRF` (0%), `TranslateCSRFHeaders` (0%), `CSRFTokenHXHeaders` (0%), `isTrustedProxy` (20%), `Validate` (47%).
+- `server_timing.go` and `ratelimit_keyed.go`: various sub-100% functions.
+
+Pre-existing gaps (error-injection and internal paths):
 
 - `computeETag` empty-body branch (94.4%).
 - `scanAcceptEncoding` ordering tie-break (95.5%).
