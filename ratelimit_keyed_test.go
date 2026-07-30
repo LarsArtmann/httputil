@@ -16,9 +16,13 @@ func TestKeyedRateLimiterMiddleware_AllowsUnderLimit(t *testing.T) {
 		KeyExtractor: KeyExtractorFromRemoteAddr(),
 	}
 
-	handler := KeyedRateLimiterMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := KeyedRateLimiterMiddleware(
+		cfg,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	for range 5 {
 		rec := httptest.NewRecorder()
@@ -41,9 +45,13 @@ func TestKeyedRateLimiterMiddleware_RejectsOverLimit(t *testing.T) {
 		KeyExtractor: KeyExtractorFromRemoteAddr(),
 	}
 
-	handler := KeyedRateLimiterMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := KeyedRateLimiterMiddleware(
+		cfg,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.RemoteAddr = "1.2.3.4:1234"
@@ -78,9 +86,13 @@ func TestKeyedRateLimiter_EmptyKeyExempt(t *testing.T) {
 		},
 	}
 
-	handler := KeyedRateLimiterMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := KeyedRateLimiterMiddleware(
+		cfg,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	for range 10 {
 		rec := httptest.NewRecorder()

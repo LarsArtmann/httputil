@@ -6,7 +6,7 @@ These are the non-obvious rules that cause immediate lint failures. Read these b
 
 ### Allowed Dependencies
 
-`depguard` allows `$gostd`, `$module`, `github.com/larsartmann/go-error-family` (same author, zero transitive deps), and `golang.org/x/time` (canonical Go extension for rate limiting). No other third-party libraries.
+`depguard` allows `$gostd`, `$module`, `github.com/larsartmann/go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go extension for rate limiting), and `github.com/justinas/nosurf` (CSRF protection, used by `csrf.go`). No other third-party libraries.
 
 ### `exhaustruct` — Every Struct Field Must Be Set
 

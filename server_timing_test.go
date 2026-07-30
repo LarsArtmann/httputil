@@ -560,14 +560,18 @@ func TestServerTiming_HeaderValue_SpecCompliant(t *testing.T) {
 func TestServerTimingMiddleware_NilPredicateDisablesAll(t *testing.T) {
 	t.Parallel()
 
-	h := ServerTimingMiddlewareWhen(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		st := ServerTimingFromContext(r.Context())
-		if st.Enabled() {
-			t.Fatal("nil predicate should disable all requests")
-		}
+	h := ServerTimingMiddlewareWhen(
+		nil,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			st := ServerTimingFromContext(r.Context())
+			if st.Enabled() {
+				t.Fatal("nil predicate should disable all requests")
+			}
 
-		w.WriteHeader(http.StatusOK)
-	}))
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))

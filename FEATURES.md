@@ -2,29 +2,32 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-07-26_
+_Updated: 2026-07-30_
 
 ---
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (13 middlewares)
+### Core Middleware Suite (16 middlewares)
 
-| Middleware       | File                                   | Config Type                                                 | Tests | Examples                     | Benchmarks                  | Fuzz              |
-| ---------------- | -------------------------------------- | ----------------------------------------------------------- | ----- | ---------------------------- | --------------------------- | ----------------- |
-| CORS             | `cors.go`                              | `CORSConfig` + `Validate()`                                 | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`        |
-| ClientIP         | `clientip.go`, `context.go`            | —                                                           | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`    |
-| RequestID        | `requestid.go`, `id_generator.go`      | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`   |
-| SecurityHeaders  | `security.go`                          | `SecurityHeadersConfig` + `Validate()`                      | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                 |
-| Recovery         | `recovery.go`                          | `*slog.Logger`                                              | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                 |
-| Timeout          | `timeout.go`                           | `time.Duration`                                             | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                 |
-| Logging          | `logging.go`                           | `*slog.Logger`                                              | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                 |
-| ResponseRecorder | `recorder.go`                          | —                                                           | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                 |
-| Compression      | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression` |
-| ETag             | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`        |
-| MaxBodySize      | `maxbodysize.go`                       | `int64`                                                     | Yes   | —                            | —                           | —                 |
-| RateLimit        | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                            | —                           | —                 |
-| Metrics          | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes   | —                            | —                           | —                 |
+| Middleware               | File                                   | Config Type                                                 | Tests | Examples                     | Benchmarks                  | Fuzz                |
+| ------------------------ | -------------------------------------- | ----------------------------------------------------------- | ----- | ---------------------------- | --------------------------- | ------------------- |
+| CORS                     | `cors.go`                              | `CORSConfig` + `Validate()`                                 | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`          |
+| ClientIP                 | `clientip.go`, `context.go`            | —                                                           | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`      |
+| RequestID                | `requestid.go`, `id_generator.go`      | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`     |
+| SecurityHeaders          | `security.go`                          | `SecurityHeadersConfig` + `Validate()`                      | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                   |
+| Recovery                 | `recovery.go`                          | `*slog.Logger`                                              | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                   |
+| Timeout                  | `timeout.go`                           | `time.Duration`                                             | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                   |
+| Logging                  | `logging.go`                           | `*slog.Logger`                                              | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                   |
+| ResponseRecorder         | `recorder.go`                          | —                                                           | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                   |
+| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression`   |
+| ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`          |
+| MaxBodySize              | `maxbodysize.go`                       | `int64`                                                     | Yes   | —                            | —                           | —                   |
+| RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                            | —                           | —                   |
+| Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes   | —                            | —                           | —                   |
+| Server-Timing            | `server_timing.go`                     | —                                                           | Yes   | —                            | `BenchmarkServerTiming*`    | `FuzzServerTiming*` |
+| CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                 | Yes   | —                            | —                           | —                   |
+| KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig`                                    | Yes   | —                            | —                           | —                   |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 

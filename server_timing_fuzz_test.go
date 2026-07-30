@@ -49,17 +49,19 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 	f.Add(strings.Repeat("A", 500), strings.Repeat("/", 100))
 
 	f.Fuzz(func(t *testing.T, method, path string) {
-		handler := ServerTimingMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			st := ServerTimingFromContext(r.Context())
-			if st == nil {
-				t.Error("ServerTiming not in context")
+		handler := ServerTimingMiddleware()(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				st := ServerTimingFromContext(r.Context())
+				if st == nil {
+					t.Error("ServerTiming not in context")
 
-				return
-			}
+					return
+				}
 
-			st.Record("test", "fuzz metric", time.Microsecond)
-			w.WriteHeader(http.StatusOK)
-		}))
+				st.Record("test", "fuzz metric", time.Microsecond)
+				w.WriteHeader(http.StatusOK)
+			}),
+		)
 
 		if method == "" {
 			method = http.MethodGet

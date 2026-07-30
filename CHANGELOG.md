@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **CSRF protection** (`csrf.go`): double-submit cookie CSRF middleware backed by `justinas/nosurf`, with HTMX-aware helpers (`CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField`), trusted-proxy support, and `ValidateCSRF` for per-handler validation.
+- **W3C Server-Timing** (`server_timing.go`): `ServerTimingMiddleware`, `ServerTimingMiddlewareWhen`, `MeasureServerTiming`, and `WrapServerTiming` for response instrumentation with CRLF-injection-safe header values.
+- **Keyed rate limiting** (`ratelimit_keyed.go`): `KeyedRateLimiter` with O(log n) min-heap eviction, a `MaxKeys` cap, `Retry-After` headers, and a monitoring API (`ActiveKeys`). Replaces the deprecated `TokenBucketLimiter`.
+
+### Deprecated
+
+- `TokenBucketLimiter`, the `RateLimiter` interface, `RateLimitConfig`, `DefaultRateLimitConfig`, and `RateLimit()` middleware — superseded by `KeyedRateLimiter` and `KeyedRateLimiterMiddleware`. Will be removed in a future release.
+
+### Changed
+
+- Added `github.com/justinas/nosurf` v1.2.0 as a dependency (CSRF protection).
+
 ## [0.7.1] - 2026-07-29
 
 ### Fixed

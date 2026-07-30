@@ -162,11 +162,11 @@ func TestCSRFConfig_Validate_SameSiteNoneWithoutSecure(t *testing.T) {
 	}
 }
 
-func TestForbiddenCSRFHandler_RespondsWith403(t *testing.T) {
+func TestForbiddenHandler_RespondsWith403(t *testing.T) {
 	t.Parallel()
 
 	rec := httptest.NewRecorder()
-	ForbiddenCSRFHandler(rec, nil, nil)
+	ForbiddenHandler(rec, nil, nil)
 
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("got %d, want %d", rec.Code, http.StatusForbidden)

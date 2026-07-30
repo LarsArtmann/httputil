@@ -218,6 +218,8 @@ linters:
           - gocognit
           - goconst
           - noctx
+          - wsl_v5
+          - noinlineerr
       - path: _test\.go
         text: unused
         linters:

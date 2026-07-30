@@ -6,9 +6,9 @@
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
-Minimal footprint — two dependencies (`go-error-family` same-author + `golang.org/x/time`). Pure stdlib `net/http`. Go 1.26+.
+Minimal footprint — three dependencies (`go-error-family` same-author + `golang.org/x/time` + `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
 
 ## Install
 

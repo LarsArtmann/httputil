@@ -21,6 +21,9 @@ const (
 
 // RateLimiter decides whether a request should be allowed based on a key.
 // Implementations must be safe for concurrent use.
+//
+// Deprecated: Use [KeyedRateLimiter], which adds min-heap eviction, a MaxKeys
+// cap, and a monitoring API. This interface will be removed in a future release.
 type RateLimiter interface {
 	// Allow returns true if the request identified by key should be allowed,
 	// consuming one token from the bucket. Returns false if the rate limit
@@ -43,6 +46,9 @@ type rateBucket struct {
 // buckets — buckets that have not been accessed within EvictionTTL are
 // removed on the next Allow call that triggers a sweep. Zero (the default)
 // disables eviction, preserving the original unbounded-growth behavior.
+//
+// Deprecated: Use [KeyedRateLimiter], which provides O(log n) min-heap eviction,
+// a MaxKeys cap, and a monitoring API.
 type TokenBucketLimiter struct {
 	mu sync.Mutex
 	// EvictionTTL controls idle-bucket eviction. When non-zero, buckets not
@@ -59,6 +65,9 @@ type TokenBucketLimiter struct {
 // NewTokenBucketLimiter creates a RateLimiter that allows requests at the
 // given rate (tokens per second) with a burst capacity. Each unique key gets
 // its own bucket. Returns an error if rate or burst is not positive.
+//
+// Deprecated: Use [NewKeyedRateLimiter], which provides min-heap eviction and a
+// MaxKeys cap.
 func NewTokenBucketLimiter(rateValue float64, burst int) (*TokenBucketLimiter, error) {
 	if rateValue <= 0 {
 		return nil, errInvalidRate
@@ -114,6 +123,8 @@ func (l *TokenBucketLimiter) sweep(now time.Time) {
 }
 
 // RateLimitConfig holds configuration for the rate limiting middleware.
+//
+// Deprecated: Use [KeyedRateLimiterConfig] with [KeyedRateLimiterMiddleware].
 type RateLimitConfig struct {
 	// Limiter decides whether to allow each request. Required.
 	Limiter RateLimiter
@@ -133,6 +144,8 @@ type RateLimitConfig struct {
 
 // DefaultRateLimitConfig returns a config with sensible defaults. The caller
 // must set Limiter before use.
+//
+// Deprecated: Use [DefaultKeyedRateLimiterConfig].
 func DefaultRateLimitConfig() RateLimitConfig {
 	return RateLimitConfig{
 		Limiter:  nil,
@@ -154,6 +167,9 @@ func (c RateLimitConfig) Validate() error {
 // RateLimit returns middleware that enforces rate limiting using the configured
 // [RateLimiter]. Requests exceeding the limit receive the configured denial
 // response (default: 429 Too Many Requests).
+//
+// Deprecated: Use [KeyedRateLimiterMiddleware], which provides min-heap eviction,
+// a MaxKeys cap, Retry-After headers, and a monitoring API.
 func RateLimit(cfg RateLimitConfig) Middleware {
 	status := cfg.Status
 	if status == 0 {

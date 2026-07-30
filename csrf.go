@@ -33,13 +33,13 @@ const (
 
 const contentTypePlain = "text/plain; charset=utf-8"
 
-// CSRFErrorHandler handles CSRF validation failures.
-type CSRFErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
+// ErrorHandler handles CSRF validation failures.
+type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
-// ForbiddenCSRFHandler responds with HTTP 403 Forbidden and no body. Useful for
+// ForbiddenHandler responds with HTTP 403 Forbidden and no body. Useful for
 // tests and consumers who want to handle CSRF failures via a separate middleware
 // rather than rendering the underlying nosurf error.
-func ForbiddenCSRFHandler(w http.ResponseWriter, _ *http.Request, _ error) {
+func ForbiddenHandler(w http.ResponseWriter, _ *http.Request, _ error) {
 	w.WriteHeader(http.StatusForbidden)
 }
 
@@ -112,7 +112,7 @@ type CSRFConfig struct {
 
 	// ErrorHandler is called when CSRF validation fails.
 	// Default: writes 403 Forbidden with plain text
-	ErrorHandler CSRFErrorHandler
+	ErrorHandler ErrorHandler
 }
 
 func (c *CSRFConfig) cookieName() string {
@@ -165,15 +165,21 @@ func (c *CSRFConfig) Validate() error {
 
 	for _, origin := range c.TrustedOrigins {
 		if origin == "" || origin == "*" {
-			return errorfamily.NewInfrastructure("csrf_unsafe_origin",
-				fmt.Sprintf("TrustedOrigins contains unsafe entry %q — use specific domain names only",
-					origin)).WithCause(ErrCSRFConfig)
+			return errorfamily.NewInfrastructure(
+				"csrf_unsafe_origin",
+				fmt.Sprintf(
+					"TrustedOrigins contains unsafe entry %q — use specific domain names only",
+					origin,
+				),
+			).WithCause(ErrCSRFConfig)
 		}
 	}
 
 	if !c.Secure {
-		slog.Warn("httputil: CSRFConfig.Validate: Secure is false — CSRF cookies will be sent over plain HTTP",
-			slog.String("hint", "set Secure=true in production"))
+		slog.Warn(
+			"httputil: CSRFConfig.Validate: Secure is false — CSRF cookies will be sent over plain HTTP",
+			slog.String("hint", "set Secure=true in production"),
+		)
 	}
 
 	// Parse TrustedProxies CIDR entries.
@@ -242,7 +248,8 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 	}
 
 	handler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if reason := nosurf.Reason(r); reason != nil {
+		reason := nosurf.Reason(r)
+		if reason != nil {
 			slog.Warn(
 				"httputil: CSRF validation failed",
 				slog.String("method", r.Method),
@@ -324,7 +331,8 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //   - The X-CSRF-Token header (HTMX default)
 //   - A form field named "csrf_token"
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
-	if err := cfg.Validate(); err != nil {
+	err := cfg.Validate()
+	if err != nil {
 		slog.Error("httputil: CSRFConfig validation failed", slog.String("error", err.Error()))
 	}
 
