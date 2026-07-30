@@ -558,3 +558,38 @@ func CSRFTestToken(middleware func(http.Handler) http.Handler) (string, *http.Co
 
 	return ctxToken, cookie
 }
+
+// ValidateCSRF checks whether a request passes CSRF validation against the
+// given config. Returns (true, nil) when valid, or (false, rec) when the
+// request fails validation — the recorder contains the failure response
+// (headers, status code, body) that should be copied to the real ResponseWriter.
+//
+// If the request already has a valid nosurf token (global CSRFMiddleware already
+// ran), returns (true, nil) without re-validating.
+func ValidateCSRF(r *http.Request, cfg CSRFConfig) (bool, *httptest.ResponseRecorder) {
+	if nosurf.Token(r) != "" {
+		return true, nil
+	}
+
+	var validated bool
+
+	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		validated = true
+	})
+
+	handler := nosurf.New(dummy)
+	ConfigureNosurfHandler(handler, cfg)
+
+	SetPlaintextHTTPOrigin(r, cfg)
+
+	needsTranslation := cfg.headerName() != DefaultCSRFHeaderName ||
+		cfg.fieldName() != DefaultCSRFFieldName
+	if needsTranslation {
+		TranslateCSRFHeaders(r, cfg)
+	}
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, r)
+
+	return validated, rec
+}
