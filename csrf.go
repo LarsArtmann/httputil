@@ -274,7 +274,9 @@ func CSRFTokenFromContext(ctx context.Context) string {
 	return token
 }
 
-func csrfTokenFromRequest(r *http.Request) string {
+// CSRFTokenFromRequest extracts the CSRF token from either the nosurf
+// request context or the httputil context. Returns "" if no token is present.
+func CSRFTokenFromRequest(r *http.Request) string {
 	if token := nosurf.Token(r); token != "" {
 		return token
 	}
@@ -344,10 +346,10 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			cfg.fieldName() != DefaultCSRFFieldName
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			setPlaintextHTTPOrigin(r, cfg)
+			SetPlaintextHTTPOrigin(r, cfg)
 
 			if needsTranslation {
-				translateCSRFHeaders(r, cfg)
+				TranslateCSRFHeaders(r, cfg)
 			}
 
 			handler.ServeHTTP(w, r)
@@ -369,10 +371,10 @@ func warnEmptyTrustedProxies(cfg CSRFConfig) {
 	}
 }
 
-// setPlaintextHTTPOrigin sets the Sec-Fetch-Site header to "same-origin" for
+// SetPlaintextHTTPOrigin sets the Sec-Fetch-Site header to "same-origin" for
 // plain HTTP requests without origin headers. This allows nosurf to skip
 // origin validation for HTTP deployments behind trusted proxies.
-func setPlaintextHTTPOrigin(r *http.Request, cfg CSRFConfig) {
+func SetPlaintextHTTPOrigin(r *http.Request, cfg CSRFConfig) {
 	if !shouldBypassPlaintextOrigin(r, cfg) {
 		return
 	}
@@ -438,10 +440,10 @@ func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg C
 	return false
 }
 
-// translateCSRFHeaders maps custom header/field names to nosurf's default
+// TranslateCSRFHeaders maps custom header/field names to nosurf's default
 // header name. nosurf hardcodes its header and field names, so we translate
 // before passing the request to nosurf.
-func translateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
+func TranslateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
 	if cfg.headerName() != DefaultCSRFHeaderName {
 		if token := r.Header.Get(cfg.headerName()); token != "" {
 			r.Header.Set(DefaultCSRFHeaderName, token)
@@ -464,7 +466,7 @@ func translateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
 // Place this AFTER CSRFMiddleware in the chain so the token is already in context.
 func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if token := csrfTokenFromRequest(r); token != "" {
+		if token := CSRFTokenFromRequest(r); token != "" {
 			w.Header().Set(DefaultCSRFHeaderName, token)
 		}
 
@@ -477,7 +479,7 @@ func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {
 // ---------------------------------------------------------------------------
 
 func csrfTokenFormatted(r *http.Request, format func(escaped string) string) string {
-	token := csrfTokenFromRequest(r)
+	token := CSRFTokenFromRequest(r)
 	if token == "" {
 		return ""
 	}
@@ -494,7 +496,7 @@ func CSRFTokenHTMLMeta(r *http.Request) string {
 
 // CSRFTokenHXHeaders returns an HTMX hx-headers attribute with the CSRF token.
 func CSRFTokenHXHeaders(r *http.Request) string {
-	token := csrfTokenFromRequest(r)
+	token := CSRFTokenFromRequest(r)
 	if token == "" {
 		return ""
 	}
