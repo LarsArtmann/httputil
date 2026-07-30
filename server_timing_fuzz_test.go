@@ -21,7 +21,7 @@ func FuzzServerTimingHeaderValue(f *testing.F) {
 	f.Add("x\ry\nz", "inject\r\nheader", int64(42))
 
 	f.Fuzz(func(t *testing.T, name, desc string, durNanos int64) {
-		st := &ServerTiming{} //nolint:exhaustruct // only metrics field is relevant for this test
+		st := &ServerTiming{}
 		st.Record(name, desc, time.Duration(durNanos))
 
 		val := st.HeaderValue()

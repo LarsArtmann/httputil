@@ -31,6 +31,7 @@ func TestCSRFMiddleware_GETSetsTokenInContext(t *testing.T) {
 	for _, c := range rec.Result().Cookies() {
 		if c.Name == DefaultCSRFCookieName {
 			hasCookie = true
+
 			break
 		}
 	}

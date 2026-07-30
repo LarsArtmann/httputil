@@ -28,7 +28,7 @@ const (
 	DefaultCSRFHeaderName = "X-CSRF-Token"
 	// DefaultCSRFFieldName is the default form field name for the CSRF token.
 	DefaultCSRFFieldName = "csrf_token"
-	defaultCSRFMaxAge     = 24 * time.Hour
+	defaultCSRFMaxAge    = 24 * time.Hour
 )
 
 const contentTypePlain = "text/plain; charset=utf-8"
@@ -237,7 +237,7 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 		failureHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 			w.Header().Set("Content-Type", contentTypePlain)
 			w.WriteHeader(http.StatusForbidden)
-			_, _ = w.Write([]byte(err.Error())) //nolint:gosec // text/plain prevents HTML rendering
+			_, _ = w.Write([]byte(err.Error()))
 		}
 	}
 

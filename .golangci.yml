@@ -136,10 +136,14 @@ linters:
             - $gostd
             - $module
             - github.com/larsartmann/go-error-family
+            - github.com/justinas/nosurf
             - golang.org/x/time
     exhaustruct:
       exclude:
         - os/exec.Cmd
+        - httputil\.KeyedRateLimiterConfig$
+        - httputil\.ServerTiming$
+        - httputil\.serverTimingWriter$
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
@@ -191,6 +195,17 @@ linters:
         - r
         - "n"
         - rw
+        - h
+        - st
+        - hv
+        - rl
+        - mw
+        - wg
+        - ms
+        - s
+        - p
+        - l
+        - c
       ignore-type-assert-ok: true
   exclusions:
     generated: lax

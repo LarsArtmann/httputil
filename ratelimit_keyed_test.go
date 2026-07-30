@@ -71,7 +71,7 @@ func TestKeyedRateLimiter_EmptyKeyExempt(t *testing.T) {
 	t.Parallel()
 
 	cfg := KeyedRateLimiterConfig{
-		Limit: 1,
+		Limit:  1,
 		Window: time.Minute,
 		KeyExtractor: func(_ *http.Request) string {
 			return ""
