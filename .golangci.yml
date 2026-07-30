@@ -141,9 +141,7 @@ linters:
     exhaustruct:
       exclude:
         - os/exec.Cmd
-        - httputil\.KeyedRateLimiterConfig$
-        - httputil\.ServerTiming$
-        - httputil\.serverTimingWriter$
+        - github\.com/larsartmann/httputil\.(KeyedRateLimiterConfig|ServerTiming|serverTimingWriter)$
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
@@ -224,6 +222,12 @@ linters:
         text: unused
         linters:
           - unused
+      # "X-CSRF-Token" is the ecosystem-standard spelling (nosurf, HTMX, OWASP).
+      # http.Header.Set/Get canonicalize at the wire level regardless, so the
+      # non-canonical literal is intentional and harmless.
+      - text: '"X-CSRF-Token" is not canonical'
+        linters:
+          - canonicalheader
     paths:
       - _templ\.go$
       - \.gen\.go$
