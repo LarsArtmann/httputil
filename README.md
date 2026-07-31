@@ -288,15 +288,78 @@ For dependency-based readiness (e.g., database connectivity):
 mux.HandleFunc("GET /health/ready", httputil.ReadyHandlerWithProbe(db.Ping))
 ```
 
+### CSRF Protection
+
+Double-submit cookie CSRF protection via [justinas/nosurf](https://github.com/justinas/nosurf) with HTMX-aware helpers.
+
+```go
+handler := httputil.CSRFMiddleware(httputil.CSRFConfig{})(mux)
+```
+
+For HTMX, pair with `CSRFResponseHeaderMiddleware` to automatically set the token in response headers:
+
+```go
+handler := httputil.Chain(mux,
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    httputil.CSRFResponseHeaderMiddleware,
+)
+```
+
+Token helpers for templates: `CSRFTokenFormField` (hidden input), `CSRFTokenHTMLMeta` (meta tag), `CSRFTokenHXHeaders` (hx-headers attribute).
+
+Call `InvalidateCSRFCookie(w, cfg)` on login/logout to rotate the token.
+
+### Server-Timing
+
+W3C Server-Timing header with per-request sub-metrics.
+
+```go
+handler := httputil.ServerTimingMiddleware()(mux)
+
+// In a handler:
+stop := httputil.MeasureServerTiming(r.Context(), "db")
+result, err := db.Query(ctx)
+stop()
+```
+
+Gate behind a predicate to expose only for admin/debug requests:
+
+```go
+handler := httputil.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+    return r.URL.Query().Has("debug")
+})(mux)
+```
+
+### Rate Limiting
+
+Token-bucket rate limiting per client key with O(log n) min-heap eviction and monitoring.
+
+```go
+handler := httputil.KeyedRateLimiterMiddleware(httputil.DefaultKeyedRateLimiterConfig())(mux)
+```
+
+For monitoring active keys:
+
+```go
+rl := httputil.NewKeyedRateLimiter(httputil.DefaultKeyedRateLimiterConfig())
+fmt.Println(rl.ActiveKeys())
+handler := rl.Middleware()(mux)
+```
+
+Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
+
 ### Error Classification
 
-`ResponseRecorder` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
+`ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
 
-| Method   | Error Code                | Family         | Retryable | When                                         |
-| -------- | ------------------------- | -------------- | --------- | -------------------------------------------- |
-| `Write`  | `http.write_failed`       | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
-| `Hijack` | `http.hijack_unsupported` | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
-| `Hijack` | `http.hijack_failed`      | Transient      | Yes       | Underlying Hijack call fails                 |
+| Source     | Error Code                  | Family         | Retryable | When                                          |
+| ---------- | --------------------------- | -------------- | --------- | --------------------------------------------- |
+| `Write`    | `http.write_failed`         | Transient      | Yes       | Underlying ResponseWriter.Write fails         |
+| `Hijack`   | `http.hijack_unsupported`   | Infrastructure | No        | Underlying writer doesn't implement Hijacker  |
+| `Hijack`   | `http.hijack_failed`        | Transient      | Yes       | Underlying Hijack call fails                  |
+| `Compress` | `http.compress_write_failed`| Transient      | Yes       | Compression writer Write/Close fails          |
+| `CSRF`     | `csrf_invalid`              | Rejection      | No        | CSRF token missing, malformed, or mismatched  |
+| `CSRF`     | `csrf_config`               | Infrastructure | No        | CSRF configuration invalid                     |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 
@@ -330,9 +393,17 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression  |
 | `ETag`                           | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + 304 handling                  |
 | `DefaultETagConfig`              | `func() ETagConfig`                                                   | Strong ETag defaults                            |
-| `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting                      |
-| `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config                       |
-| `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor                |
+| `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_       |
+| `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config _(deprecated)_        |
+| `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor _(deprecated)_ |
+| `KeyedRateLimiterMiddleware`     | `func(KeyedRateLimiterConfig) func(http.Handler) http.Handler`        | Per-key rate limiting with eviction             |
+| `NewKeyedRateLimiter`            | `func(KeyedRateLimiterConfig) *KeyedRateLimiter`                      | Rate limiter with monitoring API                |
+| `DefaultKeyedRateLimiterConfig`  | `func() KeyedRateLimiterConfig`                                       | Default per-key rate limit config               |
+| `CSRFMiddleware`                 | `func(CSRFConfig) func(http.Handler) http.Handler`                    | CSRF protection middleware                      |
+| `CSRFResponseHeaderMiddleware`   | `func(http.Handler) http.Handler`                                     | Auto-set CSRF token in response header          |
+| `ValidateCSRF`                   | `func(*http.Request, CSRFConfig) (bool, *httptest.ResponseRecorder)`  | Standalone CSRF validation                      |
+| `ServerTimingMiddleware`         | `func() func(http.Handler) http.Handler`                              | W3C Server-Timing header middleware             |
+| `ServerTimingMiddlewareWhen`     | `func(func(*http.Request) bool) func(http.Handler) http.Handler`      | Conditional Server-Timing middleware            |
 | `ParseUintQuery`                 | `func(*http.Request, string) uint`                                    | Parse uint from query param                     |
 | `Metrics`                        | `func(MetricsConfig) func(http.Handler) http.Handler`                 | Request metrics recording                       |
 | `DefaultMetricsConfig`           | `func() MetricsConfig`                                                | Default metrics config                          |
@@ -390,7 +461,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `MaxBufferSize` | `int`                 | `1048576` | Max bytes buffered for ETag computation before abandoning and streaming (1 MB)   |
 | `HashFunc`      | `func([]byte) uint64` | FNV-64a   | Body hash function for ETag generation; replace for application-specific hashing |
 
-### `RateLimitConfig` fields
+### `RateLimitConfig` fields _(deprecated — use `KeyedRateLimiterConfig`)_
 
 | Field      | Type                         | Default            | Description                                                       |
 | ---------- | ---------------------------- | ------------------ | ----------------------------------------------------------------- |
@@ -398,6 +469,37 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `KeyFunc`  | `func(*http.Request) string` | `nil` (RemoteAddr) | Extracts the rate-limiting key from the request (e.g., client IP) |
 | `Status`   | `int`                        | `429`              | HTTP status when rate limited (ignored when `OnDenied` is set)    |
 | `OnDenied` | `http.HandlerFunc`           | `nil`              | Custom handler for rejected requests; overrides default response  |
+
+### `KeyedRateLimiterConfig` fields
+
+| Field              | Type                         | Default                      | Description                                                          |
+| ------------------ | ---------------------------- | ---------------------------- | -------------------------------------------------------------------- |
+| `Limit`            | `uint`                       | `100`                        | Maximum requests per `Window` per key                                |
+| `Window`           | `time.Duration`              | `1m`                         | Time window for the limit                                            |
+| `Burst`            | `uint`                       | `0` (= Limit)                | Maximum burst size (can exceed Limit)                                |
+| `KeyExtractor`     | `KeyExtractor`               | `KeyExtractorFromClientIP()` | Extracts the rate-limit key from the request                         |
+| `TTL`              | `time.Duration`              | `10m`                        | How long idle entries are kept before eviction                       |
+| `MaxKeys`          | `uint`                       | `0` (unbounded)              | Caps tracked keys; oldest evicted at capacity                        |
+| `OnAllowed`        | `func(*http.Request)`        | `nil`                        | Callback when a request passes                                      |
+| `OnRejected`       | `func(*http.Request, string)`| `nil`                        | Callback when rejected (receives retryAfter)                        |
+| `RejectionHandler` | `func(w, r, retryAfter)`     | `nil` (429 + Retry-After)    | Custom handler for rejected requests                                 |
+
+### `CSRFConfig` fields
+
+| Field                | Type           | Default                    | Description                                                              |
+| -------------------- | -------------- | -------------------------- | ----------------------------------------------------------------------- |
+| `CookieName`         | `string`       | `"csrf_token"`             | Name of the CSRF cookie                                                  |
+| `HeaderName`         | `string`       | `"X-CSRF-Token"`           | Request header containing the CSRF token                                 |
+| `FieldName`          | `string`       | `"csrf_token"`             | Form field name for the CSRF token                                       |
+| `MaxAge`             | `time.Duration`| `24h`                      | Cookie max age                                                           |
+| `Secure`             | `bool`         | `false`                    | Sets the Secure flag on the cookie (set `true` in production)           |
+| `SameSite`           | `http.SameSite`| `SameSiteLaxMode`         | SameSite attribute on the cookie                                         |
+| `Domain`             | `string`       | `""` (host-only)           | Cookie domain                                                            |
+| `Path`               | `string`       | `"/"`                      | Cookie path                                                              |
+| `TrustedOrigins`     | `[]string`     | `nil`                      | Origins allowed for cross-domain CSRF                                    |
+| `TrustedProxies`     | `[]string`     | `nil`                      | IP/CIDR of reverse proxies that may strip origin headers                 |
+| `AllowPlaintextBypass`| `bool`        | `false`                    | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)   |
+| `ErrorHandler`       | `ErrorHandler` | `nil` (403 + body)         | Custom handler for CSRF validation failures                              |
 
 ### `MetricsConfig` fields
 

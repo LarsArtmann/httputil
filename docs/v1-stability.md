@@ -25,10 +25,12 @@ This document enumerates every exported symbol and classifies its stability comm
 | Type                    | Tier     | Notes                                                     |
 | ----------------------- | -------- | --------------------------------------------------------- |
 | `CORSConfig`            | Additive | `DenyUnmatched` default flipped in v0.7.0; frozen at v1.0 |
+| `CSRFConfig`            | Additive | New in v0.8.0                                             |
 | `CompressionConfig`     | Additive |                                                           |
 | `ETagConfig`            | Additive |                                                           |
+| `KeyedRateLimiterConfig`| Additive | New in v0.8.0                                             |
 | `MetricsConfig`         | Additive |                                                           |
-| `RateLimitConfig`       | Additive |                                                           |
+| `RateLimitConfig`       | Additive | Deprecated v0.8.0; removal targeted for v1.0              |
 | `RequestIDConfig`       | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
 | `SecurityHeadersConfig` | Additive |                                                           |
 | `ServerConfig`          | Additive |                                                           |
@@ -43,28 +45,34 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `DefaultCORSConfig`            | `CORSConfig`            |
 | `DefaultCompressionConfig`     | `CompressionConfig`     |
 | `DefaultETagConfig`            | `ETagConfig`            |
+| `DefaultKeyedRateLimiterConfig`| `KeyedRateLimiterConfig`|
 | `DefaultMetricsConfig`         | `MetricsConfig`         |
-| `DefaultRateLimitConfig`       | `RateLimitConfig`       |
+| `DefaultRateLimitConfig`       | `RateLimitConfig` (deprecated) |
 | `DefaultRequestIDConfig`       | `RequestIDConfig`       |
 | `DefaultSecurityHeadersConfig` | `SecurityHeadersConfig` |
 | `DefaultServerConfig`          | `ServerConfig`          |
 
 ### Middleware Factory Functions (all Frozen at v1.0)
 
-| Function             | Signature                                |
-| -------------------- | ---------------------------------------- |
-| `CORS`               | `func(CORSConfig) Middleware`            |
-| `Compression`        | `func(CompressionConfig) Middleware`     |
-| `ETag`               | `func(ETagConfig) Middleware`            |
-| `Logging`            | `func(*slog.Logger) Middleware`          |
-| `MaxBodySize`        | `func(int64) Middleware`                 |
-| `Metrics`            | `func(MetricsConfig) Middleware`         |
-| `RateLimit`          | `func(RateLimitConfig) Middleware`       |
-| `Recovery`           | `func(*slog.Logger) Middleware`          |
-| `RequestID`          | `func(RequestIDConfig) Middleware`       |
-| `SecurityHeaders`    | `func(SecurityHeadersConfig) Middleware` |
-| `Timeout`            | `func(time.Duration) Middleware`         |
-| `ClientIPMiddleware` | `func(http.Handler) http.Handler`        |
+| Function                     | Signature                                |
+| ---------------------------- | ---------------------------------------- |
+| `CORS`                       | `func(CORSConfig) Middleware`            |
+| `CSRFMiddleware`             | `func(CSRFConfig) Middleware`            |
+| `CSRFResponseHeaderMiddleware`| `func(http.Handler) http.Handler`      |
+| `Compression`                | `func(CompressionConfig) Middleware`     |
+| `ETag`                       | `func(ETagConfig) Middleware`            |
+| `KeyedRateLimiterMiddleware` | `func(KeyedRateLimiterConfig) Middleware`|
+| `Logging`                    | `func(*slog.Logger) Middleware`          |
+| `MaxBodySize`                | `func(int64) Middleware`                 |
+| `Metrics`                    | `func(MetricsConfig) Middleware`         |
+| `RateLimit`                  | `func(RateLimitConfig) Middleware` (deprecated) |
+| `Recovery`                   | `func(*slog.Logger) Middleware`          |
+| `RequestID`                  | `func(RequestIDConfig) Middleware`       |
+| `SecurityHeaders`            | `func(SecurityHeadersConfig) Middleware` |
+| `ServerTimingMiddleware`     | `func() Middleware`                      |
+| `ServerTimingMiddlewareWhen` | `func(func(*http.Request) bool) Middleware` |
+| `Timeout`                    | `func(time.Duration) Middleware`         |
+| `ClientIPMiddleware`         | `func(http.Handler) http.Handler`        |
 
 ### Server Lifecycle (Frozen at v1.0)
 
@@ -123,12 +131,58 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Rate Limiting (Frozen at v1.0)
 
-| Symbol                  | Tier     | Notes                                                                   |
-| ----------------------- | -------- | ----------------------------------------------------------------------- |
-| `RateLimiter`           | Frozen   | Interface                                                               |
-| `RateLimitConfig`       | Additive |                                                                         |
-| `TokenBucketLimiter`    | Additive | `EvictionTTL` field exists since v0.6.0; additional fields may be added |
-| `NewTokenBucketLimiter` | Frozen   |                                                                         |
+| Symbol                       | Tier     | Notes                                                                   |
+| ---------------------------- | -------- | ----------------------------------------------------------------------- |
+| `RateLimiter`                | Frozen   | Interface (deprecated; removal targeted for v1.0)                       |
+| `RateLimitConfig`            | Additive | Deprecated v0.8.0                                                       |
+| `TokenBucketLimiter`         | Additive | Deprecated v0.8.0; removal targeted for v1.0                             |
+| `NewTokenBucketLimiter`      | Frozen   | Deprecated v0.8.0                                                       |
+| `KeyExtractor`               | Frozen   | Function type                                                           |
+| `KeyExtractorFromRemoteAddr` | Frozen   |                                                                        |
+| `KeyExtractorFromClientIP`   | Frozen   |                                                                        |
+| `KeyedRateLimiterConfig`     | Additive | New in v0.8.0                                                           |
+| `KeyedRateLimiter`           | Additive | New in v0.8.0; `ActiveKeys`/`Check`/`Middleware` methods frozen at v1.0 |
+| `NewKeyedRateLimiter`        | Frozen   | New in v0.8.0                                                           |
+| `KeyedRateLimiterMiddleware` | Frozen   | New in v0.8.0                                                           |
+| `DefaultKeyedRateLimiterConfig` | Frozen | New in v0.8.0                                                         |
+
+### CSRF Protection (Frozen at v1.0)
+
+| Symbol                        | Tier   | Notes                   |
+| ----------------------------- | ------ | ----------------------- |
+| `CSRFConfig`                  | Additive | New in v0.8.0         |
+| `CSRFMiddleware`              | Frozen | New in v0.8.0           |
+| `CSRFResponseHeaderMiddleware`| Frozen | New in v0.8.0           |
+| `ForbiddenHandler`            | Frozen | New in v0.8.0           |
+| `ValidateCSRF`                | Frozen | New in v0.8.0           |
+| `TranslateCSRFHeaders`        | Frozen | New in v0.8.0           |
+| `SetPlaintextHTTPOrigin`      | Frozen | New in v0.8.0           |
+| `WithCSRFToken`               | Frozen | New in v0.8.0           |
+| `CSRFTokenFromContext`        | Frozen | New in v0.8.0           |
+| `CSRFTokenFromRequest`        | Frozen | New in v0.8.0           |
+| `CSRFTokenHXHeaders`          | Frozen | New in v0.8.0           |
+| `CSRFTokenHTMLMeta`           | Frozen | New in v0.8.0           |
+| `CSRFTokenFormField`          | Frozen | New in v0.8.0           |
+| `InvalidateCSRFCookie`        | Frozen | New in v0.8.0           |
+| `CSRFTestToken`               | Frozen | New in v0.8.0           |
+| `ErrorHandler`                | Frozen | Type alias              |
+| `ErrCSRFInvalid`              | Frozen | Sentinel error          |
+| `ErrCSRFConfig`               | Frozen | Sentinel error          |
+
+### Server-Timing (Frozen at v1.0)
+
+| Symbol                      | Tier   | Notes           |
+| --------------------------- | ------ | --------------- |
+| `ServerTiming`              | Additive | New in v0.8.0 |
+| `NewServerTiming`           | Frozen | New in v0.8.0   |
+| `ServerTimingMiddleware`    | Frozen | New in v0.8.0   |
+| `ServerTimingMiddlewareWhen`| Frozen | New in v0.8.0   |
+| `WrapServerTiming`          | Frozen | New in v0.8.0   |
+| `WithServerTiming`          | Frozen | New in v0.8.0   |
+| `ServerTimingFromContext`   | Frozen | New in v0.8.0   |
+| `RecordServerTiming`        | Frozen | New in v0.8.0   |
+| `MeasureServerTiming`       | Frozen | New in v0.8.0   |
+| `HeaderServerTiming`        | Frozen | String constant |
 
 ### Compression (Frozen at v1.0)
 
@@ -147,7 +201,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | --------------------------- | -------- |
 | `NewMiddlewareStack`        | Frozen   |
 | `MiddlewareStack`           | Additive |
-| `Middleware*` constants (9) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareETag`, `MiddlewareTimeout`, `MiddlewareClientIP`) |
+| `Middleware*` constants (12) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareETag`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`) |
 
 ### Query Parsing (Frozen at v1.0)
 
@@ -164,6 +218,8 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ErrCodeHijackFailed`          | Frozen |                 |
 | `ErrCodeCompressWriteFailed`   | Frozen |                 |
 | `ErrCodeETagWriteFailed`       | Frozen |                 |
+| `ErrCSRFInvalid`               | Frozen | CSRF sentinel   |
+| `ErrCSRFConfig`                | Frozen | CSRF sentinel   |
 | `RegisterErrorClassifications` | Frozen |                 |
 
 ### Metrics (Frozen at v1.0)
