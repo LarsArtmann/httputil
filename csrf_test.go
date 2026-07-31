@@ -271,6 +271,52 @@ func TestValidateCSRF_AlreadyValidatedReturnsTrue(t *testing.T) {
 	}
 }
 
+func TestValidateCSRF_ValidRequestPasses(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{}
+	mw := CSRFMiddleware(cfg)
+	token, cookie := CSRFTestToken(mw)
+	if token == "" {
+		t.Fatal("CSRFTestToken returned empty token")
+	}
+
+	if cookie == nil {
+		t.Fatal("CSRFTestToken returned nil cookie")
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	req.Header.Set(DefaultCSRFHeaderName, token)
+	req.AddCookie(cookie)
+
+	ok, _ := ValidateCSRF(req, cfg)
+	if !ok {
+		t.Fatal("expected ok=true for valid request with token+cookie")
+	}
+}
+
+func TestCSRFMiddleware_InvalidConfigContinues(t *testing.T) {
+	t.Parallel()
+
+	// Invalid config triggers slog.Error but middleware must still work.
+	cfg := CSRFConfig{SameSite: http.SameSiteNoneMode, Secure: false}
+	mw := CSRFMiddleware(cfg)
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 despite invalid config, got %d", rec.Code)
+	}
+}
+
 func TestTranslateCSRFHeaders_CustomHeaderName(t *testing.T) {
 	t.Parallel()
 

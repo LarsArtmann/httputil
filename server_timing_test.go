@@ -685,8 +685,8 @@ func TestDelegatingWriter_HijackDelegates(t *testing.T) {
 	_ = conn
 	_ = rw
 
-	if !errors.Is(err, http.ErrNotSupported) {
-		t.Fatalf("expected http.ErrNotSupported, got %v", err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
 	if !inner.hijacked {
@@ -696,6 +696,8 @@ func TestDelegatingWriter_HijackDelegates(t *testing.T) {
 
 func TestDelegatingWriter_HijackNotSupported(t *testing.T) {
 	t.Parallel()
+
+	dw := delegatingWriter{ResponseWriter: httptest.NewRecorder()}
 
 	conn, rw, err := dw.Hijack()
 	_ = conn
@@ -718,6 +720,7 @@ func TestDelegatingWriter_PushDelegates(t *testing.T) {
 	}
 
 	if inner.pushedTarget != "/style.css" {
+		t.Fatalf("Push target = %q, want %q", inner.pushedTarget, "/style.css")
 	}
 }
 
