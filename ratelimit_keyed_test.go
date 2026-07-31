@@ -171,3 +171,197 @@ func TestDefaultKeyedRateLimiterConfig(t *testing.T) {
 		t.Errorf("Window = %v, want %v", cfg.Window, DefaultRateWindow)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Coverage closure tests for KeyedRateLimiter
+// ---------------------------------------------------------------------------
+
+func TestKeyedRateLimiterMiddleware_OnAllowedCallback(t *testing.T) {
+	t.Parallel()
+
+	var allowedCount int
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:        100,
+		Window:       time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		OnAllowed: func(_ *http.Request) {
+			allowedCount++
+		},
+	}
+
+	handler := KeyedRateLimiterMiddleware(cfg)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+	handler.ServeHTTP(rec, req)
+
+	if allowedCount != 1 {
+		t.Fatalf("expected OnAllowed called once, got %d", allowedCount)
+	}
+}
+
+func TestKeyedRateLimiterMiddleware_OnRejectedCallback(t *testing.T) {
+	t.Parallel()
+
+	var rejectedCount int
+
+	var capturedRetryAfter string
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:        1,
+		Window:       time.Minute,
+		Burst:        1,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		OnRejected: func(_ *http.Request, retryAfter string) {
+			rejectedCount++
+			capturedRetryAfter = retryAfter
+		},
+	}
+
+	handler := KeyedRateLimiterMiddleware(cfg)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	// First request: allowed.
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	// Second request: rejected.
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	if rejectedCount != 1 {
+		t.Fatalf("expected OnRejected called once, got %d", rejectedCount)
+	}
+
+	if capturedRetryAfter == "" {
+		t.Fatal("expected non-empty retryAfter")
+	}
+}
+
+func TestKeyedRateLimiterMiddleware_RejectionHandler(t *testing.T) {
+	t.Parallel()
+
+	var handlerCalled bool
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:        1,
+		Window:       time.Minute,
+		Burst:        1,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		RejectionHandler: func(w http.ResponseWriter, _ *http.Request, _ string) {
+			handlerCalled = true
+			w.WriteHeader(http.StatusServiceUnavailable)
+		},
+	}
+
+	handler := KeyedRateLimiterMiddleware(cfg)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	// First request: allowed.
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	// Second request: rejected by custom handler.
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if !handlerCalled {
+		t.Fatal("custom RejectionHandler was not called")
+	}
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 from custom handler, got %d", rec.Code)
+	}
+}
+
+func TestPerKeyLimiter_EvictStale(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:        100,
+		Window:       time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		TTL:          1 * time.Millisecond,
+	}
+
+	rl := NewKeyedRateLimiter(cfg)
+
+	// Create entries for multiple keys.
+	for _, addr := range []string{"1.1.1.1:1", "2.2.2.2:2"} {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = addr
+		_, _ = rl.Check(req)
+	}
+
+	if count := rl.ActiveKeys(); count != 2 {
+		t.Fatalf("expected 2 keys, got %d", count)
+	}
+
+	// Wait for TTL to expire.
+	time.Sleep(5 * time.Millisecond)
+
+	// Access a NEW key, which triggers eviction of stale entries.
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "3.3.3.3:3"
+	_, _ = rl.Check(req)
+
+	// The stale entries should have been evicted; only the new key remains.
+	if count := rl.ActiveKeys(); count > 1 {
+		t.Fatalf("expected stale entries evicted, ActiveKeys=%d", count)
+	}
+}
+
+func TestPerKeyLimiter_ReaccessAfterTTL(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:        100,
+		Window:       time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		TTL:          1 * time.Millisecond,
+	}
+
+	rl := NewKeyedRateLimiter(cfg)
+
+	// Create entry.
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.1.1.1:1"
+	_, _ = rl.Check(req)
+
+	// Wait for TTL.
+	time.Sleep(5 * time.Millisecond)
+
+	// Re-access same key — entry is stale, should be refreshed.
+	_, _ = rl.Check(req)
+
+	if count := rl.ActiveKeys(); count != 1 {
+		t.Fatalf("expected 1 active key after re-access, got %d", count)
+	}
+}
+
+func TestKeyExtractorFromClientIP(t *testing.T) {
+	t.Parallel()
+
+	extractor := KeyExtractorFromClientIP()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	if got := extractor(req); got == "" {
+		t.Fatal("expected non-empty key from ClientIP extractor")
+	}
+}
