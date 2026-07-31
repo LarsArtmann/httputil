@@ -494,7 +494,7 @@ func TestShouldBypassPlaintextOrigin_TLSRequest(t *testing.T) {
 	t.Parallel()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.TLS = &tls.ConnectionState{} //nolint:exhaustruct // test: zero value is fine
+	req.TLS = &tls.ConnectionState{}
 
 	if shouldBypassPlaintextOrigin(req, CSRFConfig{}) {
 		t.Fatal("TLS request should not bypass plaintext origin")

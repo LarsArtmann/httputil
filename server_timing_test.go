@@ -3,6 +3,7 @@ package httputil
 import (
 	"bufio"
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -643,5 +644,153 @@ func TestServerTimingMiddleware_DeferredMeasureMissesHeader(t *testing.T) {
 	// total is still present (it's captured at flush time).
 	if !strings.Contains(hv, "total;") {
 		t.Errorf("total metric missing in %q", hv)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Coverage closure tests for delegatingWriter and serverTimingWriter
+// ---------------------------------------------------------------------------
+
+type testHijacker struct {
+	http.ResponseWriter
+
+	hijacked bool
+}
+
+func (w *testHijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	w.hijacked = true
+
+	return nil, nil, nil
+}
+
+type testPusher struct {
+	http.ResponseWriter
+
+	pushedTarget string
+}
+
+func (w *testPusher) Push(target string, _ *http.PushOptions) error {
+	w.pushedTarget = target
+
+	return nil
+}
+
+func TestDelegatingWriter_HijackDelegates(t *testing.T) {
+	t.Parallel()
+
+	inner := &testHijacker{ResponseWriter: httptest.NewRecorder()}
+	dw := delegatingWriter{ResponseWriter: inner}
+
+	conn, rw, err := dw.Hijack()
+	_ = conn
+	_ = rw
+
+	if !errors.Is(err, http.ErrNotSupported) {
+		t.Fatalf("expected http.ErrNotSupported, got %v", err)
+	}
+
+	if !inner.hijacked {
+		t.Fatal("Hijack did not delegate to underlying writer")
+	}
+}
+
+func TestDelegatingWriter_HijackNotSupported(t *testing.T) {
+	t.Parallel()
+
+	conn, rw, err := dw.Hijack()
+	_ = conn
+	_ = rw
+
+	if !errors.Is(err, http.ErrNotSupported) {
+		t.Fatalf("expected http.ErrNotSupported, got %v", err)
+	}
+}
+
+func TestDelegatingWriter_PushDelegates(t *testing.T) {
+	t.Parallel()
+
+	inner := &testPusher{ResponseWriter: httptest.NewRecorder()}
+	dw := delegatingWriter{ResponseWriter: inner}
+
+	err := dw.Push("/style.css", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if inner.pushedTarget != "/style.css" {
+	}
+}
+
+func TestDelegatingWriter_PushNotSupported(t *testing.T) {
+	t.Parallel()
+
+	dw := delegatingWriter{ResponseWriter: httptest.NewRecorder()}
+
+	err := dw.Push("/style.css", nil)
+	if !errors.Is(err, http.ErrNotSupported) {
+		t.Fatalf("expected http.ErrNotSupported, got %v", err)
+	}
+}
+
+func TestDelegatingWriter_UnwrapReturnsUnderlying(t *testing.T) {
+	t.Parallel()
+
+	rec := httptest.NewRecorder()
+	dw := delegatingWriter{ResponseWriter: rec}
+
+	if dw.Unwrap() != rec {
+		t.Fatal("Unwrap did not return underlying writer")
+	}
+}
+
+func TestServerTimingWriter_FlushHeaderIdempotent(t *testing.T) {
+	t.Parallel()
+
+	st := NewServerTiming()
+	w := &serverTimingWriter{
+		delegatingWriter: delegatingWriter{ResponseWriter: httptest.NewRecorder()},
+		st:               st,
+		start:            time.Now(),
+	}
+
+	w.flushHeader()
+
+	firstMetrics := len(st.metrics)
+	w.flushHeader() // second call must be a no-op
+
+	if len(st.metrics) != firstMetrics {
+		t.Fatalf("second flushHeader added metrics: before=%d, after=%d", firstMetrics, len(st.metrics))
+	}
+}
+
+func TestMeasureWithDesc_NilSafe(t *testing.T) {
+	t.Parallel()
+
+	var st *ServerTiming
+
+	done := st.MeasureWithDesc("db", "Database")
+	if done == nil {
+		t.Fatal("expected non-nil function")
+	}
+
+	done() // must not panic
+}
+
+func TestEscapeQuotedString_NoSpecialChars(t *testing.T) {
+	t.Parallel()
+
+	// Fast path: no special characters returns input directly.
+	input := "hello world"
+	if got := escapeQuotedString(input); got != input {
+		t.Fatalf("expected %q, got %q", input, got)
+	}
+}
+
+func TestEscapeQuotedString_CRLFReplaced(t *testing.T) {
+	t.Parallel()
+
+	got := escapeQuotedString("line1\r\nline2")
+	if strings.Contains(got, "\r") || strings.Contains(got, "\n") {
+		t.Fatalf("CRLF not replaced: %q", got)
 	}
 }

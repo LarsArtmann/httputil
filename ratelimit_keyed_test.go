@@ -296,7 +296,7 @@ func TestPerKeyLimiter_EvictStale(t *testing.T) {
 		Limit:        100,
 		Window:       time.Minute,
 		KeyExtractor: KeyExtractorFromRemoteAddr(),
-		TTL:          1 * time.Millisecond,
+		TTL:          100 * time.Millisecond,
 	}
 
 	rl := NewKeyedRateLimiter(cfg)
@@ -313,7 +313,7 @@ func TestPerKeyLimiter_EvictStale(t *testing.T) {
 	}
 
 	// Wait for TTL to expire.
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	// Access a NEW key, which triggers eviction of stale entries.
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -333,7 +333,7 @@ func TestPerKeyLimiter_ReaccessAfterTTL(t *testing.T) {
 		Limit:        100,
 		Window:       time.Minute,
 		KeyExtractor: KeyExtractorFromRemoteAddr(),
-		TTL:          1 * time.Millisecond,
+		TTL:          100 * time.Millisecond,
 	}
 
 	rl := NewKeyedRateLimiter(cfg)
@@ -344,7 +344,7 @@ func TestPerKeyLimiter_ReaccessAfterTTL(t *testing.T) {
 	_, _ = rl.Check(req)
 
 	// Wait for TTL.
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	// Re-access same key — entry is stale, should be refreshed.
 	_, _ = rl.Check(req)
