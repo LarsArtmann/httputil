@@ -762,7 +762,11 @@ func TestServerTimingWriter_FlushHeaderIdempotent(t *testing.T) {
 	w.flushHeader() // second call must be a no-op
 
 	if len(st.metrics) != firstMetrics {
-		t.Fatalf("second flushHeader added metrics: before=%d, after=%d", firstMetrics, len(st.metrics))
+		t.Fatalf(
+			"second flushHeader added metrics: before=%d, after=%d",
+			firstMetrics,
+			len(st.metrics),
+		)
 	}
 }
 

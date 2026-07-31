@@ -8,14 +8,14 @@ and a monitoring API.
 
 ## Symbol Mapping
 
-| Deprecated                       | Replacement                        |
-| -------------------------------- | ---------------------------------- |
-| `RateLimitConfig`                | `KeyedRateLimiterConfig`           |
-| `DefaultRateLimitConfig()`       | `DefaultKeyedRateLimiterConfig()`  |
-| `RateLimit(cfg)`                 | `KeyedRateLimiterMiddleware(cfg)`  |
-| `RateLimiter` interface          | `KeyExtractor` function type       |
-| `TokenBucketLimiter`             | `KeyedRateLimiter`                 |
-| `NewTokenBucketLimiter(r, b)`    | `NewKeyedRateLimiter(cfg)`         |
+| Deprecated                    | Replacement                       |
+| ----------------------------- | --------------------------------- |
+| `RateLimitConfig`             | `KeyedRateLimiterConfig`          |
+| `DefaultRateLimitConfig()`    | `DefaultKeyedRateLimiterConfig()` |
+| `RateLimit(cfg)`              | `KeyedRateLimiterMiddleware(cfg)` |
+| `RateLimiter` interface       | `KeyExtractor` function type      |
+| `TokenBucketLimiter`          | `KeyedRateLimiter`                |
+| `NewTokenBucketLimiter(r, b)` | `NewKeyedRateLimiter(cfg)`        |
 
 ## Before (deprecated)
 
@@ -55,15 +55,15 @@ handler := httputil.KeyedRateLimiterMiddleware(
 
 ## Behavioral Differences
 
-| Concern               | TokenBucketLimiter                | KeyedRateLimiter                          |
-| --------------------- | ---------------------------------- | ----------------------------------------- |
-| Rate units            | Tokens per second (`float64`)      | Limit per Window (`uint` / `Duration`)    |
-| Eviction              | Linear scan (`O(n)`) when enabled  | Min-heap (`O(log n)`)                     |
-| MaxKeys cap           | Not available                      | `MaxKeys` caps tracked keys               |
-| Retry-After header    | Not sent                           | Sent on 429 responses                     |
-| Monitoring            | No API                             | `ActiveKeys()`, `Check(r)`                |
-| Callbacks             | Not available                      | `OnAllowed`, `OnRejected`                 |
-| Custom rejection      | `OnDenied http.HandlerFunc`        | `RejectionHandler func(w, r, retryAfter)` |
+| Concern            | TokenBucketLimiter                | KeyedRateLimiter                          |
+| ------------------ | --------------------------------- | ----------------------------------------- |
+| Rate units         | Tokens per second (`float64`)     | Limit per Window (`uint` / `Duration`)    |
+| Eviction           | Linear scan (`O(n)`) when enabled | Min-heap (`O(log n)`)                     |
+| MaxKeys cap        | Not available                     | `MaxKeys` caps tracked keys               |
+| Retry-After header | Not sent                          | Sent on 429 responses                     |
+| Monitoring         | No API                            | `ActiveKeys()`, `Check(r)`                |
+| Callbacks          | Not available                     | `OnAllowed`, `OnRejected`                 |
+| Custom rejection   | `OnDenied http.HandlerFunc`       | `RejectionHandler func(w, r, retryAfter)` |
 
 ## Monitoring
 

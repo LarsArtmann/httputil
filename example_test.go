@@ -171,9 +171,13 @@ func ExampleLogging() {
 }
 
 func ExampleCSRFMiddleware() {
-	handler := CSRFMiddleware(CSRFConfig{})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := CSRFMiddleware(
+		CSRFConfig{},
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.RemoteAddr = "127.0.0.1:1234"
@@ -187,11 +191,13 @@ func ExampleCSRFMiddleware() {
 }
 
 func ExampleServerTimingMiddleware() {
-	handler := ServerTimingMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		stop := MeasureServerTiming(r.Context(), "db")
-		stop()
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := ServerTimingMiddleware()(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			stop := MeasureServerTiming(r.Context(), "db")
+			stop()
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
@@ -210,9 +216,13 @@ func ExampleKeyedRateLimiterMiddleware() {
 		Window:       time.Minute,
 		KeyExtractor: KeyExtractorFromRemoteAddr(),
 	}
-	handler := KeyedRateLimiterMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := KeyedRateLimiterMiddleware(
+		cfg,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.RemoteAddr = "1.2.3.4:1234"

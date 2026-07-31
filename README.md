@@ -352,14 +352,14 @@ Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 
 `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
 
-| Source     | Error Code                  | Family         | Retryable | When                                          |
-| ---------- | --------------------------- | -------------- | --------- | --------------------------------------------- |
-| `Write`    | `http.write_failed`         | Transient      | Yes       | Underlying ResponseWriter.Write fails         |
-| `Hijack`   | `http.hijack_unsupported`   | Infrastructure | No        | Underlying writer doesn't implement Hijacker  |
-| `Hijack`   | `http.hijack_failed`        | Transient      | Yes       | Underlying Hijack call fails                  |
-| `Compress` | `http.compress_write_failed`| Transient      | Yes       | Compression writer Write/Close fails          |
-| `CSRF`     | `csrf_invalid`              | Rejection      | No        | CSRF token missing, malformed, or mismatched  |
-| `CSRF`     | `csrf_config`               | Infrastructure | No        | CSRF configuration invalid                     |
+| Source     | Error Code                   | Family         | Retryable | When                                         |
+| ---------- | ---------------------------- | -------------- | --------- | -------------------------------------------- |
+| `Write`    | `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
+| `Hijack`   | `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
+| `Hijack`   | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
+| `Compress` | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write/Close fails         |
+| `CSRF`     | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched |
+| `CSRF`     | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid                   |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 
@@ -472,34 +472,34 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `KeyedRateLimiterConfig` fields
 
-| Field              | Type                         | Default                      | Description                                                          |
-| ------------------ | ---------------------------- | ---------------------------- | -------------------------------------------------------------------- |
-| `Limit`            | `uint`                       | `100`                        | Maximum requests per `Window` per key                                |
-| `Window`           | `time.Duration`              | `1m`                         | Time window for the limit                                            |
-| `Burst`            | `uint`                       | `0` (= Limit)                | Maximum burst size (can exceed Limit)                                |
-| `KeyExtractor`     | `KeyExtractor`               | `KeyExtractorFromClientIP()` | Extracts the rate-limit key from the request                         |
-| `TTL`              | `time.Duration`              | `10m`                        | How long idle entries are kept before eviction                       |
-| `MaxKeys`          | `uint`                       | `0` (unbounded)              | Caps tracked keys; oldest evicted at capacity                        |
-| `OnAllowed`        | `func(*http.Request)`        | `nil`                        | Callback when a request passes                                      |
-| `OnRejected`       | `func(*http.Request, string)`| `nil`                        | Callback when rejected (receives retryAfter)                        |
-| `RejectionHandler` | `func(w, r, retryAfter)`     | `nil` (429 + Retry-After)    | Custom handler for rejected requests                                 |
+| Field              | Type                          | Default                      | Description                                    |
+| ------------------ | ----------------------------- | ---------------------------- | ---------------------------------------------- |
+| `Limit`            | `uint`                        | `100`                        | Maximum requests per `Window` per key          |
+| `Window`           | `time.Duration`               | `1m`                         | Time window for the limit                      |
+| `Burst`            | `uint`                        | `0` (= Limit)                | Maximum burst size (can exceed Limit)          |
+| `KeyExtractor`     | `KeyExtractor`                | `KeyExtractorFromClientIP()` | Extracts the rate-limit key from the request   |
+| `TTL`              | `time.Duration`               | `10m`                        | How long idle entries are kept before eviction |
+| `MaxKeys`          | `uint`                        | `0` (unbounded)              | Caps tracked keys; oldest evicted at capacity  |
+| `OnAllowed`        | `func(*http.Request)`         | `nil`                        | Callback when a request passes                 |
+| `OnRejected`       | `func(*http.Request, string)` | `nil`                        | Callback when rejected (receives retryAfter)   |
+| `RejectionHandler` | `func(w, r, retryAfter)`      | `nil` (429 + Retry-After)    | Custom handler for rejected requests           |
 
 ### `CSRFConfig` fields
 
-| Field                | Type           | Default                    | Description                                                              |
-| -------------------- | -------------- | -------------------------- | ----------------------------------------------------------------------- |
-| `CookieName`         | `string`       | `"csrf_token"`             | Name of the CSRF cookie                                                  |
-| `HeaderName`         | `string`       | `"X-CSRF-Token"`           | Request header containing the CSRF token                                 |
-| `FieldName`          | `string`       | `"csrf_token"`             | Form field name for the CSRF token                                       |
-| `MaxAge`             | `time.Duration`| `24h`                      | Cookie max age                                                           |
-| `Secure`             | `bool`         | `false`                    | Sets the Secure flag on the cookie (set `true` in production)           |
-| `SameSite`           | `http.SameSite`| `SameSiteLaxMode`         | SameSite attribute on the cookie                                         |
-| `Domain`             | `string`       | `""` (host-only)           | Cookie domain                                                            |
-| `Path`               | `string`       | `"/"`                      | Cookie path                                                              |
-| `TrustedOrigins`     | `[]string`     | `nil`                      | Origins allowed for cross-domain CSRF                                    |
-| `TrustedProxies`     | `[]string`     | `nil`                      | IP/CIDR of reverse proxies that may strip origin headers                 |
-| `AllowPlaintextBypass`| `bool`        | `false`                    | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)   |
-| `ErrorHandler`       | `ErrorHandler` | `nil` (403 + body)         | Custom handler for CSRF validation failures                              |
+| Field                  | Type            | Default            | Description                                                            |
+| ---------------------- | --------------- | ------------------ | ---------------------------------------------------------------------- |
+| `CookieName`           | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                |
+| `HeaderName`           | `string`        | `"X-CSRF-Token"`   | Request header containing the CSRF token                               |
+| `FieldName`            | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                     |
+| `MaxAge`               | `time.Duration` | `24h`              | Cookie max age                                                         |
+| `Secure`               | `bool`          | `false`            | Sets the Secure flag on the cookie (set `true` in production)          |
+| `SameSite`             | `http.SameSite` | `SameSiteLaxMode`  | SameSite attribute on the cookie                                       |
+| `Domain`               | `string`        | `""` (host-only)   | Cookie domain                                                          |
+| `Path`                 | `string`        | `"/"`              | Cookie path                                                            |
+| `TrustedOrigins`       | `[]string`      | `nil`              | Origins allowed for cross-domain CSRF                                  |
+| `TrustedProxies`       | `[]string`      | `nil`              | IP/CIDR of reverse proxies that may strip origin headers               |
+| `AllowPlaintextBypass` | `bool`          | `false`            | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure) |
+| `ErrorHandler`         | `ErrorHandler`  | `nil` (403 + body) | Custom handler for CSRF validation failures                            |
 
 ### `MetricsConfig` fields
 
