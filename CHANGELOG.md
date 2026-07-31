@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-31
+
 ### Added
 
 - **CSRF protection** (`csrf.go`): double-submit cookie CSRF middleware backed by `justinas/nosurf`, with HTMX-aware helpers (`CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField`), trusted-proxy support, and `ValidateCSRF` for per-handler validation.
