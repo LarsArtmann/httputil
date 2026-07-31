@@ -243,3 +243,54 @@ func TestServerServesRequests(t *testing.T) {
 		t.Fatalf("Shutdown() error = %v", err)
 	}
 }
+
+func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+
+	blockCh := make(chan struct{})
+
+	blockingHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		<-blockCh
+	})
+
+	srv, err := NewServer(cfg, blockingHandler)
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	errChan := srv.Start()
+
+	waitForServerStart(t, errChan, 100*time.Millisecond)
+
+	addr := srv.Addr()
+
+	go func() {
+		client := &http.Client{Timeout: 30 * time.Second}
+		resp, err := client.Get("http://" + addr + "/")
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	t.Cleanup(func() {
+		close(blockCh)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		_ = srv.Shutdown(ctx)
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	err = srv.Shutdown(ctx)
+	if err == nil {
+		t.Fatal("expected error when context expires with active connections")
+	}
+}
