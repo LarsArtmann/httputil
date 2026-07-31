@@ -438,7 +438,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
-- **Minimal dependencies** — `go-error-family` (same author, zero transitive deps) and `golang.org/x/time` (canonical Go rate-limit extension)
+- **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 
 ### Middleware Ordering
 
