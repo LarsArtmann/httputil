@@ -36,7 +36,7 @@ Go **1.26.0+**. The `go.mod` toolchain directive may pin a specific patch releas
 ## Code Style
 
 - Follow `func(http.Handler) http.Handler` middleware signature
-- Allowed dependencies: `$gostd`, `go-error-family`, and `golang.org/x/time` only (enforced by `depguard`)
+- Allowed dependencies: `$gostd`, `go-error-family`, `golang.org/x/time`, and `justinas/nosurf` only (enforced by `depguard`)
 - Every struct field must be set (`exhaustruct` linter)
 - Package-level sentinel errors only (no inline `errors.New`)
 - Comments end with periods (`godot`)

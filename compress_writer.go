@@ -94,11 +94,13 @@ func (w *compressWriter) compressWriteError(err error, message string) error {
 	).WithContext("encoding", w.encoding)
 }
 
-// writeClassified is the single error-handling choke point for compressWriter
-// output: it writes b to dst and, on failure, returns the bytes written plus a
-// classified error. Routing every fallible write through here keeps the
-// WrapTransient + encoding annotation in one place instead of duplicated
-// across the plain, compressed, and streaming code paths.
+// writeClassified is the Write-path error-handling choke point for
+// compressWriter: it writes b to dst and, on failure, returns the bytes
+// written plus a classified error. Routing the main Write-path fallible
+// writes through here keeps the WrapTransient + encoding annotation in one
+// place instead of duplicated across the plain and compressed code paths.
+// Buffer-drain writes in Close and flushPlainAndStream call
+// compressWriteError directly because they need different return semantics.
 func (w *compressWriter) writeClassified(dst io.Writer, b []byte, message string) (int, error) {
 	n, err := dst.Write(b)
 	if err != nil {

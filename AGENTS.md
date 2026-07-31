@@ -134,13 +134,16 @@ Reusable BDD-style HTTP behavior specifications. Point `httpspec.Run(t, handler)
 
 ## Error Classification
 
-Errors from `ResponseRecorder` are classified using `go-error-family`:
+Errors from `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` are classified using `go-error-family`:
 
-| Method   | Error Code                | Family         | Retryable | When                                         |
-| -------- | ------------------------- | -------------- | --------- | -------------------------------------------- |
-| `Write`  | `http.write_failed`       | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
-| `Hijack` | `http.hijack_unsupported` | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
-| `Hijack` | `http.hijack_failed`      | Transient      | Yes       | Underlying Hijack call fails                 |
+| Source       | Error Code                  | Family         | Retryable | When                                          |
+| ------------ | --------------------------- | -------------- | --------- | --------------------------------------------- |
+| `Write`      | `http.write_failed`         | Transient      | Yes       | Underlying ResponseWriter.Write fails         |
+| `Hijack`     | `http.hijack_unsupported`   | Infrastructure | No        | Underlying writer doesn't implement Hijacker  |
+| `Hijack`     | `http.hijack_failed`        | Transient      | Yes       | Underlying Hijack call fails                  |
+| `Compress`   | `http.compress_write_failed`| Transient      | Yes       | Compression writer Write/Close fails          |
+| `CSRF`       | `csrf_invalid`              | Rejection      | No        | CSRF token missing, malformed, or mismatched  |
+| `CSRF`       | `csrf_config`               | Infrastructure | No        | CSRF configuration invalid (e.g. SameSite=None without Secure) |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
 

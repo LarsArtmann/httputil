@@ -18,6 +18,9 @@ const (
 	MiddlewareETag            = "etag"
 	MiddlewareTimeout         = "timeout"
 	MiddlewareClientIP        = "client-ip"
+	MiddlewareCSRF            = "csrf"
+	MiddlewareServerTiming    = "server-timing"
+	MiddlewareKeyedRateLimit  = "keyed-rate-limit"
 )
 
 var (
