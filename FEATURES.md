@@ -35,6 +35,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - 5 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
+- CSRF middleware uses `go-error-family` directly: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family), plus inline `NewInfrastructure` errors for config validation failures.
 - Message templates with `what/why/fix/wayOut` for all classified errors.
 - Test coverage in `errors_test.go`.
 
