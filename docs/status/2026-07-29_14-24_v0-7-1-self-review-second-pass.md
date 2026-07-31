@@ -255,20 +255,20 @@ After this report, the project direction shifted from coverage closure to featur
 
 These additions dropped overall coverage from 98.7% to **91.0%** (the new files need coverage closure). The project also gained a third external dependency (`github.com/justinas/nosurf`), and `go-error-family` was bumped to v0.10.0.
 
-| Item | Status |
-| ---- | ------ |
-| f.1 — Decide v0.7.2 or amend v0.7.1 | **Superseded.** Instead of a patch release, feature development began. The stale tag issue remains. |
-| f.2 — Update v0.7.1 GitHub Release notes to match corrected CHANGELOG | **Still open.** |
-| f.5 — Close `computeETag` (94.4%) | **Still open.** Empty-body-with-wroteHeader edge. |
-| f.6 — Close `scanAcceptEncoding` (95.5%) | **Still open.** Ordering tie-break with identical q-values. |
-| f.7 — Close `Compression` middleware (95.5%) | **Still open.** Vary-header identity-append edge. |
-| f.8–9 — Close `drawRandomBytes`/`refillRandomBuffer` | **Still open.** Requires crypto/rand error injection. |
-| f.10 — Close `Server.Shutdown` (75%) | **Still open.** |
-| f.11–12 — Close httpspec `mustRequest`/`runSpecs` | **Still open.** |
-| f.13 — Define v0.8.0 scope | **Partially answered.** v0.8.0 will ship CSRF, Server-Timing, KeyedRateLimit (already coded), plus coverage closure for the new middleware. |
-| f.15 — Pin GitHub Actions to commit SHAs | **Still open.** |
-| f.22 — Request body decompression middleware | **Still open.** In ROADMAP. |
-| f.44–45 — "Self-review before tag" hard rule in RELEASE.md | **Not verified.** The rule may exist but was not confirmed in this session. |
-| Q1 — Tag v0.7.2, force-move v0.7.1, or accept the split? | **Not answered.** New features were developed instead. |
-| Q2 — Keep self-reviewing or stop? | **Answered implicitly: stop post-release reviews, shift to feature development.** |
-| Q3 — Is 98.7% sufficient for v1.0? | **Moot.** Coverage is now 91.0% due to new untested feature code. The v1.0 readiness assessment must be redone. |
+| Item                                                                  | Status                                                                                                                                      |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| f.1 — Decide v0.7.2 or amend v0.7.1                                   | **Superseded.** Instead of a patch release, feature development began. The stale tag issue remains.                                         |
+| f.2 — Update v0.7.1 GitHub Release notes to match corrected CHANGELOG | **Still open.**                                                                                                                             |
+| f.5 — Close `computeETag` (94.4%)                                     | **Still open.** Empty-body-with-wroteHeader edge.                                                                                           |
+| f.6 — Close `scanAcceptEncoding` (95.5%)                              | **Still open.** Ordering tie-break with identical q-values.                                                                                 |
+| f.7 — Close `Compression` middleware (95.5%)                          | **Still open.** Vary-header identity-append edge.                                                                                           |
+| f.8–9 — Close `drawRandomBytes`/`refillRandomBuffer`                  | **Still open.** Requires crypto/rand error injection.                                                                                       |
+| f.10 — Close `Server.Shutdown` (75%)                                  | **Still open.**                                                                                                                             |
+| f.11–12 — Close httpspec `mustRequest`/`runSpecs`                     | **Still open.**                                                                                                                             |
+| f.13 — Define v0.8.0 scope                                            | **Partially answered.** v0.8.0 will ship CSRF, Server-Timing, KeyedRateLimit (already coded), plus coverage closure for the new middleware. |
+| f.15 — Pin GitHub Actions to commit SHAs                              | **Still open.**                                                                                                                             |
+| f.22 — Request body decompression middleware                          | **Still open.** In ROADMAP.                                                                                                                 |
+| f.44–45 — "Self-review before tag" hard rule in RELEASE.md            | **Not verified.** The rule may exist but was not confirmed in this session.                                                                 |
+| Q1 — Tag v0.7.2, force-move v0.7.1, or accept the split?              | **Not answered.** New features were developed instead.                                                                                      |
+| Q2 — Keep self-reviewing or stop?                                     | **Answered implicitly: stop post-release reviews, shift to feature development.**                                                           |
+| Q3 — Is 98.7% sufficient for v1.0?                                    | **Moot.** Coverage is now 91.0% due to new untested feature code. The v1.0 readiness assessment must be redone.                             |
