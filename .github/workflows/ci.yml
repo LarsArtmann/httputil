@@ -29,6 +29,9 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      - name: CHANGELOG link check
+        run: ./scripts/check-changelog-links.sh
+
       - name: Test
         run: go test -race -count=1 ./...
 

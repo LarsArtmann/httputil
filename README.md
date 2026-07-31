@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
-[![Coverage](https://img.shields.io/badge/coverage-91.0%25-green)](#)
+[![Coverage](https://img.shields.io/badge/coverage-97.8%25-green)](#)
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
