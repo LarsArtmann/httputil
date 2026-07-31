@@ -3,6 +3,7 @@ package httputil
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -247,35 +248,27 @@ func TestServerServesRequests(t *testing.T) {
 func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultServerConfig()
-	cfg.Addr = "127.0.0.1:0"
-
-	blockCh := make(chan struct{})
-
-	blockingHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-		<-blockCh
-	})
-
-	srv, err := NewServer(cfg, blockingHandler)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		t.Fatalf("NewServer() error = %v", err)
+		t.Fatalf("net.Listen: %v", err)
 	}
 
-	errChan := srv.Start()
+	blockCh := make(chan struct{})
+	handlerReached := make(chan struct{})
 
-	waitForServerStart(t, errChan, 100*time.Millisecond)
-
-	addr := srv.Addr()
+	srv := &Server{
+		httpServer: &http.Server{
+			Handler: http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+				close(handlerReached)
+				<-blockCh
+			}),
+			ReadHeaderTimeout: 5 * time.Second,
+		},
+	}
 
 	go func() {
-		client := &http.Client{Timeout: 30 * time.Second}
-		resp, err := client.Get("http://" + addr + "/")
-		if err == nil {
-			_ = resp.Body.Close()
-		}
+		_ = srv.httpServer.Serve(listener)
 	}()
-
-	time.Sleep(50 * time.Millisecond)
 
 	t.Cleanup(func() {
 		close(blockCh)
@@ -285,6 +278,18 @@ func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
 
 		_ = srv.Shutdown(ctx)
 	})
+
+	addr := listener.Addr().String()
+
+	go func() {
+		client := &http.Client{Timeout: 30 * time.Second}
+		resp, err := client.Get("http://" + addr + "/")
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+	}()
+
+	<-handlerReached
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 	defer cancel()
