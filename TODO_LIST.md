@@ -10,7 +10,7 @@ _Updated: 2026-08-05 — sourced from v0.8.0 release cycle and 2026-08-05 docs-h
 
 The v0.8.0 release bottleneck tasks are complete. No high-priority items remain.
 
-- [x] **Close coverage gaps for new middleware** — coverage closed from 91.0% to 97.8% httputil / 98.3% httpspec. All three new middleware (CSRF, Server-Timing, KeyedRateLimit) have comprehensive tests covering ValidateCSRF, TranslateCSRFHeaders, CSRFTokenHXHeaders, isTrustedProxy, Validate, delegatingWriter delegation, eviction heap, and callback paths. Remaining 14 sub-100% functions are unreachable defensive code paths (json.Marshal error on map[string]string, crypto/rand panic paths, stale-heap mismatch branches).
+- [x] **Close coverage gaps for new middleware** — coverage closed from 91.0% to 97.8% httputil / 98.9% httpspec. All three new middleware (CSRF, Server-Timing, KeyedRateLimit) have comprehensive tests covering ValidateCSRF, TranslateCSRFHeaders, CSRFTokenHXHeaders, isTrustedProxy, Validate, delegatingWriter delegation, eviction heap, and callback paths. Remaining 13 sub-100% functions are unreachable defensive code paths (json.Marshal error on map[string]string, crypto/rand panic paths, stale-heap mismatch branches).
 - [x] **Add `MiddlewareStack` name constants for new middleware** — `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit` added to `stack.go` (commit `46dd59d`).
 
 ## Medium Priority

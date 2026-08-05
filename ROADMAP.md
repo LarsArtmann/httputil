@@ -8,7 +8,7 @@ _Updated: 2026-08-05._
 
 ## Current Position
 
-v0.8.0 (released 2026-07-31) ships a complete 16-middleware suite, server lifecycle, health checks, error classification, an `httpspec` BDD subpackage, ~70 linters at 0 issues, and 97.8% httputil / 98.3% httpspec coverage. New in v0.8.0: CSRF protection, W3C Server-Timing, and keyed rate limiting.
+v0.8.0 (released 2026-07-31) ships a complete 16-middleware suite, server lifecycle, health checks, error classification, an `httpspec` BDD subpackage, ~70 linters at 0 issues, and 97.8% httputil / 98.9% httpspec coverage. New in v0.8.0: CSRF protection, W3C Server-Timing, and keyed rate limiting.
 
 The next release is **v0.9.0** (feature additions), followed by **v1.0** (API stability commitment).
 

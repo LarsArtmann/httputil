@@ -11,8 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Docs health pass (2026-08-05):** Annotated all `2026-07-*` and `2026-07-3*` historical status files inline with per-item resolution tables (every numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker).
 - **Docs health pass (2026-08-05):** Rebuilt `TODO_LIST.md` from scratch with grounded state (5 medium-priority items + 6 low-priority items + 8 won't-implement items).
 - **Docs health pass (2026-08-05):** Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory.
-- **Docs health pass (2026-08-05):** Updated `FEATURES.md` with the post-v0.8.0 feature inventory (97.8% httputil coverage, 14 documented defensive paths).
+- **Docs health pass (2026-08-05):** Updated `FEATURES.md` with the post-v0.8.0 feature inventory (97.8% httputil coverage, 13 documented defensive paths).
 - **Docs health pass (2026-08-05):** Expanded `CHANGELOG [0.8.0]` with the full session work (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure).
+- **Docs health pass (2026-08-05):** Updated `docs/DOMAIN_LANGUAGE.md` with CSRF Protection, Server-Timing, and KeyedRateLimiting bounded contexts, entities, commands, events, and rules (was stale since v0.7.x).
+
+### Added
+
+- `TestMustRequestPanicsOnInvalidMethod` in `httpspec` — closes `mustRequest` from 75% to 100%. `httpspec` coverage improved from 98.3% to **98.9%**.
 
 ## [0.8.0] - 2026-07-31
 

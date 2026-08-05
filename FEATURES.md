@@ -161,7 +161,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` passes across the full suite with **97.8% statement coverage** (`httputil`), **98.3%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
+- `go test ./...` passes across the full suite with **97.8% statement coverage** (`httputil`), **98.9%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
 - 12 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag, RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, and Server-Timing (header value + middleware). CORS, query params, eviction, health, and compression fuzz tests verified with `-fuzztime`.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
@@ -183,9 +183,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage — 14 sub-100% functions (defensive code paths)
+### Test Coverage — 13 sub-100% functions (defensive code paths)
 
-Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), **98.3%** (`httpspec`). The pre-v0.8.0 codebase was at 91.0% with new middleware; v0.8.0 closed coverage to 97.8%. The remaining 14 sub-100% functions are documented defensive code paths:
+Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), **98.9%** (`httpspec`). The pre-v0.8.0 codebase was at 91.0% with new middleware; v0.8.0 closed coverage to 97.8%. The remaining 13 sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
@@ -205,9 +205,8 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 - `id_generator.go:100 drawRandomBytes` — 66.7%. `crypto/rand` error path (requires kernel-level fault injection).
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
 - `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
-- `httpspec.go:266 mustRequest` — 75.0%. `httptest.NewRequest` malformed-HTTP construction error branch (permanent defensive path; `httptest.NewRequest` panics on bad input rather than returning the error branch).
 
-**Honest assessment:** The remaining 14 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project. See TODO_LIST for the targeted v0.8.1 closure plan.
+**Honest assessment:** The remaining 13 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
 
 ---
 
