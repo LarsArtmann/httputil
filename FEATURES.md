@@ -23,11 +23,11 @@ _Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and post
 | Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`                | `BenchmarkCompression`      | `FuzzCompression`   |
 | ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                       | `BenchmarkETag`             | `FuzzETag`          |
 | MaxBodySize              | `maxbodysize.go`                       | `int64`                                                     | Yes   | —                                   | —                           | —                   |
-| RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                                   | —                           | —                   |
+| RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                                   | `BenchmarkTokenBucketLimiter` | —                  |
 | Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes   | —                                   | —                           | —                   |
 | Server-Timing            | `server_timing.go`                     | —                                                           | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`    | `FuzzServerTiming*` |
-| CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                 | Yes   | `ExampleCSRFMiddleware`             | —                           | —                   |
-| KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig`                                    | Yes   | `ExampleKeyedRateLimiterMiddleware` | —                           | —                   |
+| CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                 | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`  | `FuzzCSRF*` (6)     |
+| KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                     | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`| —                   |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
