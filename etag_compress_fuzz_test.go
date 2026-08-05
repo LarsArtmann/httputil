@@ -17,13 +17,11 @@ func FuzzETagConditional(f *testing.F) {
 	f.Fuzz(func(t *testing.T, method, path, etagValue, headerName, headerValue string) {
 		t.Parallel()
 
-		if !isValidMethod(method) || !strings.HasPrefix(path, "/") {
+		if !isValidMethod(method) || !isValidPath(path) || !isValidHTTPToken(headerName) {
 			t.Skip()
 		}
 
-		if !isValidHTTPToken(headerName) {
-			t.Skip()
-		}
+		_ = etagValue
 
 		cfg := DefaultETagConfig()
 		handler := ETag(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -87,4 +85,22 @@ func isValidMethod(method string) bool {
 	default:
 		return false
 	}
+}
+
+func isValidPath(path string) bool {
+	if !strings.HasPrefix(path, "/") {
+		return false
+	}
+
+	if strings.Contains(path, "%") {
+		return false
+	}
+
+	for _, c := range path {
+		if c <= 0x20 || c >= 0x7f {
+			return false
+		}
+	}
+
+	return true
 }
