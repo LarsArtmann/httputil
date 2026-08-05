@@ -1,6 +1,23 @@
 package httputil
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
+
+// Frame options values for SecurityHeadersConfig.FrameOptions.
+// Per RFC 7034 §2.1, valid values are DENY, SAMEORIGIN, or absent
+// (the header is omitted entirely).
+const (
+	frameOptionsDeny      = "DENY"
+	frameOptionsSameOrigin = "SAMEORIGIN"
+)
+
+var (
+	errSecurityInvalidFrameOptions = errors.New(
+		"SecurityHeadersConfig.FrameOptions must be DENY, SAMEORIGIN, or empty (default = no header)",
+	)
+)
 
 // SecurityHeadersConfig holds the configuration for security response headers.
 type SecurityHeadersConfig struct {
@@ -16,17 +33,26 @@ type SecurityHeadersConfig struct {
 func DefaultSecurityHeadersConfig() SecurityHeadersConfig {
 	return SecurityHeadersConfig{
 		ContentTypeNosniff:      true,
-		FrameOptions:            "DENY",
+		FrameOptions:            frameOptionsDeny,
 		ReferrerPolicy:          "strict-origin-when-cross-origin",
 		ContentSecurityPolicy:   "",
 		StrictTransportSecurity: "",
 	}
 }
 
-// Validate checks the SecurityHeadersConfig for invalid values.
-// Currently all fields are optional, so the default config is always valid.
+// Validate checks the SecurityHeadersConfig for invalid values. Returns nil
+// if the config is usable, or a descriptive error otherwise.
+//
+// FrameOptions is the only field with constrained values: it must be empty
+// (no header sent), "DENY", or "SAMEORIGIN" — anything else produces an
+// invalid X-Frame-Options header per RFC 7034 §2.1.
 func (c SecurityHeadersConfig) Validate() error {
-	return nil
+	switch c.FrameOptions {
+	case "", frameOptionsDeny, frameOptionsSameOrigin:
+		return nil
+	default:
+		return errSecurityInvalidFrameOptions
+	}
 }
 
 // SecurityHeaders returns middleware that sets common security response headers

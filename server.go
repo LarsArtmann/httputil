@@ -22,6 +22,8 @@ var (
 	errWriteTimeoutNegative      = errors.New("ServerConfig.WriteTimeout must not be negative")
 	errIdleTimeoutNegative       = errors.New("ServerConfig.IdleTimeout must not be negative")
 	errServerShutdownFailed      = errors.New("server shutdown failed")
+	errServerAddrEmpty           = errors.New("ServerConfig.Addr must not be empty (e.g. \":8080\" or \":http\")")
+	errServerTimeoutOrdering     = errors.New("ServerConfig.ReadHeaderTimeout must be <= ReadTimeout (RFC 7230 §6)")
 )
 
 // ServerConfig holds the configuration for an HTTP server.
@@ -44,8 +46,19 @@ func DefaultServerConfig() ServerConfig {
 	}
 }
 
-// Validate checks the ServerConfig for invalid values.
+// Validate checks the ServerConfig for invalid values. Returns nil if the
+// config is usable, or a descriptive error identifying the first issue found.
+//
+// Validates:
+//   - Addr is non-empty (empty Addr would bind to a random port — usually a bug)
+//   - All timeouts are non-negative
+//   - ReadHeaderTimeout <= ReadTimeout (the underlying http.Server enforces
+//     this internally; checking here surfaces the misconfiguration clearly)
 func (c ServerConfig) Validate() error {
+	if c.Addr == "" {
+		return errServerAddrEmpty
+	}
+
 	if c.ReadTimeout < 0 {
 		return fmt.Errorf("%w: %v", errReadTimeoutNegative, c.ReadTimeout)
 	}
@@ -60,6 +73,14 @@ func (c ServerConfig) Validate() error {
 
 	if c.IdleTimeout < 0 {
 		return fmt.Errorf("%w: %v", errIdleTimeoutNegative, c.IdleTimeout)
+	}
+
+	if c.ReadTimeout > 0 && c.ReadHeaderTimeout > c.ReadTimeout {
+		return fmt.Errorf(
+			"%w: ReadHeaderTimeout=%v > ReadTimeout=%v",
+			errServerTimeoutOrdering,
+			c.ReadHeaderTimeout, c.ReadTimeout,
+		)
 	}
 
 	return nil

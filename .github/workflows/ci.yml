@@ -38,6 +38,9 @@ jobs:
       - name: Test with coverage
         run: go test -coverprofile=coverage.out ./...
 
+      - name: Update coverage badge
+        run: ./scripts/update-coverage-badge.sh coverage.out README.md
+
       - name: Benchmark
         run: go test -bench=. -benchmem -count=1 -run=^$ ./...
 

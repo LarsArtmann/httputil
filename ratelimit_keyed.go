@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"container/heap"
+	"errors"
 	"net/http"
 	"strconv"
 	"sync"
@@ -20,6 +21,11 @@ const (
 const (
 	headerRetryAfter     = "Retry-After"
 	rateLimitExceededMsg = "rate limit exceeded"
+)
+
+var (
+	errKeyedLimitZero  = errors.New("KeyedRateLimiterConfig.Limit must be greater than zero")
+	errKeyedWindowZero = errors.New("KeyedRateLimiterConfig.Window must be greater than zero")
 )
 
 // KeyExtractor extracts a rate-limit key from an HTTP request.
@@ -83,6 +89,29 @@ func DefaultKeyedRateLimiterConfig() KeyedRateLimiterConfig {
 		KeyExtractor: KeyExtractorFromClientIP(),
 		TTL:          DefaultRateTTL,
 	}
+}
+
+// Validate checks the KeyedRateLimiterConfig for invalid values. Returns nil
+// if the config is usable, or a descriptive error otherwise. Callers that
+// build config values programmatically should invoke Validate before passing
+// the config to NewKeyedRateLimiter or KeyedRateLimiterMiddleware.
+//
+// Note: this method intentionally does NOT fill in defaults — validation is
+// for catching user errors, not for silently coercing zero values. Defaults
+// are applied by buildKeyedRateLimiter at middleware construction time.
+// Burst=0 is allowed (it defaults to Limit at construction time), so the
+// only fields that fail validation are those whose zero values would break
+// rate calculation: Limit (must be > 0) and Window (must be > 0).
+func (c KeyedRateLimiterConfig) Validate() error {
+	if c.Limit == 0 {
+		return errKeyedLimitZero
+	}
+
+	if c.Window <= 0 {
+		return errKeyedWindowZero
+	}
+
+	return nil
 }
 
 // KeyedRateLimiter wraps rate-limiting middleware and exposes monitoring.
