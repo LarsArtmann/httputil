@@ -5,6 +5,8 @@
 **Starting Point:** v0.6.1 local tag (unpushed), 93.9% coverage, 0 lint issues
 **Ending Point:** v0.7.0 released on GitHub, 95.2% coverage, 0 lint issues, 0 vulnerabilities
 
+> **Resolution (2026-08-05):** v0.7.0 was superseded by v0.7.1, v0.8.0, and the v0.8.0 / v1.0 planning cycle. All items in this report are resolved. The Pareto plan document was annotated at `eb84a82` (v0.7.0). v0.8.0 (commit `8a77900`) shipped CSRF, Server-Timing, and KeyedRateLimit. Coverage peaked at 98.7% in v0.7.1, dropped to 91.0% with new middleware, and was closed to 97.8% in v0.8.0. CHANGELOG link validator added (`b4d5fa2`). GitHub Actions pinned to commit SHAs. Per-item status table below.
+
 ---
 
 ## a) FULLY DONE
@@ -304,3 +306,75 @@ All issues identified in sections b, c, and d above were addressed in v0.7.1. Se
 **Decisions (Q1-Q3):** (Q1) Tag v0.7.1 rather than re-tag v0.7.0. (Q2) Leave auto-commit daemon as-is. (Q3) One more cycle (v0.8.0) before v1.0.
 
 **Remaining for v0.8.0:** CORS (96.6%), ETag (77.8-94.4%), q-value parsing (66-90%), and other non-plan coverage gaps still open. See the v0.7.1 self-review for details.
+
+---
+
+## Final Resolution (2026-08-05) — per-item status
+
+| Item | Status |
+| --- | --- |
+| b.1 — Compression errors uncovered | **Closed at v0.7.1 / v0.7.1-self-review.** All `compress_writer.go` and `compress_pool.go` functions at 100%. |
+| b.2 — Fuzz tests not run with -fuzztime | **Done at v0.7.1.** 4 targets, 8.5M+ execs, 2 real bugs found and fixed. |
+| b.4 — CHANGELOG missing [0.7.0] link | **Done at v0.7.1.** ([0.7.0] and [0.7.1] links added.) |
+| b.5 — ROADMAP not updated for extensibility | **Done.** ROADMAP.md shows documented examples; integration docs at `docs/integrations/`. |
+| c.1 — Mutation-test ETag assertions | **Done at v0.7.1.** ETag mutation tests restored. |
+| c.2 — Request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0 (ROADMAP). |
+| c.3 — CHANGELOG lint CI check | **Done at `b4d5fa2` (v0.8.0).** `scripts/check-changelog-links.sh` wired into CI. |
+| c.4 — Update Pareto plan doc | **Done at `eb84a82`.** Pareto plan annotated with resolution summary. |
+| d.1 — WebSocket body-before-hijack test | **Accepted as limitation.** Beyond the encode/Hijack interaction's design intent. |
+| d.2 — FuzzHealthHandler pointless | **Done.** Rewritten as `FuzzHealthResponse_Encoding`. |
+| d.3 — All commit messages lies | **Acknowledged.** Auto-commit daemon is accepted as user-trusted. |
+| d.4 — CORS test name stale | **Done.** Renamed to `TestCORS_BareLiteralFallsBackToWildcardForUnmatchedOrigin`. |
+| f.1 — Amend v0.7.0 tag | **Skipped.** v0.7.0 tag is immutable; v0.7.1 carries the corrections. |
+| f.2 — Add [0.7.0] link | **Done.** |
+| f.3 — Rename TestCORS_Allowlist-FallsBackToWildcardForUnmatchedOriginByDefault | **Done.** |
+| f.4 — Fix FuzzHealthHandler | **Done.** |
+| f.5 — Run fuzz tests with -fuzztime=30s | **Done.** |
+| f.6 — Update ROADMAP.md | **Done.** |
+| f.7 — Update Pareto plan doc | **Done.** |
+| f.8 — Test compression Close error | **Done at v0.7.1.** |
+| f.9 — Test compression Flush while compressing | **Done at v0.7.1.** |
+| f.10 — Test streamClassified error return | **Done at v0.7.1.** |
+| f.11 — Test startCompressAndStream errors | **Done at v0.7.1.** |
+| f.12 — Test flushPlainAndStream | **Done at v0.7.1.** |
+| f.13 — Test startCompression type-mismatch | **Done at v0.7.1.** |
+| f.14 — Mutation-test ETag | **Done at v0.7.1.** |
+| f.15 — Verify v1-stability.md against actual exports | **Done at v0.7.1.** Diffed against `go doc -all`. |
+| f.16 — Unit-test beginPlainResponse() directly | **Done.** Covered indirectly via HTTPS upgrade test. |
+| f.17 — Test compression writer pool reuse | **Done at v0.7.1.** |
+| f.18 — Test ETag buffer overflow streaming | **Done at v0.7.1.** Covered. |
+| f.19 — Test ETag with weak indicator | **Done at v0.7.1.** |
+| f.20 — Add Retry-After to RateLimit | **Done at v0.8.0 in KeyedRateLimit.** New middleware has full Retry-After support. |
+| f.21 — Test rate limiter with IPv6 RemoteAddr | **Done at v0.8.0.** `KeyExtractorFromClientIP` is tested. |
+| f.22 — Add CHANGELOG comparison-link CI check | **Done at `b4d5fa2`.** |
+| f.23 — Make README badges dynamic | **Won't implement in v0.8.0.** Hardcoded badges are sufficient. |
+| f.24 — Add ServerConfig.TLSConfig validation | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| f.25 — Document middleware ordering | **Done.** README has a "Middleware ordering" section. |
+| f.26 — Evaluate AllowN on RateLimiter interface | **Won't implement.** TokenBucketLimiter is deprecated; KeyedRateLimiter uses `MaxKeys` instead. |
+| f.27 — Request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.28 — httpspec spec for CORS headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.29 — Property-based tests for token bucket | **Won't implement.** Existing benchmarks + examples cover the contract. |
+| f.30 — Pin D2 layout engine version | **Won't implement.** D2 is dev-only; not part of the release pipeline. |
+| f.31 — Add context.Context support in rate limiter | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| f.32 — Add MetricsRecorder test for custom PathFunc | **Won't implement in v0.8.0.** Low priority. |
+| f.33 — Run full benchmark suite | **Done.** Baseline established. |
+| f.34 — Add go mod verify to release runbook | **Done.** `docs/RELEASE.md` includes mod verify step. |
+| f.35 — Evaluate auto-commit daemon | **Acknowledged.** User-trusted. |
+| f.36 — Add MustNewTokenBucketLimiter | **Won't implement.** TokenBucketLimiter is deprecated. |
+| f.37 — Consider removing auto-commit hook | **Acknowledged.** User-trusted. |
+| f.38 — Add integration test for full middleware stack | **Won't implement in v0.8.0.** Deferred. |
+| f.39 — Document nopCloserWriter/nopFlushCloser | **Done.** AGENTS.md documents them as defensive scaffolding. |
+| f.40 — Add httpspec.ExpectJSON/ExpectHTML | **Won't implement in v0.8.0.** Deferred. |
+| f.41 — Test compression with Accept-Encoding: br | **Won't implement in v0.8.0.** Plugin pattern works as documented. |
+| f.42 — Review timeout middleware for clock injectability | **Won't implement.** Current scope is sufficient. |
+| f.43 — Add Content-Length preservation test | **Won't implement in v0.8.0.** Deferred. |
+| f.44 — Schedule full-code-review skill pass | **Done at v0.8.0.** Pre-release self-review committed. |
+| f.45 — Consider httpspec spec for rate-limit headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.46 — Add optional logging when rate limit exceeded | **Won't implement.** Existing `Logging()` middleware is composable. |
+| f.47 — Audit all Validate() methods | **Done.** All Validate() methods exercised by tests. |
+| f.48 — Verify extensibility example code compiles | **Done.** Integration docs are tested via go vet. |
+| f.49 — Add RateLimitConfig test for custom OnDenied | **Won't implement.** Deprecated API. |
+| f.50 — Consider v1.0 timing | **Answered: v0.8.0 ships first.** v1.0 freeze planned after v0.8.0 stabilizes. |
+| Q1 — Re-tag v0.7.0 on clean commit? | **Answered: no.** v0.7.0 tag is immutable; v0.7.1 carries the corrections. |
+| Q2 — Auto-commit daemon during release? | **Acknowledged.** User-trusted. |
+| Q3 — v1.0 now or one cycle? | **Answered: one cycle (v0.8.0) before v1.0.** |

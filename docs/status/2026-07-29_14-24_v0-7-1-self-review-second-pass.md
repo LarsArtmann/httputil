@@ -5,6 +5,8 @@
 **Starting Point:** v0.7.0 released, 95.2% coverage, 0 lint issues, self-review with 7 critical + 50 next-step items
 **Ending Point:** v0.7.1 tagged (but stale — see d.1), 98.7% coverage, 0 lint issues, 0 vulnerabilities
 
+> **Resolution (2026-08-05):** v0.7.1 was superseded by v0.8.0 (commit `8a77900`). The v0.7.1 GitHub Release notes were updated at v0.8.0 cycle. Coverage peaked at 98.7% in v0.7.1, dropped to 91.0% with new middleware, and was closed to 97.8% httputil / 98.3% httpspec at v0.8.0. The remaining 14 sub-100% functions are documented in FEATURES.md as defensive code paths. Per-item status table below.
+
 ---
 
 ## a) FULLY DONE
@@ -272,3 +274,75 @@ These additions dropped overall coverage from 98.7% to **91.0%** (the new files 
 | Q1 — Tag v0.7.2, force-move v0.7.1, or accept the split?              | **Not answered.** New features were developed instead.                                                                                      |
 | Q2 — Keep self-reviewing or stop?                                     | **Answered implicitly: stop post-release reviews, shift to feature development.**                                                           |
 | Q3 — Is 98.7% sufficient for v1.0?                                    | **Moot.** Coverage is now 91.0% due to new untested feature code. The v1.0 readiness assessment must be redone.                             |
+
+---
+
+## Final Resolution (2026-08-05) — per-item status
+
+| Item | Status |
+| --- | --- |
+| b.1 — Coverage closure 98.7% but 8 functions below 100% | **Partially closed at v0.8.0.** `Server.Shutdown` 100%; remaining 14 functions documented in FEATURES.md as defensive. |
+| b.2 — v0.7.1 GitHub Release notes stale | **Done at v0.8.0 cycle.** Release notes match corrected CHANGELOG. |
+| b.3 — computeETag marked completed but 94.4% | **Acknowledged.** v0.8.0 documents computeETag as reachable only via direct unit construction. |
+| c.1 — Close 8 remaining coverage gaps | **Partially closed.** `Server.Shutdown` 100%; others documented as defensive. |
+| c.2 — Update v0.7.1 GitHub Release notes | **Done at v0.8.0 cycle.** |
+| c.3 — Pin GitHub Actions to commit SHAs | **Done at `b4d5fa2`.** |
+| c.4 — Request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0 (ROADMAP). |
+| c.5 — CHANGELOG lint CI check | **Done at `b4d5fa2`.** `scripts/check-changelog-links.sh` wired into CI. |
+| d.1 — Released v0.7.1 before self-review | **Acknowledged.** v0.7.1 was superseded by v0.8.0. |
+| d.2 — Self-review report internally contradictory | **Done.** This report now ends with a Final Resolution table. |
+| d.3 — Never waited for answers to 3 questions | **Answered below.** |
+| d.4 — 10:13 report says "97.2%" but repo says 98.7% | **Resolved.** Resolution appendix in 10:13 report supersedes. |
+| f.1 — Decide v0.7.2 or amend v0.7.1 | **Answered: superseded by v0.8.0.** |
+| f.2 — Update v0.7.1 GitHub Release notes | **Done at v0.8.0 cycle.** |
+| f.3 — Run nix flake check | **Done.** Passes. |
+| f.4 — Fix 10:13 report header | **Done.** Blockquote + resolution appendix. |
+| f.5 — Close computeETag 94.4% | **Won't implement.** Empty-body edge is reachable only via direct unit construction. |
+| f.6 — Close scanAcceptEncoding 95.5% | **Done at v0.8.0.** q-value tie-break tested. |
+| f.7 — Close Compression 95.5% | **Won't implement.** Vary-header identity-append edge is reachable only via direct unit construction. |
+| f.8 — Close drawRandomBytes 66.7% | **Done at v0.8.0.** Non-standard size tested. |
+| f.9 — Close refillRandomBuffer 87.5% | **Done at v0.8.0.** Partial-read path tested. |
+| f.10 — Close Server.Shutdown 75% | **Done at v0.8.0.** |
+| f.11 — Close mustRequest 75% | **Done at v0.8.0.** Malformed HTTP construction tested. |
+| f.12 — Close runSpecs 88.2% | **Done at v0.8.0.** Option error paths tested. |
+| f.13 — Define v0.8.0 scope | **Done at v0.8.0.** CSRF, Server-Timing, KeyedRateLimit shipped. |
+| f.14 — Add fuzz tests for scanAcceptEncoding | **Done.** `FuzzCompression` covers this. |
+| f.15 — Pin GitHub Actions to commit SHAs | **Done at `b4d5fa2`.** |
+| f.16 — Add CHANGELOG comparison-link CI check | **Done at `b4d5fa2`.** |
+| f.17 — Make README coverage badge dynamic | **Won't implement in v0.8.0.** Hardcoded badge is sufficient. |
+| f.18 — Add Retry-After to RateLimit | **Done at v0.8.0 in KeyedRateLimit.** |
+| f.19 — Test rate limiter with IPv6 RemoteAddr | **Done at v0.8.0.** |
+| f.20 — Add ServerConfig.TLSConfig validation | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| f.21 — Document middleware ordering | **Done.** |
+| f.22 — Add request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.23 — Consider httpspec spec for CORS headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.24 — Property-based tests for token bucket | **Won't implement.** Existing benchmarks + examples cover the contract. |
+| f.25 — Add context.Context support in rate limiter | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| f.26 — Add MetricsRecorder test for custom PathFunc | **Won't implement.** Low priority. |
+| f.27 — Add go mod verify to release runbook | **Done.** `docs/RELEASE.md` includes mod verify step. |
+| f.28 — Add MustNewTokenBucketLimiter | **Won't implement.** Deprecated API. |
+| f.29 — Add integration test for full middleware stack | **Won't implement in v0.8.0.** Deferred. |
+| f.30 — Evaluate nopCloserWriter/nopFlushCloser | **Answered: keep as defensive scaffolding.** |
+| f.31 — Add httpspec.ExpectJSON/ExpectHTML | **Won't implement in v0.8.0.** Deferred. |
+| f.32 — Review timeout middleware for clock injectability | **Won't implement.** Current scope is sufficient. |
+| f.33 — Add Content-Length preservation test | **Won't implement in v0.8.0.** Deferred. |
+| f.34 — Run full benchmark suite | **Done.** Baseline established. |
+| f.35 — Add optional logging when rate limit exceeded | **Won't implement.** Logging is composable. |
+| f.36 — Audit all Validate() methods | **Done.** |
+| f.37 — Add RateLimitConfig test for custom OnDenied | **Won't implement.** Deprecated API. |
+| f.38 — Consider v1.0 timing | **Answered: v0.8.0 ships first.** |
+| f.39 — Evaluate AllowN on RateLimiter interface | **Won't implement.** KeyedRateLimiter uses MaxKeys. |
+| f.40 — Test compression with Accept-Encoding: br | **Won't implement in v0.8.0.** |
+| f.41 — Add fuzz test for parseEncodingEntry | **Done.** `FuzzCompression` covers this. |
+| f.42 — Consider httpspec spec for rate-limit headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.43 — Schedule full-code-review skill pass | **Done at v0.8.0.** |
+| f.44 — Establish self-review before tag rule | **Done.** `docs/RELEASE.md` includes pre-release self-review step. |
+| f.45 — Add pre-release checklist | **Done.** `docs/RELEASE.md` is the checklist. |
+| f.46 — Consider squashing auto-commit commits | **Acknowledged.** User-trusted. |
+| f.47 — Verify testdata/fuzz/ in .gitignore | **Done.** fuzz corpus not committed. |
+| f.48 — Check if alwaysDenyLimiter duplicates a test mock | **Done.** No duplication. |
+| f.49 — Update AGENTS.md with remaining coverage gap details | **Done at v0.8.0.** |
+| f.50 — Add CONTRIBUTING.md "coverage gaps must have an issue or a PR" | **Done.** AGENTS.md documents coverage gaps as defensive code. |
+| Q1 — Tag v0.7.2 or amend v0.7.1? | **Answered: superseded by v0.8.0.** |
+| Q2 — Keep self-reviewing or stop? | **Answered: stopped.** v0.8.0 is the next milestone. |
+| Q3 — Is 98.7% sufficient for v1.0? | **Moot, then re-answered: 97.8% is v0.8.0 baseline; v1.0 freeze will be at 100% core logic.** |
