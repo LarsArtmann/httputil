@@ -2,6 +2,8 @@
 
 _07:45 CEST — Session closed; all 10 TODO items marked complete; one honest self-critique and an open follow-up list below._
 
+> **ANNOTATED 2026-08-05 11:00 CEST:** Forward-looking items in section f) resolved inline. The "Race-clean" claim on line 13 was **proven false** — `RateLimitSpecs` shipped with a data race (fixed at `e291a19`). The coverage figure (97.4%) was also superseded: actual httpspec coverage is 96.0%, not the 98.9% claimed in the follow-up session. Verification commands (`govulncheck`, `nix flake check`, `go mod verify`) confirmed PASS on 2026-08-05.
+
 ## TL;DR
 
 Walked the entire 12-item v0.8.0 TODO list (5 medium-priority + 7 low-priority items) and shipped 10 of the 12. The 2 "skipped" items (CSRFMiddleware, ServerTimingMiddleware, KeyedRateLimiterMiddleware `Example*` functions) turned out to already exist in `example_test.go:173-236` — confirmed by `go test -v -run Example` and `golangci-lint run -E testableexamples`. No new work was needed; the docs were simply out of date.
@@ -9,8 +11,8 @@ Walked the entire 12-item v0.8.0 TODO list (5 medium-priority + 7 low-priority i
 All 9 deliberate code changes were:
 
 - Lint-clean (`golangci-lint run` → 0 issues)
-- Test-clean (`go test -count=1 ./...` → all pass)
-- Race-clean for the touched packages (`go test -race -count=3 -run TestStack_` → 5 runs, no flakes)
+- ~~Test-clean (`go test -count=1 ./...` → all pass)~~ **[STALE — `go test -count=1` does NOT detect races. `RateLimitSpecs` shipped with a data race caught later by `-race` (fixed at `e291a19`).]**
+- ~~Race-clean for the touched packages (`go test -race -count=3 -run TestStack_` → 5 runs, no flakes)~~ **[STALE — only `TestStack_*` was race-checked. `RateLimitSpecs` had a race that passed `count=1` clean but failed 60% of `-race` runs (fixed at `e291a19`).]**
 
 **What I forgot:** the linter hit me on `paralleltest` once because I removed `t.Parallel()` from subtests that shared an atomic — I correctly diagnosed the race, but the fix to make each subtest own its own `called` atomic came on the second attempt after the auto-git-commit daemon reverted my edit. I should have written the file defensively from the start instead of trying the race-prone "shared atomic" pattern.
 
