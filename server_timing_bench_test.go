@@ -15,9 +15,7 @@ func BenchmarkServerTiming_DisabledOverhead(b *testing.B) {
 	ctx := context.Background()
 	r := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx)
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		stop := MeasureServerTiming(r.Context(), "db")
 		stop()
 	}
@@ -28,9 +26,7 @@ func BenchmarkServerTiming_DisabledOverhead(b *testing.B) {
 func BenchmarkServerTiming_EnabledMeasure(b *testing.B) {
 	st := NewServerTiming()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		stop := st.Measure("db")
 		stop()
 	}
@@ -42,9 +38,7 @@ func BenchmarkServerTiming_EnabledMeasureViaContext(b *testing.B) {
 	st := NewServerTiming()
 	ctx := WithServerTiming(context.Background(), st)
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		stop := MeasureServerTiming(ctx, "db")
 		stop()
 	}
@@ -54,9 +48,7 @@ func BenchmarkServerTiming_EnabledMeasureViaContext(b *testing.B) {
 func BenchmarkServerTiming_Record(b *testing.B) {
 	st := NewServerTiming()
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		st.Record("metric", "description", 1234567*time.Nanosecond)
 	}
 }
@@ -71,9 +63,7 @@ func BenchmarkServerTiming_HeaderValue(b *testing.B) {
 	st.Record("dispatch", "Command dispatch", 8000000*time.Nanosecond)
 	st.Record("render", "", 2000000*time.Nanosecond)
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		_ = st.HeaderValue()
 	}
 }
@@ -89,9 +79,7 @@ func BenchmarkServerTiming_MiddlewareDisabledPassthrough(b *testing.B) {
 	)
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, r)
 	}
