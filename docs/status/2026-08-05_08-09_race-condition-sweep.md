@@ -1,6 +1,6 @@
 # Status Report — 2026-08-05 08:09 — Race-Condition Sweep Post-Mortem
 
-**Scope:** This session began after the previous "todo-list execution sweep" summary was delivered (`docs/status/2026-08-05_07-45_todo-list-execution-sweep.md`). The user asked one sharply pointed question: *"go test -race is fine? 100%?"* The truth came back fast, and the rest of this report is the full, honest accounting of what that one question revealed.
+**Scope:** This session began after the previous "todo-list execution sweep" summary was delivered (`docs/status/2026-08-05_07-45_todo-list-execution-sweep.md`). The user asked one sharply pointed question: _"go test -race is fine? 100%?"_ The truth came back fast, and the rest of this report is the full, honest accounting of what that one question revealed.
 
 ---
 
@@ -54,6 +54,7 @@ Nothing else was started. There were 50 follow-up items in the prior status repo
 ### 1. I claimed "0 failures" and shipped a real race condition.
 
 The previous summary said:
+
 > `go test -count=1 ./...` → all pass
 
 It did. The tests passed. The race detector would have caught it on the first try. I did not run `-race`. The auto-git-commit daemon (mentioned in `~/.config/crush/AGENTS.md`) had already captured the buggy state to `master` in commit `eb1ac6a` ("feat(validation): harden config validation and automate coverage badge") before I noticed. The race sat in main for the entire inter-session gap.
@@ -70,11 +71,11 @@ I wrote a `docs/status/...` file stating "0 active warnings" and "all tests pass
 
 ### 4. The rate-limit specs test logic is suspicious.
 
-`newRateLimitedHandler` counts per `RemoteAddr` and rejects requests ≤2. The first request from `192.0.2.1` is rejected, the next (from the same check) is also rejected, then test passes. This is fragile and assumes an exact request count. None of the rate-limit specs *actually* test the "after the limit, the request succeeds" path through the counter — they only test the first-2-rejections case. A better handler would isolate the time window deterministically or use a fake clock. See follow-up #2 below.
+`newRateLimitedHandler` counts per `RemoteAddr` and rejects requests ≤2. The first request from `192.0.2.1` is rejected, the next (from the same check) is also rejected, then test passes. This is fragile and assumes an exact request count. None of the rate-limit specs _actually_ test the "after the limit, the request succeeds" path through the counter — they only test the first-2-rejections case. A better handler would isolate the time window deterministically or use a fake clock. See follow-up #2 below.
 
 ### 5. I never committed the AGENTS.md or test fix yet.
 
-`git status` shows two unstaged files: `AGENTS.md` (the lessons) and `httpspec/cors_ratelimit_specs_test.go` (the race fix). The auto-commit daemon didn't grab them between turns. They should go in together with a tight commit message that explains *why* (the bug, not just the code).
+`git status` shows two unstaged files: `AGENTS.md` (the lessons) and `httpspec/cors_ratelimit_specs_test.go` (the race fix). The auto-commit daemon didn't grab them between turns. They should go in together with a tight commit message that explains _why_ (the bug, not just the code).
 
 ---
 
@@ -93,6 +94,7 @@ Pre-commit hook or local script (not Make — use `flake.nix` per the global `AG
 ### C. Stop claiming "tests pass" without naming the commands.
 
 Future status reports should explicitly enumerate the verification commands and their results, not just summarize. A "done" line should look like:
+
 > `- [ ] go test -race -count=1 ./...` — PASS
 > `- [ ] go test -race -count=10 ./...` — PASS
 > `- [ ] golangci-lint run` — 0 issues
@@ -104,6 +106,7 @@ When the race detector finds one race, **the entire test binary fails** (Go's ra
 ### E. The handler-building function should not embed mutable closure state by default.
 
 `newRateLimitedHandler()` returning a handler that closes over a fresh `map[string]int` every call is fine. But the API shape `newRateLimitedHandler()` invites callers to call it once and reuse the handler — which is what I did, and that is what made the race. Either:
+
 - (a) Rename to `mustNewRateLimitedHandler()` (idiomatic panic-on-misuse) and document that callers must own the result, **or**
 - (b) Return `(http.Handler, func())` — handler + reset function — so concurrent users have a clear lifecycle.
 
@@ -130,15 +133,15 @@ Carried forward and refined from the 07-45 report, with this session's additions
 
 ### Race & Test Safety (10)
 
-11. **(NEW)** Audit *every* new test function in this project for closure-over-shared-state patterns. Specifically: `TestStack_FullMiddlewareComposition` in `stack_integration_test.go` (already fixed in commit `e062ef7`, but re-verify with `-race -count=10`).
-12. **(NEW)** Audit pre-existing `httpspec` tests for the same pattern. `TestRunAllSpecsPassForGoodHandler`, `TestSkipSpecExcludesSpec`, `TestRunSerialAllSpecsPassForGoodHandler` were symptom-failures in the same `-race` run — investigate whether they have a *separate* race or were only failing because of the cascading detector reporting.
+11. **(NEW)** Audit _every_ new test function in this project for closure-over-shared-state patterns. Specifically: `TestStack_FullMiddlewareComposition` in `stack_integration_test.go` (already fixed in commit `e062ef7`, but re-verify with `-race -count=10`).
+12. **(NEW)** Audit pre-existing `httpspec` tests for the same pattern. `TestRunAllSpecsPassForGoodHandler`, `TestSkipSpecExcludesSpec`, `TestRunSerialAllSpecsPassForGoodHandler` were symptom-failures in the same `-race` run — investigate whether they have a _separate_ race or were only failing because of the cascading detector reporting.
 13. **(NEW)** Verify the existing `newTypedBodyHandler` (in both `testutil_test.go` and `httpspec/handlers_test.go`) does not have a similar closure state pattern.
 14. **(NEW)** Refactor `newRateLimitedHandler` per observation (E)(b) above — accept a state parameter or return a reset hook.
 15. Add a project-level lint rule or pre-commit check that greps for `t.Parallel()` followed by shared variables in test helpers.
 16. Run `go test -race -count=100 ./...` to stress-test further (consider running it under a CI cron if FlakeFind is overkill).
 17. Write a tiny `tests/race_test.go` smoke test that uses `var shared int; var mu sync.Mutex` to verify the `-race` detector is actually enabled in CI (defensive — catches disabled detector).
 18. Add a benchmark that runs under `-race` continuously for a minute to look for slow races (`go test -bench=. -race -benchtime=60s`).
-19. Fuzz the rate-limit spec logic from a different angle: concurrent requests with a `sync.WaitGroup` to surface races in the *actual* spec check functions, not just the handler.
+19. Fuzz the rate-limit spec logic from a different angle: concurrent requests with a `sync.WaitGroup` to surface races in the _actual_ spec check functions, not just the handler.
 20. Add an example test that demonstrates the "each subtest gets its own handler" pattern in `httpspec/example_test.go`.
 
 ### Coverage & Benchmarks (8)
@@ -191,25 +194,26 @@ The project has CI (`workflows/ci.yml`). My instinct is to make `go test -race -
 ### Q2: Was the 07-45 status report honest enough that we should keep its optimism, or does this fix require retroactive annotation?
 
 The 07-45 report said:
+
 > `go test -count=1 ./...` → all pass
 
 That was true. But it implied "tests pass" without the `-race` qualifier, and a reader could reasonably have concluded "all tests, including race tests, pass." If you want the project's tone to be precise, I should annotate 07-45 inline at every "PASS" line with `[verified clean under -race only retroactively on 2026-08-05 08:09]`. If you prefer "let it be — the report is a point-in-time snapshot, addendum in 08-09 is fine," I'll move on. I lean toward annotation: docs-health `ANNOTATE` mode exists for a reason.
 
 ### Q3: Should `TestRateLimitSpecs_PassWith429AndRetryAfter` actually be a serial test, not parallel?
 
-The current shape (each subtest owns its own handler, parallel is fine) is correct. But the test name says "PassWith429AndRetryAfter" — it asserts that *across* the rate-limit checks, rejection and hinting both work. The parallel-with-private-handler shape is fine; the alternative is `RunSerial()` (which exists in `httpspec.go`), and that's what `TestRunSerialAllSpecsPassForGoodHandler` uses. Did you intend RateLimit specs to mirror that serial style for clarity, or is the parallel-with-private-handler pattern the new convention? (I'd pick the parallel-with-private-handler pattern for speed, but only if it matches your aesthetic.)
+The current shape (each subtest owns its own handler, parallel is fine) is correct. But the test name says "PassWith429AndRetryAfter" — it asserts that _across_ the rate-limit checks, rejection and hinting both work. The parallel-with-private-handler shape is fine; the alternative is `RunSerial()` (which exists in `httpspec.go`), and that's what `TestRunSerialAllSpecsPassForGoodHandler` uses. Did you intend RateLimit specs to mirror that serial style for clarity, or is the parallel-with-private-handler pattern the new convention? (I'd pick the parallel-with-private-handler pattern for speed, but only if it matches your aesthetic.)
 
 ---
 
 ## Verification Snapshot
 
-| Check | Command | Result |
-|-------|---------|--------|
-| Tests | `go test -count=1 ./...` | PASS — 2 packages, 0 failures |
-| Race (single) | `go test -race -count=1 ./...` | PASS |
-| Race (stress) | `go test -race -count=10 ./...` | PASS |
-| Lint | `golangci-lint run --timeout 5m` | 0 issues |
-| Lint format | `golangci-lint fmt --diff` | (not run this session — out of scope) |
+| Check         | Command                          | Result                                |
+| ------------- | -------------------------------- | ------------------------------------- |
+| Tests         | `go test -count=1 ./...`         | PASS — 2 packages, 0 failures         |
+| Race (single) | `go test -race -count=1 ./...`   | PASS                                  |
+| Race (stress) | `go test -race -count=10 ./...`  | PASS                                  |
+| Lint          | `golangci-lint run --timeout 5m` | 0 issues                              |
+| Lint format   | `golangci-lint fmt --diff`       | (not run this session — out of scope) |
 
 Race verification was repeated **10×** back-to-back. All clean. Original race in commit `eb1ac6a` is fixed.
 
@@ -217,6 +221,6 @@ Race verification was repeated **10×** back-to-back. All clean. Original race i
 
 ## Closing Note
 
-The user's question was load-bearing. One line of feedback exposed a real bug I missed. This is what brutal honesty looks like at the engineering layer: the gap between "tests pass" and "tests *really* pass" is one flag (`-race`), and missing it is the difference between shipping quality and shipping vibes.
+The user's question was load-bearing. One line of feedback exposed a real bug I missed. This is what brutal honesty looks like at the engineering layer: the gap between "tests pass" and "tests _really_ pass" is one flag (`-race`), and missing it is the difference between shipping quality and shipping vibes.
 
 I'd rather find this here than in a downstream project's CI at 3am.
