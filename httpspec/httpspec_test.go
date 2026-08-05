@@ -883,3 +883,19 @@ func TestLongURLHandledFailsFor500(t *testing.T) {
 		t.Error("expected failure when long URL causes 500")
 	}
 }
+
+// --- mustRequest panic test ------------------------------------------------
+
+func TestMustRequestPanicsOnInvalidMethod(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for invalid HTTP method")
+		}
+	}()
+
+	// A method containing a space is rejected by http.NewRequestWithContext.
+	mustRequest("INVALID METHOD", "http://example.com")
+}

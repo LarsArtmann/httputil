@@ -39,8 +39,10 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 | Logging          | Structured request/response logging                                                                | `Logging`                                |
 | Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                            | `ServerConfig`, `Server`                 |
 | Health           | Kubernetes-compatible health, liveness, and readiness endpoints                                    | `HealthHandler`, `ReadyHandlerWithProbe` |
-| Rate Limiting    | Token bucket rate limiting with pluggable limiter and optional TTL eviction                        | `RateLimitConfig`, `TokenBucketLimiter`  |
+| Rate Limiting    | Per-key rate limiting with O(log n) eviction, MaxKeys cap, and lazy TTL sweep                       | `KeyedRateLimiterConfig`, `KeyedRateLimiter`  |
 | Metrics          | Request metrics recording with pluggable recorder interface                                        | `MetricsConfig`, `MetricsRecorder`       |
+| CSRF Protection  | Double-submit cookie CSRF defense backed by justinas/nosurf with HTMX-aware helpers                 | `CSRFConfig`, `CSRFMiddleware`           |
+| Server-Timing    | W3C Server-Timing header instrumentation with CRLF-safe values and context-aware measurement        | `ServerTiming`, `ServerTimingMiddleware` |
 | Body Size Limit  | Enforcing maximum request body size                                                                | `MaxBodySize`                            |
 | Query Parameters | Parsing typed values from URL query parameters                                                     | `ParseUintQuery`                         |
 | Middleware Stack | Named middleware ordering with duplicate prevention                                                | `MiddlewareStack`                        |
@@ -60,11 +62,15 @@ Objects with identity and lifecycle within the library.
 | RequestIDConfig       | A configuration value object defining request ID header name and generation logic             | Request ID       |
 | CompressionConfig     | A configuration value object defining compression parameters (encodings, level, min size)     | Compression      |
 | ETagConfig            | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
-| RateLimitConfig       | A configuration value object defining rate limiting policy (limiter, key func, denial)        | Rate Limiting    |
-| TokenBucketLimiter    | An in-memory token bucket rate limiter with per-key buckets and optional TTL eviction         | Rate Limiting    |
-| MetricsConfig         | A configuration value object defining metrics recording behavior                              | Metrics          |
-| ServerConfig          | A configuration value object defining server address, timeouts, and TLS settings              | Server Lifecycle |
-| MiddlewareStack       | A named middleware collection with duplicate prevention and ordering validation               | Middleware Stack |
+| RateLimitConfig            | A configuration value object defining deprecated token-bucket rate limiting policy           | Rate Limiting    |
+| TokenBucketLimiter         | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)      | Rate Limiting    |
+| KeyedRateLimiterConfig     | A configuration value object defining keyed rate limiting policy (limit, window, burst, keys)| Rate Limiting    |
+| KeyedRateLimiter           | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API      | Rate Limiting    |
+| CSRFConfig                 | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies) | CSRF Protection  |
+| ServerTiming               | A per-request timing collector injected via context for handler-internal sub-metrics         | Server-Timing    |
+| MetricsConfig              | A configuration value object defining metrics recording behavior                              | Metrics          |
+| ServerConfig               | A configuration value object defining server address, timeouts, and TLS settings              | Server Lifecycle |
+| MiddlewareStack            | A named middleware collection with duplicate prevention and ordering validation               | Middleware Stack |
 
 ---
 
@@ -88,7 +94,15 @@ Immutable objects defined by their attributes.
 | Min Size          | The minimum response body size (bytes) before compression is applied                          | Compression      |
 | Max Buffer Size   | The maximum bytes buffered for ETag computation before abandoning                             | ETag             |
 | Token Bucket      | A per-key container holding token count and last-refill timestamp                             | Rate Limiting    |
-| Eviction TTL      | Duration after which idle token buckets are lazily removed; zero disables eviction            | Rate Limiting    |
+| Eviction TTL      | Duration after which idle rate-limit entries are lazily removed; zero disables eviction      | Rate Limiting    |
+| Max Keys          | Caps the number of tracked rate-limit keys; oldest is evicted at capacity (zero = unbounded) | Rate Limiting    |
+| Key Extractor     | A function type extracting the rate-limit key from a request (RemoteAddr or ClientIP)        | Rate Limiting    |
+| Retry-After       | Duration until a rejected rate-limited client may retry; sent as an HTTP response header     | Rate Limiting    |
+| CSRF Token        | A cryptographically random nonce stored in a cookie and submitted with each state-changing request | CSRF Protection  |
+| Double-Submit Cookie | CSRF defense pattern: token sent in both cookie and request header/body for comparison  | CSRF Protection  |
+| Trusted Origin    | An origin explicitly allowed for cross-domain CSRF validation                                 | CSRF Protection  |
+| Trusted Proxy     | An IP/CIDR of a reverse proxy that may strip or overwrite origin/protocol headers             | CSRF Protection  |
+| Server-Timing Metric | A named sub-measurement within a single request's Server-Timing header (name + duration)  | Server-Timing    |
 | Health Status     | The operational state reported by health endpoints: `up` or `down`                            | Health           |
 | Ready Probe       | A function that returns true when the service is ready to accept traffic                      | Health           |
 
@@ -126,9 +140,35 @@ Actions the library performs.
 | `ReadyHandler()`                    | Return a handler for Kubernetes readiness probes (always up by default)                                | Health           |
 | `ReadyHandlerWithProbe(ready)`      | Return a handler that calls `ready()` and responds 200 up or 503 down                                  | Health           |
 | `RegisterHealth(mux)`               | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                      | Health           |
-| `NewTokenBucketLimiter(rate,burst)` | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0)                       | Rate Limiting    |
-| `RateLimit(cfg)`                    | Create middleware that enforces rate limiting using the configured limiter                             | Rate Limiting    |
-| `DefaultRateLimitConfig()`          | Return a RateLimitConfig with 429 status and RemoteAddr key func                                       | Rate Limiting    |
+| `NewTokenBucketLimiter(rate,burst)` | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0) _(deprecated)_      | Rate Limiting    |
+| `RateLimit(cfg)`                    | Create middleware that enforces rate limiting using the configured limiter _(deprecated)_             | Rate Limiting    |
+| `DefaultRateLimitConfig()`          | Return a RateLimitConfig with 429 status and RemoteAddr key func _(deprecated)_                       | Rate Limiting    |
+| `NewKeyedRateLimiter(cfg)`          | Create a keyed rate limiter with O(log n) eviction, MaxKeys cap, and monitoring API                   | Rate Limiting    |
+| `KeyedRateLimiterMiddleware(cfg)`   | Create middleware enforcing per-key rate limits with Retry-After on rejection                         | Rate Limiting    |
+| `DefaultKeyedRateLimiterConfig()`   | Return a KeyedRateLimiterConfig with sensible defaults (100 req/min, ClientIP key)                    | Rate Limiting    |
+| `KeyExtractorFromRemoteAddr()`      | Return a KeyExtractor that uses the request RemoteAddr for rate-limit keying                          | Rate Limiting    |
+| `KeyExtractorFromClientIP()`        | Return a KeyExtractor that uses the extracted ClientIP for rate-limit keying                          | Rate Limiting    |
+| `CSRFMiddleware(cfg)`               | Create double-submit cookie CSRF middleware backed by nosurf                                           | CSRF Protection  |
+| `CSRFResponseHeaderMiddleware(next)` | Create middleware that auto-sets the CSRF token in response headers for HTMX consumption             | CSRF Protection  |
+| `ValidateCSRF(r, cfg)`              | Validate a request's CSRF token; returns (ok, responseRecorder) for standalone use                    | CSRF Protection  |
+| `ConfigureNosurfHandler(h, cfg)`    | Configure the underlying nosurf handler with cookie, header, and origin settings                      | CSRF Protection  |
+| `WithCSRFToken(ctx, token)`         | Store a CSRF token in a context                                                                        | CSRF Protection  |
+| `CSRFTokenFromContext(ctx)`         | Retrieve the stored CSRF token from a context                                                          | CSRF Protection  |
+| `CSRFTokenFromRequest(r)`           | Extract the CSRF token from a request (header or cookie)                                               | CSRF Protection  |
+| `CSRFTokenHXHeaders(token)`         | Generate an `hx-headers` attribute string containing the CSRF token for HTMX                           | CSRF Protection  |
+| `CSRFTokenHTMLMeta(token)`          | Generate an HTML `<meta>` tag containing the CSRF token for templ rendering                            | CSRF Protection  |
+| `CSRFTokenFormField(token)`         | Generate an HTML hidden `<input>` field containing the CSRF token                                      | CSRF Protection  |
+| `InvalidateCSRFCookie(w, cfg)`      | Expire the CSRF cookie to force token rotation (e.g., on login/logout)                                 | CSRF Protection  |
+| `TranslateCSRFHeaders(h)`           | Translate HTMX-style CSRF headers to the canonical header name expected by nosurf                      | CSRF Protection  |
+| `SetPlaintextHTTPOrigin()`          | Configure the package to use plaintext HTTP origin for local development                               | CSRF Protection  |
+| `NewServerTiming()`                 | Create a ServerTiming collector for manual wrapping (without middleware)                               | Server-Timing    |
+| `ServerTimingMiddleware()`          | Create middleware that injects a ServerTiming collector via context and writes the header on response  | Server-Timing    |
+| `ServerTimingMiddlewareWhen(pred)`  | Create conditional Server-Timing middleware that only activates when the predicate returns true        | Server-Timing    |
+| `MeasureServerTiming(ctx, name)`    | Start a named sub-metric timer; returns a stop function that records the elapsed duration              | Server-Timing    |
+| `WrapServerTiming(w, r)`            | Manually wrap a ResponseWriter with Server-Timing instrumentation (without middleware)                 | Server-Timing    |
+| `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                 | Server-Timing    |
+| `WithServerTiming(ctx, st)`         | Store a ServerTiming collector in a context                                                            | Server-Timing    |
+| `ServerTimingFromContext(ctx)`      | Retrieve the ServerTiming collector from a context                                                     | Server-Timing    |
 | `Metrics(cfg)`                      | Create middleware that records request metrics via a pluggable recorder                                | Metrics          |
 | `MaxBodySize(limit)`                | Create middleware that rejects request bodies exceeding the limit                                      | Body Size Limit  |
 | `NewServer(cfg)`                    | Create an HTTP server with configurable timeouts and graceful shutdown                                 | Server Lifecycle |
@@ -160,8 +200,15 @@ State transitions within the library.
 | ETag Computed         | ETag middleware generates an ETag value from the response body                    | ETag             |
 | Not Modified Returned | ETag middleware returns 304 because If-None-Match matched the computed ETag       | ETag             |
 | ETag Skipped          | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)            | ETag             |
-| Rate Limited          | RateLimit middleware rejects a request because the token bucket was empty         | Rate Limiting    |
-| Bucket Evicted        | An idle token bucket is removed during lazy sweep (EvictionTTL > 0)               | Rate Limiting    |
+| Rate Limited          | RateLimit middleware rejects a request because the token bucket was empty _(deprecated)_           | Rate Limiting    |
+| Bucket Evicted        | An idle token bucket is removed during lazy sweep (EvictionTTL > 0) _(deprecated)_                | Rate Limiting    |
+| Key Rate Limited      | KeyedRateLimiterMiddleware rejects a request with 429 + Retry-After because the key's budget is exhausted | Rate Limiting |
+| Key Evicted           | The oldest rate-limit key is evicted from the min-heap when MaxKeys capacity is reached             | Rate Limiting    |
+| CSRF Token Validated  | nosurf validates the double-submit token (cookie matches header/form); request proceeds             | CSRF Protection  |
+| CSRF Rejected         | nosurf detects a missing, malformed, or mismatched CSRF token; returns 403 Forbidden                | CSRF Protection  |
+| CSRF Token Rotated    | InvalidateCSRFCookie expires the cookie, forcing a new token on the next request                    | CSRF Protection  |
+| Server-Timing Metric Recorded | A named sub-metric's duration is captured in the ServerTiming collector via stop() or RecordServerTiming | Server-Timing |
+| Server-Timing Header Emitted   | The ServerTimingMiddleware writes the W3C Server-Timing response header with CRLF-safe sanitized values | Server-Timing |
 | Health Checked        | Health endpoint responds with current status                                      | Health           |
 | Readiness Failed      | ReadyHandlerWithProbe calls ready() and it returns false; responds 503            | Health           |
 | Metrics Recorded      | Metrics middleware records request duration, status, and method                   | Metrics          |
@@ -282,11 +329,45 @@ Invariants and policies that the library enforces.
 
 ### Rate Limiting Rules
 
-- `TokenBucketLimiter` creates per-key token buckets; tokens refill at the configured rate up to burst capacity
+- `TokenBucketLimiter` creates per-key token buckets; tokens refill at the configured rate up to burst capacity _(deprecated — use `KeyedRateLimiter`)_
 - `NewTokenBucketLimiter` rejects rate <= 0 or burst <= 0
 - `EvictionTTL` (zero by default) controls lazy eviction of idle buckets — non-zero enables sweeping
 - Each `Allow(key)` consumes one token; returns false when the bucket is empty
 - Custom `RateLimiter` implementations can replace the in-memory limiter (e.g., Redis-backed)
+
+### Keyed Rate Limiting Rules
+
+- `KeyedRateLimiter` enforces a `Limit` of requests per `Window` per key, with optional `Burst` capacity
+- `KeyExtractor` determines the key: `KeyExtractorFromClientIP()` (default) or `KeyExtractorFromRemoteAddr()`
+- `MaxKeys` caps the number of tracked keys; when capacity is reached, the oldest-accessed key is evicted via O(log n) min-heap pop
+- `TTL` enables lazy time-based eviction: entries idle longer than TTL are swept on the next `Allow` check
+- Rejected requests receive `429 Too Many Requests` with a `Retry-After` header indicating when to retry
+- `ActiveKeys()` returns the current count of tracked keys for monitoring
+- `OnAllowed` and `OnRejected` callbacks provide hooks for metrics/logging without custom middleware
+- `RejectionHandler` allows a custom 429 response body (defaults to plain text)
+
+### CSRF Protection Rules
+
+- Double-submit cookie pattern: a random token is set in a cookie and must match the token in the request header or form field
+- `CSRFMiddleware` wraps `justinas/nosurf` and applies to all non-safe methods (POST, PUT, DELETE, PATCH)
+- GET, HEAD, OPTIONS, and TRACE requests are exempt from CSRF validation
+- `CSRFConfig.Validate()` rejects insecure configurations (`SameSite=None` requires `Secure=true`)
+- `TrustedOrigins` explicitly allows cross-domain origins for CSRF validation
+- `TrustedProxies` defines CIDR ranges of reverse proxies that may set `X-Forwarded-Proto`
+- `AllowPlaintextBypass` permits plaintext HTTP origin for local development (insecure; off by default)
+- `TranslateCSRFHeaders` maps HTMX-style headers (`X-CSRF-Token` from `HX-Request`) to the canonical name nosurf expects
+- `InvalidateCSRFCookie` expires the cookie to force token rotation on login/logout
+- CSRF errors are classified: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family)
+
+### Server-Timing Rules
+
+- `ServerTimingMiddleware` injects a `*ServerTiming` into the request context and writes the header on response
+- Use `MeasureServerTiming(ctx, name)` to start a named timer; the returned `stop()` function records the duration
+- Use `RecordServerTiming(ctx, name, duration)` for pre-measured durations (no timer needed)
+- `ServerTimingMiddlewareWhen(pred)` gates the middleware behind a predicate (e.g., admin-only or debug-query)
+- `WrapServerTiming(w, r)` provides manual wrapping without the middleware
+- Header values are sanitized against CRLF injection: quoted strings are escaped, raw CR/LF replaced
+- `delegatingWriter` transparently delegates Hijacker, Flusher, and Pusher to the underlying ResponseWriter
 
 ### Metrics Rules
 
@@ -317,6 +398,8 @@ Invariants and policies that the library enforces.
 | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
 | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write fails               |
 | `http.etag_write_failed`     | Transient      | Yes       | ETag writer Write fails                      |
+| `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched |
+| `csrf_config`                | Infrastructure | No        | CSRF configuration invalid (e.g., SameSite=None without Secure) |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`.
 
@@ -330,10 +413,10 @@ Patterns consumers and contributors should follow.
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
 | Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention                       |
 | Middleware type alias  | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                                  |
-| Classified errors      | Errors from ResponseRecorder use `go-error-family` for behavioral classification                    |
+| Classified errors      | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification        |
 | Config validation      | All config types implement `Validate() error` for startup checks                                    |
 | `httputil` import name | Consumers import as `httputil`; no aliases needed                                                   |
-| Allowed dependencies   | `go-error-family` and `golang.org/x/time` are the only external dependencies (enforced by depguard) |
+| Allowed dependencies   | `go-error-family`, `golang.org/x/time`, and `justinas/nosurf` are the only external dependencies (enforced by depguard) |
 
 ---
 
