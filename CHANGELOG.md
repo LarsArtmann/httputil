@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`MaxBodySizeConfig` + `Validate()`** (`maxbodysize.go`): new config struct with `MaxBytes int64` field, `DefaultMaxBodySizeConfig()` (1 MiB default), `Validate()` (rejects negative), and `MaxBodySizeMiddleware(cfg)`. The existing `MaxBodySize(maxBytes)` convenience function is preserved for backward compatibility.
+- **`ServerConfig.ShutdownTimeout`** (`server.go`): new field with `Validate()` (rejects negative) and default of 30 seconds. `Server.Shutdown(ctx)` now auto-derives a timeout context when the provided context has no deadline, preventing indefinite hangs.
+- **`KeyExtractor` footgun warning** (`ratelimit_keyed.go`): type doc comment now warns that returning `""` from a custom `KeyExtractor` silently disables per-client rate limiting.
+
+- **`SecurityHeadersConfig` enriched** (`security.go`): gained `ContentTypeOptions string`, `PermissionsPolicy string`, and `Custom map[string]string` fields. `ContentTypeOptions` takes precedence over the legacy `ContentTypeNosniff bool` when set. Added `SecurityHeaderSkip = "-"` sentinel const, `RecommendedHSTS`, and `RecommendedCSP` consts. The `SecurityHeaders()` middleware now supports the `SecurityHeaderSkip` sentinel on `FrameOptions`/`ReferrerPolicy`/`ContentTypeOptions` (omits the header), sets `Permissions-Policy`, and applies `Custom` headers. `Validate()` accepts `SecurityHeaderSkip` as a valid `FrameOptions` value. All changes are **additive and backward-compatible** — existing consumers using `ContentTypeNosniff: true` are unaffected. Enables cqrs-htmx's `security.go` to alias this type as the single source of truth.
+
 - **`httpspec` CORS and rate-limit behavior specs** (`cors_ratelimit_specs.go`): 4 CORS specs (`SpecNameCORSAllowOrigin`, `SpecNameCORSAllowCredentials`, `SpecNameCORSVaryOrigin`, `SpecNameCORSWildcardNoCredentials`) and 3 rate-limit specs (`SpecNameRateLimitRetryAfter`, `SpecNameRateLimitHeaderOnReject`, `SpecNameRateLimitHintHeadersOnAllow`). All return `Pass()` for handlers that don't set CORS or rate-limit headers (opt-in).
 - **`KeyedRateLimiterConfig.Validate()`** (`ratelimit_keyed.go`): was the only config type missing validation. Validates rate, window, and burst.
 - **`SecurityHeadersConfig.Validate()`** hardened (`security.go`): replaced the prior no-op with real `FrameOptions` value validation per RFC 7034 §2.1 (rejects `ALLOW-FROM` and lowercase variants).

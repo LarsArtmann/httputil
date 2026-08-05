@@ -50,6 +50,14 @@ func TestDefaultServerConfig(t *testing.T) {
 			defaultIdleTimeoutSeconds*time.Second,
 		)
 	}
+
+	if cfg.ShutdownTimeout != defaultShutdownTimeoutSeconds*time.Second {
+		t.Errorf(
+			"ShutdownTimeout = %v, want %v",
+			cfg.ShutdownTimeout,
+			defaultShutdownTimeoutSeconds*time.Second,
+		)
+	}
 }
 
 func TestServerConfigValidateDefault(t *testing.T) {
@@ -132,6 +140,24 @@ func TestServerConfigValidateNegativeIdleTimeout(t *testing.T) {
 
 	if !errors.Is(err, errIdleTimeoutNegative) {
 		t.Errorf("Validate() error = %v, want errIdleTimeoutNegative", err)
+	}
+}
+
+func TestServerConfigValidateNegativeShutdownTimeout(t *testing.T) {
+	t.Parallel()
+
+	cfg := ServerConfig{
+		Addr:            defaultAddr,
+		ShutdownTimeout: -1 * time.Second,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for negative ShutdownTimeout")
+	}
+
+	if !errors.Is(err, errShutdownTimeoutNegative) {
+		t.Errorf("Validate() error = %v, want errShutdownTimeoutNegative", err)
 	}
 }
 

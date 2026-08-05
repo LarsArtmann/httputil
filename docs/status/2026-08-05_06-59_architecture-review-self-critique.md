@@ -1,5 +1,7 @@
 # Status Report — 2026-08-05 Architecture & Modularization Review Session
 
+> **ANNOTATED 2026-08-05 11:00 CEST:** The flat-package decision was **confirmed by the user** (2026-08-05). Forward-looking items in section f) resolved inline. The "14 sub-100% functions" claim (item 28) is stale — actual count is 18. v0.8.0 was already shipped (released 2026-07-31) when this report was written.
+
 _Generated: 2026-08-05 07:00. Scope: this session's architecture-review + go-modularize work only._
 
 ---
@@ -83,18 +85,18 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 
 ### From Pre-Existing TODO_LIST.md (carried forward)
 
-7. **Add CSRF fuzz tests** — fuzz origin matching, token validation, TrustedCIDR parsing (P2)
-8. **Add `httpspec` spec for CORS headers** — Vary: Origin, Access-Control-Allow-Origin checks (P2)
-9. **Add `httpspec` spec for rate-limit headers** — Retry-After, X-RateLimit-* checks (P2)
-10. **Add integration test for full middleware stack** — chain all 16 middlewares, verify composition (P2)
-11. **Modernize `server_timing_bench_test.go`** — migrate `b.N` to `b.Loop()` to clear 6 gopls warnings (P2)
-12. **Add `BenchmarkKeyedRateLimiter`** — measure allow/reject throughput with various MaxKeys/EvictionTTL (P3)
-13. **Add `BenchmarkCSRFMiddleware`** — measure per-request cost (P3)
-14. **Add `Example*` for `KeyedRateLimiterMiddleware`** — required by testableexamples linter (P3)
-15. **Add `Example*` for `ServerTimingMiddleware`** — required by testableexamples linter (P3)
-16. **Add `Example*` for `CSRFMiddleware`** — required by testableexamples linter (P3)
-17. **Make README coverage badge dynamic** — wire to CI output (P3)
-18. **Audit all `Validate()` methods for completeness** — 10 config types (P3)
+7. ~~**Add CSRF fuzz tests** — fuzz origin matching, token validation, TrustedCIDR parsing (P2)~~ done at `e31f144`
+8. ~~**Add `httpspec` spec for CORS headers** — Vary: Origin, Access-Control-Allow-Origin checks (P2)~~ done at `538a575`
+9. ~~**Add `httpspec` spec for rate-limit headers** — Retry-After, X-RateLimit-* checks (P2)~~ done at `538a575`
+10. ~~**Add integration test for full middleware stack** — chain all 16 middlewares, verify composition (P2)~~ done at `eb1ac6a`
+11. ~~**Modernize `server_timing_bench_test.go`** — migrate `b.N` to `b.Loop()` to clear 6 gopls warnings (P2)~~ done at `ae78e9a`
+12. ~~**Add `BenchmarkKeyedRateLimiter`** — measure allow/reject throughput with various MaxKeys/EvictionTTL (P3)~~ done at `eb1ac6a`
+13. ~~**Add `BenchmarkCSRFMiddleware`** — measure per-request cost (P3)~~ done at `eb1ac6a`
+14. ~~**Add `Example*` for `KeyedRateLimiterMiddleware`** — required by testableexamples linter (P3)~~ already existed (`example_test.go:213`)
+15. ~~**Add `Example*` for `ServerTimingMiddleware`** — required by testableexamples linter (P3)~~ already existed (`example_test.go:193`)
+16. ~~**Add `Example*` for `CSRFMiddleware`** — required by testableexamples linter (P3)~~ already existed (`example_test.go:173`)
+17. ~~**Make README coverage badge dynamic** — wire to CI output (P3)~~ done at `eb1ac6a`
+18. ~~**Audit all `Validate()` methods for completeness** — 10 config types (P3)~~ done at `eb1ac6a` (MaxBodySize + ShutdownTimeout still open in TODO_LIST)
 
 ### From the Architecture Review Roadmap (new)
 
@@ -106,11 +108,11 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 
 ### From ROADMAP.md / FEATURES.md (v1.0 preparation)
 
-24. **Ship v0.8.0 release** — CSRF, Server-Timing, KeyedRateLimiter are coded but unreleased (P1)
+24. ~~**Ship v0.8.0 release** — CSRF, Server-Timing, KeyedRateLimiter are coded but unreleased (P1)~~ **[STALE — v0.8.0 was released 2026-07-31, 5 days before this report was written]**
 25. **Decide deprecated TokenBucketLimiter fate at v1.0** — remove or carry as deprecated (P2)
 26. **Run one stabilization cycle (v0.8.0)** before the v1.0 commitment (P2)
 27. **Classify new middleware in `docs/v1-stability.md`** — CSRF, Server-Timing, KeyedRateLimit as Frozen/Additive/Evolving (P2)
-28. **Close remaining coverage gaps** — 14 sub-100% functions, mostly unreachable defensive code (P3)
+28. **Close remaining coverage gaps** — ~~14~~ **[STALE — actual: 18 sub-100% functions]** sub-100% functions, mostly unreachable defensive code (P3)
 29. **Add `ServerConfig.TLSConfig` validation** — deferred to v1.0 (P3)
 30. **Add request body decompression middleware** — ROADMAP v0.9.0 (P3/future)
 31. **Add `context.Context` support in rate limiter interface** — deferred to v1.0 (P3)

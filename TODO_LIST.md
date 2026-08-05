@@ -8,14 +8,11 @@ _Updated: 2026-08-05 — sourced from the 2026-08-05 status report harvest. All 
 
 ## Medium Priority
 
-- [ ] **Add `MaxBodySize` config validation** — `MaxBodySize(maxBytes int64)` silently accepts negative values. Wrap in a config struct with `Validate()`, or add an explicit guard. `maxbodysize.go`. Estimated effort: 20min.
-- [ ] **Add `ShutdownTimeout` validation to `ServerConfig.Validate()`** — `ShutdownTimeout` is the only `ServerConfig` field not checked. A zero or negative value means the server never shuts down. `server.go:61`. Estimated effort: 10min.
+- [ ] **Close coverage gaps in `cors_ratelimit_specs.go`** — 5 functions at 80-91%: `corsAllowCredentialsCheck` (80%), `corsVaryOriginCheck` (90.9%), `rateLimitRetryAfterCheck` (85.7%), `rateLimitHeaderOnRejectCheck` (84.6%), `rateLimitHintHeadersOnAllowCheck` (81.2%). These are the edge-case branches in the new httpspec specs (handlers that partially set CORS/rate-limit headers). Estimated effort: 30min.
 
 ## Low Priority
 
-- [ ] **Document `canonicalheader` lint asymmetry in `AGENTS.md`** — the linter triggers on `Header.Get(literal)` and literal constants in some positions, but NOT on `Header.Set(literal)` or `Header.Get(constant)`. Future authors hit a 3-iteration debug cycle before understanding this. Add a one-line note to the Hard Constraints section. Estimated effort: 10min.
-- [ ] **Close coverage gaps in `cors_ratelimit_specs.go`** — 5 functions at 80-91%: `corsAllowCredentialsCheck` (80%), `corsVaryOriginCheck` (90.9%), `rateLimitRetryAfterCheck` (85.7%), `rateLimitHeaderOnRejectCheck` (84.6%), `rateLimitHintHeadersOnAllowCheck` (81.2%). These are the edge-case branches in the new httpspec specs (handlers that partially set CORS/rate-limit headers). Estimated effort: 30min.
-- [ ] **Add `KeyExtractor` empty-return warning to `KeyedRateLimiterConfig`** — a `KeyExtractor` that always returns `""` silently disables rate limiting (all requests map to the same key). Document the footgun in the `KeyExtractor` type comment or validate at construction. `ratelimit_keyed.go`. Estimated effort: 15min.
+- [ ] **Add `ServerConfig.TLSConfig` validation** — `TLSConfig` is always nil in `NewServer()` but there is no validation for it if added. Deferred to v1.0. `server.go`. Estimated effort: 30min.
 
 ## Won't Implement
 

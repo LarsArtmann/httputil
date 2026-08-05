@@ -1,5 +1,7 @@
 # Status Report — 2026-08-05 07:10 — ROADMAP Cleanup Self-Critique
 
+> **ANNOTATED 2026-08-05 11:00 CEST:** All split-brain issues (section D) have been resolved — TODO_LIST "Won't Implement" semantics were fixed, deferred items were moved to ROADMAP, and the 3 stale `Example*` TODOs were deleted. Forward-looking items in section f) resolved inline. Coverage is now 97.8% httputil / 96.0% httpspec (not the 98.9% claimed by later sessions).
+
 > **Scope:** This report covers ONLY the ROADMAP.md cleanup task executed in this session (2026-08-05 ~07:00–07:10 CEST). It is a brutal self-critique of that single piece of work, not a full project audit. The user explicitly constrained scope: _"Do not research other stuff unrelated to what you did."_
 >
 > **Format note:** User requested `.md` for this report. The `status-report` skill defaults to HTML; this is a logged one-off override and is NOT propagated back into the skill as a new default.
@@ -102,10 +104,10 @@ A "Won't Implement" section must mean NEVER. TODO_LIST currently has 3 items in 
 
 ### Critical — fix the contradictions I created/missed (do these first)
 
-1. **Fix TODO_LIST "Won't Implement" semantics** — move the 3 "deferred" items (decompression, `context.Context`, `TLSConfig`) OUT of Won't Implement. Won't Implement must mean never.
-2. **Reconcile decompression status across all 3 docs** — pick ONE status (v0.9.0 target) and make ROADMAP, FEATURES, and TODO_LIST agree.
-3. **Reconcile `context.Context`/`AllowN` rate-limiter refinement** — ROADMAP v1.0 and TODO_LIST must agree.
-4. **Remove the 3 stale `Example*` TODOs** from TODO_LIST (CSRF/ServerTiming/KeyedRateLimit Examples already ship).
+1. ~~**Fix TODO_LIST "Won't Implement" semantics** — move the 3 "deferred" items (decompression, `context.Context`, `TLSConfig`) OUT of Won't Implement. Won't Implement must mean never.~~ done at `2e15780`
+2. ~~**Reconcile decompression status across all 3 docs** — pick ONE status (v0.9.0 target) and make ROADMAP, FEATURES, and TODO_LIST agree.~~ done — decompression is ROADMAP v0.9.0 only
+3. ~~**Reconcile `context.Context`/`AllowN` rate-limiter refinement** — ROADMAP v1.0 and TODO_LIST must agree.~~ done — context.Context is ROADMAP v1.0; AllowN is Won't Implement
+4. ~~**Remove the 3 stale `Example*` TODOs** from TODO_LIST (CSRF/ServerTiming/KeyedRateLimit Examples already ship).~~ done at `b90616e`
 
 ### High — finish the doc-health pass properly
 

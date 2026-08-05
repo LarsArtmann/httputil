@@ -31,6 +31,11 @@ var (
 // KeyExtractor extracts a rate-limit key from an HTTP request.
 // Return "" if the request should not be rate-limited (always allowed).
 // Common extractors: RemoteAddr, header value, user ID from context.
+//
+// Warning: if a custom KeyExtractor accidentally returns "" for every request,
+// all clients share a single rate-limit bucket, effectively disabling per-client
+// rate limiting. Use [KeyExtractorFromRemoteAddr] or [KeyExtractorFromClientIP]
+// for safe defaults that never return "".
 type KeyExtractor func(r *http.Request) string
 
 // KeyExtractorFromRemoteAddr returns a KeyExtractor that uses the request's

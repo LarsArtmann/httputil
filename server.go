@@ -13,6 +13,7 @@ const (
 	defaultReadHeaderTimeoutSeconds = 5
 	defaultWriteTimeoutSeconds      = 30
 	defaultIdleTimeoutSeconds       = 60
+	defaultShutdownTimeoutSeconds   = 30
 	defaultAddr                     = ":8080"
 )
 
@@ -21,6 +22,7 @@ var (
 	errReadHeaderTimeoutNegative = errors.New("ServerConfig.ReadHeaderTimeout must not be negative")
 	errWriteTimeoutNegative      = errors.New("ServerConfig.WriteTimeout must not be negative")
 	errIdleTimeoutNegative       = errors.New("ServerConfig.IdleTimeout must not be negative")
+	errShutdownTimeoutNegative   = errors.New("ServerConfig.ShutdownTimeout must not be negative")
 	errServerShutdownFailed      = errors.New("server shutdown failed")
 	errServerAddrEmpty           = errors.New(
 		"ServerConfig.Addr must not be empty (e.g. \":8080\" or \":http\")",
@@ -37,6 +39,7 @@ type ServerConfig struct {
 	ReadHeaderTimeout time.Duration
 	WriteTimeout      time.Duration
 	IdleTimeout       time.Duration
+	ShutdownTimeout   time.Duration
 }
 
 // DefaultServerConfig returns a ServerConfig with sensible production defaults.
@@ -47,6 +50,7 @@ func DefaultServerConfig() ServerConfig {
 		ReadHeaderTimeout: defaultReadHeaderTimeoutSeconds * time.Second,
 		WriteTimeout:      defaultWriteTimeoutSeconds * time.Second,
 		IdleTimeout:       defaultIdleTimeoutSeconds * time.Second,
+		ShutdownTimeout:   defaultShutdownTimeoutSeconds * time.Second,
 	}
 }
 
@@ -79,6 +83,10 @@ func (c ServerConfig) Validate() error {
 		return fmt.Errorf("%w: %v", errIdleTimeoutNegative, c.IdleTimeout)
 	}
 
+	if c.ShutdownTimeout < 0 {
+		return fmt.Errorf("%w: %v", errShutdownTimeoutNegative, c.ShutdownTimeout)
+	}
+
 	if c.ReadTimeout > 0 && c.ReadHeaderTimeout > c.ReadTimeout {
 		return fmt.Errorf(
 			"%w: ReadHeaderTimeout=%v > ReadTimeout=%v",
@@ -92,7 +100,8 @@ func (c ServerConfig) Validate() error {
 
 // Server wraps an http.Server with lifecycle helpers.
 type Server struct {
-	httpServer *http.Server
+	httpServer      *http.Server
+	shutdownTimeout time.Duration
 }
 
 // NewServer creates a new Server with the given configuration and handler.
@@ -122,6 +131,7 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 			HTTP2:                        nil,
 			Protocols:                    nil,
 		},
+		shutdownTimeout: cfg.ShutdownTimeout,
 	}
 
 	return server, nil
@@ -142,8 +152,17 @@ func (srv *Server) Start() <-chan error {
 	return errChan
 }
 
-// Shutdown gracefully shuts down the server with the given context timeout.
+// Shutdown gracefully shuts down the server. If the provided context has no
+// deadline and the server was configured with a ShutdownTimeout, a timeout
+// context is derived automatically to prevent indefinite hangs.
 func (srv *Server) Shutdown(ctx context.Context) error {
+	if _, ok := ctx.Deadline(); !ok && srv.shutdownTimeout > 0 {
+		var cancel context.CancelFunc
+
+		ctx, cancel = context.WithTimeout(ctx, srv.shutdownTimeout)
+		defer cancel()
+	}
+
 	err := srv.httpServer.Shutdown(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errServerShutdownFailed, err)

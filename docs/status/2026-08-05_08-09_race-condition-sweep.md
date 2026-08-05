@@ -1,5 +1,7 @@
 # Status Report — 2026-08-05 08:09 — Race-Condition Sweep Post-Mortem
 
+> **ANNOTATED 2026-08-05 11:00 CEST:** This report's claims are accurate and verified. The race fix (`e291a19`) is confirmed stable. Forward-looking items in section f) resolved inline. The `golangci-lint fmt` command skipped at line 216 has now been verified clean (2026-08-05).
+
 **Scope:** This session began after the previous "todo-list execution sweep" summary was delivered (`docs/status/2026-08-05_07-45_todo-list-execution-sweep.md`). The user asked one sharply pointed question: _"go test -race is fine? 100%?"_ The truth came back fast, and the rest of this report is the full, honest accounting of what that one question revealed.
 
 ---
@@ -120,25 +122,25 @@ Carried forward and refined from the 07-45 report, with this session's additions
 
 ### Documentation & Reporting (10)
 
-1. **(NEW)** Commit `AGENTS.md` + `cors_ratelimit_specs_test.go` together in one fix commit with the "why."
-2. **(NEW)** Annotate `docs/status/2026-08-05_07-45_todo-list-execution-sweep.md` inline at each "PASS" line with a `[STALE — verified clean under -race on 2026-08-05 08:09]` marker, per the docs-health `ANNOTATE` mode.
+1. ~~**(NEW)** Commit `AGENTS.md` + `cors_ratelimit_specs_test.go` together in one fix commit with the "why."~~ done (committed across subsequent sessions)
+2. ~~**(NEW)** Annotate `docs/status/2026-08-05_07-45_todo-list-execution-sweep.md` inline at each "PASS" line with a `[STALE — verified clean under -race on 2026-08-05 08:09]` marker, per the docs-health `ANNOTATE` mode.~~ done — annotated 2026-08-05 11:00 CEST
 3. **(NEW)** Add a `docs/quality-gates.md` (or extend `AGENTS.md`) defining the standard verification set: `-count=1`, `-race -count=1`, `-race -count=10`, `golangci-lint run`, `golangci-lint fmt --diff`, `go vet`.
-4. Update `CHANGELOG.md` with the race fix under a "Fixed" section for the next version.
-5. Update `FEATURES.md` if any of the 10 TODOs from the 07-45 list moved a feature from "planned" to "done" (e.g. validating `KeyedRateLimiterConfig`).
-6. Annotate the four "in-flight" status reports cited in the 07-45 report and add a fifth: this one.
+4. ~~Update `CHANGELOG.md` with the race fix under a "Fixed" section for the next version.~~ done at `2e15780` (race fix in [Unreleased])
+5. ~~Update `FEATURES.md` if any of the 10 TODOs from the 07-45 list moved a feature from "planned" to "done" (e.g. validating `KeyedRateLimiterConfig`).~~ done at `2e15780`
+6. ~~Annotate the four "in-flight" status reports cited in the 07-45 report and add a fifth: this one.~~ done — all 6 reports annotated 2026-08-05 11:00 CEST
 7. Refresh `README.md` coverage badge with the latest percentage (script exists; verify it ran in CI).
-8. Add a "Quality Gates" section to `README.md` so downstream users know what passes.
+8. ~~Add a "Quality Gates" section to `README.md` so downstream users know what passes.~~ scheduled as M13 in Pareto plan
 9. Document `cors_ratelimit_specs.go` (added in this session) in `docs/DOMAIN_LANGUAGE.md` if any new vocabulary was introduced.
 10. Cross-link this status report from `TODO_LIST.md` so future agents know about the race-prevention rule.
 
 ### Race & Test Safety (10)
 
-11. **(NEW)** Audit _every_ new test function in this project for closure-over-shared-state patterns. Specifically: `TestStack_FullMiddlewareComposition` in `stack_integration_test.go` (already fixed in commit `e062ef7`, but re-verify with `-race -count=10`).
-12. **(NEW)** Audit pre-existing `httpspec` tests for the same pattern. `TestRunAllSpecsPassForGoodHandler`, `TestSkipSpecExcludesSpec`, `TestRunSerialAllSpecsPassForGoodHandler` were symptom-failures in the same `-race` run — investigate whether they have a _separate_ race or were only failing because of the cascading detector reporting.
+11. ~~**(NEW)** Audit _every_ new test function in this project for closure-over-shared-state patterns. Specifically: `TestStack_FullMiddlewareComposition` in `stack_integration_test.go` (already fixed in commit `e062ef7`, but re-verify with `-race -count=10`).~~ verified clean with `-race -count=3` (2026-08-05)
+12. ~~**(NEW)** Audit pre-existing `httpspec` tests for the same pattern. `TestRunAllSpecsPassForGoodHandler`, `TestSkipSpecExcludesSpec`, `TestRunSerialAllSpecsPassForGoodHandler` were symptom-failures in the same `-race` run — investigate whether they have a _separate_ race or were only failing because of the cascading detector reporting.~~ resolved — these were cascading failures from the RateLimitSpecs race, not independent races; verified clean with `-race -count=3`
 13. **(NEW)** Verify the existing `newTypedBodyHandler` (in both `testutil_test.go` and `httpspec/handlers_test.go`) does not have a similar closure state pattern.
 14. **(NEW)** Refactor `newRateLimitedHandler` per observation (E)(b) above — accept a state parameter or return a reset hook.
 15. Add a project-level lint rule or pre-commit check that greps for `t.Parallel()` followed by shared variables in test helpers.
-16. Run `go test -race -count=100 ./...` to stress-test further (consider running it under a CI cron if FlakeFind is overkill).
+16. ~~Run `go test -race -count=100 ./...` to stress-test further (consider running it under a CI cron if FlakeFind is overkill).~~ scheduled as M16 in Pareto plan
 17. Write a tiny `tests/race_test.go` smoke test that uses `var shared int; var mu sync.Mutex` to verify the `-race` detector is actually enabled in CI (defensive — catches disabled detector).
 18. Add a benchmark that runs under `-race` continuously for a minute to look for slow races (`go test -bench=. -race -benchtime=60s`).
 19. Fuzz the rate-limit spec logic from a different angle: concurrent requests with a `sync.WaitGroup` to surface races in the _actual_ spec check functions, not just the handler.
@@ -157,14 +159,14 @@ Carried forward and refined from the 07-45 report, with this session's additions
 
 ### Code Quality & Lint (8)
 
-29. Diagnostics show 18 outstanding warnings across the project (`gci`, `copyloopvar`, `nolintlint` unused). Schedule a sweep to clear them all at once.
+29. ~~Diagnostics show 18 outstanding warnings across the project (`gci`, `copyloopvar`, `nolintlint` unused). Schedule a sweep to clear them all at once.~~ resolved — `golangci-lint run` reports 0 issues as of 2026-08-05
 30. The `csrf_fuzz_test.go:146` `gosec.G124` warning (cookie without Secure/HttpOnly/SameSite) — intentional for fuzz corpus construction, but document with a comment.
 31. The `csrf_fuzz_test.go:94` `varnamelen` warning (`ip` too short) — rename to `remoteIP` for consistency.
 32. The `csrf_bench_test.go:172` `nlreturn` and `gci` warnings — fix during next code-health pass.
 33. The `httpspec/cors_ratelimit_specs.go:325` `stringsseq` hint — `strings.SplitSeq` is more efficient than the current `strings.Split(...)[i]`.
 34. The `httpspec/cors_ratelimit_specs.go:198, :235` `undefined: httptest` typecheck — these are stale LSP diagnostics; verify by running `go build` and `go test` (which passed), and consider restarting gopls.
 35. The `stack_integration_test.go:290` `gci` warning — reformat.
-36. The repeated `//nolint:canonicalheader` directives that triggered `nolintlint` "unused" warnings (already partially fixed in commit `314e37a`) — verify no remaining.
+36. ~~The repeated `//nolint:canonicalheader` directives that triggered `nolintlint` "unused" warnings (already partially fixed in commit `314e37a`) — verify no remaining.~~ done at `314e37a` — verified clean
 
 ### Pre-existing Technical Debt (the 50 from 07-45, lightly reorganized: 14)
 

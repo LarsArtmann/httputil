@@ -71,9 +71,9 @@ All three had `// Output:` directives and pass `golangci-lint run -E testableexa
 
 ## What I Could Still Improve (Follow-Up List)
 
-1. **Update `FEATURES.md` middleware test/benchmark/fuzz table** to include the new `csrf_fuzz_test.go`, `httpspec/cors_ratelimit_specs_test.go`, `stack_integration_test.go`, `ratelimit_keyed_bench_test.go`, `csrf_bench_test.go` rows.
-2. **Add `[Unreleased]` CHANGELOG entry** summarizing the v0.8.0 sweep (audit, fuzz tests, specs, integration test, dynamic badge).
-3. **Investigate the pre-existing race in `httpspec/RunSerialAllSpecsPassForGoodHandler`** — reproducible with `go test -race -count=3 ./httpspec/...`. Likely the `cfg.indexPath = defaultIndexPath` mutation across parallel specs.
+1. ~~**Update `FEATURES.md` middleware test/benchmark/fuzz table** to include the new `csrf_fuzz_test.go`, `httpspec/cors_ratelimit_specs_test.go`, `stack_integration_test.go`, `ratelimit_keyed_bench_test.go`, `csrf_bench_test.go` rows.~~ done at `2e15780` (docs-health rebuild updated all middleware table rows)
+2. ~~**Add `[Unreleased]` CHANGELOG entry** summarizing the v0.8.0 sweep (audit, fuzz tests, specs, integration test, dynamic badge).~~ done at `2e15780` (docs-health rebuild rewrote [Unreleased] with structured catalog)
+3. ~~**Investigate the pre-existing race in `httpspec/RunSerialAllSpecsPassForGoodHandler`** — reproducible with `go test -race -count=3 ./httpspec/...`. Likely the `cfg.indexPath = defaultIndexPath` mutation across parallel specs.~~ resolved — passes `go test -race -count=3` as of `e291a19` (2026-08-05)
 4. **Make the `httptest.NewRequest` panic in fuzz tests** never panic — wrap the body of every fuzz test in `defer func() { recover(); t.Skip() }()` so future authors don't need to know.
 5. **Document the `canonicalheader` lint asymmetry** in `AGENTS.md` Hard Constraints so future authors don't hit the same 3-iteration debug cycle I did.
 6. **Add a `BenchmarkCompressionNegotiator` and `BenchmarkETagWriter`** — these were skipped from the original suite per the `compress_writer_test.go` boundary; the audit shows neither has a benchmark yet.
@@ -81,7 +81,7 @@ All three had `// Output:` directives and pass `golangci-lint run -E testableexa
 8. **`MaxBodySize` has no `Validate()` method** — a negative `maxBytes` is silently accepted today. The audit list didn't include it, but it's an obvious gap.
 9. **`Health` config (`Server.ShutdownTimeout`)** has no `Validate()` — same as #8.
 10. **The `KeyedRateLimiterMiddleware` `OnRejected` callback contract** isn't documented in the type comment — what does the callback return? What if the user writes to `w` from the callback and then also writes from `RejectionHandler`? Race potential.
-11. **The `httptest` Request panics in the rate-limit spec** when 100 requests all have `RemoteAddr=""` — wait, do they? I should verify. Multiple `httptest.NewRequest` calls in a loop with the same body.
+11. ~~**The `httptest` Request panics in the rate-limit spec** when 100 requests all have `RemoteAddr=""` — wait, do they? I should verify. Multiple `httptest.NewRequest` calls in a loop with the same body.~~ done at `e291a19` (race in RateLimitSpecs fixed)
 12. **The coverage script does not fail CI** when the badge update fails (e.g., `coverage.out` missing). It should `exit 1` on parse failure but I made it `exit 0` on "no badge found". The latter is intentional but the former isn't.
 13. **`http.NoBody` vs `nil` body in fuzz tests** — `httptest.NewRequest` may behave differently. Should standardize.
 14. **The `Update coverage badge` CI step** runs after the `Test with coverage` step, but on cache-hit, `coverage.out` may not be regenerated. The script handles missing-file but the workflow order should `force` a fresh coverage run.
@@ -119,7 +119,7 @@ All three had `// Output:` directives and pass `golangci-lint run -E testableexa
 46. **The `httpspec.SpecNameNoDuplicateHeaders`** only checks for duplicate VALUES in the same header, not duplicate KEYS. `Vary: A` + `vary: B` (different case) would be treated as duplicates by `http.Header` but the spec might not catch it.
 47. **The `httpspec.RunSerial`** doesn't share the spec-execution state across specs. If two specs both need to inspect the same response (e.g., the 4 CORS specs), they each make their own request. This is a design choice but could be optimized.
 48. **The `coverage.out` file is generated in the repo root by the script** — should it be in a `build/` or `tmp/` directory to avoid accidentally committing it?
-49. **The `scripts/update-coverage-badge.sh` script is not idempotent across runs of `go test`** — the `coverage.out` path includes test-execution time, and the `total:` line in `go tool cover -func` output can change based on test ordering. The percentage is stable but the per-function output is not. The script only uses the total, so this is fine.
+49. ~~**The `scripts/update-coverage-badge.sh` script is not idempotent across runs of `go test`** — the `coverage.out` path includes test-execution time, and the `total:` line in `go tool cover -func` output can change based on test ordering. The percentage is stable but the per-function output is not. The script only uses the total, so this is fine.~~ Won't fix — the original item states "this is fine."
 50. **The `httputil` package's test surface is now significantly larger** — the audit added ~10 new test files (5 fuzz + 5 bench + 3 validate-tests + 1 integration + 1 spec). Total test files in the repo: 33. I should have a count, but I don't. Worth verifying.
 
 ---
