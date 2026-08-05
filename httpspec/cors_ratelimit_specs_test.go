@@ -138,11 +138,12 @@ func TestCORSSpecs_FailWithoutVaryOnDynamicOrigin(t *testing.T) {
 func TestRateLimitSpecs_PassWith429AndRetryAfter(t *testing.T) {
 	t.Parallel()
 
-	handler := newRateLimitedHandler()
-
 	for _, spec := range RateLimitSpecs() {
 		t.Run(spec.Name, func(t *testing.T) {
 			t.Parallel()
+
+			handler := newRateLimitedHandler()
+
 			result := spec.Check(handler)
 			if !result.OK {
 				t.Errorf("spec %q failed: %s", spec.Name, result.Message)

@@ -64,12 +64,17 @@ Any function taking `*testing.T` that calls `t.Fatal`/`t.Error` must start with 
 
 ```bash
 go test ./...              # Run tests
-go test -race ./...        # Race detection
+go test -race ./...        # Race detection (REQUIRED for tests with t.Parallel() or shared state)
+go test -race -count=N ./... # Surface timing-dependent races — repeat N times
 go vet ./...               # Vet
 go test -bench=. ./...     # Benchmarks
 golangci-lint run          # Lint (~70 linters, 0 issues)
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
+```
+
+**`go test -count=1` does NOT detect data races.** Only `go test -race` catches shared-state access between goroutines. After writing or modifying ANY test that uses `t.Parallel()`, shared fixtures, or closures over mutable state, run `go test -race -count=10 ./...` to surface timing-dependent races before declaring done. (See 2026-08-05 fix in `cors_ratelimit_specs_test.go:138` for an example of a race that passed `go test -count=1 ./...` clean but failed 60% of `-race` runs.)
+
 ```
 
 `golangci-lint run` is the authoritative quality gate — it's configured with ~70 linters (see `.golangci.yml`). `go vet` alone is insufficient.
@@ -221,3 +226,4 @@ These won't surprise you on every edit, but may trigger on specific patterns:
 - `thelper` — test helpers taking `*testing.T` must start with `t.Helper()`
 - `noinlineerr` — forbids `if err := ...; err != nil` inline style; requires separate assignment
 - `tparallel` — enforces `t.Parallel()` and prefers `t.Cleanup` over `defer`
+```
