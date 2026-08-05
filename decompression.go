@@ -145,11 +145,15 @@ func (l *limitedReader) Read(p []byte) (int, error) {
 	n, err := l.rc.Read(p)
 	l.remaining -= int64(n)
 
-	if err != nil && !errors.Is(err, io.EOF) {
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return n, io.EOF
+		}
+
 		return n, fmt.Errorf("decompression read failed: %w", err)
 	}
 
-	return n, err
+	return n, nil
 }
 
 func (l *limitedReader) Close() error {

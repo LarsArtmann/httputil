@@ -14,9 +14,9 @@ The next release is **v0.9.0** (feature additions), followed by **v1.0** (API st
 
 ## v0.9.0 — Feature additions
 
-- **Request body decompression middleware** — counterpart to `Compression` for gzip-encoded request bodies (e.g. `Content-Encoding: gzip` POSTs). Rounds out compression symmetry. Highest-impact remaining raw idea.
+- **Request body decompression middleware** — counterpart to `Compression` for gzip/deflate-encoded request bodies. **Shipped post-v0.8.0** — see [CHANGELOG.md](CHANGELOG.md) `[Unreleased]`. Includes decompression bomb protection (configurable `MaxDecompressionSize`, default 16 MiB).
 
-Additional v0.8.0 follow-up work (CSRF fuzz tests, `httpspec` CORS and rate-limit specs, full-stack integration test, benchmarks, `Validate()` audit) shipped post-release — see [CHANGELOG.md](CHANGELOG.md) under `[Unreleased]`.
+Additional v0.8.0 follow-up work (CSRF fuzz tests, `httpspec` CORS and rate-limit specs, full-stack integration test, benchmarks, `Validate()` audit, MaxBodySize validation, ShutdownTimeout, coverage gap closure, CI hardening) shipped post-release — see [CHANGELOG.md](CHANGELOG.md) under `[Unreleased]`.
 
 ## v1.0 — API stability commitment
 

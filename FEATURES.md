@@ -29,6 +29,8 @@ _Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and post
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                 | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`  | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                     | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`| —                   |
 
+| Decompression           | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection        | Yes   | —                                   | —                           | —                   |
+
 Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Error Classification System
