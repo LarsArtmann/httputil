@@ -5,6 +5,8 @@
 **Duration:** ~45 minutes
 **Starting state:** 91.0% coverage, 3 new middleware undocumented in living docs, 11 open TODO items
 
+> **Resolution (2026-08-05):** Every outstanding item in this report is now resolved. v0.8.0 was released (commit `8a77900`). Coverage closed from 91.0% to 97.8% httputil / 98.3% httpspec. CHANGELOG `[0.8.0]` documents the new middleware suite. The remaining 14 sub-100% functions are documented in FEATURES.md as defensive code paths (crypto/rand errors, json.Marshal on map[string]string, stale-heap mismatches). The deprecated RateLimit API was kept through v0.8.0 with a migration guide. Per-item status in the resolution table below.
+
 ---
 
 ## a) FULLY DONE (completed and verified)
