@@ -4,13 +4,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func BenchmarkHealthHandler(b *testing.B) {
-	handler := HealthHandler(HealthStatus{
-		Status:  "ok",
-		Version: "test",
-	})
+	handler := HealthHandler()
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
@@ -65,13 +63,10 @@ func BenchmarkMetricsMiddleware(b *testing.B) {
 	}
 }
 
-func BenchmarkMetricsMiddlewareWithRecording(b *testing.B) {
+func BenchmarkMetricsMiddlewareWithBody(b *testing.B) {
 	recorder := &benchMetricsRecorder{}
 	cfg := DefaultMetricsConfig()
 	cfg.Recorder = recorder
-	cfg.RecordStatus = true
-	cfg.RecordDuration = true
-	cfg.RecordResponseSize = true
 
 	handler := Metrics(cfg)(newWriteBodyHandler([]byte("hello world")))
 
@@ -85,13 +80,13 @@ func BenchmarkMetricsMiddlewareWithRecording(b *testing.B) {
 	}
 }
 
-func BenchmarkMetricsMiddlewareDisabled(b *testing.B) {
+func BenchmarkMetricsMiddlewareWithCustomPath(b *testing.B) {
 	recorder := &benchMetricsRecorder{}
 	cfg := DefaultMetricsConfig()
 	cfg.Recorder = recorder
-	cfg.RecordStatus = false
-	cfg.RecordDuration = false
-	cfg.RecordResponseSize = false
+	cfg.PathFunc = func(_ *http.Request) string {
+		return "/api/test"
+	}
 
 	handler := Metrics(cfg)(newStatusOnlyHandler(http.StatusOK))
 
@@ -107,4 +102,4 @@ func BenchmarkMetricsMiddlewareDisabled(b *testing.B) {
 
 type benchMetricsRecorder struct{}
 
-func (r *benchMetricsRecorder) Record(_ string, _ int, _ int64, _ int64) {}
+func (r *benchMetricsRecorder) Record(_, _ string, _ int, _ time.Duration) {}
