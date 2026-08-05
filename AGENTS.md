@@ -75,9 +75,15 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
 **`go test -count=1` does NOT detect data races.** Only `go test -race` catches shared-state access between goroutines. After writing or modifying ANY test that uses `t.Parallel()`, shared fixtures, or closures over mutable state, run `go test -race -count=10 ./...` to surface timing-dependent races before declaring done. (See 2026-08-05 fix in `cors_ratelimit_specs_test.go:138` for an example of a race that passed `go test -count=1 ./...` clean but failed 60% of `-race` runs.)
 
-```
-
 `golangci-lint run` is the authoritative quality gate — it's configured with ~70 linters (see `.golangci.yml`). `go vet` alone is insufficient.
+
+### Auto-Git-Commit Daemon
+
+An auto-git-commit daemon runs continuously and commits changes automatically. This is expected behavior — do not be surprised by commits you did not make. The daemon infers commit messages from diffs, so messages may be generic. For deliberate commits with meaningful messages, use `git commit` explicitly with `--no-verify` if the pre-commit hook is unavailable (e.g., `dprint` missing in Nix shell).
+
+### Doc-Freshness Cadence
+
+Living docs (`TODO_LIST.md`, `FEATURES.md`, `ROADMAP.md`, `CHANGELOG.md`) should be verified via the `docs-health` skill before each version tag and at least monthly. Historical status reports (`docs/status/`) should be annotated (inline `~~item~~ done at <hash>` markers) when read — reading a stale report without annotating it is a missed obligation.
 
 ## Architecture
 

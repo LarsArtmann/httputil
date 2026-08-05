@@ -35,8 +35,23 @@ jobs:
       - name: Test
         run: go test -race -count=1 ./...
 
+      - name: Race stress test
+        run: go test -race -count=10 ./...
+
       - name: Test with coverage
         run: go test -coverprofile=coverage.out ./...
+
+      - name: Coverage threshold check
+        run: |
+          TOTAL=$(go tool cover -func=coverage.out | tail -1)
+          echo "$TOTAL"
+          echo "$TOTAL" | awk '{
+            split($3, parts, "%")
+            if (parts[1]+0 < 95.0) {
+              print "::error::Coverage " $3 " is below 95% threshold"
+              exit 1
+            }
+          }'
 
       - name: Update coverage badge
         run: ./scripts/update-coverage-badge.sh coverage.out README.md

@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
-[[[![Coverage](https://img.shields.io/badge/coverage-97.4%25-green)](#)](#)](#)
+[![Coverage](https://img.shields.io/badge/coverage-97.6%25-green)](#)
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
@@ -610,14 +610,33 @@ For dependency injection and graceful lifecycle management, pair httputil with [
 
 For distributed rate limiting, see the [Redis-backed RateLimiter example](docs/integrations/redis-ratelimiter.md). For observability, see the [Prometheus MetricsRecorder example](docs/integrations/prometheus-metrics.md).
 
+## Quality Gates
+
+This project maintains strict quality standards enforced in CI:
+
+| Gate | Command | Status |
+|------|---------|--------|
+| Tests | `go test -race -count=1 ./...` | Passing |
+| Race stress | `go test -race -count=10 ./...` | Passing |
+| Coverage | `go test -coverprofile=coverage.out ./...` | 97.6% httputil / 99.3% httpspec (threshold: 95%) |
+| Lint | `golangci-lint run` (~70 linters) | 0 issues |
+| Vet | `go vet ./...` | Clean |
+| Vulnerabilities | `govulncheck ./...` | None found |
+| Nix flake | `nix flake check` | All checks passed |
+| Module integrity | `go mod verify` | All modules verified |
+
 ## Development
 
 ```bash
-go test ./...             # Run tests
-go test -race ./...       # Race detection
-go vet ./...              # Vet
-go test -bench=. ./...    # Benchmarks
-golangci-lint run         # Lint (~70 linters)
+go test ./...               # Run tests
+go test -race ./...         # Race detection (REQUIRED for t.Parallel())
+go test -race -count=10 ./...  # Stress race detection
+go vet ./...                # Vet
+go test -bench=. ./...      # Benchmarks
+golangci-lint run           # Lint (~70 linters)
+golangci-lint fmt           # Format (gofumpt + golines@120 + gci)
+govulncheck ./...           # Vulnerability scan
+nix flake check             # Nix flake validation
 ```
 
 ## License
