@@ -121,16 +121,20 @@ func TestMaxBodySizeMiddlewareRejectsOversizedBody(t *testing.T) {
 	t.Parallel()
 
 	cfg := MaxBodySizeConfig{MaxBytes: 5}
-	handler := MaxBodySizeMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusRequestEntityTooLarge)
+	handler := MaxBodySizeMiddleware(
+		cfg,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, err := io.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusRequestEntityTooLarge)
 
-			return
-		}
+				return
+			}
 
-		w.WriteHeader(http.StatusOK)
-	}))
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("this is way too long"))
 	rec := httptest.NewRecorder()

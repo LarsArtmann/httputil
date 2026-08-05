@@ -614,16 +614,16 @@ For distributed rate limiting, see the [Redis-backed RateLimiter example](docs/i
 
 This project maintains strict quality standards enforced in CI:
 
-| Gate | Command | Status |
-|------|---------|--------|
-| Tests | `go test -race -count=1 ./...` | Passing |
-| Race stress | `go test -race -count=10 ./...` | Passing |
-| Coverage | `go test -coverprofile=coverage.out ./...` | 97.6% httputil / 99.3% httpspec (threshold: 95%) |
-| Lint | `golangci-lint run` (~70 linters) | 0 issues |
-| Vet | `go vet ./...` | Clean |
-| Vulnerabilities | `govulncheck ./...` | None found |
-| Nix flake | `nix flake check` | All checks passed |
-| Module integrity | `go mod verify` | All modules verified |
+| Gate             | Command                                    | Status                                           |
+| ---------------- | ------------------------------------------ | ------------------------------------------------ |
+| Tests            | `go test -race -count=1 ./...`             | Passing                                          |
+| Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 97.6% httputil / 99.3% httpspec (threshold: 95%) |
+| Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
+| Vet              | `go vet ./...`                             | Clean                                            |
+| Vulnerabilities  | `govulncheck ./...`                        | None found                                       |
+| Nix flake        | `nix flake check`                          | All checks passed                                |
+| Module integrity | `go mod verify`                            | All modules verified                             |
 
 ## Development
 

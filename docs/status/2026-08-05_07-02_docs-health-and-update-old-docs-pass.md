@@ -154,14 +154,14 @@ The `[Unreleased]` Changed block I added is one giant parenthesized run-on sente
 
 ### Critical — fix the lies I left
 
-| #   | Task                                                                                                   | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
+| #   | Task                                                                                                                                              | Impact | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 1   | ~~**Fix FEATURES.md `mustRequest` contradiction** — remove "now covered in v0.8.0"; state it's still 75%~~ done at `b90616e` (gap closed to 100%) | High   | 1 min  |
-| 2   | ~~**Run `govulncheck ./...` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: No vulnerabilities found** | High   | 2 min  |
-| 3   | ~~**Run `nix flake check` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all checks passed** | High   | 5 min  |
-| 4   | ~~**Run `go mod verify` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all modules verified** | High   | 1 min  |
-| 5   | ~~**Fix TODO_LIST.md "v0.8.0.0" typo**~~ done at `b90616e` | Low    | 1 min  |
-| 6   | ~~**Split CHANGELOG `[Unreleased]` run-on bullet into 5 distinct bullets**~~ done at `2e15780` (rewrote with 11 Added, 3 Fixed, 3 Changed) | Low    | 5 min  |
+| 2   | ~~**Run `govulncheck ./...` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: No vulnerabilities found**           | High   | 2 min  |
+| 3   | ~~**Run `nix flake check` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all checks passed**                    | High   | 5 min  |
+| 4   | ~~**Run `go mod verify` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all modules verified**                   | High   | 1 min  |
+| 5   | ~~**Fix TODO_LIST.md "v0.8.0.0" typo**~~ done at `b90616e`                                                                                        | Low    | 1 min  |
+| 6   | ~~**Split CHANGELOG `[Unreleased]` run-on bullet into 5 distinct bullets**~~ done at `2e15780` (rewrote with 11 Added, 3 Fixed, 3 Changed)        | Low    | 5 min  |
 
 ### High — verify what I trusted
 
@@ -184,25 +184,25 @@ The `[Unreleased]` Changed block I added is one giant parenthesized run-on sente
 
 ### Medium — close the remaining real coverage gap I lied about
 
-| #   | Task                                                                                                                                                         | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ |
+| #   | Task                                                                                                                                                                                                                        | Impact | Effort |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 16  | ~~**Close `httpspec.mustRequest` 75%** — the malformed-HTTP-construction error path. Write a test that triggers `httptest.NewRequest` with a malformed method.~~ done at `b90616e` (`TestMustRequestPanicsOnInvalidMethod`) | Medium | 20 min |
-| 17  | ~~**Or: honestly document `mustRequest` as a permanent defensive path** in FEATURES.md instead of closing it~~ N/A — gap was closed, not documented as permanent | Medium | 2 min  |
+| 17  | ~~**Or: honestly document `mustRequest` as a permanent defensive path** in FEATURES.md instead of closing it~~ N/A — gap was closed, not documented as permanent                                                            | Medium | 2 min  |
 
 ### Medium — depth and modernization
 
-| #   | Task                                                                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 18  | ~~**Run the `brutal-self-review` skill** on this session's output and incorporate its findings~~ scheduled as M17 in Pareto plan | High   | 30 min |
+| #   | Task                                                                                                                                                           | Impact | Effort |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 18  | ~~**Run the `brutal-self-review` skill** on this session's output and incorporate its findings~~ scheduled as M17 in Pareto plan                               | High   | 30 min |
 | 19  | ~~**Add CSRF fuzz tests** (`FuzzCSRFTokenValidation`, `FuzzCSRFOriginMatching`) — CSRF processes untrusted input~~ done at `e31f144` (6 `FuzzCSRF*` functions) | High   | 60 min |
-| 20  | ~~**Add `FuzzKeyedRateLimiterKeyExtraction`** — untrusted RemoteAddr strings~~ Won't implement — rate limiter keys come from server-controlled RemoteAddr | Medium | 30 min |
-| 21  | ~~**Add `BenchmarkCSRFMiddleware`** — no benchmark exists for the new security middleware~~ done at `eb1ac6a` (6 variants) | Medium | 30 min |
-| 22  | ~~**Add `BenchmarkKeyedRateLimiter`** with various `MaxKeys` / `EvictionTTL` settings~~ done at `eb1ac6a` (6 variants) | Medium | 30 min |
-| 23  | ~~**Modernize `server_timing_bench_test.go`** — migrate `b.N` → `b.Loop()` (6 gopls warnings)~~ done at `ae78e9a` | Low    | 10 min |
-| 24  | ~~**Add `httpspec` spec for CORS headers** — extend the BDD suite with CORS behavior validation~~ done at `538a575` (`CORSSpecs()`, 4 specs) | Medium | 30 min |
-| 25  | ~~**Add `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`~~ done at `538a575` (`RateLimitSpecs()`, 3 specs) | Medium | 30 min |
-| 26  | ~~**Add integration test chaining all 16 middlewares** in recommended order~~ done at `eb1ac6a` (`stack_integration_test.go`) | Medium | 30 min |
-| 27  | ~~**Audit all `Validate()` methods for completeness~~ done at `eb1ac6a` (but MaxBodySize + ShutdownTimeout still open in TODO_LIST) | Medium | 60 min |
+| 20  | ~~**Add `FuzzKeyedRateLimiterKeyExtraction`** — untrusted RemoteAddr strings~~ Won't implement — rate limiter keys come from server-controlled RemoteAddr      | Medium | 30 min |
+| 21  | ~~**Add `BenchmarkCSRFMiddleware`** — no benchmark exists for the new security middleware~~ done at `eb1ac6a` (6 variants)                                     | Medium | 30 min |
+| 22  | ~~**Add `BenchmarkKeyedRateLimiter`** with various `MaxKeys` / `EvictionTTL` settings~~ done at `eb1ac6a` (6 variants)                                         | Medium | 30 min |
+| 23  | ~~**Modernize `server_timing_bench_test.go`** — migrate `b.N` → `b.Loop()` (6 gopls warnings)~~ done at `ae78e9a`                                              | Low    | 10 min |
+| 24  | ~~**Add `httpspec` spec for CORS headers** — extend the BDD suite with CORS behavior validation~~ done at `538a575` (`CORSSpecs()`, 4 specs)                   | Medium | 30 min |
+| 25  | ~~**Add `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`~~ done at `538a575` (`RateLimitSpecs()`, 3 specs)                            | Medium | 30 min |
+| 26  | ~~**Add integration test chaining all 16 middlewares** in recommended order~~ done at `eb1ac6a` (`stack_integration_test.go`)                                  | Medium | 30 min |
+| 27  | ~~**Audit all `Validate()` methods for completeness~~ done at `eb1ac6a` (but MaxBodySize + ShutdownTimeout still open in TODO_LIST)                            | Medium | 60 min |
 
 ### Medium — polish what I shipped
 
@@ -212,7 +212,7 @@ The `[Unreleased]` Changed block I added is one giant parenthesized run-on sente
 | 29  | **Verify all internal markdown links resolve** across the 4 rebuilt living docs                                                                      | Low    | 10 min |
 | 30  | **Verify FEATURES.md middleware table Fuzz column** — `grep` for each `Fuzz*` function name before claiming it                                       | Low    | 5 min  |
 | 31  | **Verify FEATURES.md Examples column** — `grep` for each `Example*` function name before claiming it                                                 | Low    | 5 min  |
-| 32  | ~~**Make README coverage badge dynamic** — wire to CI output~~ done at `eb1ac6a` (`scripts/update-coverage-badge.sh` + CI wired) | Low    | 30 min |
+| 32  | ~~**Make README coverage badge dynamic** — wire to CI output~~ done at `eb1ac6a` (`scripts/update-coverage-badge.sh` + CI wired)                     | Low    | 30 min |
 
 ### Lower — roadmap items (v0.9.0 / v1.0)
 
@@ -229,18 +229,18 @@ The `[Unreleased]` Changed block I added is one giant parenthesized run-on sente
 
 ### Lower — process and tooling
 
-| #   | Task                                                                                                                                 | Impact | Effort   |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | -------- |
+| #   | Task                                                                                                                                  | Impact | Effort   |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
 | 41  | **Add a pre-commit hook** that runs `govulncheck ./...` when `go.mod` changes — scheduled as M14 in Pareto plan (golangci-lint based) | Medium | 30 min   |
-| 42  | **Add `.gitignore` entry for `httputil.test`** and remove the committed binary                                                       | Medium | 2 min    |
-| 43  | **Document the auto-commit daemon's behavior** in AGENTS.md — scheduled as M15 in Pareto plan                              | Low    | 10 min   |
-| 44  | **Establish a recurring doc-freshness cadence** (monthly?) — scheduled as M15 in Pareto plan                    | Low    | 5 min    |
-| 45  | **Run the `full-code-review` skill** on the v0.8.0 state — scheduled as M23 in Pareto plan                                 | Low    | 2 hr     |
-| 46  | **Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                              | Low    | 5 min    |
-| 47  | **Run full benchmark suite with `-benchtime=3s -count=5`** for a statistically significant baseline                                  | Low    | 15 min   |
-| 48  | **Verify `docs/RELEASE.md` includes `go mod verify` + `govulncheck` as mandatory pre-release steps**                                 | Low    | 5 min    |
-| 49  | **Schedule the next docs-health pass** to run before v0.9.0 tag                                                                      | Low    | 5 min    |
-| 50  | **Consider squashing the 5 auto-committed session commits** into one clean `docs: 2026-08-05 docs-health pass` commit before pushing | Medium | decision |
+| 42  | **Add `.gitignore` entry for `httputil.test`** and remove the committed binary                                                        | Medium | 2 min    |
+| 43  | **Document the auto-commit daemon's behavior** in AGENTS.md — scheduled as M15 in Pareto plan                                         | Low    | 10 min   |
+| 44  | **Establish a recurring doc-freshness cadence** (monthly?) — scheduled as M15 in Pareto plan                                          | Low    | 5 min    |
+| 45  | **Run the `full-code-review` skill** on the v0.8.0 state — scheduled as M23 in Pareto plan                                            | Low    | 2 hr     |
+| 46  | **Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                               | Low    | 5 min    |
+| 47  | **Run full benchmark suite with `-benchtime=3s -count=5`** for a statistically significant baseline                                   | Low    | 15 min   |
+| 48  | **Verify `docs/RELEASE.md` includes `go mod verify` + `govulncheck` as mandatory pre-release steps**                                  | Low    | 5 min    |
+| 49  | **Schedule the next docs-health pass** to run before v0.9.0 tag                                                                       | Low    | 5 min    |
+| 50  | **Consider squashing the 5 auto-committed session commits** into one clean `docs: 2026-08-05 docs-health pass` commit before pushing  | Medium | decision |
 
 ---
 
