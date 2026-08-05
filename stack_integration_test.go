@@ -41,28 +41,26 @@ func TestStack_FullMiddlewareComposition(t *testing.T) {
 	called := &atomic.Bool{}
 	handler := stack.Build(newInnerHandler(called))
 
+	// Subtests run sequentially (not in parallel) because they share the
+	// `called` atomic flag and the `handler` chain — sharing these across
+	// parallel goroutines is a race. The test still completes quickly.
 	t.Run("GET produces all expected headers", func(t *testing.T) {
-		t.Parallel()
 		verifyGETHeaders(t, handler, called)
 	})
 
 	t.Run("POST without CSRF token is rejected", func(t *testing.T) {
-		t.Parallel()
 		verifyCSRFRejection(t, handler, called)
 	})
 
 	t.Run("OPTIONS preflight succeeds with CORS headers", func(t *testing.T) {
-		t.Parallel()
 		verifyCORSPreflight(t, handler)
 	})
 
 	t.Run("Panic in inner handler returns 500", func(t *testing.T) {
-		t.Parallel()
 		verifyPanicRecovery(t, logger)
 	})
 
 	t.Run("Rate-limited response still has all headers", func(t *testing.T) {
-		t.Parallel()
 		verifyRateLimitHeaders(t, logger)
 	})
 }
