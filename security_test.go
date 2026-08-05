@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 )
@@ -117,6 +118,34 @@ func TestSecurityHeadersConfig_Validate_EmptyConfig(t *testing.T) {
 	err := cfg.Validate()
 	if err != nil {
 		t.Errorf("Validate() error = %v, want nil for empty config", err)
+	}
+}
+
+func TestSecurityHeadersConfig_Validate_RejectsInvalidFrameOptions(t *testing.T) {
+	t.Parallel()
+
+	cfg := SecurityHeadersConfig{FrameOptions: "ALLOW-FROM https://evil.example"}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for invalid FrameOptions")
+	}
+
+	if !errors.Is(err, errSecurityInvalidFrameOptions) {
+		t.Errorf("Validate() error = %v, want errSecurityInvalidFrameOptions", err)
+	}
+}
+
+func TestSecurityHeadersConfig_Validate_AcceptsValidFrameOptions(t *testing.T) {
+	t.Parallel()
+
+	for _, value := range []string{"", "DENY", "SAMEORIGIN"} {
+		cfg := SecurityHeadersConfig{FrameOptions: value}
+
+		err := cfg.Validate()
+		if err != nil {
+			t.Errorf("Validate() for FrameOptions=%q: error = %v, want nil", value, err)
+		}
 	}
 }
 

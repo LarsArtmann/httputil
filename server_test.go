@@ -135,6 +135,57 @@ func TestServerConfigValidateNegativeIdleTimeout(t *testing.T) {
 	}
 }
 
+func TestServerConfigValidateEmptyAddr(t *testing.T) {
+	t.Parallel()
+
+	cfg := ServerConfig{
+		Addr: "",
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for empty Addr")
+	}
+
+	if !errors.Is(err, errServerAddrEmpty) {
+		t.Errorf("Validate() error = %v, want errServerAddrEmpty", err)
+	}
+}
+
+func TestServerConfigValidateReadHeaderExceedsRead(t *testing.T) {
+	t.Parallel()
+
+	cfg := ServerConfig{
+		Addr:              defaultAddr,
+		ReadTimeout:       5 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for ReadHeaderTimeout > ReadTimeout")
+	}
+
+	if !errors.Is(err, errServerTimeoutOrdering) {
+		t.Errorf("Validate() error = %v, want errServerTimeoutOrdering", err)
+	}
+}
+
+func TestServerConfigValidateAllowsEqualReadAndHeaderTimeouts(t *testing.T) {
+	t.Parallel()
+
+	cfg := ServerConfig{
+		Addr:              defaultAddr,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil (equal timeouts are valid)", err)
+	}
+}
+
 func TestNewServer(t *testing.T) {
 	t.Parallel()
 

@@ -22,8 +22,12 @@ var (
 	errWriteTimeoutNegative      = errors.New("ServerConfig.WriteTimeout must not be negative")
 	errIdleTimeoutNegative       = errors.New("ServerConfig.IdleTimeout must not be negative")
 	errServerShutdownFailed      = errors.New("server shutdown failed")
-	errServerAddrEmpty           = errors.New("ServerConfig.Addr must not be empty (e.g. \":8080\" or \":http\")")
-	errServerTimeoutOrdering     = errors.New("ServerConfig.ReadHeaderTimeout must be <= ReadTimeout (RFC 7230 §6)")
+	errServerAddrEmpty           = errors.New(
+		"ServerConfig.Addr must not be empty (e.g. \":8080\" or \":http\")",
+	)
+	errServerTimeoutOrdering = errors.New(
+		"ServerConfig.ReadHeaderTimeout must be <= ReadTimeout (RFC 7230 §6)",
+	)
 )
 
 // ServerConfig holds the configuration for an HTTP server.

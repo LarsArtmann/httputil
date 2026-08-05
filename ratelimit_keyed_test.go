@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -363,5 +364,85 @@ func TestKeyExtractorFromClientIP(t *testing.T) {
 
 	if got := extractor(req); got == "" {
 		t.Fatal("expected non-empty key from ClientIP extractor")
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_Default(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultKeyedRateLimiterConfig()
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for default config", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_ZeroLimit(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  0,
+		Window: time.Minute,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for Limit=0")
+	}
+
+	if !errors.Is(err, errKeyedLimitZero) {
+		t.Errorf("Validate() error = %v, want errKeyedLimitZero", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_NonPositiveWindow(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: 0,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for Window=0")
+	}
+
+	if !errors.Is(err, errKeyedWindowZero) {
+		t.Errorf("Validate() error = %v, want errKeyedWindowZero", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_NegativeWindow(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: -1 * time.Second,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for negative Window")
+	}
+
+	if !errors.Is(err, errKeyedWindowZero) {
+		t.Errorf("Validate() error = %v, want errKeyedWindowZero", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_AllowsBurstZero(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: time.Minute,
+		Burst:  0, // defaults to Limit at construction — validation must allow
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil (Burst=0 is allowed)", err)
 	}
 }

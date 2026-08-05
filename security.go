@@ -9,14 +9,12 @@ import (
 // Per RFC 7034 §2.1, valid values are DENY, SAMEORIGIN, or absent
 // (the header is omitted entirely).
 const (
-	frameOptionsDeny      = "DENY"
+	frameOptionsDeny       = "DENY"
 	frameOptionsSameOrigin = "SAMEORIGIN"
 )
 
-var (
-	errSecurityInvalidFrameOptions = errors.New(
-		"SecurityHeadersConfig.FrameOptions must be DENY, SAMEORIGIN, or empty (default = no header)",
-	)
+var errSecurityInvalidFrameOptions = errors.New(
+	"SecurityHeadersConfig.FrameOptions must be DENY, SAMEORIGIN, or empty (default = no header)",
 )
 
 // SecurityHeadersConfig holds the configuration for security response headers.

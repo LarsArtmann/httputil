@@ -38,29 +38,35 @@ func TestStack_FullMiddlewareComposition(t *testing.T) {
 		t.Error("expected duplicate recovery middleware to be rejected")
 	}
 
-	called := &atomic.Bool{}
-	handler := stack.Build(newInnerHandler(called))
-
-	// Subtests run sequentially (not in parallel) because they share the
-	// `called` atomic flag and the `handler` chain — sharing these across
-	// parallel goroutines is a race. The test still completes quickly.
+	// Each subtest builds its own handler + atomic so they are fully
+	// independent and safe to run in parallel.
 	t.Run("GET produces all expected headers", func(t *testing.T) {
+		t.Parallel()
+		called := &atomic.Bool{}
+		handler := stack.Build(newInnerHandler(called))
 		verifyGETHeaders(t, handler, called)
 	})
 
 	t.Run("POST without CSRF token is rejected", func(t *testing.T) {
+		t.Parallel()
+		called := &atomic.Bool{}
+		handler := stack.Build(newInnerHandler(called))
 		verifyCSRFRejection(t, handler, called)
 	})
 
 	t.Run("OPTIONS preflight succeeds with CORS headers", func(t *testing.T) {
+		t.Parallel()
+		handler := stack.Build(newInnerHandler(&atomic.Bool{}))
 		verifyCORSPreflight(t, handler)
 	})
 
 	t.Run("Panic in inner handler returns 500", func(t *testing.T) {
+		t.Parallel()
 		verifyPanicRecovery(t, logger)
 	})
 
 	t.Run("Rate-limited response still has all headers", func(t *testing.T) {
+		t.Parallel()
 		verifyRateLimitHeaders(t, logger)
 	})
 }
@@ -129,13 +135,23 @@ func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	addStackMiddleware(t, stack, MiddlewareRecovery, Recovery(logger))
 	addStackMiddleware(t, stack, MiddlewareLogging, Logging(logger))
 	addStackMiddleware(t, stack, MiddlewareRequestID, RequestID(DefaultRequestIDConfig()))
-	addStackMiddleware(t, stack, MiddlewareSecurityHeaders, SecurityHeaders(DefaultSecurityHeadersConfig()))
+	addStackMiddleware(
+		t,
+		stack,
+		MiddlewareSecurityHeaders,
+		SecurityHeaders(DefaultSecurityHeadersConfig()),
+	)
 	addStackMiddleware(t, stack, MiddlewareCORS, CORS(DefaultCORSConfig()))
-	addStackMiddleware(t, stack, MiddlewareKeyedRateLimit, KeyedRateLimiterMiddleware(KeyedRateLimiterConfig{
-		Limit:        1000,
-		Window:       time.Minute,
-		KeyExtractor: KeyExtractorFromRemoteAddr(),
-	}))
+	addStackMiddleware(
+		t,
+		stack,
+		MiddlewareKeyedRateLimit,
+		KeyedRateLimiterMiddleware(KeyedRateLimiterConfig{
+			Limit:        1000,
+			Window:       time.Minute,
+			KeyExtractor: KeyExtractorFromRemoteAddr(),
+		}),
+	)
 	addStackMiddleware(t, stack, MiddlewareCSRF, CSRFMiddleware(CSRFConfig{}))
 	addStackMiddleware(t, stack, MiddlewareCompression, Compression(DefaultCompressionConfig()))
 	addStackMiddleware(t, stack, MiddlewareETag, ETag(DefaultETagConfig()))
@@ -265,12 +281,22 @@ func verifyRateLimitHeaders(t *testing.T, logger *slog.Logger) {
 	rlStack := NewMiddlewareStack()
 
 	addStackMiddleware(t, rlStack, MiddlewareRecovery, Recovery(logger))
-	addStackMiddleware(t, rlStack, MiddlewareSecurityHeaders, SecurityHeaders(DefaultSecurityHeadersConfig()))
-	addStackMiddleware(t, rlStack, MiddlewareKeyedRateLimit, KeyedRateLimiterMiddleware(KeyedRateLimiterConfig{
-		Limit:        1,
-		Window:       time.Minute,
-		KeyExtractor: KeyExtractorFromRemoteAddr(),
-	}))
+	addStackMiddleware(
+		t,
+		rlStack,
+		MiddlewareSecurityHeaders,
+		SecurityHeaders(DefaultSecurityHeadersConfig()),
+	)
+	addStackMiddleware(
+		t,
+		rlStack,
+		MiddlewareKeyedRateLimit,
+		KeyedRateLimiterMiddleware(KeyedRateLimiterConfig{
+			Limit:        1,
+			Window:       time.Minute,
+			KeyExtractor: KeyExtractorFromRemoteAddr(),
+		}),
+	)
 
 	rlHandler := rlStack.Build(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
