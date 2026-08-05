@@ -93,8 +93,11 @@ func SecurityHeaders(cfg SecurityHeadersConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			// ContentTypeOptions (explicit string) takes precedence over
-			// ContentTypeNosniff (legacy bool). SecurityHeaderSkip suppresses.
-			if cfg.ContentTypeOptions != "" && cfg.ContentTypeOptions != SecurityHeaderSkip {
+			// ContentTypeNosniff (legacy bool). SecurityHeaderSkip suppresses
+			// the header entirely, even when ContentTypeNosniff is true.
+			if cfg.ContentTypeOptions == SecurityHeaderSkip {
+				// explicitly suppressed
+			} else if cfg.ContentTypeOptions != "" {
 				resp.Header().Set("X-Content-Type-Options", cfg.ContentTypeOptions)
 			} else if cfg.ContentTypeNosniff {
 				resp.Header().Set("X-Content-Type-Options", "nosniff")
