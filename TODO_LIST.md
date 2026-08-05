@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-05 — sourced from v0.8.0 release cycle and 2026-08-05 docs-health pass._
+_Updated: 2026-08-05 — sourced from v0.8.0 release cycle and 2026-08-05 docs-health pass. Medium and Low priority items complete (CSRF fuzz tests, httpspec CORS/rate-limit specs, full-stack integration test, b.Loop() modernization, BenchmarkKeyedRateLimiter, BenchmarkCSRFMiddleware, Example\* functions, dynamic coverage badge, and Validate() audit)._
 
 ---
 
@@ -17,23 +17,23 @@ The v0.8.0 release bottleneck tasks are complete. No high-priority items remain.
 
 Five items from the v0.7.0 → v0.8.0 cycle remain open. Each is bounded and well-scoped.
 
-- [ ] **Add CSRF fuzz tests** — fuzz origin matching, token validation, and TrustedCIDR parsing. CSRF processes untrusted input; existing coverage is deterministic via integration tests but a fuzz test would harden the security boundary. Estimated effort: 60min.
-- [ ] **Add `httpspec` spec for CORS headers** — extend `httpspec` with a check that validates `Vary: Origin`, `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials` semantics. Estimated effort: 30min.
-- [ ] **Add `httpspec` spec for rate-limit headers** — extend `httpspec` with `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` checks. Estimated effort: 30min.
-- [ ] **Add integration test for full middleware stack** — chain all 16 middlewares in recommended order, verify composition, and assert no order-dependent breakage. Estimated effort: 30min.
-- [ ] **Modernize `server_timing_bench_test.go`** — migrate `b.N` loops to `b.Loop()` (Go 1.24+ pattern) to clear 6 gopls warnings. Estimated effort: 10min.
+- [x] **Add CSRF fuzz tests** — fuzz origin matching, token validation, and TrustedCIDR parsing. CSRF processes untrusted input; existing coverage is deterministic via integration tests but a fuzz test would harden the security boundary. Estimated effort: 60min.
+- [x] **Add `httpspec` spec for CORS headers** — extend `httpspec` with a check that validates `Vary: Origin`, `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials` semantics. Estimated effort: 30min.
+- [x] **Add `httpspec` spec for rate-limit headers** — extend `httpspec` with `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` checks. Estimated effort: 30min.
+- [x] **Add integration test for full middleware stack** — chain all 16 middlewares in recommended order, verify composition, and assert no order-dependent breakage. Estimated effort: 30min.
+- [x] **Modernize `server_timing_bench_test.go`** — migrate `b.N` loops to `b.Loop()` (Go 1.24+ pattern) to clear 6 gopls warnings. Estimated effort: 10min.
 
 ## Low Priority
 
 Polish and future work. Each is bounded and well-scoped.
 
-- [ ] **Add `BenchmarkKeyedRateLimiter`** — measure allow/reject throughput with various `MaxKeys` and `EvictionTTL` settings. Estimated effort: 30min.
-- [ ] **Add `BenchmarkCSRFMiddleware`** — measure per-request cost including nosurf integration. Estimated effort: 30min.
-- [ ] **Add `Example*` function for `KeyedRateLimiterMiddleware`** — required by `testableexamples` linter for full coverage. Estimated effort: 10min.
-- [ ] **Add `Example*` function for `ServerTimingMiddleware`** — required by `testableexamples` linter. Estimated effort: 10min.
-- [ ] **Add `Example*` function for `CSRFMiddleware`** — required by `testableexamples` linter. Estimated effort: 10min.
-- [ ] **Make README coverage badge dynamic** — wire coverage badge to CI output instead of hardcoded 97.8%. Estimated effort: 30min.
-- [ ] **Audit all `Validate()` methods for completeness** — verify `ServerConfig`, `CORSConfig`, `CompressionConfig`, `ETagConfig`, `RequestIDConfig`, `SecurityHeadersConfig`, `MetricsConfig`, `RateLimitConfig`, `KeyedRateLimiterConfig`, `CSRFConfig` all surface actionable errors. Estimated effort: 60min.
+- [x] **Add `BenchmarkKeyedRateLimiter`** — measure allow/reject throughput with various `MaxKeys` and `EvictionTTL` settings. Estimated effort: 30min.
+- [x] **Add `BenchmarkCSRFMiddleware`** — measure per-request cost including nosurf integration. Estimated effort: 30min.
+- [x] **Add `Example*` function for `KeyedRateLimiterMiddleware`** — required by `testableexamples` linter for full coverage. Estimated effort: 10min.
+- [x] **Add `Example*` function for `ServerTimingMiddleware`** — required by `testableexamples` linter. Estimated effort: 10min.
+- [x] **Add `Example*` function for `CSRFMiddleware`** — required by `testableexamples` linter. Estimated effort: 10min.
+- [x] **Make README coverage badge dynamic** — wire coverage badge to CI output instead of hardcoded 97.8%. Estimated effort: 30min.
+- [x] **Audit all `Validate()` methods for completeness** — verify `ServerConfig`, `CORSConfig`, `CompressionConfig`, `ETagConfig`, `RequestIDConfig`, `SecurityHeadersConfig`, `MetricsConfig`, `RateLimitConfig`, `KeyedRateLimiterConfig`, `CSRFConfig` all surface actionable errors. Estimated effort: 60min.
 
 ## Won't Implement
 
