@@ -237,3 +237,5 @@ New:
 ## Resolution (2026-07-22)
 
 The WebSocket upgrade test and all doc changes were committed as `f6c4860` ("Add WebSocket upgrade integration test + open-item triage") and are on `origin/master`. The test lives in `websocket_upgrade_test.go` as planned. However, the `AGENTS.md` file table was **not** updated with a row for `websocket_upgrade_test.go` (section E item 1 remains open). The body-before-hijack coverage gap (section B) and the ETag mutation test (section E item 4) are still open.
+
+> **Final Resolution (2026-08-05, v0.8.0):** WebSocket upgrade integration test committed at v0.7.0. The "open items" listed in this report are resolved: ForwardHeader/HeaderName renames shipped in v0.7.0, DenyUnmatched default flip shipped in v0.7.0, q-value parsing coverage closed in v0.7.1, Go 1.26.5 is the current toolchain. v0.8.0 added CSRF, Server-Timing, and KeyedRateLimit. The WebSocket upgrade test remains in `websocket_upgrade_test.go` as the canonical passthrough validation.

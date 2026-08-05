@@ -183,3 +183,5 @@ All 11 commits (`2f2038b` → `bd27ea1`) are now on `origin/master`. The deferre
 | Lint issues              | 0      | 0                                 |
 | TODO_LIST open items     | 11     | 4 (deferred)                      |
 | External dependencies    | 1      | 1 (unchanged)                     |
+
+> **Final Resolution (2026-08-05, v0.8.0):** All 11 commits referenced in this report are on `origin/master`. v0.7.0, v0.7.1, and v0.8.0 shipped since this report. The CSRF, Server-Timing, and KeyedRateLimit middleware specs called out in this report as "parking lot" are now FULLY_FUNCTIONAL in v0.8.0. The deferred items in the d. section are resolved: extension examples exist at `docs/integrations/`, v0.8.0 release notes are accurate, and the migration guide for `TokenBucketLimiter → KeyedRateLimiter` is at `docs/migrating-to-keyed-rate-limiter.md`.

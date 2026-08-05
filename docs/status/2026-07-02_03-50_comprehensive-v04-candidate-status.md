@@ -299,3 +299,5 @@ I lean toward **shipping as-is with a documented limitation** and adding evictio
 ## Resolution (2026-07-22)
 
 v0.4.0 was tagged (`4f1bb35`) and is on `origin`. Key items from section f) resolved: AGENTS.md was updated, `Validate()` success-path tests added, examples added, `TokenBucketLimiter` eviction shipped as `EvictionTTL` in v0.5.0 (`a44b0b9`), and the rate limiter was subsequently switched to `golang.org/x/time/rate` (`4ce4fdf`). The project is now at v0.5.0 (local tag) with 2 dependencies. The streaming ETag item (C2) remains correctly rejected.
+
+> **Final Resolution (2026-08-05, v0.8.0):** v0.4.0 was tagged and released. Subsequent releases v0.5.0, v0.6.0, v0.6.1 (jsonv2 fix), v0.7.0 (breaking API renames + DenyUnmatched flip), v0.7.1 (coverage closure), and v0.8.0 (CSRF + Server-Timing + KeyedRateLimit) followed. The library is now at v0.8.0 with 16 middlewares, 3 dependencies, 97.8% httputil coverage, 0 lint issues. The `#1 risk` from this report (release discipline) is now codified in `docs/RELEASE.md` with a pre-release self-review step.

@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture Review — httputil — Package Structure Analysis</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Layout */
+      .layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        max-width: 1200px;
+        margin: 0 auto;
+        gap: 0;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 2rem 1rem;
+      }
+      .sidebar .label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-faint);
+        margin-bottom: 0.75rem;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .sidebar a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.85rem;
+        padding: 0.2rem 0.5rem;
+        border-left: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .sidebar a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+      }
+      .main {
+        padding: 2.5rem 3rem;
+        max-width: 920px;
+      }
+
+      /* Hero */
+      .hero {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+      }
+      .hero h1 {
+        font-size: 2.2rem;
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        max-width: 640px;
+      }
+
+      /* Sections */
+      section {
+        margin-bottom: 3rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      h2 .num {
+        color: var(--accent);
+        font-weight: 900;
+        margin-right: 0.5rem;
+      }
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        margin-bottom: 0.75rem;
+        color: var(--text-muted);
+      }
+      strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 0.1em 0.35em;
+        border-radius: 2px;
+        color: var(--color-yellow);
+      }
+      pre {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        background: var(--surface-sunken);
+        padding: 1rem;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        color: var(--text);
+      }
+      ul,
+      ol {
+        margin-bottom: 0.75rem;
+        padding-left: 1.5rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+        color: var(--text-muted);
+      }
+
+      /* Stat grid */
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        text-align: center;
+      }
+      .stat-card .stat-value {
+        font-size: 1.8rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+      }
+      .stat-card .stat-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+
+      /* Score grid */
+      .score-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        border-left: 3px solid var(--border-strong);
+      }
+      .score-card .score {
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin-bottom: 0.15rem;
+      }
+      .score-card .score-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 0.15rem;
+      }
+      .score-card .score-desc {
+        font-size: 0.7rem;
+        color: var(--text-faint);
+      }
+      .score-good {
+        border-left-color: var(--solution);
+      }
+      .score-good .score {
+        color: var(--solution);
+      }
+      .score-warn {
+        border-left-color: var(--warning);
+      }
+      .score-warn .score {
+        color: var(--warning);
+      }
+
+      /* Cards */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+      }
+      .card-problem {
+        border-left: 3px solid var(--problem);
+      }
+      .card-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .card-warning {
+        border-left: 3px solid var(--warning);
+      }
+      .card h3 {
+        margin-top: 0;
+      }
+
+      /* Callouts */
+      .callout {
+        padding: 0.85rem 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        background: var(--surface-sunken);
+      }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      /* Strengths */
+      .strengths {
+        margin-bottom: 1rem;
+      }
+      .strength {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength:last-child {
+        border-bottom: none;
+      }
+      .strength .check {
+        color: var(--solution);
+        font-weight: 900;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.1rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        font-size: 0.88rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.5rem 0.6rem;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        font-weight: 700;
+        color: var(--text-faint);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      td code {
+        font-size: 0.82em;
+      }
+      tr:hover td {
+        background: var(--surface-sunken);
+      }
+
+      /* Badge */
+      .badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .badge-good {
+        background: color-mix(in srgb, var(--solution) 20%, transparent);
+        color: var(--solution);
+      }
+      .badge-warn {
+        background: color-mix(in srgb, var(--warning) 20%, transparent);
+        color: var(--warning);
+      }
+      .badge-bad {
+        background: color-mix(in srgb, var(--problem) 20%, transparent);
+        color: var(--problem);
+      }
+
+      /* Dep tree */
+      .dep-tree {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        background: var(--surface-sunken);
+        padding: 1rem;
+        border: 1px solid var(--border);
+        margin-bottom: 1rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+        color: var(--text-muted);
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .warn {
+        color: var(--warning);
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      /* Compare */
+      .compare-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-col {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem;
+      }
+      .compare-col h4 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .compare-col.rejected h4 {
+        color: var(--problem);
+      }
+      .compare-col.viable h4 {
+        color: var(--warning);
+      }
+      .compare-col.recommended h4 {
+        color: var(--solution);
+      }
+      .compare-col ul {
+        padding-left: 1.1rem;
+        font-size: 0.85rem;
+      }
+
+      /* Steps */
+      .step {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .step:last-child {
+        border-bottom: none;
+      }
+      .step-num {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: var(--accent);
+        flex-shrink: 0;
+        width: 2rem;
+      }
+      .step-content h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+      }
+      .step-content p {
+        font-size: 0.88rem;
+        margin-bottom: 0.25rem;
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 0.8rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 1.5rem;
+        }
+        .compare-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#metrics">Metrics</a>
+          <a href="#structure">Structure</a>
+          <a href="#coupling">Coupling</a>
+          <a href="#folder-question">The Folder Question</a>
+          <a href="#options">Three Options</a>
+          <a href="#scoring">Dimension Scores</a>
+          <a href="#roadmap">Roadmap</a>
+          <a href="#strengths">Strengths</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Architecture Review &middot; 2026-08-05</div>
+          <h1>Package Structure Analysis</h1>
+          <p class="hero-subtitle">
+            Should httputil add more folders? A deep dependency and cohesion analysis of the
+            33-file flat root package, applying the architecture-review and go-modularize
+            decision frameworks. Answer: the flat structure is correct, with one viable
+            internal/ option worth deferring until after v1.0.
+          </p>
+        </div>
+
+        <section id="metrics">
+          <h2><span class="num">00</span>Architecture Metrics</h2>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-value">2</div>
+              <div class="stat-label">Packages</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">33</div>
+              <div class="stat-label">Root .go files</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">70</div>
+              <div class="stat-label">Total .go files</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">3</div>
+              <div class="stat-label">External deps</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Import cycles</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">3</div>
+              <div class="stat-label">Extension interfaces</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">4.3</div>
+              <div class="stat-label">Overall score / 5</div>
+            </div>
+          </div>
+          <p>
+            Growth since the previous review (2026-07-05): root package went from 28 to 33
+            non-test files. The 5 new files are <strong>CSRF</strong> (603 lines),
+            <strong>Server-Timing</strong> (436 lines), and
+            <strong>KeyedRateLimiter</strong> (369 lines) &mdash; all self-contained middleware
+            with zero unexported cross-file dependencies. The growth pattern is healthy: new
+            middleware does not increase coupling.
+          </p>
+        </section>
+
+        <section id="structure">
+          <h2><span class="num">01</span>Structure &amp; Dependency Direction</h2>
+          <p>The dependency graph is a strict tree pointing only at stdlib and tightly controlled libraries:</p>
+          <div class="dep-tree"><span class="root">github.com/larsartmann/httputil</span>
+├── <span class="ok">net/http, log/slog, compress/*, crypto/rand, etc. (stdlib)</span>
+├── <span class="ok">github.com/larsartmann/go-error-family (same author, 0 transitive deps)</span>
+├── <span class="ok">golang.org/x/time/rate (canonical Go extension)</span>
+└── <span class="ok">github.com/justinas/nosurf (CSRF, double-submit cookie)</span>
+
+<span class="root">github.com/larsartmann/httputil/httpspec</span>
+└── <span class="ok">net/http, net/http/httptest, testing (stdlib only &mdash; NO dep on parent)</span></div>
+          <div class="callout callout-solution">
+            <strong>Perfect dependency direction (5/5)</strong>
+            depguard enforces the dependency policy at lint time. The httpspec subpackage is a
+            pure stdlib consumer &mdash; it validates any <code>http.Handler</code> independently,
+            making it reusable far beyond this library.
+          </div>
+        </section>
+
+        <section id="coupling">
+          <h2><span class="num">02</span>Coupling Analysis: What Shares What</h2>
+          <p>
+            The critical question for folder splitting: <strong>which files share unexported
+            symbols?</strong> In Go, files in the same package share unexported types, functions,
+            and constants freely. Splitting into sub-packages forces these to be exported or
+            duplicated. Here is the complete cross-file dependency map:
+          </p>
+
+          <h3>Compression cluster &mdash; 7 files, 27 shared unexported symbols</h3>
+          <p>
+            <code>compression.go</code>, <code>compress_writer.go</code>,
+            <code>compress_writer_compress.go</code>, <code>compress_pool.go</code>,
+            <code>compression_negotiator.go</code>, <code>compression_qvalue.go</code>,
+            <code>compress_content_type.go</code>. Every file depends on at least 2 others. This
+            is a deeply cohesive subsystem &mdash; it <emph>must</emph> stay together.
+          </p>
+
+          <h3>Shared infrastructure &mdash; 4 files consumed across subsystem boundaries</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Unexported symbol</th>
+                <th>Consumed by</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>wrapper.go</code></td>
+                <td><code>responseWrapper</code>, <code>newResponseWrapper</code>, <code>writeDefaultOK</code>, <code>writeHeaderToUnderlying</code></td>
+                <td>compress_writer.go, compress_writer_compress.go, etag.go</td>
+              </tr>
+              <tr>
+                <td><code>wrapper.go</code></td>
+                <td><code>hijackDelegate</code>, <code>flushDelegate</code></td>
+                <td>recorder.go</td>
+              </tr>
+              <tr>
+                <td><code>errors.go</code></td>
+                <td><code>ErrCode*</code> constants</td>
+                <td>recorder.go, wrapper.go, compress_writer.go, etag.go</td>
+              </tr>
+              <tr>
+                <td><code>hex.go</code></td>
+                <td><code>hexDigitsLower</code></td>
+                <td>etag.go, id_generator.go</td>
+              </tr>
+              <tr>
+                <td><code>compression.go</code></td>
+                <td><code>headerContentType</code></td>
+                <td>cors.go, recovery.go</td>
+              </tr>
+              <tr>
+                <td><code>requestid.go</code></td>
+                <td><code>defaultRequestIDHeader</code></td>
+                <td>cors.go</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>13 files with zero unexported cross-file dependencies</h3>
+          <p>
+            These middleware files are completely self-contained: <code>csrf.go</code>,
+            <code>security.go</code>, <code>timeout.go</code>, <code>maxbodysize.go</code>,
+            <code>health.go</code>, <code>server.go</code>, <code>server_timing.go</code>,
+            <code>ratelimit.go</code>, <code>ratelimit_keyed.go</code>,
+            <code>clientip.go</code>, <code>context.go</code>, <code>queryparam.go</code>,
+            <code>capabilities.go</code>. Each defines its own constants and uses only exported
+            symbols from the root package (<code>Middleware</code> type, <code>Chain()</code>,
+            <code>NewResponseRecorder()</code>).
+          </p>
+
+          <div class="callout callout-warning">
+            <strong>The coupling blocker</strong>
+            The previous review (2026-07-26) correctly identified that extracting compression into
+            a public sub-package creates a circular import: <code>compression.go</code> returns
+            <code>Middleware</code> (defined in root), and the compress writer uses
+            <code>responseWrapper</code> and <code>ErrCode*</code> (also in root). A public
+            sub-package would need to import root for these types &mdash; while root re-exports
+            compression types. That is a cycle.
+          </div>
+        </section>
+
+        <section id="folder-question">
+          <h2><span class="num">03</span>The Folder Question: Three Options Analyzed</h2>
+          <p>
+            "Should more folders be added?" decomposes into three distinct structural options.
+            Each has radically different tradeoffs. The evidence &mdash; not aesthetic preference
+            &mdash; decides.
+          </p>
+
+          <div class="compare-grid">
+            <div class="compare-col rejected">
+              <h4>A. Public Sub-Packages</h4>
+              <p style="font-size:0.85rem; color:var(--problem); margin-bottom:0.5rem;">
+                <strong>REJECTED</strong> &mdash; circular imports
+              </p>
+              <ul>
+                <li><code>httputil/compression/</code>, <code>httputil/cors/</code>, etc.</li>
+                <li>Compression depends on <code>Middleware</code>, <code>responseWrapper</code>, <code>ErrCode*</code> from root</li>
+                <li>Root must re-export compression types for consumers</li>
+                <li>= circular import, structurally impossible</li>
+                <li>Also breaks flat import ergonomics (<code>httputil.CORS()</code> &rarr; <code>httputil/cors.CORS()</code>)</li>
+                <li>Confirmed rejected 2026-07-26 &mdash; still valid</li>
+              </ul>
+            </div>
+            <div class="compare-col recommended">
+              <h4>B. Status Quo (Flat)</h4>
+              <p style="font-size:0.85rem; color:var(--solution); margin-bottom:0.5rem;">
+                <strong>RECOMMENDED</strong> &mdash; Go-idiomatic
+              </p>
+              <ul>
+                <li>One import: <code>httputil.Compression()</code></li>
+                <li>Internal symbols stay unexported</li>
+                <li>Matches Go stdlib precedent (<code>net/http</code> = 50+ files flat)</li>
+                <li>33 files is navigable &mdash; well-named, IDE-friendly</li>
+                <li>No breaking changes, no complexity added</li>
+                <li>New middleware adds zero coupling (proven by last 3 features)</li>
+                <li>Project approaching v1.0 &mdash; stability over reorganization</li>
+              </ul>
+            </div>
+            <div class="compare-col viable">
+              <h4>C. Internal Packages</h4>
+              <p style="font-size:0.85rem; color:var(--warning); margin-bottom:0.5rem;">
+                <strong>VIABLE but defer</strong> &mdash; marginal payoff
+              </p>
+              <ul>
+                <li><code>httputil/internal/compress/</code> &mdash; 6 impl files</li>
+                <li><code>httputil/internal/responsewrap/</code> &mdash; wrapper.go</li>
+                <li><code>httputil/internal/errcodes/</code> &mdash; error constants</li>
+                <li>Public API stays flat: <code>httputil.Compression()</code> unchanged</li>
+                <li>Root &rarr; internal is one direction: no cycles</li>
+                <li>Root goes from 33 &rarr; ~25 non-test files</li>
+                <li>Cost: ~15-20 files modified, types become internal-exported</li>
+                <li>Benefit: 8 fewer root files, better encapsulation</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout callout-warning">
+            <strong>Why not internal/ now?</strong>
+            Option C is the only folder structure that avoids circular imports while preserving
+            the flat public API. But the payoff is marginal: 8 fewer root files in exchange for 3
+            new internal packages, ~15-20 files modified, and previously-unexported types that
+            must be capitalized (exported) within <code>internal/</code>. The Go stdlib
+            <code>net/http</code> package &mdash; with 50+ files &mdash; does not do this. Defer
+            until after v1.0; revisit if root exceeds ~50 non-test files.
+          </div>
+        </section>
+
+        <section id="options">
+          <h2><span class="num">04</span>Go-Modularize Decision: Multi-Module</h2>
+          <p>
+            The go-modularize skill's "When NOT to Modularize" framework applied to multi-module
+            (separate <code>go.mod</code> files):
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Weight</th>
+                <th>Assessment</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Small project</td>
+                <td>High</td>
+                <td>33 files, 10k lines &mdash; not small, but single-domain</td>
+                <td><span class="badge badge-warn">Medium</span></td>
+              </tr>
+              <tr>
+                <td>No external consumers</td>
+                <td>Medium</td>
+                <td>Public library on GitHub &mdash; consumers want ONE import path</td>
+                <td><span class="badge badge-bad">High against</span></td>
+              </tr>
+              <tr>
+                <td>Prototype / spike</td>
+                <td>High</td>
+                <td>v0.8.0, approaching v1.0 stability &mdash; not a prototype</td>
+                <td><span class="badge badge-good">No signal</span></td>
+              </tr>
+              <tr>
+                <td>All packages change together</td>
+                <td>High</td>
+                <td>Last 3 features each touched exactly 1 file + 1 test file</td>
+                <td><span class="badge badge-good">No signal</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="card card-problem">
+            <h3>Multi-module split: STRONGLY REJECTED</h3>
+            <p>
+              A Go utility <strong>library</strong> must have a single <code>go.mod</code>.
+              Multiple modules force consumers to <code>go get</code> each sub-module separately,
+              create version drift risk, and provide zero composability payoff for a cohesive
+              HTTP utility library. The <code>Middleware</code> type alias is the unifying
+              abstraction &mdash; every middleware composes through it. Splitting modules would
+              fragment this universal interface.
+            </p>
+          </div>
+        </section>
+
+        <section id="scoring">
+          <h2><span class="num">05</span>Dimension Scores</h2>
+          <div class="score-grid">
+            <div class="score-card score-good">
+              <div class="score">5/5</div>
+              <div class="score-label">Composability</div>
+              <div class="score-desc">Universal <code>func(http.Handler) http.Handler</code> signature. Zero adapters needed.</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">5/5</div>
+              <div class="score-label">Dependency Direction</div>
+              <div class="score-desc">Strict tree to stdlib + controlled deps. depguard-enforced.</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4/5</div>
+              <div class="score-label">Coupling</div>
+              <div class="score-desc">Interface-driven extension points. Minor unexported symbol sharing within flat package.</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4/5</div>
+              <div class="score-label">Cohesion</div>
+              <div class="score-desc">All code serves "HTTP utilities." Compression cluster is a focused subsystem.</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">4/5</div>
+              <div class="score-label">Modularity</div>
+              <div class="score-desc">API boundaries well-defined; internal file-level boundaries not compile-enforced (Go convention).</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4/5</div>
+              <div class="score-label">Scalability</div>
+              <div class="score-desc">New middleware = 1 file, 0 coupling. Watch root file count past ~50.</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">4/5</div>
+              <div class="score-label">Service Orientation</div>
+              <div class="score-desc">3 one-method extension interfaces. Library, not a service &mdash; appropriate.</div>
+            </div>
+          </div>
+          <div class="callout callout-solution">
+            <strong>Overall: 4.3/5 &mdash; Good</strong>
+            No urgent restructuring needed. The lowest-scoring dimension (Modularity at 4/5) is
+            structural: Go flat packages do not enforce internal boundaries at compile time. This
+            is the Go-idiomatic tradeoff for a utility library, not a defect.
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="num">06</span>Action Roadmap</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Recommendation</th>
+                <th>Priority</th>
+                <th>Effort</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><strong>Keep the flat package through v1.0.</strong> No structural changes before the stability commitment.</td>
+                <td><span class="badge badge-good">P3</span></td>
+                <td>S (none)</td>
+                <td>Now</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><strong>Revisit internal/compress/ extraction post-v1.0</strong> if root exceeds ~50 non-test files. The only viable folder structure that avoids circular imports.</td>
+                <td><span class="badge badge-warn">P2</span></td>
+                <td>M (15-20 files)</td>
+                <td>Post-v1.0</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><strong>Extract the 2 leaking constants.</strong> <code>headerContentType</code> (compression.go) and <code>defaultRequestIDHeader</code> (requestid.go) are unexported constants used by other files. Hoist to a shared <code>headers.go</code> to clarify they are shared infrastructure, not compression-specific.</td>
+                <td><span class="badge badge-warn">P2</span></td>
+                <td>S</td>
+                <td>Anytime</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><strong>Document the flat-package decision</strong> in AGENTS.md so future contributors and AI sessions understand the structure is deliberate, not accidental. Reference this review and the 2026-07-26 rejection.</td>
+                <td><span class="badge badge-good">P3</span></td>
+                <td>S</td>
+                <td>Anytime</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><strong>Never split into multiple go.mod modules.</strong> A library needs one import path. Record this as an architectural decision.</td>
+                <td><span class="badge badge-good">P3</span></td>
+                <td>S (none)</td>
+                <td>Permanent</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&diams;</span>Strengths</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Universal middleware signature</strong>
+                <span>Everything is <code>func(http.Handler) http.Handler</code> &mdash; maximal composability, zero adapters, any order.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Healthy growth pattern</strong>
+                <span>The last 3 features (CSRF, Server-Timing, KeyedRateLimiter) each added exactly 1 file with zero unexported cross-file deps. New middleware does not increase coupling.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>httpspec is a pure stdlib consumer</strong>
+                <span>The spec package validates any handler &mdash; reusable contract, not coupled to httputil internals.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Machine-enforced dependency policy</strong>
+                <span>depguard makes the zero-uncontrolled-deps guarantee structural, not aspirational. ~70 linters, 0 issues.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Three one-method extension interfaces</strong>
+                <span><code>RateLimiter</code>, <code>MetricsRecorder</code>, <code>WriterFactory</code> &mdash; ideal size, no convenience bloat.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Zero code duplication</strong>
+                <span><code>art-dupl --type-aware</code> reports 0 clone groups at every threshold from -t 2 to -t 25.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-08-05 &middot; Reviewed package boundaries, import graph, unexported
+          symbol coupling, cohesion groups, and folder structure options against v0.8.0 (77 Go
+          files, 10,055 lines). Supersedes the 2026-07-05 modularity review for the folder
+          question.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

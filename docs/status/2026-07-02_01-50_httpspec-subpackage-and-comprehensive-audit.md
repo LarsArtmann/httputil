@@ -180,3 +180,5 @@ This is a judgment call about lint policy that depends on the project owner's ph
 ## Resolution (2026-07-22)
 
 The "NOT STARTED" items in section c) are **all shipped**: `MiddlewareStack` (v0.4.0), `DetectCapabilities` (v0.4.0), rate limiting (v0.4.0), body size limit (v0.4.0), metrics middleware (v0.4.0), configurable content-type filtering (v0.4.0). The `makezero` warnings (section d) were suppressed with `//nolint:makezero` directives. The project is now at v0.5.0 with 13 middlewares, 18 specs, and 2 dependencies (`go-error-family` + `golang.org/x/time`).
+
+> **Final Resolution (2026-08-05, v0.8.0):** The progression continues. v0.7.0 added `IncomingHeader`/`ResponseHeader` renames and `DenyUnmatched` default flip. v0.7.1 closed compression + CORS + ETag coverage gaps. v0.8.0 (commit `8a77900`) shipped CSRF, Server-Timing, and KeyedRateLimit, bringing the suite to 16 middlewares, 3 dependencies (`go-error-family` + `golang.org/x/time` + `justinas/nosurf`), and 97.8% httputil / 98.3% httpspec coverage. The `httpspec` BDD subpackage is unchanged: 18 standard specs, 0 lint issues, 0 mod-time drift.

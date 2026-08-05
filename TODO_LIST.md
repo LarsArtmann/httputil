@@ -2,35 +2,51 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-07-31._
+_Updated: 2026-08-05 — sourced from v0.8.0.0 release cycle and 2026-08-05 docs-health pass._
 
 ---
 
 ## High Priority
 
-_All high-priority items completed in the 2026-07-31 session._
+The v0.8.0 release bottleneck tasks are complete. No high-priority items remain.
 
-- [x] **Close coverage gaps for new middleware** — coverage improved from 91.0% to 97.8%. All three new middleware (CSRF, Server-Timing, KeyedRateLimiter) now have comprehensive tests covering ValidateCSRF, TranslateCSRFHeaders, CSRFTokenHXHeaders, isTrustedProxy, Validate, delegatingWriter delegation, eviction heap, and callback paths. Remaining sub-100% functions are unreachable defensive code (json.Marshal error on map[string]string, crypto/rand panic paths, stale-heap mismatch branches).
-- [x] **Add `MiddlewareStack` name constants for new middleware** — `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit` added to `stack.go`.
+- [x] **Close coverage gaps for new middleware** — coverage closed from 91.0% to 97.8% httputil / 98.3% httpspec. All three new middleware (CSRF, Server-Timing, KeyedRateLimit) have comprehensive tests covering ValidateCSRF, TranslateCSRFHeaders, CSRFTokenHXHeaders, isTrustedProxy, Validate, delegatingWriter delegation, eviction heap, and callback paths. Remaining 14 sub-100% functions are unreachable defensive code paths (json.Marshal error on map[string]string, crypto/rand panic paths, stale-heap mismatch branches).
+- [x] **Add `MiddlewareStack` name constants for new middleware** — `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit` added to `stack.go` (commit `46dd59d`).
 
 ## Medium Priority
 
-_All medium-priority items completed in the 2026-07-31 session._
+Five items from the v0.7.0 → v0.8.0 cycle remain open. Each is bounded and well-scoped.
 
-- [x] **Add config field tables for `CSRFConfig` and `KeyedRateLimiterConfig` in README** — both tables added with all fields, types, defaults, and descriptions.
-- [x] **Add `Example*` functions for new middleware** — `ExampleCSRFMiddleware`, `ExampleServerTimingMiddleware`, `ExampleKeyedRateLimiterMiddleware` added with `// Output:` directives.
-- [x] **Add `v1-stability.md` entries for new types and functions** — all new types classified as Frozen/Additive with "New in v0.8.0" notes. Added CSRF Protection, Server-Timing, and expanded Rate Limiting sections. Updated Middleware* constants count from 9 to 12.
-- [x] **Fix `writeClassified` doc comment overclaim** — corrected to "Write-path error-handling choke point" and documents that buffer-drain writes in Close and flushPlainAndStream call `compressWriteError` directly.
-- [x] **Write deprecation migration guide** for `TokenBucketLimiter` to `KeyedRateLimiter` — `docs/migrating-to-keyed-rate-limiter.md` created with symbol mapping table, before/after code, behavioral differences table, and monitoring guide.
+- [ ] **Add CSRF fuzz tests** — fuzz origin matching, token validation, and TrustedCIDR parsing. CSRF processes untrusted input; existing coverage is deterministic via integration tests but a fuzz test would harden the security boundary. Estimated effort: 60min.
+- [ ] **Add `httpspec` spec for CORS headers** — extend `httpspec` with a check that validates `Vary: Origin`, `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials` semantics. Estimated effort: 30min.
+- [ ] **Add `httpspec` spec for rate-limit headers** — extend `httpspec` with `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` checks. Estimated effort: 30min.
+- [ ] **Add integration test for full middleware stack** — chain all 16 middlewares in recommended order, verify composition, and assert no order-dependent breakage. Estimated effort: 30min.
+- [ ] **Modernize `server_timing_bench_test.go`** — migrate `b.N` loops to `b.Loop()` (Go 1.24+ pattern) to clear 6 gopls warnings. Estimated effort: 10min.
 
 ## Low Priority
 
-_All low-priority items completed in the 2026-07-31 session._
+Polish and future work. Each is bounded and well-scoped.
 
-- [x] **Close remaining pre-v0.7.1 coverage gaps** — `Server.Shutdown` (75% → 100%) via context-expiry test with active connections. Remaining gaps (`computeETag` 94.4%, `scanAcceptEncoding` 95.5%, `Compression` 95.5%, `drawRandomBytes` 67%, `refillRandomBuffer` 87.5%, `httpspec.runSpecs` 88.2%, `httpspec.mustRequest` 75%) are error-injection or defensive code paths.
-- [x] **Pin GitHub Actions to commit SHAs** — all 5 actions pinned: `actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, `golangci/golangci-lint-action`, `softprops/action-gh-release`.
-- [x] **Update v0.7.1 GitHub Release notes** to match the corrected CHANGELOG — release notes updated via `gh release edit` to use Keep a Changelog format matching CHANGELOG.md exactly.
-- [x] **Add CHANGELOG comparison-link CI check** — `scripts/check-changelog-links.sh` created and added to CI workflow. Validates every heading has a matching link definition and vice versa.
+- [ ] **Add `BenchmarkKeyedRateLimiter`** — measure allow/reject throughput with various `MaxKeys` and `EvictionTTL` settings. Estimated effort: 30min.
+- [ ] **Add `BenchmarkCSRFMiddleware`** — measure per-request cost including nosurf integration. Estimated effort: 30min.
+- [ ] **Add `Example*` function for `KeyedRateLimiterMiddleware`** — required by `testableexamples` linter for full coverage. Estimated effort: 10min.
+- [ ] **Add `Example*` function for `ServerTimingMiddleware`** — required by `testableexamples` linter. Estimated effort: 10min.
+- [ ] **Add `Example*` function for `CSRFMiddleware`** — required by `testableexamples` linter. Estimated effort: 10min.
+- [ ] **Make README coverage badge dynamic** — wire coverage badge to CI output instead of hardcoded 97.8%. Estimated effort: 30min.
+- [ ] **Audit all `Validate()` methods for completeness** — verify `ServerConfig`, `CORSConfig`, `CompressionConfig`, `ETagConfig`, `RequestIDConfig`, `SecurityHeadersConfig`, `MetricsConfig`, `RateLimitConfig`, `KeyedRateLimiterConfig`, `CSRFConfig` all surface actionable errors. Estimated effort: 60min.
+
+## Won't Implement
+
+These items were considered and rejected, with reasoning:
+
+- **Remove `nopCloserWriter` / `nopFlushCloser`** — defensive scaffolding for the `WriterFactory` contract; only reachable via direct unit construction but kept for API safety. Documented in AGENTS.md.
+- **Add `MustNewTokenBucketLimiter`** — `TokenBucketLimiter` is deprecated; new code uses `KeyedRateLimiter`. Dead code.
+- **Property-based tests for token bucket** — existing benchmarks + integration tests cover the contract; rapid/quickcheck adds dependencies.
+- **Add `ServerConfig.TLSConfig` validation** — deferred to v1.0 (breaking schema change).
+- **Add request body decompression middleware** — deferred to v0.9.0 (ROADMAP).
+- **Add `context.Context` support in rate limiter interface** — deferred to v1.0 (API design).
+- **Add `AllowN` on rate limiter interface** — `KeyedRateLimiter` uses `MaxKeys`; `AllowN` is not the right primitive.
+- **Make `delegatingWriter` exported** — internal; not part of the public API.
 
 ---
 
