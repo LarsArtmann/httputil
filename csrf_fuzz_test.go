@@ -8,6 +8,29 @@ import (
 	"testing"
 )
 
+// isValidHTTPToken returns true if s contains only valid HTTP token characters
+// (RFC 7230 §3.2.6). httptest.NewRequest panics on inputs containing spaces,
+// control characters, or non-printable bytes — fuzz inputs frequently produce
+// these, so we filter them up front to avoid noise in the fuzzer.
+func isValidHTTPToken(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, r := range s {
+		if r <= ' ' || r >= 0x7F {
+			return false
+		}
+
+		switch r {
+		case '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=', '{', '}':
+			return false
+		}
+	}
+
+	return true
+}
+
 // FuzzCSRFConfig_TrustedProxiesCIDR verifies that Validate() never crashes when
 // given any user-supplied CIDR string. CSRF security depends on CIDR parsing
 // being total — an attacker who can pass garbage here must not be able to
@@ -37,7 +60,11 @@ func FuzzCSRFConfig_TrustedProxiesCIDR(f *testing.F) {
 		// IPNet entry (no entries skipped).
 		if len(cfg.TrustedProxies) == 1 && strings.Contains(cfg.TrustedProxies[0], "/") {
 			if len(cfg.TrustedProxiesCIDR) > 1 {
-				t.Errorf("Validate accepted %q but parsed multiple IPNets: %d", cidr, len(cfg.TrustedProxiesCIDR))
+				t.Errorf(
+					"Validate accepted %q but parsed multiple IPNets: %d",
+					cidr,
+					len(cfg.TrustedProxiesCIDR),
+				)
 			}
 		}
 	})
@@ -91,9 +118,9 @@ func FuzzCSRFIsTrustedProxy(f *testing.F) {
 	f.Add(strings.Repeat("x", 200), strings.Repeat("y", 200), strings.Repeat("z", 200))
 
 	f.Fuzz(func(t *testing.T, remoteHost, remoteIPStr, remoteAddr string) {
-		var ip net.IP
+		var parsedIP net.IP
 		if remoteIPStr != "" {
-			ip = net.ParseIP(remoteIPStr)
+			parsedIP = net.ParseIP(remoteIPStr)
 		}
 
 		cfg := CSRFConfig{
@@ -104,11 +131,11 @@ func FuzzCSRFIsTrustedProxy(f *testing.F) {
 		}
 
 		// Must not panic on any input — output is just a bool.
-		_ = isTrustedProxy(remoteHost, ip, remoteAddr, cfg)
+		_ = isTrustedProxy(remoteHost, parsedIP, remoteAddr, cfg)
 
-		// Also test with AllowPlaintextBypass enabled and disabled.
+		// Also test with AllowPlaintextBypass enabled.
 		cfg.AllowPlaintextBypass = true
-		_ = isTrustedProxy(remoteHost, ip, remoteAddr, cfg)
+		_ = isTrustedProxy(remoteHost, parsedIP, remoteAddr, cfg)
 	})
 }
 
@@ -126,8 +153,16 @@ func FuzzCSRFMiddleware_TokenValidation(f *testing.F) {
 	f.Add("POST", "value\r\nX-Injected: bad", "cookie\r\nBad: true")
 
 	f.Fuzz(func(t *testing.T, method, tokenValue, cookieValue string) {
+		// httptest.NewRequest panics on invalid method characters
+		// (space, control chars, etc.). Skip inputs that aren't valid
+		// HTTP tokens — this fuzzer targets CSRF behavior, not request
+		// construction.
 		if method == "" {
 			method = http.MethodGet
+		}
+
+		if !isValidHTTPToken(method) {
+			t.Skip("invalid HTTP method character")
 		}
 
 		mw := CSRFMiddleware(CSRFConfig{})
@@ -143,6 +178,7 @@ func FuzzCSRFMiddleware_TokenValidation(f *testing.F) {
 		}
 
 		if cookieValue != "" {
+			//nolint:gosec // test fixture — cookie values are intentionally fuzzed
 			req.AddCookie(&http.Cookie{
 				Name:  DefaultCSRFCookieName,
 				Value: cookieValue,
@@ -169,34 +205,6 @@ func FuzzCSRFMiddleware_TokenValidation(f *testing.F) {
 	})
 }
 
-// FuzzCSRFMatchWildcardOrigin verifies that matchWildcardOrigin is total: any
-// pattern and origin string must produce a deterministic bool without panicking.
-// While this is now delegated to CORS, the historical helper is still part of
-// the public surface — fuzzing prevents regressions.
-func FuzzCSRFMatchWildcardOrigin(f *testing.F) {
-	f.Add("*.example.com", "https://sub.example.com")
-	f.Add("*.example.com", "https://example.com")
-	f.Add("*", "https://anything.com")
-	f.Add("example.com", "https://example.com")
-	f.Add("", "")
-	f.Add(strings.Repeat("a", 500), strings.Repeat("b", 500))
-	f.Add("*.com*.evil", "evil.com")
-
-	f.Fuzz(func(t *testing.T, pattern, origin string) {
-		// matchWildcardOrigin is internal — exercise it via resolveOrigin
-		// which uses the same matching logic for non-wildcard patterns.
-		// Calling it via cfg validation is sufficient coverage.
-		cfg := CORSConfig{
-			AllowedOrigins:  []string{pattern},
-			DenyUnmatched:   true,
-			AllowAllOrigins: false,
-		}
-
-		// ResolveOrigin is total — no panic on any input
-		_ = cfg
-	})
-}
-
 // FuzzCSRFRemoteHostAndIP verifies remoteHostAndIP handles all malformed
 // RemoteAddr values. The plaintext-HTTP origin bypass extracts host/IP from
 // RemoteAddr — a crash here breaks origin validation entirely.
@@ -212,8 +220,55 @@ func FuzzCSRFRemoteHostAndIP(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, remoteAddr string) {
 		// Must not panic on any input
-		host, ip := remoteHostAndIP(remoteAddr)
+		host, parsedIP := remoteHostAndIP(remoteAddr)
 		_ = host
-		_ = ip
+		_ = parsedIP
+	})
+}
+
+// FuzzCSRFMiddleware_OriginHeaders verifies the middleware handles arbitrary
+// combinations of Origin / Referer / Sec-Fetch-Site headers without panicking.
+// These are the inputs that drive the plaintext-HTTP bypass decision — any
+// crash here is a CSRF protection bypass waiting to happen.
+func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
+	f.Add("https://example.com", "", "")
+	f.Add("", "https://example.com/page", "")
+	f.Add("", "", "same-origin")
+	f.Add("", "", "cross-site")
+	f.Add("", "", "none")
+	f.Add("https://evil.com", "https://example.com", "same-origin")
+	f.Add(strings.Repeat("a", 500), strings.Repeat("b", 500), strings.Repeat("c", 500))
+	f.Add("https://example.com\r\nX-Evil: 1", "", "")
+
+	f.Fuzz(func(t *testing.T, origin, referer, secFetchSite string) {
+		mw := CSRFMiddleware(CSRFConfig{
+			AllowPlaintextBypass: true,
+		})
+
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = "1.2.3.4:1234" // non-loopback, non-trusted
+		if origin != "" {
+			req.Header.Set("Origin", origin)
+		}
+
+		if referer != "" {
+			req.Header.Set("Referer", referer)
+		}
+
+		if secFetchSite != "" {
+			req.Header.Set("Sec-Fetch-Site", secFetchSite)
+		}
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		// Must not panic, must produce a valid HTTP status.
+		if rec.Code == 0 {
+			t.Errorf("recorder has no status code set")
+		}
 	})
 }
