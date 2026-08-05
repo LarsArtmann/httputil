@@ -6,18 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Changed
-
-- **Docs health pass (2026-08-05):** Annotated all `2026-07-*` and `2026-07-3*` historical status files inline with per-item resolution tables (every numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker).
-- **Docs health pass (2026-08-05):** Rebuilt `TODO_LIST.md` from scratch with grounded state (5 medium-priority items + 6 low-priority items + 8 won't-implement items).
-- **Docs health pass (2026-08-05):** Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory.
-- **Docs health pass (2026-08-05):** Updated `FEATURES.md` with the post-v0.8.0 feature inventory (97.8% httputil coverage, 13 documented defensive paths).
-- **Docs health pass (2026-08-05):** Expanded `CHANGELOG [0.8.0]` with the full session work (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure).
-- **Docs health pass (2026-08-05):** Updated `docs/DOMAIN_LANGUAGE.md` with CSRF Protection, Server-Timing, and KeyedRateLimiting bounded contexts, entities, commands, events, and rules (was stale since v0.7.x).
-
 ### Added
 
-- `TestMustRequestPanicsOnInvalidMethod` in `httpspec` — closes `mustRequest` from 75% to 100%. `httpspec` coverage improved from 98.3% to **98.9%**.
+- **`httpspec` CORS and rate-limit behavior specs** (`cors_ratelimit_specs.go`): 4 CORS specs (`SpecNameCORSAllowOrigin`, `SpecNameCORSAllowCredentials`, `SpecNameCORSVaryOrigin`, `SpecNameCORSWildcardNoCredentials`) and 3 rate-limit specs (`SpecNameRateLimitRetryAfter`, `SpecNameRateLimitHeaderOnReject`, `SpecNameRateLimitHintHeadersOnAllow`). All return `Pass()` for handlers that don't set CORS or rate-limit headers (opt-in).
+- **`KeyedRateLimiterConfig.Validate()`** (`ratelimit_keyed.go`): was the only config type missing validation. Validates rate, window, and burst.
+- **`SecurityHeadersConfig.Validate()`** hardened (`security.go`): replaced the prior no-op with real `FrameOptions` value validation per RFC 7034 §2.1 (rejects `ALLOW-FROM` and lowercase variants).
+- **`ServerConfig.Validate()`** hardened (`server.go`): rejects empty `Addr` and `ReadHeaderTimeout > ReadTimeout`.
+- **CSRF fuzz tests** (`csrf_fuzz_test.go`, 257 lines): 6 fuzz functions covering TrustedProxies CIDR parsing, TrustedOrigins parsing, `isTrustedProxy`, token validation, `remoteHostAndIP`, and origin-header validation.
+- **`BenchmarkKeyedRateLimiter`** (`ratelimit_keyed_bench_test.go`): 6 variants (Allow, Reject, HighCardinality, EmptyKey, EvictionOverhead, ClientIPExtractor).
+- **`BenchmarkCSRFMiddleware`** (`csrf_bench_test.go`): 6 variants (GET, POSTWithToken, POSTRejection, PostForm, ConfigValidate, TokenFromContext).
+- **Full-stack integration test** (`stack_integration_test.go`): chains all 12 `Middleware*` constants + ClientIP + ServerTiming across 5 parallel subtests (GET headers, POST CSRF rejection, OPTIONS preflight, panic recovery, rate-limit headers).
+- **Dynamic coverage badge** (`scripts/update-coverage-badge.sh` + CI step): computes coverage via `go tool cover -func`, picks color by threshold, rewrites the badge line in `README.md` in-place.
+- **`TestMustRequestPanicsOnInvalidMethod`** (`httpspec`): closes `mustRequest` from 75% to 100%.
+- **`docs/DOMAIN_LANGUAGE.md`** updated with CSRF Protection, Server-Timing, and KeyedRateLimiting bounded contexts (was stale since v0.7.x).
+
+### Fixed
+
+- **Data race in `httpspec` rate-limit spec test** (`cors_ratelimit_specs_test.go`): a shared `map[string]int` closure was accessed from 3 parallel subtests' goroutines. Each subtest now owns a private handler instance. Detected by `go test -race`; invisible to `go test -count=1`.
+- **Data race in `stack_integration_test.go`**: a shared `atomic.Bool` across 5 parallel subtests. Each subtest now owns its own `called` flag and handler.
+- **`AGENTS.md` race-detection documentation**: `go test -race` is now labeled as REQUIRED for tests with `t.Parallel()` or shared state, with an explicit warning that `go test -count=1` does NOT detect data races.
+
+### Changed
+
+- `server_timing_bench_test.go` migrated from `b.N` loops to `b.Loop()` (Go 1.24+ pattern), clearing 6 gopls warnings.
+- Historical status reports (`docs/status/2026-07-*` through `2026-07-3*`) annotated inline with per-item resolution tables.
+- Living docs (`TODO_LIST.md`, `ROADMAP.md`, `FEATURES.md`, `CHANGELOG.md`) rebuilt for post-v0.8.0 accuracy: coverage figures corrected to 97.8% httputil / 96.0% httpspec, WORTH CONSIDERING split brains resolved, done items removed from TODO_LIST.
 
 ## [0.8.0] - 2026-07-31
 
@@ -36,7 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `docs/v1-stability.md` — all new types classified as Frozen/Additive. New sections: CSRF Protection (17 rows), Server-Timing (10 rows), expanded Rate Limiting (12 rows). Middleware constants count updated from 9 to 12.
 - `docs/RELEASE.md` — added pre-release self-review step.
-- `coverage` improved from 91.0% to 97.8% (`httputil`) / 98.3% (`httpspec`). New middleware (CSRF, Server-Timing, KeyedRateLimit) and pre-existing functions (`Server.Shutdown`, `id_generator.go`) closed to 100% or documented as defensive code paths. `httpspec.mustRequest` remains at 75% (permanent defensive path — `httptest.NewRequest` panics rather than returning the error branch).
+- `coverage` improved from 91.0% to 97.8% (`httputil`) / 98.3% (`httpspec`). New middleware (CSRF, Server-Timing, KeyedRateLimit) and pre-existing functions (`Server.Shutdown`, `id_generator.go`) closed to 100% or documented as defensive code paths. `httpspec.mustRequest` was at 75% at release (defensive path — `httptest.NewRequest` panics rather than returning the error branch); closed to 100% post-release (see [Unreleased]).
 - `writeClassified` doc comment corrected from "single error-handling choke point" to "Write-path error-handling choke point" — documents that buffer-drain writes in `Close` and `flushPlainAndStream` call `compressWriteError` directly.
 - `AGENTS.md` — error classification table expanded with CSRF error family (Rejection + Infrastructure).
 - `CONTRIBUTING.md` — allowed dependencies updated to include `github.com/justinas/nosurf`.

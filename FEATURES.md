@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and 2026-08-05 docs-health pass. All claims verified against current source._
+_Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and post-release execution sweep. All claims verified against current source with `go test -race -coverprofile`._
 
 ---
 
@@ -161,8 +161,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` passes across the full suite with **97.8% statement coverage** (`httputil`), **98.9%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
-- 12 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag, RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, and Server-Timing (header value + middleware). CORS, query params, eviction, health, and compression fuzz tests verified with `-fuzztime`.
+- `go test -race ./...` passes across the full suite with **97.8% statement coverage** (`httputil`), **96.0%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
+- 18 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag, RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
+- 35 benchmarks and 23 example functions across both packages.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
@@ -183,9 +184,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage — 13 sub-100% functions (defensive code paths)
+### Test Coverage — 18 sub-100% functions (defensive code paths)
 
-Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), **98.9%** (`httpspec`). The pre-v0.8.0 codebase was at 91.0% with new middleware; v0.8.0 closed coverage to 97.8%. The remaining 13 sub-100% functions are documented defensive code paths:
+Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), **96.0%** (`httpspec`). The remaining 18 sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
@@ -195,9 +196,17 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 - `csrf.go:577 ValidateCSRF` — 92.9%. Nosurf TrustedOrigins parse failure paths.
 - `compression.go:171 Compression` — 95.5%. Vary-header identity-append edge (reachable only via direct unit construction).
 - `compression_negotiator.go:148 scanAcceptEncoding` — 95.5%. q-value tie-break with identical values (low priority).
-- `ratelimit_keyed.go:131 buildKeyedRateLimiter` — 92.9%. Defensive config validation edge.
-- `ratelimit_keyed.go:248 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
-- `ratelimit_keyed.go:312 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
+- `ratelimit_keyed.go:160 buildKeyedRateLimiter` — 92.9%. Defensive config validation edge.
+- `ratelimit_keyed.go:277 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
+- `ratelimit_keyed.go:341 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
+
+**`httpspec` spec coverage gaps (new `cors_ratelimit_specs.go`):**
+
+- `cors_ratelimit_specs.go:125 corsAllowCredentialsCheck` — 80.0%. Handler setting `Access-Control-Allow-Origin` without `Access-Control-Allow-Credentials`.
+- `cors_ratelimit_specs.go:154 corsVaryOriginCheck` — 90.9%. Handler setting CORS headers without `Vary: Origin`.
+- `cors_ratelimit_specs.go:206 rateLimitRetryAfterCheck` — 85.7%. Rate-limit rejection without `Retry-After` header.
+- `cors_ratelimit_specs.go:230 rateLimitHeaderOnRejectCheck` — 84.6%. Rate-limit rejection without `X-RateLimit-*` headers.
+- `cors_ratelimit_specs.go:264 rateLimitHintHeadersOnAllowCheck` — 81.2%. Rate-limit allow without hint headers.
 
 **Pre-existing (error-injection / internal paths):**
 
@@ -206,7 +215,7 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
 - `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
 
-**Honest assessment:** The remaining 13 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
+**Honest assessment:** The remaining 18 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, (c) test handlers that exercise partial-header edge cases in the new CORS/rate-limit specs, or (d) test infrastructure that doesn't exist in this project.
 
 ---
 
@@ -220,13 +229,10 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 
 ## WORTH CONSIDERING
 
-- **Request body decompression middleware** — counterpart to `Compression` for decompressing gzip-encoded request bodies. Targeted for v0.9.0. Round-trip symmetry with response compression.
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
-- **Streaming ETag option** — evaluated and rejected. HTTP requires headers before body, so buffering is mandatory. The current FNV-64a + 1MB buffer approach is correct and optimal.
-- **HTTP/2 Server Push integration test** — removed, HTTP/2 push is deprecated.
-- **`httpspec` spec for CORS headers** — extend `httpspec` with CORS behavior validation. Roadmap item.
-- **`httpspec` spec for rate-limit headers** — extend `httpspec` with `Retry-After`, `X-RateLimit-*` checks. Roadmap item.
-- **Property-based tests for token bucket** — extend test suite with rapid/quickcheck for token bucket math. Roadmap item.
-- **Integration test for full middleware stack** — chain all 16 middlewares in recommended order. Roadmap item.
-- **Dynamic README coverage badge** — wire to CI output instead of hardcoded value. Low priority.
-- **Rate limiter `context.Context` cancellation** — add `context.Context` support to the rate limiter interface. Roadmap item.
+- **Rate limiter `context.Context` cancellation** — add `context.Context` support to the rate limiter interface. Deferred to v1.0 (API design decision). See [ROADMAP.md](ROADMAP.md).
+- **Benchmark for `compression_negotiator.go`** — the negotiation logic runs on every request but has no dedicated benchmark.
+- **Benchmark for `Metrics` middleware** — wraps every request via `MetricsRecorder.Record`; throughput is undocumented.
+- **Benchmark for `HealthHandler` / `LiveHandler` / `ReadyHandler`** — tiny handlers but no baseline established.
+- **Fuzz test for ETag conditional requests** — `If-Match` / `If-None-Match` combinations.
+- **Fuzz test for `compressWriter` state machine** — the 4 state transitions (plain, compress, closed, hijacked) are hand-written.
