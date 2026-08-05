@@ -33,6 +33,7 @@ func BenchmarkKeyedRateLimiter_Allow(b *testing.B) {
 		"10.0.0.5:1234",
 	}
 
+	//nolint:makezero // pre-allocated with known length, not append
 	requests := make([]*http.Request, len(keys))
 
 	for i, addr := range keys {
@@ -43,9 +44,12 @@ func BenchmarkKeyedRateLimiter_Allow(b *testing.B) {
 
 	b.ReportAllocs()
 
+	i := 0
+
 	for b.Loop() {
 		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, requests[b.LoopN()%len(requests)])
+		handler.ServeHTTP(rec, requests[i%len(requests)])
+		i++
 	}
 }
 

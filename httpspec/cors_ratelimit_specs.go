@@ -295,7 +295,10 @@ func rateLimitHintHeadersOnAllowCheck() Check {
 // and returns the first 429 response, or ok=false if no 429 is produced.
 // This is a test fixture for rate-limit checks — we don't know if a handler
 // actually rate-limits, so we probe first.
-func firstTooManyRequests(handler http.Handler, remoteAddr string) (*httptest.ResponseRecorder, bool) {
+func firstTooManyRequests(
+	handler http.Handler,
+	remoteAddr string,
+) (*httptest.ResponseRecorder, bool) {
 	for range 100 {
 		req := mustRequest(http.MethodGet, "/")
 		req.RemoteAddr = remoteAddr
