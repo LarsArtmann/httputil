@@ -5,6 +5,8 @@
 **Commit:** `78bb583` ("docs: synchronize project documentation with shipped changes") — auto-committed by hook
 **Files touched:** 19 (5 living docs + 14 historical annotations)
 
+> **Resolution (2026-08-05):** v0.8.0 (commit `8a77900`) shipped with CSRF, Server-Timing, and KeyedRateLimit. The 3 lint failures (`paralleltest`) and 14/18 historical annotations from this report are now superseded by the v0.7.0+v0.7.1+v0.8.0 cycle. The 3 HTML files with stale metric cards have inline correction banners. CONTRIBUTING.md and DOMAIN_LANGUAGE.md are current. All 50 next-step items are resolved in the resolution table below.
+
 ---
 
 ## a) FULLY DONE
@@ -295,3 +297,65 @@ See `2026-07-22_11-01_flake-fix-and-doc-corrections.md` for the follow-up sessio
 ---
 
 > **Resolution (2026-07-26, v0.6.1):** The `GOEXPERIMENT=jsonv2` build requirement referenced throughout this report (sections d, e.5, f.5-7, g.Q3) was fully eliminated in v0.6.1. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1. The `GOEXPERIMENT` workaround was removed from `flake.nix` (all insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...`, `go test ./...`, and `go get` now work without any experiment flag. Item f.15 (6 config field tables) is also now done.
+
+> **Final Resolution (2026-08-05, v0.8.0):** v0.8.0 shipped. All 50 next-step items are resolved below. The `#1 tenant` of this report — "run `golangci-lint run` FIRST, not last" — is now codified in `docs/RELEASE.md` release checklist. Per-item status table below.
+
+---
+
+## Final Resolution (2026-08-05) — per-item status
+
+| Item | Status |
+| --- | --- |
+| 1. Fix 3 paralleltest lint failures | **Done at `2c0cf36` (v0.7.1).** |
+| 2. Inline-correct modularity.html metric cards | **Done at `71e0fd4`.** |
+| 3. Inline-correct full-code-review.html metric cards | **Done at `71e0fd4`.** |
+| 4. Inline-correct code-quality-scan.html metric cards | **Done at `71e0fd4`.** |
+| 5. Resolve GOEXPERIMENT=jsonv2 build requirement | **Done at v0.6.1.** Downgrade to v1. |
+| 6. Set GOEXPERIMENT=jsonv2 in flake devShell | **Done at v0.6.1.** No longer needed. |
+| 7. Verify health.go json.MarshalWrite requires Go 1.27 | **N/A.** Downgrade path. |
+| 8. Push v0.5.0 tag to origin | **Done at `6d7c10a` (v0.7.0).** |
+| 9. Decide tag v0.6.0 or batch | **Done.** v0.6.0 tagged. |
+| 10. Add CHANGELOG comparison links | **Done.** |
+| 11. Audit DOMAIN_LANGUAGE.md | **Done.** |
+| 12. Check CONTRIBUTING.md | **Done.** |
+| 13. Update D2 diagrams | **Done.** |
+| 14. Regenerate SVGs from updated D2 | **Done.** |
+| 15. Add 6 config field tables to README | **Done at `eb84a82` (v0.7.0).** |
+| 16. Create ROADMAP.md | **Done at v0.7.0.** |
+| 17. Add TokenBucketLimiter benchmark | **Done at v0.7.0.** |
+| 18. Add body-before-hijack WebSocket test | **Accepted as limitation.** |
+| 19. Mutation-test ETag path | **Done at v0.7.0.** |
+| 20. Close compression error-branch gap | **Done at v0.7.1.** |
+| 21. Close CORS wildcard edge gap | **Done at v0.7.1.** |
+| 22. Close ResponseRecorder hijack failure gap | **Done at v0.7.1.** |
+| 23. Add fuzz test for ParseUintQuery | **Done at v0.7.0.** |
+| 24. Add Example* for ParseUintQuery | **Done at v0.7.0.** |
+| 25. Add Example* for ReadyHandlerWithProbe | **Done at v0.7.0.** |
+| 26. Add Example* for DenyUnmatched | **Won't implement.** |
+| 27. Add MustNewTokenBucketLimiter | **Won't implement.** Deprecated API. |
+| 28. Add Retry-After to RateLimit | **Done at v0.8.0 in KeyedRateLimit.** |
+| 29. Document middleware ordering | **Done.** |
+| 30. Add brotli/zstd WriterFactory example | **Done at v0.7.0.** |
+| 31. Add Redis RateLimiter example | **Done at v0.7.0.** |
+| 32. Evaluate AllowN on RateLimiter interface | **Won't implement.** |
+| 33. context.Context support in rate limiter | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| 34. Add Prometheus MetricsRecorder example | **Done at v0.7.0.** |
+| 35. Add request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| 36. httpspec spec for CORS headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| 37. Add RateLimitConfig Validate success path | **Done at v0.7.0.** |
+| 38. Add MetricsConfig Validate success path | **Done at v0.7.0.** |
+| 39. Test rate limiter with IPv6 RemoteAddr | **Done at v0.8.0.** |
+| 40. Property-based tests for token bucket | **Won't implement.** |
+| 41. Audit all Validate() methods | **Done.** |
+| 42. ServerConfig.TLSConfig validation | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| 43. httpspec.ExpectJSON/ExpectHTML | **Won't implement in v0.8.0.** Deferred. |
+| 44. Content-Length preservation test | **Won't implement in v0.8.0.** Deferred. |
+| 45. Test compression with Accept-Encoding: br | **Won't implement in v0.8.0.** |
+| 46. Compression writer pool reuse test | **Done at v0.7.1.** |
+| 47. Test ETag with weak indicator | **Done at v0.7.1.** |
+| 48. Test ETag buffer overflow streaming | **Done at v0.7.1.** |
+| 49. Run govulncheck locally | **Done.** |
+| 50. Full nix flake check | **Done at v0.8.0.** |
+| Q1 — Fix paralleltest now or later? | **Answered: fixed at v0.7.1.** |
+| Q2 — Push v0.5.0 or skip to v0.6.0? | **Answered: pushed v0.5.0, then v0.6.0.** |
+| Q3 — jsonv2 keep or revert? | **Answered: reverted at v0.6.1.** |

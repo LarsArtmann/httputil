@@ -124,3 +124,5 @@ Nothing catastrophic. No data loss, no broken builds, no reverted commits, no fa
 | Q3 — Pin `benchstat` in flake.nix?                                                                    | **Not done.** `benchstat` is not in the devShell; benchmark A/B still relies on allocs as the gate.                                                                                                                                               |
 
 The core deliverable (0 clone groups at all thresholds) was confirmed correct and remains true as of v0.7.1.
+
+> **Final Resolution (2026-08-05):** The `writeClassified` doc comment at v0.8.0 (commit `e13674d`) was corrected to "Write-path error-handling choke point" — closing the d.1 issue. CHANGELOG `[0.8.0]` documents the session work. The 14 sub-100% functions in compress_writer.go + compress_pool.go remain at 100% — verified by `go test -race -coverprofile` at v0.8.0. The remaining infrastructure (unifying `Close()` error paths, `streamClassified` thinness, scratch files, `benchstat` pinning) is documented as low-priority polish and deferred.

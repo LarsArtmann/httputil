@@ -5,6 +5,8 @@
 **Starting point:** Previous status report (`2026-07-22_07-46_docs-health-and-update-old-docs-session.md`) identified 3 critical failures + 4 untouched D2/SVG files
 **Commits:** `a933df1`, `5ac9571`, `46351f1`, `71e0fd4` (auto-committed by hook)
 
+> **Resolution (2026-08-05):** v0.6.1 (commit `7371dac`) and v0.7.0 (commit `b4d5fa2`) shipped. All session deliverables are now in the v0.8.0 release. jsonv2 root cause eliminated at v0.6.1 (health.go downgraded). PACKAGE.jsonv2 doesn't appear anywhere in the codebase. Per-item status table below.
+
 ---
 
 ## a) FULLY DONE
@@ -303,6 +305,84 @@ The metrics snapshot above was accurate at session close. Subsequent commits res
 
 **Still open:** the `encoding/json/v2` root cause (sections g.Q1 / e.5) remains unresolved — `health.go` still imports `encoding/json/v2` and `GOEXPERIMENT=jsonv2` is still set in `flake.nix` (7 insertion points). The flake workaround (this session's deliverable) means `nix develop` and all `nix run .#*` apps build without manual env vars, but `go get` consumers outside Nix still hit a build failure. See TODO_LIST "Resolve `encoding/json/v2` permanently".
 
+> **Final Resolution (2026-07-26, v0.6.1):** The `encoding/json/v2` root cause described above as "still open" is now **fully resolved**. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1 (`json.NewEncoder`), eliminating the `GOEXPERIMENT=jsonv2` requirement and the Go 1.27 API dependency entirely. The `GOEXPERIMENT` workaround was removed from `flake.nix` (all 7 insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...` and `go get` now work without any experiment flag. The answer to Q1 ("should jsonv2 be kept or reverted?") was: **reverted** — the health handler's tiny 2-field struct gains nothing from jsonv2.
+
+> **Final Resolution (2026-08-05, v0.8.0):** v0.8.0 (commit `8a77900`) shipped with CSRF, Server-Timing, and KeyedRateLimit. All previous deliverables from this report remain stable. Per-item status table below.
+
 ---
 
-> **Final Resolution (2026-07-26, v0.6.1):** The `encoding/json/v2` root cause described above as "still open" is now **fully resolved**. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1 (`json.NewEncoder`), eliminating the `GOEXPERIMENT=jsonv2` requirement and the Go 1.27 API dependency entirely. The `GOEXPERIMENT` workaround was removed from `flake.nix` (all 7 insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...` and `go get` now work without any experiment flag. The answer to Q1 ("should jsonv2 be kept or reverted?") was: **reverted** — the health handler's tiny 2-field struct gains nothing from jsonv2.
+## Final Resolution (2026-08-05) — per-item status
+
+| Item | Status |
+| --- | --- |
+| 1. GOEXPERIMENT=jsonv2 encoded in flake.nix | **Removed at v0.6.1.** Go 1.26.5 + `encoding/json` v1 used. |
+| 2. DOMAIN_LANGUAGE.md audited (8 edits) | **Done.** DOMAIN_LANGUAGE.md updated at v0.8.0. |
+| 3. CONTRIBUTING.md fully rewritten | **Done.** Current at v0.8.0. |
+| 4. Three HTML files inline-corrected | **Done.** All 3 have inline banners. |
+| 5. D2 diagrams updated + SVGs regenerated | **Done.** New D2 files include `justinas/nosurf` (CSRF) and `golang.org/x/time` (rate limiter). |
+| 6. TODO_LIST.md cleaned up | **Done.** Rebuilt 2026-08-05. |
+| 7. AGENTS.md commands section updated | **Done.** |
+| 8. Full quality gate passed | **Done.** |
+| b.1 — modularity.html body still says "28 files" | **Done.** Documented post-`compress/` rejection. |
+| b.2 — Previous session's report not annotated | **Done.** |
+| c.1 — CHANGELOG [Unreleased] empty | **Done.** Promoted to v0.8.0. |
+| c.2 — nix flake check full | **Done.** |
+| c.3 — README.md full audit | **Done at v0.8.0.** |
+| c.4 — ROADMAP.md creation | **Done at v0.7.0.** |
+| c.5 — flake.lock state | **Done.** Stable. |
+| d.1 — Did not annotate previous session | **Resolved.** |
+| d.2 — Did not update CHANGELOG [Unreleased] | **Resolved.** |
+| d.3 — Partially fixed HTML files | **Resolved.** |
+| f.1 — Annotate 2026-07-22_07-46 | **Done.** |
+| f.2 — Populate CHANGELOG [Unreleased] | **Done.** |
+| f.3 — Fix modularity.html line 636 | **Done.** |
+| f.4 — Run nix run .#build | **Done at v0.6.1.** |
+| f.5 — Run nix run .#test | **Done at v0.6.1.** |
+| f.6 — Run nix run .#lint | **Done at v0.6.1.** |
+| f.7 — Full nix flake check | **Done at v0.8.0.** |
+| f.8 — Decide jsonv2 fix | **Done at v0.6.1.** Downgrade chosen. |
+| f.9 — If upgrading: check nixpkgs has go_1_27 | **N/A.** Downgrade path. |
+| f.10 — If downgrading: rewrite health.go | **Done at v0.6.1.** |
+| f.11 — Remove GOEXPERIMENT from flake.nix | **Done at v0.6.1.** |
+| f.12 — Full README.md audit | **Done at v0.8.0.** |
+| f.13 — Add remaining config field tables | **Done at v0.7.0.** |
+| f.14 — Create ROADMAP.md | **Done at v0.7.0.** |
+| f.15 — Add CHANGELOG comparison links | **Done.** |
+| f.16 — DOMAIN_LANGUAGE.md Compression Level | **Done.** |
+| f.17 — Add TokenBucketLimiter benchmark | **Done at v0.7.0.** |
+| f.18 — Add body-before-hijack test | **Accepted as limitation.** |
+| f.19 — Mutation-test ETag path | **Done at v0.7.0.** |
+| f.20 — Add fuzz test for ParseUintQuery | **Done at v0.7.0.** |
+| f.21 — Add Example* for ParseUintQuery | **Done at v0.7.0.** |
+| f.22 — Close compression error-branch gap | **Done at v0.7.1.** |
+| f.23 — Close CORS wildcard edge gap | **Done at v0.7.1.** |
+| f.24 — Add RateLimitConfig Validate success path | **Done at v0.7.0.** |
+| f.25 — Add MetricsConfig Validate success path | **Done at v0.7.0.** |
+| f.26 — Test rate limiter with IPv6 RemoteAddr | **Done at v0.8.0.** |
+| f.27 — Property-based tests for token bucket | **Won't implement.** |
+| f.28 — Add MustNewTokenBucketLimiter | **Won't implement.** Deprecated API. |
+| f.29 — Add Retry-After to RateLimit | **Done at v0.8.0 in KeyedRateLimit.** |
+| f.30 — Document middleware ordering | **Done.** |
+| f.31 — Add brotli/zstd WriterFactory example | **Done at v0.7.0.** |
+| f.32 — Add Redis RateLimiter example | **Done at v0.7.0.** |
+| f.33 — Evaluate AllowN on RateLimiter interface | **Won't implement.** KeyedRateLimiter uses MaxKeys. |
+| f.34 — context.Context support in rate limiter | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| f.35 — Add Prometheus MetricsRecorder example | **Done at v0.7.0.** |
+| f.36 — Add request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.37 — httpspec spec for CORS headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
+| f.38 — httpspec.ExpectJSON/ExpectHTML | **Won't implement in v0.8.0.** Deferred. |
+| f.39 — Content-Length preservation test | **Won't implement in v0.8.0.** Deferred. |
+| f.40 — Test compression with Accept-Encoding: br | **Won't implement in v0.8.0.** |
+| f.41 — Compression writer pool reuse test | **Done at v0.7.1.** |
+| f.42 — Test ETag with weak indicator | **Done at v0.7.1.** |
+| f.43 — Test ETag buffer overflow streaming | **Done at v0.7.1.** |
+| f.44 — Run govulncheck locally | **Done.** |
+| f.45 — Full nix flake check | **Done.** |
+| f.46 — Audit all Validate() methods | **Done.** |
+| f.47 — ServerConfig.TLSConfig validation | **Won't implement in v0.8.0.** Deferred to v1.0. |
+| f.48 — Remove auto-commit hook | **Acknowledged.** User-trusted. |
+| f.49 — Pin D2 layout engine version | **Won't implement.** D2 is dev-only. |
+| f.50 — CONTRIBUTING.md GOEXPERIMENT permanent/temporary | **Resolved at v0.6.1.** GOEXPERIMENT removed. |
+| Q1 — jsonv2 fix | **Resolved at v0.6.1.** Downgrade. |
+| Q2 — Auto-commit hook removal | **Acknowledged.** User-trusted. |
+| Q3 — go.mod version 1.26.4 pin | **Done.** Bumped to 1.26.5. |
