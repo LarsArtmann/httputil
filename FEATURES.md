@@ -161,7 +161,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.8% statement coverage** (`httputil`), **96.0%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
+- `go test -race ./...` passes across the full suite with **97.6% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
 - 18 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag, RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
 - 35 benchmarks and 23 example functions across both packages.
 - `go vet` clean.
@@ -185,9 +185,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage — 18 sub-100% functions (defensive code paths)
+### Test Coverage — 14 sub-100% functions (defensive code paths)
 
-Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), **96.0%** (`httpspec`). The remaining 18 sub-100% functions are documented defensive code paths:
+Measured 2026-08-05 with `go test -race -coverprofile`: **97.6%** (`httputil`), **99.3%** (`httpspec`). The remaining 14 sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
@@ -197,17 +197,10 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 - `csrf.go:577 ValidateCSRF` — 92.9%. Nosurf TrustedOrigins parse failure paths.
 - `compression.go:171 Compression` — 95.5%. Vary-header identity-append edge (reachable only via direct unit construction).
 - `compression_negotiator.go:148 scanAcceptEncoding` — 95.5%. q-value tie-break with identical values (low priority).
-- `ratelimit_keyed.go:160 buildKeyedRateLimiter` — 92.9%. Defensive config validation edge.
-- `ratelimit_keyed.go:277 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
-- `ratelimit_keyed.go:341 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
-
-**`httpspec` spec coverage gaps (new `cors_ratelimit_specs.go`):**
-
-- `cors_ratelimit_specs.go:125 corsAllowCredentialsCheck` — 80.0%. Handler setting `Access-Control-Allow-Origin` without `Access-Control-Allow-Credentials`.
-- `cors_ratelimit_specs.go:154 corsVaryOriginCheck` — 90.9%. Handler setting CORS headers without `Vary: Origin`.
-- `cors_ratelimit_specs.go:206 rateLimitRetryAfterCheck` — 85.7%. Rate-limit rejection without `Retry-After` header.
-- `cors_ratelimit_specs.go:230 rateLimitHeaderOnRejectCheck` — 84.6%. Rate-limit rejection without `X-RateLimit-*` headers.
-- `cors_ratelimit_specs.go:264 rateLimitHintHeadersOnAllowCheck` — 81.2%. Rate-limit allow without hint headers.
+- `ratelimit_keyed.go:165 buildKeyedRateLimiter` — 92.9%. Defensive config validation edge.
+- `ratelimit_keyed.go:282 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
+- `ratelimit_keyed.go:346 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
+- `security.go:92 SecurityHeaders` — 84.2%. Custom header application edge cases.
 
 **Pre-existing (error-injection / internal paths):**
 
@@ -216,7 +209,7 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
 - `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
 
-**Honest assessment:** The remaining 18 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, (c) test handlers that exercise partial-header edge cases in the new CORS/rate-limit specs, or (d) test infrastructure that doesn't exist in this project.
+**Honest assessment:** The remaining 14 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
 
 ---
 

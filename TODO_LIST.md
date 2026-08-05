@@ -8,7 +8,7 @@ _Updated: 2026-08-05 — sourced from the 2026-08-05 status report harvest. All 
 
 ## Medium Priority
 
-- [ ] **Close coverage gaps in `cors_ratelimit_specs.go`** — 5 functions at 80-91%: `corsAllowCredentialsCheck` (80%), `corsVaryOriginCheck` (90.9%), `rateLimitRetryAfterCheck` (85.7%), `rateLimitHeaderOnRejectCheck` (84.6%), `rateLimitHintHeadersOnAllowCheck` (81.2%). These are the edge-case branches in the new httpspec specs (handlers that partially set CORS/rate-limit headers). Estimated effort: 30min.
+_(none — all medium-priority items shipped in this session)_
 
 ## Low Priority
 

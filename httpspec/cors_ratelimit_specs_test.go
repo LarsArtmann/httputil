@@ -266,3 +266,250 @@ func TestValidateNonNegativeInt(t *testing.T) {
 		})
 	}
 }
+
+func TestCORSSpecs_FailOnInvalidCredentials(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "https://example.com")
+		w.Header().Set("Access-Control-Allow-Credentials", "yes")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range CORSSpecs() {
+		if spec.Name != SpecNameCORSAllowCredentials {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if result.OK {
+			t.Errorf("expected credentials spec to fail with invalid value")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameCORSAllowCredentials not found in CORSSpecs")
+}
+
+func TestCORSSpecs_PassWithoutCredentialsHeader(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "https://example.com")
+		w.Header().Set("Vary", "Origin")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range CORSSpecs() {
+		if spec.Name != SpecNameCORSAllowCredentials {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if !result.OK {
+			t.Errorf("expected credentials spec to pass when header is absent")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameCORSAllowCredentials not found in CORSSpecs")
+}
+
+func TestRateLimitSpecs_FailOn429WithoutRetryAfter(t *testing.T) {
+	t.Parallel()
+
+	counts := make(map[string]int)
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		counts[r.RemoteAddr]++
+
+		if counts[r.RemoteAddr] <= 2 {
+			w.WriteHeader(http.StatusTooManyRequests)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range RateLimitSpecs() {
+		if spec.Name != SpecNameRateLimitRetryAfter {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if result.OK {
+			t.Errorf("expected retry-after spec to fail on 429 without Retry-After")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameRateLimitRetryAfter not found in RateLimitSpecs")
+}
+
+func TestRateLimitSpecs_FailOnNegativeRetryAfter(t *testing.T) {
+	t.Parallel()
+
+	counts := make(map[string]int)
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		counts[r.RemoteAddr]++
+
+		if counts[r.RemoteAddr] <= 2 {
+			w.Header().Set("Retry-After", "-5")
+			w.WriteHeader(http.StatusTooManyRequests)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range RateLimitSpecs() {
+		if spec.Name != SpecNameRateLimitHeaderOnReject {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if result.OK {
+			t.Errorf("expected header spec to fail on negative Retry-After")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameRateLimitHeaderOnReject not found in RateLimitSpecs")
+}
+
+func TestRateLimitSpecs_PassOn429WithoutRetryAfterForHeaderCheck(t *testing.T) {
+	t.Parallel()
+
+	counts := make(map[string]int)
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		counts[r.RemoteAddr]++
+
+		if counts[r.RemoteAddr] <= 2 {
+			w.WriteHeader(http.StatusTooManyRequests)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range RateLimitSpecs() {
+		if spec.Name != SpecNameRateLimitHeaderOnReject {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if !result.OK {
+			t.Errorf("expected header spec to pass when Retry-After is absent: %s", result.Message)
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameRateLimitHeaderOnReject not found in RateLimitSpecs")
+}
+
+func TestRateLimitSpecs_FailOnInvalidHintHeaders(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("X-RateLimit-Limit", "not-a-number")
+		w.Header().Set("X-RateLimit-Remaining", "1")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range RateLimitSpecs() {
+		if spec.Name != SpecNameRateLimitHintHeadersOnAllow {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if result.OK {
+			t.Errorf("expected hint spec to fail with invalid X-RateLimit-Limit")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameRateLimitHintHeadersOnAllow not found in RateLimitSpecs")
+}
+
+func TestRateLimitSpecs_FailOnNegativeHintHeader(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("X-RateLimit-Remaining", "-1")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range RateLimitSpecs() {
+		if spec.Name != SpecNameRateLimitHintHeadersOnAllow {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if result.OK {
+			t.Errorf("expected hint spec to fail with negative X-RateLimit-Remaining")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameRateLimitHintHeadersOnAllow not found in RateLimitSpecs")
+}
+
+func TestCORSSpecs_VaryPassOnWildcardOrigin(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range CORSSpecs() {
+		if spec.Name != SpecNameCORSVaryOrigin {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if !result.OK {
+			t.Errorf("expected Vary spec to pass with wildcard origin: %s", result.Message)
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameCORSVaryOrigin not found in CORSSpecs")
+}
+
+func TestRateLimitSpecs_FailOnInvalidResetHeader(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("X-RateLimit-Reset", "abc")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, spec := range RateLimitSpecs() {
+		if spec.Name != SpecNameRateLimitHintHeadersOnAllow {
+			continue
+		}
+
+		result := spec.Check(handler)
+		if result.OK {
+			t.Errorf("expected hint spec to fail with invalid X-RateLimit-Reset")
+		}
+
+		return
+	}
+
+	t.Fatal("SpecNameRateLimitHintHeadersOnAllow not found in RateLimitSpecs")
+}

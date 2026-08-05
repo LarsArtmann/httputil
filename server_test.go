@@ -266,6 +266,28 @@ func TestServerStartAndShutdown(t *testing.T) {
 	}
 }
 
+func TestServerShutdownUsesConfiguredTimeout(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+	cfg.ShutdownTimeout = 5 * time.Second
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	errChan := srv.Start()
+
+	waitForServerStart(t, errChan, 100*time.Millisecond)
+
+	err = srv.Shutdown(context.Background())
+	if err != nil {
+		t.Fatalf("Shutdown() with background ctx error = %v", err)
+	}
+}
+
 func TestServerStartError(t *testing.T) {
 	t.Parallel()
 
