@@ -108,11 +108,17 @@
         <section id="verdict">
           <h2><span class="num">01</span>Verdict</h2>
           <div class="card card-solution">
-            <h3>DO NOT MODULARIZE &mdash; flat package is correct</h3>
+            <h3>FLAT PACKAGE CONFIRMED &mdash; User decision 2026-08-05 (ergonomics)</h3>
+            <p>
+              The user reviewed the three options and selected the flat structure based on
+              <strong>ergonomics</strong>: for a middleware library where everything shares one
+              signature (<code>func(http.Handler) http.Handler</code>), a single import path
+              (<code>httputil.CORS()</code>) is the right API. Fragmented sub-package namespaces
+              (<code>httputil/cors.CORS()</code>) add friction with zero composability gain.
+            </p>
             <p>
               <strong>Multi-module (separate go.mod):</strong> Rejected. A library needs one
-              import path. Multiple modules fragment the universal <code>Middleware</code>
-              interface and force consumers to manage multiple <code>go get</code> dependencies.
+              import path.
             </p>
             <p>
               <strong>Public sub-packages:</strong> Rejected. Creates circular imports:

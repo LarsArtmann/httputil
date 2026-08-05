@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- **Docs health pass (2026-08-05):** Annotated all `2026-07-*` and `2026-07-3*` historical status files inline with per-item resolution tables (every numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker). Rebuilt `TODO_LIST.md` from scratch with grounded state (5 medium-priority items + 6 low-priority items + 8 won't-implement items). Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory. Updated `FEATURES.md` with the post-v0.8.0 feature inventory (97.8% httputil coverage, 14 documented defensive paths). Expanded `CHANGELOG [0.8.0]` with the full session work (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure).
+- **Docs health pass (2026-08-05):** Annotated all `2026-07-*` and `2026-07-3*` historical status files inline with per-item resolution tables (every numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker).
+- **Docs health pass (2026-08-05):** Rebuilt `TODO_LIST.md` from scratch with grounded state (5 medium-priority items + 6 low-priority items + 8 won't-implement items).
+- **Docs health pass (2026-08-05):** Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory.
+- **Docs health pass (2026-08-05):** Updated `FEATURES.md` with the post-v0.8.0 feature inventory (97.8% httputil coverage, 14 documented defensive paths).
+- **Docs health pass (2026-08-05):** Expanded `CHANGELOG [0.8.0]` with the full session work (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure).
 
 ## [0.8.0] - 2026-07-31
 
@@ -27,7 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `docs/v1-stability.md` — all new types classified as Frozen/Additive. New sections: CSRF Protection (17 rows), Server-Timing (10 rows), expanded Rate Limiting (12 rows). Middleware constants count updated from 9 to 12.
 - `docs/RELEASE.md` — added pre-release self-review step.
-- `coverage` improved from 91.0% to 97.8% (`httputil`) / 98.3% (`httpspec`). New middleware (CSRF, Server-Timing, KeyedRateLimit) and pre-existing functions (`Server.Shutdown`, `httpspec.mustRequest`, `id_generator.go`) closed to 100% or documented as defensive code paths.
+- `coverage` improved from 91.0% to 97.8% (`httputil`) / 98.3% (`httpspec`). New middleware (CSRF, Server-Timing, KeyedRateLimit) and pre-existing functions (`Server.Shutdown`, `id_generator.go`) closed to 100% or documented as defensive code paths. `httpspec.mustRequest` remains at 75% (permanent defensive path — `httptest.NewRequest` panics rather than returning the error branch).
 - `writeClassified` doc comment corrected from "single error-handling choke point" to "Write-path error-handling choke point" — documents that buffer-drain writes in `Close` and `flushPlainAndStream` call `compressWriteError` directly.
 - `AGENTS.md` — error classification table expanded with CSRF error family (Rejection + Infrastructure).
 - `CONTRIBUTING.md` — allowed dependencies updated to include `github.com/justinas/nosurf`.

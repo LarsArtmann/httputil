@@ -205,7 +205,7 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), 
 - `id_generator.go:100 drawRandomBytes` — 66.7%. `crypto/rand` error path (requires kernel-level fault injection).
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
 - `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
-- `httpspec.go:266 mustRequest` — 75.0%. Malformed HTTP construction error (now covered in v0.8.0).
+- `httpspec.go:266 mustRequest` — 75.0%. `httptest.NewRequest` malformed-HTTP construction error branch (permanent defensive path; `httptest.NewRequest` panics on bad input rather than returning the error branch).
 
 **Honest assessment:** The remaining 14 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project. See TODO_LIST for the targeted v0.8.1 closure plan.
 

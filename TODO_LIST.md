@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-05 — sourced from v0.8.0.0 release cycle and 2026-08-05 docs-health pass._
+_Updated: 2026-08-05 — sourced from v0.8.0 release cycle and 2026-08-05 docs-health pass._
 
 ---
 

@@ -706,7 +706,7 @@
                 <li>33 files is navigable &mdash; well-named, IDE-friendly</li>
                 <li>No breaking changes, no complexity added</li>
                 <li>New middleware adds zero coupling (proven by last 3 features)</li>
-                <li>Project approaching v1.0 &mdash; stability over reorganization</li>
+                <li><strong>Flat package chosen by user (2026-08-05) for ergonomics</strong> &mdash; one import path beats fragmented namespaces for a middleware library</li>
               </ul>
             </div>
             <div class="compare-col viable">
@@ -727,14 +727,15 @@
             </div>
           </div>
 
-          <div class="callout callout-warning">
-            <strong>Why not internal/ now?</strong>
-            Option C is the only folder structure that avoids circular imports while preserving
-            the flat public API. But the payoff is marginal: 8 fewer root files in exchange for 3
-            new internal packages, ~15-20 files modified, and previously-unexported types that
-            must be capitalized (exported) within <code>internal/</code>. The Go stdlib
-            <code>net/http</code> package &mdash; with 50+ files &mdash; does not do this. Defer
-            until after v1.0; revisit if root exceeds ~50 non-test files.
+          <div class="callout callout-solution">
+            <strong>DECISION CONFIRMED &mdash; flat package (2026-08-05)</strong>
+            The user reviewed the three options and selected the flat structure based on
+            <strong>ergonomics</strong>: one import path (<code>httputil.CORS()</code>,
+            <code>httputil.Compression()</code>) beats fragmented sub-package namespaces
+            (<code>httputil/cors.CORS()</code>) for a middleware library where everything shares
+            one signature. The structural constraint (circular imports) makes public sub-packages
+            impossible anyway; the internal/ option remains technically viable for post-v1.0 if
+            root file count grows significantly.
           </div>
         </section>
 
