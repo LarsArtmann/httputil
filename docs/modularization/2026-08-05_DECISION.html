@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modularization Decision — httputil</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+      .layout { display: grid; grid-template-columns: 220px 1fr; max-width: 1200px; margin: 0 auto; }
+      .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; border-right: 1px solid var(--border); padding: 2rem 1rem; }
+      .sidebar .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-faint); margin-bottom: 0.75rem; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0.35rem; }
+      .sidebar a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; padding: 0.2rem 0.5rem; border-left: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
+      .sidebar a:hover { color: var(--text); border-left-color: var(--accent); }
+      .main { padding: 2.5rem 3rem; max-width: 920px; }
+      .hero { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+      .hero-badge { display: inline-block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 0.75rem; font-weight: 700; }
+      .hero h1 { font-size: 2.2rem; font-weight: 900; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+      .hero-subtitle { color: var(--text-muted); font-size: 1.05rem; max-width: 640px; }
+      section { margin-bottom: 3rem; }
+      h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+      h2 .num { color: var(--accent); font-weight: 900; margin-right: 0.5rem; }
+      h3 { font-size: 1.15rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+      p { margin-bottom: 0.75rem; color: var(--text-muted); }
+      strong { color: var(--text); font-weight: 600; }
+      code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-sunken); padding: 0.1em 0.35em; color: var(--color-yellow); }
+      pre { font-family: var(--font-mono); font-size: 0.82rem; background: var(--surface-sunken); padding: 1rem; overflow-x: auto; border: 1px solid var(--border); margin-bottom: 1rem; line-height: 1.5; white-space: pre; color: var(--text-muted); }
+      ul, ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+      li { margin-bottom: 0.3rem; color: var(--text-muted); }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.88rem; }
+      th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+      th { font-weight: 700; color: var(--text-faint); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+      tr:hover td { background: var(--surface-sunken); }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.25rem; margin-bottom: 1rem; }
+      .card-problem { border-left: 3px solid var(--problem); }
+      .card-solution { border-left: 3px solid var(--solution); }
+      .card-warning { border-left: 3px solid var(--warning); }
+      .card h3 { margin-top: 0; }
+      .callout { padding: 0.85rem 1rem; margin-bottom: 1rem; border: 1px solid var(--border); background: var(--surface-sunken); }
+      .callout-solution { border-left: 3px solid var(--solution); }
+      .callout-warning { border-left: 3px solid var(--warning); }
+      .callout strong { display: block; margin-bottom: 0.25rem; }
+      .badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+      .badge-good { background: color-mix(in srgb, var(--solution) 20%, transparent); color: var(--solution); }
+      .badge-warn { background: color-mix(in srgb, var(--warning) 20%, transparent); color: var(--warning); }
+      .badge-bad { background: color-mix(in srgb, var(--problem) 20%, transparent); color: var(--problem); }
+      .dep-tree { font-family: var(--font-mono); font-size: 0.82rem; background: var(--surface-sunken); padding: 1rem; border: 1px solid var(--border); margin-bottom: 1rem; line-height: 1.7; white-space: pre; overflow-x: auto; color: var(--text-muted); }
+      .dep-tree .ok { color: var(--solution); }
+      .dep-tree .root { color: var(--accent); font-weight: 700; }
+      .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 0.8rem; }
+      @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main { padding: 1.5rem; } }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#verdict">Verdict</a>
+          <a href="#decision">Decision Framework</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#options">Options Evaluated</a>
+          <a href="#internal">Internal/ Option</a>
+          <a href="#conditions">Revisit Conditions</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Go Modularize &middot; 2026-08-05</div>
+          <h1>Modularization Decision</h1>
+          <p class="hero-subtitle">
+            Should httputil split into multiple Go modules, sub-packages, or internal packages?
+            Decision: single module, flat package. The structure is correct and Go-idiomatic.
+          </p>
+        </div>
+
+        <section id="verdict">
+          <h2><span class="num">01</span>Verdict</h2>
+          <div class="card card-solution">
+            <h3>DO NOT MODULARIZE &mdash; flat package is correct</h3>
+            <p>
+              <strong>Multi-module (separate go.mod):</strong> Rejected. A library needs one
+              import path. Multiple modules fragment the universal <code>Middleware</code>
+              interface and force consumers to manage multiple <code>go get</code> dependencies.
+            </p>
+            <p>
+              <strong>Public sub-packages:</strong> Rejected. Creates circular imports:
+              compression depends on root (<code>Middleware</code>, <code>responseWrapper</code>,
+              <code>ErrCode*</code>), root re-exports compression types. Confirmed 2026-07-26,
+              still valid.
+            </p>
+            <p>
+              <strong>Internal packages:</strong> Technically viable but deferred. The only
+              folder structure that avoids cycles while preserving the flat public API. Payoff is
+              marginal (8 fewer root files). Defer until post-v1.0 or if root exceeds ~50
+              non-test files.
+            </p>
+          </div>
+        </section>
+
+        <section id="decision">
+          <h2><span class="num">02</span>Decision Framework Applied</h2>
+          <p>The go-modularize skill's "When NOT to Modularize" signal table:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Weight</th>
+                <th>Present?</th>
+                <th>Reasoning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Small project</td>
+                <td>High</td>
+                <td><span class="badge badge-warn">Partial</span></td>
+                <td>33 non-test files is moderate. But single-domain (HTTP utilities) &mdash; cohesion is high.</td>
+              </tr>
+              <tr>
+                <td>No external consumers</td>
+                <td>Medium</td>
+                <td><span class="badge badge-bad">Against split</span></td>
+                <td>Public library. Consumers want ONE import path: <code>github.com/larsartmann/httputil</code>.</td>
+              </tr>
+              <tr>
+                <td>Prototype / spike</td>
+                <td>High</td>
+                <td><span class="badge badge-good">No</span></td>
+                <td>v0.8.0, approaching v1.0. Stable, well-tested, ~70 linters at 0 issues.</td>
+              </tr>
+              <tr>
+                <td>All packages change together</td>
+                <td>High</td>
+                <td><span class="badge badge-good">No</span></td>
+                <td>Last 3 features each touched 1 file. Compression changes independently from CORS.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-solution">
+            <strong>Score: 0 high signals against the current structure</strong>
+            The framework says "proceed with full modularization" when there are 0 high signals
+            against it. BUT this framework governs <emph>multi-module go.mod splits</emph>, not
+            sub-package organization. For a library, the correct application is: the evidence
+            does not support splitting the module, but we evaluate sub-package options
+            separately.
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2><span class="num">03</span>Evidence: Dependency Graph</h2>
+          <div class="dep-tree"><span class="root">httputil/ (root package)</span>
+│
+├── <span class="ok">Middleware type (recorder.go)</span> &mdash; consumed by ALL 16 middleware
+├── <span class="ok">Chain() (recorder.go)</span> &mdash; consumed by stack.go + tests
+├── <span class="ok">NewResponseRecorder() (recorder.go)</span> &mdash; consumed by logging.go, metrics.go
+│
+├── <span class="ok">responseWrapper (wrapper.go)</span> &mdash; consumed by compress_writer, etag
+├── <span class="ok">hijackDelegate, flushDelegate (wrapper.go)</span> &mdash; consumed by recorder.go
+├── <span class="ok">ErrCode* (errors.go)</span> &mdash; consumed by recorder, wrapper, compress, etag
+├── <span class="ok">hexDigitsLower (hex.go)</span> &mdash; consumed by etag, id_generator
+│
+├── Compression cluster (7 files, 27 shared symbols)
+│   └── MUST stay together &mdash; every file depends on 2+ others
+│
+└── 13 independent middleware (zero unexported cross-file deps)
+    └── csrf, security, timeout, maxbodysize, health, server,
+        server_timing, ratelimit, ratelimit_keyed, clientip,
+        context, queryparam, capabilities</div>
+          <p>
+            The dependency direction within the package is acyclic. All flows point toward shared
+            infrastructure (<code>recorder.go</code>, <code>wrapper.go</code>, <code>errors.go</code>),
+            which is the correct pattern for a Go package.
+          </p>
+        </section>
+
+        <section id="options">
+          <h2><span class="num">04</span>Options Evaluated</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Mechanism</th>
+                <th>Circular Import?</th>
+                <th>Breaking Change?</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Multi-module</td>
+                <td>Separate <code>go.mod</code> per subsystem</td>
+                <td>No</td>
+                <td><span class="badge badge-bad">Yes</span></td>
+                <td><span class="badge badge-bad">Rejected</span></td>
+              </tr>
+              <tr>
+                <td>Public sub-packages</td>
+                <td><code>httputil/compression/</code> etc.</td>
+                <td><span class="badge badge-bad">Yes</span></td>
+                <td><span class="badge badge-bad">Yes</span></td>
+                <td><span class="badge badge-bad">Rejected</span></td>
+              </tr>
+              <tr>
+                <td>Internal packages</td>
+                <td><code>httputil/internal/compress/</code></td>
+                <td>No</td>
+                <td>No</td>
+                <td><span class="badge badge-warn">Deferred</span></td>
+              </tr>
+              <tr>
+                <td>Flat (status quo)</td>
+                <td>All files in <code>package httputil</code></td>
+                <td>No</td>
+                <td>No</td>
+                <td><span class="badge badge-good">Selected</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="internal">
+          <h2><span class="num">05</span>The Internal/ Option (Deferred)</h2>
+          <p>
+            The only folder structure that avoids circular imports while keeping the flat public
+            API. If pursued post-v1.0, the target structure would be:
+          </p>
+          <pre>httputil/
+├── compression.go          (public API stays in root)
+├── etag.go                 (public API stays in root)
+├── cors.go, csrf.go, ...   (all middleware stays in root)
+├── recorder.go             (Middleware type, Chain, ResponseRecorder)
+├── internal/
+│   ├── responsewrap/       (responseWrapper, hijackDelegate, flushDelegate)
+│   ├── errcodes/           (ErrCode* constants + message templates)
+│   └── compress/           (compressWriter, negotiator, qvalue, pool, content_type)
+│       ├── writer.go
+│       ├── writer_compress.go
+│       ├── pool.go
+│       ├── negotiator.go
+│       ├── qvalue.go
+│       └── content_type.go</pre>
+          <div class="card card-warning">
+            <h3>Dependency flow (no cycles)</h3>
+            <pre>root (compression.go, etag.go, recorder.go)
+  └─→ internal/responsewrap/
+  └─→ internal/errcodes/
+  └─→ internal/compress/
+        └─→ internal/responsewrap/
+        └─→ internal/errcodes/</pre>
+            <p>
+              All arrows point downward (root &rarr; internal). No package imports its parent.
+              Previously unexported types become <emph>exported within internal/</emph> (e.g.
+              <code>responsewrap.Wrapper</code>, <code>compress.Writer</code>) but invisible to
+              external consumers.
+            </p>
+          </div>
+          <div class="callout callout-warning">
+            <strong>Why defer</strong>
+            Cost: ~15-20 files modified, 3 new internal packages, tests split across 4 packages,
+            error code constants duplicated or moved. Benefit: 8 fewer root files (33 &rarr; 25).
+            The Go stdlib <code>net/http</code> (50+ files) does not use this pattern. Defer
+            until the cost/benefit ratio shifts &mdash; either root exceeds ~50 files or the
+            compression subsystem grows significantly.
+          </div>
+        </section>
+
+        <section id="conditions">
+          <h2><span class="num">06</span>Conditions to Revisit</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Trigger</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Root package exceeds ~50 non-test files</td>
+                <td>Re-evaluate <code>internal/compress/</code> extraction</td>
+              </tr>
+              <tr>
+                <td>Compression subsystem grows beyond 10 files</td>
+                <td>Extract <code>internal/compress/</code> regardless of root count</td>
+              </tr>
+              <tr>
+                <td>A second cohesive subsystem emerges with 5+ implementation files</td>
+                <td>Extract both to <code>internal/</code> packages</td>
+              </tr>
+              <tr>
+                <td>v1.0 stability commitment is shipped</td>
+                <td>Revisit as a post-stability structural improvement</td>
+              </tr>
+              <tr>
+                <td>Consumer requests finer-grained imports</td>
+                <td>Re-evaluate public sub-packages (unlikely for a middleware library)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-solution">
+            <strong>Architectural decision recorded</strong>
+            The flat single-module structure is the deliberate, Go-idiomatic choice for this
+            library. It is not a debt item. The <code>internal/</code> option exists as a future
+            improvement path if the trigger conditions are met.
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-08-05 &middot; go-modularize decision document for httputil v0.8.0.
+          Analysis based on unexported symbol coupling map, dependency direction audit, and the
+          go-modularize skill's "When NOT to Modularize" framework. Supersedes the 2026-07-26
+          ad-hoc rejection with a formal decision record.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

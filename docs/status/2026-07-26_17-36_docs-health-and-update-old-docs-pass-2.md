@@ -101,67 +101,67 @@ AGENTS.md is loaded automatically as project context. I trusted its "0 active wa
 
 ## Final Resolution (2026-08-05) — per-item status
 
-| Item | Status |
-| --- | --- |
-| b.1 — CONTRIBUTING.md lines 10-11 missing GOEXPERIMENT | **Resolved at v0.6.1.** GOEXPERIMENT workaround removed entirely from CONTRIBUTING.md. |
-| b.2 — README.md not fully audited | **Done at v0.8.0.** README API table, middleware ordering, and config tables all updated. |
-| b.3 — AGENTS.md freshness not independently verified | **Done at v0.8.0.** AGENTS.md is current as of v0.8.0. |
-| c.1 — Read 6 HTML + 2 D2 + 2 SVG files in full | **Done at v0.7.0 + v0.7.1.** All 6 HTML files have inline correction banners; D2 files include new dependency nodes. |
-| c.2 — nix run .#build/.#test/.#lint end-to-end | **Done at v0.6.1.** Flake apps verified. |
-| c.3 — Full nix flake check (with build) | **Done at v0.8.0.** |
-| c.4 — govulncheck locally | **Done at v0.7.0.** Clean. |
-| c.5 — go-error-family v0.9.0 changelog review | **Done.** No API changes affecting this project. |
-| d.1 — Did not read all 2026-07-* files | **Acknowledged.** Subsequent passes read all files in full. |
-| d.2 — Trusted prior session's CONTRIBUTING.md claim | **Resolved at v0.6.1.** |
-| d.3 — Concurrent owner commit bundled my doc work | **Acknowledged.** Auto-commit hook is user-trusted. |
-| f.1 — Fix CONTRIBUTING.md lines 10-11 | **Done at v0.6.1.** |
-| f.2 — Read 6 HTML files in full | **Done.** |
-| f.3 — Read 2 D2 files in full | **Done.** |
-| f.4 — Read reviews/2026-07-02_03-02_brutal-self-review.md | **Done.** Has Resolution section. |
-| f.5 — Read research/2026-07-05_httputil-vs-huma.md | **Done.** Version/dep claims verified. |
-| f.6 — Decide jsonv2 fix | **Done at v0.6.1.** `health.go` downgraded to v1. |
-| f.7 — If downgrading: rewrite health.go | **Done at v0.6.1.** |
-| f.8 — If upgrading: verify nixpkgs has go_1_27 | **N/A.** Downgrade path chosen. |
-| f.9 — Remove GOEXPERIMENT from flake.nix | **Done at v0.6.1.** |
-| f.10 — Remove GOEXPERIMENT prefixes from docs | **Done at v0.6.1.** |
-| f.11 — Run nix run .#build | **Done at v0.6.1.** |
-| f.12 — Run nix run .#test | **Done at v0.6.1.** |
-| f.13 — Run nix run .#lint | **Done at v0.6.1.** |
-| f.14 — Full nix flake check | **Done at v0.8.0.** |
-| f.15 — Decide v0.7.0 scope | **Done.** v0.7.0 shipped. |
-| f.16 — Review go-error-family v0.9.0 changelog | **Done.** |
-| f.17 — Run govulncheck locally | **Done at v0.7.0.** |
-| f.18-23 — Add 6 config field tables to README | **Done at v0.7.0.** |
-| f.24 — Full README audit | **Done at v0.8.0.** |
-| f.25 — Add TokenBucketLimiter benchmark | **Done at v0.7.0.** |
-| f.26 — Add body-before-hijack WebSocket test | **Accepted as limitation.** |
-| f.27 — Mutation-test ETag path | **Done at v0.7.0.** |
-| f.28 — Close compression error-branch gap | **Done at v0.7.1.** |
-| f.29 — Close CORS wildcard edge gap | **Done at v0.7.1.** |
-| f.30 — Close ResponseRecorder hijack failure gap | **Done at v0.7.1.** |
-| f.31 — Add fuzz test for ParseUintQuery | **Done at v0.7.0.** |
-| f.32 — Add Example* for ParseUintQuery | **Done at v0.7.0.** |
-| f.33 — Add Example* for ReadyHandlerWithProbe | **Done at v0.7.0.** |
-| f.34 — Add Example* for DenyUnmatched | **Won't implement.** |
-| f.35 — Plan ForwardHeader → IncomingHeader rename | **Done at v0.7.0.** |
-| f.36 — Plan HeaderName → ResponseHeader rename | **Done at v0.7.0.** |
-| f.37 — Flip DenyUnmatched default to true | **Done at v0.7.0.** |
-| f.38 — Define v1.0 stability commitment | **Done at v0.7.0.** `docs/v1-stability.md` created. |
-| f.39 — Audit all Validate() methods | **Done.** |
-| f.40 — Add brotli/zstd WriterFactory example | **Done at v0.7.0.** `docs/integrations/brotli-zstd.md`. |
-| f.41 — Add Redis RateLimiter example | **Done at v0.7.0.** `docs/integrations/redis-ratelimiter.md`. |
-| f.42 — Add Prometheus MetricsRecorder example | **Done at v0.7.0.** `docs/integrations/prometheus-metrics.md`. |
-| f.43 — Add request body decompression middleware | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
-| f.44 — Add Retry-After to RateLimit | **Done at v0.8.0 in KeyedRateLimit.** |
-| f.45 — Add MustNewTokenBucketLimiter | **Won't implement.** Deprecated API. |
-| f.46 — Evaluate exposing AllowN | **Won't implement.** KeyedRateLimiter uses MaxKeys. |
-| f.47 — httpspec spec for CORS headers | **Won't implement in v0.8.0.** Deferred to v0.9.0. |
-| f.48 — ServerConfig.TLSConfig validation | **Won't implement in v0.8.0.** Deferred to v1.0. |
-| f.49 — Reconfigure auto-commit hook for doc sessions | **Acknowledged.** User-trusted. |
-| f.50 — Pin D2 layout engine version | **Won't implement.** D2 is dev-only. |
-| Q1 — jsonv2 fix decision | **Resolved at v0.6.1.** Downgrade chosen. |
-| Q2 — Read 6 HTML files in dedicated pass | **Done.** |
-| Q3 — Concurrent compress refactor intent | **Acknowledged.** Documented in CHANGELOG `[0.6.1]`. |
+| Item                                                      | Status                                                                                                               |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| b.1 — CONTRIBUTING.md lines 10-11 missing GOEXPERIMENT    | **Resolved at v0.6.1.** GOEXPERIMENT workaround removed entirely from CONTRIBUTING.md.                               |
+| b.2 — README.md not fully audited                         | **Done at v0.8.0.** README API table, middleware ordering, and config tables all updated.                            |
+| b.3 — AGENTS.md freshness not independently verified      | **Done at v0.8.0.** AGENTS.md is current as of v0.8.0.                                                               |
+| c.1 — Read 6 HTML + 2 D2 + 2 SVG files in full            | **Done at v0.7.0 + v0.7.1.** All 6 HTML files have inline correction banners; D2 files include new dependency nodes. |
+| c.2 — nix run .#build/.#test/.#lint end-to-end            | **Done at v0.6.1.** Flake apps verified.                                                                             |
+| c.3 — Full nix flake check (with build)                   | **Done at v0.8.0.**                                                                                                  |
+| c.4 — govulncheck locally                                 | **Done at v0.7.0.** Clean.                                                                                           |
+| c.5 — go-error-family v0.9.0 changelog review             | **Done.** No API changes affecting this project.                                                                     |
+| d.1 — Did not read all 2026-07-* files                    | **Acknowledged.** Subsequent passes read all files in full.                                                          |
+| d.2 — Trusted prior session's CONTRIBUTING.md claim       | **Resolved at v0.6.1.**                                                                                              |
+| d.3 — Concurrent owner commit bundled my doc work         | **Acknowledged.** Auto-commit hook is user-trusted.                                                                  |
+| f.1 — Fix CONTRIBUTING.md lines 10-11                     | **Done at v0.6.1.**                                                                                                  |
+| f.2 — Read 6 HTML files in full                           | **Done.**                                                                                                            |
+| f.3 — Read 2 D2 files in full                             | **Done.**                                                                                                            |
+| f.4 — Read reviews/2026-07-02_03-02_brutal-self-review.md | **Done.** Has Resolution section.                                                                                    |
+| f.5 — Read research/2026-07-05_httputil-vs-huma.md        | **Done.** Version/dep claims verified.                                                                               |
+| f.6 — Decide jsonv2 fix                                   | **Done at v0.6.1.** `health.go` downgraded to v1.                                                                    |
+| f.7 — If downgrading: rewrite health.go                   | **Done at v0.6.1.**                                                                                                  |
+| f.8 — If upgrading: verify nixpkgs has go_1_27            | **N/A.** Downgrade path chosen.                                                                                      |
+| f.9 — Remove GOEXPERIMENT from flake.nix                  | **Done at v0.6.1.**                                                                                                  |
+| f.10 — Remove GOEXPERIMENT prefixes from docs             | **Done at v0.6.1.**                                                                                                  |
+| f.11 — Run nix run .#build                                | **Done at v0.6.1.**                                                                                                  |
+| f.12 — Run nix run .#test                                 | **Done at v0.6.1.**                                                                                                  |
+| f.13 — Run nix run .#lint                                 | **Done at v0.6.1.**                                                                                                  |
+| f.14 — Full nix flake check                               | **Done at v0.8.0.**                                                                                                  |
+| f.15 — Decide v0.7.0 scope                                | **Done.** v0.7.0 shipped.                                                                                            |
+| f.16 — Review go-error-family v0.9.0 changelog            | **Done.**                                                                                                            |
+| f.17 — Run govulncheck locally                            | **Done at v0.7.0.**                                                                                                  |
+| f.18-23 — Add 6 config field tables to README             | **Done at v0.7.0.**                                                                                                  |
+| f.24 — Full README audit                                  | **Done at v0.8.0.**                                                                                                  |
+| f.25 — Add TokenBucketLimiter benchmark                   | **Done at v0.7.0.**                                                                                                  |
+| f.26 — Add body-before-hijack WebSocket test              | **Accepted as limitation.**                                                                                          |
+| f.27 — Mutation-test ETag path                            | **Done at v0.7.0.**                                                                                                  |
+| f.28 — Close compression error-branch gap                 | **Done at v0.7.1.**                                                                                                  |
+| f.29 — Close CORS wildcard edge gap                       | **Done at v0.7.1.**                                                                                                  |
+| f.30 — Close ResponseRecorder hijack failure gap          | **Done at v0.7.1.**                                                                                                  |
+| f.31 — Add fuzz test for ParseUintQuery                   | **Done at v0.7.0.**                                                                                                  |
+| f.32 — Add Example* for ParseUintQuery                    | **Done at v0.7.0.**                                                                                                  |
+| f.33 — Add Example* for ReadyHandlerWithProbe             | **Done at v0.7.0.**                                                                                                  |
+| f.34 — Add Example* for DenyUnmatched                     | **Won't implement.**                                                                                                 |
+| f.35 — Plan ForwardHeader → IncomingHeader rename         | **Done at v0.7.0.**                                                                                                  |
+| f.36 — Plan HeaderName → ResponseHeader rename            | **Done at v0.7.0.**                                                                                                  |
+| f.37 — Flip DenyUnmatched default to true                 | **Done at v0.7.0.**                                                                                                  |
+| f.38 — Define v1.0 stability commitment                   | **Done at v0.7.0.** `docs/v1-stability.md` created.                                                                  |
+| f.39 — Audit all Validate() methods                       | **Done.**                                                                                                            |
+| f.40 — Add brotli/zstd WriterFactory example              | **Done at v0.7.0.** `docs/integrations/brotli-zstd.md`.                                                              |
+| f.41 — Add Redis RateLimiter example                      | **Done at v0.7.0.** `docs/integrations/redis-ratelimiter.md`.                                                        |
+| f.42 — Add Prometheus MetricsRecorder example             | **Done at v0.7.0.** `docs/integrations/prometheus-metrics.md`.                                                       |
+| f.43 — Add request body decompression middleware          | **Won't implement in v0.8.0.** Deferred to v0.9.0.                                                                   |
+| f.44 — Add Retry-After to RateLimit                       | **Done at v0.8.0 in KeyedRateLimit.**                                                                                |
+| f.45 — Add MustNewTokenBucketLimiter                      | **Won't implement.** Deprecated API.                                                                                 |
+| f.46 — Evaluate exposing AllowN                           | **Won't implement.** KeyedRateLimiter uses MaxKeys.                                                                  |
+| f.47 — httpspec spec for CORS headers                     | **Won't implement in v0.8.0.** Deferred to v0.9.0.                                                                   |
+| f.48 — ServerConfig.TLSConfig validation                  | **Won't implement in v0.8.0.** Deferred to v1.0.                                                                     |
+| f.49 — Reconfigure auto-commit hook for doc sessions      | **Acknowledged.** User-trusted.                                                                                      |
+| f.50 — Pin D2 layout engine version                       | **Won't implement.** D2 is dev-only.                                                                                 |
+| Q1 — jsonv2 fix decision                                  | **Resolved at v0.6.1.** Downgrade chosen.                                                                            |
+| Q2 — Read 6 HTML files in dedicated pass                  | **Done.**                                                                                                            |
+| Q3 — Concurrent compress refactor intent                  | **Acknowledged.** Documented in CHANGELOG `[0.6.1]`.                                                                 |
 
 ---
 

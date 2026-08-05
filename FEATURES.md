@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-07-30_
+_Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and 2026-08-05 docs-health pass. All claims verified against current source._
 
 ---
 
@@ -10,24 +10,24 @@ _Updated: 2026-07-30_
 
 ### Core Middleware Suite (16 middlewares)
 
-| Middleware               | File                                   | Config Type                                                 | Tests | Examples                     | Benchmarks                  | Fuzz                |
-| ------------------------ | -------------------------------------- | ----------------------------------------------------------- | ----- | ---------------------------- | --------------------------- | ------------------- |
-| CORS                     | `cors.go`                              | `CORSConfig` + `Validate()`                                 | Yes   | `ExampleCORS`                | `BenchmarkCORS`             | `FuzzCORS`          |
-| ClientIP                 | `clientip.go`, `context.go`            | —                                                           | Yes   | `ExampleClientIP`            | `BenchmarkClientIP`         | `FuzzClientIP`      |
-| RequestID                | `requestid.go`, `id_generator.go`      | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`           | `BenchmarkRequestID`        | `FuzzRequestID`     |
-| SecurityHeaders          | `security.go`                          | `SecurityHeadersConfig` + `Validate()`                      | Yes   | `ExampleSecurityHeaders`     | `BenchmarkSecurityHeaders`  | —                   |
-| Recovery                 | `recovery.go`                          | `*slog.Logger`                                              | Yes   | `ExampleRecovery`            | `BenchmarkRecovery`         | —                   |
-| Timeout                  | `timeout.go`                           | `time.Duration`                                             | Yes   | `ExampleTimeout`             | `BenchmarkTimeout`          | —                   |
-| Logging                  | `logging.go`                           | `*slog.Logger`                                              | Yes   | `ExampleLogging`             | `BenchmarkLogging`          | —                   |
-| ResponseRecorder         | `recorder.go`                          | —                                                           | Yes   | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | —                   |
-| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`         | `BenchmarkCompression`      | `FuzzCompression`   |
-| ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                | `BenchmarkETag`             | `FuzzETag`          |
-| MaxBodySize              | `maxbodysize.go`                       | `int64`                                                     | Yes   | —                            | —                           | —                   |
-| RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                            | —                           | —                   |
-| Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes   | —                            | —                           | —                   |
-| Server-Timing            | `server_timing.go`                     | —                                                           | Yes   | —                            | `BenchmarkServerTiming*`    | `FuzzServerTiming*` |
-| CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                 | Yes   | —                            | —                           | —                   |
-| KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig`                                    | Yes   | —                            | —                           | —                   |
+| Middleware               | File                                   | Config Type                                                 | Tests | Examples                            | Benchmarks                  | Fuzz                |
+| ------------------------ | -------------------------------------- | ----------------------------------------------------------- | ----- | ----------------------------------- | --------------------------- | ------------------- |
+| CORS                     | `cors.go`                              | `CORSConfig` + `Validate()`                                 | Yes   | `ExampleCORS`                       | `BenchmarkCORS`             | `FuzzCORS`          |
+| ClientIP                 | `clientip.go`, `context.go`            | —                                                           | Yes   | `ExampleClientIP`                   | `BenchmarkClientIP`         | `FuzzClientIP`      |
+| RequestID                | `requestid.go`, `id_generator.go`      | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes   | `ExampleRequestID`                  | `BenchmarkRequestID`        | `FuzzRequestID`     |
+| SecurityHeaders          | `security.go`                          | `SecurityHeadersConfig` + `Validate()`                      | Yes   | `ExampleSecurityHeaders`            | `BenchmarkSecurityHeaders`  | —                   |
+| Recovery                 | `recovery.go`                          | `*slog.Logger`                                              | Yes   | `ExampleRecovery`                   | `BenchmarkRecovery`         | —                   |
+| Timeout                  | `timeout.go`                           | `time.Duration`                                             | Yes   | `ExampleTimeout`                    | `BenchmarkTimeout`          | —                   |
+| Logging                  | `logging.go`                           | `*slog.Logger`                                              | Yes   | `ExampleLogging`                    | `BenchmarkLogging`          | —                   |
+| ResponseRecorder         | `recorder.go`                          | —                                                           | Yes   | `ExampleNewResponseRecorder`        | `BenchmarkResponseRecorder` | —                   |
+| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin  | Yes   | `ExampleCompression`                | `BenchmarkCompression`      | `FuzzCompression`   |
+| ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                 | Yes   | `ExampleETag`                       | `BenchmarkETag`             | `FuzzETag`          |
+| MaxBodySize              | `maxbodysize.go`                       | `int64`                                                     | Yes   | —                                   | —                           | —                   |
+| RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface   | Yes   | —                                   | —                           | —                   |
+| Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes   | —                                   | —                           | —                   |
+| Server-Timing            | `server_timing.go`                     | —                                                           | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`    | `FuzzServerTiming*` |
+| CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                 | Yes   | `ExampleCSRFMiddleware`             | —                           | —                   |
+| KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig`                                    | Yes   | `ExampleKeyedRateLimiterMiddleware` | —                           | —                   |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
@@ -46,13 +46,13 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Infrastructure Types
 
-- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present).
+- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 12 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Compression, ETag, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit).
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
 ### CORS Security
 
-- `DenyUnmatched` option on `CORSConfig` — when true, withholds `Access-Control-Allow-Origin` for origins not in `AllowedOrigins`, preventing allowlist bypass via wildcard fallback.
+- `DenyUnmatched` option on `CORSConfig` — when true, withholds `Access-Control-Allow-Origin` for origins not in `AllowedOrigins`, preventing allowlist bypass via wildcard fallback. Default is `true` since v0.7.0.
 - Wildcard origin matching (e.g., `*.example.com`) rejects lookalike domains (`*.example.com.evil.com`).
 - `AllowCredentials: true` + `AllowAllOrigins: true` rejected at `Validate()` time (browsers reject this combination).
 
@@ -65,6 +65,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
 - RFC 7231 `Accept-Encoding` negotiation with q-value parsing; server priority order is brotli > zstd > gzip > deflate > identity.
+- Single error-classification choke point: compress write failures funnel through `compressWriteError` with `encoding` context.
 
 ### ETag Correctness
 
@@ -76,11 +77,37 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Rate Limiting
 
-- Token bucket algorithm via `TokenBucketLimiter` (backed by `golang.org/x/time/rate`) — per-key limiters with fixed-rate refill up to burst capacity.
+- **Token bucket algorithm** via `TokenBucketLimiter` (deprecated, backed by `golang.org/x/time/rate`) — per-key limiters with fixed-rate refill up to burst capacity. Slated for removal at v1.0.
+- **Keyed rate limiting** via `KeyedRateLimiter` (new in v0.8.0) — O(log n) min-heap eviction, `MaxKeys` cap, lazy TTL eviction, `Retry-After` headers, and a monitoring API (`ActiveKeys()`). This is the recommended API going forward.
 - `NewTokenBucketLimiter(rate, burst)` validates inputs — returns error if rate or burst is not positive.
-- `EvictionTTL` field enables opt-in lazy eviction of idle buckets (amortized sweep at most once per TTL interval). Zero (default) preserves unbounded-growth behavior.
-- Pluggable `RateLimiter` interface for custom backends (Redis, etc.).
-- Configurable key extraction and custom denial handlers via `RateLimitConfig`.
+- `EvictionTTL` field on `KeyedRateLimiterConfig` enables opt-in lazy eviction of idle buckets. Zero (default) preserves unbounded-growth behavior.
+- Pluggable `KeyExtractor` interface (`KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP`).
+- Pluggable `RejectionHandler` for custom 429 responses.
+- Migration guide: `docs/migrating-to-keyed-rate-limiter.md`.
+
+### CSRF Protection
+
+- **Double-submit cookie** middleware via `justinas/nosurf` (new in v0.8.0).
+- `CSRFMiddleware` and `CSRFResponseHeaderMiddleware` for simple and header-based CSRF defense.
+- `ValidateCSRF` for per-handler validation of `*http.Request`.
+- `CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField` for HTMX/templ integration.
+- `ConfigureNosurfHandler` for fine-grained control over the underlying nosurf handler.
+- `WithCSRFToken`, `CSRFTokenFromContext`, `CSRFTokenFromRequest` for token retrieval.
+- `InvalidateCSRFCookie` for explicit token rotation.
+- `TranslateCSRFHeaders` for HTMX-style header forwarding.
+- `isTrustedProxy` for secure `X-Forwarded-Proto` handling.
+- `CSRFConfig.Validate()` enforces secure defaults (`SameSite=None` requires `Secure`).
+- Domain-level `TrustedOrigins` and trusted-proxy CIDR allowlists.
+
+### Server-Timing
+
+- W3C Server-Timing header implementation (new in v0.8.0).
+- `ServerTimingMiddleware` and `ServerTimingMiddlewareWhen` for conditional instrumentation.
+- `MeasureServerTiming` for context-aware measurement.
+- `WrapServerTiming` for manual wrapping without middleware.
+- `RecordServerTiming`, `WithServerTiming`, `ServerTimingFromContext` for handler-internal recording.
+- CRLF-injection-safe header values (sanitized via `escapeQuotedString` and CRLF replacement).
+- Hijacker, Flusher, Pusher delegation via `delegatingWriter`.
 
 ### Query Parameter Helpers
 
@@ -115,6 +142,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `ReadyHandlerWithProbe(ready func() bool)` — dependency-based readiness: returns 200 when ready, 503 when not.
 - `RegisterHealth(mux)` registers `/health`, `/health/live`, and `/health/ready`.
 - `HealthStatus` enum (`"up"` / `"down"`) and `HealthResponse` JSON type.
+- Exact-byte JSON output (`{"status":"up"}\n`) enforced by tests.
 
 ### Documentation
 
@@ -123,20 +151,24 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `AGENTS.md` — architecture reference, testing conventions, lint rules.
 - `CHANGELOG.md` — version history.
 - `ROADMAP.md` — long-term direction and v1.0 vision.
+- `docs/v1-stability.md` — v1.0 frozen API surface.
 - `docs/DOMAIN_LANGUAGE.md` — domain glossary.
+- `docs/migrating-to-keyed-rate-limiter.md` — deprecation migration guide.
+- `docs/integrations/` — extensibility examples (brotli, redis, prometheus).
 - Status reports in `docs/status/`.
 - Execution plans in `docs/planning/`.
 
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test ./...` passes across the full suite with 91.0% statement coverage (`httputil`), 98.3% (`httpspec`) — measured 2026-07-30 with race detection enabled. Coverage dropped from 98.7% after three new middleware features (CSRF, Server-Timing, KeyedRateLimit) were added without full coverage closure.
+- `go test ./...` passes across the full suite with **97.8% statement coverage** (`httputil`), **98.3%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
 - 12 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag, RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, and Server-Timing (header value + middleware). CORS, query params, eviction, health, and compression fuzz tests verified with `-fuzztime`.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
-- GitHub Actions CI for tests and lint.
-- Release workflow with `govulncheck`.
+- GitHub Actions CI for tests, lint, and `govulncheck`.
+- Release workflow with `govulncheck`, CHANGELOG link validation, and pre-release self-review step (`docs/RELEASE.md`).
+- GitHub Actions pinned to commit SHAs (supply-chain hardening).
 
 ### Behavioral Spec Suite (`httpspec` subpackage)
 
@@ -151,23 +183,31 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage
+### Test Coverage — 14 sub-100% functions (defensive code paths)
 
-Measured 2026-07-30 with `go test -race -coverprofile`: **91.0%** (`httputil`), **98.3%** (`httpspec`). The pre-v0.7.1 codebase was at 98.7%; three new middleware features (CSRF, Server-Timing, KeyedRateLimit) dropped the overall number because their error branches and helpers are not yet fully tested.
+Measured 2026-08-05 with `go test -race -coverprofile`: **97.8%** (`httputil`), **98.3%** (`httpspec`). The pre-v0.8.0 codebase was at 91.0% with new middleware; v0.8.0 closed coverage to 97.8%. The remaining 14 sub-100% functions are documented defensive code paths:
 
-New middleware gaps (priority for v0.8.0):
+**New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
-- `csrf.go`: `ValidateCSRF` (0%), `TranslateCSRFHeaders` (0%), `CSRFTokenHXHeaders` (0%), `isTrustedProxy` (20%), `Validate` (47%).
-- `server_timing.go` and `ratelimit_keyed.go`: various sub-100% functions.
+- `csrf.go:209 ConfigureNosurfHandler` — 81.8%. TrustedOrigins parse error branch (internal to nosurf).
+- `csrf.go:506 CSRFTokenHXHeaders` — 71.4%. `json.Marshal` error on `map[string]string` (practically unreachable).
+- `csrf.go:542 CSRFTestToken` — 92.9%. Internal nosurf error branches.
+- `csrf.go:577 ValidateCSRF` — 92.9%. Nosurf TrustedOrigins parse failure paths.
+- `compression.go:171 Compression` — 95.5%. Vary-header identity-append edge (reachable only via direct unit construction).
+- `compression_negotiator.go:148 scanAcceptEncoding` — 95.5%. q-value tie-break with identical values (low priority).
+- `ratelimit_keyed.go:131 buildKeyedRateLimiter` — 92.9%. Defensive config validation edge.
+- `ratelimit_keyed.go:248 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
+- `ratelimit_keyed.go:312 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
 
-Pre-existing gaps (error-injection and internal paths):
+**Pre-existing (error-injection / internal paths):**
 
-- `computeETag` empty-body branch (94.4%).
-- `scanAcceptEncoding` ordering tie-break (95.5%).
-- `Compression` middleware Vary-header edge (95.5%).
-- `Server.Shutdown` context-cancellation path (75%).
-- `drawRandomBytes`/`refillRandomBuffer` crypto/rand error paths (67-88%).
-- `httpspec.runSpecs`/`mustRequest` internal helpers (75-88%).
+- `etag.go:179 computeETag` — 94.4%. Empty-body-with-wroteHeader edge (reachable only via direct unit construction).
+- `id_generator.go:100 drawRandomBytes` — 66.7%. `crypto/rand` error path (requires kernel-level fault injection).
+- `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
+- `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
+- `httpspec.go:266 mustRequest` — 75.0%. Malformed HTTP construction error (now covered in v0.8.0).
+
+**Honest assessment:** The remaining 14 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project. See TODO_LIST for the targeted v0.8.1 closure plan.
 
 ---
 
@@ -175,12 +215,19 @@ Pre-existing gaps (error-injection and internal paths):
 
 ### Near-term
 
-- _(none — all near-term items are implemented)_
+- _(none — all near-term items shipped in v0.8.0)_
 
 ---
 
 ## WORTH CONSIDERING
 
-- **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Provide documented examples rather than built-in encoders to keep the dependency policy intact.
+- **Request body decompression middleware** — counterpart to `Compression` for decompressing gzip-encoded request bodies. Targeted for v0.9.0. Round-trip symmetry with response compression.
+- **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
 - **Streaming ETag option** — evaluated and rejected. HTTP requires headers before body, so buffering is mandatory. The current FNV-64a + 1MB buffer approach is correct and optimal.
 - **HTTP/2 Server Push integration test** — removed, HTTP/2 push is deprecated.
+- **`httpspec` spec for CORS headers** — extend `httpspec` with CORS behavior validation. Roadmap item.
+- **`httpspec` spec for rate-limit headers** — extend `httpspec` with `Retry-After`, `X-RateLimit-*` checks. Roadmap item.
+- **Property-based tests for token bucket** — extend test suite with rapid/quickcheck for token bucket math. Roadmap item.
+- **Integration test for full middleware stack** — chain all 16 middlewares in recommended order. Roadmap item.
+- **Dynamic README coverage badge** — wire to CI output instead of hardcoded value. Low priority.
+- **Rate limiter `context.Context` cancellation** — add `context.Context` support to the rate limiter interface. Roadmap item.

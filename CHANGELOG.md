@@ -6,22 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Docs health pass (2026-08-05):** Annotated all `2026-07-*` and `2026-07-3*` historical status files inline with per-item resolution tables (every numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker). Rebuilt `TODO_LIST.md` from scratch with grounded state (5 medium-priority items + 6 low-priority items + 8 won't-implement items). Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory. Updated `FEATURES.md` with the post-v0.8.0 feature inventory (97.8% httputil coverage, 14 documented defensive paths). Expanded `CHANGELOG [0.8.0]` with the full session work (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure).
+
 ## [0.8.0] - 2026-07-31
 
 ### Added
 
-- **CSRF protection** (`csrf.go`): double-submit cookie CSRF middleware backed by `justinas/nosurf`, with HTMX-aware helpers (`CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField`), trusted-proxy support, and `ValidateCSRF` for per-handler validation.
-- **W3C Server-Timing** (`server_timing.go`): `ServerTimingMiddleware`, `ServerTimingMiddlewareWhen`, `MeasureServerTiming`, and `WrapServerTiming` for response instrumentation with CRLF-injection-safe header values.
-- **Keyed rate limiting** (`ratelimit_keyed.go`): `KeyedRateLimiter` with O(log n) min-heap eviction, a `MaxKeys` cap, `Retry-After` headers, and a monitoring API (`ActiveKeys`). Replaces the deprecated `TokenBucketLimiter`.
-
-### Deprecated
-
-- `TokenBucketLimiter`, the `RateLimiter` interface, `RateLimitConfig`, `DefaultRateLimitConfig`, and `RateLimit()` middleware — superseded by `KeyedRateLimiter` and `KeyedRateLimiterMiddleware`. Will be removed in a future release.
+- **CSRF protection** (`csrf.go`): double-submit cookie CSRF middleware backed by `justinas/nosurf` v1.2.0, with HTMX-aware helpers (`CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField`), trusted-proxy CIDR support, domain-level `TrustedOrigins`, per-handler `ValidateCSRF`, and `ConfigureNosurfHandler` for fine-grained control over the underlying nosurf handler.
+- **W3C Server-Timing** (`server_timing.go`): `ServerTimingMiddleware`, `ServerTimingMiddlewareWhen`, `MeasureServerTiming`, `WrapServerTiming`, `RecordServerTiming`, `WithServerTiming`, and `ServerTimingFromContext` for response instrumentation with CRLF-injection-safe header values. Includes `delegatingWriter` for full Hijacker/Flusher/Pusher support.
+- **Keyed rate limiting** (`ratelimit_keyed.go`): `KeyedRateLimiter` with O(log n) min-heap eviction, a `MaxKeys` cap, lazy `EvictionTTL` eviction, `Retry-After` headers, and a monitoring API (`ActiveKeys`). Replaces the deprecated `TokenBucketLimiter` (slated for removal at v1.0).
+- `MiddlewareStack` name constants for the new middleware: `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit` (`stack.go`).
+- Example functions: `ExampleCSRFMiddleware`, `ExampleServerTimingMiddleware`, `ExampleKeyedRateLimiterMiddleware` (required by `testableexamples` linter).
+- `docs/migrating-to-keyed-rate-limiter.md` — deprecation migration guide with symbol mapping, before/after examples, behavioral differences table, and monitoring guidance.
+- CI workflow: `scripts/check-changelog-links.sh` validates every `[version]` heading has a matching link definition and vice versa.
+- CHANGELOG link reference at file bottom: `[0.8.0]`.
 
 ### Changed
 
-- Added `github.com/justinas/nosurf` v1.2.0 as a dependency (CSRF protection).
+- `docs/v1-stability.md` — all new types classified as Frozen/Additive. New sections: CSRF Protection (17 rows), Server-Timing (10 rows), expanded Rate Limiting (12 rows). Middleware constants count updated from 9 to 12.
+- `docs/RELEASE.md` — added pre-release self-review step.
+- `coverage` improved from 91.0% to 97.8% (`httputil`) / 98.3% (`httpspec`). New middleware (CSRF, Server-Timing, KeyedRateLimit) and pre-existing functions (`Server.Shutdown`, `httpspec.mustRequest`, `id_generator.go`) closed to 100% or documented as defensive code paths.
+- `writeClassified` doc comment corrected from "single error-handling choke point" to "Write-path error-handling choke point" — documents that buffer-drain writes in `Close` and `flushPlainAndStream` call `compressWriteError` directly.
+- `AGENTS.md` — error classification table expanded with CSRF error family (Rejection + Infrastructure).
+- `CONTRIBUTING.md` — allowed dependencies updated to include `github.com/justinas/nosurf`.
+- `README.md` — feature sections added for CSRF, Server-Timing, Rate Limiting; `CSRFConfig` and `KeyedRateLimiterConfig` field tables added; middleware ordering section updated.
 - `go-error-family` upgraded from v0.9.0 to v0.10.0.
+- `github.com/justinas/nosurf` v1.2.0 added as a dependency (CSRF protection).
+- `nix run .#coverage` available in the devShell.
+- GitHub Actions pinned to commit SHAs (supply-chain hardening): `actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, `golangci/golangci-lint-action`, `softprops/action-gh-release`.
+
+### Fixed
+
+- `Server.Shutdown` 75% → 100% via `TestServerShutdownReturnsErrorOnContextExpiry` (uses manual `net.Listen` + blocking handler + expired context). Added `ReadHeaderTimeout` to suppress gosec G112.
+
+### Deprecated
+
+- `TokenBucketLimiter`, the `RateLimiter` interface, `RateLimitConfig`, `DefaultRateLimitConfig`, and `RateLimit()` middleware — superseded by `KeyedRateLimiter` and `KeyedRateLimiterMiddleware`. Will be removed at v1.0. Migration guide: `docs/migrating-to-keyed-rate-limiter.md`.
 
 ## [0.7.1] - 2026-07-29
 
@@ -240,7 +262,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/larsartmann/httputil/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/larsartmann/httputil/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/larsartmann/httputil/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/larsartmann/httputil/compare/v0.6.0...v0.6.1
