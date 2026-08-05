@@ -25,7 +25,7 @@ func BenchmarkCheck(b *testing.B) {
 		b.Run(bc.name, func(b *testing.B) {
 			b.ResetTimer()
 
-			for range b.N {
+			for b.Loop() {
 				_ = bc.check(mux)
 			}
 		})
@@ -40,7 +40,7 @@ func BenchmarkCheckServesRequest(b *testing.B) {
 
 	b.ResetTimer()
 
-	for range b.N {
+	for b.Loop() {
 		mux.ServeHTTP(rec, req)
 	}
 }
