@@ -31,20 +31,15 @@ func newRateLimitedHandler() http.Handler {
 
 		if counts[r.RemoteAddr] <= 2 {
 			w.Header().Set("Retry-After", "60")
-			//nolint:canonicalheader // industry-standard spelling
 			w.Header().Set("X-RateLimit-Limit", "2")
-			//nolint:canonicalheader // industry-standard spelling
 			w.Header().Set("X-RateLimit-Remaining", "0")
-			//nolint:canonicalheader // industry-standard spelling
 			w.Header().Set("X-RateLimit-Reset", strconv.FormatInt(int64(60), 10))
 			w.WriteHeader(http.StatusTooManyRequests)
 
 			return
 		}
 
-		//nolint:canonicalheader // industry-standard spelling
 		w.Header().Set("X-RateLimit-Limit", "2")
-		//nolint:canonicalheader // industry-standard spelling
 		w.Header().Set("X-RateLimit-Remaining", "1")
 		w.WriteHeader(http.StatusOK)
 	})

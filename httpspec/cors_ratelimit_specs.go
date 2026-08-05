@@ -267,11 +267,8 @@ func rateLimitHintHeadersOnAllowCheck() Check {
 		req.RemoteAddr = "192.0.2.3:1234"
 		rec := serve(handler, req)
 
-		//nolint:canonicalheader // industry-standard header spelling
 		limit := rec.Header().Get(headerXRateLimitLimit)
-		//nolint:canonicalheader // industry-standard header spelling
 		remaining := rec.Header().Get(headerXRateLimitRemaining)
-		//nolint:canonicalheader // industry-standard header spelling
 		reset := rec.Header().Get(headerXRateLimitReset)
 
 		if limit == "" && remaining == "" && reset == "" {

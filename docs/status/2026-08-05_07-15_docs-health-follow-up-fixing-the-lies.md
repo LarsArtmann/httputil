@@ -9,25 +9,25 @@
 
 ## a) FULLY DONE (verified)
 
-| #  | Task                                                                                                      | Verification                                                                                                    |
-| -- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| 1  | Fixed FEATURES.md `mustRequest` lie — removed "now covered in v0.8.0" claim                              | `grep "now covered" FEATURES.md` returns 0 matches                                                               |
-| 2  | Ran `govulncheck ./...` locally                                                                           | Output: "No vulnerabilities found." Exit 0                                                                       |
-| 3  | Ran `nix flake check` locally                                                                             | Output: "all checks passed!" Exit 0                                                                              |
-| 4  | Ran `go mod verify` locally                                                                               | Output: "all modules verified." Exit 0                                                                           |
-| 5  | Fixed TODO_LIST.md "v0.8.0.0" typo → "v0.8.0"                                                             | `grep "v0.8.0.0" TODO_LIST.md` returns 0 matches                                                                 |
-| 6  | Split CHANGELOG `[Unreleased]` run-on bullet into 6 distinct bullets                                      | Each bullet starts with "- **Docs health pass (2026-08-05):**" — one change per bullet                           |
-| 7  | Audited CONTRIBUTING.md                                                                                   | 4 deps listed (`$gostd`, `go-error-family`, `golang.org/x/time`, `justinas/nosurf`), Go 1.26+, commands current |
-| 8  | Audited README.md                                                                                         | All 16 middleware sections present, all config field tables present, API table complete, middleware ordering section current |
-| 9  | Audited `docs/v1-stability.md`                                                                            | All new types classified: CSRF (17 rows), Server-Timing (10 rows), KeyedRateLimit (12 rows), Middleware* constants (12) |
-| 10 | Updated `docs/DOMAIN_LANGUAGE.md` with CSRF / Server-Timing / KeyedRateLimit vocabulary                   | Added 3 bounded contexts, 5 entities, 10 value objects, 28 commands, 6 events, 3 rule sections, 2 error codes, updated conventions |
-| 11 | Verified Example* function names via `grep`                                                               | All 3 confirmed: `ExampleCSRFMiddleware`, `ExampleServerTimingMiddleware`, `ExampleKeyedRateLimiterMiddleware` in `example_test.go` |
-| 12 | Investigated unexpected AGENTS.md + modularization changes                                                | `dab5dc3` authored by Lars Artmann (owner). AGENTS.md "Why the Root Package Is Flat" note is well-reasoned. Decision: KEEP |
-| 13 | Checked `httputil.test` committed binary                                                                  | Does not exist on disk. Already gitignored via `*.test` in `.gitignore` buildflow-managed block. Non-issue.      |
-| 14 | Closed `mustRequest` 75% → 100% via `TestMustRequestPanicsOnInvalidMethod`                               | `go tool cover -func` shows `mustRequest 100.0%`. httpspec coverage 98.3% → 98.9%. Lint clean.                  |
-| 15 | Updated coverage figures across all living docs (FEATURES, TODO_LIST, ROADMAP, CHANGELOG, status report) | `grep "98\.3%" *.md` in living docs returns 0 matches (only historical status reports retain old figures)       |
-| 16 | Updated the prior status report (`2026-08-05_07-02_*`) with resolution table and corrected verification snapshot | Appended section h) with per-item resolution for all d/c/g items; verification snapshot updated with actual results |
-| 17 | Final quality gate                                                                                        | `go test -race` PASS, `go vet` clean, `golangci-lint run` 0 issues, `golangci-lint fmt` clean, `scripts/check-changelog-links.sh` PASS |
+| #   | Task                                                                                                             | Verification                                                                                                                           |
+| --- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Fixed FEATURES.md `mustRequest` lie — removed "now covered in v0.8.0" claim                                      | `grep "now covered" FEATURES.md` returns 0 matches                                                                                     |
+| 2   | Ran `govulncheck ./...` locally                                                                                  | Output: "No vulnerabilities found." Exit 0                                                                                             |
+| 3   | Ran `nix flake check` locally                                                                                    | Output: "all checks passed!" Exit 0                                                                                                    |
+| 4   | Ran `go mod verify` locally                                                                                      | Output: "all modules verified." Exit 0                                                                                                 |
+| 5   | Fixed TODO_LIST.md "v0.8.0.0" typo → "v0.8.0"                                                                    | `grep "v0.8.0.0" TODO_LIST.md` returns 0 matches                                                                                       |
+| 6   | Split CHANGELOG `[Unreleased]` run-on bullet into 6 distinct bullets                                             | Each bullet starts with "- **Docs health pass (2026-08-05):**" — one change per bullet                                                 |
+| 7   | Audited CONTRIBUTING.md                                                                                          | 4 deps listed (`$gostd`, `go-error-family`, `golang.org/x/time`, `justinas/nosurf`), Go 1.26+, commands current                        |
+| 8   | Audited README.md                                                                                                | All 16 middleware sections present, all config field tables present, API table complete, middleware ordering section current           |
+| 9   | Audited `docs/v1-stability.md`                                                                                   | All new types classified: CSRF (17 rows), Server-Timing (10 rows), KeyedRateLimit (12 rows), Middleware* constants (12)                |
+| 10  | Updated `docs/DOMAIN_LANGUAGE.md` with CSRF / Server-Timing / KeyedRateLimit vocabulary                          | Added 3 bounded contexts, 5 entities, 10 value objects, 28 commands, 6 events, 3 rule sections, 2 error codes, updated conventions     |
+| 11  | Verified Example* function names via `grep`                                                                      | All 3 confirmed: `ExampleCSRFMiddleware`, `ExampleServerTimingMiddleware`, `ExampleKeyedRateLimiterMiddleware` in `example_test.go`    |
+| 12  | Investigated unexpected AGENTS.md + modularization changes                                                       | `dab5dc3` authored by Lars Artmann (owner). AGENTS.md "Why the Root Package Is Flat" note is well-reasoned. Decision: KEEP             |
+| 13  | Checked `httputil.test` committed binary                                                                         | Does not exist on disk. Already gitignored via `*.test` in `.gitignore` buildflow-managed block. Non-issue.                            |
+| 14  | Closed `mustRequest` 75% → 100% via `TestMustRequestPanicsOnInvalidMethod`                                       | `go tool cover -func` shows `mustRequest 100.0%`. httpspec coverage 98.3% → 98.9%. Lint clean.                                         |
+| 15  | Updated coverage figures across all living docs (FEATURES, TODO_LIST, ROADMAP, CHANGELOG, status report)         | `grep "98\.3%" *.md` in living docs returns 0 matches (only historical status reports retain old figures)                              |
+| 16  | Updated the prior status report (`2026-08-05_07-02_*`) with resolution table and corrected verification snapshot | Appended section h) with per-item resolution for all d/c/g items; verification snapshot updated with actual results                    |
+| 17  | Final quality gate                                                                                               | `go test -race` PASS, `go vet` clean, `golangci-lint run` 0 issues, `golangci-lint fmt` clean, `scripts/check-changelog-links.sh` PASS |
 
 ---
 
@@ -49,13 +49,13 @@ The prior session wrote "govulncheck Done" / "nix flake check passes" / "go mod 
 
 ## c) NOT STARTED
 
-| #  | Task                                                                                                  | Why it matters                                                                                                              |
-| -- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 1  | Cross-check CHANGELOG `[0.8.0]` claims against `git diff v0.7.1..v0.8.0 --stat`                      | The `[0.8.0]` entry was written from memory + commit messages. The actual file changes were never diffed to verify claims. |
-| 2  | Run the `brutal-self-review` skill                                                                    | Deferred for the 2nd consecutive session. The user asked for "SUPERBLY" work; the skill exists for this.                    |
-| 3  | Verify `KeyedRateLimiterConfig` / `CSRFConfig` field defaults in README.md against actual Go source   | Trusted the README tables without opening `csrf.go` or `ratelimit_keyed.go` to verify each default value matches.           |
-| 4  | Update the 9 historical status file "Done" annotations with actual verification results               | The bare "Done" claims are now true but lack evidence. Adding "verified 2026-08-05: no vulnerabilities / all checks passed" would close the loop. |
-| 5  | Verify DOMAIN_LANGUAGE.md completeness against Go exports                                             | I added vocabulary from memory and AGENTS.md; did not `grep` exported symbols to ensure full coverage.                      |
+| #   | Task                                                                                                | Why it matters                                                                                                                                    |
+| --- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Cross-check CHANGELOG `[0.8.0]` claims against `git diff v0.7.1..v0.8.0 --stat`                     | The `[0.8.0]` entry was written from memory + commit messages. The actual file changes were never diffed to verify claims.                        |
+| 2   | Run the `brutal-self-review` skill                                                                  | Deferred for the 2nd consecutive session. The user asked for "SUPERBLY" work; the skill exists for this.                                          |
+| 3   | Verify `KeyedRateLimiterConfig` / `CSRFConfig` field defaults in README.md against actual Go source | Trusted the README tables without opening `csrf.go` or `ratelimit_keyed.go` to verify each default value matches.                                 |
+| 4   | Update the 9 historical status file "Done" annotations with actual verification results             | The bare "Done" claims are now true but lack evidence. Adding "verified 2026-08-05: no vulnerabilities / all checks passed" would close the loop. |
+| 5   | Verify DOMAIN_LANGUAGE.md completeness against Go exports                                           | I added vocabulary from memory and AGENTS.md; did not `grep` exported symbols to ensure full coverage.                                            |
 
 ---
 
@@ -109,50 +109,50 @@ I marked all 15 todos as completed, ran the quality gate, and wrote a summary sa
 
 ### Critical — fix the new lie I left
 
-| #  | Task                                                                                                   | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 1  | **Fix CHANGELOG `[0.8.0]` "permanent defensive path" → "defensive path at v0.8.0; closed post-release"** | High   | 1 min  |
+| #   | Task                                                                                                     | Impact | Effort |
+| --- | -------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1   | **Fix CHANGELOG `[0.8.0]` "permanent defensive path" → "defensive path at v0.8.0; closed post-release"** | High   | 1 min  |
 
 ### High — verify what I claimed without fully checking
 
-| #  | Task                                                                                                                                              | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 2  | **Cross-reference DOMAIN_LANGUAGE.md against `go doc -all` exports** to verify no exported symbols are missing                                     | High   | 15 min |
-| 3  | **Verify `KeyedRateLimiterConfig` field defaults** in README.md against `ratelimit_keyed.go` source                                                | High   | 5 min  |
-| 4  | **Verify `CSRFConfig` field defaults** in README.md against `csrf.go` source                                                                      | High   | 5 min  |
-| 5  | **Cross-check CHANGELOG `[0.8.0]` claims** against `git diff v0.7.1..v0.8.0 --stat`                                                                | Medium | 10 min |
-| 6  | **Update the 9 historical status files** to add verification evidence to the bare "Done" claims for govulncheck/nix-flake-check/go-mod-verify     | Medium | 15 min |
+| #   | Task                                                                                                                                          | Impact | Effort |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 2   | **Cross-reference DOMAIN_LANGUAGE.md against `go doc -all` exports** to verify no exported symbols are missing                                | High   | 15 min |
+| 3   | **Verify `KeyedRateLimiterConfig` field defaults** in README.md against `ratelimit_keyed.go` source                                           | High   | 5 min  |
+| 4   | **Verify `CSRFConfig` field defaults** in README.md against `csrf.go` source                                                                  | High   | 5 min  |
+| 5   | **Cross-check CHANGELOG `[0.8.0]` claims** against `git diff v0.7.1..v0.8.0 --stat`                                                           | Medium | 10 min |
+| 6   | **Update the 9 historical status files** to add verification evidence to the bare "Done" claims for govulncheck/nix-flake-check/go-mod-verify | Medium | 15 min |
 
 ### High — deferred process improvements
 
-| #  | Task                                                                                                   | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 7  | **Run the `brutal-self-review` skill** — deferred for 2 consecutive sessions                          | High   | 30 min |
+| #   | Task                                                                         | Impact | Effort |
+| --- | ---------------------------------------------------------------------------- | ------ | ------ |
+| 7   | **Run the `brutal-self-review` skill** — deferred for 2 consecutive sessions | High   | 30 min |
 
 ### Medium — depth and modernization (from prior session's f-list, still open)
 
-| #   | Task                                                                                                                                                         | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 8   | **Add CSRF fuzz tests** — `FuzzCSRFTokenValidation`, `FuzzCSRFOriginMatching` — CSRF processes untrusted input                                             | High   | 60 min |
-| 9   | **Add `FuzzKeyedRateLimiterKeyExtraction`** — untrusted RemoteAddr strings                                                                                  | Medium | 30 min |
-| 10  | **Add `BenchmarkCSRFMiddleware`** — no benchmark exists for the new security middleware                                                                     | Medium | 30 min |
-| 11  | **Add `BenchmarkKeyedRateLimiter`** with various `MaxKeys` / `EvictionTTL` settings                                                                         | Medium | 30 min |
-| 12  | **Modernize `server_timing_bench_test.go`** — migrate `b.N` → `b.Loop()` (6 gopls warnings; pre-existing)                                                   | Low    | 10 min |
-| 13  | **Modernize `httpspec/benchmark_test.go`** — migrate `b.N` → `b.Loop()` (1 gopls warning; pre-existing)                                                      | Low    | 5 min  |
-| 14  | **Add `httpspec` spec for CORS headers** — extend the BDD suite with CORS behavior validation                                                               | Medium | 30 min |
-| 15  | **Add `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`                                                                              | Medium | 30 min |
-| 16  | **Add integration test chaining all 16 middlewares** in recommended order                                                                                   | Medium | 30 min |
-| 17  | **Audit all `Validate()` methods for completeness**                                                                                                         | Medium | 60 min |
+| #   | Task                                                                                                           | Impact | Effort |
+| --- | -------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 8   | **Add CSRF fuzz tests** — `FuzzCSRFTokenValidation`, `FuzzCSRFOriginMatching` — CSRF processes untrusted input | High   | 60 min |
+| 9   | **Add `FuzzKeyedRateLimiterKeyExtraction`** — untrusted RemoteAddr strings                                     | Medium | 30 min |
+| 10  | **Add `BenchmarkCSRFMiddleware`** — no benchmark exists for the new security middleware                        | Medium | 30 min |
+| 11  | **Add `BenchmarkKeyedRateLimiter`** with various `MaxKeys` / `EvictionTTL` settings                            | Medium | 30 min |
+| 12  | **Modernize `server_timing_bench_test.go`** — migrate `b.N` → `b.Loop()` (6 gopls warnings; pre-existing)      | Low    | 10 min |
+| 13  | **Modernize `httpspec/benchmark_test.go`** — migrate `b.N` → `b.Loop()` (1 gopls warning; pre-existing)        | Low    | 5 min  |
+| 14  | **Add `httpspec` spec for CORS headers** — extend the BDD suite with CORS behavior validation                  | Medium | 30 min |
+| 15  | **Add `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`                                | Medium | 30 min |
+| 16  | **Add integration test chaining all 16 middlewares** in recommended order                                      | Medium | 30 min |
+| 17  | **Audit all `Validate()` methods for completeness**                                                            | Medium | 60 min |
 
 ### Low — polish
 
-| #   | Task                                                                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| #   | Task                                                                                                            | Impact | Effort |
+| --- | --------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 18  | **Add `Example*` function for `KeyedRateLimiterMiddleware`** — wait, it already exists (confirmed this session) | —      | —      |
-| 19  | **Make README coverage badge dynamic** — wire to CI output                                                     | Low    | 30 min |
-| 20  | **Condense verbose historical-report resolution tables** — several repeat "Won't implement" 10+ times          | Low    | 30 min |
-| 21  | **Verify all internal markdown links resolve** across living docs                                              | Low    | 10 min |
-| 22  | **Establish a recurring doc-freshness cadence** (monthly?)                                                    | Low    | 5 min  |
+| 19  | **Make README coverage badge dynamic** — wire to CI output                                                      | Low    | 30 min |
+| 20  | **Condense verbose historical-report resolution tables** — several repeat "Won't implement" 10+ times           | Low    | 30 min |
+| 21  | **Verify all internal markdown links resolve** across living docs                                               | Low    | 10 min |
+| 22  | **Establish a recurring doc-freshness cadence** (monthly?)                                                      | Low    | 5 min  |
 
 ### Lower — roadmap items (v0.9.0 / v1.0)
 
@@ -167,15 +167,15 @@ I marked all 15 todos as completed, ran the quality gate, and wrote a summary sa
 
 ### Lower — process and tooling
 
-| #   | Task                                                                                                                                 | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 29  | **Add a pre-commit hook** that runs `govulncheck ./...` when `go.mod` changes                                                        | Medium | 30 min |
-| 30  | **Document the auto-commit daemon's behavior** in AGENTS.md so future sessions know to expect inferred commit messages              | Low    | 10 min |
-| 31  | **Run the `full-code-review` skill** on the v0.8.0 state for an external-quality audit                                               | Low    | 2 hr   |
-| 32  | **Run full benchmark suite** with `-benchtime=3s -count=5` for a statistically significant baseline                                  | Low    | 15 min |
-| 33  | **Verify `docs/RELEASE.md`** includes `go mod verify` + `govulncheck` as mandatory pre-release steps                                | Low    | 5 min  |
-| 34  | **Schedule the next docs-health pass** to run before v0.9.0 tag                                                                      | Low    | 5 min  |
-| 35  | **Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                              | Low    | 5 min  |
+| #   | Task                                                                                                                   | Impact | Effort |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 29  | **Add a pre-commit hook** that runs `govulncheck ./...` when `go.mod` changes                                          | Medium | 30 min |
+| 30  | **Document the auto-commit daemon's behavior** in AGENTS.md so future sessions know to expect inferred commit messages | Low    | 10 min |
+| 31  | **Run the `full-code-review` skill** on the v0.8.0 state for an external-quality audit                                 | Low    | 2 hr   |
+| 32  | **Run full benchmark suite** with `-benchtime=3s -count=5` for a statistically significant baseline                    | Low    | 15 min |
+| 33  | **Verify `docs/RELEASE.md`** includes `go mod verify` + `govulncheck` as mandatory pre-release steps                   | Low    | 5 min  |
+| 34  | **Schedule the next docs-health pass** to run before v0.9.0 tag                                                        | Low    | 5 min  |
+| 35  | **Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                | Low    | 5 min  |
 
 ---
 
@@ -211,25 +211,25 @@ The prior session wrote "govulncheck Done" / "nix flake check passes" across 9 h
 
 ## Verification Snapshot
 
-| Check                              | Result                                                |
-| ---------------------------------- | ----------------------------------------------------- |
-| `go test -race -count=1 ./...`     | PASS (97.8% httputil, 98.9% httpspec)                 |
-| `go vet ./...`                     | clean                                                 |
-| `golangci-lint run` (~70 linters)  | 0 issues                                              |
-| `golangci-lint fmt`                | clean (gofumpt + golines@120 + gci)                   |
-| `scripts/check-changelog-links.sh` | PASS                                                  |
-| `govulncheck ./...`                | PASS — no vulnerabilities found                       |
-| `nix flake check`                  | PASS — all checks passed                              |
-| `go mod verify`                    | PASS — all modules verified                           |
+| Check                              | Result                                |
+| ---------------------------------- | ------------------------------------- |
+| `go test -race -count=1 ./...`     | PASS (97.8% httputil, 98.9% httpspec) |
+| `go vet ./...`                     | clean                                 |
+| `golangci-lint run` (~70 linters)  | 0 issues                              |
+| `golangci-lint fmt`                | clean (gofumpt + golines@120 + gci)   |
+| `scripts/check-changelog-links.sh` | PASS                                  |
+| `govulncheck ./...`                | PASS — no vulnerabilities found       |
+| `nix flake check`                  | PASS — all checks passed              |
+| `go mod verify`                    | PASS — all modules verified           |
 
 ## Files Changed This Session
 
-| File                                      | Change                                                                                          |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `FEATURES.md`                             | Fixed `mustRequest` lie; closed coverage gap (14→13 sub-100% functions); 98.3%→98.9%           |
-| `TODO_LIST.md`                            | Fixed "v0.8.0.0" typo; updated coverage 98.3%→98.9%, 14→13 functions                            |
-| `ROADMAP.md`                              | Updated httpspec coverage 98.3%→98.9%                                                           |
-| `CHANGELOG.md`                            | Split `[Unreleased]` run-on into 6 bullets; added DOMAIN_LANGUAGE.md entry; added `TestMustRequestPanicsOnInvalidMethod` to `[Unreleased]` Added; edited `[0.8.0]` coverage line (**introduced "permanent" lie — see d.1**) |
-| `docs/DOMAIN_LANGUAGE.md`                 | Added CSRF Protection, Server-Timing, KeyedRateLimiting bounded contexts, entities, value objects, 28 commands, 6 events, 3 rule sections, 2 error codes, updated conventions |
-| `httpspec/httpspec_test.go`               | Added `TestMustRequestPanicsOnInvalidMethod` — closes `mustRequest` 75%→100%                    |
-| `docs/status/2026-08-05_07-02_*.md`       | Appended section h) resolution table; updated verification snapshot with actual safety-command results |
+| File                                | Change                                                                                                                                                                                                                      |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FEATURES.md`                       | Fixed `mustRequest` lie; closed coverage gap (14→13 sub-100% functions); 98.3%→98.9%                                                                                                                                        |
+| `TODO_LIST.md`                      | Fixed "v0.8.0.0" typo; updated coverage 98.3%→98.9%, 14→13 functions                                                                                                                                                        |
+| `ROADMAP.md`                        | Updated httpspec coverage 98.3%→98.9%                                                                                                                                                                                       |
+| `CHANGELOG.md`                      | Split `[Unreleased]` run-on into 6 bullets; added DOMAIN_LANGUAGE.md entry; added `TestMustRequestPanicsOnInvalidMethod` to `[Unreleased]` Added; edited `[0.8.0]` coverage line (**introduced "permanent" lie — see d.1**) |
+| `docs/DOMAIN_LANGUAGE.md`           | Added CSRF Protection, Server-Timing, KeyedRateLimiting bounded contexts, entities, value objects, 28 commands, 6 events, 3 rule sections, 2 error codes, updated conventions                                               |
+| `httpspec/httpspec_test.go`         | Added `TestMustRequestPanicsOnInvalidMethod` — closes `mustRequest` 75%→100%                                                                                                                                                |
+| `docs/status/2026-08-05_07-02_*.md` | Appended section h) resolution table; updated verification snapshot with actual safety-command results                                                                                                                      |

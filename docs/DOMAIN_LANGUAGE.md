@@ -24,29 +24,29 @@ If a word means something different to a contributor than to a consumer, define 
 
 The library has these bounded contexts, each with a distinct vocabulary and responsibility.
 
-| Context          | Description                                                                                        | Key Type(s)                              |
-| ---------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Client IP        | Extracting the true client IP from proxied requests                                                | `ClientIP`                               |
-| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                                     | `CORSConfig`, `CORS`                     |
-| Response Capture | Recording response state for inspection (status, headers, body)                                    | `ResponseRecorder`, `Chain`              |
-| Error Protocol   | Classified errors with behavioral families for retry decisions                                     | Error codes, `go-error-family`           |
-| Security Headers | Setting common browser security headers on responses                                               | `SecurityHeadersConfig`                  |
-| Request ID       | Propagating or generating unique request identifiers                                               | `RequestIDConfig`                        |
-| Recovery         | Catching panics and returning 500 responses                                                        | `Recovery`                               |
-| Timeout          | Enforcing request deadlines via context cancellation                                               | `Timeout`                                |
-| Compression      | Response compression (gzip/deflate/brotli/zstd + pluggable encodings) with pool-based writer reuse | `CompressionConfig`                      |
-| ETag             | Entity tag generation and conditional 304 responses                                                | `ETagConfig`                             |
-| Logging          | Structured request/response logging                                                                | `Logging`                                |
-| Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                            | `ServerConfig`, `Server`                 |
-| Health           | Kubernetes-compatible health, liveness, and readiness endpoints                                    | `HealthHandler`, `ReadyHandlerWithProbe` |
-| Rate Limiting    | Per-key rate limiting with O(log n) eviction, MaxKeys cap, and lazy TTL sweep                       | `KeyedRateLimiterConfig`, `KeyedRateLimiter`  |
-| Metrics          | Request metrics recording with pluggable recorder interface                                        | `MetricsConfig`, `MetricsRecorder`       |
-| CSRF Protection  | Double-submit cookie CSRF defense backed by justinas/nosurf with HTMX-aware helpers                 | `CSRFConfig`, `CSRFMiddleware`           |
-| Server-Timing    | W3C Server-Timing header instrumentation with CRLF-safe values and context-aware measurement        | `ServerTiming`, `ServerTimingMiddleware` |
-| Body Size Limit  | Enforcing maximum request body size                                                                | `MaxBodySize`                            |
-| Query Parameters | Parsing typed values from URL query parameters                                                     | `ParseUintQuery`                         |
-| Middleware Stack | Named middleware ordering with duplicate prevention                                                | `MiddlewareStack`                        |
-| HTTP Spec        | Reusable BDD-style HTTP behavior specifications                                                    | `httpspec.Run`, `httpspec.Spec`          |
+| Context          | Description                                                                                        | Key Type(s)                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Client IP        | Extracting the true client IP from proxied requests                                                | `ClientIP`                                   |
+| CORS             | Configuring and enforcing Cross-Origin Resource Sharing policy                                     | `CORSConfig`, `CORS`                         |
+| Response Capture | Recording response state for inspection (status, headers, body)                                    | `ResponseRecorder`, `Chain`                  |
+| Error Protocol   | Classified errors with behavioral families for retry decisions                                     | Error codes, `go-error-family`               |
+| Security Headers | Setting common browser security headers on responses                                               | `SecurityHeadersConfig`                      |
+| Request ID       | Propagating or generating unique request identifiers                                               | `RequestIDConfig`                            |
+| Recovery         | Catching panics and returning 500 responses                                                        | `Recovery`                                   |
+| Timeout          | Enforcing request deadlines via context cancellation                                               | `Timeout`                                    |
+| Compression      | Response compression (gzip/deflate/brotli/zstd + pluggable encodings) with pool-based writer reuse | `CompressionConfig`                          |
+| ETag             | Entity tag generation and conditional 304 responses                                                | `ETagConfig`                                 |
+| Logging          | Structured request/response logging                                                                | `Logging`                                    |
+| Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                            | `ServerConfig`, `Server`                     |
+| Health           | Kubernetes-compatible health, liveness, and readiness endpoints                                    | `HealthHandler`, `ReadyHandlerWithProbe`     |
+| Rate Limiting    | Per-key rate limiting with O(log n) eviction, MaxKeys cap, and lazy TTL sweep                      | `KeyedRateLimiterConfig`, `KeyedRateLimiter` |
+| Metrics          | Request metrics recording with pluggable recorder interface                                        | `MetricsConfig`, `MetricsRecorder`           |
+| CSRF Protection  | Double-submit cookie CSRF defense backed by justinas/nosurf with HTMX-aware helpers                | `CSRFConfig`, `CSRFMiddleware`               |
+| Server-Timing    | W3C Server-Timing header instrumentation with CRLF-safe values and context-aware measurement       | `ServerTiming`, `ServerTimingMiddleware`     |
+| Body Size Limit  | Enforcing maximum request body size                                                                | `MaxBodySize`                                |
+| Query Parameters | Parsing typed values from URL query parameters                                                     | `ParseUintQuery`                             |
+| Middleware Stack | Named middleware ordering with duplicate prevention                                                | `MiddlewareStack`                            |
+| HTTP Spec        | Reusable BDD-style HTTP behavior specifications                                                    | `httpspec.Run`, `httpspec.Spec`              |
 
 ---
 
@@ -54,23 +54,23 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 
 Objects with identity and lifecycle within the library.
 
-| Term                  | Definition                                                                                    | Context          |
-| --------------------- | --------------------------------------------------------------------------------------------- | ---------------- |
-| ResponseRecorder      | A wrapping `http.ResponseWriter` that captures the status code and write state                | Response Capture |
-| CORSConfig            | A configuration value object defining CORS policy (origins, methods, headers, etc.)           | CORS             |
-| SecurityHeadersConfig | A configuration value object defining which security headers to set                           | Security Headers |
-| RequestIDConfig       | A configuration value object defining request ID header name and generation logic             | Request ID       |
-| CompressionConfig     | A configuration value object defining compression parameters (encodings, level, min size)     | Compression      |
-| ETagConfig            | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
-| RateLimitConfig            | A configuration value object defining deprecated token-bucket rate limiting policy           | Rate Limiting    |
-| TokenBucketLimiter         | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)      | Rate Limiting    |
-| KeyedRateLimiterConfig     | A configuration value object defining keyed rate limiting policy (limit, window, burst, keys)| Rate Limiting    |
-| KeyedRateLimiter           | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API      | Rate Limiting    |
-| CSRFConfig                 | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies) | CSRF Protection  |
-| ServerTiming               | A per-request timing collector injected via context for handler-internal sub-metrics         | Server-Timing    |
-| MetricsConfig              | A configuration value object defining metrics recording behavior                              | Metrics          |
-| ServerConfig               | A configuration value object defining server address, timeouts, and TLS settings              | Server Lifecycle |
-| MiddlewareStack            | A named middleware collection with duplicate prevention and ordering validation               | Middleware Stack |
+| Term                   | Definition                                                                                    | Context          |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ---------------- |
+| ResponseRecorder       | A wrapping `http.ResponseWriter` that captures the status code and write state                | Response Capture |
+| CORSConfig             | A configuration value object defining CORS policy (origins, methods, headers, etc.)           | CORS             |
+| SecurityHeadersConfig  | A configuration value object defining which security headers to set                           | Security Headers |
+| RequestIDConfig        | A configuration value object defining request ID header name and generation logic             | Request ID       |
+| CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)     | Compression      |
+| ETagConfig             | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
+| RateLimitConfig        | A configuration value object defining deprecated token-bucket rate limiting policy            | Rate Limiting    |
+| TokenBucketLimiter     | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)       | Rate Limiting    |
+| KeyedRateLimiterConfig | A configuration value object defining keyed rate limiting policy (limit, window, burst, keys) | Rate Limiting    |
+| KeyedRateLimiter       | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API       | Rate Limiting    |
+| CSRFConfig             | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies)  | CSRF Protection  |
+| ServerTiming           | A per-request timing collector injected via context for handler-internal sub-metrics          | Server-Timing    |
+| MetricsConfig          | A configuration value object defining metrics recording behavior                              | Metrics          |
+| ServerConfig           | A configuration value object defining server address, timeouts, and TLS settings              | Server Lifecycle |
+| MiddlewareStack        | A named middleware collection with duplicate prevention and ordering validation               | Middleware Stack |
 
 ---
 
@@ -78,33 +78,33 @@ Objects with identity and lifecycle within the library.
 
 Immutable objects defined by their attributes.
 
-| Term              | Definition                                                                                    | Context          |
-| ----------------- | --------------------------------------------------------------------------------------------- | ---------------- |
-| Client IP         | The extracted IP address string identifying the originating client                            | Client IP        |
-| Origin            | The value of the `Origin` request header; identifies the requesting site's scheme+host+port   | CORS             |
-| Allowed Origin    | An origin string permitted by the CORS policy; `*` means any origin is allowed                | CORS             |
-| Preflight Request | An `OPTIONS` request sent by the browser before the actual cross-origin request               | CORS             |
-| Actual Request    | The real request (GET, POST, etc.) following a successful preflight                           | CORS             |
-| Status Code       | The HTTP status code captured by the ResponseRecorder (e.g., 200, 404)                        | Response Capture |
-| Write State       | Whether `WriteHeader` has been called on the ResponseRecorder                                 | Response Capture |
-| Request ID        | A unique string identifying a request, propagated via header or generated                     | Request ID       |
-| ETag Value        | An opaque string identifying a specific version of a response body                            | ETag             |
-| Weak ETag         | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity | ETag             |
-| Compression Level | An integer controlling the compression tradeoff (speed vs ratio)                              | Compression      |
-| Min Size          | The minimum response body size (bytes) before compression is applied                          | Compression      |
-| Max Buffer Size   | The maximum bytes buffered for ETag computation before abandoning                             | ETag             |
-| Token Bucket      | A per-key container holding token count and last-refill timestamp                             | Rate Limiting    |
-| Eviction TTL      | Duration after which idle rate-limit entries are lazily removed; zero disables eviction      | Rate Limiting    |
-| Max Keys          | Caps the number of tracked rate-limit keys; oldest is evicted at capacity (zero = unbounded) | Rate Limiting    |
-| Key Extractor     | A function type extracting the rate-limit key from a request (RemoteAddr or ClientIP)        | Rate Limiting    |
-| Retry-After       | Duration until a rejected rate-limited client may retry; sent as an HTTP response header     | Rate Limiting    |
-| CSRF Token        | A cryptographically random nonce stored in a cookie and submitted with each state-changing request | CSRF Protection  |
-| Double-Submit Cookie | CSRF defense pattern: token sent in both cookie and request header/body for comparison  | CSRF Protection  |
-| Trusted Origin    | An origin explicitly allowed for cross-domain CSRF validation                                 | CSRF Protection  |
-| Trusted Proxy     | An IP/CIDR of a reverse proxy that may strip or overwrite origin/protocol headers             | CSRF Protection  |
-| Server-Timing Metric | A named sub-measurement within a single request's Server-Timing header (name + duration)  | Server-Timing    |
-| Health Status     | The operational state reported by health endpoints: `up` or `down`                            | Health           |
-| Ready Probe       | A function that returns true when the service is ready to accept traffic                      | Health           |
+| Term                 | Definition                                                                                         | Context          |
+| -------------------- | -------------------------------------------------------------------------------------------------- | ---------------- |
+| Client IP            | The extracted IP address string identifying the originating client                                 | Client IP        |
+| Origin               | The value of the `Origin` request header; identifies the requesting site's scheme+host+port        | CORS             |
+| Allowed Origin       | An origin string permitted by the CORS policy; `*` means any origin is allowed                     | CORS             |
+| Preflight Request    | An `OPTIONS` request sent by the browser before the actual cross-origin request                    | CORS             |
+| Actual Request       | The real request (GET, POST, etc.) following a successful preflight                                | CORS             |
+| Status Code          | The HTTP status code captured by the ResponseRecorder (e.g., 200, 404)                             | Response Capture |
+| Write State          | Whether `WriteHeader` has been called on the ResponseRecorder                                      | Response Capture |
+| Request ID           | A unique string identifying a request, propagated via header or generated                          | Request ID       |
+| ETag Value           | An opaque string identifying a specific version of a response body                                 | ETag             |
+| Weak ETag            | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity      | ETag             |
+| Compression Level    | An integer controlling the compression tradeoff (speed vs ratio)                                   | Compression      |
+| Min Size             | The minimum response body size (bytes) before compression is applied                               | Compression      |
+| Max Buffer Size      | The maximum bytes buffered for ETag computation before abandoning                                  | ETag             |
+| Token Bucket         | A per-key container holding token count and last-refill timestamp                                  | Rate Limiting    |
+| Eviction TTL         | Duration after which idle rate-limit entries are lazily removed; zero disables eviction            | Rate Limiting    |
+| Max Keys             | Caps the number of tracked rate-limit keys; oldest is evicted at capacity (zero = unbounded)       | Rate Limiting    |
+| Key Extractor        | A function type extracting the rate-limit key from a request (RemoteAddr or ClientIP)              | Rate Limiting    |
+| Retry-After          | Duration until a rejected rate-limited client may retry; sent as an HTTP response header           | Rate Limiting    |
+| CSRF Token           | A cryptographically random nonce stored in a cookie and submitted with each state-changing request | CSRF Protection  |
+| Double-Submit Cookie | CSRF defense pattern: token sent in both cookie and request header/body for comparison             | CSRF Protection  |
+| Trusted Origin       | An origin explicitly allowed for cross-domain CSRF validation                                      | CSRF Protection  |
+| Trusted Proxy        | An IP/CIDR of a reverse proxy that may strip or overwrite origin/protocol headers                  | CSRF Protection  |
+| Server-Timing Metric | A named sub-measurement within a single request's Server-Timing header (name + duration)           | Server-Timing    |
+| Health Status        | The operational state reported by health endpoints: `up` or `down`                                 | Health           |
+| Ready Probe          | A function that returns true when the service is ready to accept traffic                           | Health           |
 
 ---
 
@@ -112,70 +112,70 @@ Immutable objects defined by their attributes.
 
 Actions the library performs.
 
-| Term                                | Definition                                                                                             | Context          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- |
-| `ClientIP(r)`                       | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr | Client IP        |
-| `ClientIPMiddleware(next)`          | Create middleware that injects the client IP into the request context                                  | Client IP        |
-| `ClientIPFromContext(ctx)`          | Retrieve the stored client IP from a context                                                           | Client IP        |
-| `WithClientIP(ctx, ip)`             | Store a client IP string in a context                                                                  | Client IP        |
-| `CORS(cfg)`                         | Create middleware that sets CORS response headers and handles preflight requests                       | CORS             |
-| `DefaultCORSConfig()`               | Return a permissive CORS config suitable for local development (allows all origins)                    | CORS             |
-| `NewResponseRecorder(w)`            | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state             | Response Capture |
-| `Chain(handler, mw...)`             | Compose multiple middleware around a handler; first middleware in list is outermost                    | Response Capture |
-| `HeaderSnapshot(rec)`               | Return an isolated copy of the response headers from a ResponseRecorder                                | Response Capture |
-| `SecurityHeaders(cfg)`              | Create middleware that sets security response headers (nosniff, frame-options, etc.)                   | Security Headers |
-| `DefaultSecurityHeadersConfig()`    | Return a SecurityHeadersConfig with production defaults                                                | Security Headers |
-| `RequestID(cfg)`                    | Create middleware that propagates or generates a request ID                                            | Request ID       |
-| `DefaultRequestIDConfig()`          | Return a RequestIDConfig that reads/generates X-Request-ID                                             | Request ID       |
-| `RequestIDFromContext(ctx)`         | Retrieve the stored request ID from a context                                                          | Request ID       |
-| `Recovery(logger)`                  | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
-| `Timeout(duration)`                 | Create middleware that sets a deadline on the request context                                          | Timeout          |
-| `Logging(logger)`                   | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
-| `Compression(cfg)`                  | Create middleware that compresses responses based on Accept-Encoding negotiation                       | Compression      |
-| `DefaultCompressionConfig()`        | Return a CompressionConfig with sensible defaults (default level, 512-byte minimum)                    | Compression      |
-| `ETag(cfg)`                         | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
-| `DefaultETagConfig()`               | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
-| `HealthHandler()`                   | Return a handler that responds with `{"status":"up"}`                                                  | Health           |
-| `LiveHandler()`                     | Alias for `HealthHandler()` for Kubernetes liveness probes                                             | Health           |
-| `ReadyHandler()`                    | Return a handler for Kubernetes readiness probes (always up by default)                                | Health           |
-| `ReadyHandlerWithProbe(ready)`      | Return a handler that calls `ready()` and responds 200 up or 503 down                                  | Health           |
-| `RegisterHealth(mux)`               | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                      | Health           |
-| `NewTokenBucketLimiter(rate,burst)` | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0) _(deprecated)_      | Rate Limiting    |
-| `RateLimit(cfg)`                    | Create middleware that enforces rate limiting using the configured limiter _(deprecated)_             | Rate Limiting    |
-| `DefaultRateLimitConfig()`          | Return a RateLimitConfig with 429 status and RemoteAddr key func _(deprecated)_                       | Rate Limiting    |
-| `NewKeyedRateLimiter(cfg)`          | Create a keyed rate limiter with O(log n) eviction, MaxKeys cap, and monitoring API                   | Rate Limiting    |
-| `KeyedRateLimiterMiddleware(cfg)`   | Create middleware enforcing per-key rate limits with Retry-After on rejection                         | Rate Limiting    |
-| `DefaultKeyedRateLimiterConfig()`   | Return a KeyedRateLimiterConfig with sensible defaults (100 req/min, ClientIP key)                    | Rate Limiting    |
-| `KeyExtractorFromRemoteAddr()`      | Return a KeyExtractor that uses the request RemoteAddr for rate-limit keying                          | Rate Limiting    |
-| `KeyExtractorFromClientIP()`        | Return a KeyExtractor that uses the extracted ClientIP for rate-limit keying                          | Rate Limiting    |
-| `CSRFMiddleware(cfg)`               | Create double-submit cookie CSRF middleware backed by nosurf                                           | CSRF Protection  |
-| `CSRFResponseHeaderMiddleware(next)` | Create middleware that auto-sets the CSRF token in response headers for HTMX consumption             | CSRF Protection  |
-| `ValidateCSRF(r, cfg)`              | Validate a request's CSRF token; returns (ok, responseRecorder) for standalone use                    | CSRF Protection  |
-| `ConfigureNosurfHandler(h, cfg)`    | Configure the underlying nosurf handler with cookie, header, and origin settings                      | CSRF Protection  |
-| `WithCSRFToken(ctx, token)`         | Store a CSRF token in a context                                                                        | CSRF Protection  |
-| `CSRFTokenFromContext(ctx)`         | Retrieve the stored CSRF token from a context                                                          | CSRF Protection  |
-| `CSRFTokenFromRequest(r)`           | Extract the CSRF token from a request (header or cookie)                                               | CSRF Protection  |
-| `CSRFTokenHXHeaders(token)`         | Generate an `hx-headers` attribute string containing the CSRF token for HTMX                           | CSRF Protection  |
-| `CSRFTokenHTMLMeta(token)`          | Generate an HTML `<meta>` tag containing the CSRF token for templ rendering                            | CSRF Protection  |
-| `CSRFTokenFormField(token)`         | Generate an HTML hidden `<input>` field containing the CSRF token                                      | CSRF Protection  |
-| `InvalidateCSRFCookie(w, cfg)`      | Expire the CSRF cookie to force token rotation (e.g., on login/logout)                                 | CSRF Protection  |
-| `TranslateCSRFHeaders(h)`           | Translate HTMX-style CSRF headers to the canonical header name expected by nosurf                      | CSRF Protection  |
-| `SetPlaintextHTTPOrigin()`          | Configure the package to use plaintext HTTP origin for local development                               | CSRF Protection  |
-| `NewServerTiming()`                 | Create a ServerTiming collector for manual wrapping (without middleware)                               | Server-Timing    |
-| `ServerTimingMiddleware()`          | Create middleware that injects a ServerTiming collector via context and writes the header on response  | Server-Timing    |
-| `ServerTimingMiddlewareWhen(pred)`  | Create conditional Server-Timing middleware that only activates when the predicate returns true        | Server-Timing    |
-| `MeasureServerTiming(ctx, name)`    | Start a named sub-metric timer; returns a stop function that records the elapsed duration              | Server-Timing    |
-| `WrapServerTiming(w, r)`            | Manually wrap a ResponseWriter with Server-Timing instrumentation (without middleware)                 | Server-Timing    |
-| `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                 | Server-Timing    |
-| `WithServerTiming(ctx, st)`         | Store a ServerTiming collector in a context                                                            | Server-Timing    |
-| `ServerTimingFromContext(ctx)`      | Retrieve the ServerTiming collector from a context                                                     | Server-Timing    |
-| `Metrics(cfg)`                      | Create middleware that records request metrics via a pluggable recorder                                | Metrics          |
-| `MaxBodySize(limit)`                | Create middleware that rejects request bodies exceeding the limit                                      | Body Size Limit  |
-| `NewServer(cfg)`                    | Create an HTTP server with configurable timeouts and graceful shutdown                                 | Server Lifecycle |
-| `NewMiddlewareStack()`              | Create a named middleware stack with duplicate prevention and ordering validation                      | Middleware Stack |
-| `RegisterErrorClassifications()`    | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |
-| `Validate()`                        | Check a config for invalid values at startup; all config types implement this                          | Universal        |
-| `ParseUintQuery(r, key)`            | Parse a uint value from a query parameter; returns 0 on missing, empty, or invalid values              | Query Parameters |
+| Term                                 | Definition                                                                                             | Context          |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------ | ---------------- |
+| `ClientIP(r)`                        | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr | Client IP        |
+| `ClientIPMiddleware(next)`           | Create middleware that injects the client IP into the request context                                  | Client IP        |
+| `ClientIPFromContext(ctx)`           | Retrieve the stored client IP from a context                                                           | Client IP        |
+| `WithClientIP(ctx, ip)`              | Store a client IP string in a context                                                                  | Client IP        |
+| `CORS(cfg)`                          | Create middleware that sets CORS response headers and handles preflight requests                       | CORS             |
+| `DefaultCORSConfig()`                | Return a permissive CORS config suitable for local development (allows all origins)                    | CORS             |
+| `NewResponseRecorder(w)`             | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state             | Response Capture |
+| `Chain(handler, mw...)`              | Compose multiple middleware around a handler; first middleware in list is outermost                    | Response Capture |
+| `HeaderSnapshot(rec)`                | Return an isolated copy of the response headers from a ResponseRecorder                                | Response Capture |
+| `SecurityHeaders(cfg)`               | Create middleware that sets security response headers (nosniff, frame-options, etc.)                   | Security Headers |
+| `DefaultSecurityHeadersConfig()`     | Return a SecurityHeadersConfig with production defaults                                                | Security Headers |
+| `RequestID(cfg)`                     | Create middleware that propagates or generates a request ID                                            | Request ID       |
+| `DefaultRequestIDConfig()`           | Return a RequestIDConfig that reads/generates X-Request-ID                                             | Request ID       |
+| `RequestIDFromContext(ctx)`          | Retrieve the stored request ID from a context                                                          | Request ID       |
+| `Recovery(logger)`                   | Create middleware that catches panics, logs the stack trace, and returns 500                           | Recovery         |
+| `Timeout(duration)`                  | Create middleware that sets a deadline on the request context                                          | Timeout          |
+| `Logging(logger)`                    | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
+| `Compression(cfg)`                   | Create middleware that compresses responses based on Accept-Encoding negotiation                       | Compression      |
+| `DefaultCompressionConfig()`         | Return a CompressionConfig with sensible defaults (default level, 512-byte minimum)                    | Compression      |
+| `ETag(cfg)`                          | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
+| `DefaultETagConfig()`                | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
+| `HealthHandler()`                    | Return a handler that responds with `{"status":"up"}`                                                  | Health           |
+| `LiveHandler()`                      | Alias for `HealthHandler()` for Kubernetes liveness probes                                             | Health           |
+| `ReadyHandler()`                     | Return a handler for Kubernetes readiness probes (always up by default)                                | Health           |
+| `ReadyHandlerWithProbe(ready)`       | Return a handler that calls `ready()` and responds 200 up or 503 down                                  | Health           |
+| `RegisterHealth(mux)`                | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                      | Health           |
+| `NewTokenBucketLimiter(rate,burst)`  | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0) _(deprecated)_        | Rate Limiting    |
+| `RateLimit(cfg)`                     | Create middleware that enforces rate limiting using the configured limiter _(deprecated)_              | Rate Limiting    |
+| `DefaultRateLimitConfig()`           | Return a RateLimitConfig with 429 status and RemoteAddr key func _(deprecated)_                        | Rate Limiting    |
+| `NewKeyedRateLimiter(cfg)`           | Create a keyed rate limiter with O(log n) eviction, MaxKeys cap, and monitoring API                    | Rate Limiting    |
+| `KeyedRateLimiterMiddleware(cfg)`    | Create middleware enforcing per-key rate limits with Retry-After on rejection                          | Rate Limiting    |
+| `DefaultKeyedRateLimiterConfig()`    | Return a KeyedRateLimiterConfig with sensible defaults (100 req/min, ClientIP key)                     | Rate Limiting    |
+| `KeyExtractorFromRemoteAddr()`       | Return a KeyExtractor that uses the request RemoteAddr for rate-limit keying                           | Rate Limiting    |
+| `KeyExtractorFromClientIP()`         | Return a KeyExtractor that uses the extracted ClientIP for rate-limit keying                           | Rate Limiting    |
+| `CSRFMiddleware(cfg)`                | Create double-submit cookie CSRF middleware backed by nosurf                                           | CSRF Protection  |
+| `CSRFResponseHeaderMiddleware(next)` | Create middleware that auto-sets the CSRF token in response headers for HTMX consumption               | CSRF Protection  |
+| `ValidateCSRF(r, cfg)`               | Validate a request's CSRF token; returns (ok, responseRecorder) for standalone use                     | CSRF Protection  |
+| `ConfigureNosurfHandler(h, cfg)`     | Configure the underlying nosurf handler with cookie, header, and origin settings                       | CSRF Protection  |
+| `WithCSRFToken(ctx, token)`          | Store a CSRF token in a context                                                                        | CSRF Protection  |
+| `CSRFTokenFromContext(ctx)`          | Retrieve the stored CSRF token from a context                                                          | CSRF Protection  |
+| `CSRFTokenFromRequest(r)`            | Extract the CSRF token from a request (header or cookie)                                               | CSRF Protection  |
+| `CSRFTokenHXHeaders(token)`          | Generate an `hx-headers` attribute string containing the CSRF token for HTMX                           | CSRF Protection  |
+| `CSRFTokenHTMLMeta(token)`           | Generate an HTML `<meta>` tag containing the CSRF token for templ rendering                            | CSRF Protection  |
+| `CSRFTokenFormField(token)`          | Generate an HTML hidden `<input>` field containing the CSRF token                                      | CSRF Protection  |
+| `InvalidateCSRFCookie(w, cfg)`       | Expire the CSRF cookie to force token rotation (e.g., on login/logout)                                 | CSRF Protection  |
+| `TranslateCSRFHeaders(h)`            | Translate HTMX-style CSRF headers to the canonical header name expected by nosurf                      | CSRF Protection  |
+| `SetPlaintextHTTPOrigin()`           | Configure the package to use plaintext HTTP origin for local development                               | CSRF Protection  |
+| `NewServerTiming()`                  | Create a ServerTiming collector for manual wrapping (without middleware)                               | Server-Timing    |
+| `ServerTimingMiddleware()`           | Create middleware that injects a ServerTiming collector via context and writes the header on response  | Server-Timing    |
+| `ServerTimingMiddlewareWhen(pred)`   | Create conditional Server-Timing middleware that only activates when the predicate returns true        | Server-Timing    |
+| `MeasureServerTiming(ctx, name)`     | Start a named sub-metric timer; returns a stop function that records the elapsed duration              | Server-Timing    |
+| `WrapServerTiming(w, r)`             | Manually wrap a ResponseWriter with Server-Timing instrumentation (without middleware)                 | Server-Timing    |
+| `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                  | Server-Timing    |
+| `WithServerTiming(ctx, st)`          | Store a ServerTiming collector in a context                                                            | Server-Timing    |
+| `ServerTimingFromContext(ctx)`       | Retrieve the ServerTiming collector from a context                                                     | Server-Timing    |
+| `Metrics(cfg)`                       | Create middleware that records request metrics via a pluggable recorder                                | Metrics          |
+| `MaxBodySize(limit)`                 | Create middleware that rejects request bodies exceeding the limit                                      | Body Size Limit  |
+| `NewServer(cfg)`                     | Create an HTTP server with configurable timeouts and graceful shutdown                                 | Server Lifecycle |
+| `NewMiddlewareStack()`               | Create a named middleware stack with duplicate prevention and ordering validation                      | Middleware Stack |
+| `RegisterErrorClassifications()`     | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |
+| `Validate()`                         | Check a config for invalid values at startup; all config types implement this                          | Universal        |
+| `ParseUintQuery(r, key)`             | Parse a uint value from a query parameter; returns 0 on missing, empty, or invalid values              | Query Parameters |
 
 ---
 
@@ -183,38 +183,38 @@ Actions the library performs.
 
 State transitions within the library.
 
-| Term                  | Definition                                                                        | Context          |
-| --------------------- | --------------------------------------------------------------------------------- | ---------------- |
-| Header Written        | `WriteHeader` called on ResponseRecorder; status is now captured and immutable    | Response Capture |
-| Body Written          | `Write` called on ResponseRecorder; implicitly sets status 200 if not yet written | Response Capture |
-| Preflight Handled     | CORS middleware intercepts an OPTIONS request and returns 204 No Content          | CORS             |
-| Request Passed        | CORS middleware delegates to the next handler (non-OPTIONS or passthrough mode)   | CORS             |
-| Request ID Generated  | RequestID middleware generates a new random ID because no header was present      | Request ID       |
-| Request ID Propagated | RequestID middleware forwards an existing ID from the request header              | Request ID       |
-| Panic Recovered       | Recovery middleware catches a panic, logs it, and writes 500                      | Recovery         |
-| Deadline Exceeded     | Timeout middleware's context deadline is reached; handler should stop work        | Timeout          |
-| Request Logged        | Logging middleware records the request method, path, status, and duration         | Logging          |
-| Security Headers Set  | SecurityHeaders middleware writes security headers before delegating              | Security Headers |
-| Compression Applied   | Compression middleware encodes the response body using the negotiated encoding    | Compression      |
-| Compression Skipped   | Compression middleware passes through (no gzip accept, below min size, non-2xx)   | Compression      |
-| ETag Computed         | ETag middleware generates an ETag value from the response body                    | ETag             |
-| Not Modified Returned | ETag middleware returns 304 because If-None-Match matched the computed ETag       | ETag             |
-| ETag Skipped          | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)            | ETag             |
-| Rate Limited          | RateLimit middleware rejects a request because the token bucket was empty _(deprecated)_           | Rate Limiting    |
-| Bucket Evicted        | An idle token bucket is removed during lazy sweep (EvictionTTL > 0) _(deprecated)_                | Rate Limiting    |
-| Key Rate Limited      | KeyedRateLimiterMiddleware rejects a request with 429 + Retry-After because the key's budget is exhausted | Rate Limiting |
-| Key Evicted           | The oldest rate-limit key is evicted from the min-heap when MaxKeys capacity is reached             | Rate Limiting    |
-| CSRF Token Validated  | nosurf validates the double-submit token (cookie matches header/form); request proceeds             | CSRF Protection  |
-| CSRF Rejected         | nosurf detects a missing, malformed, or mismatched CSRF token; returns 403 Forbidden                | CSRF Protection  |
-| CSRF Token Rotated    | InvalidateCSRFCookie expires the cookie, forcing a new token on the next request                    | CSRF Protection  |
-| Server-Timing Metric Recorded | A named sub-metric's duration is captured in the ServerTiming collector via stop() or RecordServerTiming | Server-Timing |
-| Server-Timing Header Emitted   | The ServerTimingMiddleware writes the W3C Server-Timing response header with CRLF-safe sanitized values | Server-Timing |
-| Health Checked        | Health endpoint responds with current status                                      | Health           |
-| Readiness Failed      | ReadyHandlerWithProbe calls ready() and it returns false; responds 503            | Health           |
-| Metrics Recorded      | Metrics middleware records request duration, status, and method                   | Metrics          |
-| Body Rejected         | MaxBodySize middleware rejects a request body exceeding the configured limit      | Body Size Limit  |
-| Server Starting       | Server begins listening on the configured address                                 | Server Lifecycle |
-| Server Shutting Down  | Server enters graceful shutdown, draining in-flight requests                      | Server Lifecycle |
+| Term                          | Definition                                                                                                | Context          |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------- |
+| Header Written                | `WriteHeader` called on ResponseRecorder; status is now captured and immutable                            | Response Capture |
+| Body Written                  | `Write` called on ResponseRecorder; implicitly sets status 200 if not yet written                         | Response Capture |
+| Preflight Handled             | CORS middleware intercepts an OPTIONS request and returns 204 No Content                                  | CORS             |
+| Request Passed                | CORS middleware delegates to the next handler (non-OPTIONS or passthrough mode)                           | CORS             |
+| Request ID Generated          | RequestID middleware generates a new random ID because no header was present                              | Request ID       |
+| Request ID Propagated         | RequestID middleware forwards an existing ID from the request header                                      | Request ID       |
+| Panic Recovered               | Recovery middleware catches a panic, logs it, and writes 500                                              | Recovery         |
+| Deadline Exceeded             | Timeout middleware's context deadline is reached; handler should stop work                                | Timeout          |
+| Request Logged                | Logging middleware records the request method, path, status, and duration                                 | Logging          |
+| Security Headers Set          | SecurityHeaders middleware writes security headers before delegating                                      | Security Headers |
+| Compression Applied           | Compression middleware encodes the response body using the negotiated encoding                            | Compression      |
+| Compression Skipped           | Compression middleware passes through (no gzip accept, below min size, non-2xx)                           | Compression      |
+| ETag Computed                 | ETag middleware generates an ETag value from the response body                                            | ETag             |
+| Not Modified Returned         | ETag middleware returns 304 because If-None-Match matched the computed ETag                               | ETag             |
+| ETag Skipped                  | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)                                    | ETag             |
+| Rate Limited                  | RateLimit middleware rejects a request because the token bucket was empty _(deprecated)_                  | Rate Limiting    |
+| Bucket Evicted                | An idle token bucket is removed during lazy sweep (EvictionTTL > 0) _(deprecated)_                        | Rate Limiting    |
+| Key Rate Limited              | KeyedRateLimiterMiddleware rejects a request with 429 + Retry-After because the key's budget is exhausted | Rate Limiting    |
+| Key Evicted                   | The oldest rate-limit key is evicted from the min-heap when MaxKeys capacity is reached                   | Rate Limiting    |
+| CSRF Token Validated          | nosurf validates the double-submit token (cookie matches header/form); request proceeds                   | CSRF Protection  |
+| CSRF Rejected                 | nosurf detects a missing, malformed, or mismatched CSRF token; returns 403 Forbidden                      | CSRF Protection  |
+| CSRF Token Rotated            | InvalidateCSRFCookie expires the cookie, forcing a new token on the next request                          | CSRF Protection  |
+| Server-Timing Metric Recorded | A named sub-metric's duration is captured in the ServerTiming collector via stop() or RecordServerTiming  | Server-Timing    |
+| Server-Timing Header Emitted  | The ServerTimingMiddleware writes the W3C Server-Timing response header with CRLF-safe sanitized values   | Server-Timing    |
+| Health Checked                | Health endpoint responds with current status                                                              | Health           |
+| Readiness Failed              | ReadyHandlerWithProbe calls ready() and it returns false; responds 503                                    | Health           |
+| Metrics Recorded              | Metrics middleware records request duration, status, and method                                           | Metrics          |
+| Body Rejected                 | MaxBodySize middleware rejects a request body exceeding the configured limit                              | Body Size Limit  |
+| Server Starting               | Server begins listening on the configured address                                                         | Server Lifecycle |
+| Server Shutting Down          | Server enters graceful shutdown, draining in-flight requests                                              | Server Lifecycle |
 
 ---
 
@@ -391,14 +391,14 @@ Invariants and policies that the library enforces.
 
 ### Error Classification
 
-| Error Code                   | Family         | Retryable | When                                         |
-| ---------------------------- | -------------- | --------- | -------------------------------------------- |
-| `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
-| `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
-| `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
-| `http.compress_write_failed` | Transient      | Yes       | Compression writer Write fails               |
-| `http.etag_write_failed`     | Transient      | Yes       | ETag writer Write fails                      |
-| `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched |
+| Error Code                   | Family         | Retryable | When                                                            |
+| ---------------------------- | -------------- | --------- | --------------------------------------------------------------- |
+| `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails                           |
+| `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker                    |
+| `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                                    |
+| `http.compress_write_failed` | Transient      | Yes       | Compression writer Write fails                                  |
+| `http.etag_write_failed`     | Transient      | Yes       | ETag writer Write fails                                         |
+| `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched                    |
 | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid (e.g., SameSite=None without Secure) |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`.
@@ -409,13 +409,13 @@ All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retrya
 
 Patterns consumers and contributors should follow.
 
-| Convention             | Description                                                                                         |
-| ---------------------- | --------------------------------------------------------------------------------------------------- |
-| Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention                       |
-| Middleware type alias  | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                                  |
-| Classified errors      | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification        |
-| Config validation      | All config types implement `Validate() error` for startup checks                                    |
-| `httputil` import name | Consumers import as `httputil`; no aliases needed                                                   |
+| Convention             | Description                                                                                                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention                                           |
+| Middleware type alias  | `type Middleware func(http.Handler) http.Handler` in `recorder.go`                                                      |
+| Classified errors      | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification                               |
+| Config validation      | All config types implement `Validate() error` for startup checks                                                        |
+| `httputil` import name | Consumers import as `httputil`; no aliases needed                                                                       |
 | Allowed dependencies   | `go-error-family`, `golang.org/x/time`, and `justinas/nosurf` are the only external dependencies (enforced by depguard) |
 
 ---

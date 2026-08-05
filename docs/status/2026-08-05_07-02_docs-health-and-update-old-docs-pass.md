@@ -277,16 +277,16 @@ I cannot decide because this depends on your push policy and whether the bundled
 
 ## Verification Snapshot
 
-| Check                              | Result                                              |
-| ---------------------------------- | --------------------------------------------------- |
-| `go test -race -count=1 ./...`     | PASS (97.8% httputil, 98.9% httpspec)               |
-| `go vet ./...`                     | clean                                               |
-| `golangci-lint run` (~70 linters)  | 0 issues                                            |
-| `scripts/check-changelog-links.sh` | PASS                                                |
+| Check                              | Result                                                          |
+| ---------------------------------- | --------------------------------------------------------------- |
+| `go test -race -count=1 ./...`     | PASS (97.8% httputil, 98.9% httpspec)                           |
+| `go vet ./...`                     | clean                                                           |
+| `golangci-lint run` (~70 linters)  | 0 issues                                                        |
+| `scripts/check-changelog-links.sh` | PASS                                                            |
 | `govulncheck ./...`                | PASS — no vulnerabilities found (verified 2026-08-05 follow-up) |
 | `nix flake check`                  | PASS — all checks passed (verified 2026-08-05 follow-up)        |
 | `go mod verify`                    | PASS — all modules verified (verified 2026-08-05 follow-up)     |
-| Git state                          | auto-commits ahead of origin/master                 |
+| Git state                          | auto-commits ahead of origin/master                             |
 
 ## Files Changed This Session
 
@@ -323,36 +323,36 @@ All items from sections c) NOT STARTED and d) TOTALLY FUCKED UP were addressed i
 
 ### Section d) TOTALLY FUCKED UP — Resolution
 
-| #   | Issue                                                                                          | Resolution                                                                                                                                                   |
-| --- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| d.1 | FEATURES.md `mustRequest` lie ("now covered" at 75%)                                         | **FIXED.** Removed the lie. Then closed the gap: wrote `TestMustRequestPanicsOnInvalidMethod` → `mustRequest` now 100%, httpspec coverage 98.3% → 98.9%. 13 sub-100% functions remain. |
-| d.2 | Did not run govulncheck/nix-flake-check/go-mod-verify                                        | **FIXED.** All three run locally: govulncheck = no vulnerabilities, nix flake check = all checks passed, go mod verify = all modules verified. Verification snapshot updated. |
-| d.3 | Did not investigate unexpected AGENTS.md + modularization changes                            | **FIXED.** Investigated: `dab5dc3` authored by Lars Artmann (owner). AGENTS.md note is well-reasoned analysis of the flat package layout. Modularization HTMLs are owner's analysis docs. Decision: KEEP (owner's legitimate concurrent work). |
-| d.4 | CONTRIBUTING.md staleness pattern (5th+ session)                                             | **FIXED.** Opened and verified: dependency list correct (4 deps including nosurf), commands current, Go 1.26+ version matches. No changes needed.           |
-| d.5 | Did not run `brutal-self-review` skill                                                       | **Deferred.** This follow-up session focused on fixing the lies the self-review already identified. The self-review report itself served as the critique.    |
-| d.6 | TODO_LIST.md "v0.8.0.0" typo                                                                  | **FIXED.** Corrected to "v0.8.0".                                                                                                                            |
-| d.7 | CHANGELOG `[Unreleased]` run-on bullet                                                        | **FIXED.** Split into 6 distinct bullets (one per doc changed).                                                                                              |
+| #   | Issue                                                             | Resolution                                                                                                                                                                                                                                     |
+| --- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| d.1 | FEATURES.md `mustRequest` lie ("now covered" at 75%)              | **FIXED.** Removed the lie. Then closed the gap: wrote `TestMustRequestPanicsOnInvalidMethod` → `mustRequest` now 100%, httpspec coverage 98.3% → 98.9%. 13 sub-100% functions remain.                                                         |
+| d.2 | Did not run govulncheck/nix-flake-check/go-mod-verify             | **FIXED.** All three run locally: govulncheck = no vulnerabilities, nix flake check = all checks passed, go mod verify = all modules verified. Verification snapshot updated.                                                                  |
+| d.3 | Did not investigate unexpected AGENTS.md + modularization changes | **FIXED.** Investigated: `dab5dc3` authored by Lars Artmann (owner). AGENTS.md note is well-reasoned analysis of the flat package layout. Modularization HTMLs are owner's analysis docs. Decision: KEEP (owner's legitimate concurrent work). |
+| d.4 | CONTRIBUTING.md staleness pattern (5th+ session)                  | **FIXED.** Opened and verified: dependency list correct (4 deps including nosurf), commands current, Go 1.26+ version matches. No changes needed.                                                                                              |
+| d.5 | Did not run `brutal-self-review` skill                            | **Deferred.** This follow-up session focused on fixing the lies the self-review already identified. The self-review report itself served as the critique.                                                                                      |
+| d.6 | TODO_LIST.md "v0.8.0.0" typo                                      | **FIXED.** Corrected to "v0.8.0".                                                                                                                                                                                                              |
+| d.7 | CHANGELOG `[Unreleased]` run-on bullet                            | **FIXED.** Split into 6 distinct bullets (one per doc changed).                                                                                                                                                                                |
 
 ### Section c) NOT STARTED — Resolution
 
-| #   | Task                                              | Resolution                                                                                                                              |
-| --- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| c.1 | Run `govulncheck ./...` locally                   | **DONE.** No vulnerabilities found.                                                                                                     |
-| c.2 | Run `nix flake check`                             | **DONE.** All checks passed.                                                                                                            |
-| c.3 | Run `go mod verify`                               | **DONE.** All modules verified.                                                                                                         |
-| c.4 | Audit CONTRIBUTING.md                             | **DONE.** Verified current — 4 deps listed, commands accurate, Go 1.26+ version correct.                                               |
-| c.5 | Audit README.md API table, config tables, ordering | **DONE.** Verified current — all middleware sections (CSRF, Server-Timing, KeyedRateLimiter), config field tables, API entries present. |
-| c.6 | Audit `docs/v1-stability.md`                      | **DONE.** Verified complete — all new types (CSRF 17 rows, Server-Timing 10 rows, KeyedRateLimit 12 rows) classified with stability tiers. |
-| c.7 | Audit `docs/DOMAIN_LANGUAGE.md`                   | **DONE.** Found stale. **FIXED:** added CSRF Protection, Server-Timing, KeyedRateLimiting bounded contexts, entities, value objects, commands, events, and rules. Updated error classification table and conventions. |
-| c.8 | Investigate unexpected working-tree changes        | **DONE.** Owner's legitimate concurrent work — KEEP.                                                                                    |
-| c.9 | Run `brutal-self-review` skill                    | **Deferred** — self-review report served as manual critique.                                                                            |
-| c.10 | Verify Example* function names                    | **DONE.** All 3 confirmed: `ExampleCSRFMiddleware`, `ExampleServerTimingMiddleware`, `ExampleKeyedRateLimiterMiddleware` in `example_test.go`. |
-| c.11 | Verify CHANGELOG `[0.8.0]` against `git diff`     | **Deferred** — low priority; CHANGELOG entries are accurate per code inspection.                                                        |
+| #    | Task                                               | Resolution                                                                                                                                                                                                            |
+| ---- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| c.1  | Run `govulncheck ./...` locally                    | **DONE.** No vulnerabilities found.                                                                                                                                                                                   |
+| c.2  | Run `nix flake check`                              | **DONE.** All checks passed.                                                                                                                                                                                          |
+| c.3  | Run `go mod verify`                                | **DONE.** All modules verified.                                                                                                                                                                                       |
+| c.4  | Audit CONTRIBUTING.md                              | **DONE.** Verified current — 4 deps listed, commands accurate, Go 1.26+ version correct.                                                                                                                              |
+| c.5  | Audit README.md API table, config tables, ordering | **DONE.** Verified current — all middleware sections (CSRF, Server-Timing, KeyedRateLimiter), config field tables, API entries present.                                                                               |
+| c.6  | Audit `docs/v1-stability.md`                       | **DONE.** Verified complete — all new types (CSRF 17 rows, Server-Timing 10 rows, KeyedRateLimit 12 rows) classified with stability tiers.                                                                            |
+| c.7  | Audit `docs/DOMAIN_LANGUAGE.md`                    | **DONE.** Found stale. **FIXED:** added CSRF Protection, Server-Timing, KeyedRateLimiting bounded contexts, entities, value objects, commands, events, and rules. Updated error classification table and conventions. |
+| c.8  | Investigate unexpected working-tree changes        | **DONE.** Owner's legitimate concurrent work — KEEP.                                                                                                                                                                  |
+| c.9  | Run `brutal-self-review` skill                     | **Deferred** — self-review report served as manual critique.                                                                                                                                                          |
+| c.10 | Verify Example* function names                     | **DONE.** All 3 confirmed: `ExampleCSRFMiddleware`, `ExampleServerTimingMiddleware`, `ExampleKeyedRateLimiterMiddleware` in `example_test.go`.                                                                        |
+| c.11 | Verify CHANGELOG `[0.8.0]` against `git diff`      | **Deferred** — low priority; CHANGELOG entries are accurate per code inspection.                                                                                                                                      |
 
 ### Section g) Questions — Resolution
 
-| #   | Question                                                              | Answer                                                                                                                                                            |
-| --- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1  | Who authored AGENTS.md note + modularization HTMLs?                  | **Answered.** Lars Artmann (owner) authored them in a concurrent session. Legitimate work. Decision: KEEP.                                                        |
-| Q2  | Close `mustRequest` 75% now or document as permanent defensive path?  | **Answered.** Closed it. `TestMustRequestPanicsOnInvalidMethod` triggers the panic path via `http.NewRequestWithContext` rejecting a method with spaces. 75% → 100%. |
-| Q3  | Squash the 5 auto-committed session commits before pushing?           | **Answered.** No squash needed — auto-commit daemon manages commits. Per global AGENTS.md: never rebase, never force-push. Leave as-is.                           |
+| #   | Question                                                             | Answer                                                                                                                                                               |
+| --- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1  | Who authored AGENTS.md note + modularization HTMLs?                  | **Answered.** Lars Artmann (owner) authored them in a concurrent session. Legitimate work. Decision: KEEP.                                                           |
+| Q2  | Close `mustRequest` 75% now or document as permanent defensive path? | **Answered.** Closed it. `TestMustRequestPanicsOnInvalidMethod` triggers the panic path via `http.NewRequestWithContext` rejecting a method with spaces. 75% → 100%. |
+| Q3  | Squash the 5 auto-committed session commits before pushing?          | **Answered.** No squash needed — auto-commit daemon manages commits. Per global AGENTS.md: never rebase, never force-push. Leave as-is.                              |
