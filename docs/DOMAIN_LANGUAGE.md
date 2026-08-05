@@ -171,6 +171,9 @@ Actions the library performs.
 | `ServerTimingFromContext(ctx)`       | Retrieve the ServerTiming collector from a context                                                     | Server-Timing    |
 | `Metrics(cfg)`                       | Create middleware that records request metrics via a pluggable recorder                                | Metrics          |
 | `MaxBodySize(limit)`                 | Create middleware that rejects request bodies exceeding the limit                                      | Body Size Limit  |
+| `MaxBodySizeMiddleware(cfg)`         | Create body-size middleware from a validated `MaxBodySizeConfig`                                       | Body Size Limit  |
+| `MaxBodySizeConfig`                  | Configuration struct for body-size middleware with `Validate()`                                        | Body Size Limit  |
+| `ServerConfig.ShutdownTimeout`       | Duration the server waits for in-flight requests during graceful shutdown (default: 30s)               | Server Lifecycle |
 | `NewServer(cfg)`                     | Create an HTTP server with configurable timeouts and graceful shutdown                                 | Server Lifecycle |
 | `NewMiddlewareStack()`               | Create a named middleware stack with duplicate prevention and ordering validation                      | Middleware Stack |
 | `RegisterErrorClassifications()`     | Register stdlib HTTP error sentinels and message templates with go-error-family                        | Error Protocol   |

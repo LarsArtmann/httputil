@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`MaxBodySizeConfig` + `Validate()`** (`maxbodysize.go`): new config struct with `MaxBytes int64` field, `DefaultMaxBodySizeConfig()` (1 MiB default), `Validate()` (rejects negative), and `MaxBodySizeMiddleware(cfg)`. The existing `MaxBodySize(maxBytes)` convenience function is preserved for backward compatibility.
 - **`ServerConfig.ShutdownTimeout`** (`server.go`): new field with `Validate()` (rejects negative) and default of 30 seconds. `Server.Shutdown(ctx)` now auto-derives a timeout context when the provided context has no deadline, preventing indefinite hangs.
 - **`KeyExtractor` footgun warning** (`ratelimit_keyed.go`): type doc comment now warns that returning `""` from a custom `KeyExtractor` silently disables per-client rate limiting.
+- **Health and Metrics benchmarks** (`health_metrics_bench_test.go`): 6 benchmarks for HealthHandler, LiveHandler, ReadyHandler, and MetricsMiddleware (default, with body, with custom path).
+- **ETag conditional and compressWriter fuzz tests** (`etag_compress_fuzz_test.go`): `FuzzETagConditional` tests If-Match/If-None-Match handling; `FuzzCompressWriterState` tests compression with varied encodings, bodies, and content types.
+- **Updated D2 architecture diagram** (`docs/architecture-understanding/2026-08-05_httputil-current.d2` + `.svg`): reflects the current 16-middleware architecture including CSRF, Server-Timing, KeyedRateLimit, and the three external dependencies.
 
 - **`SecurityHeadersConfig` enriched** (`security.go`): gained `ContentTypeOptions string`, `PermissionsPolicy string`, and `Custom map[string]string` fields. `ContentTypeOptions` takes precedence over the legacy `ContentTypeNosniff bool` when set. Added `SecurityHeaderSkip = "-"` sentinel const, `RecommendedHSTS`, and `RecommendedCSP` consts. The `SecurityHeaders()` middleware now supports the `SecurityHeaderSkip` sentinel on `FrameOptions`/`ReferrerPolicy`/`ContentTypeOptions` (omits the header), sets `Permissions-Policy`, and applies `Custom` headers. `Validate()` accepts `SecurityHeaderSkip` as a valid `FrameOptions` value. All changes are **additive and backward-compatible** — existing consumers using `ContentTypeNosniff: true` are unaffected. Enables cqrs-htmx's `security.go` to alias this type as the single source of truth.
 
@@ -35,8 +38,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - `server_timing_bench_test.go` migrated from `b.N` loops to `b.Loop()` (Go 1.24+ pattern), clearing 6 gopls warnings.
-- Historical status reports (`docs/status/2026-07-*` through `2026-07-3*`) annotated inline with per-item resolution tables.
-- Living docs (`TODO_LIST.md`, `ROADMAP.md`, `FEATURES.md`, `CHANGELOG.md`) rebuilt for post-v0.8.0 accuracy: coverage figures corrected to 97.8% httputil / 96.0% httpspec, WORTH CONSIDERING split brains resolved, done items removed from TODO_LIST.
+- `httpspec/benchmark_test.go` migrated from `b.N` to `b.Loop()` for consistency.
+- Historical status reports (`docs/status/2026-07-*` through `2026-08-05`) annotated inline with per-item resolution markers.
+- Living docs (`TODO_LIST.md`, `ROADMAP.md`, `FEATURES.md`, `CHANGELOG.md`, `AGENTS.md`) rebuilt for post-v0.8.0 accuracy: coverage figures corrected to 97.6% httputil / 99.3% httpspec, WORTH CONSIDERING split brains resolved, done items removed from TODO_LIST, CHANGELOG freeze policy documented.
+- CI workflow hardened: added `go test -race -count=10` stress test step and coverage threshold gate (fail if < 95%).
+- `README.md` Quality Gates section added with full verification command table; duplicate-bracket badge artifact fixed; coverage badge updated.
+- `scripts/pre-commit.sh` added: runs `golangci-lint run` on staged Go files before commit.
+- `httpspec` coverage improved from 96.0% to 99.3% by closing all 5 `cors_ratelimit_specs.go` gaps to 100%.
 
 ## [0.8.0] - 2026-07-31
 
