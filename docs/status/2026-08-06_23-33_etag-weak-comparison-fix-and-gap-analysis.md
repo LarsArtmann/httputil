@@ -18,13 +18,13 @@ Read `etag.go` (274 lines), `etag_test.go` (392 lines), `etag_compress_fuzz_test
 
 Searched Sourcegraph + web for all Go ETag libraries. Result:
 
-| Library | Stars | Status | Adoptable? |
-|---|---|---|---|
-| `go-http-utils/etag` | 15 | Dead since 2016 | No |
-| `amalfra/etag` | 32 | Maintained | No — only generates string, no 304 logic |
-| Fiber `middleware/etag` | 40k | Active | No — fasthttp-coupled |
-| `pablor21/echo-etag` | 11 | Maintained | No — Echo-only |
-| `blizzy78/conditional-http` | 1 | Unknown | No — zero adoption |
+| Library                     | Stars | Status          | Adoptable?                               |
+| --------------------------- | ----- | --------------- | ---------------------------------------- |
+| `go-http-utils/etag`        | 15    | Dead since 2016 | No                                       |
+| `amalfra/etag`              | 32    | Maintained      | No — only generates string, no 304 logic |
+| Fiber `middleware/etag`     | 40k   | Active          | No — fasthttp-coupled                    |
+| `pablor21/echo-etag`        | 11    | Maintained      | No — Echo-only                           |
+| `blizzy78/conditional-http` | 1     | Unknown         | No — zero adoption                       |
 
 **Conclusion:** No superb standalone ETag library exists for `net/http`. The depguard rules (only `go-error-family`, `x/time`, `nosurf`) would block all of them anyway. Keep building our own — fix the bugs and ours is the best in the ecosystem.
 
@@ -34,10 +34,10 @@ Searched Sourcegraph + web for all Go ETag libraries. Result:
 
 **Before:** `etagInList` used literal string `==`, which is the **strong comparison function**. But `If-None-Match` requires the **weak comparison function** per [RFC 7232 §3.2](https://www.rfc-editor.org/rfc/rfc7232#section-3.2).
 
-| Server ETag | Client `If-None-Match` | RFC says | Old code |
-|---|---|---|---|
-| `"abc"` | `W/"abc"` | 304 | 200 (bug) |
-| `W/"abc"` | `"abc"` | 304 | 200 (bug) |
+| Server ETag | Client `If-None-Match` | RFC says | Old code  |
+| ----------- | ---------------------- | -------- | --------- |
+| `"abc"`     | `W/"abc"`              | 304      | 200 (bug) |
+| `W/"abc"`   | `"abc"`                | 304      | 200 (bug) |
 
 **Fix:** Added `stripWeakPrefix()` that removes the optional `W/` prefix before comparing. `etagInList` now strips both sides and compares opaque-tags — the weak comparison function.
 
@@ -49,13 +49,13 @@ Searched Sourcegraph + web for all Go ETag libraries. Result:
 
 ### 4. Added 5 Tests
 
-| Test | Covers |
-|---|---|
-| `TestETag_IfNoneMatch_WeakClientStrongServer` | `W/"..."` client vs strong server → 304 |
-| `TestETag_IfNoneMatch_StrongClientWeakServer` | Strong client vs `W/"..."` server → 304 |
-| `TestETag_IfNoneMatch_ListContainsWeakMatch` | Weak validator in a multi-element list → 304 |
-| `TestETag_IfNoneMatch_WeakClientNoMatch` | Negative case — no false positives |
-| `TestParseETagList_RespectsCommasInQuotes` | `"a,b"` parsed as single tag |
+| Test                                          | Covers                                       |
+| --------------------------------------------- | -------------------------------------------- |
+| `TestETag_IfNoneMatch_WeakClientStrongServer` | `W/"..."` client vs strong server → 304      |
+| `TestETag_IfNoneMatch_StrongClientWeakServer` | Strong client vs `W/"..."` server → 304      |
+| `TestETag_IfNoneMatch_ListContainsWeakMatch`  | Weak validator in a multi-element list → 304 |
+| `TestETag_IfNoneMatch_WeakClientNoMatch`      | Negative case — no false positives           |
+| `TestParseETagList_RespectsCommasInQuotes`    | `"a,b"` parsed as single tag                 |
 
 ### 5. Verification
 
