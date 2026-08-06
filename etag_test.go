@@ -114,6 +114,79 @@ func TestETag_IfNoneMatch_Star(t *testing.T) {
 	assertStatus(t, rec, http.StatusNotModified)
 }
 
+func TestETag_IfNoneMatch_WeakClientStrongServer(t *testing.T) {
+	t.Parallel()
+
+	testETagIfNoneMatchReturns304(t, `W/"779a65e7023cd2e7"`)
+}
+
+func TestETag_IfNoneMatch_StrongClientWeakServer(t *testing.T) {
+	t.Parallel()
+
+	cfg := ETagConfig{Weak: true}
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+
+	assertBodyEmpty(t, rec, "for strong If-None-Match against weak server ETag")
+}
+
+func TestETag_IfNoneMatch_ListContainsWeakMatch(t *testing.T) {
+	t.Parallel()
+
+	testETagIfNoneMatchReturns304(t, `"other", W/"779a65e7023cd2e7", "another"`)
+}
+
+func TestETag_IfNoneMatch_WeakClientNoMatch(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `W/"different"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+
+	assertBody(t, rec, "hello world")
+}
+
+func TestParseETagList_RespectsCommasInQuotes(t *testing.T) {
+	t.Parallel()
+
+	tags := parseETagList(`"a,b", W/"c", "d"`)
+
+	if len(tags) != 3 {
+		t.Fatalf("len(tags) = %d, want 3", len(tags))
+	}
+
+	want0 := `"a,b"`
+	if tags[0] != want0 {
+		t.Errorf("tags[0] = %q, want %q", tags[0], want0)
+	}
+
+	want1 := `W/"c"`
+	if tags[1] != want1 {
+		t.Errorf("tags[1] = %q, want %q", tags[1], want1)
+	}
+
+	want2 := `"d"`
+	if tags[2] != want2 {
+		t.Errorf("tags[2] = %q, want %q", tags[2], want2)
+	}
+}
+
 func TestETag_NonGetHead(t *testing.T) {
 	t.Parallel()
 

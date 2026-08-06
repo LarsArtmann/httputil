@@ -228,19 +228,59 @@ func (w *etagWriter) matchesIfNoneMatch(req *http.Request, etag string) bool {
 	return etagInList(inm, etag)
 }
 
-func etagInList(list, etag string) bool {
-	for {
-		idx := strings.Index(list, ",")
-		if idx < 0 {
-			return strings.TrimSpace(list) == etag
+// parseETagList splits a comma-separated list of entity-tags, respecting
+// commas inside quoted opaque-tags per RFC 7232 §2.3 (etagc permits any
+// VCHAR except DQUOTE, which includes comma).
+func parseETagList(list string) []string {
+	var tags []string
+
+	start := 0
+
+	inQuotes := false
+
+	for i := range list {
+		if list[i] == '"' {
+			inQuotes = !inQuotes
 		}
 
-		if strings.TrimSpace(list[:idx]) == etag {
+		if list[i] == ',' && !inQuotes {
+			tag := strings.TrimSpace(list[start:i])
+			if tag != "" {
+				tags = append(tags, tag)
+			}
+
+			start = i + 1
+		}
+	}
+
+	tag := strings.TrimSpace(list[start:])
+
+	if tag != "" {
+		tags = append(tags, tag)
+	}
+
+	return tags
+}
+
+// etagInList reports whether etag appears in a comma-separated list using
+// the weak comparison function (RFC 7232 §2.3.2): the weakness indicator
+// (W/ prefix) is ignored when comparing opaque-tags.
+func etagInList(list, etag string) bool {
+	target := stripWeakPrefix(etag)
+
+	for _, tag := range parseETagList(list) {
+		if stripWeakPrefix(tag) == target {
 			return true
 		}
-
-		list = list[idx+1:]
 	}
+
+	return false
+}
+
+// stripWeakPrefix removes the optional W/ weakness indicator from an
+// entity-tag, leaving the quoted opaque-tag for comparison.
+func stripWeakPrefix(etag string) string {
+	return strings.TrimPrefix(etag, "W/")
 }
 
 func (w *etagWriter) isCacheableStatus() bool {
