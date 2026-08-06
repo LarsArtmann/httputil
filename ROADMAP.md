@@ -4,19 +4,21 @@
 > When an idea is refined into bounded work, it moves to [TODO_LIST.md](TODO_LIST.md).
 > Completed work is recorded in [CHANGELOG.md](CHANGELOG.md).
 
-_Updated: 2026-08-05._
+_Updated: 2026-08-06._
 
 ## Current Position
 
-v0.8.0 (released 2026-07-31) ships a complete 16-middleware suite, server lifecycle, health checks, error classification, an `httpspec` BDD subpackage, ~70 linters at 0 issues, and 97.6% httputil / 99.3% httpspec coverage (measured 2026-08-05 with race detection enabled). New in v0.8.0: CSRF protection, W3C Server-Timing, and keyed rate limiting.
+v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validate()` methods across all config structs, `SecurityHeadersConfig` enrichment, `httpspec` CORS and rate-limit specs, CSRF fuzz tests, and a full-stack integration test. 97.6% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
 
-The next release is **v0.9.0** (feature additions), followed by **v1.0** (API stability commitment).
+v0.9.1 (2026-08-06) is an RFC 7232 compliance patch: ETag `If-None-Match` now uses the weak comparison function, and list parsing respects commas inside quoted opaque-tags.
+
+The next milestone is **v1.0** (API stability commitment).
 
 ## v0.9.0 — Feature additions
 
-- **Request body decompression middleware** — counterpart to `Compression` for gzip/deflate-encoded request bodies. **Shipped post-v0.8.0** — see [CHANGELOG.md](CHANGELOG.md) `[Unreleased]`. Includes decompression bomb protection (configurable `MaxDecompressionSize`, default 16 MiB).
+- **Request body decompression middleware** — counterpart to `Compression` for gzip/deflate-encoded request bodies. **Shipped in v0.9.0.** Includes decompression bomb protection (configurable `MaxDecompressionSize`, default 16 MiB).
 
-Additional v0.8.0 follow-up work (CSRF fuzz tests, `httpspec` CORS and rate-limit specs, full-stack integration test, benchmarks, `Validate()` audit, MaxBodySize validation, ShutdownTimeout, coverage gap closure, CI hardening) shipped post-release — see [CHANGELOG.md](CHANGELOG.md) under `[Unreleased]`.
+Additional v0.8.0 follow-up work (CSRF fuzz tests, `httpspec` CORS and rate-limit specs, full-stack integration test, benchmarks, `Validate()` audit, MaxBodySize validation, ShutdownTimeout, coverage gap closure, CI hardening) shipped in v0.9.0.
 
 ## v1.0 — API stability commitment
 
@@ -26,7 +28,9 @@ Before v1.0:
 
 - **Remove the deprecated `TokenBucketLimiter` / `RateLimiter` interface** — superseded by `KeyedRateLimiter`. Migration guide: [`docs/migrating-to-keyed-rate-limiter.md`](docs/migrating-to-keyed-rate-limiter.md).
 - **Rate limiter interface refinement** — evaluate `AllowN` (burst > 1 per request) and `context.Context` cancellation support on `KeyedRateLimiter`. Deferred to v1.0 because either could shape the final interface.
-- One stabilization cycle (v0.9.0) before the commitment.
+- **Conditional-request scope decision** — the ETag middleware handles `If-None-Match` (GET/HEAD → 304) only. Open questions for v1.0 scope: (a) Should we add `If-Match` / `If-Unmodified-Since` (412 Precondition Failed for unsafe methods like PUT/DELETE/PATCH)? This widens the middleware from GET/HEAD-only or requires a separate precondition middleware. (b) Should we add `Last-Modified` generation + `If-Modified-Since` handling (the timestamp-based half of RFC 7232)? (c) Should we add `If-Range` support for partial-content (206) responses? These define whether httputil is a "caching" library or a "full conditional-request" library.
+- **ETag `SkipIfPresent` decision** — the ETag middleware always overwrites handler-set ETags. Adding `SkipIfPresent bool` to `ETagConfig` would let handlers with domain-specific modification semantics win. Changing the default would be a breaking behavior change; adding the option is additive. Decide before v1.0 freeze.
+- One stabilization cycle before the commitment.
 
 ## Dependency policy
 
