@@ -258,6 +258,11 @@ func FuzzETag(f *testing.F) {
 	f.Add([]byte("hello world"), "")
 	f.Add([]byte(strings.Repeat("a", 1024)), `"abc123"`)
 	f.Add([]byte(""), "*")
+	// Seeds documenting the RFC 7232 §2.3.2 weak-comparison fix:
+	// the server computes a strong ETag for "response body", so a client
+	// If-None-Match with a W/ prefix must still match under weak comparison.
+	f.Add([]byte("response body"), `W/"779a65e7023cd2e7"`)
+	f.Add([]byte("response body"), `"779a65e7023cd2e7", W/"deadbeef"`)
 
 	cfg := DefaultETagConfig()
 	inner := newWriteStatusHandler(http.StatusOK, "response body")

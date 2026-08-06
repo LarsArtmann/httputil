@@ -21,7 +21,7 @@ _Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and post
 | Logging                  | `logging.go`                           | `*slog.Logger`                                                | Yes   | `ExampleLogging`                    | `BenchmarkLogging`            | —                   |
 | ResponseRecorder         | `recorder.go`                          | —                                                             | Yes   | `ExampleNewResponseRecorder`        | `BenchmarkResponseRecorder`   | —                   |
 | Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression`        | `FuzzCompression`   |
-| ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                   | Yes   | `ExampleETag`                       | `BenchmarkETag`               | `FuzzETag`          |
+| ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                   | Yes   | `ExampleETag`                       | `BenchmarkETag`, `BenchmarkETagInList` | `FuzzETag`          |
 | MaxBodySize              | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | —                                   | —                             | —                   |
 | RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface     | Yes   | —                                   | `BenchmarkTokenBucketLimiter` | —                   |
 | Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | —                                   | —                             | —                   |
@@ -72,10 +72,12 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### ETag Correctness
 
 - FNV-64a hash (64-bit, birthday bound ~4 billion) via configurable `HashFunc` field — replaced CRC32 to eliminate collision risk.
-- RFC 7232 compliant `If-None-Match` list parsing (`etagInList`).
+- RFC 7232 §2.3.2 weak comparison for `If-None-Match` (`etagInList` + `stripWeakPrefix`): `W/"abc"` and `"abc"` are treated as equivalent, as required by §3.2.
+- RFC 7232 §2.3 compliant list parsing (`parseETagList`): quote-state-aware splitter that respects commas inside quoted opaque-tags.
 - All 2xx statuses cacheable (`isCacheableStatus()`).
 - 1MB memory safety limit (`MaxBufferSize`).
 - Zero-allocation hex encoding via stack arrays and lookup table.
+- GET/HEAD only. No `If-Match` / `If-Unmodified-Since` / `If-Modified-Since` / `If-Range` support yet (see `TODO_LIST.md`).
 
 ### Rate Limiting
 

@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-08-06
+
+### Fixed
+
+- **ETag `If-None-Match` now uses RFC 7232 weak comparison** (`etag.go`): the comparison previously used literal string equality (the strong comparison function), so a client sending `W/"abc"` would miss a server-generated strong ETag `"abc"` and vice versa. Per [RFC 7232 §2.3.2](https://www.rfc-editor.org/rfc/rfc7232#section-2.3.2), `If-None-Match` must use the weak comparison function, which ignores the `W/` weakness indicator. Added `stripWeakPrefix` and rewrote `etagInList` to strip both sides before comparing opaque-tags.
+- **ETag list parsing now respects commas inside quoted opaque-tags** (`etag.go`): the previous `strings.Index(list, ",")` splitter broke on commas inside quoted opaque-tags (permitted by the RFC 7232 §2.3 `etagc` grammar). Replaced with `parseETagList`, a quote-state-aware splitter that only splits on commas outside quoted strings. A client sending `"a,b"` is now parsed as a single tag rather than two malformed fragments.
+
+### Added
+
+- **5 ETag compliance tests** (`etag_test.go`): weak-client-vs-strong-server (304), strong-client-vs-weak-server (304), weak validator in a multi-element list (304), weak no-match negative case, and `parseETagList` comma-in-quotes correctness.
+- **Weak-comparison fuzz seeds** (`etag_test.go`): `FuzzETag` corpus now includes `W/"..."` inputs documenting the RFC 7232 §2.3.2 fix.
+- **ETag list-comparison benchmarks** (`etag_test.go`): `BenchmarkETagInList` (single/multi/weak variants) and `BenchmarkETag_IfNoneMatch` quantifying the conditional-request path. The `parseETagList` slice allocation is 1 alloc / 16-64 B per conditional request, adding <5% to the full middleware path — acceptable, not optimized.
+
 ## [0.9.0] - 2026-08-05
 
 ### Added
@@ -301,7 +314,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/larsartmann/httputil/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/larsartmann/httputil/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/larsartmann/httputil/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/larsartmann/httputil/compare/v0.7.0...v0.7.1
