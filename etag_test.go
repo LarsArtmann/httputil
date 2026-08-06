@@ -296,6 +296,50 @@ func BenchmarkETag(b *testing.B) {
 	}
 }
 
+func BenchmarkETag_IfNoneMatch(b *testing.B) {
+	cfg := DefaultETagConfig()
+	middleware := ETag(cfg)
+
+	body := []byte("hello world benchmark test data")
+
+	inner := newWriteBodyHandler(body)
+
+	handler := middleware(inner)
+	etag := `"779a65e7023cd2e7"`
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, etag)
+
+	for b.Loop() {
+		rec := newRecorder()
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkETagInList(b *testing.B) {
+	single := `"779a65e7023cd2e7"`
+	multi := `"abc123", W/"def456", "779a65e7023cd2e7"`
+	weak := `W/"779a65e7023cd2e7"`
+	target := `"779a65e7023cd2e7"`
+
+	b.Run("single", func(b *testing.B) {
+		for b.Loop() {
+			_ = etagInList(single, target)
+		}
+	})
+
+	b.Run("multi", func(b *testing.B) {
+		for b.Loop() {
+			_ = etagInList(multi, target)
+		}
+	})
+
+	b.Run("weak", func(b *testing.B) {
+		for b.Loop() {
+			_ = etagInList(weak, target)
+		}
+	})
+}
+
 func TestETag_EmptyBody(t *testing.T) {
 	t.Parallel()
 
