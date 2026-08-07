@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **README.md ETag section**: added RFC 7232 §2.3.2 weak comparison mention to the description.
-- **FEATURES.md ETag Correctness section**: updated with RFC 7232 escaped-quote compliance, RFC 9110 §5.2 multi-header combination, and error-classified body flush. Removed two WORTH CONSIDERING items (ETag and compressWriter fuzz tests) that are now implemented.
+- **FEATURES.md rebuilt for accuracy**: ETag Correctness section updated with RFC 7232 escaped-quote compliance, RFC 9110 §5.2 multi-header combination, and error-classified body flush. Middleware count corrected from 16 to 17 with Decompression integrated into the table. Coverage updated from stale 97.6% to current 96.7% across FEATURES.md, README.md, and ROADMAP.md. Decompression sub-100% functions added to the coverage gap list. Removed two WORTH CONSIDERING items (ETag and compressWriter fuzz tests) that are now implemented.
 - **`serveETagCheck` now delegates to existing `serve` helper** (`httpspec/etag_integration_test.go`): removed duplicated `httptest.NewRecorder` + `handler.ServeHTTP` logic; the helper now builds the request and calls the shared `serve` function.
 - **Prior status report annotated** (`docs/status/2026-08-06_23-33_*.md`): inline `~~done at v0.9.1~~` markers added for resolved items b.1 (CHANGELOG) and b.2 (fuzz seeds).
 

@@ -207,6 +207,12 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **96.7%** (`httputil`), 
 - `ratelimit_keyed.go:346 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
 - `security.go:92 SecurityHeaders` — 84.2%. Custom header application edge cases.
 
+**Decompression middleware:**
+
+- `decompression.go:62 Decompression` — 78.1%. Encoding-filter reject path.
+- `decompression.go:134 limitedReadCloser.Read` — 58.3%. Bomb-protection `errDecompressionSizeExceeded` path (security-critical, needs explicit test).
+- `decompression.go:159 limitedReadCloser.Close` — 0.0%. Underlying reader Close error path.
+
 **Pre-existing (error-injection / internal paths):**
 
 - `etag.go:179 computeETag` — 94.4%. Empty-body-with-wroteHeader edge (reachable only via direct unit construction).
