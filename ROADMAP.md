@@ -27,7 +27,7 @@ v1.0 marks the "API is frozen" promise. After v1.0, breaking changes require a v
 Before v1.0:
 
 - **Remove the deprecated `TokenBucketLimiter` / `RateLimiter` interface** — superseded by `KeyedRateLimiter`. Migration guide: [`docs/migrating-to-keyed-rate-limiter.md`](docs/migrating-to-keyed-rate-limiter.md).
-- **Rate limiter interface refinement** — evaluate `AllowN` (burst > 1 per request) and `context.Context` cancellation support on `KeyedRateLimiter`. Deferred to v1.0 because either could shape the final interface.
+- **Rate limiter interface refinement** — `AllowN` (burst > 1 per request) was evaluated and rejected (`KeyedRateLimiter` uses `MaxKeys`, not per-request burst). `context.Context` cancellation support on `KeyedRateLimiter` remains deferred to v1.0 because it could shape the final interface.
 - **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module, integrated into httputil via a thin adapter (`httputil.ETag()`). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
 - One stabilization cycle before the commitment.
 

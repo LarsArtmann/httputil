@@ -1,5 +1,7 @@
 # Status Report: ETag Weak Comparison Fix & Gap Analysis
 
+> **Annotation (2026-08-07 docs-health):** Section B items b.1 (CHANGELOG) and b.2 (fuzz seeds) **done at v0.9.1**. Section C items 1–6 (If-Match, If-Range, Last-Modified, Vary, SkipIfPresent, 304 header cleanup) — ETag was extracted to go-etag post-v0.9.1; these are now **go-etag's responsibility** or **in ROADMAP.md** as v1.0 scope decisions. Section E items 1–3 (parseETagList allocation, stripWeakPrefix validation, escaped quotes) **done** — escaped quotes fixed in the 02:40 session; parser moved to go-etag. Section F items 1–10 **done** (shipped v0.9.1 or moved to go-etag). Items 11–18 (conditional requests broader) **in ROADMAP.md**. Items 31–35 (documentation) **done**. Items 39–43 (code quality) — moved to go-etag or **resolved**.
+
 **Date:** 2026-08-06 23:33
 **Session scope:** ETag middleware (`etag.go`) — RFC 7232 compliance fix, review, and gap analysis
 **Commit:** `9f49af2` — fix(etag): use RFC 7232 weak comparison for If-None-Match header

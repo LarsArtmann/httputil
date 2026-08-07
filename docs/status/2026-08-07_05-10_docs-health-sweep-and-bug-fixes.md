@@ -2,6 +2,8 @@
 
 **Date:** 2026-08-07 05:10
 **Session scope:** Full docs-health AUDIT (BUILD + HARVEST + VERIFY + ANNOTATE) on all living docs and status reports, plus fixing the quality issues identified in the prior session's self-critique.
+
+> **Annotation (2026-08-07 docs-health):** All section A items (1–14) **done**. Section B item 1 (`writeBufferedBody` ceremony) **resolved** — reverted to honest silence by the 05:45 session. Section C items 1–8 **done** by subsequent sessions (compressWriter fix, D2, v1-stability, DOMAIN_LANGUAGE, ExampleDecompression, nix flake check). Section F items 1–4 **done**. Items 5–11 (decompression gaps) **done**. Items 12–15 (ETag code quality) — moved to go-etag. Items 16–21 (D2, fuzz/bench hardening) **mostly done**. Items 22–25 (documentation polish) — vulncheck in RELEASE.md **done**, ETag+Compression ordering **open in TODO_LIST**.
 **Starting commit:** `42414ef` (prior session's status report annotation)
 **Ending state:** All quality gates green (build, vet, lint 0 issues, fmt, race, changelog links). 6 code/doc bugs fixed. 2 historical reports annotated. Living docs rebuilt for accuracy. But several gaps remain and one "fix" is ceremony.
 

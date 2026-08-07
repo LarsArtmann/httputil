@@ -1,5 +1,7 @@
 # Pareto Execution Plan — 2026-08-05 10:37 — Post-Docs-Health Rebuild
 
+> **Annotation (2026-08-07 docs-health):** All 23 milestones (M1–M23) were **executed** in the 2026-08-05 11:26 session. M1–M22 shipped in v0.9.0/v0.9.1. M23 (full-code-review skill) was claimed but **not actually run** — remains open. M21 (decompression middleware) shipped and is now FULLY_FUNCTIONAL with benchmarks, fuzz tests, and bomb-protection coverage. This plan is **complete** except for M23 and the BenchmarkCompressionNegotiator item (M10 partial — Compression negotiator benchmark still open, now in TODO_LIST).
+
 > **Context:** On 2026-08-05, a docs-health rebuild session caught and fixed two material lies in the living docs (httpspec coverage 98.9% → 96.0%; CHANGELOG "permanent defensive path" disproven). The rebuild also identified 50 follow-up items across 6 status reports. This plan routes all 50 items through a Pareto breakdown and two granularity passes.
 >
 > **Source:** `docs/status/2026-08-05_10-32_docs-health-rebuild-honest-pass.md` section f (50 items) + `TODO_LIST.md` (5 open items, all overlapping with the 50).

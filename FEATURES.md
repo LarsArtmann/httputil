@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — ETag middleware available via `go-etag` adapter. All claims verified against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed, coverage corrected to 97.0%, benchmark (43) / example (24) / fuzz (19) counts verified against source, ETag adapter + Decompression rows updated. All claims checked against current source with `go test -race -coverprofile`._
 
 ---
 
@@ -155,7 +155,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - `golangci-lint` with ~70 linters, 0 issues.
 - `go test -race ./...` passes across the full suite with **97.0% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
-- 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
+- 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), Decompression (malformed compressed bodies), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, decompression, and CSRF fuzz tests verified with `-fuzztime`.
 - 43 benchmarks and 24 example functions across both packages.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
@@ -221,5 +221,4 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **97.0%** (`httputil`), 
 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
 - **Rate limiter `context.Context` cancellation** — add `context.Context` support to the rate limiter interface. Deferred to v1.0 (API design decision). See [ROADMAP.md](ROADMAP.md).
-- **Benchmark for `compression_negotiator.go`** — the negotiation logic runs on every request but has no dedicated benchmark.
 
