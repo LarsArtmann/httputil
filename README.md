@@ -2,11 +2,11 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
-[![Coverage](https://img.shields.io/badge/coverage-96.7%25-green)](#)
+[![Coverage](https://img.shields.io/badge/coverage-97.2%25-green)](#)
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, ETag generation, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag generation, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
 Minimal footprint — three dependencies (`go-error-family` same-author + `golang.org/x/time` + `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
 
@@ -227,6 +227,28 @@ handler := httputil.Compression(cfg)(mux)
 
 `DefaultWriterFactories()` returns a fresh map with gzip, deflate, and identity entries so you can extend rather than replace the built-ins.
 
+### Request Body Decompression
+
+Transparently decompresses request bodies based on the `Content-Encoding` header. Supports gzip and deflate. The middleware replaces `r.Body` with a decompressing reader and removes `Content-Encoding` and `Content-Length` headers so downstream handlers see the decompressed body transparently.
+
+```go
+handler := httputil.Decompression(httputil.DefaultDecompressionConfig())(mux)
+```
+
+**Bomb protection:** The decompressed body is limited to `MaxDecompressionSize` bytes (default: 16 MiB) to prevent decompression bomb attacks. When the limit is exceeded, reads return an error and the underlying reader is closed immediately. Set to `0` to disable the limit (not recommended).
+
+Restrict which encodings are accepted by setting `Encodings`:
+
+```go
+cfg := httputil.DecompressionConfig{
+    Encodings:            []string{"gzip"}, // deflate-only servers skip this
+    MaxDecompressionSize: 1 << 20,           // 1 MiB limit
+}
+handler := httputil.Decompression(cfg)(mux)
+```
+
+Use `cfg.Validate()` to catch invalid configurations at startup (e.g., negative `MaxDecompressionSize`).
+
 ### ETag Generation
 
 Generates ETag headers from response body content and handles `If-None-Match` conditional requests with `304 Not Modified`. Only applies to `GET` and `HEAD` requests. Uses the RFC 7232 §2.3.2 weak comparison function for `If-None-Match`, so `W/"abc"` and `"abc"` are treated as equivalent.
@@ -393,6 +415,8 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression  |
 | `ETag`                           | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + 304 handling                  |
 | `DefaultETagConfig`              | `func() ETagConfig`                                                   | Strong ETag defaults                            |
+| `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection    |
+| `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                           |
 | `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_       |
 | `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config _(deprecated)_        |
 | `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor _(deprecated)_ |
@@ -460,6 +484,13 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Weak`          | `bool`                | `false`   | Emit weak ETags (`W/"..."`) for semantically-volatile content                    |
 | `MaxBufferSize` | `int`                 | `1048576` | Max bytes buffered for ETag computation before abandoning and streaming (1 MB)   |
 | `HashFunc`      | `func([]byte) uint64` | FNV-64a   | Body hash function for ETag generation; replace for application-specific hashing |
+
+### `DecompressionConfig` fields
+
+| Field                  | Type       | Default     | Description                                                                        |
+| ---------------------- | ---------- | ----------- | ---------------------------------------------------------------------------------- |
+| `Encodings`            | `[]string` | gzip, deflate | Request body encodings to decompress; empty = both defaults                       |
+| `MaxDecompressionSize` | `int64`    | `16777216`  | Max decompressed body size in bytes to prevent zip bombs (16 MiB); 0 = no limit   |
 
 ### `RateLimitConfig` fields _(deprecated — use `KeyedRateLimiterConfig`)_
 
@@ -568,6 +599,14 @@ handler := Chain(mux, Compression(cfg), ETag(cfg))
 // ETag sees gzip-compressed bytes (includes metadata),
 // producing a different ETag on every request.
 handler := Chain(mux, ETag(cfg), Compression(cfg)) // don't do this
+```
+
+**Decompression** should be placed outer so downstream middleware (e.g., `MaxBodySize`) sees the decompressed body size:
+
+```go
+// Decompression outer: handlers see decompressed bytes.
+// MaxBodySize limits the decompressed size, not the compressed size.
+handler := Chain(mux, Decompression(cfg), MaxBodySize(1<<20))
 ```
 
 ### Compression Extensibility

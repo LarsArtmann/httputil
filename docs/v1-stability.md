@@ -27,6 +27,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `CORSConfig`             | Additive | `DenyUnmatched` default flipped in v0.7.0; frozen at v1.0 |
 | `CSRFConfig`             | Additive | New in v0.8.0                                             |
 | `CompressionConfig`      | Additive |                                                           |
+| `DecompressionConfig`    | Additive |                                                           |
 | `ETagConfig`             | Additive |                                                           |
 | `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
@@ -44,6 +45,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ------------------------------- | ------------------------------ |
 | `DefaultCORSConfig`             | `CORSConfig`                   |
 | `DefaultCompressionConfig`      | `CompressionConfig`            |
+| `DefaultDecompressionConfig`    | `DecompressionConfig`          |
 | `DefaultETagConfig`             | `ETagConfig`                   |
 | `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig`       |
 | `DefaultMetricsConfig`          | `MetricsConfig`                |
@@ -60,6 +62,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `CSRFMiddleware`               | `func(CSRFConfig) Middleware`                   |
 | `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`               |
 | `Compression`                  | `func(CompressionConfig) Middleware`            |
+| `Decompression`                | `func(DecompressionConfig) Middleware`          |
 | `ETag`                         | `func(ETagConfig) Middleware`                   |
 | `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`       |
 | `Logging`                      | `func(*slog.Logger) Middleware`                 |

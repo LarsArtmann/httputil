@@ -1,7 +1,10 @@
 package httputil
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -81,6 +84,30 @@ func ExampleCompression() {
 	fmt.Println(rec.Header().Get("Content-Encoding"))
 
 	// Output: gzip
+}
+
+func ExampleDecompression() {
+	var compressed bytes.Buffer
+
+	zw := gzip.NewWriter(&compressed)
+
+	_, _ = zw.Write([]byte("hello decompression"))
+	_ = zw.Close()
+
+	cfg := DefaultDecompressionConfig()
+	handler := Decompression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+
+		fmt.Println(string(body))
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed.Bytes()))
+	req.Header.Set("Content-Encoding", "gzip")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	// Output: hello decompression
 }
 
 func ExampleETag() {
