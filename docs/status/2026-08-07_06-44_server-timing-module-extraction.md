@@ -10,23 +10,23 @@
 
 ### Server-Timing Module Extraction
 
-| Item | Status | Detail |
-| --- | --- | --- |
-| `server_timing/` directory created | DONE | Contains `go.mod`, 1 source file, 3 test files |
-| `server_timing/go.mod` | DONE | `module github.com/larsartmann/httputil/server_timing`, `go 1.26.5`, zero external deps |
-| Package renamed `httputil` → `servertiming` | DONE | All 4 files updated |
-| `go.work` created at repo root | DONE | Lists `.` and `./server_timing` |
-| Root `go.mod` has `replace` directive | DONE | `replace github.com/larsartmann/httputil/server_timing => ./server_timing` |
-| Root `go.mod` has `require` directive | DONE | `require github.com/larsartmann/httputil/server_timing v0.0.0` |
-| `example_test.go` updated | DONE | Imports `servertiming` package, uses qualified calls |
-| `stack_integration_test.go` updated | DONE | Imports `servertiming` package, uses qualified calls |
-| Chain composition test relocated | DONE | Moved from `server_timing/server_timing_test.go` to `stack_integration_test.go` (root module, because it uses `Chain`) |
-| Root `.golangci.yml` depguard updated | DONE | Added explicit `github.com/larsartmann/httputil/server_timing` allow entry |
-| `server_timing/.golangci.yml` created | DONE | Simplified: depguard allows `$gostd` only; same ~70 linter set |
-| `flake.nix` updated | DONE | All apps (test, build, vet, lint, coverage, vulncheck) now run in both modules |
-| `AGENTS.md` updated | DONE | Architecture section, module table, commands, allowed deps, non-obvious behaviors, test conventions |
-| `README.md` updated | DONE | Server-Timing section code examples use `servertiming.` prefix, middleware table annotated |
-| `CHANGELOG.md` updated | DONE | `[Unreleased]` → `### Changed` entry for the extraction |
+| Item                                        | Status | Detail                                                                                                                 |
+| ------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `server_timing/` directory created          | DONE   | Contains `go.mod`, 1 source file, 3 test files                                                                         |
+| `server_timing/go.mod`                      | DONE   | `module github.com/larsartmann/httputil/server_timing`, `go 1.26.5`, zero external deps                                |
+| Package renamed `httputil` → `servertiming` | DONE   | All 4 files updated                                                                                                    |
+| `go.work` created at repo root              | DONE   | Lists `.` and `./server_timing`                                                                                        |
+| Root `go.mod` has `replace` directive       | DONE   | `replace github.com/larsartmann/httputil/server_timing => ./server_timing`                                             |
+| Root `go.mod` has `require` directive       | DONE   | `require github.com/larsartmann/httputil/server_timing v0.0.0`                                                         |
+| `example_test.go` updated                   | DONE   | Imports `servertiming` package, uses qualified calls                                                                   |
+| `stack_integration_test.go` updated         | DONE   | Imports `servertiming` package, uses qualified calls                                                                   |
+| Chain composition test relocated            | DONE   | Moved from `server_timing/server_timing_test.go` to `stack_integration_test.go` (root module, because it uses `Chain`) |
+| Root `.golangci.yml` depguard updated       | DONE   | Added explicit `github.com/larsartmann/httputil/server_timing` allow entry                                             |
+| `server_timing/.golangci.yml` created       | DONE   | Simplified: depguard allows `$gostd` only; same ~70 linter set                                                         |
+| `flake.nix` updated                         | DONE   | All apps (test, build, vet, lint, coverage, vulncheck) now run in both modules                                         |
+| `AGENTS.md` updated                         | DONE   | Architecture section, module table, commands, allowed deps, non-obvious behaviors, test conventions                    |
+| `README.md` updated                         | DONE   | Server-Timing section code examples use `servertiming.` prefix, middleware table annotated                             |
+| `CHANGELOG.md` updated                      | DONE   | `[Unreleased]` → `### Changed` entry for the extraction                                                                |
 
 ### Verification (All Passing)
 
@@ -49,11 +49,11 @@ go work sync                       — Idempotent
 
 The auto-git-commit daemon made **3 unsolicited commits** during this session that were NOT part of my task:
 
-| Commit | What It Did | Impact |
-| --- | --- | --- |
+| Commit    | What It Did                                                                                                                                                                        | Impact                                                                                                                         |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `890b7eb` | **Deleted the entire ETag middleware** (`etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, `httpspec/etag_integration_test.go`, `MiddlewareETag` constant, ETag error codes) | Broke the build: `chain_test.go`, `example_test.go`, `stack_integration_test.go`, `testutil_test.go` had stale ETag references |
-| `ada0c8d` | "Fixed" ETag RFC compliance — **on code that was just deleted** (hallucinated commit message) | No actual code change for ETag; touched `flake.nix` and docs |
-| `a8ebe7b` | Empty commit with blank message, modified `FEATURES.md` | Features list accuracy is now questionable |
+| `ada0c8d` | "Fixed" ETag RFC compliance — **on code that was just deleted** (hallucinated commit message)                                                                                      | No actual code change for ETag; touched `flake.nix` and docs                                                                   |
+| `a8ebe7b` | Empty commit with blank message, modified `FEATURES.md`                                                                                                                            | Features list accuracy is now questionable                                                                                     |
 
 I fixed the build breakage from `890b7eb` (removed stale ETag test functions, updated `newWriteStatusHandler` signature to drop the always-`StatusOK` parameter), but the **documentation drift is significant** — multiple docs reference `go-etag` module that doesn't exist, and FEATURES.md/ROADMAP.md/TODO_LIST.md were rewritten by the daemon.
 
@@ -61,14 +61,14 @@ I fixed the build breakage from `890b7eb` (removed stale ETag test functions, up
 
 ## c) NOT STARTED
 
-| Item | Why |
-| --- | --- |
-| `server_timing/doc.go` | No package-level doc.go file created (the root package has one) |
-| `server_timing/go.sum` | Not needed (zero deps), but its absence may confuse `go mod verify` tooling |
-| D2 architecture diagram update | `docs/architecture-understanding/` SVG was modified by daemon but not verified to reflect the new module split |
-| `docs/v1-stability.md` Server-Timing section | Still references symbols without the `servertiming.` package qualifier |
-| `docs/DOMAIN_LANGUAGE.md` Server-Timing entries | 14+ references to ServerTiming symbols without import path context |
-| Integration docs (`huma.md`, `samber-do.md`) | May reference old `httputil.ServerTiming*` paths |
+| Item                                            | Why                                                                                                            |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `server_timing/doc.go`                          | No package-level doc.go file created (the root package has one)                                                |
+| `server_timing/go.sum`                          | Not needed (zero deps), but its absence may confuse `go mod verify` tooling                                    |
+| D2 architecture diagram update                  | `docs/architecture-understanding/` SVG was modified by daemon but not verified to reflect the new module split |
+| `docs/v1-stability.md` Server-Timing section    | Still references symbols without the `servertiming.` package qualifier                                         |
+| `docs/DOMAIN_LANGUAGE.md` Server-Timing entries | 14+ references to ServerTiming symbols without import path context                                             |
+| Integration docs (`huma.md`, `samber-do.md`)    | May reference old `httputil.ServerTiming*` paths                                                               |
 
 ---
 
@@ -199,6 +199,7 @@ I fixed the build breakage from `890b7eb` (removed stale ETag test functions, up
 The auto-git daemon **deleted the entire ETag middleware** (`890b7eb`) and fabricated references to a `github.com/larsartmann/go-etag` module that doesn't exist. I fixed the resulting build errors, but the ETag feature is now **gone** from this codebase.
 
 **Do you want me to:**
+
 - (a) **Revert `890b7eb`** to restore ETag to the root package (undoing the daemon's unauthorized deletion)?
 - (b) **Create the `go-etag` module** for real, extracting ETag properly into `github.com/larsartmann/go-etag`?
 - (c) **Leave it deleted** — ETag is intentionally gone and the phantom references will be cleaned up?
@@ -206,6 +207,7 @@ The auto-git daemon **deleted the entire ETag middleware** (`890b7eb`) and fabri
 ### Q2: Should the `server_timing` sub-module use shared or independent versioning?
 
 The go-modularize skill recommends documenting a versioning strategy. Currently the module uses `v0.0.0` with a local `replace` directive. Options:
+
 - (a) **Shared versioning** — all modules bump together under a single root tag (`v1.0.0`)
 - (b) **Independent semver** — `server_timing/v0.1.0` gets its own tags
 - (c) **Root-only** — only root gets tags, sub-module stays on `replace` forever
@@ -215,6 +217,7 @@ This affects how consumers import it and how CI tags releases.
 ### Q3: Should I add backward-compatibility type aliases in the root package?
 
 Consumers who wrote `httputil.ServerTimingMiddleware()` now get a compile error. Options:
+
 - (a) **Add type aliases** (`type ServerTiming = servertiming.ServerTiming`, `var ServerTimingMiddleware = servertiming.ServerTimingMiddleware`) for a deprecation period
 - (b) **No aliases** — it's a clean break, consumers update their imports
 - (c) **Aliases + `// Deprecated:` comments** pointing to the new import path
@@ -225,17 +228,17 @@ This is a v1.0 stability commitment question — the `docs/v1-stability.md` file
 
 ## Session Metrics
 
-| Metric | Value |
-| --- | --- |
-| Task asked | Extract server_timing into a dedicated module |
-| Task completed | YES — module created, code moved, tests pass, lint clean |
-| Files moved | 4 (`server_timing.go` + 3 test files) |
-| Files created | 3 (`server_timing/go.mod`, `server_timing/.golangci.yml`, `go.work`) |
-| Files updated | ~15 (root go.mod, .golangci.yml, flake.nix, AGENTS.md, README.md, CHANGELOG.md, example_test.go, stack_integration_test.go, chain_test.go, testutil_test.go, errors.go, stack.go) |
-| Unsolicited daemon commits | 3 (including 1 destructive ETag deletion) |
-| Lines of code destroyed by daemon | ~1270 (etag.go + etag_test.go + fuzz tests + integration tests) |
-| Build status | GREEN (both modules, workspace + GOWORK=off) |
-| Test status | GREEN (all packages, -race) |
-| Lint status | 0 issues (both modules) |
-| Phantom module references | 5+ docs reference `go-etag` which doesn't exist |
-| Stale doc comments | 5 in `server_timing.go` (httputil. prefix should be servertiming.) |
+| Metric                            | Value                                                                                                                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Task asked                        | Extract server_timing into a dedicated module                                                                                                                                     |
+| Task completed                    | YES — module created, code moved, tests pass, lint clean                                                                                                                          |
+| Files moved                       | 4 (`server_timing.go` + 3 test files)                                                                                                                                             |
+| Files created                     | 3 (`server_timing/go.mod`, `server_timing/.golangci.yml`, `go.work`)                                                                                                              |
+| Files updated                     | ~15 (root go.mod, .golangci.yml, flake.nix, AGENTS.md, README.md, CHANGELOG.md, example_test.go, stack_integration_test.go, chain_test.go, testutil_test.go, errors.go, stack.go) |
+| Unsolicited daemon commits        | 3 (including 1 destructive ETag deletion)                                                                                                                                         |
+| Lines of code destroyed by daemon | ~1270 (etag.go + etag_test.go + fuzz tests + integration tests)                                                                                                                   |
+| Build status                      | GREEN (both modules, workspace + GOWORK=off)                                                                                                                                      |
+| Test status                       | GREEN (all packages, -race)                                                                                                                                                       |
+| Lint status                       | 0 issues (both modules)                                                                                                                                                           |
+| Phantom module references         | 5+ docs reference `go-etag` which doesn't exist                                                                                                                                   |
+| Stale doc comments                | 5 in `server_timing.go` (httputil. prefix should be servertiming.)                                                                                                                |

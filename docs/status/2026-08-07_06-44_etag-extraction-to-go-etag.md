@@ -103,7 +103,7 @@ The ETag middleware was successfully extracted from `httputil` into a new standa
     - `890b7eb` — decent message about ETag removal
     - `ada0c8d` — WRONG message: "fix(etag): bring ETag handling into RFC 7232 / RFC 9110 compliance" — this was the daemon inferring from the diff, but it actually captured my documentation updates (FEATURES.md, README.md, chain_test.go, doc.go, etc.). The message describes the opposite of what happened (it says "bring ETag handling into compliance" when I was removing ETag).
     - `a8ebe7b` — BLANK commit message, captured more doc updates.
-    
+
     These commit messages are misleading and will confuse anyone reading git history.
 
 42. **`compression_test.go` and `server_test.go` modified by auto-formatter** — The commit `a8ebe7b` includes changes to `compression_test.go` (4 lines) and `server_test.go` (2 lines) that I did NOT make. These were likely auto-formatting changes picked up by the daemon. I did not review these changes before they were committed.
