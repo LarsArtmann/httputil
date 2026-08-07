@@ -26,7 +26,7 @@ func FuzzDecompression(f *testing.F) {
 	f.Add([]byte{0x1f, 0x8b}, "gzip") // truncated gzip header
 	f.Add(gzipBuf.Bytes(), "deflate")
 	f.Add([]byte("raw bytes"), "deflate")
-	f.Add(gzipBuf.Bytes(), "")        // no encoding → passthrough
+	f.Add(gzipBuf.Bytes(), "") // no encoding → passthrough
 	f.Add([]byte("plain"), "identity")
 	f.Add([]byte("plain"), "br") // unsupported encoding → passthrough
 	f.Add([]byte{}, "")
@@ -40,20 +40,24 @@ func FuzzDecompression(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, body []byte, encoding string) {
 		cfg := DefaultDecompressionConfig()
-		handler := Decompression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Drain the body to trigger decompression errors (if any).
-			//nolint:makezero // pre-allocated buffer for Read, not append
-			drain := make([]byte, 1024)
+		handler := Decompression(
+			cfg,
+		)(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Drain the body to trigger decompression errors (if any).
+				//nolint:makezero // pre-allocated buffer for Read, not append
+				drain := make([]byte, 1024)
 
-			for {
-				_, err := r.Body.Read(drain)
-				if err != nil {
-					break
+				for {
+					_, err := r.Body.Read(drain)
+					if err != nil {
+						break
+					}
 				}
-			}
 
-			w.WriteHeader(http.StatusOK)
-		}))
+				w.WriteHeader(http.StatusOK)
+			}),
+		)
 
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
 		if encoding != "" {
@@ -66,7 +70,12 @@ func FuzzDecompression(f *testing.F) {
 		// Valid gzip bodies must produce 200; invalid gzip bodies must produce 400.
 		// All other encodings produce 200 (passthrough or successful deflate).
 		if rec.Code != http.StatusOK && rec.Code != http.StatusBadRequest {
-			t.Errorf("unexpected status %d for encoding %q, body len %d", rec.Code, encoding, len(body))
+			t.Errorf(
+				"unexpected status %d for encoding %q, body len %d",
+				rec.Code,
+				encoding,
+				len(body),
+			)
 		}
 	})
 }
