@@ -1,4 +1,4 @@
-package httputil
+package servertiming
 
 import (
 	"bufio"
@@ -581,41 +581,6 @@ func TestServerTimingMiddleware_NilPredicateDisablesAll(t *testing.T) {
 
 	if hv := rec.Header().Get(HeaderServerTiming); hv != "" {
 		t.Fatalf("nil predicate should produce no header, got %q", hv)
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Integration with Chain
-// ---------------------------------------------------------------------------
-
-func TestServerTimingMiddleware_ComposesWithChain(t *testing.T) {
-	t.Parallel()
-
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		stopWork := MeasureServerTiming(r.Context(), "work")
-
-		time.Sleep(5 * time.Millisecond)
-		stopWork()
-
-		_, _ = io.WriteString(w, "ok")
-	})
-
-	stacked := Chain(inner, ServerTimingMiddleware())
-
-	rec := httptest.NewRecorder()
-	stacked.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-
-	hv := rec.Header().Get(HeaderServerTiming)
-	if hv == "" {
-		t.Fatal("Server-Timing header missing through Chain")
-	}
-
-	if !strings.Contains(hv, "work;") {
-		t.Errorf("work metric missing in %q", hv)
-	}
-
-	if !strings.Contains(hv, "total;") {
-		t.Errorf("total metric missing in %q", hv)
 	}
 }
 

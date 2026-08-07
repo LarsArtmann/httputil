@@ -1,4 +1,4 @@
-package httputil
+package servertiming
 
 import (
 	"context"
