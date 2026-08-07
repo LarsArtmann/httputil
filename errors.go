@@ -90,4 +90,28 @@ func registerAllErrorTemplates() {
 		"Check if the client disconnected or if the response buffer is full.",
 		msgRetryMaySucceed,
 	)
+
+	registerErrorTemplate(
+		etag.ErrCodeETagWriteFailed,
+		"Failed to write ETag-buffered HTTP response",
+		"The underlying ResponseWriter.Write call returned an error while streaming ETag data.",
+		"Check if the client disconnected or if the response buffer is full.",
+		msgRetryMaySucceed,
+	)
+
+	registerErrorTemplate(
+		etag.ErrCodeInvalidConfig,
+		"ETag configuration is invalid",
+		"One or more fields of ETagConfig have invalid values.",
+		"Review the ETagConfig field values and ensure MaxBufferSize is positive.",
+		"Check your ETagConfig values and try again.",
+	)
+
+	registerErrorTemplate(
+		etag.ErrCodeHashWriteFailed,
+		"Hash function failed to accept data",
+		"The hash.Write call returned an error, which violates the hash.Hash contract that Write never fails.",
+		"This indicates a bug in the hash implementation. Report it to the library author.",
+		"This is likely a bug. Please report it if the problem persists.",
+	)
 }

@@ -6,13 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Removed
+### Added
 
-- **ETag middleware extracted to `go-etag` module** (`etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, `httpspec/etag_integration_test.go`): ETag generation (FNV-64a) + RFC 7232 weak-comparison `If-None-Match` 304 middleware moved to a dedicated Go module `github.com/larsartmann/go-etag` (package `etag`). The new module is self-contained with only `go-error-family` as a dependency. Removed: `ETag()`, `ETagConfig`, `DefaultETagConfig()`, `ErrCodeETagWriteFailed`, `MiddlewareETag` constant, `ExampleETag`, ETag-related chain tests, and ETag-specific fuzz tests. Updated: `errors.go` (removed ETag error code + template), `stack.go` (removed `MiddlewareETag`), `wrapper.go` and `hex.go` (updated comments), `FEATURES.md`, `README.md`, `TODO_LIST.md`, `ROADMAP.md`, `AGENTS.md`.
+- **ETag adapter over `go-etag` dependency** (`etag.go`, `etag_test.go`): `httputil.ETag(cfg etag.ETagConfig) Middleware` wraps `github.com/larsartmann/go-etag` (the independent module extracted in the previous `[Unreleased]` entry) so consumers can use `httputil.ETag()` alongside all other httputil middleware without a separate import. `MiddlewareETag = "etag"` constant added to `stack.go` for `MiddlewareStack`. ETag error templates (`etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed`) registered in `errors.go` via `RegisterErrorClassifications()`. 7 adapter integration tests covering ETag generation, If-None-Match 304, POST exclusion, Chain composition, and MiddlewareStack registration. `go-etag` v0.1.0 added as the 4th external dependency (same author, `go-error-family` only transitive dep).
+- **7 ETag compliance tests** (`etag_test.go`): 304 excludes `Content-Length` (RFC 7232 §4.1), 304 includes `ETag` header, multiple `If-None-Match` headers combined, HEAD with `If-None-Match` returns 304, overflow disables ETag with `If-None-Match` present, Hijack prevents ETag generation, `parseETagList` escaped-quote correctness.
+- **2 ETag edge-case tests** (`etag_test.go`): no `If-None-Match` header returns 200 with body (exercises `Header.Values` → `strings.Join(nil)` → `""` path); escaped-quote `If-None-Match` end-to-end through full middleware path.
+- **Decompression bomb-protection tests** (`decompression_test.go`): `limitedReadCloser.Close()` delegation test (was 0% coverage), `limitedReadCloser.Read()` bomb-limit-exceeded test verifying `errDecompressionSizeExceeded` and underlying reader closure (was 58.3%), and full integration test sending a gzip-compressed body that decompresses beyond `MaxDecompressionSize`.
+- **`ExampleDecompression`** (`example_test.go`): testable example with `// Output:` directive, consistent with all other middleware.
+- **govulncheck in devShell** (`flake.nix`): `pkgs.govulncheck` added to the devShell packages and a `nix run .#vulncheck` app to run vulnerability scans. Prevents the release-gate skip that occurred in v0.9.1.
+- **Decompression documentation** (`README.md`, `docs/v1-stability.md`, `docs/DOMAIN_LANGUAGE.md`): README gains a feature section, API table entries, config reference, and middleware ordering guidance. `v1-stability.md` classifies `DecompressionConfig` and `DefaultDecompressionConfig`. `DOMAIN_LANGUAGE.md` gains Decompression bounded context, entity, value objects, commands, events, and rules.
 
 ### Changed
 
 - **Server-Timing extracted into `server_timing` sub-module** (`server_timing/`): W3C Server-Timing instrumentation (`ServerTiming`, `ServerTimingMiddleware`, `MeasureServerTiming`, etc.) moved from the root `httputil` package to a dedicated Go module `github.com/larsartmann/httputil/server_timing` (package `servertiming`). The sub-module is stdlib-only with zero external dependencies. The root module references it via a `replace` directive; both are coordinated through `go.work`. Import path changed from `httputil.ServerTimingMiddleware` to `servertiming.ServerTimingMiddleware`.
+- **Coverage improved 96.7% to 97.2%** across FEATURES.md, README.md, and ROADMAP.md, driven by new decompression bomb-protection tests.
+- **`nix flake check` run** after 4 consecutive session skips; all checks pass.
 
 ### Fixed
 
