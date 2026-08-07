@@ -35,6 +35,7 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 | Recovery         | Catching panics and returning 500 responses                                                        | `Recovery`                                   |
 | Timeout          | Enforcing request deadlines via context cancellation                                               | `Timeout`                                    |
 | Compression      | Response compression (gzip/deflate/brotli/zstd + pluggable encodings) with pool-based writer reuse | `CompressionConfig`                          |
+| Decompression    | Request body decompression (gzip/deflate) with decompression bomb protection                       | `DecompressionConfig`                        |
 | ETag             | Entity tag generation and conditional 304 responses                                                | `ETagConfig`                                 |
 | Logging          | Structured request/response logging                                                                | `Logging`                                    |
 | Server Lifecycle | HTTP server start, graceful shutdown, and configuration                                            | `ServerConfig`, `Server`                     |
@@ -61,6 +62,7 @@ Objects with identity and lifecycle within the library.
 | SecurityHeadersConfig  | A configuration value object defining which security headers to set                           | Security Headers |
 | RequestIDConfig        | A configuration value object defining request ID header name and generation logic             | Request ID       |
 | CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)     | Compression      |
+| DecompressionConfig    | A configuration value object defining decompression parameters (encodings, bomb-protection limit) | Decompression  |
 | ETagConfig             | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
 | RateLimitConfig        | A configuration value object defining deprecated token-bucket rate limiting policy            | Rate Limiting    |
 | TokenBucketLimiter     | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)       | Rate Limiting    |
@@ -92,6 +94,8 @@ Immutable objects defined by their attributes.
 | Weak ETag            | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity      | ETag             |
 | Compression Level    | An integer controlling the compression tradeoff (speed vs ratio)                                   | Compression      |
 | Min Size             | The minimum response body size (bytes) before compression is applied                               | Compression      |
+| Max Decompression Size | The maximum decompressed body size (bytes) before the bomb-protection limit triggers (default: 16 MiB) | Decompression |
+| Decompression Bomb    | A small compressed payload that decompresses to an enormous size, designed to exhaust server memory | Decompression  |
 | Max Buffer Size      | The maximum bytes buffered for ETag computation before abandoning                                  | ETag             |
 | Token Bucket         | A per-key container holding token count and last-refill timestamp                                  | Rate Limiting    |
 | Eviction TTL         | Duration after which idle rate-limit entries are lazily removed; zero disables eviction            | Rate Limiting    |
@@ -133,6 +137,8 @@ Actions the library performs.
 | `Logging(logger)`                    | Create middleware that logs each request with method, path, status, duration, and client IP            | Logging          |
 | `Compression(cfg)`                   | Create middleware that compresses responses based on Accept-Encoding negotiation                       | Compression      |
 | `DefaultCompressionConfig()`         | Return a CompressionConfig with sensible defaults (default level, 512-byte minimum)                    | Compression      |
+| `Decompression(cfg)`                 | Create middleware that decompresses request bodies based on Content-Encoding with bomb protection      | Decompression    |
+| `DefaultDecompressionConfig()`       | Return a DecompressionConfig with gzip+deflate and 16 MiB bomb-protection limit                        | Decompression    |
 | `ETag(cfg)`                          | Create middleware that generates ETags and handles If-None-Match conditional requests                  | ETag             |
 | `DefaultETagConfig()`                | Return an ETagConfig with strong ETags and 1MB max buffer                                              | ETag             |
 | `HealthHandler()`                    | Return a handler that responds with `{"status":"up"}`                                                  | Health           |
@@ -200,6 +206,8 @@ State transitions within the library.
 | Security Headers Set          | SecurityHeaders middleware writes security headers before delegating                                      | Security Headers |
 | Compression Applied           | Compression middleware encodes the response body using the negotiated encoding                            | Compression      |
 | Compression Skipped           | Compression middleware passes through (no gzip accept, below min size, non-2xx)                           | Compression      |
+| Body Decompressed             | Decompression middleware wraps r.Body with a decompressing reader and removes encoding headers         | Decompression    |
+| Decompression Bomb Detected   | Decompressed body exceeds MaxDecompressionSize; reads return error and the underlying reader is closed | Decompression    |
 | ETag Computed                 | ETag middleware generates an ETag value from the response body                                            | ETag             |
 | Not Modified Returned         | ETag middleware returns 304 because If-None-Match matched the computed ETag                               | ETag             |
 | ETag Skipped                  | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)                                    | ETag             |
@@ -298,6 +306,16 @@ Invariants and policies that the library enforces.
 - Uses per-encoding `sync.Pool` to reuse writer instances; custom factories opt into pooling via `Reset(io.Writer)`
 - `Level` field controls compression level when `WriterFactories` is not supplied (applies to both gzip and deflate)
 - `Validate()` rejects compression levels outside `[gzip.HuffmanOnly, gzip.BestCompression]`, negative `MinSize`, and empty `WriterFactories`
+
+### Decompression Rules
+
+- Decompresses request bodies for gzip and deflate encodings based on the `Content-Encoding` header
+- Replaces `r.Body` with a decompressing reader so downstream handlers see the decompressed body transparently
+- Removes `Content-Encoding` and `Content-Length` headers from the request after decompression
+- Enforces a `MaxDecompressionSize` limit (default: 16 MiB) to prevent decompression bomb attacks
+- When the limit is exceeded, reads return `errDecompressionSizeExceeded` and the underlying reader is closed immediately
+- `Encodings` controls which encodings are accepted; empty means both gzip and deflate
+- `Validate()` rejects negative `MaxDecompressionSize`
 
 ### ETag Rules
 

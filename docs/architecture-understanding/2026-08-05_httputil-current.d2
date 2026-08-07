@@ -11,7 +11,7 @@ package httputil: {
   style.font-color: "#f4f4f0"
   style.stroke: "#ffb347"
 
-  middleware_chain: Middleware Chain (16) {
+  middleware_chain: Middleware Chain (17) {
     shape: package
     style.fill: "#16161a"
     style.font-color: "#f4f4f0"
@@ -23,6 +23,7 @@ package httputil: {
     cors: CORS
     security: SecurityHeaders
     compression: Compression
+    decompression: Decompression
     etag: ETag
     maxbody: MaxBodySize
     ratelimit_keyed: KeyedRateLimit
@@ -34,6 +35,7 @@ package httputil: {
 
     recovery -> logging -> requestid -> timeout -> cors -> security -> compression -> etag -> handler
     maxbody -> handler
+    decompression -> handler
     ratelimit_keyed -> handler
     metrics -> handler
     clientip -> handler

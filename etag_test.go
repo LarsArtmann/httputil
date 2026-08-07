@@ -669,3 +669,46 @@ func TestParseETagList_EscapedQuotes(t *testing.T) {
 		t.Errorf("tags[1] = %q, want %q", tags[1], want1)
 	}
 }
+
+// TestETag_NoIfNoneMatchHeader verifies that a request without any
+// If-None-Match header returns 200 with the body (not 304). This exercises
+// the Header.Values -> strings.Join(nil) -> "" code path.
+func TestETag_NoIfNoneMatchHeader(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertBody(t, rec, "hello world")
+
+	etag := rec.Header().Get(headerETag)
+	if etag == "" {
+		t.Error("ETag header is empty, want generated ETag even without If-None-Match")
+	}
+}
+
+// TestETag_IfNoneMatch_EscapedQuoteEndToEnd verifies that an If-None-Match
+// header containing escaped quotes is parsed correctly through the full
+// middleware path without crashing or false-matching.
+func TestETag_IfNoneMatch_EscapedQuoteEndToEnd(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"a\"b", "c"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertBody(t, rec, "hello world")
+}
