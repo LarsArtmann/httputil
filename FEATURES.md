@@ -221,4 +221,3 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **97.0%** (`httputil`), 
 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
 - **Rate limiter `context.Context` cancellation** — add `context.Context` support to the rate limiter interface. Deferred to v1.0 (API design decision). See [ROADMAP.md](ROADMAP.md).
-

@@ -169,17 +169,17 @@ Separate Go module (`github.com/larsartmann/httputil/server_timing`, package `se
 
 Errors from `ResponseRecorder`, `compressWriter`, `CSRFMiddleware`, and the go-etag writer are classified using `go-error-family`:
 
-| Source     | Error Code                   | Family         | Retryable | When                                                           |
-| ---------- | ---------------------------- | -------------- | --------- | -------------------------------------------------------------- |
-| `Write`    | `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails                          |
-| `Hijack`   | `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker                   |
-| `Hijack`   | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                                   |
-| `Compress` | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write/Close fails                           |
-| `CSRF`     | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched                   |
-| `CSRF`     | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid (e.g. SameSite=None without Secure) |
-| `ETag`     | `http.etag_write_failed`     | Transient      | Yes       | ETag writer fails to stream buffered data                      |
-| `ETag`     | `http.etag_config_invalid`   | Rejection      | No        | ETagConfig has an invalid field value                          |
-| `ETag`     | `http.etag_hash_write_failed`| Orchestration  | No        | Hash.Write fails, violating the hash.Hash contract             |
+| Source     | Error Code                    | Family         | Retryable | When                                                           |
+| ---------- | ----------------------------- | -------------- | --------- | -------------------------------------------------------------- |
+| `Write`    | `http.write_failed`           | Transient      | Yes       | Underlying ResponseWriter.Write fails                          |
+| `Hijack`   | `http.hijack_unsupported`     | Infrastructure | No        | Underlying writer doesn't implement Hijacker                   |
+| `Hijack`   | `http.hijack_failed`          | Transient      | Yes       | Underlying Hijack call fails                                   |
+| `Compress` | `http.compress_write_failed`  | Transient      | Yes       | Compression writer Write/Close fails                           |
+| `CSRF`     | `csrf_invalid`                | Rejection      | No        | CSRF token missing, malformed, or mismatched                   |
+| `CSRF`     | `csrf_config`                 | Infrastructure | No        | CSRF configuration invalid (e.g. SameSite=None without Secure) |
+| `ETag`     | `http.etag_write_failed`      | Transient      | Yes       | ETag writer fails to stream buffered data                      |
+| `ETag`     | `http.etag_config_invalid`    | Rejection      | No        | ETagConfig has an invalid field value                          |
+| `ETag`     | `http.etag_hash_write_failed` | Orchestration  | No        | Hash.Write fails, violating the hash.Hash contract             |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
 

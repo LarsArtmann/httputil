@@ -54,26 +54,26 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Middleware Factory Functions (all Frozen at v1.0)
 
-| Function                       | Signature                                       |
-| ------------------------------ | ----------------------------------------------- |
-| `CORS`                         | `func(CORSConfig) Middleware`                   |
-| `CSRFMiddleware`               | `func(CSRFConfig) Middleware`                   |
-| `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`               |
-| `Compression`                  | `func(CompressionConfig) Middleware`            |
-| `Decompression`                | `func(DecompressionConfig) Middleware`          |
+| Function                       | Signature                                                 |
+| ------------------------------ | --------------------------------------------------------- |
+| `CORS`                         | `func(CORSConfig) Middleware`                             |
+| `CSRFMiddleware`               | `func(CSRFConfig) Middleware`                             |
+| `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`                         |
+| `Compression`                  | `func(CompressionConfig) Middleware`                      |
+| `Decompression`                | `func(DecompressionConfig) Middleware`                    |
 | `ETag`                         | `func(etag.ETagConfig) Middleware` — adapter over go-etag |
-| `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`       |
-| `Logging`                      | `func(*slog.Logger) Middleware`                 |
-| `MaxBodySize`                  | `func(int64) Middleware`                        |
-| `Metrics`                      | `func(MetricsConfig) Middleware`                |
-| `RateLimit`                    | `func(RateLimitConfig) Middleware` (deprecated) |
-| `Recovery`                     | `func(*slog.Logger) Middleware`                 |
-| `RequestID`                    | `func(RequestIDConfig) Middleware`              |
-| `SecurityHeaders`              | `func(SecurityHeadersConfig) Middleware`        |
-| `ServerTimingMiddleware`       | `func() Middleware`                             |
-| `ServerTimingMiddlewareWhen`   | `func(func(*http.Request) bool) Middleware`     |
-| `Timeout`                      | `func(time.Duration) Middleware`                |
-| `ClientIPMiddleware`           | `func(http.Handler) http.Handler`               |
+| `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`                 |
+| `Logging`                      | `func(*slog.Logger) Middleware`                           |
+| `MaxBodySize`                  | `func(int64) Middleware`                                  |
+| `Metrics`                      | `func(MetricsConfig) Middleware`                          |
+| `RateLimit`                    | `func(RateLimitConfig) Middleware` (deprecated)           |
+| `Recovery`                     | `func(*slog.Logger) Middleware`                           |
+| `RequestID`                    | `func(RequestIDConfig) Middleware`                        |
+| `SecurityHeaders`              | `func(SecurityHeadersConfig) Middleware`                  |
+| `ServerTimingMiddleware`       | `func() Middleware`                                       |
+| `ServerTimingMiddlewareWhen`   | `func(func(*http.Request) bool) Middleware`               |
+| `Timeout`                      | `func(time.Duration) Middleware`                          |
+| `ClientIPMiddleware`           | `func(http.Handler) http.Handler`                         |
 
 ### Server Lifecycle (Frozen at v1.0)
 

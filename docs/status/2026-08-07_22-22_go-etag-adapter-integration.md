@@ -4,7 +4,7 @@
 **Session scope:** Correcting the disastrous code-copying approach from the prior session, reverting it, and implementing the correct thin-adapter approach over the independent `go-etag` module.
 
 > **Annotation (2026-08-07 docs-health):** All section C (NOT STARTED) items 1–9 **done** by the 22:43 follow-up session (`go mod tidy`, CONTRIBUTING.md, v1-stability.md, D2 diagram, DOMAIN_LANGUAGE.md, ExampleETag, chain test). Section F items 1–4 **done**. Items 5–8 **done** (D2, DOMAIN_LANGUAGE, ExampleETag, chain test). Items 9–32 are ROADMAP fuel or design decisions — items 27 (type aliases) and 18 (DefaultETagConfig wrapper) **decided NO** per the 22:43 session. Questions Q1–Q3: decided NO on re-exports and wrappers; error-registration superset pattern is correct as-is.
-**Verdict:** The adapter is correct and minimal. Tests pass, lint clean. But docs are incomplete in several places, the go.mod has an incorrect `// indirect` marker, and test depth is thin.
+> **Verdict:** The adapter is correct and minimal. Tests pass, lint clean. But docs are incomplete in several places, the go.mod has an incorrect `// indirect` marker, and test depth is thin.
 
 ---
 
@@ -13,6 +13,7 @@
 The prior session (documented in `docs/status/2026-08-07_21-59_etag-reintegration-self-critique.md`) **copied all of go-etag's code back into httputil** — the exact opposite of the user's intent. The user had extracted go-etag as an **independent module** and wanted it **integrated well**, not duplicated.
 
 This session:
+
 1. Reverted all bad code (11 commits, ~3300 lines) back to clean state `510f06d`
 2. Implemented the correct approach: go-etag as a dependency + thin adapter
 3. Updated docs to reflect the dependency approach
@@ -165,4 +166,4 @@ The only thing I did right was revert cleanly and implement the correct approach
 
 2. **Should the adapter provide a `DefaultETagConfig()` convenience function?** Currently consumers must `import etag "github.com/larsartmann/go-etag"` and call `etag.DefaultETagConfig()`. A `httputil.DefaultETagConfig()` wrapper would let them skip the go-etag import entirely for the default case. But it adds a maintenance surface — if go-etag's defaults change, httputil's wrapper must be updated. I cannot determine if single-import convenience is worth the surface.
 
-3. **Should httputil call `etag.RegisterErrorClassifications()` from its own `RegisterErrorClassifications()`?** Currently httputil registers go-etag's error *templates* but not go-etag's stdlib error *classifications* (`http.ErrNotSupported`, `http.ErrAbortHandler`). This is because httputil already registers those same stdlib errors with its own classifications (which includes more errors than go-etag's set). Calling both could cause a conflict if the families differ. I cannot determine if the classifications are identical without comparing the two functions line-by-line, and even then the right resolution (delegate, merge, or keep separate) is a design decision.
+3. **Should httputil call `etag.RegisterErrorClassifications()` from its own `RegisterErrorClassifications()`?** Currently httputil registers go-etag's error _templates_ but not go-etag's stdlib error _classifications_ (`http.ErrNotSupported`, `http.ErrAbortHandler`). This is because httputil already registers those same stdlib errors with its own classifications (which includes more errors than go-etag's set). Calling both could cause a conflict if the families differ. I cannot determine if the classifications are identical without comparing the two functions line-by-line, and even then the right resolution (delegate, merge, or keep separate) is a design decision.
