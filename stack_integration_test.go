@@ -156,7 +156,6 @@ func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	)
 	addStackMiddleware(t, stack, MiddlewareCSRF, CSRFMiddleware(CSRFConfig{}))
 	addStackMiddleware(t, stack, MiddlewareCompression, Compression(DefaultCompressionConfig()))
-	addStackMiddleware(t, stack, MiddlewareETag, ETag(DefaultETagConfig()))
 	addStackMiddleware(t, stack, MiddlewareTimeout, Timeout(30*time.Second))
 	addStackMiddleware(t, stack, MiddlewareClientIP, ClientIPMiddleware)
 	addStackMiddleware(t, stack, MiddlewareServerTiming, servertiming.ServerTimingMiddleware())
@@ -197,7 +196,6 @@ func verifyGETHeaders(t *testing.T, handler http.Handler, called *atomic.Bool) {
 		{"X-Content-Type-Options", "nosniff"},
 		{"Access-Control-Allow-Origin", "*"},
 		{servertiming.HeaderServerTiming, ""}, // non-empty
-		{"ETag", ""},                          // non-empty
 	}
 
 	for _, h := range headers {

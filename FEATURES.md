@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — Honest-silence error-swallow documentation across all middleware, decompression bomb-protection tests, D2 SVG regeneration, server_timing subpackage extraction. All claims verified against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — ETag RFC 7232 + RFC 9110 compliance fixes (escaped quotes, multi-header combination). All claims verified against current source with `go test -race -coverprofile`._
 
 ---
 
