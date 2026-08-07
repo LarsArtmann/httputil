@@ -404,7 +404,7 @@ func TestServerConfigValidateTLSInsecureMinVersion(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultServerConfig()
-	cfg.TLSConfig = &tls.Config{
+	cfg.TLSConfig = &tls.Config{ //nolint:gosec // G402: intentionally insecure MinVersion for validation test
 		MinVersion: tls.VersionTLS10,
 	}
 
@@ -422,7 +422,7 @@ func TestServerConfigValidateTLSInsecureMinVersion11(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultServerConfig()
-	cfg.TLSConfig = &tls.Config{
+	cfg.TLSConfig = &tls.Config{ //nolint:gosec // G402: intentionally insecure MinVersion for validation test
 		MinVersion: tls.VersionTLS11,
 	}
 

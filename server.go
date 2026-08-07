@@ -51,6 +51,7 @@ type ServerConfig struct {
 func DefaultServerConfig() ServerConfig {
 	return ServerConfig{
 		Addr:              defaultAddr,
+		TLSConfig:         nil,
 		ReadTimeout:       defaultReadTimeoutSeconds * time.Second,
 		ReadHeaderTimeout: defaultReadHeaderTimeoutSeconds * time.Second,
 		WriteTimeout:      defaultWriteTimeoutSeconds * time.Second,
