@@ -6,7 +6,7 @@
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (RFC 7232), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
 Minimal footprint — three dependencies (`go-error-family` same-author + `golang.org/x/time` + `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
 
@@ -249,42 +249,6 @@ handler := httputil.Decompression(cfg)(mux)
 
 Use `cfg.Validate()` to catch invalid configurations at startup (e.g., negative `MaxDecompressionSize`).
 
-### ETag / Conditional Requests
-
-Automatic ETag generation and `If-None-Match` handling for cache validation. The middleware buffers GET/HEAD response bodies, computes an FNV-64a hash, and returns 304 Not Modified when the client's `If-None-Match` matches.
-
-```go
-handler := httputil.ETag(httputil.DefaultETagConfig())(mux)
-```
-
-For GET requests with a matching `If-None-Match`, the middleware returns 304 with no body. HEAD requests get an ETag + Content-Length but no body (RFC 7230 §3.3). Responses exceeding `MaxBufferSize` (default 1 MB) are streamed without an ETag.
-
-**SkipIfPresent** respects handler-set ETags (e.g., database revision numbers):
-
-```go
-cfg := httputil.ETagConfig{SkipIfPresent: true}
-handler := httputil.ETag(cfg)(mux)
-```
-
-**Skip predicate** excludes endpoints unsuitable for buffering:
-
-```go
-cfg := httputil.ETagConfig{
-    Skip: func(r *http.Request) bool {
-        return r.URL.Path == "/stream"
-    },
-}
-```
-
-The `EntityTag` type and parsing helpers are also exported for application-side precondition evaluation:
-
-```go
-tag := httputil.NewEntityTag("abc123", httputil.EntityTagStrong)
-if httputil.MatchesIfMatch(tag, r.Header.Get("If-Match")) {
-    // proceed with the update
-}
-```
-
 ### HTTP Server
 
 A configurable `http.Server` wrapper with sensible timeout defaults and lifecycle helpers.
@@ -402,17 +366,14 @@ Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 
 `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
 
-| Source     | Error Code                    | Family         | Retryable | When                                           |
-| ---------- | ----------------------------- | -------------- | --------- | ---------------------------------------------- |
-| `Write`    | `http.write_failed`           | Transient      | Yes       | Underlying ResponseWriter.Write fails          |
-| `Hijack`   | `http.hijack_unsupported`     | Infrastructure | No        | Underlying writer doesn't implement Hijacker   |
-| `Hijack`   | `http.hijack_failed`          | Transient      | Yes       | Underlying Hijack call fails                   |
-| `Compress` | `http.compress_write_failed`  | Transient      | Yes       | Compression writer Write/Close fails           |
-| `ETag`     | `http.etag_write_failed`      | Transient      | Yes       | ETag writer streaming/overflow write fails     |
-| `ETag`     | `http.etag_config_invalid`    | Rejection      | No        | ETagConfig has an invalid field value          |
-| `ETag`     | `http.etag_hash_write_failed` | Orchestration  | No        | Hash.Write returned error (contract violation) |
-| `CSRF`     | `csrf_invalid`                | Rejection      | No        | CSRF token missing, malformed, or mismatched   |
-| `CSRF`     | `csrf_config`                 | Infrastructure | No        | CSRF configuration invalid                     |
+| Source     | Error Code                   | Family         | Retryable | When                                         |
+| ---------- | ---------------------------- | -------------- | --------- | -------------------------------------------- |
+| `Write`    | `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
+| `Hijack`   | `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
+| `Hijack`   | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
+| `Compress` | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write/Close fails         |
+| `CSRF`     | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched |
+| `CSRF`     | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid                   |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 
@@ -446,14 +407,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression        |
 | `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection          |
 | `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                                 |
-| `ETag`                           | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + If-None-Match 304                   |
-| `DefaultETagConfig`              | `func() ETagConfig`                                                   | Strong FNV-64a defaults                               |
-| `EntityTag`                      | `struct`                                                              | RFC 7232 entity-tag (opaque value + strength)         |
-| `NewEntityTag`                   | `func(string, EntityTagStrength) EntityTag`                           | Construct an EntityTag                                |
-| `ParseEntityTag`                 | `func(string) (EntityTag, bool)`                                      | Parse a single entity-tag from wire format            |
-| `ParseEntityTagList`             | `func(string) []EntityTag`                                            | Parse a comma-separated entity-tag list               |
-| `MatchesIfNoneMatch`             | `func(EntityTag, string) bool`                                        | Weak comparison for If-None-Match                     |
-| `MatchesIfMatch`                 | `func(EntityTag, string) bool`                                        | Strong comparison for If-Match                        |
 | `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_             |
 | `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config _(deprecated)_              |
 | `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor _(deprecated)_       |
@@ -520,17 +473,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | ---------------------- | ---------- | ------------- | ------------------------------------------------------------------------------- |
 | `Encodings`            | `[]string` | gzip, deflate | Request body encodings to decompress; empty = both defaults                     |
 | `MaxDecompressionSize` | `int64`    | `16777216`    | Max decompressed body size in bytes to prevent zip bombs (16 MiB); 0 = no limit |
-
-### `ETagConfig` fields
-
-| Field           | Type                       | Default               | Description                                                                       |
-| --------------- | -------------------------- | --------------------- | --------------------------------------------------------------------------------- |
-| `Strength`      | `EntityTagStrength`        | `EntityTagStrong`     | Strong or weak validator per RFC 7232 §2.1                                        |
-| `MaxBufferSize` | `int`                      | `1048576` (1 MiB)     | Max bytes buffered before streaming without ETag; non-positive clamped to default |
-| `HashFunc`      | `func([]byte) string`      | FNV-64a lowercase hex | Computes the opaque-tag value from the response body                              |
-| `SkipIfPresent` | `bool`                     | `false`               | Respect a handler-set ETag header instead of overwriting                          |
-| `Skip`          | `func(*http.Request) bool` | `nil`                 | Skip ETag processing for matching requests (streaming, SSE, large downloads)      |
-| `OnError`       | `func(*errorfamily.Error)` | `nil`                 | Callback for post-commit write failures (observability)                           |
 
 ### `RateLimitConfig` fields _(deprecated — use `KeyedRateLimiterConfig`)_
 

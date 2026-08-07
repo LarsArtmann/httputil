@@ -141,6 +141,7 @@ linters:
             - github.com/larsartmann/httputil/**
             - github.com/larsartmann/httputil/server_timing
             - github.com/larsartmann/go-error-family
+            - github.com/larsartmann/go-etag
             - github.com/justinas/nosurf
             - golang.org/x/time
     exhaustruct:

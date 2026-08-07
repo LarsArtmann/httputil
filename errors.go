@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	etag "github.com/larsartmann/go-etag"
 )
 
 // Error codes for classified errors returned by ResponseRecorder operations.
@@ -25,26 +26,11 @@ const (
 	// ErrCodeCompressWriteFailed is returned when gzip write during
 	// compression fails. Classified as Transient (retryable).
 	ErrCodeCompressWriteFailed = "http.compress_write_failed"
-
-	// ErrCodeETagWriteFailed is returned when the ETag writer fails to
-	// write buffered or streamed data. Classified as Transient (retryable).
-	ErrCodeETagWriteFailed = "http.etag_write_failed"
-
-	// ErrCodeETagConfigInvalid is returned when ETagConfig validation fails.
-	// Classified as Rejection (bad input, not retryable).
-	ErrCodeETagConfigInvalid = "http.etag_config_invalid"
-
-	// ErrCodeETagHashWriteFailed is returned when the hash function fails to
-	// accept data, violating the hash.Hash contract. Classified as
-	// Orchestration (internal contract violation, not retryable).
-	ErrCodeETagHashWriteFailed = "http.etag_hash_write_failed"
 )
 
 const (
 	msgRetryMaySucceed           = "This is a Transient error — retrying may succeed."
 	msgInfrastructureUnsupported = "This is an Infrastructure error — the runtime environment does not support this operation."
-	msgCheckYourConfig           = "Check your configuration values and try again."
-	msgReportAsBug               = "This is likely a bug. Please report it if the problem persists."
 )
 
 func registerErrorTemplate(code, what, why, fix, wayOut string) {
@@ -55,15 +41,6 @@ func registerErrorTemplate(code, what, why, fix, wayOut string) {
 		WayOut: wayOut,
 	})
 }
-
-// ErrETagConfig is the sentinel error returned by ETagConfig.Validate when
-// ETagConfig has an invalid field value. The concrete error returned by
-// Validate is a clone of this sentinel with context (e.g. the offending
-// field value), so errors.Is(err, ErrETagConfig) matches by code and family.
-var ErrETagConfig = errorfamily.NewRejection(
-	ErrCodeETagConfigInvalid,
-	"ETagConfig has an invalid field value",
-)
 
 // RegisterErrorClassifications maps stdlib HTTP sentinel errors to their
 // behavioral families and registers error message templates for all httputil
@@ -112,29 +89,5 @@ func registerAllErrorTemplates() {
 		"The gzip writer or underlying ResponseWriter returned an error during compression.",
 		"Check if the client disconnected or if the response buffer is full.",
 		msgRetryMaySucceed,
-	)
-
-	registerErrorTemplate(
-		ErrCodeETagWriteFailed,
-		"Failed to write ETag-buffered HTTP response",
-		"The underlying ResponseWriter.Write call returned an error while streaming ETag data.",
-		"Check if the client disconnected or if the response buffer is full.",
-		msgRetryMaySucceed,
-	)
-
-	registerErrorTemplate(
-		ErrCodeETagConfigInvalid,
-		"ETag configuration is invalid",
-		"One or more fields of ETagConfig have invalid values.",
-		"Review the ETagConfig field values and ensure MaxBufferSize is positive.",
-		msgCheckYourConfig,
-	)
-
-	registerErrorTemplate(
-		ErrCodeETagHashWriteFailed,
-		"Hash function failed to accept data",
-		"The hash.Write call returned an error, which violates the hash.Hash contract that Write never fails.",
-		"This indicates a bug in the hash implementation. Report it to the library author.",
-		msgReportAsBug,
 	)
 }

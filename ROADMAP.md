@@ -28,7 +28,7 @@ Before v1.0:
 
 - **Remove the deprecated `TokenBucketLimiter` / `RateLimiter` interface** — superseded by `KeyedRateLimiter`. Migration guide: [`docs/migrating-to-keyed-rate-limiter.md`](docs/migrating-to-keyed-rate-limiter.md).
 - **Rate limiter interface refinement** — evaluate `AllowN` (burst > 1 per request) and `context.Context` cancellation support on `KeyedRateLimiter`. Deferred to v1.0 because either could shape the final interface.
-- **Conditional-request scope** — ETag middleware is back in httputil after a brief extraction to `go-etag`. Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated here. The `go-etag` module should be deprecated once consumers migrate.
+- **Conditional-request scope** — ETag middleware has been extracted to the `go-etag` module. Conditional-request scope decisions (If-Match, Last-Modified, If-Range) now live there.
 - One stabilization cycle before the commitment.
 
 ## Dependency policy
@@ -40,7 +40,7 @@ Stdlib + `go-error-family` (same author, zero transitive deps) + `golang.org/x/t
 Things we are deliberately NOT pursuing and why:
 
 - **HTTP/2 Server Push** — removed in Chrome 2023, absent from HTTP/3. All `http.Pusher` code deleted in v0.3.0.
-- **Streaming ETag with a rolling hash** — HTTP requires headers before the body, so buffering is mandatory for content-hash ETags. The `Skip` predicate and `MaxBufferSize` overflow-to-streaming handle the unbounded-buffering risk.
+- **Streaming ETag with a rolling hash** — ETag has been extracted to the `go-etag` module. HTTP requires headers before the body, so buffering is mandatory regardless of where the middleware lives.
 - **Internal `compress/` subpackage** — compression files depend on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), so extracting creates a circular import. The flat layout is structural (confirmed 2026-08-05).
 - **Built-in brotli/zstd encoders** — kept as `WriterFactory` plugin examples to preserve the dependency policy.
 - **Functional options (`With*`) pattern** — the struct-config + `Validate()` pattern is established and consistent. Functional options would create two parallel configuration styles.
