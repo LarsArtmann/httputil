@@ -80,7 +80,8 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
-                      exec ${goPkg}/bin/go test ./... -race -count=1 "$@"
+                      ${goPkg}/bin/go test ./... -race -count=1 "$@"
+                      (cd server_timing && ${goPkg}/bin/go test ./... -race -count=1)
                     '';
                   };
                 in
@@ -97,7 +98,8 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
-                      exec ${goPkg}/bin/go test ./... -race -count=1 "$@"
+                      ${goPkg}/bin/go test ./... -race -count=1 "$@"
+                      (cd server_timing && ${goPkg}/bin/go test ./... -race -count=1)
                     '';
                   };
                 in
@@ -114,7 +116,8 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
-                      exec ${goPkg}/bin/go build ./...
+                      ${goPkg}/bin/go build ./...
+                      (cd server_timing && ${goPkg}/bin/go build ./...)
                     '';
                   };
                 in
@@ -131,7 +134,8 @@
                     runtimeInputs = [ goPkg ];
                     text = ''
                       export GOWORK=off
-                      exec ${goPkg}/bin/go vet ./...
+                      ${goPkg}/bin/go vet ./...
+                      (cd server_timing && ${goPkg}/bin/go vet ./...)
                     '';
                   };
                 in
@@ -151,7 +155,8 @@
                     ];
                     text = ''
                       export GOWORK=off
-                      exec ${pkgs.golangci-lint}/bin/golangci-lint run ./...
+                      ${pkgs.golangci-lint}/bin/golangci-lint run ./...
+                      (cd server_timing && ${pkgs.golangci-lint}/bin/golangci-lint run ./...)
                     '';
                   };
                 in
@@ -170,6 +175,8 @@
                       export GOWORK=off
                       ${goPkg}/bin/go test ./... -coverprofile=coverage.out -covermode=atomic "$@"
                       ${goPkg}/bin/go tool cover -func=coverage.out
+                      (cd server_timing && ${goPkg}/bin/go test ./... -coverprofile=coverage.out -covermode=atomic)
+                      (cd server_timing && ${goPkg}/bin/go tool cover -func=coverage.out)
                     '';
                   };
                 in
@@ -189,7 +196,8 @@
                     ];
                     text = ''
                       export GOWORK=off
-                      exec ${pkgs.govulncheck}/bin/govulncheck ./...
+                      ${pkgs.govulncheck}/bin/govulncheck ./...
+                      (cd server_timing && ${pkgs.govulncheck}/bin/govulncheck ./...)
                     '';
                   };
                 in

@@ -15,7 +15,6 @@ const (
 	MiddlewareCORS            = "cors"
 	MiddlewareSecurityHeaders = "security-headers"
 	MiddlewareCompression     = "compression"
-	MiddlewareETag            = "etag"
 	MiddlewareTimeout         = "timeout"
 	MiddlewareClientIP        = "client-ip"
 	MiddlewareCSRF            = "csrf"

@@ -25,10 +25,6 @@ const (
 	// ErrCodeCompressWriteFailed is returned when gzip write during
 	// compression fails. Classified as Transient (retryable).
 	ErrCodeCompressWriteFailed = "http.compress_write_failed"
-
-	// ErrCodeETagWriteFailed is returned when the ETag writer fails to
-	// write buffered or streamed data. Classified as Transient (retryable).
-	ErrCodeETagWriteFailed = "http.etag_write_failed"
 )
 
 const (
@@ -94,11 +90,4 @@ func registerAllErrorTemplates() {
 		msgRetryMaySucceed,
 	)
 
-	registerErrorTemplate(
-		ErrCodeETagWriteFailed,
-		"Failed to write ETag-buffered HTTP response",
-		"The underlying ResponseWriter.Write call returned an error while streaming ETag data.",
-		"Check if the client disconnected or if the response buffer is full.",
-		msgRetryMaySucceed,
-	)
 }
