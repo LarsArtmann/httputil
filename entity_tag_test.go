@@ -4,39 +4,33 @@ import (
 	"testing"
 )
 
-func TestEntityTag_String(t *testing.T) {
+func TestEntityTag_String_Strong(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name string
-		tag  EntityTag
-		want string
-	}{
-		{
-			name: "strong",
-			tag:  NewEntityTag("abc123", EntityTagStrong),
-			want: `"abc123"`,
-		},
-		{
-			name: "weak",
-			tag:  NewEntityTag("abc123", EntityTagWeak),
-			want: `W/"abc123"`,
-		},
-		{
-			name: "empty opaque strong",
-			tag:  NewEntityTag("", EntityTagStrong),
-			want: `""`,
-		},
+	tag := NewEntityTag("abc123", EntityTagStrong)
+
+	if got := tag.String(); got != `"abc123"` {
+		t.Errorf("String() = %q, want %q", got, `"abc123"`)
 	}
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+func TestEntityTag_String_Weak(t *testing.T) {
+	t.Parallel()
 
-			if got := tt.tag.String(); got != tt.want {
-				t.Errorf("String() = %q, want %q", got, tt.want)
-			}
-		})
+	tag := NewEntityTag("abc123", EntityTagWeak)
+
+	if got := tag.String(); got != `W/"abc123"` {
+		t.Errorf("String() = %q, want %q", got, `W/"abc123"`)
+	}
+}
+
+func TestEntityTag_String_EmptyOpaqueStrong(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("", EntityTagStrong)
+
+	if got := tag.String(); got != `""` {
+		t.Errorf("String() = %q, want %q", got, `""`)
 	}
 }
 
@@ -50,130 +44,198 @@ func TestEntityTag_OpaqueTag(t *testing.T) {
 	}
 }
 
-func TestEntityTag_IsWeak(t *testing.T) {
+func TestEntityTag_IsWeak_StrongReportsFalse(t *testing.T) {
 	t.Parallel()
 
 	if NewEntityTag("x", EntityTagStrong).IsWeak() {
 		t.Error("EntityTagStrong tag reports IsWeak() = true")
 	}
+}
+
+func TestEntityTag_IsWeak_WeakReportsTrue(t *testing.T) {
+	t.Parallel()
 
 	if !NewEntityTag("x", EntityTagWeak).IsWeak() {
 		t.Error("EntityTagWeak tag reports IsWeak() = false")
 	}
 }
 
-func TestEntityTag_IsValid(t *testing.T) {
+func TestEntityTag_IsValid_ZeroValueIsInvalid(t *testing.T) {
 	t.Parallel()
 
 	var empty EntityTag
+
 	if empty.IsValid() {
 		t.Error("zero-value EntityTag reports IsValid() = true")
 	}
+}
+
+func TestEntityTag_IsValid_WithOpaqueIsValid(t *testing.T) {
+	t.Parallel()
 
 	if !NewEntityTag("x", EntityTagStrong).IsValid() {
 		t.Error("EntityTag with opaque 'x' reports IsValid() = false")
 	}
 }
 
-func TestEntityTag_Comparison(t *testing.T) {
+func TestEntityTag_Comparison_BothWeakSameOpaque(t *testing.T) {
 	t.Parallel()
 
-	// RFC 7232 §2.3.2 comparison table: all four combinations of
-	// strong/weak x matching/non-matching opaque-tags.
-	tests := []struct {
-		name   string
-		a      EntityTag
-		b      EntityTag
-		strong bool
-		weak   bool
-	}{
-		{
-			name:   "both weak same opaque",
-			a:      NewEntityTag("1", EntityTagWeak),
-			b:      NewEntityTag("1", EntityTagWeak),
-			strong: false,
-			weak:   true,
-		},
-		{
-			name:   "weak vs strong same opaque",
-			a:      NewEntityTag("1", EntityTagWeak),
-			b:      NewEntityTag("1", EntityTagStrong),
-			strong: false,
-			weak:   true,
-		},
-		{
-			name:   "both strong same opaque",
-			a:      NewEntityTag("1", EntityTagStrong),
-			b:      NewEntityTag("1", EntityTagStrong),
-			strong: true,
-			weak:   true,
-		},
-		{
-			name:   "both strong different opaque",
-			a:      NewEntityTag("1", EntityTagStrong),
-			b:      NewEntityTag("2", EntityTagStrong),
-			strong: false,
-			weak:   false,
-		},
+	a := NewEntityTag("1", EntityTagWeak)
+	b := NewEntityTag("1", EntityTagWeak)
+
+	if a.StrongEqual(b) {
+		t.Error("StrongEqual() = true, want false for both weak")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			if got := tt.a.StrongEqual(tt.b); got != tt.strong {
-				t.Errorf("StrongEqual() = %v, want %v", got, tt.strong)
-			}
-
-			if got := tt.a.WeakEqual(tt.b); got != tt.weak {
-				t.Errorf("WeakEqual() = %v, want %v", got, tt.weak)
-			}
-		})
+	if !a.WeakEqual(b) {
+		t.Error("WeakEqual() = false, want true for same opaque")
 	}
 }
 
-func TestParseEntityTag(t *testing.T) {
+func TestEntityTag_Comparison_WeakVsStrongSameOpaque(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name       string
-		input      string
-		wantOk     bool
-		wantOpaque string
-		wantWeak   bool
-	}{
-		{name: "strong tag", input: `"abc"`, wantOk: true, wantOpaque: "abc", wantWeak: false},
-		{name: "weak tag", input: `W/"abc"`, wantOk: true, wantOpaque: "abc", wantWeak: true},
-		{name: "with whitespace", input: `  "abc"  `, wantOk: true, wantOpaque: "abc", wantWeak: false},
-		{name: "no quotes", input: `abc`, wantOk: false},
-		{name: "empty quotes", input: `""`, wantOk: false},
-		{name: "only opening quote", input: `"abc`, wantOk: false},
-		{name: "only closing quote", input: `abc"`, wantOk: false},
-		{name: "empty string", input: ``, wantOk: false},
-		{name: "W/ only", input: `W/`, wantOk: false},
+	a := NewEntityTag("1", EntityTagWeak)
+	b := NewEntityTag("1", EntityTagStrong)
+
+	if a.StrongEqual(b) {
+		t.Error("StrongEqual() = true, want false when one is weak")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	if !a.WeakEqual(b) {
+		t.Error("WeakEqual() = false, want true for same opaque")
+	}
+}
 
-			tag, ok := ParseEntityTag(tt.input)
-			if ok != tt.wantOk {
-				t.Fatalf("ParseEntityTag(%q) ok = %v, want %v", tt.input, ok, tt.wantOk)
-			}
+func TestEntityTag_Comparison_BothStrongSameOpaque(t *testing.T) {
+	t.Parallel()
 
-			if !ok {
-				return
-			}
+	a := NewEntityTag("1", EntityTagStrong)
+	b := NewEntityTag("1", EntityTagStrong)
 
-			if tag.OpaqueTag() != tt.wantOpaque {
-				t.Errorf("opaque = %q, want %q", tag.OpaqueTag(), tt.wantOpaque)
-			}
+	if !a.StrongEqual(b) {
+		t.Error("StrongEqual() = false, want true for both strong same opaque")
+	}
 
-			if tag.IsWeak() != tt.wantWeak {
-				t.Errorf("weak = %v, want %v", tag.IsWeak(), tt.wantWeak)
-			}
-		})
+	if !a.WeakEqual(b) {
+		t.Error("WeakEqual() = false, want true for same opaque")
+	}
+}
+
+func TestEntityTag_Comparison_BothStrongDifferentOpaque(t *testing.T) {
+	t.Parallel()
+
+	a := NewEntityTag("1", EntityTagStrong)
+	b := NewEntityTag("2", EntityTagStrong)
+
+	if a.StrongEqual(b) {
+		t.Error("StrongEqual() = true, want false for different opaque")
+	}
+
+	if a.WeakEqual(b) {
+		t.Error("WeakEqual() = true, want false for different opaque")
+	}
+}
+
+func TestParseEntityTag_StrongTag(t *testing.T) {
+	t.Parallel()
+
+	tag, ok := ParseEntityTag(`"abc"`)
+	if !ok {
+		t.Fatal(`ParseEntityTag("abc") ok = false, want true`)
+	}
+
+	if tag.OpaqueTag() != "abc" {
+		t.Errorf("opaque = %q, want %q", tag.OpaqueTag(), "abc")
+	}
+
+	if tag.IsWeak() {
+		t.Error("weak = true, want false")
+	}
+}
+
+func TestParseEntityTag_WeakTag(t *testing.T) {
+	t.Parallel()
+
+	tag, ok := ParseEntityTag(`W/"abc"`)
+	if !ok {
+		t.Fatal(`ParseEntityTag(W/"abc") ok = false, want true`)
+	}
+
+	if tag.OpaqueTag() != "abc" {
+		t.Errorf("opaque = %q, want %q", tag.OpaqueTag(), "abc")
+	}
+
+	if !tag.IsWeak() {
+		t.Error("weak = false, want true")
+	}
+}
+
+func TestParseEntityTag_WithWhitespace(t *testing.T) {
+	t.Parallel()
+
+	tag, ok := ParseEntityTag(`  "abc"  `)
+	if !ok {
+		t.Fatal(`ParseEntityTag(  "abc"  ) ok = false, want true`)
+	}
+
+	if tag.OpaqueTag() != "abc" {
+		t.Errorf("opaque = %q, want %q", tag.OpaqueTag(), "abc")
+	}
+}
+
+func TestParseEntityTag_NoQuotes(t *testing.T) {
+	t.Parallel()
+
+	_, ok := ParseEntityTag(`abc`)
+	if ok {
+		t.Error(`ParseEntityTag(abc) ok = true, want false`)
+	}
+}
+
+func TestParseEntityTag_EmptyQuotes(t *testing.T) {
+	t.Parallel()
+
+	_, ok := ParseEntityTag(`""`)
+	if ok {
+		t.Error(`ParseEntityTag("") ok = true, want false`)
+	}
+}
+
+func TestParseEntityTag_OnlyOpeningQuote(t *testing.T) {
+	t.Parallel()
+
+	_, ok := ParseEntityTag(`"abc`)
+	if ok {
+		t.Error(`ParseEntityTag("abc) ok = true, want false`)
+	}
+}
+
+func TestParseEntityTag_OnlyClosingQuote(t *testing.T) {
+	t.Parallel()
+
+	_, ok := ParseEntityTag(`abc"`)
+	if ok {
+		t.Error(`ParseEntityTag(abc") ok = true, want false`)
+	}
+}
+
+func TestParseEntityTag_EmptyString(t *testing.T) {
+	t.Parallel()
+
+	_, ok := ParseEntityTag(``)
+	if ok {
+		t.Error(`ParseEntityTag() ok = true, want false`)
+	}
+}
+
+func TestParseEntityTag_WSlashOnly(t *testing.T) {
+	t.Parallel()
+
+	_, ok := ParseEntityTag(`W/`)
+	if ok {
+		t.Error(`ParseEntityTag(W/) ok = true, want false`)
 	}
 }
 
@@ -240,38 +302,99 @@ func TestSplitRawEntityTags_EscapedQuotes(t *testing.T) {
 	}
 }
 
-func TestSplitRawEntityTags_EdgeCases(t *testing.T) {
+func TestSplitRawEntityTags_TrailingComma(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name  string
-		input string
-		count int
-		want0 string
-	}{
-		{name: "trailing comma", input: `"a", "b",`, count: 2, want0: `"a"`},
-		{name: "leading comma", input: `, "a", "b"`, count: 2, want0: `"a"`},
-		{name: "empty entries", input: `"a",, "b"`, count: 2, want0: `"a"`},
-		{name: "whitespace between commas", input: `"a",   , "b"`, count: 2, want0: `"a"`},
-		{name: "single tag no comma", input: `"only"`, count: 1, want0: `"only"`},
-		{name: "only commas", input: `,,,`, count: 0},
-		{name: "only whitespace", input: `   `, count: 0},
-		{name: "comma in opaque tag", input: `"a,b,c"`, count: 1, want0: `"a,b,c"`},
+	tags := splitRawEntityTags(`"a", "b",`)
+	if len(tags) != 2 {
+		t.Fatalf("len(tags) = %d, want 2", len(tags))
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	if tags[0] != `"a"` {
+		t.Errorf("tags[0] = %q, want %q", tags[0], `"a"`)
+	}
+}
 
-			tags := splitRawEntityTags(tt.input)
-			if len(tags) != tt.count {
-				t.Fatalf("len(tags) = %d, want %d (input=%q)", len(tags), tt.count, tt.input)
-			}
+func TestSplitRawEntityTags_LeadingComma(t *testing.T) {
+	t.Parallel()
 
-			if tt.count > 0 && tags[0] != tt.want0 {
-				t.Errorf("tags[0] = %q, want %q (input=%q)", tags[0], tt.want0, tt.input)
-			}
-		})
+	tags := splitRawEntityTags(`, "a", "b"`)
+	if len(tags) != 2 {
+		t.Fatalf("len(tags) = %d, want 2", len(tags))
+	}
+
+	if tags[0] != `"a"` {
+		t.Errorf("tags[0] = %q, want %q", tags[0], `"a"`)
+	}
+}
+
+func TestSplitRawEntityTags_EmptyEntries(t *testing.T) {
+	t.Parallel()
+
+	tags := splitRawEntityTags(`"a",, "b"`)
+	if len(tags) != 2 {
+		t.Fatalf("len(tags) = %d, want 2", len(tags))
+	}
+
+	if tags[0] != `"a"` {
+		t.Errorf("tags[0] = %q, want %q", tags[0], `"a"`)
+	}
+}
+
+func TestSplitRawEntityTags_WhitespaceBetweenCommas(t *testing.T) {
+	t.Parallel()
+
+	tags := splitRawEntityTags(`"a",   , "b"`)
+	if len(tags) != 2 {
+		t.Fatalf("len(tags) = %d, want 2", len(tags))
+	}
+
+	if tags[0] != `"a"` {
+		t.Errorf("tags[0] = %q, want %q", tags[0], `"a"`)
+	}
+}
+
+func TestSplitRawEntityTags_SingleTagNoComma(t *testing.T) {
+	t.Parallel()
+
+	tags := splitRawEntityTags(`"only"`)
+	if len(tags) != 1 {
+		t.Fatalf("len(tags) = %d, want 1", len(tags))
+	}
+
+	if tags[0] != `"only"` {
+		t.Errorf("tags[0] = %q, want %q", tags[0], `"only"`)
+	}
+}
+
+func TestSplitRawEntityTags_OnlyCommas(t *testing.T) {
+	t.Parallel()
+
+	tags := splitRawEntityTags(`,,,`)
+	if len(tags) != 0 {
+		t.Errorf("len(tags) = %d, want 0", len(tags))
+	}
+}
+
+func TestSplitRawEntityTags_OnlyWhitespace(t *testing.T) {
+	t.Parallel()
+
+	tags := splitRawEntityTags(`   `)
+	if len(tags) != 0 {
+		t.Errorf("len(tags) = %d, want 0", len(tags))
+	}
+}
+
+func TestSplitRawEntityTags_CommaInOpaqueTag(t *testing.T) {
+	t.Parallel()
+
+	tags := splitRawEntityTags(`"a,b,c"`)
+	if len(tags) != 1 {
+		t.Fatalf("len(tags) = %d, want 1", len(tags))
+	}
+
+	if tags[0] != `"a,b,c"` {
+		t.Errorf("tags[0] = %q, want %q", tags[0], `"a,b,c"`)
 	}
 }
 
@@ -301,62 +424,133 @@ func TestParseEntityTagList_WhitespaceOnly(t *testing.T) {
 	}
 }
 
-func TestMatchesIfNoneMatch(t *testing.T) {
+func TestMatchesIfNoneMatch_Wildcard(t *testing.T) {
 	t.Parallel()
 
 	tag := NewEntityTag("abc", EntityTagStrong)
 
-	tests := []struct {
-		name      string
-		headerVal string
-		want      bool
-	}{
-		{name: "wildcard", headerVal: "*", want: true},
-		{name: "exact match", headerVal: `"abc"`, want: true},
-		{name: "weak match", headerVal: `W/"abc"`, want: true},
-		{name: "list contains match", headerVal: `"other", "abc", "third"`, want: true},
-		{name: "list contains weak match", headerVal: `"other", W/"abc"`, want: true},
-		{name: "no match", headerVal: `"different"`, want: false},
-		{name: "empty header", headerVal: "", want: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			if got := MatchesIfNoneMatch(tag, tt.headerVal); got != tt.want {
-				t.Errorf("MatchesIfNoneMatch() = %v, want %v", got, tt.want)
-			}
-		})
+	if !MatchesIfNoneMatch(tag, "*") {
+		t.Error("MatchesIfNoneMatch() = false, want true for wildcard")
 	}
 }
 
-func TestMatchesIfMatch(t *testing.T) {
+func TestMatchesIfNoneMatch_ExactMatch(t *testing.T) {
 	t.Parallel()
 
 	tag := NewEntityTag("abc", EntityTagStrong)
 
-	tests := []struct {
-		name      string
-		headerVal string
-		want      bool
-	}{
-		{name: "wildcard", headerVal: "*", want: true},
-		{name: "strong match", headerVal: `"abc"`, want: true},
-		{name: "list contains strong match", headerVal: `"other", "abc"`, want: true},
-		{name: "weak tag does not strongly match", headerVal: `W/"abc"`, want: false},
-		{name: "no match", headerVal: `"different"`, want: false},
-		{name: "empty header", headerVal: "", want: false},
+	if !MatchesIfNoneMatch(tag, `"abc"`) {
+		t.Error("MatchesIfNoneMatch() = false, want true for exact match")
 	}
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+func TestMatchesIfNoneMatch_WeakMatch(t *testing.T) {
+	t.Parallel()
 
-			if got := MatchesIfMatch(tag, tt.headerVal); got != tt.want {
-				t.Errorf("MatchesIfMatch() = %v, want %v", got, tt.want)
-			}
-		})
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if !MatchesIfNoneMatch(tag, `W/"abc"`) {
+		t.Error("MatchesIfNoneMatch() = false, want true for weak match")
+	}
+}
+
+func TestMatchesIfNoneMatch_ListContainsMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if !MatchesIfNoneMatch(tag, `"other", "abc", "third"`) {
+		t.Error("MatchesIfNoneMatch() = false, want true when list contains match")
+	}
+}
+
+func TestMatchesIfNoneMatch_ListContainsWeakMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if !MatchesIfNoneMatch(tag, `"other", W/"abc"`) {
+		t.Error("MatchesIfNoneMatch() = false, want true when list contains weak match")
+	}
+}
+
+func TestMatchesIfNoneMatch_NoMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if MatchesIfNoneMatch(tag, `"different"`) {
+		t.Error("MatchesIfNoneMatch() = true, want false for no match")
+	}
+}
+
+func TestMatchesIfNoneMatch_EmptyHeader(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if MatchesIfNoneMatch(tag, "") {
+		t.Error("MatchesIfNoneMatch() = true, want false for empty header")
+	}
+}
+
+func TestMatchesIfMatch_Wildcard(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if !MatchesIfMatch(tag, "*") {
+		t.Error("MatchesIfMatch() = false, want true for wildcard")
+	}
+}
+
+func TestMatchesIfMatch_StrongMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if !MatchesIfMatch(tag, `"abc"`) {
+		t.Error("MatchesIfMatch() = false, want true for strong match")
+	}
+}
+
+func TestMatchesIfMatch_ListContainsStrongMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if !MatchesIfMatch(tag, `"other", "abc"`) {
+		t.Error("MatchesIfMatch() = false, want true when list contains strong match")
+	}
+}
+
+func TestMatchesIfMatch_WeakTagDoesNotStronglyMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if MatchesIfMatch(tag, `W/"abc"`) {
+		t.Error("MatchesIfMatch() = true, want false for weak tag (strong comparison)")
+	}
+}
+
+func TestMatchesIfMatch_NoMatch(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if MatchesIfMatch(tag, `"different"`) {
+		t.Error("MatchesIfMatch() = true, want false for no match")
+	}
+}
+
+func TestMatchesIfMatch_EmptyHeader(t *testing.T) {
+	t.Parallel()
+
+	tag := NewEntityTag("abc", EntityTagStrong)
+
+	if MatchesIfMatch(tag, "") {
+		t.Error("MatchesIfMatch() = true, want false for empty header")
 	}
 }
 

@@ -105,38 +105,67 @@ func TestETag_EmptyBody(t *testing.T) {
 
 // --- If-None-Match ---
 
-func TestETag_IfNoneMatch(t *testing.T) {
+func TestETag_IfNoneMatch_ExactMatch(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name    string
-		header  string
-		want304 bool
-	}{
-		{name: "ExactMatch", header: `"779a65e7023cd2e7"`, want304: true},
-		{name: "Wildcard", header: "*", want304: true},
-		{name: "ListContainsMatch", header: `"other", "779a65e7023cd2e7", "another"`, want304: true},
-		{name: "WeakClientStrongServer", header: `W/"779a65e7023cd2e7"`, want304: true},
-		{name: "ListContainsWeakMatch", header: `"other", W/"779a65e7023cd2e7", "another"`, want304: true},
-		{name: "StrongClientNoMatch", header: `"different"`, want304: false},
-		{name: "WeakClientNoMatch", header: `W/"different"`, want304: false},
-	}
+	rec := serveGetWithIfNoneMatch(t, `"779a65e7023cd2e7"`)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for 304")
+}
 
-			rec := serveGetWithIfNoneMatch(t, tt.header)
+func TestETag_IfNoneMatch_Wildcard(t *testing.T) {
+	t.Parallel()
 
-			if tt.want304 {
-				assertStatus(t, rec, http.StatusNotModified)
-				assertBodyEmpty(t, rec, "for 304")
-			} else {
-				assertStatus(t, rec, http.StatusOK)
-				assertBody(t, rec, "hello world")
-			}
-		})
-	}
+	rec := serveGetWithIfNoneMatch(t, "*")
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for 304 wildcard")
+}
+
+func TestETag_IfNoneMatch_ListContainsMatch(t *testing.T) {
+	t.Parallel()
+
+	rec := serveGetWithIfNoneMatch(t, `"other", "779a65e7023cd2e7", "another"`)
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for 304 list match")
+}
+
+func TestETag_IfNoneMatch_WeakClientStrongServer(t *testing.T) {
+	t.Parallel()
+
+	rec := serveGetWithIfNoneMatch(t, `W/"779a65e7023cd2e7"`)
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for 304 weak client strong server")
+}
+
+func TestETag_IfNoneMatch_ListContainsWeakMatch(t *testing.T) {
+	t.Parallel()
+
+	rec := serveGetWithIfNoneMatch(t, `"other", W/"779a65e7023cd2e7", "another"`)
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for 304 list weak match")
+}
+
+func TestETag_IfNoneMatch_StrongClientNoMatch(t *testing.T) {
+	t.Parallel()
+
+	rec := serveGetWithIfNoneMatch(t, `"different"`)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertBody(t, rec, "hello world")
+}
+
+func TestETag_IfNoneMatch_WeakClientNoMatch(t *testing.T) {
+	t.Parallel()
+
+	rec := serveGetWithIfNoneMatch(t, `W/"different"`)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertBody(t, rec, "hello world")
 }
 
 func TestETag_IfNoneMatch_StrongClientWeakServer(t *testing.T) {
@@ -292,38 +321,116 @@ func TestETag_Status201_IsCacheable(t *testing.T) {
 // Non-cacheable status codes (3xx+) must never return 304, even when
 // If-None-Match matches the body hash. The ETag is still set for client
 // caching, but the full response is always sent.
-func TestETag_NonCacheableStatus_NeverReturns304(t *testing.T) {
+func TestETag_NonCacheable_301MovedPermanently(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name   string
-		status int
-	}{
-		{name: "301 Moved Permanently", status: http.StatusMovedPermanently},
-		{name: "302 Found", status: http.StatusFound},
-		{name: "304 Not Modified", status: http.StatusNotModified},
-		{name: "400 Bad Request", status: http.StatusBadRequest},
-		{name: "404 Not Found", status: http.StatusNotFound},
-		{name: "500 Internal Server Error", status: http.StatusInternalServerError},
-		{name: "503 Service Unavailable", status: http.StatusServiceUnavailable},
-	}
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusMovedPermanently, "hello world"))
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
 
-			handler := ETag(DefaultETagConfig())(newStatusBodyHandler(tt.status, "hello world"))
+	rec := newRecorder()
 
-			req := newTestRequest(http.MethodGet, "/", "")
-			req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+	handler.ServeHTTP(rec, req)
 
-			rec := newRecorder()
-			handler.ServeHTTP(rec, req)
+	assertStatus(t, rec, http.StatusMovedPermanently)
+	assertBody(t, rec, "hello world")
+}
 
-			assertStatus(t, rec, tt.status)
-			assertBody(t, rec, "hello world")
-		})
-	}
+func TestETag_NonCacheable_302Found(t *testing.T) {
+	t.Parallel()
+
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusFound, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusFound)
+	assertBody(t, rec, "hello world")
+}
+
+func TestETag_NonCacheable_304NotModified(t *testing.T) {
+	t.Parallel()
+
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusNotModified, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBody(t, rec, "hello world")
+}
+
+func TestETag_NonCacheable_400BadRequest(t *testing.T) {
+	t.Parallel()
+
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusBadRequest, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusBadRequest)
+	assertBody(t, rec, "hello world")
+}
+
+func TestETag_NonCacheable_404NotFound(t *testing.T) {
+	t.Parallel()
+
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusNotFound, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotFound)
+	assertBody(t, rec, "hello world")
+}
+
+func TestETag_NonCacheable_500InternalServerError(t *testing.T) {
+	t.Parallel()
+
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusInternalServerError, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusInternalServerError)
+	assertBody(t, rec, "hello world")
+}
+
+func TestETag_NonCacheable_503ServiceUnavailable(t *testing.T) {
+	t.Parallel()
+
+	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusServiceUnavailable, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusServiceUnavailable)
+	assertBody(t, rec, "hello world")
 }
 
 // Boundary: 299 is the last cacheable status (200-299 range).
