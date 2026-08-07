@@ -263,6 +263,11 @@ func FuzzETag(f *testing.F) {
 	// If-None-Match with a W/ prefix must still match under weak comparison.
 	f.Add([]byte("response body"), `W/"779a65e7023cd2e7"`)
 	f.Add([]byte("response body"), `"779a65e7023cd2e7", W/"deadbeef"`)
+	// Seeds documenting the RFC 7232 §2.3 escaped-quote fix: backslash-
+	// escaped DQUOTE must not toggle the quote state in parseETagList.
+	f.Add([]byte("body"), `"a\"b"`)
+	f.Add([]byte("body"), `"a\"b", "c"`)
+	f.Add([]byte("body"), `"a,b\"c"`)
 
 	cfg := DefaultETagConfig()
 	inner := newWriteStatusHandler(http.StatusOK, "response body")

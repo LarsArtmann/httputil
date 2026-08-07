@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-05 — sourced from v0.8.0 release (commit `8a77900`) and post-release execution sweep. All claims verified against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — ETag RFC 7232 + RFC 9110 compliance fixes (escaped quotes, multi-header combination). All claims verified against current source with `go test -race -coverprofile`._
 
 ---
 
@@ -73,10 +73,12 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - FNV-64a hash (64-bit, birthday bound ~4 billion) via configurable `HashFunc` field — replaced CRC32 to eliminate collision risk.
 - RFC 7232 §2.3.2 weak comparison for `If-None-Match` (`etagInList` + `stripWeakPrefix`): `W/"abc"` and `"abc"` are treated as equivalent, as required by §3.2.
-- RFC 7232 §2.3 compliant list parsing (`parseETagList`): quote-state-aware splitter that respects commas inside quoted opaque-tags.
+- RFC 7232 §2.3 compliant list parsing (`parseETagList`): quote-state-aware splitter that respects commas inside quoted opaque-tags and honors backslash-escaped DQUOTE so that `\"` does not toggle the quote state.
+- RFC 9110 §5.2 multi-header combination (`matchesIfNoneMatch`): multiple `If-None-Match` header field lines are combined into one list via `Header.Values` + `strings.Join`, not truncated to the first value via `Header.Get`.
 - All 2xx statuses cacheable (`isCacheableStatus()`).
 - 1MB memory safety limit (`MaxBufferSize`).
 - Zero-allocation hex encoding via stack arrays and lookup table.
+- All write paths classify errors via `go-error-family` (`ErrCodeETagWriteFailed`), including the buffered body flush.
 - GET/HEAD only. No `If-Match` / `If-Unmodified-Since` / `If-Modified-Since` / `If-Range` support yet (see `TODO_LIST.md`).
 
 ### Rate Limiting
@@ -232,5 +234,3 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.6%** (`httputil`), 
 - **Benchmark for `compression_negotiator.go`** — the negotiation logic runs on every request but has no dedicated benchmark.
 - **Benchmark for `Metrics` middleware** — wraps every request via `MetricsRecorder.Record`; throughput is undocumented.
 - **Benchmark for `HealthHandler` / `LiveHandler` / `ReadyHandler`** — tiny handlers but no baseline established.
-- **Fuzz test for ETag conditional requests** — `If-Match` / `If-None-Match` combinations.
-- **Fuzz test for `compressWriter` state machine** — the 4 state transitions (plain, compress, closed, hijacked) are hand-written.

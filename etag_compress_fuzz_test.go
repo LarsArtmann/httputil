@@ -13,6 +13,9 @@ func FuzzETagConditional(f *testing.F) {
 	f.Add("GET", "/", "\"abc123\"", "If-Match", "*")
 	f.Add("GET", "/", "\"abc123\"", "If-None-Match", "W/\"weak\"")
 	f.Add("GET", "/", "*", "If-Match", "\"different\"")
+	// Seeds for RFC 7232 §2.3 escaped-quote handling in If-None-Match.
+	f.Add("GET", "/", "\"abc123\"", "If-None-Match", `"a\"b"`)
+	f.Add("GET", "/", "\"abc123\"", "If-None-Match", `"a\"b", "c"`)
 
 	f.Fuzz(func(t *testing.T, method, path, etagValue, headerName, headerValue string) {
 		t.Parallel()
