@@ -2,20 +2,21 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-07 — full docs-health audit. All prior items shipped (TLSConfig validation, Validate() audit, decompression benchmarks/fuzz, vulncheck in RELEASE.md). See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
+_Updated: 2026-08-07 — all prior items shipped. See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
 
 ---
 
 ## High Priority
 
-- [ ] **Update `stack_integration_test.go` for ETag** — `buildFullStack` does not include ETag and the comment still says "chains all 16 middlewares" (should be 17). ETag (`MiddlewareETag`) was re-added as an adapter but never integrated into the canonical full-stack composition test. `stack_integration_test.go:14`. Effort: 15min.
-- [ ] **Add ETag positioning guidance to README** — ETag must be placed **inside** (after) Compression so it hashes the uncompressed body, not the compressed bytes. This ordering constraint is non-obvious and undocumented in the README middleware ordering section. `README.md`. Effort: 10min.
+_(none — all high-priority items shipped)_
 
 ## Medium Priority
 
-- [ ] **Remove unused `assertBodyEmpty` from `testutil_test.go`** — dead code flagged by gopls (`unusedfunc`). The function exists at `testutil_test.go:182` but no test calls it (it was used by the old in-package ETag tests, now extracted to go-etag). Effort: 2min.
-- [ ] **Add `MiddlewareDecompression` constant to `stack.go`** — Decompression is the only middleware missing a `Middleware*` stack name constant (all 12 others have one). Adding it enables `MiddlewareStack.Add(MiddlewareDecompression, ...)`. `stack.go`. Effort: 5min.
-- [ ] **Add `BenchmarkCompressionNegotiator`** — the `Accept-Encoding` negotiation logic runs on every request but has no dedicated benchmark. `compression_negotiator.go`. Effort: 15min.
+- [ ] **Upgrade historical report annotations to per-item** — the 22 `docs/status/2026-08-*.md` reports have header-level annotation banners, not inline `~~item~~` strikethrough on every numbered item. Strict docs-health ANNOTATE compliance requires per-item markers. Prioritize the 5 most-read reports. Effort: 1-2hr.
+
+## Low Priority
+
+- [ ] **Add `ExampleMaxBodySize` function** — `MaxBodySize` is the only middleware without an `Example*` test function. All others have runnable examples with `// Output:` directives. `example_test.go`. Effort: 10min.
 
 ## Won't Implement
 

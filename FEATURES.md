@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed, coverage corrected to 97.0%, benchmark (43) / example (24) / fuzz (19) counts verified against source, ETag adapter + Decompression rows updated. All claims checked against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed, coverage corrected to 97.0%, benchmark (44) / example (24) / fuzz (19) counts verified against source, ETag adapter + Decompression rows updated. All claims checked against current source with `go test -race -coverprofile`._
 
 ---
 
@@ -20,7 +20,7 @@ _Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed
 | Timeout                  | `timeout.go`                           | `time.Duration`                                               | Yes   | `ExampleTimeout`                    | `BenchmarkTimeout`            | —                   |
 | Logging                  | `logging.go`                           | `*slog.Logger`                                                | Yes   | `ExampleLogging`                    | `BenchmarkLogging`            | —                   |
 | ResponseRecorder         | `recorder.go`                          | —                                                             | Yes   | `ExampleNewResponseRecorder`        | `BenchmarkResponseRecorder`   | —                   |
-| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression`        | `FuzzCompression`   |
+| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression*`        | `FuzzCompression`   |
 | MaxBodySize              | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | —                                   | —                             | —                   |
 | RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface     | Yes   | —                                   | `BenchmarkTokenBucketLimiter` | —                   |
 | Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | —                                   | —                             | —                   |
@@ -156,7 +156,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `golangci-lint` with ~70 linters, 0 issues.
 - `go test -race ./...` passes across the full suite with **97.0% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
 - 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), Decompression (malformed compressed bodies), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, decompression, and CSRF fuzz tests verified with `-fuzztime`.
-- 43 benchmarks and 24 example functions across both packages.
+- 44 benchmarks and 24 example functions across both packages.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.

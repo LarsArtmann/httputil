@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`MiddlewareDecompression` constant** (`stack.go`): Decompression was the only middleware missing a `Middleware*` stack name constant. All 13 middlewares now have named constants for `MiddlewareStack.Add()`.
+- **`BenchmarkCompressionNegotiator`** (`compression_negotiator_bench_test.go`): dedicated benchmark for `Accept-Encoding` negotiation covering three header shapes (single-token fast path, multi-encoding browser header, empty header). 0 allocations across all paths (6.2 ns single-token, 73.9 ns browser multi, 2.1 ns empty).
+- **ETag positioning guidance** (`README.md`): middleware ordering section now documents that ETag must be placed inside (after) Compression so it hashes the uncompressed body. Placing ETag before Compression would compute different ETags for different wire encodings of the same resource.
+- **ETag integrated into full-stack composition test** (`stack_integration_test.go`): `buildFullStack` now includes `MiddlewareETag` after `MiddlewareCompression`. Comment updated from "16 middlewares" to "17 middlewares".
+- **`MaxBodySizeConfig` in v1-stability** (`docs/v1-stability.md`): `MaxBodySizeConfig`, `DefaultMaxBodySizeConfig`, and `MaxBodySizeMiddleware` added to the stability tables (were missing since v0.9.0). ETag error codes (`etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed`) added to the Error Classification section. `Middleware*` constants count corrected from 12 to 13.
 - **ETag adapter over `go-etag`** (`etag.go`, `etag_test.go`): thin adapter wrapping `github.com/larsartmann/go-etag` v0.1.0 so consumers can use `httputil.ETag(cfg etag.ETagConfig) Middleware` without a separate import for middleware composition. `MiddlewareETag = "etag"` constant added to `stack.go`. ETag error templates (`etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed`) registered via `RegisterErrorClassifications()`. 7 adapter integration tests + `ExampleETag` runnable example. RFC 7232 compliance tests live in the go-etag module's own test suite.
 - **`ServerConfig.TLSConfig` support** (`server.go`): `TLSConfig *tls.Config` field wired through `NewServer()`. `Validate()` enforces `MinVersion >= TLS 1.2` per RFC 8996; zero `MinVersion` is allowed (Go defaults to TLS 1.2 since Go 1.18). 7 new tests covering TLS 1.0/1.1 rejection, TLS 1.2/1.3 acceptance, zero-MinVersion acceptance, and wiring.
 - **`KeyedRateLimiterConfig.TTL` validation** (`ratelimit_keyed.go`): rejects negative TTL values (was silently coerced to default).
@@ -31,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 
+- **`assertBodyEmpty` dead code** (`testutil_test.go`): unused test helper flagged by gopls `unusedfunc`. Was used by old in-package ETag tests, now extracted to go-etag.
 - **ETag middleware extracted to `go-etag` module**: in-package `etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, and `httpspec/etag_integration_test.go` removed. ETag generation + RFC 7232 conditional-request logic now lives in `github.com/larsartmann/go-etag`. The `httputil.ETag()` adapter wraps it so consumers compose it like any other httputil middleware.
 
 ## [0.9.1] - 2026-08-06

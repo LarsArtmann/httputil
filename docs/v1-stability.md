@@ -29,6 +29,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `CompressionConfig`      | Additive |                                                           |
 | `DecompressionConfig`    | Additive |                                                           |
 | `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
+| `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
 | `RateLimitConfig`        | Additive | Deprecated v0.8.0; removal targeted for v1.0              |
 | `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
@@ -46,6 +47,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `DefaultCompressionConfig`      | `CompressionConfig`            |
 | `DefaultDecompressionConfig`    | `DecompressionConfig`          |
 | `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig`       |
+| `DefaultMaxBodySizeConfig`  | `MaxBodySizeConfig`            |
 | `DefaultMetricsConfig`          | `MetricsConfig`                |
 | `DefaultRateLimitConfig`        | `RateLimitConfig` (deprecated) |
 | `DefaultRequestIDConfig`        | `RequestIDConfig`              |
@@ -65,6 +67,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`                 |
 | `Logging`                      | `func(*slog.Logger) Middleware`                           |
 | `MaxBodySize`                  | `func(int64) Middleware`                                  |
+| `MaxBodySizeMiddleware`        | `func(MaxBodySizeConfig) Middleware`                      |
 | `Metrics`                      | `func(MetricsConfig) Middleware`                          |
 | `RateLimit`                    | `func(RateLimitConfig) Middleware` (deprecated)           |
 | `Recovery`                     | `func(*slog.Logger) Middleware`                           |
@@ -202,7 +205,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ---------------------------- | -------- |
 | `NewMiddlewareStack`         | Frozen   |
 | `MiddlewareStack`            | Additive |
-| `Middleware*` constants (12) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
+| `Middleware*` constants (13) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareDecompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
 
 ### Query Parsing (Frozen at v1.0)
 
@@ -218,6 +221,9 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ErrCodeHijackUnsupported`     | Frozen |                 |
 | `ErrCodeHijackFailed`          | Frozen |                 |
 | `ErrCodeCompressWriteFailed`   | Frozen |                 |
+| `etag.ErrCodeETagWriteFailed`  | Frozen | ETag error     |
+| `etag.ErrCodeInvalidConfig`    | Frozen | ETag error     |
+| `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error     |
 | `ErrCSRFInvalid`               | Frozen | CSRF sentinel   |
 | `ErrCSRFConfig`                | Frozen | CSRF sentinel   |
 | `RegisterErrorClassifications` | Frozen |                 |
