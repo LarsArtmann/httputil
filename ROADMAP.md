@@ -28,12 +28,12 @@ Before v1.0:
 
 - **Remove the deprecated `TokenBucketLimiter` / `RateLimiter` interface** — superseded by `KeyedRateLimiter`. Migration guide: [`docs/migrating-to-keyed-rate-limiter.md`](docs/migrating-to-keyed-rate-limiter.md).
 - **Rate limiter interface refinement** — evaluate `AllowN` (burst > 1 per request) and `context.Context` cancellation support on `KeyedRateLimiter`. Deferred to v1.0 because either could shape the final interface.
-- **Conditional-request scope** — ETag middleware has been extracted to the `go-etag` module. Conditional-request scope decisions (If-Match, Last-Modified, If-Range) now live there.
+- **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module, integrated into httputil via a thin adapter (`httputil.ETag()`). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
 - One stabilization cycle before the commitment.
 
 ## Dependency policy
 
-Stdlib + `go-error-family` (same author, zero transitive deps) + `golang.org/x/time` (canonical Go rate-limit extension) + `github.com/justinas/nosurf` (CSRF double-submit cookie — security-critical, complex to hand-roll). Extensibility for encoders (brotli/zstd/lz4), distributed rate limiters (Redis), and metrics (Prometheus) is exposed via plugin interfaces with documentation examples in [`docs/integrations/`](docs/integrations/), not core dependencies.
+Stdlib + `go-error-family` (same author, zero transitive deps) + `go-etag` (same author, ETag conditional requests) + `golang.org/x/time` (canonical Go rate-limit extension) + `github.com/justinas/nosurf` (CSRF double-submit cookie — security-critical, complex to hand-roll). Extensibility for encoders (brotli/zstd/lz4), distributed rate limiters (Redis), and metrics (Prometheus) is exposed via plugin interfaces with documentation examples in [`docs/integrations/`](docs/integrations/), not core dependencies.
 
 ## Non-goals
 

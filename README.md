@@ -6,9 +6,9 @@
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag adapter), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
-Minimal footprint — three dependencies (`go-error-family` same-author + `golang.org/x/time` + `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
+Minimal footprint — four dependencies (`go-error-family` + `go-etag` same-author, `golang.org/x/time`, `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
 
 ## Install
 
@@ -249,6 +249,18 @@ handler := httputil.Decompression(cfg)(mux)
 
 Use `cfg.Validate()` to catch invalid configurations at startup (e.g., negative `MaxDecompressionSize`).
 
+### ETag / Conditional Requests
+
+ETag generation and `If-None-Match` handling via the [go-etag](https://github.com/larsartmann/go-etag) module. The middleware buffers GET/HEAD response bodies, computes an FNV-64a hash, and returns 304 Not Modified when the client's `If-None-Match` matches.
+
+```go
+import "github.com/larsartmann/go-etag"
+
+handler := httputil.ETag(etag.DefaultETagConfig())(mux)
+```
+
+For domain types (`etag.ETag`, `etag.ParseETag`, `etag.MatchesIfNoneMatch`, etc.), import go-etag directly. The adapter only bridges the middleware to httputil's `Middleware` type so it composes with `Chain` and `MiddlewareStack`.
+
 ### HTTP Server
 
 A configurable `http.Server` wrapper with sensible timeout defaults and lifecycle helpers.
@@ -407,6 +419,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression        |
 | `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection          |
 | `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                                 |
+| `ETag`                           | `func(etag.ETagConfig) Middleware`                                    | ETag adapter over go-etag                             |
 | `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_             |
 | `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config _(deprecated)_              |
 | `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor _(deprecated)_       |
@@ -553,7 +566,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
-- **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
+- **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 
 ### Middleware Ordering
 

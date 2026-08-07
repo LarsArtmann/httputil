@@ -4,8 +4,8 @@
 // The library offers CORS configuration, client IP extraction, response recording,
 // middleware chaining, security headers, request ID propagation, panic recovery,
 // request timeout enforcement, structured request logging, response compression,
-// request body decompression with bomb protection, an HTTP server wrapper with
-// graceful shutdown, standard health check handlers (/health, /health/live,
+// request body decompression with bomb protection, ETag conditional requests via
+// the go-etag adapter, an HTTP server wrapper with graceful shutdown, standard health check handlers (/health, /health/live,
 // /health/ready), W3C Server-Timing instrumentation, CSRF protection (double-submit
 // cookie via justinas/nosurf, with HTMX-aware helpers), and keyed token-bucket
 // rate limiting with min-heap eviction and a MaxKeys cap.

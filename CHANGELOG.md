@@ -24,33 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- **`parseETagList` now handles escaped quotes** (`etag.go`): backslash-escaped `\"` inside a quoted opaque-tag no longer toggles the quote state. The RFC 7232 §2.3 grammar permits `%x5C` in quoted-strings. An escaped DQUOTE is now skipped rather than flipping `inQuotes`, preventing incorrect comma-splitting.
-- **`If-None-Match` now combines multiple header lines** (`etag.go`): per RFC 9110 §5.2, multiple `If-None-Match` header field lines are combined into one list. The middleware previously used `Header.Get` which returns only the first value; now uses `Header.Values` + `strings.Join`.
-- **Post-header-commit body writes documented honestly** (`etag.go`, `compress_writer.go`): the final body flush in `etagWriter.flush()`, `etagWriter.Flush()`, and `compressWriter.Flush()` silently discards write errors because post-header-commit failures are fundamentally unreportable in Go's Handler model. The prior `writeBufferedBody()` ceremony (which wrapped errors via `errorfamily.WrapTransient` that nobody observed) is replaced with explicit `_, _ =` and an explanatory comment, resolving the split brain between the two writers.
 - **depguard `$module` workaround replaced with explicit module paths** (`.golangci.yml`): the previous global `_test.go` exclusion for depguard (which allowed any third-party import in test files) is replaced with explicit `github.com/larsartmann/httputil` and `github.com/larsartmann/httputil/**` entries in the main allow list. This restores the dependency boundary for all files while permitting same-module cross-package imports.
-
-### Added
-
-- **7 ETag compliance tests** (`etag_test.go`): 304 excludes `Content-Length` (RFC 7232 §4.1), 304 includes `ETag` header, multiple `If-None-Match` headers combined, HEAD with `If-None-Match` returns 304, overflow disables ETag with `If-None-Match` present, Hijack prevents ETag generation, `parseETagList` escaped-quote correctness.
-- **2 ETag edge-case tests** (`etag_test.go`): no `If-None-Match` header returns 200 with body (exercises `Header.Values` → `strings.Join(nil)` → `""` path); escaped-quote `If-None-Match` end-to-end through full middleware path.
-- **Decompression bomb-protection tests** (`decompression_test.go`): `limitedReadCloser.Close()` delegation test (was 0% coverage), `limitedReadCloser.Read()` bomb-limit-exceeded test verifying `errDecompressionSizeExceeded` and underlying reader closure (was 58.3%), and full integration test sending a gzip-compressed body that decompresses beyond `MaxDecompressionSize`.
-- **`ExampleDecompression`** (`example_test.go`): testable example with `// Output:` directive, consistent with all other middleware.
-- **ETag + Compression 304 interaction test** (`chain_test.go`): verifies a 304 through the Compression+ETag chain excludes `Content-Encoding` and includes `ETag`.
-- **httpspec integration test for ETag** (`httpspec/etag_integration_test.go`): validates an ETag-wrapped handler passes all 18 standard httpspec specs plus 3 ETag-specific specs (GET sets ETag, matching If-None-Match returns 304, POST excludes ETag).
-- **govulncheck in devShell** (`flake.nix`): `pkgs.govulncheck` added to the devShell packages and a `nix run .#vulncheck` app to run vulnerability scans. Prevents the release-gate skip that occurred in v0.9.1.
-- **Fuzz seeds for escaped-quote and multi-header code paths** (`etag_test.go`, `etag_compress_fuzz_test.go`): `FuzzETag` and `FuzzETagConditional` corpora now include backslash-escape inputs documenting the RFC 7232 §2.3 fix.
-- **Decompression documentation** (`README.md`, `docs/v1-stability.md`, `docs/DOMAIN_LANGUAGE.md`): README gains a feature section, API table entries, config reference, and middleware ordering guidance. `v1-stability.md` classifies `DecompressionConfig` and `DefaultDecompressionConfig`. `DOMAIN_LANGUAGE.md` gains Decompression bounded context, entity, value objects, commands, events, and rules.
 
 ### Removed
 
-- **WebSocket upgrade integration test** (`websocket_upgrade_test.go`): the `TestCompressionETag_WebSocketUpgrade_Passthrough` test and its `readUpgradeHeaders` helper are deleted. Hijack passthrough through Compression + ETag remains covered by `TestChain_CompressionETag_HijackPassthrough` in `chain_test.go`.
-
-### Changed
-
-- **Coverage improved 96.7% to 97.2%** across FEATURES.md, README.md, and ROADMAP.md, driven by new decompression bomb-protection tests.
-- **D2 architecture diagram updated** (`docs/architecture-understanding/2026-08-05_httputil-current.d2`): middleware count corrected from 16 to 17, Decompression node added.
-- **`serveETagCheck` now delegates to existing `serve` helper** (`httpspec/etag_integration_test.go`): removed duplicated `httptest.NewRecorder` + `handler.ServeHTTP` logic; the helper now builds the request and calls the shared `serve` function.
-- **Prior status report annotated** (`docs/status/2026-08-06_23-33_*.md`): inline `~~done at v0.9.1~~` markers added for resolved items b.1 (CHANGELOG) and b.2 (fuzz seeds).
+- **ETag middleware extracted to `go-etag` module** (`etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, `httpspec/etag_integration_test.go`): ETag generation (FNV-64a) + RFC 7232 weak-comparison `If-None-Match` 304 middleware moved to a dedicated Go module `github.com/larsartmann/go-etag` (package `etag`). The new module is self-contained with only `go-error-family` as a dependency. The adapter in this release (`httputil.ETag()`) wraps it so consumers can still use `httputil.ETag()` without a separate import.
 - **`nix flake check` run** after 4 consecutive session skips; all checks pass.
 
 ## [0.9.1] - 2026-08-06
