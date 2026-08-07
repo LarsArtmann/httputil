@@ -271,3 +271,24 @@ func ExampleETag() {
 	// true
 	// 304
 }
+
+func ExampleMaxBodySize() {
+	handler := MaxBodySize(5)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte("this is way too long")))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Code)
+
+	// Output: 413
+}
