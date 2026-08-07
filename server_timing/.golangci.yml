@@ -134,19 +134,9 @@ linters:
         main:
           allow:
             - $gostd
-            # Explicit module path entries because $module does not expand to
-            # match the module root or subpackages for cross-package imports
-            # (depguard v2.12.2).
-            - github.com/larsartmann/httputil
-            - github.com/larsartmann/httputil/**
-            - github.com/larsartmann/httputil/server_timing
-            - github.com/larsartmann/go-error-family
-            - github.com/justinas/nosurf
-            - golang.org/x/time
     exhaustruct:
       exclude:
-        - os/exec.Cmd
-        - github\.com/larsartmann/httputil\.(KeyedRateLimiterConfig|ServerTiming|serverTimingWriter)$
+        - github\.com/larsartmann/httputil/server_timing\.(ServerTiming|serverTimingWriter)$
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
@@ -156,9 +146,8 @@ linters:
     gomoddirectives:
       replace-local: true
     gosec:
-      # G705 (XSS via taint analysis) is structurally a false positive in a
-      # response-writing middleware library: every ResponseWriter.Write emits
-      # intentional response output, never unsanitized HTML rendering.
+      # G705 (XSS via taint analysis) is structurally a false positive here:
+      # the middleware intentionally writes the Server-Timing response header.
       excludes:
         - G705
     ireturn:
@@ -229,12 +218,6 @@ linters:
         text: unused
         linters:
           - unused
-      # "X-CSRF-Token" is the ecosystem-standard spelling (nosurf, HTMX, OWASP).
-      # http.Header.Set/Get canonicalize at the wire level regardless, so the
-      # non-canonical literal is intentional and harmless.
-      - text: '"X-CSRF-Token" is not canonical'
-        linters:
-          - canonicalheader
     paths:
       - _templ\.go$
       - \.gen\.go$

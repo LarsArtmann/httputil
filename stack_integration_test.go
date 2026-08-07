@@ -7,6 +7,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
 // TestStack_FullMiddlewareComposition chains all 16 middlewares in their
@@ -157,7 +159,7 @@ func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	addStackMiddleware(t, stack, MiddlewareETag, ETag(DefaultETagConfig()))
 	addStackMiddleware(t, stack, MiddlewareTimeout, Timeout(30*time.Second))
 	addStackMiddleware(t, stack, MiddlewareClientIP, ClientIPMiddleware)
-	addStackMiddleware(t, stack, MiddlewareServerTiming, ServerTimingMiddleware())
+	addStackMiddleware(t, stack, MiddlewareServerTiming, servertiming.ServerTimingMiddleware())
 }
 
 // newInnerHandler returns the inner handler used by stack composition tests.
@@ -194,8 +196,8 @@ func verifyGETHeaders(t *testing.T, handler http.Handler, called *atomic.Bool) {
 		{"X-Request-ID", ""}, // non-empty
 		{"X-Content-Type-Options", "nosniff"},
 		{"Access-Control-Allow-Origin", "*"},
-		{HeaderServerTiming, ""}, // non-empty
-		{"ETag", ""},             // non-empty
+		{servertiming.HeaderServerTiming, ""}, // non-empty
+		{"ETag", ""},                          // non-empty
 	}
 
 	for _, h := range headers {
@@ -321,5 +323,36 @@ func verifyRateLimitHeaders(t *testing.T, logger *slog.Logger) {
 			"X-Content-Type-Options on 429 = %q, want nosniff (outer middleware must run on rejection)",
 			got,
 		)
+	}
+}
+
+func TestServerTimingMiddleware_ComposesWithChain(t *testing.T) {
+	t.Parallel()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		stopWork := servertiming.MeasureServerTiming(r.Context(), "work")
+
+		time.Sleep(5 * time.Millisecond)
+		stopWork()
+
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	stacked := Chain(inner, servertiming.ServerTimingMiddleware())
+
+	rec := newRecorder()
+	stacked.ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))
+
+	hv := rec.Header().Get(servertiming.HeaderServerTiming)
+	if hv == "" {
+		t.Fatal("Server-Timing header missing through Chain")
+	}
+
+	if !strings.Contains(hv, "work;") {
+		t.Errorf("work metric missing in %q", hv)
+	}
+
+	if !strings.Contains(hv, "total;") {
+		t.Errorf("total metric missing in %q", hv)
 	}
 }

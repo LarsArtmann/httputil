@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"time"
+
+	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
 func ExampleClientIP() {
@@ -218,9 +220,9 @@ func ExampleCSRFMiddleware() {
 }
 
 func ExampleServerTimingMiddleware() {
-	handler := ServerTimingMiddleware()(
+	handler := servertiming.ServerTimingMiddleware()(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			stop := MeasureServerTiming(r.Context(), "db")
+			stop := servertiming.MeasureServerTiming(r.Context(), "db")
 			stop()
 			w.WriteHeader(http.StatusOK)
 		}),
@@ -230,7 +232,7 @@ func ExampleServerTimingMiddleware() {
 	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	fmt.Println(rec.Code)
-	fmt.Println(rec.Header().Get(HeaderServerTiming) != "")
+	fmt.Println(rec.Header().Get(servertiming.HeaderServerTiming) != "")
 
 	// Output:
 	// 200
