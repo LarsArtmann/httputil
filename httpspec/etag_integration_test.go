@@ -80,12 +80,10 @@ func TestETagMiddleware_PassesHTTPSpec(t *testing.T) {
 // If-None-Match header value. Returns the response recorder.
 func serveETagCheck(handler http.Handler, method, ifNoneMatch string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(method, "/", nil)
+
 	if ifNoneMatch != "" {
 		req.Header.Set("If-None-Match", ifNoneMatch)
 	}
 
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
-
-	return rec
+	return serve(handler, req)
 }

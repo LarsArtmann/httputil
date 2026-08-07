@@ -151,6 +151,27 @@ func (w *etagWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
+// writeBufferedBody writes the accumulated body to the underlying
+// ResponseWriter, classifying failures through go-error-family for
+// consistency with the Write path. Callers that cannot propagate the
+// error (Flush, flush) discard it explicitly.
+func (w *etagWriter) writeBufferedBody() error {
+	if len(w.body) == 0 {
+		return nil
+	}
+
+	_, err := w.ResponseWriter.Write(w.body)
+	if err != nil {
+		return errorfamily.WrapTransient(
+			err,
+			ErrCodeETagWriteFailed,
+			"etag writer buffered body write failed",
+		)
+	}
+
+	return nil
+}
+
 func (w *etagWriter) flush(req *http.Request) {
 	if w.flushed {
 		return
@@ -171,9 +192,9 @@ func (w *etagWriter) flush(req *http.Request) {
 
 	w.writeHeaderToUnderlying()
 
-	if len(w.body) > 0 {
-		_, _ = w.ResponseWriter.Write(w.body)
-	}
+	// Body write errors after header commit are unreportable: the handler
+	// has returned and the response is in-flight. Classified for consistency.
+	_ = w.writeBufferedBody()
 }
 
 func (w *etagWriter) computeETag() string {
@@ -316,10 +337,9 @@ func (w *etagWriter) Flush() {
 
 	w.writeHeaderToUnderlying()
 
-	if len(w.body) > 0 {
-		_, _ = w.ResponseWriter.Write(w.body)
-		w.body = w.body[:0]
-	}
+	_ = w.writeBufferedBody()
+
+	w.body = w.body[:0]
 
 	w.responseWrapper.Flush()
 }

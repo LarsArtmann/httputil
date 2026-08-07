@@ -134,8 +134,11 @@ linters:
         main:
           allow:
             - $gostd
-            - $module
-            - $module/**
+            # Explicit module path entries because $module does not expand to
+            # match the module root or subpackages for cross-package imports
+            # (depguard v2.12.2).
+            - github.com/larsartmann/httputil
+            - github.com/larsartmann/httputil/**
             - github.com/larsartmann/go-error-family
             - github.com/justinas/nosurf
             - golang.org/x/time
