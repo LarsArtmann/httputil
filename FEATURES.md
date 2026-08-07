@@ -27,8 +27,8 @@ _Updated: 2026-08-07 — ETag middleware available via `go-etag` adapter. All cl
 | Server-Timing            | `server_timing.go`                     | —                                                             | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`      | `FuzzServerTiming*` |
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`    | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`  | —                   |
-| Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | —                                   | —                             | —                   |
-| ETag                     | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | —                                   | —                             | —                   |
+| Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | —                                   | `BenchmarkDecompression*`     | `FuzzDecompression` |
+| ETag                     | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | —                             | —                   |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
@@ -154,9 +154,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **96.9% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
+- `go test -race ./...` passes across the full suite with **97.0% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
 - 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
-- 41 benchmarks and 23 example functions across both packages.
+- 43 benchmarks and 24 example functions across both packages.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
@@ -180,7 +180,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-08-07 with `go test -race -coverprofile`: **96.9%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-08-07 with `go test -race -coverprofile`: **97.0%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
@@ -213,7 +213,7 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **96.9%** (`httputil`), 
 
 ### Near-term
 
-- _(none — all near-term items shipped in v0.8.0)_
+- _(none — all near-term items shipped in v0.9.0/v0.9.1)_
 
 ---
 
@@ -222,5 +222,4 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **96.9%** (`httputil`), 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
 - **Rate limiter `context.Context` cancellation** — add `context.Context` support to the rate limiter interface. Deferred to v1.0 (API design decision). See [ROADMAP.md](ROADMAP.md).
 - **Benchmark for `compression_negotiator.go`** — the negotiation logic runs on every request but has no dedicated benchmark.
-- **Benchmark for `Metrics` middleware** — wraps every request via `MetricsRecorder.Record`; throughput is undocumented.
-- **Benchmark for `HealthHandler` / `LiveHandler` / `ReadyHandler`** — tiny handlers but no baseline established.
+

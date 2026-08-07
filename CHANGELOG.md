@@ -8,28 +8,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **ETag adapter over `go-etag` dependency** (`etag.go`, `etag_test.go`): `httputil.ETag(cfg etag.ETagConfig) Middleware` wraps `github.com/larsartmann/go-etag` (the independent module extracted in the previous `[Unreleased]` entry) so consumers can use `httputil.ETag()` alongside all other httputil middleware without a separate import. `MiddlewareETag = "etag"` constant added to `stack.go` for `MiddlewareStack`. ETag error templates (`etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed`) registered in `errors.go` via `RegisterErrorClassifications()`. 7 adapter integration tests covering ETag generation, If-None-Match 304, POST exclusion, Chain composition, Compression+ETag chain composition (304 through gzip), and MiddlewareStack registration. `ExampleETag` runnable example (`example_test.go`) demonstrates ETag generation and conditional 304. `go-etag` v0.1.0 added as the 4th external dependency (same author, `go-error-family` only transitive dep).
-- **7 ETag compliance tests** (`etag_test.go`): 304 excludes `Content-Length` (RFC 7232 §4.1), 304 includes `ETag` header, multiple `If-None-Match` headers combined, HEAD with `If-None-Match` returns 304, overflow disables ETag with `If-None-Match` present, Hijack prevents ETag generation, `parseETagList` escaped-quote correctness.
-- **2 ETag edge-case tests** (`etag_test.go`): no `If-None-Match` header returns 200 with body (exercises `Header.Values` → `strings.Join(nil)` → `""` path); escaped-quote `If-None-Match` end-to-end through full middleware path.
-- **Decompression bomb-protection tests** (`decompression_test.go`): `limitedReadCloser.Close()` delegation test (was 0% coverage), `limitedReadCloser.Read()` bomb-limit-exceeded test verifying `errDecompressionSizeExceeded` and underlying reader closure (was 58.3%), and full integration test sending a gzip-compressed body that decompresses beyond `MaxDecompressionSize`.
-- **`ExampleDecompression`** (`example_test.go`): testable example with `// Output:` directive, consistent with all other middleware.
-- **govulncheck in devShell** (`flake.nix`): `pkgs.govulncheck` added to the devShell packages and a `nix run .#vulncheck` app to run vulnerability scans. Prevents the release-gate skip that occurred in v0.9.1.
-- **Decompression documentation** (`README.md`, `docs/v1-stability.md`, `docs/DOMAIN_LANGUAGE.md`): README gains a feature section, API table entries, config reference, and middleware ordering guidance. `v1-stability.md` classifies `DecompressionConfig` and `DefaultDecompressionConfig`. `DOMAIN_LANGUAGE.md` gains Decompression bounded context, entity, value objects, commands, events, and rules.
+- **ETag adapter over `go-etag`** (`etag.go`, `etag_test.go`): thin adapter wrapping `github.com/larsartmann/go-etag` v0.1.0 so consumers can use `httputil.ETag(cfg etag.ETagConfig) Middleware` without a separate import for middleware composition. `MiddlewareETag = "etag"` constant added to `stack.go`. ETag error templates (`etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed`) registered via `RegisterErrorClassifications()`. 7 adapter integration tests + `ExampleETag` runnable example. RFC 7232 compliance tests live in the go-etag module's own test suite.
+- **`ServerConfig.TLSConfig` support** (`server.go`): `TLSConfig *tls.Config` field wired through `NewServer()`. `Validate()` enforces `MinVersion >= TLS 1.2` per RFC 8996; zero `MinVersion` is allowed (Go defaults to TLS 1.2 since Go 1.18). 7 new tests covering TLS 1.0/1.1 rejection, TLS 1.2/1.3 acceptance, zero-MinVersion acceptance, and wiring.
+- **`KeyedRateLimiterConfig.TTL` validation** (`ratelimit_keyed.go`): rejects negative TTL values (was silently coerced to default).
+- **`RateLimitConfig.Status` validation** (`ratelimit.go`): rejects HTTP status codes outside 100-599 (except 0 = default 429).
+- **Decompression benchmarks** (`decompression_bench_test.go`): gzip, deflate, and passthrough throughput with `b.ReportAllocs()` and `b.SetBytes()`.
+- **`FuzzDecompression`** (`decompression_fuzz_test.go`): 11 seed corpus entries covering valid gzip/deflate, truncated headers, garbage bytes, empty body, identity, and unsupported encodings. Verifies status is always 200 or 400.
+- **Decompression bomb-protection tests** (`decompression_test.go`): `limitedReadCloser.Close()` delegation (was 0%), `limitedReadCloser.Read()` bomb-limit-exceeded path (was 58.3%), and full integration test verifying `errDecompressionSizeExceeded` on over-limit decompressed body.
+- **`ExampleDecompression`** (`example_test.go`): testable example with `// Output:` directive.
+- **govulncheck in devShell** (`flake.nix`): `nix run .#vulncheck` app prevents the release-gate skip that occurred in v0.9.1.
+- **Decompression documentation** (`README.md`, `docs/v1-stability.md`, `docs/DOMAIN_LANGUAGE.md`): README feature section, API table entries, config reference, and middleware ordering guidance. `v1-stability.md` classifies `DecompressionConfig` and `DefaultDecompressionConfig`. `DOMAIN_LANGUAGE.md` gains Decompression bounded context, entity, value objects, commands, events, and rules.
 
 ### Changed
 
-- **Server-Timing extracted into `server_timing` sub-module** (`server_timing/`): W3C Server-Timing instrumentation (`ServerTiming`, `ServerTimingMiddleware`, `MeasureServerTiming`, etc.) moved from the root `httputil` package to a dedicated Go module `github.com/larsartmann/httputil/server_timing` (package `servertiming`). The sub-module is stdlib-only with zero external dependencies. The root module references it via a `replace` directive; both are coordinated through `go.work`. Import path changed from `httputil.ServerTimingMiddleware` to `servertiming.ServerTimingMiddleware`.
-- **Coverage improved 96.7% to 97.2%** across FEATURES.md, README.md, and ROADMAP.md, driven by new decompression bomb-protection tests.
-- **`nix flake check` run** after 4 consecutive session skips; all checks pass.
+- **Server-Timing extracted into `server_timing` sub-module** (`server_timing/`): W3C Server-Timing instrumentation moved to `github.com/larsartmann/httputil/server_timing` (package `servertiming`). Stdlib-only, zero external deps. Root module references it via `replace` directive + `go.work`.
+- **Hijack error context** (`wrapper.go`): both `Hijack` error branches now attach `writer_type` via `WithContextf` for better diagnostics.
+- **Coverage now 97.0%** (`httputil`) / **99.3%** (`httpspec`), measured 2026-08-07 with race detection enabled (was 96.9% at v0.9.1).
 
 ### Fixed
 
-- **depguard `$module` workaround replaced with explicit module paths** (`.golangci.yml`): the previous global `_test.go` exclusion for depguard (which allowed any third-party import in test files) is replaced with explicit `github.com/larsartmann/httputil` and `github.com/larsartmann/httputil/**` entries in the main allow list. This restores the dependency boundary for all files while permitting same-module cross-package imports.
+- **depguard `$module` workaround replaced with explicit module paths** (`.golangci.yml`): the global `_test.go` exclusion for depguard (which allowed any third-party import in test files) is replaced with explicit `github.com/larsartmann/httputil` and `/**` entries. Restores the dependency boundary for all files while permitting same-module cross-package imports.
 
 ### Removed
 
-- **ETag middleware extracted to `go-etag` module** (`etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, `httpspec/etag_integration_test.go`): ETag generation (FNV-64a) + RFC 7232 weak-comparison `If-None-Match` 304 middleware moved to a dedicated Go module `github.com/larsartmann/go-etag` (package `etag`). The new module is self-contained with only `go-error-family` as a dependency. The adapter in this release (`httputil.ETag()`) wraps it so consumers can still use `httputil.ETag()` without a separate import.
-- **`nix flake check` run** after 4 consecutive session skips; all checks pass.
+- **ETag middleware extracted to `go-etag` module**: in-package `etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, and `httpspec/etag_integration_test.go` removed. ETag generation + RFC 7232 conditional-request logic now lives in `github.com/larsartmann/go-etag`. The `httputil.ETag()` adapter wraps it so consumers compose it like any other httputil middleware.
 
 ## [0.9.1] - 2026-08-06
 
