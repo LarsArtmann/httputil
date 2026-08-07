@@ -2,21 +2,24 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-06 — ETag weak-comparison fix shipped (v0.9.1). Remaining items harvested from the 2026-08-06 gap analysis. See [CHANGELOG.md](CHANGELOG.md) for shipped work._
+_Updated: 2026-08-07 — ETag compliance follow-up: escaped-quote fix, 304 header tests, multiple If-None-Match support, httpspec validation, interaction tests. See [CHANGELOG.md](CHANGELOG.md) for shipped work._
 
 ---
 
 ## Medium Priority
 
-- [ ] **Verify 304 response excludes `Content-Length` and includes `ETag`** — RFC 7232 §4.1 requires a 304 to carry cache-related headers (including `ETag`) but MUST NOT include body-related headers like `Content-Length`. The ETag middleware relies on stdlib implicit cleanup. Add two tests asserting both invariants. `etag.go`, `etag_test.go`. Estimated effort: 30min.
-- [ ] **Handle escaped quotes in `parseETagList`** — backslash-escaped `\"` inside an opaque-tag currently flips `inQuotes` incorrectly. The RFC 7232 §2.3 grammar permits `%x5C` in quoted-strings. Extremely rare in practice (hex ETags never contain backslashes), but not fully spec-compliant for arbitrary client input. `etag.go:234`. Estimated effort: 20min.
-- [ ] **ETag + Compression interaction test** — verify whether a compressed ETag matches an uncompressed `If-None-Match`. The compress-then-hash ordering matters; document the actual behavior with a test. `etag_test.go` / `compression_test.go`. Estimated effort: 45min.
-- [ ] **`httpspec` test for ETag correctness** — point `httpspec.Run(t, handler)` at an ETag-wrapped handler to validate standard HTTP conventions. `httpspec/`. Estimated effort: 30min.
+- [ ] **Add `ServerConfig.TLSConfig` validation** — `TLSConfig` is always nil in `NewServer()` but there is no validation for it if added. Deferred to v1.0. `server.go`. Estimated effort: 30min.
+- [ ] **ETag + CORS interaction test** — does CORS `Vary` header affect ETag caching? Add integration test. Estimated effort: 20min.
+- [ ] **ETag + Recovery interaction test** — does panic recovery bypass ETag generation? Add integration test. Estimated effort: 20min.
+- [ ] **Fuzz test for `parseETagList` specifically** — quote/comma/backslash/escape combinations beyond the existing `FuzzETag`. Estimated effort: 30min.
+- [ ] **Fuzz test for `stripWeakPrefix`** — ensure no panic on malformed input. Estimated effort: 15min.
 
 ## Low Priority
 
-- [ ] **Add `ServerConfig.TLSConfig` validation** — `TLSConfig` is always nil in `NewServer()` but there is no validation for it if added. Deferred to v1.0. `server.go`. Estimated effort: 30min.
-- [ ] **ETag for response > 1MB with `If-None-Match`** — the overflow-to-streaming path disables ETag generation, but the interaction with a conditional request header is not tested. Add a test documenting the behavior. `etag_test.go`. Estimated effort: 20min.
+- [ ] **Consider `ErrCodeETagComputeFailed`** — for hash computation failures (currently impossible since FNV can't fail, but custom `HashFunc` could). `errors.go`, `etag.go`. Estimated effort: 30min.
+- [ ] **Review error handling in `etagWriter.Flush()`** — `_, _ = w.ResponseWriter.Write(w.body)` silently ignores errors on the final body write. `etag.go:175`. Estimated effort: 30min.
+- [ ] **ETag + Decompression interaction** — decompressed body should get ETag, not compressed bytes. Verify ordering. Estimated effort: 45min.
+- [ ] **Cross-middleware ETag tests** — ServerTiming, RequestID, MaxBodySize, SecurityHeaders interactions with ETag. Estimated effort: 1hr.
 
 ## Won't Implement
 
@@ -27,6 +30,7 @@ These items were considered and rejected, with reasoning:
 - **Property-based tests for token bucket** — existing benchmarks + integration tests cover the contract; rapid/quickcheck adds dependencies.
 - **Add `AllowN` on rate limiter interface** — `KeyedRateLimiter` uses `MaxKeys`; `AllowN` is not the right primitive.
 - **Make `delegatingWriter` exported** — internal; not part of the public API.
+- **Extract entity-tag parsing into `entitytag` subpackage** — `parseETagList`, `stripWeakPrefix` are only used by `etag.go`; extraction would be premature. Revisit if If-Match support is added.
 
 ---
 

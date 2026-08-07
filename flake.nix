@@ -56,6 +56,7 @@
               pkgs.gofumpt
               pkgs.golines
               pkgs.gotools
+              pkgs.govulncheck
               pkgs.trash-cli
             ];
 
@@ -173,6 +174,26 @@
                   };
                 in
                 "${script}/bin/run-coverage";
+            };
+
+            vulncheck = {
+              type = "app";
+              meta.description = "Run govulncheck on all packages";
+              program =
+                let
+                  script = pkgs.writeShellApplication {
+                    name = "run-vulncheck";
+                    runtimeInputs = [
+                      goPkg
+                      pkgs.govulncheck
+                    ];
+                    text = ''
+                      export GOWORK=off
+                      exec ${pkgs.govulncheck}/bin/govulncheck ./...
+                    '';
+                  };
+                in
+                "${script}/bin/run-vulncheck";
             };
 
             clean = {

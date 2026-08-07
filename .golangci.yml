@@ -220,6 +220,7 @@ linters:
           - noctx
           - wsl_v5
           - noinlineerr
+          - depguard
       - path: _test\.go
         text: unused
         linters:
