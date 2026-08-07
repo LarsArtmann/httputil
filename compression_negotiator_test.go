@@ -254,28 +254,3 @@ func TestNegotiator_ScanAcceptEncoding_OnlyUnsupported(t *testing.T) {
 		t.Errorf("encoding = %q, want %q (identity fallback)", encoding, encodingIdentity)
 	}
 }
-
-// BenchmarkNegotiateEncoding measures negotiation cost for the common
-// single-token header (fast path) versus multi-token browser-style headers.
-func BenchmarkNegotiateEncoding(b *testing.B) {
-	neg := buildNegotiator(DefaultWriterFactories())
-
-	cases := []struct {
-		name   string
-		header string
-	}{
-		{"single_token", "gzip"},
-		{"multi_token", "gzip, deflate, br"},
-		{"qvalues", "gzip;q=0.1, deflate;q=0.9"},
-	}
-
-	for _, tc := range cases {
-		b.Run(tc.name, func(b *testing.B) {
-			b.ReportAllocs()
-
-			for range b.N {
-				_, _, _ = neg.negotiateEncoding(tc.header)
-			}
-		})
-	}
-}
