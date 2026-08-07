@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`parseETagList` now handles escaped quotes** (`etag.go`): backslash-escaped `\"` inside a quoted opaque-tag no longer toggles the quote state. The RFC 7232 §2.3 grammar permits `%x5C` in quoted-strings. An escaped DQUOTE is now skipped rather than flipping `inQuotes`, preventing incorrect comma-splitting.
+- **`If-None-Match` now combines multiple header lines** (`etag.go`): per RFC 9110 §5.2, multiple `If-None-Match` header field lines are combined into one list. The middleware previously used `Header.Get` which returns only the first value; now uses `Header.Values` + `strings.Join`.
+
+### Added
+
+- **7 ETag compliance tests** (`etag_test.go`): 304 excludes `Content-Length` (RFC 7232 §4.1), 304 includes `ETag` header, multiple `If-None-Match` headers combined, HEAD with `If-None-Match` returns 304, overflow disables ETag with `If-None-Match` present, Hijack prevents ETag generation, `parseETagList` escaped-quote correctness.
+- **ETag + Compression 304 interaction test** (`chain_test.go`): verifies a 304 through the Compression+ETag chain excludes `Content-Encoding` and includes `ETag`.
+- **httpspec integration test for ETag** (`httpspec/etag_integration_test.go`): validates an ETag-wrapped handler passes all 18 standard httpspec specs plus 3 ETag-specific specs (GET sets ETag, matching If-None-Match returns 304, POST excludes ETag).
+- **govulncheck in devShell** (`flake.nix`): `pkgs.govulncheck` added to the devShell packages and a `nix run .#vulncheck` app to run vulnerability scans. Prevents the release-gate skip that occurred in v0.9.1.
+
+### Changed
+
+- **depguard test-file exclusion** (`.golangci.yml`): `depguard` added to the `_test.go` exclusion list, allowing cross-package test imports within the same module (e.g., httpspec tests importing httputil). The `$module` depguard variable does not match subpackages in the current depguard version; the exclusion makes the existing `$module` intent work for test code.
+- **README.md ETag section**: added RFC 7232 §2.3.2 weak comparison mention to the description.
+- **Prior status report annotated** (`docs/status/2026-08-06_23-33_*.md`): inline `~~done at v0.9.1~~` markers added for resolved items b.1 (CHANGELOG) and b.2 (fuzz seeds).
+
 ## [0.9.1] - 2026-08-06
 
 ### Fixed
