@@ -2,24 +2,33 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-07 — ETag compliance follow-up: escaped-quote fix, 304 header tests, multiple If-None-Match support, httpspec validation, interaction tests. See [CHANGELOG.md](CHANGELOG.md) for shipped work._
+_Updated: 2026-08-07 — quality sweep: depguard scoping fixed, etagWriter error classification completed, fuzz seeds added, FEATURES.md rebuilt. See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
 
 ---
 
+## High Priority
+
+- [ ] **Add Decompression to README.md** — API table, middleware ordering section, and feature description. Decompression shipped in v0.9.0 but has zero mentions in README. Effort: 30min.
+- [ ] **Add test: no `If-None-Match` header at all** — verify `Header.Values` → `strings.Join(nil, ", ")` → `""` path returns 200 (not panic). `etag_test.go`. Effort: 10min.
+- [ ] **Add test: escaped-quote `If-None-Match` end-to-end** — full middleware round-trip with `"a\"b"` in If-None-Match, verify no false positive 304. `etag_test.go`. Effort: 15min.
+
 ## Medium Priority
 
-- [ ] **Add `ServerConfig.TLSConfig` validation** — `TLSConfig` is always nil in `NewServer()` but there is no validation for it if added. Deferred to v1.0. `server.go`. Estimated effort: 30min.
-- [ ] **ETag + CORS interaction test** — does CORS `Vary` header affect ETag caching? Add integration test. Estimated effort: 20min.
-- [ ] **ETag + Recovery interaction test** — does panic recovery bypass ETag generation? Add integration test. Estimated effort: 20min.
-- [ ] **Fuzz test for `parseETagList` specifically** — quote/comma/backslash/escape combinations beyond the existing `FuzzETag`. Estimated effort: 30min.
-- [ ] **Fuzz test for `stripWeakPrefix`** — ensure no panic on malformed input. Estimated effort: 15min.
+- [ ] **ETag + CORS interaction test** — does CORS `Vary` header affect ETag caching? Add integration test. `chain_test.go`. Effort: 20min.
+- [ ] **ETag + Recovery interaction test** — does panic recovery bypass ETag generation? Add integration test. `chain_test.go`. Effort: 20min.
+- [ ] **Document ETag + Compression recommended ordering** — ETag should be inner (sees uncompressed body), Compression outer. Add to README.md. Effort: 10min.
+- [ ] **Add `nix run .#vulncheck` to RELEASE.md** — document the new vulncheck app in the release runbook step 4. `docs/RELEASE.md`. Effort: 10min.
+- [ ] **Fuzz test for `parseETagList` specifically** — quote/comma/backslash/escape combinations beyond the existing `FuzzETag`. `etag_test.go`. Effort: 30min.
+- [ ] **Fuzz test for `stripWeakPrefix`** — ensure no panic on malformed input (`W/`, `W`, empty). `etag_test.go`. Effort: 15min.
+- [ ] **Add `ServerConfig.TLSConfig` validation** — `TLSConfig` is always nil in `NewServer()` but there is no validation for it if added. `server.go`. Effort: 30min.
 
 ## Low Priority
 
-- [ ] **Consider `ErrCodeETagComputeFailed`** — for hash computation failures (currently impossible since FNV can't fail, but custom `HashFunc` could). `errors.go`, `etag.go`. Estimated effort: 30min.
-- [ ] **Review error handling in `etagWriter.Flush()`** — `_, _ = w.ResponseWriter.Write(w.body)` silently ignores errors on the final body write. `etag.go:175`. Estimated effort: 30min.
-- [ ] **ETag + Decompression interaction** — decompressed body should get ETag, not compressed bytes. Verify ordering. Estimated effort: 45min.
-- [ ] **Cross-middleware ETag tests** — ServerTiming, RequestID, MaxBodySize, SecurityHeaders interactions with ETag. Estimated effort: 1hr.
+- [ ] **ETag + Decompression interaction** — decompressed body should get ETag, not compressed bytes. Verify ordering with `Chain(inner, Decompression(), ETag())`. `chain_test.go`. Effort: 45min.
+- [ ] **Cross-middleware ETag tests** — ServerTiming, RequestID, MaxBodySize, SecurityHeaders interactions with ETag. `chain_test.go`. Effort: 1hr.
+- [ ] **Consider `ErrCodeETagComputeFailed`** — for hash computation failures (currently impossible since FNV can't fail, but custom `HashFunc` could). `errors.go`, `etag.go`. Effort: 30min.
+- [ ] **Audit all `Validate()` methods for completeness** — ensure every config struct has one. Effort: 30min.
+- [ ] **Review `docs/v1-stability.md`** — classify every exported symbol as Frozen/Additive/Under consideration. Effort: 30min.
 
 ## Won't Implement
 

@@ -8,7 +8,7 @@ _Updated: 2026-08-07 — ETag RFC 7232 + RFC 9110 compliance fixes (escaped quot
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (16 middlewares)
+### Core Middleware Suite (17 middlewares)
 
 | Middleware               | File                                   | Config Type                                                   | Tests | Examples                            | Benchmarks                             | Fuzz                |
 | ------------------------ | -------------------------------------- | ------------------------------------------------------------- | ----- | ----------------------------------- | -------------------------------------- | ------------------- |
@@ -28,8 +28,7 @@ _Updated: 2026-08-07 — ETag RFC 7232 + RFC 9110 compliance fixes (escaped quot
 | Server-Timing            | `server_timing.go`                     | —                                                             | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`               | `FuzzServerTiming*` |
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`             | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`           | —                   |
-
-| Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | — | — | — |
+| Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | —                                   | —                                      | —                   |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
@@ -167,7 +166,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.6% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-05 with race detection enabled.
+- `go test -race ./...` passes across the full suite with **96.7% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
 - 20 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag (conditional requests + compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
 - 41 benchmarks and 23 example functions across both packages.
 - `go vet` clean.
@@ -191,9 +190,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ## PARTIALLY DONE
 
-### Test Coverage — 14 sub-100% functions (defensive code paths)
+### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-08-05 with `go test -race -coverprofile`: **97.6%** (`httputil`), **99.3%** (`httpspec`). The remaining 14 sub-100% functions are documented defensive code paths:
+Measured 2026-08-07 with `go test -race -coverprofile`: **96.7%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
@@ -215,7 +214,7 @@ Measured 2026-08-05 with `go test -race -coverprofile`: **97.6%** (`httputil`), 
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
 - `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
 
-**Honest assessment:** The remaining 14 functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
+**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
 
 ---
 
