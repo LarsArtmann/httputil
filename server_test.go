@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
@@ -396,5 +397,101 @@ func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
 	err = srv.Shutdown(ctx)
 	if err == nil {
 		t.Fatal("expected error when context expires with active connections")
+	}
+}
+
+func TestServerConfigValidateTLSInsecureMinVersion(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.TLSConfig = &tls.Config{
+		MinVersion: tls.VersionTLS10,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for TLS 1.0 MinVersion")
+	}
+
+	if !errors.Is(err, errTLSMinVersionInsecure) {
+		t.Errorf("Validate() error = %v, want errTLSMinVersionInsecure", err)
+	}
+}
+
+func TestServerConfigValidateTLSInsecureMinVersion11(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.TLSConfig = &tls.Config{
+		MinVersion: tls.VersionTLS11,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for TLS 1.1 MinVersion")
+	}
+
+	if !errors.Is(err, errTLSMinVersionInsecure) {
+		t.Errorf("Validate() error = %v, want errTLSMinVersionInsecure", err)
+	}
+}
+
+func TestServerConfigValidateTLSMinVersion12(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.TLSConfig = &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for TLS 1.2 MinVersion", err)
+	}
+}
+
+func TestServerConfigValidateTLSMinVersion13(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.TLSConfig = &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for TLS 1.3 MinVersion", err)
+	}
+}
+
+func TestServerConfigValidateTLSZeroMinVersion(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.TLSConfig = &tls.Config{}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for zero MinVersion (defaults to TLS 1.2)", err)
+	}
+}
+
+func TestNewServerWiresTLSConfig(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
+
+	cfg := DefaultServerConfig()
+	cfg.TLSConfig = tlsCfg
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	if srv.httpServer.TLSConfig != tlsCfg {
+		t.Error("NewServer() did not wire TLSConfig to the underlying http.Server")
 	}
 }

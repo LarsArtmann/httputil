@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -30,11 +31,15 @@ var (
 	errServerTimeoutOrdering = errors.New(
 		"ServerConfig.ReadHeaderTimeout must be <= ReadTimeout (RFC 7230 §6)",
 	)
+	errTLSMinVersionInsecure = errors.New(
+		"ServerConfig.TLSConfig.MinVersion must be at least TLS 1.2 (RFC 8996)",
+	)
 )
 
 // ServerConfig holds the configuration for an HTTP server.
 type ServerConfig struct {
 	Addr              string
+	TLSConfig         *tls.Config
 	ReadTimeout       time.Duration
 	ReadHeaderTimeout time.Duration
 	WriteTimeout      time.Duration
@@ -62,6 +67,8 @@ func DefaultServerConfig() ServerConfig {
 //   - All timeouts are non-negative
 //   - ReadHeaderTimeout <= ReadTimeout (the underlying http.Server enforces
 //     this internally; checking here surfaces the misconfiguration clearly)
+//   - TLSConfig.MinVersion (when set) is at least TLS 1.2 (RFC 8996 deprecates
+//     TLS 1.0/1.1; a zero MinVersion defaults to TLS 1.2 in Go 1.18+, which is safe)
 func (c ServerConfig) Validate() error {
 	if c.Addr == "" {
 		return errServerAddrEmpty
@@ -95,6 +102,14 @@ func (c ServerConfig) Validate() error {
 		)
 	}
 
+	if c.TLSConfig != nil && c.TLSConfig.MinVersion != 0 && c.TLSConfig.MinVersion < tls.VersionTLS12 {
+		return fmt.Errorf(
+			"%w: MinVersion=0x%04x",
+			errTLSMinVersionInsecure,
+			c.TLSConfig.MinVersion,
+		)
+	}
+
 	return nil
 }
 
@@ -117,7 +132,7 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 			Addr:                         cfg.Addr,
 			Handler:                      handler,
 			DisableGeneralOptionsHandler: false,
-			TLSConfig:                    nil,
+			TLSConfig:                    cfg.TLSConfig,
 			ReadTimeout:                  cfg.ReadTimeout,
 			ReadHeaderTimeout:            cfg.ReadHeaderTimeout,
 			WriteTimeout:                 cfg.WriteTimeout,
