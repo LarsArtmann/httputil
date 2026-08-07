@@ -47,7 +47,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `DefaultCompressionConfig`      | `CompressionConfig`            |
 | `DefaultDecompressionConfig`    | `DecompressionConfig`          |
 | `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig`       |
-| `DefaultMaxBodySizeConfig`  | `MaxBodySizeConfig`            |
+| `DefaultMaxBodySizeConfig`      | `MaxBodySizeConfig`            |
 | `DefaultMetricsConfig`          | `MetricsConfig`                |
 | `DefaultRateLimitConfig`        | `RateLimitConfig` (deprecated) |
 | `DefaultRequestIDConfig`        | `RequestIDConfig`              |
@@ -221,9 +221,9 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ErrCodeHijackUnsupported`     | Frozen |                 |
 | `ErrCodeHijackFailed`          | Frozen |                 |
 | `ErrCodeCompressWriteFailed`   | Frozen |                 |
-| `etag.ErrCodeETagWriteFailed`  | Frozen | ETag error     |
-| `etag.ErrCodeInvalidConfig`    | Frozen | ETag error     |
-| `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error     |
+| `etag.ErrCodeETagWriteFailed`  | Frozen | ETag error      |
+| `etag.ErrCodeInvalidConfig`    | Frozen | ETag error      |
+| `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error      |
 | `ErrCSRFInvalid`               | Frozen | CSRF sentinel   |
 | `ErrCSRFConfig`                | Frozen | CSRF sentinel   |
 | `RegisterErrorClassifications` | Frozen |                 |
