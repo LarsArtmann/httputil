@@ -87,9 +87,27 @@ func TestEntityTag_Comparison(t *testing.T) {
 		strong bool
 		weak   bool
 	}{
-		{name: "both weak same opaque", a: NewEntityTag("1", EntityTagWeak), b: NewEntityTag("1", EntityTagWeak), strong: false, weak: true},
-		{name: "weak vs strong same opaque", a: NewEntityTag("1", EntityTagWeak), b: NewEntityTag("1", EntityTagStrong), strong: false, weak: true},
-		{name: "both strong same opaque", a: NewEntityTag("1", EntityTagStrong), b: NewEntityTag("1", EntityTagStrong), strong: true, weak: true},
+		{
+			name:   "both weak same opaque",
+			a:      NewEntityTag("1", EntityTagWeak),
+			b:      NewEntityTag("1", EntityTagWeak),
+			strong: false,
+			weak:   true,
+		},
+		{
+			name:   "weak vs strong same opaque",
+			a:      NewEntityTag("1", EntityTagWeak),
+			b:      NewEntityTag("1", EntityTagStrong),
+			strong: false,
+			weak:   true,
+		},
+		{
+			name:   "both strong same opaque",
+			a:      NewEntityTag("1", EntityTagStrong),
+			b:      NewEntityTag("1", EntityTagStrong),
+			strong: true,
+			weak:   true,
+		},
 		{
 			name:   "both strong different opaque",
 			a:      NewEntityTag("1", EntityTagStrong),
