@@ -1,5 +1,7 @@
 # Status Report — 2026-08-07 08:39
 
+> **Annotation (2026-08-07 docs-health):** Section B item 1 (ROADMAP note for idempotency) **done** — added to ROADMAP.md "Post-v1.0 ideas". Section B item 2 (go-retry non-goal rationale) **done** — added to ROADMAP.md Non-goals. Section F items 1–2 **done** (ROADMAP edits landed). Items 3–4 (ResponseRecorder replay verification, go-etag pattern check) **deferred** — design research, not actionable. Items 5–8 (v1.0 freeze track) **in ROADMAP.md**. Items 9–18 are ROADMAP fuel for a potential post-v1.0 idempotency middleware. Questions Q1–Q3: ROADMAP edits landed; v1.0 stabilization window still accepting scope-boundary docs; native interface preferred (nosurf is the exception, not the rule).
+
 **Scope:** Review of `~/projects/go-retry` and `~/projects/go-idempotency` for applicability to `httputil`. This report covers **only this session's work and what was noticed in passing** — no fresh codebase-wide scan was performed (per instruction).
 
 **Format note:** Written as Markdown (`.md`) per explicit user request, overriding the status-report skill's canonical HTML dashboard format. Flagged here so the divergence is visible.

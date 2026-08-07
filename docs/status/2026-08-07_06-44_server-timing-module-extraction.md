@@ -1,5 +1,7 @@
 # Status Report: Server-Timing Module Extraction
 
+> **Annotation (2026-08-07 docs-health):** The Server-Timing extraction **succeeded** — the sub-module is stable, stdlib-only, and all quality gates pass. The ETag destruction by the auto-commit daemon (section D) was **resolved**: ETag was extracted to go-etag and re-integrated as a thin adapter in a subsequent session. Section F items 1–4 (phantom module decision) **resolved** — go-etag module created and adapter integrated. Items 5–11 (stale httputil. references, FEATURES row, v1-stability, DOMAIN_LANGUAGE) **done** by subsequent sessions. Items 12–23 (multi-module CI, versioning strategy) are **ROADMAP fuel** for v1.0 preparation. Items 31–40 (future architecture) are **post-v1.0 scope**.
+
 **Date:** 2026-08-07 06:44
 **Session Goal:** Extract the `server_timing` feature into a dedicated Go module
 **Outcome:** Module extraction complete and passing; collateral damage from auto-git daemon required emergency fixes

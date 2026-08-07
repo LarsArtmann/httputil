@@ -4,6 +4,8 @@
 **Session scope:** Completing the self-critique backlog from the go-etag → httputil re-integration
 **Verdict:** Functional code is solid (0 lint, race-clean, 97.2% coverage), but **documentation and test depth have significant gaps** that were missed.
 
+> **Annotation (2026-08-07 docs-health):** This entire session was **REVERTED** — the code-copy approach was wrong. The 22:22 session reverted all 11 commits and implemented the correct thin-adapter approach. All section F items below are **obsolete** — they describe work on code that was deleted. The correct adapter integration is documented in `docs/status/2026-08-07_22-22_go-etag-adapter-integration.md` and `docs/status/2026-08-07_22-43_etag-adapter-self-critique.md`.
+
 ---
 
 ## ❗❗❗ CRITICAL FUNDAMENTAL MISUNDERSTANDING — READ THIS FIRST ❗❗❗

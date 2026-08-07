@@ -1,5 +1,7 @@
 # Status Report: ETag Extraction to `go-etag` Module
 
+> **Annotation (2026-08-07 docs-health):** The extraction was **correct and intentional** — go-etag is now an independent module. It was later re-integrated into httputil as a thin adapter (`httputil.ETag()`). Section F items 1–5 (lint fixes, dead code removal, fmt) are **go-etag's responsibility**, not httputil's. Items 13–14 (inline hexDigitsLower, remove hex.go) — hex.go comment was updated but the file remains (single consumer is fine). Items 19–25 (documentation) **done** — cross-reference in README, CHANGELOG updated. Items 29–33 (future extraction improvements: shared responseWrapper, Middleware type, RegisterErrorClassifications) are **ROADMAP fuel** for post-v1.0 modularization.
+
 **Date:** 2026-08-07 06:44  
 **Session scope:** Extract the ETag middleware from `httputil` into a standalone `github.com/larsartmann/go-etag` module at `../go-etag`.
 

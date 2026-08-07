@@ -2,6 +2,8 @@
 
 **Date:** 2026-08-07 22:22
 **Session scope:** Correcting the disastrous code-copying approach from the prior session, reverting it, and implementing the correct thin-adapter approach over the independent `go-etag` module.
+
+> **Annotation (2026-08-07 docs-health):** All section C (NOT STARTED) items 1–9 **done** by the 22:43 follow-up session (`go mod tidy`, CONTRIBUTING.md, v1-stability.md, D2 diagram, DOMAIN_LANGUAGE.md, ExampleETag, chain test). Section F items 1–4 **done**. Items 5–8 **done** (D2, DOMAIN_LANGUAGE, ExampleETag, chain test). Items 9–32 are ROADMAP fuel or design decisions — items 27 (type aliases) and 18 (DefaultETagConfig wrapper) **decided NO** per the 22:43 session. Questions Q1–Q3: decided NO on re-exports and wrappers; error-registration superset pattern is correct as-is.
 **Verdict:** The adapter is correct and minimal. Tests pass, lint clean. But docs are incomplete in several places, the go.mod has an incorrect `// indirect` marker, and test depth is thin.
 
 ---

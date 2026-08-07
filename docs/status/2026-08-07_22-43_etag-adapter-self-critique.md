@@ -1,5 +1,7 @@
 # Status Report: go-etag Adapter Integration — Self-Critique
 
+> **Annotation (2026-08-07 docs-health):** Items 1–3 (CHANGELOG ghosts) **done** — ghost compliance/edge-case test entries removed from `[Unreleased]`, all entries audited against current `etag_test.go`. Item 4 (stack_integration_test.go ETag) **open in TODO_LIST**. Item 5 (README ETag positioning) **open in TODO_LIST**. Items 8 (coverage) **done** — re-measured at 97.0%. Items 6, 9–10 (server_timing race, full-suite stress, nix flake check) **not re-verified**. Item 11 (D2 SVG) **resolved**. Items 13–21 (compliance tests in httputil) **not doing** — compliance tests live in go-etag's suite. Items 22–28 (doc polish) **mostly done** — FEATURES/ROADMAP updated. Items 41–50 (future enhancements) **in ROADMAP.md** (post-v1.0 scope). Questions Q1–Q2: ghosts deleted (option a); D2 uses `--layout=elk`.
+
 **Date:** 2026-08-07 22:43
 **Session goal:** Complete all remaining go-etag adapter integration tasks from the prior session's priority list.
 

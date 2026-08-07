@@ -8,11 +8,11 @@ _Updated: 2026-08-07._
 
 ## Current Position
 
-v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validate()` methods across all config structs, `SecurityHeadersConfig` enrichment, `httpspec` CORS and rate-limit specs, CSRF fuzz tests, and a full-stack integration test. 96.9% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
+v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validate()` methods across all config structs, `SecurityHeadersConfig` enrichment, `httpspec` CORS and rate-limit specs, CSRF fuzz tests, and a full-stack integration test.
 
-v0.9.1 (2026-08-06) is an RFC 7232 compliance patch: ETag `If-None-Match` now uses the weak comparison function, and list parsing respects commas inside quoted opaque-tags.
+v0.9.1 (2026-08-06) is an RFC 7232 compliance patch for the ETag middleware.
 
-The next milestone is **v1.0** (API stability commitment).
+**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module and re-integrated as a thin adapter (`httputil.ETag()`). `ServerConfig.TLSConfig` validation, decompression benchmarks/fuzz, and govulncheck in the devShell. 97.0% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
 
 ## v0.9.0 — Feature additions
 
@@ -31,6 +31,10 @@ Before v1.0:
 - **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module, integrated into httputil via a thin adapter (`httputil.ETag()`). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
 - One stabilization cycle before the commitment.
 
+## Post-v1.0 ideas
+
+- **Idempotency-key middleware** — Stripe-style `Idempotency-Key` middleware is a legitimate httputil-shaped concern, but deferred to post-v1.0 to avoid scope creep against the API freeze. If pursued, define a native `IdempotencyStore` interface (Get/Save with TTL) rather than importing `go-idempotency` — its Store only dedupes keys (seen/not-seen), not the response body needed to replay a prior result. The `ResponseRecorder` captures status/headers/body but is not designed as a replay primitive; a separate cache type would be needed. See `docs/status/2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`.
+
 ## Dependency policy
 
 Stdlib + `go-error-family` (same author, zero transitive deps) + `go-etag` (same author, ETag conditional requests) + `golang.org/x/time` (canonical Go rate-limit extension) + `github.com/justinas/nosurf` (CSRF double-submit cookie — security-critical, complex to hand-roll). Extensibility for encoders (brotli/zstd/lz4), distributed rate limiters (Redis), and metrics (Prometheus) is exposed via plugin interfaces with documentation examples in [`docs/integrations/`](docs/integrations/), not core dependencies.
@@ -48,3 +52,4 @@ Things we are deliberately NOT pursuing and why:
 - **Removing `nopCloserWriter` / `nopFlushCloser`** — defensive scaffolding for the `WriterFactory` contract; kept for API safety.
 - **Removing `TokenBucketLimiter` before v1.0** — deprecated, but removal waits for the v1.0 stability freeze to avoid breaking consumers.
 - **Property-based tests for token bucket** — existing benchmarks and integration tests cover the contract; adding rapid/quickcheck would violate the dependency policy.
+- **Retry middleware** — application-layer concern (retrying outbound calls with backoff). No natural integration point in a server-side `func(http.Handler) http.Handler` middleware chain; a "retry middleware" would semantically mean replaying inbound requests through the handler, which is unsafe for non-idempotent methods. See `docs/status/2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`.

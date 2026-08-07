@@ -1,5 +1,7 @@
 # Status Report — 2026-08-07 08:52
 
+> **Annotation (2026-08-07 docs-health):** All 4 tasks (items a.1–a.4) **done and now in CHANGELOG `[Unreleased]`**. All section C NOT STARTED items resolved: items 1–2 (TODO_LIST, CHANGELOG) **done** by this docs-health pass; items 3–5 (AGENTS.md, FEATURES.md) **done**; item 6 (unstaged change) **committed**. Section F items 1–6 **done** (docs updated). Items 7–11 (validation hardening) — CORSConfig.AllowedMethods, DecompressionConfig encodings validation are **open** but low priority. Items 23–25 (remove assertBodyEmpty, art-dupl) — assertBodyEmpty removal **open in TODO_LIST**.
+
 ## TLSConfig Validation, Validate() Audit, Decompression Benchmarks & Fuzz Test
 
 **Session scope:** Execute 4 TODO_LIST items (2 Medium, 2 Low priority).

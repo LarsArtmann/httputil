@@ -5,6 +5,8 @@
 **Starting state:** `ada0c8d` — build broken (3 test files referencing deleted ETag symbols)
 **Ending state:** All quality gates green. Build, vet, lint 0 issues, fmt, race -count=1, nix flake check, art-dupl 0 clones. Coverage 96.9% (`go test` reported) / 97.4% (`go tool cover` total).
 
+> **Annotation (2026-08-07 docs-health):** Section A items 1–10 all **done**. Section C item 1 (go-etag not wired) — **resolved** by the 22:22 session which added go-etag as a dependency + adapter. Coverage reconciliation: actual is now **97.0%** (`go test`) / **97.5%** (`go tool cover`). Section F items 1–5 (go-etag wiring) **done**; items 6–10 (code quality) — item 9 (decompression fuzz) **done**, item 10 (limitedReadCloser fuzz) **open**; items 11–15 (docs) **mostly done**; items 16–21 (testing) **mostly done**; items 31–35 (v1.0 prep) — TLSConfig validation **done**, MiddlewareDecompression constant **open in TODO_LIST**.
+
 ---
 
 ## Session Timeline

@@ -1,5 +1,7 @@
 # Status Report: WebSocket Test Removal & Coverage-Gap Discovery
 
+> **Annotation (2026-08-07 docs-health):** Section F item f.1 (CHANGELOG coverage claim correction) — the `[Unreleased]` section was rewritten; the overstated "remains covered" claim is no longer present. Item f.2 (restore real-connection Hijack test) — **deferred** (design decision: is the property worth testing via a lighter test?). Items f.3 (websocket comment scope) — **resolved**: comments kept (they document Hijacker intent). Item f.10 (AGENTS.md known-gap note) — the honest-silence pattern is now documented in AGENTS.md. Questions Q1–Q3: comments kept; property deferred; `Removed` entries should state coverage delta (adopted as convention).
+
 > **Scope:** Session-scoped. This report covers ONLY what happened in the 2026-08-07 ~06:00 session ("Remove all websocket suckk") and what I noticed during it. It is not a full-project audit.
 
 **Session window:** 2026-08-07 ~05:55 → 06:12
