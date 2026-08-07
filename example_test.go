@@ -284,7 +284,11 @@ func ExampleMaxBodySize() {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte("this is way too long")))
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/",
+		bytes.NewReader([]byte("this is way too long")),
+	)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
