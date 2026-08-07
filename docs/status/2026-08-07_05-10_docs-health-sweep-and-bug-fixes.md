@@ -244,6 +244,7 @@
 ### Q1: Should `writeBufferedBody` log the error, store it on the struct, or revert to honest silence?
 
 The post-header-commit body write in `flush()` and `Flush()` fundamentally cannot propagate errors — the handler has returned and the HTTP response is in-flight. I added `errorfamily.WrapTransient` wrapping, but both call sites discard the error with `_ =`. Options:
+
 - **(a) Log via `slog`** — requires adding a logger to `etagWriter`, which currently has none. Adds a dependency to the ETag path.
 - **(b) Store on struct** — `w.writeErr = w.writeBufferedBody()` for later inspection. But nobody inspects `etagWriter` after `flush()` returns.
 - **(c) Revert to `_, _ =` with a comment** — honest silence: "post-header-commit write errors are unreportable in Go's Handler model."

@@ -55,24 +55,24 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 
 Objects with identity and lifecycle within the library.
 
-| Term                   | Definition                                                                                    | Context          |
-| ---------------------- | --------------------------------------------------------------------------------------------- | ---------------- |
-| ResponseRecorder       | A wrapping `http.ResponseWriter` that captures the status code and write state                | Response Capture |
-| CORSConfig             | A configuration value object defining CORS policy (origins, methods, headers, etc.)           | CORS             |
-| SecurityHeadersConfig  | A configuration value object defining which security headers to set                           | Security Headers |
-| RequestIDConfig        | A configuration value object defining request ID header name and generation logic             | Request ID       |
-| CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)     | Compression      |
-| DecompressionConfig    | A configuration value object defining decompression parameters (encodings, bomb-protection limit) | Decompression  |
-| ETagConfig             | A configuration value object defining ETag generation parameters (weak vs strong, max buffer) | ETag             |
-| RateLimitConfig        | A configuration value object defining deprecated token-bucket rate limiting policy            | Rate Limiting    |
-| TokenBucketLimiter     | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)       | Rate Limiting    |
-| KeyedRateLimiterConfig | A configuration value object defining keyed rate limiting policy (limit, window, burst, keys) | Rate Limiting    |
-| KeyedRateLimiter       | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API       | Rate Limiting    |
-| CSRFConfig             | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies)  | CSRF Protection  |
-| ServerTiming           | A per-request timing collector injected via context for handler-internal sub-metrics          | Server-Timing    |
-| MetricsConfig          | A configuration value object defining metrics recording behavior                              | Metrics          |
-| ServerConfig           | A configuration value object defining server address, timeouts, and TLS settings              | Server Lifecycle |
-| MiddlewareStack        | A named middleware collection with duplicate prevention and ordering validation               | Middleware Stack |
+| Term                   | Definition                                                                                        | Context          |
+| ---------------------- | ------------------------------------------------------------------------------------------------- | ---------------- |
+| ResponseRecorder       | A wrapping `http.ResponseWriter` that captures the status code and write state                    | Response Capture |
+| CORSConfig             | A configuration value object defining CORS policy (origins, methods, headers, etc.)               | CORS             |
+| SecurityHeadersConfig  | A configuration value object defining which security headers to set                               | Security Headers |
+| RequestIDConfig        | A configuration value object defining request ID header name and generation logic                 | Request ID       |
+| CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)         | Compression      |
+| DecompressionConfig    | A configuration value object defining decompression parameters (encodings, bomb-protection limit) | Decompression    |
+| ETagConfig             | A configuration value object defining ETag generation parameters (weak vs strong, max buffer)     | ETag             |
+| RateLimitConfig        | A configuration value object defining deprecated token-bucket rate limiting policy                | Rate Limiting    |
+| TokenBucketLimiter     | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)           | Rate Limiting    |
+| KeyedRateLimiterConfig | A configuration value object defining keyed rate limiting policy (limit, window, burst, keys)     | Rate Limiting    |
+| KeyedRateLimiter       | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API           | Rate Limiting    |
+| CSRFConfig             | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies)      | CSRF Protection  |
+| ServerTiming           | A per-request timing collector injected via context for handler-internal sub-metrics              | Server-Timing    |
+| MetricsConfig          | A configuration value object defining metrics recording behavior                                  | Metrics          |
+| ServerConfig           | A configuration value object defining server address, timeouts, and TLS settings                  | Server Lifecycle |
+| MiddlewareStack        | A named middleware collection with duplicate prevention and ordering validation                   | Middleware Stack |
 
 ---
 
@@ -80,35 +80,35 @@ Objects with identity and lifecycle within the library.
 
 Immutable objects defined by their attributes.
 
-| Term                 | Definition                                                                                         | Context          |
-| -------------------- | -------------------------------------------------------------------------------------------------- | ---------------- |
-| Client IP            | The extracted IP address string identifying the originating client                                 | Client IP        |
-| Origin               | The value of the `Origin` request header; identifies the requesting site's scheme+host+port        | CORS             |
-| Allowed Origin       | An origin string permitted by the CORS policy; `*` means any origin is allowed                     | CORS             |
-| Preflight Request    | An `OPTIONS` request sent by the browser before the actual cross-origin request                    | CORS             |
-| Actual Request       | The real request (GET, POST, etc.) following a successful preflight                                | CORS             |
-| Status Code          | The HTTP status code captured by the ResponseRecorder (e.g., 200, 404)                             | Response Capture |
-| Write State          | Whether `WriteHeader` has been called on the ResponseRecorder                                      | Response Capture |
-| Request ID           | A unique string identifying a request, propagated via header or generated                          | Request ID       |
-| ETag Value           | An opaque string identifying a specific version of a response body                                 | ETag             |
-| Weak ETag            | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity      | ETag             |
-| Compression Level    | An integer controlling the compression tradeoff (speed vs ratio)                                   | Compression      |
-| Min Size             | The minimum response body size (bytes) before compression is applied                               | Compression      |
-| Max Decompression Size | The maximum decompressed body size (bytes) before the bomb-protection limit triggers (default: 16 MiB) | Decompression |
-| Decompression Bomb    | A small compressed payload that decompresses to an enormous size, designed to exhaust server memory | Decompression  |
-| Max Buffer Size      | The maximum bytes buffered for ETag computation before abandoning                                  | ETag             |
-| Token Bucket         | A per-key container holding token count and last-refill timestamp                                  | Rate Limiting    |
-| Eviction TTL         | Duration after which idle rate-limit entries are lazily removed; zero disables eviction            | Rate Limiting    |
-| Max Keys             | Caps the number of tracked rate-limit keys; oldest is evicted at capacity (zero = unbounded)       | Rate Limiting    |
-| Key Extractor        | A function type extracting the rate-limit key from a request (RemoteAddr or ClientIP)              | Rate Limiting    |
-| Retry-After          | Duration until a rejected rate-limited client may retry; sent as an HTTP response header           | Rate Limiting    |
-| CSRF Token           | A cryptographically random nonce stored in a cookie and submitted with each state-changing request | CSRF Protection  |
-| Double-Submit Cookie | CSRF defense pattern: token sent in both cookie and request header/body for comparison             | CSRF Protection  |
-| Trusted Origin       | An origin explicitly allowed for cross-domain CSRF validation                                      | CSRF Protection  |
-| Trusted Proxy        | An IP/CIDR of a reverse proxy that may strip or overwrite origin/protocol headers                  | CSRF Protection  |
-| Server-Timing Metric | A named sub-measurement within a single request's Server-Timing header (name + duration)           | Server-Timing    |
-| Health Status        | The operational state reported by health endpoints: `up` or `down`                                 | Health           |
-| Ready Probe          | A function that returns true when the service is ready to accept traffic                           | Health           |
+| Term                   | Definition                                                                                             | Context          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- |
+| Client IP              | The extracted IP address string identifying the originating client                                     | Client IP        |
+| Origin                 | The value of the `Origin` request header; identifies the requesting site's scheme+host+port            | CORS             |
+| Allowed Origin         | An origin string permitted by the CORS policy; `*` means any origin is allowed                         | CORS             |
+| Preflight Request      | An `OPTIONS` request sent by the browser before the actual cross-origin request                        | CORS             |
+| Actual Request         | The real request (GET, POST, etc.) following a successful preflight                                    | CORS             |
+| Status Code            | The HTTP status code captured by the ResponseRecorder (e.g., 200, 404)                                 | Response Capture |
+| Write State            | Whether `WriteHeader` has been called on the ResponseRecorder                                          | Response Capture |
+| Request ID             | A unique string identifying a request, propagated via header or generated                              | Request ID       |
+| ETag Value             | An opaque string identifying a specific version of a response body                                     | ETag             |
+| Weak ETag              | An ETag prefixed with `W/` indicating semantic equivalence rather than byte-for-byte identity          | ETag             |
+| Compression Level      | An integer controlling the compression tradeoff (speed vs ratio)                                       | Compression      |
+| Min Size               | The minimum response body size (bytes) before compression is applied                                   | Compression      |
+| Max Decompression Size | The maximum decompressed body size (bytes) before the bomb-protection limit triggers (default: 16 MiB) | Decompression    |
+| Decompression Bomb     | A small compressed payload that decompresses to an enormous size, designed to exhaust server memory    | Decompression    |
+| Max Buffer Size        | The maximum bytes buffered for ETag computation before abandoning                                      | ETag             |
+| Token Bucket           | A per-key container holding token count and last-refill timestamp                                      | Rate Limiting    |
+| Eviction TTL           | Duration after which idle rate-limit entries are lazily removed; zero disables eviction                | Rate Limiting    |
+| Max Keys               | Caps the number of tracked rate-limit keys; oldest is evicted at capacity (zero = unbounded)           | Rate Limiting    |
+| Key Extractor          | A function type extracting the rate-limit key from a request (RemoteAddr or ClientIP)                  | Rate Limiting    |
+| Retry-After            | Duration until a rejected rate-limited client may retry; sent as an HTTP response header               | Rate Limiting    |
+| CSRF Token             | A cryptographically random nonce stored in a cookie and submitted with each state-changing request     | CSRF Protection  |
+| Double-Submit Cookie   | CSRF defense pattern: token sent in both cookie and request header/body for comparison                 | CSRF Protection  |
+| Trusted Origin         | An origin explicitly allowed for cross-domain CSRF validation                                          | CSRF Protection  |
+| Trusted Proxy          | An IP/CIDR of a reverse proxy that may strip or overwrite origin/protocol headers                      | CSRF Protection  |
+| Server-Timing Metric   | A named sub-measurement within a single request's Server-Timing header (name + duration)               | Server-Timing    |
+| Health Status          | The operational state reported by health endpoints: `up` or `down`                                     | Health           |
+| Ready Probe            | A function that returns true when the service is ready to accept traffic                               | Health           |
 
 ---
 
@@ -206,8 +206,8 @@ State transitions within the library.
 | Security Headers Set          | SecurityHeaders middleware writes security headers before delegating                                      | Security Headers |
 | Compression Applied           | Compression middleware encodes the response body using the negotiated encoding                            | Compression      |
 | Compression Skipped           | Compression middleware passes through (no gzip accept, below min size, non-2xx)                           | Compression      |
-| Body Decompressed             | Decompression middleware wraps r.Body with a decompressing reader and removes encoding headers         | Decompression    |
-| Decompression Bomb Detected   | Decompressed body exceeds MaxDecompressionSize; reads return error and the underlying reader is closed | Decompression    |
+| Body Decompressed             | Decompression middleware wraps r.Body with a decompressing reader and removes encoding headers            | Decompression    |
+| Decompression Bomb Detected   | Decompressed body exceeds MaxDecompressionSize; reads return error and the underlying reader is closed    | Decompression    |
 | ETag Computed                 | ETag middleware generates an ETag value from the response body                                            | ETag             |
 | Not Modified Returned         | ETag middleware returns 304 because If-None-Match matched the computed ETag                               | ETag             |
 | ETag Skipped                  | ETag middleware passes through (non-GET/HEAD, non-2xx, body too large)                                    | ETag             |

@@ -297,17 +297,17 @@ FEATURES.md says "`httpspec.Run(t, handler)` validates any `http.Handler` agains
 
 ## Verification Snapshot
 
-| Check                              | Result                                        |
-| ---------------------------------- | --------------------------------------------- |
-| `go test -race -count=1 ./...`     | PASS (97.8% httputil, 96.0% httpspec)         |
-| `go vet ./...`                     | clean                                         |
-| `golangci-lint run` (~70 linters)  | 0 issues                                      |
-| `golangci-lint fmt`                | CLEAN (no diff)                               |
+| Check                              | Result                                                                       |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `go test -race -count=1 ./...`     | PASS (97.8% httputil, 96.0% httpspec)                                        |
+| `go vet ./...`                     | clean                                                                        |
+| `golangci-lint run` (~70 linters)  | 0 issues                                                                     |
+| `golangci-lint fmt`                | CLEAN (no diff)                                                              |
 | `govulncheck ./...`                | ~~PASS — No vulnerabilities found~~ [run by 11:26 session, not this session] |
 | `nix flake check`                  | ~~PASS — all checks passed~~ [run by 11:26 session, not this session]        |
-| `go mod verify`                    | ~~PASS — all modules verified~~ [run by 11:26 session, not this session]    |
-| `scripts/check-changelog-links.sh` | PASS                                          |
-| Git status                         | clean (auto-git daemon committed the changes) |
+| `go mod verify`                    | ~~PASS — all modules verified~~ [run by 11:26 session, not this session]     |
+| `scripts/check-changelog-links.sh` | PASS                                                                         |
+| Git status                         | clean (auto-git daemon committed the changes)                                |
 
 ---
 
