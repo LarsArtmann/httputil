@@ -8,7 +8,7 @@ _Updated: 2026-08-07._
 
 ## Current Position
 
-v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validate()` methods across all config structs, `SecurityHeadersConfig` enrichment, `httpspec` CORS and rate-limit specs, CSRF fuzz tests, and a full-stack integration test. 96.7% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
+v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validate()` methods across all config structs, `SecurityHeadersConfig` enrichment, `httpspec` CORS and rate-limit specs, CSRF fuzz tests, and a full-stack integration test. 97.2% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
 
 v0.9.1 (2026-08-06) is an RFC 7232 compliance patch: ETag `If-None-Match` now uses the weak comparison function, and list parsing respects commas inside quoted opaque-tags.
 
