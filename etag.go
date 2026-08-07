@@ -230,7 +230,9 @@ func (w *etagWriter) matchesIfNoneMatch(req *http.Request, etag string) bool {
 
 // parseETagList splits a comma-separated list of entity-tags, respecting
 // commas inside quoted opaque-tags per RFC 7232 §2.3 (etagc permits any
-// VCHAR except DQUOTE, which includes comma).
+// VCHAR except DQUOTE, which includes comma). Backslash escapes inside
+// quoted-strings are honored so that an escaped DQUOTE does not toggle
+// the quote state.
 func parseETagList(list string) []string {
 	var tags []string
 
@@ -238,7 +240,21 @@ func parseETagList(list string) []string {
 
 	inQuotes := false
 
+	escaped := false
+
 	for i := range list {
+		if escaped {
+			escaped = false
+
+			continue
+		}
+
+		if list[i] == '\\' && inQuotes {
+			escaped = true
+
+			continue
+		}
+
 		if list[i] == '"' {
 			inQuotes = !inQuotes
 		}

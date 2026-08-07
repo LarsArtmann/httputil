@@ -229,7 +229,7 @@ handler := httputil.Compression(cfg)(mux)
 
 ### ETag Generation
 
-Generates ETag headers from response body content and handles `If-None-Match` conditional requests with `304 Not Modified`. Only applies to `GET` and `HEAD` requests.
+Generates ETag headers from response body content and handles `If-None-Match` conditional requests with `304 Not Modified`. Only applies to `GET` and `HEAD` requests. Uses the RFC 7232 §2.3.2 weak comparison function for `If-None-Match`, so `W/"abc"` and `"abc"` are treated as equivalent.
 
 ```go
 handler := httputil.ETag(httputil.DefaultETagConfig())(mux)

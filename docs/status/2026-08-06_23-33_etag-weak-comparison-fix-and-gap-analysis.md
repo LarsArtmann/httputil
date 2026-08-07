@@ -81,8 +81,8 @@ Searched Sourcegraph + web for all Go ETag libraries. Result:
 
 ## b) PARTIALLY DONE
 
-1. **CHANGELOG.md `[Unreleased]`** — **NOT UPDATED.** The fix is committed but not recorded in the changelog. The `[Unreleased]` section is empty. This violates the project's own Keep a Changelog policy.
-2. **Fuzz corpus enrichment** — The existing `FuzzETag` fuzz test (`etag_test.go:184`) only seeds exact-match `If-None-Match` values. No `W/"..."` seeds were added to its corpus. The fuzzer discovered weak-prefixed inputs organically (55 new interesting inputs), but explicit seeds documenting the fix would be better.
+1. ~~**CHANGELOG.md `[Unreleased]`** — **NOT UPDATED.** The fix is committed but not recorded in the changelog. The `[Unreleased]` section is empty. This violates the project's own Keep a Changelog policy.~~ **Done at v0.9.1** — CHANGELOG.md `[0.9.1]` section created with Fixed + Added entries.
+2. ~~**Fuzz corpus enrichment** — The existing `FuzzETag` fuzz test (`etag_test.go:184`) only seeds exact-match `If-None-Match` values. No `W/"..."` seeds were added to its corpus. The fuzzer discovered weak-prefixed inputs organically (55 new interesting inputs), but explicit seeds documenting the fix would be better.~~ **Done at v0.9.1** — `W/"779a65e7023cd2e7"` + multi-tag weak seed added to `FuzzETag` corpus.
 
 ---
 
