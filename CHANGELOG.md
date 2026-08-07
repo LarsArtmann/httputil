@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Removed
+
+- **ETag middleware extracted to `go-etag` module** (`etag.go`, `etag_test.go`, `etag_compress_fuzz_test.go`, `httpspec/etag_integration_test.go`): ETag generation (FNV-64a) + RFC 7232 weak-comparison `If-None-Match` 304 middleware moved to a dedicated Go module `github.com/larsartmann/go-etag` (package `etag`). The new module is self-contained with only `go-error-family` as a dependency. Removed: `ETag()`, `ETagConfig`, `DefaultETagConfig()`, `ErrCodeETagWriteFailed`, `MiddlewareETag` constant, `ExampleETag`, ETag-related chain tests, and ETag-specific fuzz tests. Updated: `errors.go` (removed ETag error code + template), `stack.go` (removed `MiddlewareETag`), `wrapper.go` and `hex.go` (updated comments), `FEATURES.md`, `README.md`, `TODO_LIST.md`, `ROADMAP.md`, `AGENTS.md`.
+
 ### Changed
 
 - **Server-Timing extracted into `server_timing` sub-module** (`server_timing/`): W3C Server-Timing instrumentation (`ServerTiming`, `ServerTimingMiddleware`, `MeasureServerTiming`, etc.) moved from the root `httputil` package to a dedicated Go module `github.com/larsartmann/httputil/server_timing` (package `servertiming`). The sub-module is stdlib-only with zero external dependencies. The root module references it via a `replace` directive; both are coordinated through `go.work`. Import path changed from `httputil.ServerTimingMiddleware` to `servertiming.ServerTimingMiddleware`.

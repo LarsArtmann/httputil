@@ -7,7 +7,7 @@ Both libraries target the **same Go 1.22+ `http.ServeMux`** via the [`humago`](h
 ## Why they fit
 
 - **Same foundation:** `humago.New` wraps `http.ServeMux`; httputil wraps `http.Handler`. Same router, same signature, zero glue.
-- **No overlap:** huma handles typed handlers, input validation, and OpenAPI generation. httputil handles compression, ETags, security headers, logging, recovery, CORS, and server lifecycle. Neither duplicates the other.
+- **No overlap:** huma handles typed handlers, input validation, and OpenAPI generation. httputil handles compression, security headers, logging, recovery, CORS, and server lifecycle. Neither duplicates the other.
 - **Clean boundary:** httputil operates _outside_ the router (per-request plumbing); huma operates _inside_ the router (per-operation contracts). The layers never collide.
 
 ## Complete example
@@ -56,7 +56,6 @@ func main() {
 		httputil.Logging(slog.Default()),
 		httputil.Recovery(slog.Default()),
 		httputil.Compression(httputil.DefaultCompressionConfig()),
-		httputil.ETag(httputil.DefaultETagConfig()),
 		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
 		httputil.CORS(httputil.DefaultCORSConfig()),
 	)
@@ -72,12 +71,12 @@ func main() {
 ## Request flow
 
 ```
-Client → httputil.Chain (CORS → Security → ETag → Compression → Recovery → Logging)
+Client → httputil.Chain (CORS → Security → Compression → Recovery → Logging)
        → http.ServeMux
        → humago adapter → huma operation handler (typed input → validation → OpenAPI)
 ```
 
-httputil runs **outside** the router, so every huma operation benefits from compression, ETags, security headers, logging, and recovery without any huma-specific wiring.
+httputil runs **outside** the router, so every huma operation benefits from compression, security headers, logging, and recovery without any huma-specific wiring.
 
 ## See also
 

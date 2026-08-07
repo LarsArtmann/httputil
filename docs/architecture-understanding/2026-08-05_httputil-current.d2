@@ -11,7 +11,7 @@ package httputil: {
   style.font-color: "#f4f4f0"
   style.stroke: "#ffb347"
 
-  middleware_chain: Middleware Chain (17) {
+  middleware_chain: Middleware Chain (16) {
     shape: package
     style.fill: "#16161a"
     style.font-color: "#f4f4f0"
@@ -24,7 +24,6 @@ package httputil: {
     security: SecurityHeaders
     compression: Compression
     decompression: Decompression
-    etag: ETag
     maxbody: MaxBodySize
     ratelimit_keyed: KeyedRateLimit
     metrics: Metrics
@@ -33,7 +32,7 @@ package httputil: {
     servertiming: Server-Timing
     ratelimit_deprecated: RateLimit (deprecated)
 
-    recovery -> logging -> requestid -> timeout -> cors -> security -> compression -> etag -> handler
+    recovery -> logging -> requestid -> timeout -> cors -> security -> compression -> handler
     maxbody -> handler
     decompression -> handler
     ratelimit_keyed -> handler
@@ -103,7 +102,6 @@ nosurf: justinas/nosurf {
 
 consumer -> middleware_chain: import
 compression -> wrapper: embeds
-etag -> wrapper: embeds
 wrapper -> recorder: delegates
 errors -> errorfamily: classifies via
 ratelimit_keyed -> xtime: token bucket via

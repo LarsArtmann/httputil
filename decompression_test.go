@@ -222,6 +222,68 @@ func TestDecompressionBombProtection(t *testing.T) {
 	}
 }
 
+// errorReadCloser is a test ReadCloser with configurable Read and Close errors.
+type errorReadCloser struct {
+	readErr  error
+	closeErr error
+	closed   bool
+}
+
+func (r *errorReadCloser) Read(p []byte) (int, error) {
+	if r.readErr != nil {
+		return 0, r.readErr
+	}
+
+	return 0, io.EOF
+}
+
+func (r *errorReadCloser) Close() error {
+	r.closed = true
+
+	return r.closeErr
+}
+
+var (
+	errTestRead  = errors.New("test read failure")
+	errTestClose = errors.New("test close failure")
+)
+
+func TestLimitedReaderCloseError(t *testing.T) {
+	t.Parallel()
+
+	src := &errorReadCloser{closeErr: errTestClose}
+	lrc := limitedReadCloser(src, defaultMaxDecompressionSize)
+
+	err := lrc.Close()
+	if err == nil {
+		t.Fatal("Close() error = nil, want error")
+	}
+
+	if !errors.Is(err, errTestClose) {
+		t.Errorf("Close() error = %v, want errTestClose", err)
+	}
+
+	if !src.closed {
+		t.Error("Close() did not call underlying Close")
+	}
+}
+
+func TestLimitedReaderReadError(t *testing.T) {
+	t.Parallel()
+
+	src := &errorReadCloser{readErr: errTestRead}
+	lrc := limitedReadCloser(src, defaultMaxDecompressionSize)
+
+	_, err := lrc.Read(make([]byte, 16))
+	if err == nil {
+		t.Fatal("Read() error = nil, want error")
+	}
+
+	if !errors.Is(err, errTestRead) {
+		t.Errorf("Read() error = %v, want errTestRead", err)
+	}
+}
+
 func TestDecompressionPassesThroughUnencoded(t *testing.T) {
 	t.Parallel()
 

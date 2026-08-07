@@ -28,7 +28,6 @@ This document enumerates every exported symbol and classifies its stability comm
 | `CSRFConfig`             | Additive | New in v0.8.0                                             |
 | `CompressionConfig`      | Additive |                                                           |
 | `DecompressionConfig`    | Additive |                                                           |
-| `ETagConfig`             | Additive |                                                           |
 | `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
 | `RateLimitConfig`        | Additive | Deprecated v0.8.0; removal targeted for v1.0              |
@@ -46,7 +45,6 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `DefaultCORSConfig`             | `CORSConfig`                   |
 | `DefaultCompressionConfig`      | `CompressionConfig`            |
 | `DefaultDecompressionConfig`    | `DecompressionConfig`          |
-| `DefaultETagConfig`             | `ETagConfig`                   |
 | `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig`       |
 | `DefaultMetricsConfig`          | `MetricsConfig`                |
 | `DefaultRateLimitConfig`        | `RateLimitConfig` (deprecated) |
@@ -63,7 +61,6 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`               |
 | `Compression`                  | `func(CompressionConfig) Middleware`            |
 | `Decompression`                | `func(DecompressionConfig) Middleware`          |
-| `ETag`                         | `func(ETagConfig) Middleware`                   |
 | `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`       |
 | `Logging`                      | `func(*slog.Logger) Middleware`                 |
 | `MaxBodySize`                  | `func(int64) Middleware`                        |
@@ -204,7 +201,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ---------------------------- | -------- |
 | `NewMiddlewareStack`         | Frozen   |
 | `MiddlewareStack`            | Additive |
-| `Middleware*` constants (12) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareETag`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`) |
+| `Middleware*` constants (11) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`) |
 
 ### Query Parsing (Frozen at v1.0)
 
@@ -220,7 +217,6 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ErrCodeHijackUnsupported`     | Frozen |                 |
 | `ErrCodeHijackFailed`          | Frozen |                 |
 | `ErrCodeCompressWriteFailed`   | Frozen |                 |
-| `ErrCodeETagWriteFailed`       | Frozen |                 |
 | `ErrCSRFInvalid`               | Frozen | CSRF sentinel   |
 | `ErrCSRFConfig`                | Frozen | CSRF sentinel   |
 | `RegisterErrorClassifications` | Frozen |                 |

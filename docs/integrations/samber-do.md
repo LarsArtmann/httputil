@@ -6,7 +6,7 @@ Both libraries operate on plain Go types: `do` manages construction and lifecycl
 
 ## Why they fit
 
-- **No overlap:** `do` handles dependency wiring, lazy singletons, and shutdown orchestration. httputil handles compression, ETags, security headers, logging, recovery, CORS, rate limiting, and server lifecycle. Neither duplicates the other.
+- **No overlap:** `do` handles dependency wiring, lazy singletons, and shutdown orchestration. httputil handles compression, security headers, logging, recovery, CORS, rate limiting, and server lifecycle. Neither duplicates the other.
 - **Clean boundary:** `do` runs in the composition root (startup and shutdown). httputil runs per-request (middleware chain). The two interact at exactly one point: graceful server shutdown.
 - **Structural lifecycle match:** `httputil.Server.Shutdown(context.Context) error` satisfies `do.ShutdownerWithContextAndError` out of the box — no adapter, no wrapper, no `do` import in httputil. When the container shuts down, it discovers the HTTP server automatically and calls its `Shutdown` with **your** deadline.
 
@@ -134,7 +134,6 @@ func NewHTTPServer(i do.Injector) (*httputil.Server, error) {
 		httputil.Logging(logger),
 		httputil.RequestID(httputil.DefaultRequestIDConfig()),
 		httputil.Compression(httputil.DefaultCompressionConfig()),
-		httputil.ETag(httputil.DefaultETagConfig()),
 		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
 	)
 
@@ -162,7 +161,7 @@ Startup:
     → srv.Start()                                 goroutine listens on :8080
 
 Per-request:
-  Client → httputil.Chain (Recovery → Logging → RequestID → Compression → ETag → SecurityHeaders)
+  Client → httputil.Chain (Recovery → Logging → RequestID → Compression → SecurityHeaders)
          → *http.ServeMux → handler → UserRepo
 
 Shutdown (SIGINT or server error):
@@ -172,7 +171,7 @@ Shutdown (SIGINT or server error):
     → other Shutdowner* services in reverse invocation order
 ```
 
-httputil runs **outside** the router, so every route benefits from compression, ETags, security headers, logging, and recovery without any router-specific wiring. `do` runs **around** the entire application, owning construction and teardown.
+httputil runs **outside** the router, so every route benefits from compression, security headers, logging, and recovery without any router-specific wiring. `do` runs **around** the entire application, owning construction and teardown.
 
 ## Combining with type-safe routing
 
@@ -182,7 +181,7 @@ Neither `do` nor httputil provides type-safe routing — by design. For typed ha
 | ----------------------- | --------- | ------------------------------------------------------- |
 | Composition & lifecycle | samber/do | Dependency wiring, lazy singletons, graceful shutdown   |
 | Type-safe routing       | huma      | Typed handlers, validation, OpenAPI from Go structs     |
-| HTTP plumbing           | httputil  | Compression, ETags, security headers, logging, recovery |
+| HTTP plumbing           | httputil  | Compression, security headers, logging, recovery |
 
 `samber/do`'s generics (`[T any]`) cannot express heterogeneous handler signatures — Go has no variadic type parameters. Type-safe routing requires code generation (huma) or a generic builder, not a DI container. See the [research comparison](../research/2026-07-05_httputil-vs-huma.md) for details.
 

@@ -153,7 +153,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.2% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
+- `go test -race ./...` passes across the full suite with **96.9% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
 - 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
 - 41 benchmarks and 23 example functions across both packages.
 - `go vet` clean.
@@ -179,7 +179,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-08-07 with `go test -race -coverprofile`: **97.2%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-08-07 with `go test -race -coverprofile`: **96.9%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
@@ -196,9 +196,7 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **97.2%** (`httputil`), 
 
 **Decompression middleware:**
 
-- `decompression.go:62 Decompression` — 78.1%. Encoding-filter reject path.
-- `decompression.go:134 limitedReadCloser.Read` — 91.7%. Non-EOF decompression read error path.
-- `decompression.go:159 limitedReadCloser.Close` — 75.0%. Underlying reader Close error path.
+- `decompression.go:62 Decompression` — 78.1%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate).
 
 **Pre-existing (error-injection / internal paths):**
 
