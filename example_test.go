@@ -75,7 +75,7 @@ func ExampleNewResponseRecorder() {
 
 func ExampleCompression() {
 	cfg := CompressionConfig{MinSize: 1, Level: -2}
-	handler := Compression(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+	handler := Compression(cfg)(newWriteStatusHandler("hello world"))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Accept-Encoding", "gzip")

@@ -14,7 +14,7 @@ func TestCompression_NoAcceptEncoding(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(newWriteStatusHandler(http.StatusOK, "hello"))
+	handler := Compression(cfg)(newWriteStatusHandler("hello"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -70,7 +70,7 @@ func TestCompression_SmallResponse(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
-	handler := Compression(cfg)(newWriteStatusHandler(http.StatusOK, "small"))
+	handler := Compression(cfg)(newWriteStatusHandler("small"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)

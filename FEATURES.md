@@ -2,13 +2,13 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — ETag RFC 7232 + RFC 9110 compliance fixes (escaped quotes, multi-header combination). All claims verified against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — ETag middleware extracted to `go-etag` module. All claims verified against current source with `go test -race -coverprofile`._
 
 ---
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (17 middlewares)
+### Core Middleware Suite (16 middlewares)
 
 | Middleware               | File                                   | Config Type                                                   | Tests | Examples                            | Benchmarks                             | Fuzz                |
 | ------------------------ | -------------------------------------- | ------------------------------------------------------------- | ----- | ----------------------------------- | -------------------------------------- | ------------------- |
@@ -21,7 +21,6 @@ _Updated: 2026-08-07 — ETag RFC 7232 + RFC 9110 compliance fixes (escaped quot
 | Logging                  | `logging.go`                           | `*slog.Logger`                                                | Yes   | `ExampleLogging`                    | `BenchmarkLogging`                     | —                   |
 | ResponseRecorder         | `recorder.go`                          | —                                                             | Yes   | `ExampleNewResponseRecorder`        | `BenchmarkResponseRecorder`            | —                   |
 | Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression`                 | `FuzzCompression`   |
-| ETag                     | `etag.go`                              | `ETagConfig` + `Validate()`                                   | Yes   | `ExampleETag`                       | `BenchmarkETag`, `BenchmarkETagInList` | `FuzzETag`          |
 | MaxBodySize              | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | —                                   | —                                      | —                   |
 | RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface     | Yes   | —                                   | `BenchmarkTokenBucketLimiter`          | —                   |
 | Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | —                                   | —                                      | —                   |
@@ -34,7 +33,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Error Classification System
 
-- 5 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`.
+- 4 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
 - CSRF middleware uses `go-error-family` directly: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family), plus inline `NewInfrastructure` errors for config validation failures.
 - Message templates with `what/why/fix/wayOut` for all classified errors.
@@ -43,11 +42,11 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Shared ResponseWriter Wrapper
 
 - `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, and `Flush` delegation.
-- Embedded by `compressWriter` and `etagWriter`, eliminating ~80 lines of duplication.
+- Embedded by `compressWriter`, eliminating ~80 lines of duplication.
 
 ### Infrastructure Types
 
-- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 12 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Compression, ETag, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit).
+- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 11 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Compression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit).
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
@@ -67,18 +66,6 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
 - RFC 7231 `Accept-Encoding` negotiation with q-value parsing; server priority order is brotli > zstd > gzip > deflate > identity.
 - Single error-classification choke point: compress write failures funnel through `compressWriteError` with `encoding` context.
-
-### ETag Correctness
-
-- FNV-64a hash (64-bit, birthday bound ~4 billion) via configurable `HashFunc` field — replaced CRC32 to eliminate collision risk.
-- RFC 7232 §2.3.2 weak comparison for `If-None-Match` (`etagInList` + `stripWeakPrefix`): `W/"abc"` and `"abc"` are treated as equivalent, as required by §3.2.
-- RFC 7232 §2.3 compliant list parsing (`parseETagList`): quote-state-aware splitter that respects commas inside quoted opaque-tags and honors backslash-escaped DQUOTE so that `\"` does not toggle the quote state.
-- RFC 9110 §5.2 multi-header combination (`matchesIfNoneMatch`): multiple `If-None-Match` header field lines are combined into one list via `Header.Values` + `strings.Join`, not truncated to the first value via `Header.Get`.
-- All 2xx statuses cacheable (`isCacheableStatus()`).
-- 1MB memory safety limit (`MaxBufferSize`).
-- Zero-allocation hex encoding via stack arrays and lookup table.
-- All write paths classify errors via `go-error-family` (`ErrCodeETagWriteFailed`), including the buffered body flush.
-- GET/HEAD only. No `If-Match` / `If-Unmodified-Since` / `If-Modified-Since` / `If-Range` support yet (see `TODO_LIST.md`).
 
 ### Rate Limiting
 
@@ -167,7 +154,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - `golangci-lint` with ~70 linters, 0 issues.
 - `go test -race ./...` passes across the full suite with **97.2% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
-- 20 fuzz tests covering CORS (origin matching, wildcard patterns), Compression, ETag (conditional requests + compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
+- 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
 - 41 benchmarks and 23 example functions across both packages.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
@@ -215,7 +202,6 @@ Measured 2026-08-07 with `go test -race -coverprofile`: **97.2%** (`httputil`), 
 
 **Pre-existing (error-injection / internal paths):**
 
-- `etag.go:179 computeETag` — 94.4%. Empty-body-with-wroteHeader edge (reachable only via direct unit construction).
 - `id_generator.go:100 drawRandomBytes` — 66.7%. `crypto/rand` error path (requires kernel-level fault injection).
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
 - `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.

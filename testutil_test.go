@@ -64,10 +64,10 @@ func assertHeader(t *testing.T, rec *httptest.ResponseRecorder, key, want string
 	}
 }
 
-// newWriteStatusHandler returns an http.HandlerFunc that writes status and body.
-func newWriteStatusHandler(status int, body string) http.HandlerFunc {
+// newWriteStatusHandler returns an http.HandlerFunc that writes StatusOK and body.
+func newWriteStatusHandler(body string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(status)
+		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(body))
 	})
 }
@@ -98,7 +98,6 @@ func newStatusOnlyHandler(status int) http.HandlerFunc {
 // compression threshold used in middleware tests.
 func newWriteLargeBodyHandler() http.HandlerFunc {
 	return newWriteStatusHandler(
-		http.StatusOK,
 		strings.Repeat("a", defaultCompressionMinSize+1),
 	)
 }
@@ -185,16 +184,6 @@ func assertBodyEmpty(t *testing.T, rec *httptest.ResponseRecorder, msg string) {
 
 	if rec.Body.Len() != 0 {
 		t.Errorf("body length = %d, want 0 %s", rec.Body.Len(), msg)
-	}
-}
-
-// assertETagEmpty checks that a response recorder has no ETag header,
-// formatted with msg to clarify the test intent (e.g. "for POST").
-func assertETagEmpty(t *testing.T, rec *httptest.ResponseRecorder, msg string) {
-	t.Helper()
-
-	if got := rec.Header().Get(headerETag); got != "" {
-		t.Errorf("ETag = %q, want empty %s", got, msg)
 	}
 }
 

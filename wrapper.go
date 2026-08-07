@@ -9,7 +9,7 @@ import (
 )
 
 // responseWrapper provides common ResponseWriter wrapping behavior used by
-// compressWriter and etagWriter. It buffers WriteHeader calls and delegates
+// compressWriter. It buffers WriteHeader calls and delegates
 // Hijack and Flush to the underlying writer when supported.
 type responseWrapper struct {
 	http.ResponseWriter

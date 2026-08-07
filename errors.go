@@ -89,5 +89,4 @@ func registerAllErrorTemplates() {
 		"Check if the client disconnected or if the response buffer is full.",
 		msgRetryMaySucceed,
 	)
-
 }

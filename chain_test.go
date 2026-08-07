@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 )
@@ -13,7 +12,7 @@ func TestChain_RecoveryLoggingCORS(t *testing.T) {
 	logger := newTestLogger()
 	corsCfg := DefaultCORSConfig()
 
-	inner := newWriteStatusHandler(http.StatusOK, "ok")
+	inner := newWriteStatusHandler("ok")
 
 	handler := Chain(inner, CORS(corsCfg), Recovery(logger), Logging(logger))
 
@@ -51,7 +50,7 @@ func TestChain_RequestIDSecurityHeaders(t *testing.T) {
 	reqCfg := DefaultRequestIDConfig()
 	secCfg := DefaultSecurityHeadersConfig()
 
-	inner := newWriteStatusHandler(http.StatusOK, "")
+	inner := newWriteStatusHandler("")
 
 	handler := Chain(inner, SecurityHeaders(secCfg), RequestID(reqCfg))
 
@@ -97,7 +96,7 @@ func BenchmarkChain(b *testing.B) {
 	reqCfg := DefaultRequestIDConfig()
 	secCfg := DefaultSecurityHeadersConfig()
 
-	inner := newWriteStatusHandler(http.StatusOK, "")
+	inner := newWriteStatusHandler("")
 
 	handler := Chain(
 		inner,

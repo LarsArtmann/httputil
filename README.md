@@ -6,7 +6,7 @@
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag generation, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
 Minimal footprint — three dependencies (`go-error-family` same-author + `golang.org/x/time` + `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
 
@@ -249,16 +249,6 @@ handler := httputil.Decompression(cfg)(mux)
 
 Use `cfg.Validate()` to catch invalid configurations at startup (e.g., negative `MaxDecompressionSize`).
 
-### ETag Generation
-
-Generates ETag headers from response body content and handles `If-None-Match` conditional requests with `304 Not Modified`. Only applies to `GET` and `HEAD` requests. Uses the RFC 7232 §2.3.2 weak comparison function for `If-None-Match`, so `W/"abc"` and `"abc"` are treated as equivalent.
-
-```go
-handler := httputil.ETag(httputil.DefaultETagConfig())(mux)
-```
-
-Set `Weak: true` for weak ETags (`W/"..."`) if your content may change semantically but not byte-for-byte.
-
 ### HTTP Server
 
 A configurable `http.Server` wrapper with sensible timeout defaults and lifecycle helpers.
@@ -415,8 +405,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `GzipWriterFactory`              | `func(int) WriterFactory`                                             | Stdlib gzip factory at a given level            |
 | `DeflateWriterFactory`           | `func(int) WriterFactory`                                             | Stdlib flate/raw-deflate factory                |
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression  |
-| `ETag`                           | `func(ETagConfig) func(http.Handler) http.Handler`                    | ETag generation + 304 handling                  |
-| `DefaultETagConfig`              | `func() ETagConfig`                                                   | Strong ETag defaults                            |
 | `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection    |
 | `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                           |
 | `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_       |
@@ -478,14 +466,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Level`               | `int`                      | `gzip.DefaultCompression`      | Compression level used when `WriterFactories` is not supplied; applies to both gzip and deflate |
 | `WriterFactories`     | `map[string]WriterFactory` | gzip, deflate, identity        | Encoding-name → factory map; replace or extend                                                  |
 | `IncompressibleTypes` | `[]string`                 | `DefaultIncompressibleTypes()` | Content-types to skip (nil = defaults, empty = compress all)                                    |
-
-### `ETagConfig` fields
-
-| Field           | Type                  | Default   | Description                                                                      |
-| --------------- | --------------------- | --------- | -------------------------------------------------------------------------------- |
-| `Weak`          | `bool`                | `false`   | Emit weak ETags (`W/"..."`) for semantically-volatile content                    |
-| `MaxBufferSize` | `int`                 | `1048576` | Max bytes buffered for ETag computation before abandoning and streaming (1 MB)   |
-| `HashFunc`      | `func([]byte) uint64` | FNV-64a   | Body hash function for ETag generation; replace for application-specific hashing |
 
 ### `DecompressionConfig` fields
 
@@ -588,19 +568,6 @@ handler := Chain(mux,
     SecurityHeaders(DefaultSecurityHeadersConfig()),
     CORS(DefaultCORSConfig()),
 )
-```
-
-When using **Compression** and **ETag** together, order matters:
-
-```go
-// CORRECT: ETag inner, Compression outer.
-// ETag sees the uncompressed body, producing a stable ETag.
-handler := Chain(mux, Compression(cfg), ETag(cfg))
-
-// WRONG: Compression inner, ETag outer.
-// ETag sees gzip-compressed bytes (includes metadata),
-// producing a different ETag on every request.
-handler := Chain(mux, ETag(cfg), Compression(cfg)) // don't do this
 ```
 
 **Decompression** should be placed outer so downstream middleware (e.g., `MaxBodySize`) sees the decompressed body size:

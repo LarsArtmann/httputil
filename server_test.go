@@ -317,7 +317,7 @@ func TestServerServesRequests(t *testing.T) {
 	cfg := DefaultServerConfig()
 	cfg.Addr = "127.0.0.1:0"
 
-	handler := newWriteStatusHandler(http.StatusOK, "hello")
+	handler := newWriteStatusHandler("hello")
 
 	srv, err := NewServer(cfg, handler)
 	if err != nil {
