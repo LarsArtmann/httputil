@@ -90,7 +90,7 @@ Living docs (`TODO_LIST.md`, `FEATURES.md`, `ROADMAP.md`, `CHANGELOG.md`) should
 
 ## Architecture
 
-Two Go modules in a workspace (`go.work`): the root `httputil` module (flat package with middleware + server lifecycle, and the `httputil/httpspec` subpackage for reusable HTTP behavior specs) and the `httputil/server_timing` sub-module (W3C Server-Timing instrumentation, stdlib-only, zero external deps). The root module has three external dependencies: `github.com/larsartmann/go-error-family`, `golang.org/x/time`, and `github.com/justinas/nosurf`. Go 1.26+.
+Two Go modules in a workspace (`go.work`): the root `httputil` module (flat package with middleware + server lifecycle, and the `httputil/httpspec` subpackage for reusable HTTP behavior specs) and the `httputil/server_timing` sub-module (W3C Server-Timing instrumentation, stdlib-only, zero external deps). The root module has four external dependencies: `github.com/larsartmann/go-error-family`, `golang.org/x/time`, `github.com/justinas/nosurf`, and `github.com/larsartmann/go-etag` (ETag conditional requests, wrapped by the thin `etag.go` adapter). Go 1.26+.
 
 ### CHANGELOG Freeze Policy
 
@@ -98,7 +98,7 @@ Once a version tag (e.g., `v0.8.0`) is created, the corresponding `[version]` se
 
 ### Why the Root Package Is Flat (Deliberate, Not Debt)
 
-The root `httputil` package has 32 non-test files in one directory. **Decision confirmed by the user (2026-08-05) based on ergonomics**: for a middleware library where everything shares one signature (`func(http.Handler) http.Handler`), a single import path (`httputil.CORS()`) beats fragmented sub-package namespaces (`httputil/cors.CORS()`). Public sub-packages are also structurally impossible: compression depends on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), creating circular imports if extracted. An `internal/` extraction is technically viable (root → internal is one direction, no cycles) but deferred until post-v1.0 or if root exceeds ~50 non-test files. See `docs/architecture-understanding/2026-08-05_06-56_package-structure-analysis.html` and `docs/modularization/2026-08-05_DECISION.html` for the full analysis.
+The root `httputil` package has 33 non-test files in one directory. **Decision confirmed by the user (2026-08-05) based on ergonomics**: for a middleware library where everything shares one signature (`func(http.Handler) http.Handler`), a single import path (`httputil.CORS()`) beats fragmented sub-package namespaces (`httputil/cors.CORS()`). Public sub-packages are also structurally impossible: compression depends on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), creating circular imports if extracted. An `internal/` extraction is technically viable (root → internal is one direction, no cycles) but deferred until post-v1.0 or if root exceeds ~50 non-test files. See `docs/architecture-understanding/2026-08-05_06-56_package-structure-analysis.html` and `docs/modularization/2026-08-05_DECISION.html` for the full analysis.
 
 | File                          | Exports                                                                                                                                                                                                                              | Purpose                                                                                      |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -134,6 +134,7 @@ The root `httputil` package has 32 non-test files in one directory. **Decision c
 | `queryparam.go` | `ParseUintQuery()` | Parse uint values from HTTP query parameters |
 | `decompression.go` | `DecompressionConfig`, `DefaultDecompressionConfig()`, `Decompression()`, `Validate()` | Request body decompression middleware (gzip/deflate) with bomb protection |
 | `csrf.go` | `CSRFConfig`, `Validate()`, `CSRFMiddleware()`, `ConfigureNosurfHandler()`, `CSRFResponseHeaderMiddleware()`, `ValidateCSRF()`, `WithCSRFToken()`, `CSRFTokenFromContext()`, `CSRFTokenFromRequest()`, `InvalidateCSRFCookie()`, `CSRFTokenHXHeaders()`, `CSRFTokenHTMLMeta()`, `CSRFTokenFormField()`, `CSRFTestToken()`, `SetPlaintextHTTPOrigin()`, `TranslateCSRFHeaders()`, `ForbiddenHandler()`, `ErrCSRFInvalid`, `ErrCSRFConfig` | CSRF protection middleware via `justinas/nosurf` (double-submit cookie) |
+| `etag.go` | `ETag()` | Thin adapter over [go-etag]: ETag generation + If-None-Match 304 handling |
 | `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newWriteStatusHandler`, `newWriteBodyHandler`, `newStatusOnlyHandler`, `newTypedBodyHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertSliceEqual`) | Shared test helpers for consistent test patterns |
 | `doc.go` | (package doc only) | Package-level GoDoc documentation |
 
@@ -166,7 +167,7 @@ Separate Go module (`github.com/larsartmann/httputil/server_timing`, package `se
 
 ## Error Classification
 
-Errors from `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` are classified using `go-error-family`:
+Errors from `ResponseRecorder`, `compressWriter`, `CSRFMiddleware`, and the go-etag writer are classified using `go-error-family`:
 
 | Source     | Error Code                   | Family         | Retryable | When                                                           |
 | ---------- | ---------------------------- | -------------- | --------- | -------------------------------------------------------------- |
@@ -176,6 +177,9 @@ Errors from `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` are class
 | `Compress` | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write/Close fails                           |
 | `CSRF`     | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched                   |
 | `CSRF`     | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid (e.g. SameSite=None without Secure) |
+| `ETag`     | `http.etag_write_failed`     | Transient      | Yes       | ETag writer fails to stream buffered data                      |
+| `ETag`     | `http.etag_config_invalid`   | Rejection      | No        | ETagConfig has an invalid field value                          |
+| `ETag`     | `http.etag_hash_write_failed`| Orchestration  | No        | Hash.Write fails, violating the hash.Hash contract             |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
 
@@ -209,7 +213,7 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **`t.Errorf`** for non-fatal, `t.Fatalf` for fatal assertions
 - **`httptest.NewRecorder()`** + `httptest.NewRequest()` for HTTP doubles
 - **Shared test helpers** in `testutil_test.go`: `newNoOpHandler()`, `newCountingHandler()`, `newTestRequest()`, `newRecorder()`
-- **Test files split by middleware** — each middleware has its own `*_test.go` (e.g., `security_test.go`, `requestid_test.go`, `recovery_test.go`, `timeout_test.go`, `logging_test.go`, `csrf_test.go`, `ratelimit_keyed_test.go`). Compression middleware tests are in `compression_test.go` and `compression_negotiator_test.go`; q-value parsing tests are in `compression_qvalue_test.go`; factory tests are in `compression_factory_test.go`; the ID generator has `id_generator_test.go`. Chain integration tests in `chain_test.go`. Server-Timing tests, benchmarks, and fuzz tests are in the `server_timing` sub-module (`server_timing/server_timing_test.go`, `server_timing/server_timing_bench_test.go`, `server_timing/server_timing_fuzz_test.go`).
+- **Test files split by middleware** — each middleware has its own `*_test.go` (e.g., `security_test.go`, `requestid_test.go`, `recovery_test.go`, `timeout_test.go`, `logging_test.go`, `csrf_test.go`, `ratelimit_keyed_test.go`, `etag_test.go`). Compression middleware tests are in `compression_test.go` and `compression_negotiator_test.go`; q-value parsing tests are in `compression_qvalue_test.go`; factory tests are in `compression_factory_test.go`; the ID generator has `id_generator_test.go`. Chain integration tests in `chain_test.go`. Server-Timing tests, benchmarks, and fuzz tests are in the `server_timing` sub-module (`server_timing/server_timing_test.go`, `server_timing/server_timing_bench_test.go`, `server_timing/server_timing_fuzz_test.go`).
 
 ### Test File Lint Relaxations
 

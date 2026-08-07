@@ -11,6 +11,8 @@ import (
 	"time"
 
 	servertiming "github.com/larsartmann/httputil/server_timing"
+
+	etag "github.com/larsartmann/go-etag"
 )
 
 func ExampleClientIP() {
@@ -248,4 +250,25 @@ func ExampleKeyedRateLimiterMiddleware() {
 	fmt.Println(rec.Code)
 
 	// Output: 200
+}
+
+func ExampleETag() {
+	handler := ETag(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
+
+	// First request: the middleware computes and sets the ETag header.
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	generated := rec.Header().Get("ETag")
+	fmt.Println(generated != "")
+
+	// Second request with matching If-None-Match: 304 Not Modified, empty body.
+	rec2 := httptest.NewRecorder()
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2.Header.Set("If-None-Match", generated)
+	handler.ServeHTTP(rec2, req2)
+	fmt.Println(rec2.Code)
+
+	// Output:
+	// true
+	// 304
 }
