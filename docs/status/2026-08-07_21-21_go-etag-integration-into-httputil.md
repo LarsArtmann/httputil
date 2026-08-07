@@ -125,6 +125,7 @@ ETag middleware was **previously extracted OUT of httputil** into a standalone `
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Must do (correctness + convention compliance)
+
 1. Split all table-driven tests in `etag_test.go` into standalone `func Test*(t *testing.T)` per convention
 2. Split all table-driven tests in `entity_tag_test.go` into standalone functions
 3. Delete `nonHijackableRecorder` dead code from `etag_test.go`
@@ -138,6 +139,7 @@ ETag middleware was **previously extracted OUT of httputil** into a standalone `
 11. Update `ROADMAP.md`: reflect ETag is now in-module
 
 ### Should do (test completeness)
+
 12. Port BDD spec tests from go-etag's `etag_bdd_test.go` (7 RFC 7232 spec test functions)
 13. Re-create chain tests: `TestChain_CompressionETag_HijackPassthrough`, Compression+ETag 304 interaction
 14. Re-create `httpspec/etag_integration_test.go` (3 ETag-specific specs + standard 18)
@@ -147,6 +149,7 @@ ETag middleware was **previously extracted OUT of httputil** into a standalone `
 18. Re-create combined `etag_compress_fuzz_test.go` (`FuzzETagConditional`, `FuzzCompressWriterState`)
 
 ### Nice to have (polish)
+
 19. Add `EntityTag` GoDoc examples to `doc.go` or example test
 20. Document `EntityTag` vs `ETag` naming rationale in a design decision doc
 21. Run benchmarks comparing old (go-etag module) vs new (in-module) ETag performance
@@ -171,6 +174,7 @@ ETag middleware was **previously extracted OUT of httputil** into a standalone `
 40. Evaluate whether `OnError` callback should also fire on `defaultETagHashFunc` panic (currently panics, doesn't call OnError)
 
 ### Process improvements
+
 41. Read CHANGELOG before any integration/extraction task — it reveals prior history
 42. Read all test files in the source project before writing tests — avoids missing test categories
 43. Check for `stack.go` constants when adding any middleware

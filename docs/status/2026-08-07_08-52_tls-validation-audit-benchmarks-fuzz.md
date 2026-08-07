@@ -214,6 +214,7 @@ Audited all 11 config structs + `MiddlewareStack.Validate()`. Every config struc
 ### 1. Should TLSConfig validation go beyond MinVersion?
 
 I validate only `MinVersion >= TLS 1.2`. Should I also validate:
+
 - That `Certificates` or `GetCertificate` is non-nil? (Required for actual TLS serving, but the user might set it later on the `*http.Server` directly.)
 - That `CipherSuites` doesn't contain insecure suites? (Go 1.18+ already removes most insecure suites by default, so this is likely redundant.)
 

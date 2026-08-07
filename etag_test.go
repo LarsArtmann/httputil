@@ -324,7 +324,11 @@ func TestETag_Status201_IsCacheable(t *testing.T) {
 func TestETag_NonCacheable_301MovedPermanently(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusMovedPermanently, "hello world"))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newStatusBodyHandler(http.StatusMovedPermanently, "hello world"),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -356,7 +360,11 @@ func TestETag_NonCacheable_302Found(t *testing.T) {
 func TestETag_NonCacheable_304NotModified(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusNotModified, "hello world"))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newStatusBodyHandler(http.StatusNotModified, "hello world"),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -404,7 +412,11 @@ func TestETag_NonCacheable_404NotFound(t *testing.T) {
 func TestETag_NonCacheable_500InternalServerError(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusInternalServerError, "hello world"))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newStatusBodyHandler(http.StatusInternalServerError, "hello world"),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -420,7 +432,11 @@ func TestETag_NonCacheable_500InternalServerError(t *testing.T) {
 func TestETag_NonCacheable_503ServiceUnavailable(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusServiceUnavailable, "hello world"))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newStatusBodyHandler(http.StatusServiceUnavailable, "hello world"),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -452,7 +468,11 @@ func TestETag_Status299_IsCacheable(t *testing.T) {
 func TestETag_Status300_NotCacheable(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(newStatusBodyHandler(http.StatusMultipleChoices, "hello world"))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newStatusBodyHandler(http.StatusMultipleChoices, "hello world"),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -530,12 +550,16 @@ func TestETag_ZeroValueConfig_ClampsBufferSize(t *testing.T) {
 func TestETag_304_ExcludesContentLength(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set(headerContentLength, "11")
-		w.WriteHeader(http.StatusOK)
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set(headerContentLength, "11")
+			w.WriteHeader(http.StatusOK)
 
-		_, _ = w.Write([]byte("hello world"))
-	}))
+			_, _ = w.Write([]byte("hello world"))
+		}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -582,19 +606,23 @@ func TestETag_Flush(t *testing.T) {
 func TestETag_FlushAlreadyFlushed(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
 
-		_, _ = w.Write([]byte("data"))
+			_, _ = w.Write([]byte("data"))
 
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			t.Fatal("ResponseWriter does not implement http.Flusher")
-		}
+			flusher, ok := w.(http.Flusher)
+			if !ok {
+				t.Fatal("ResponseWriter does not implement http.Flusher")
+			}
 
-		flusher.Flush()
-		flusher.Flush()
-	}))
+			flusher.Flush()
+			flusher.Flush()
+		}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -621,14 +649,18 @@ func TestETag_Hijack_SetsFlushedMode(t *testing.T) {
 func TestETag_Hijack_NoETag(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
-		hj, ok := rw.(http.Hijacker)
-		if !ok {
-			t.Fatal("ResponseWriter does not implement http.Hijacker")
-		}
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+			hj, ok := rw.(http.Hijacker)
+			if !ok {
+				t.Fatal("ResponseWriter does not implement http.Hijacker")
+			}
 
-		_, _, _ = hj.Hijack()
-	}))
+			_, _, _ = hj.Hijack()
+		}),
+	)
 
 	rec := newHijackRecorder()
 	req := newTestRequest(http.MethodGet, "/", "")
@@ -924,20 +956,24 @@ func TestETag_OverflowWriteError_NilOnError_DoesNotPanic(t *testing.T) {
 func TestETag_FlushWriteError_NilOnError_DoesNotPanic(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
 
-		_, _ = w.Write([]byte("hello world"))
+			_, _ = w.Write([]byte("hello world"))
 
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			t.Fatal("ResponseWriter does not implement http.Flusher")
-		}
+			flusher, ok := w.(http.Flusher)
+			if !ok {
+				t.Fatal("ResponseWriter does not implement http.Flusher")
+			}
 
-		flusher.Flush()
+			flusher.Flush()
 
-		_, _ = w.Write([]byte("after flush"))
-	}))
+			_, _ = w.Write([]byte("after flush"))
+		}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := &failingWriter{ResponseWriter: httptest.NewRecorder()}
@@ -993,7 +1029,11 @@ func TestETag_EmptyHandler_NoETag(t *testing.T) {
 
 	// A handler that writes nothing and never calls WriteHeader hits the
 	// computeETag early return for empty body + no buffered header.
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -1010,9 +1050,13 @@ func TestETag_HandlerWriteHeaderOnly_WithBody(t *testing.T) {
 
 	// A handler that calls WriteHeader but writes no body should still get
 	// an ETag (the empty body hash).
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -1059,7 +1103,11 @@ func FuzzETag(f *testing.F) {
 // --- Benchmarks ---
 
 func BenchmarkETag(b *testing.B) {
-	handler := ETag(DefaultETagConfig())(newWriteBodyHandler([]byte("hello world benchmark test data")))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newWriteBodyHandler([]byte("hello world benchmark test data")),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 
@@ -1070,7 +1118,11 @@ func BenchmarkETag(b *testing.B) {
 }
 
 func BenchmarkETag_IfNoneMatch(b *testing.B) {
-	handler := ETag(DefaultETagConfig())(newWriteBodyHandler([]byte("hello world benchmark test data")))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		newWriteBodyHandler([]byte("hello world benchmark test data")),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
@@ -1109,9 +1161,13 @@ func BenchmarkMatchesIfNoneMatch(b *testing.B) {
 // --- Examples ---
 
 func ExampleETag() {
-	handler := ETag(DefaultETagConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("hello world"))
-	}))
+	handler := ETag(
+		DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("hello world"))
+		}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 

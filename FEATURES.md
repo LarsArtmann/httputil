@@ -43,7 +43,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Shared ResponseWriter Wrapper
 
 - `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, and `Flush` delegation.
-- Embedded by `compressWriter`, eliminating ~80 lines of duplication.
+- Embedded by `compressWriter` and `etagWriter`, eliminating duplicated wrapping logic.
 
 ### Infrastructure Types
 
@@ -102,6 +102,20 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - CRLF-injection-safe header values (sanitized via `escapeQuotedString` and CRLF replacement).
 - Hijacker, Flusher, Pusher delegation via `delegatingWriter`.
 
+### ETag / Conditional Requests
+
+- RFC 7232 entity-tag generation and conditional request handling (re-integrated from `go-etag`).
+- `ETag()` middleware buffers GET/HEAD response bodies, computes an FNV-64a hash, and compares against `If-None-Match` using RFC 7232 §2.3.2 weak comparison. On match, returns 304 Not Modified with no body.
+- `EntityTag` domain type with `EntityTagStrong`/`EntityTagWeak` strength enum, `String()`, `OpaqueTag()`, `IsWeak()`, `IsValid()`, `StrongEqual()`, `WeakEqual()`.
+- `ParseEntityTag` and `ParseEntityTagList` for RFC 7232 §2.3 ABNF-compliant parsing (quote-aware comma splitting, escaped-quote handling).
+- `MatchesIfNoneMatch` (weak comparison) and `MatchesIfMatch` (strong comparison) for application-side precondition evaluation.
+- Configurable `HashFunc` (default FNV-64a), `SkipIfPresent` (respect handler-set ETags), `Skip` predicate (exclude streaming endpoints), `OnError` callback.
+- Buffer overflow protection: responses exceeding `MaxBufferSize` (default 1 MB) are streamed without an ETag.
+- HEAD requests get an ETag + Content-Length but no body (RFC 7230 §3.3).
+- 304 responses strip Content-Length (RFC 7232 §4.1).
+- Non-cacheable status codes (3xx+) never return 304 even when If-None-Match matches.
+- Hijack and Flush calls switch to streaming mode immediately.
+
 ### Query Parameter Helpers
 
 - `ParseUintQuery(r *http.Request, key string) uint` — extracts a base-10 unsigned integer from a named query parameter. Returns 0 if missing, empty, or invalid.
@@ -155,8 +169,8 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - `golangci-lint` with ~70 linters, 0 issues.
 - `go test -race ./...` passes across the full suite with **96.9% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
-- 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, and CSRF fuzz tests verified with `-fuzztime`.
-- 41 benchmarks and 23 example functions across both packages.
+- 22 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers), and ETag (middleware end-to-end, entity-tag parsing, entity-tag list parsing). CORS, query params, eviction, health, compression, CSRF, and ETag fuzz tests verified with `-fuzztime`.
+- 44 benchmarks and 25 example functions across both packages.
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.

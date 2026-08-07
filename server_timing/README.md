@@ -57,15 +57,15 @@ handler := servertiming.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
 
 ## API
 
-| Symbol | Purpose |
-|---|---|
-| `ServerTimingMiddleware()` | Always-on middleware; injects collector via context. |
-| `ServerTimingMiddlewareWhen(pred)` | Conditional middleware; zero-overhead passthrough when `pred` is false. |
-| `WrapServerTiming(w, r)` | Manual wrapping (returns wrapped writer + request with collector). |
-| `ServerTimingFromContext(ctx)` | Retrieve the collector (nil-safe — no-op when absent). |
-| `MeasureServerTiming(ctx, name)` | Context-aware deferred-stop timer. |
-| `RecordServerTiming(ctx, name, desc, dur)` | Context-aware one-shot record. |
-| `ServerTiming` | Direct collector type (`NewServerTiming`, `Record`, `Measure`, `HeaderValue`). |
+| Symbol                                     | Purpose                                                                        |
+| ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `ServerTimingMiddleware()`                 | Always-on middleware; injects collector via context.                           |
+| `ServerTimingMiddlewareWhen(pred)`         | Conditional middleware; zero-overhead passthrough when `pred` is false.        |
+| `WrapServerTiming(w, r)`                   | Manual wrapping (returns wrapped writer + request with collector).             |
+| `ServerTimingFromContext(ctx)`             | Retrieve the collector (nil-safe — no-op when absent).                         |
+| `MeasureServerTiming(ctx, name)`           | Context-aware deferred-stop timer.                                             |
+| `RecordServerTiming(ctx, name, desc, dur)` | Context-aware one-shot record.                                                 |
+| `ServerTiming`                             | Direct collector type (`NewServerTiming`, `Record`, `Measure`, `HeaderValue`). |
 
 All `*ServerTiming` methods are **nil-safe** — a nil collector (no middleware active) makes every call a no-op, so handlers never need per-request nil checks.
 

@@ -161,7 +161,11 @@ func ParseEntityTagList(header string) []EntityTag {
 // matchesAnyEntityTag reports whether tag matches any entity-tag in
 // headerValue using the supplied comparator. The wildcard "*" matches every
 // tag.
-func matchesAnyEntityTag(tag EntityTag, headerValue string, comparator func(EntityTag, EntityTag) bool) bool {
+func matchesAnyEntityTag(
+	tag EntityTag,
+	headerValue string,
+	comparator func(EntityTag, EntityTag) bool,
+) bool {
 	if strings.TrimSpace(headerValue) == etagWildcard {
 		return true
 	}

@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-07 — ETag middleware extracted to `go-etag` module (`github.com/larsartmann/go-etag`). ETag-specific TODO items removed. See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
+_Updated: 2026-08-07 — ETag middleware re-integrated from `go-etag` module. All ETag types and tests are back in the root package. See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
 
 ---
 
