@@ -25,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Fuzz seeds for escaped-quote and multi-header code paths** (`etag_test.go`, `etag_compress_fuzz_test.go`): `FuzzETag` and `FuzzETagConditional` corpora now include backslash-escape inputs documenting the RFC 7232 §2.3 fix.
 - **Decompression documentation** (`README.md`, `docs/v1-stability.md`, `docs/DOMAIN_LANGUAGE.md`): README gains a feature section, API table entries, config reference, and middleware ordering guidance. `v1-stability.md` classifies `DecompressionConfig` and `DefaultDecompressionConfig`. `DOMAIN_LANGUAGE.md` gains Decompression bounded context, entity, value objects, commands, events, and rules.
 
+### Removed
+
+- **WebSocket upgrade integration test** (`websocket_upgrade_test.go`): the `TestCompressionETag_WebSocketUpgrade_Passthrough` test and its `readUpgradeHeaders` helper are deleted. Hijack passthrough through Compression + ETag remains covered by `TestChain_CompressionETag_HijackPassthrough` in `chain_test.go`.
+
 ### Changed
 
 - **Coverage improved 96.7% to 97.2%** across FEATURES.md, README.md, and ROADMAP.md, driven by new decompression bomb-protection tests.
