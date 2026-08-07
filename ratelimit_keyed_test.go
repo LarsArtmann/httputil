@@ -446,3 +446,37 @@ func TestKeyedRateLimiterConfigValidate_AllowsBurstZero(t *testing.T) {
 		t.Errorf("Validate() error = %v, want nil (Burst=0 is allowed)", err)
 	}
 }
+
+func TestKeyedRateLimiterConfigValidate_NegativeTTL(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: time.Minute,
+		TTL:    -1 * time.Second,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for negative TTL")
+	}
+
+	if !errors.Is(err, errKeyedTTLNegative) {
+		t.Errorf("Validate() error = %v, want errKeyedTTLNegative", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_AllowsZeroTTL(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: time.Minute,
+		TTL:    0, // defaults to 10 min at construction — validation must allow
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil (TTL=0 is allowed)", err)
+	}
+}

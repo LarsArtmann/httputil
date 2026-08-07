@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -10,9 +11,10 @@ import (
 )
 
 var (
-	errNilRateLimiter = errors.New("rate limit config: Limiter must not be nil")
-	errInvalidRate    = errors.New("rate must be greater than zero")
-	errInvalidBurst   = errors.New("burst must be greater than zero")
+	errNilRateLimiter  = errors.New("rate limit config: Limiter must not be nil")
+	errInvalidRate     = errors.New("rate must be greater than zero")
+	errInvalidBurst    = errors.New("burst must be greater than zero")
+	errInvalidStatus   = errors.New("RateLimitConfig.Status must be a valid HTTP status code (100-599) or zero for default")
 )
 
 const (
@@ -159,6 +161,10 @@ func DefaultRateLimitConfig() RateLimitConfig {
 func (c RateLimitConfig) Validate() error {
 	if c.Limiter == nil {
 		return errNilRateLimiter
+	}
+
+	if c.Status != 0 && (c.Status < 100 || c.Status > 599) {
+		return fmt.Errorf("%w: got %d", errInvalidStatus, c.Status)
 	}
 
 	return nil

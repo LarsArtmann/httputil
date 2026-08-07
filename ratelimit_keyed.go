@@ -3,6 +3,7 @@ package httputil
 import (
 	"container/heap"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -26,6 +27,7 @@ const (
 var (
 	errKeyedLimitZero  = errors.New("KeyedRateLimiterConfig.Limit must be greater than zero")
 	errKeyedWindowZero = errors.New("KeyedRateLimiterConfig.Window must be greater than zero")
+	errKeyedTTLNegative = errors.New("KeyedRateLimiterConfig.TTL must not be negative")
 )
 
 // KeyExtractor extracts a rate-limit key from an HTTP request.
@@ -106,7 +108,8 @@ func DefaultKeyedRateLimiterConfig() KeyedRateLimiterConfig {
 // are applied by buildKeyedRateLimiter at middleware construction time.
 // Burst=0 is allowed (it defaults to Limit at construction time), so the
 // only fields that fail validation are those whose zero values would break
-// rate calculation: Limit (must be > 0) and Window (must be > 0).
+// rate calculation: Limit (must be > 0) and Window (must be > 0), and
+// TTL (must not be negative; zero is valid and defaults to 10 minutes).
 func (c KeyedRateLimiterConfig) Validate() error {
 	if c.Limit == 0 {
 		return errKeyedLimitZero
@@ -114,6 +117,10 @@ func (c KeyedRateLimiterConfig) Validate() error {
 
 	if c.Window <= 0 {
 		return errKeyedWindowZero
+	}
+
+	if c.TTL < 0 {
+		return fmt.Errorf("%w: %v", errKeyedTTLNegative, c.TTL)
 	}
 
 	return nil
