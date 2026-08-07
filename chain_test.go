@@ -64,6 +64,42 @@ func TestChain_ETagThenCompression_IfNoneMatch304(t *testing.T) {
 	assertBodyEmpty(t, rec, "for 304")
 }
 
+// TestChain_ETagCompression_304_NoContentEncoding verifies that a 304 response
+// through the Compression+ETag chain does not include Content-Encoding. Since
+// the ETag middleware short-circuits before any body is written, compression
+// never engages.
+func TestChain_ETagCompression_304_NoContentEncoding(t *testing.T) {
+	t.Parallel()
+
+	etagCfg := DefaultETagConfig()
+	compressCfg := DefaultCompressionConfig()
+
+	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
+
+	inner := newWriteBodyHandler(body)
+
+	handler := Chain(inner, Compression(compressCfg), ETag(etagCfg))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+	req.Header.Set(headerIfNoneMatch, `"ff4925a7cfa0f725"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+
+	if ce := rec.Header().Get(headerContentEncoding); ce != "" {
+		t.Errorf("Content-Encoding = %q on 304, want empty", ce)
+	}
+
+	etag := rec.Header().Get(headerETag)
+	if etag == "" {
+		t.Error("ETag header is empty on 304, want the generated ETag")
+	}
+}
+
 func TestChain_CompressionThenETag_WrongOrder(t *testing.T) {
 	t.Parallel()
 

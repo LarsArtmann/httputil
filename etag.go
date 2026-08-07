@@ -220,7 +220,9 @@ func encodeHex(dst, src []byte) {
 }
 
 func (w *etagWriter) matchesIfNoneMatch(req *http.Request, etag string) bool {
-	inm := req.Header.Get(headerIfNoneMatch)
+	// RFC 9110 §5.2: multiple instances of a header field with the same name
+	// are combined by appending each value in order, separated by comma.
+	inm := strings.Join(req.Header.Values(headerIfNoneMatch), ", ")
 	if inm == "*" {
 		return true
 	}

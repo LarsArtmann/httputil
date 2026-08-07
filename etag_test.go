@@ -511,3 +511,156 @@ func TestETag_FlushAlreadyFlushed(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 }
+
+// TestETag_304_ExcludesContentLength verifies that a 304 Not Modified response
+// does not include a Content-Length header, per RFC 7232 §4.1 which states the
+// 304 response MUST NOT contain a message-body.
+func TestETag_304_ExcludesContentLength(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+
+	if cl := rec.Header().Get("Content-Length"); cl != "" {
+		t.Errorf("Content-Length = %q on 304, want empty", cl)
+	}
+}
+
+// TestETag_304_IncludesETagHeader verifies that the ETag header is present on a
+// 304 response, per RFC 7232 §4.1 which says the server SHOULD include ETag.
+func TestETag_304_IncludesETagHeader(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+
+	etag := rec.Header().Get(headerETag)
+	if etag == "" {
+		t.Error("ETag header is empty on 304, want the generated ETag")
+	}
+}
+
+// TestETag_IfNoneMatch_MultipleHeaders verifies that multiple If-None-Match
+// header lines are combined per RFC 9110 §5.2. Go's Header.Get only returns the
+// first value, so the middleware uses Header.Values + Join.
+func TestETag_IfNoneMatch_MultipleHeaders(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Add(headerIfNoneMatch, `"other"`)
+	req.Header.Add(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for 304 with multiple If-None-Match headers")
+}
+
+// TestETag_HeadRequest_IfNoneMatch verifies that a HEAD request with a matching
+// If-None-Match returns 304 with an empty body.
+func TestETag_HeadRequest_IfNoneMatch(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "hello world"))
+
+	req := newTestRequest(http.MethodHead, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"779a65e7023cd2e7"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusNotModified)
+	assertBodyEmpty(t, rec, "for HEAD 304")
+}
+
+// TestETag_Overflow_IfNoneMatch verifies that when the response body exceeds
+// MaxBufferSize, no ETag is generated and If-None-Match cannot trigger a 304.
+func TestETag_Overflow_IfNoneMatch(t *testing.T) {
+	t.Parallel()
+
+	cfg := ETagConfig{MaxBufferSize: 10}
+	handler := ETag(cfg)(newWriteStatusHandler(http.StatusOK, "this body exceeds the limit"))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerIfNoneMatch, `"anything"`)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertBody(t, rec, "this body exceeds the limit")
+	assertETagEmpty(t, rec, "when buffer limit exceeded")
+}
+
+// TestETag_Hijack_NoETag verifies that after Hijack is called, the middleware
+// does not generate an ETag header.
+func TestETag_Hijack_NoETag(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultETagConfig()
+
+	handler := ETag(cfg)(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+		hj, ok := rw.(http.Hijacker)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Hijacker")
+		}
+
+		_, _, _ = hj.Hijack()
+	}))
+
+	rec := newHijackRecorder()
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	handler.ServeHTTP(rec, req)
+
+	assertETagEmpty(t, rec.ResponseRecorder, "after hijack")
+}
+
+// TestParseETagList_EscapedQuotes verifies that backslash-escaped quotes
+// inside a quoted opaque-tag do not toggle the quote state, per RFC 7232 §2.3
+// which permits %x5C in quoted-strings.
+func TestParseETagList_EscapedQuotes(t *testing.T) {
+	t.Parallel()
+
+	tags := parseETagList(`"a\"b", "c"`)
+
+	if len(tags) != 2 {
+		t.Fatalf("len(tags) = %d, want 2", len(tags))
+	}
+
+	want0 := `"a\"b"`
+	if tags[0] != want0 {
+		t.Errorf("tags[0] = %q, want %q", tags[0], want0)
+	}
+
+	want1 := `"c"`
+	if tags[1] != want1 {
+		t.Errorf("tags[1] = %q, want %q", tags[1], want1)
+	}
+}
