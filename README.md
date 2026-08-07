@@ -591,6 +591,15 @@ handler := Chain(mux,
 handler := Chain(mux, Decompression(cfg), MaxBodySize(1<<20))
 ```
 
+**ETag** must be placed inside (after) `Compression` so it hashes the uncompressed body. If placed before `Compression`, the ETag would be computed over the compressed bytes — different content encodings on the wire would yield different ETags for the same logical resource, defeating conditional caching:
+
+```go
+// Compression outer, ETag inner: ETag hashes the body the handler produced,
+// not the bytes that left over the wire. All clients see the same ETag value
+// regardless of which Accept-Encoding they negotiated.
+handler := Chain(mux, Compression(cfg), ETag(etag.DefaultETagConfig()))
+```
+
 ### Compression Extensibility
 
 The default configuration supports **gzip and deflate**. Brotli, zstd, and other modern encodings are supported via the `WriterFactory` plugin interface without adding dependencies to the core library.

@@ -177,16 +177,6 @@ func assertBody(t *testing.T, rec *httptest.ResponseRecorder, want string) {
 	}
 }
 
-// assertBodyEmpty checks that a response recorder has no body, formatted with
-// msg to clarify the test intent (e.g. "for 304").
-func assertBodyEmpty(t *testing.T, rec *httptest.ResponseRecorder, msg string) {
-	t.Helper()
-
-	if rec.Body.Len() != 0 {
-		t.Errorf("body length = %d, want 0 %s", rec.Body.Len(), msg)
-	}
-}
-
 // waitForServerStart blocks until errChan receives an error or the timeout
 // elapses. It fails the test if an error is received and silently returns on
 // timeout, indicating the server started successfully.
