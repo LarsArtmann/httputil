@@ -20,6 +20,7 @@ const (
 	MiddlewareCSRF            = "csrf"
 	MiddlewareServerTiming    = "server-timing"
 	MiddlewareKeyedRateLimit  = "keyed-rate-limit"
+	MiddlewareETag            = "etag"
 )
 
 var (

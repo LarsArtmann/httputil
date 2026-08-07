@@ -25,39 +25,7 @@ func newStatusBodyHandler(status int, body string) http.HandlerFunc {
 	})
 }
 
-// failingWriteRecorder is an httptest.ResponseRecorder whose Write always
-// fails, exercising the streaming-write and overflow-write error branches
-// that require the underlying ResponseWriter to reject data.
-type failingWriteRecorder struct {
-	*httptest.ResponseRecorder
-}
-
-func (*failingWriteRecorder) Write([]byte) (int, error) {
-	return 0, errWriteFailed
-}
-
-// nonHijackableRecorder is a minimal http.ResponseWriter that does NOT
-// implement http.Hijacker, exercising the "hijack unsupported" error path.
-type nonHijackableRecorder struct {
-	header http.Header
-	status int
-	body   []byte
-}
-
-func newNonHijackableRecorder() *nonHijackableRecorder {
-	return &nonHijackableRecorder{header: http.Header{}}
-}
-
-func (r *nonHijackableRecorder) Header() http.Header { return r.header }
-
-func (r *nonHijackableRecorder) WriteHeader(code int) { r.status = code }
-
-func (r *nonHijackableRecorder) Write(b []byte) (int, error) {
-	r.body = append(r.body, b...)
-
-	return len(b), nil
-}
-
+// assertETag checks that the response recorder has the expected ETag header.
 func assertETag(t *testing.T, rec *httptest.ResponseRecorder, want string) {
 	t.Helper()
 
@@ -785,7 +753,7 @@ func TestETag_OnError_StreamingWriteFailure(t *testing.T) {
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
-	rec := &failingWriteRecorder{ResponseRecorder: httptest.NewRecorder()}
+	rec := &failingWriter{ResponseWriter: httptest.NewRecorder()}
 
 	handler.ServeHTTP(rec, req)
 
@@ -811,7 +779,7 @@ func TestETag_OverflowWriteError(t *testing.T) {
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
-	rec := &failingWriteRecorder{ResponseRecorder: httptest.NewRecorder()}
+	rec := &failingWriter{ResponseWriter: httptest.NewRecorder()}
 
 	handler.ServeHTTP(rec, req)
 
@@ -841,7 +809,7 @@ func TestETag_OverflowWriteError_NilOnError_DoesNotPanic(t *testing.T) {
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
-	rec := &failingWriteRecorder{ResponseRecorder: httptest.NewRecorder()}
+	rec := &failingWriter{ResponseWriter: httptest.NewRecorder()}
 
 	handler.ServeHTTP(rec, req)
 }
@@ -865,7 +833,7 @@ func TestETag_FlushWriteError_NilOnError_DoesNotPanic(t *testing.T) {
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
-	rec := &failingWriteRecorder{ResponseRecorder: httptest.NewRecorder()}
+	rec := &failingWriter{ResponseWriter: httptest.NewRecorder()}
 
 	handler.ServeHTTP(rec, req)
 }
