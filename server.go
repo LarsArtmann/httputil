@@ -103,7 +103,8 @@ func (c ServerConfig) Validate() error {
 		)
 	}
 
-	if c.TLSConfig != nil && c.TLSConfig.MinVersion != 0 && c.TLSConfig.MinVersion < tls.VersionTLS12 {
+	if c.TLSConfig != nil && c.TLSConfig.MinVersion != 0 &&
+		c.TLSConfig.MinVersion < tls.VersionTLS12 {
 		return fmt.Errorf(
 			"%w: MinVersion=0x%04x",
 			errTLSMinVersionInsecure,

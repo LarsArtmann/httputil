@@ -25,8 +25,8 @@ const (
 )
 
 var (
-	errKeyedLimitZero  = errors.New("KeyedRateLimiterConfig.Limit must be greater than zero")
-	errKeyedWindowZero = errors.New("KeyedRateLimiterConfig.Window must be greater than zero")
+	errKeyedLimitZero   = errors.New("KeyedRateLimiterConfig.Limit must be greater than zero")
+	errKeyedWindowZero  = errors.New("KeyedRateLimiterConfig.Window must be greater than zero")
 	errKeyedTTLNegative = errors.New("KeyedRateLimiterConfig.TTL must not be negative")
 )
 

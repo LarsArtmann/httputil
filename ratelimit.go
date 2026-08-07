@@ -11,10 +11,12 @@ import (
 )
 
 var (
-	errNilRateLimiter  = errors.New("rate limit config: Limiter must not be nil")
-	errInvalidRate     = errors.New("rate must be greater than zero")
-	errInvalidBurst    = errors.New("burst must be greater than zero")
-	errInvalidStatus   = errors.New("RateLimitConfig.Status must be a valid HTTP status code (100-599) or zero for default")
+	errNilRateLimiter = errors.New("rate limit config: Limiter must not be nil")
+	errInvalidRate    = errors.New("rate must be greater than zero")
+	errInvalidBurst   = errors.New("burst must be greater than zero")
+	errInvalidStatus  = errors.New(
+		"RateLimitConfig.Status must be a valid HTTP status code (100-599) or zero for default",
+	)
 )
 
 const (

@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -211,6 +212,68 @@ func TestRateLimitConfigValidateAcceptsValidConfig(t *testing.T) {
 	err = cfg.Validate()
 	if err != nil {
 		t.Errorf("expected nil for valid config, got %v", err)
+	}
+}
+
+func TestRateLimitConfigValidateRejectsInvalidStatusLow(t *testing.T) {
+	t.Parallel()
+
+	limiter, err := NewTokenBucketLimiter(10, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := DefaultRateLimitConfig()
+	cfg.Limiter = limiter
+	cfg.Status = 99
+
+	err = cfg.Validate()
+	if err == nil {
+		t.Fatal("expected error for Status < 100, got nil")
+	}
+
+	if !errors.Is(err, errInvalidStatus) {
+		t.Errorf("expected errInvalidStatus, got %v", err)
+	}
+}
+
+func TestRateLimitConfigValidateRejectsInvalidStatusHigh(t *testing.T) {
+	t.Parallel()
+
+	limiter, err := NewTokenBucketLimiter(10, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := DefaultRateLimitConfig()
+	cfg.Limiter = limiter
+	cfg.Status = 600
+
+	err = cfg.Validate()
+	if err == nil {
+		t.Fatal("expected error for Status > 599, got nil")
+	}
+
+	if !errors.Is(err, errInvalidStatus) {
+		t.Errorf("expected errInvalidStatus, got %v", err)
+	}
+}
+
+func TestRateLimitConfigValidateAllowsZeroStatus(t *testing.T) {
+	t.Parallel()
+
+	limiter, err := NewTokenBucketLimiter(10, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := DefaultRateLimitConfig()
+	cfg.Limiter = limiter
+	cfg.Status = 0
+
+	err = cfg.Validate()
+	if err != nil {
+		t.Errorf("expected nil for Status=0 (default), got %v", err)
 	}
 }
 
