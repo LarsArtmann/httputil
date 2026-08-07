@@ -59,7 +59,7 @@ func hijackDelegate(w http.ResponseWriter) (net.Conn, *bufio.ReadWriter, error) 
 			http.ErrNotSupported,
 			ErrCodeHijackUnsupported,
 			"response writer does not implement http.Hijacker",
-		)
+		).WithContextf("writer_type", "%T", w)
 	}
 
 	conn, rw, err := hijacker.Hijack()
@@ -68,7 +68,7 @@ func hijackDelegate(w http.ResponseWriter) (net.Conn, *bufio.ReadWriter, error) 
 			err,
 			ErrCodeHijackFailed,
 			"response writer hijack failed",
-		)
+		).WithContextf("writer_type", "%T", w)
 	}
 
 	return conn, rw, nil
