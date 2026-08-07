@@ -6,6 +6,47 @@
 
 ---
 
+## ❗❗❗ CRITICAL FUNDAMENTAL MISUNDERSTANDING — READ THIS FIRST ❗❗❗
+
+**The entire premise of this session's work was WRONG.**
+
+The user extracted ETag into `go-etag` **yesterday** as an **intentional, independent module**.
+The goal was to **keep go-etag independent** while **integrating it well** into httputil.
+
+**What I did instead:** I copied ALL of go-etag's code back into httputil — `etag.go`,
+`entity_tag.go`, error codes, `hexEncodeUint64`, tests, everything. This creates a **split
+brain**: the same code now exists in both modules with no link between them. This is the
+exact opposite of what the user wanted.
+
+**The correct approach was:** Add `github.com/larsartmann/go-etag` as a dependency in
+httputil's `go.mod` (like `justinas/nosurf` or `golang.org/x/time`), then write a thin
+adapter in httputil that wraps go-etag's middleware to fit httputil's `Middleware` type
+and error classification system. The go-etag module stays independent, self-contained,
+and separately versioned. httputil gets ETag functionality without duplicating code.
+
+**All work below this section was done on a WRONG premise. The code changes need to be
+REVERTED and redone as a thin adapter. The documentation changes need to be REVERTED
+and redone to reflect go-etag-as-dependency, not re-integrated code.**
+
+### What needs to happen to fix this:
+
+1. Revert all code copied from go-etag: `etag.go`, `entity_tag.go`, `hexEncodeUint64` in
+   `hex.go`, ETag error codes/templates in `errors.go`, WithContextf in `wrapper.go`,
+   `MiddlewareETag` in `stack.go`
+2. Revert all test files I created/modified: `etag_test.go`, `entity_tag_test.go`,
+   `hex_test.go`, `chain_test.go` chain tests
+3. Revert all doc changes: `CHANGELOG.md`, `FEATURES.md`, `README.md`, `doc.go`,
+   `TODO_LIST.md`, `ROADMAP.md`
+4. Add `github.com/larsartmann/go-etag` as a dependency in `go.mod`
+5. Write a thin adapter in httputil (e.g., `etag_adapter.go`) that:
+   - Wraps `etag.New()` to return httputil's `Middleware` type
+   - Maps go-etag's error codes to httputil's error classification system
+   - Adds `MiddlewareETag` constant for `MiddlewareStack`
+6. Write integration tests verifying the adapter works
+7. Update docs to reflect go-etag as a dependency (like nosurf), not re-integrated code
+
+---
+
 ## A) FULLY DONE (verified this session)
 
 ### Code quality fixes — all verified
