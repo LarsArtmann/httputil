@@ -97,3 +97,46 @@ func TestETag_WorksInMiddlewareStack(t *testing.T) {
 		t.Errorf("stack.Names()[0] = %q, want %q", stack.Names()[0], MiddlewareETag)
 	}
 }
+
+func TestETag_ChainedWithCompression(t *testing.T) {
+	t.Parallel()
+
+	inner := newWriteStatusHandler("hello compression etag world")
+
+	// Compression outermost so the ETag is computed on the handler's body,
+	// then the response is gzip-encoded for the client.
+	handler := Chain(
+		inner,
+		Compression(CompressionConfig{MinSize: 1, Level: -2}),
+		ETag(etag.DefaultETagConfig()),
+	)
+
+	// First GET: both an ETag and Content-Encoding header are produced.
+	first := newTestRequest(http.MethodGet, "/", "")
+	first.Header.Set("Accept-Encoding", "gzip")
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, first)
+
+	assertStatus(t, rec, http.StatusOK)
+
+	if rec.Header().Get("ETag") == "" {
+		t.Error("ETag header empty when chained with Compression")
+	}
+
+	if got := rec.Header().Get("Content-Encoding"); got != "gzip" {
+		t.Errorf("Content-Encoding = %q, want %q", got, "gzip")
+	}
+
+	// Second GET with matching If-None-Match: 304 Not Modified through the chain.
+	generated := rec.Header().Get("ETag")
+
+	second := newTestRequest(http.MethodGet, "/", "")
+	second.Header.Set("Accept-Encoding", "gzip")
+	second.Header.Set("If-None-Match", generated)
+
+	rec2 := newRecorder()
+	handler.ServeHTTP(rec2, second)
+
+	assertStatus(t, rec2, http.StatusNotModified)
+}

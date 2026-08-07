@@ -10,9 +10,8 @@ import (
 	"net/http/httptest"
 	"time"
 
-	servertiming "github.com/larsartmann/httputil/server_timing"
-
 	etag "github.com/larsartmann/go-etag"
+	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
 func ExampleClientIP() {
