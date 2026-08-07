@@ -262,8 +262,12 @@ func (w *compressWriter) Flush() {
 
 	w.beginPlainResponse()
 
+	// Post-header-commit body writes are fundamentally unreportable: the
+	// handler has returned and the HTTP response is already in-flight.
+	// Any write failure here cannot be surfaced to the client or caller.
 	if len(w.buf) > 0 {
 		_, _ = w.ResponseWriter.Write(w.buf)
+
 		w.buf = w.buf[:0]
 	}
 
