@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code.
 
-_Updated: 2026-08-07 — all prior items shipped. See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
+_Updated: 2026-08-07 — all prior items shipped including `ExampleMaxBodySize`. See [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` for shipped work._
 
 ---
 
@@ -16,7 +16,7 @@ _(none — all high-priority items shipped)_
 
 ## Low Priority
 
-- [ ] **Add `ExampleMaxBodySize` function** — `MaxBodySize` is the only middleware without an `Example*` test function. All others have runnable examples with `// Output:` directives. `example_test.go`. Effort: 10min.
+_(none — `ExampleMaxBodySize` shipped)_
 
 ## Won't Implement
 
