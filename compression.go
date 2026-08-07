@@ -212,6 +212,8 @@ func Compression(cfg CompressionConfig) Middleware {
 				neg.poolFor(encoding),
 				skipTypes,
 			)
+
+			// Cleanup: handler has returned and response is in-flight.
 			defer func() { _ = writer.Close() }()
 
 			next.ServeHTTP(writer, req)

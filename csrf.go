@@ -243,6 +243,8 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 		failureHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 			w.Header().Set("Content-Type", contentTypePlain)
 			w.WriteHeader(http.StatusForbidden)
+
+			// Status already committed (403); write failure is unreportable.
 			_, _ = w.Write([]byte(err.Error()))
 		}
 	}

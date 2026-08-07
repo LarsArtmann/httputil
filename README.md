@@ -333,13 +333,15 @@ Call `InvalidateCSRFCookie(w, cfg)` on login/logout to rotate the token.
 
 ### Server-Timing
 
-W3C Server-Timing header with per-request sub-metrics.
+W3C Server-Timing header with per-request sub-metrics. Lives in the `server_timing` sub-module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`).
 
 ```go
-handler := httputil.ServerTimingMiddleware()(mux)
+import "github.com/larsartmann/httputil/server_timing"
+
+handler := servertiming.ServerTimingMiddleware()(mux)
 
 // In a handler:
-stop := httputil.MeasureServerTiming(r.Context(), "db")
+stop := servertiming.MeasureServerTiming(r.Context(), "db")
 result, err := db.Query(ctx)
 stop()
 ```
@@ -347,7 +349,7 @@ stop()
 Gate behind a predicate to expose only for admin/debug requests:
 
 ```go
-handler := httputil.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+handler := servertiming.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
     return r.URL.Query().Has("debug")
 })(mux)
 ```
@@ -426,8 +428,8 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `CSRFMiddleware`                 | `func(CSRFConfig) func(http.Handler) http.Handler`                    | CSRF protection middleware                      |
 | `CSRFResponseHeaderMiddleware`   | `func(http.Handler) http.Handler`                                     | Auto-set CSRF token in response header          |
 | `ValidateCSRF`                   | `func(*http.Request, CSRFConfig) (bool, *httptest.ResponseRecorder)`  | Standalone CSRF validation                      |
-| `ServerTimingMiddleware`         | `func() func(http.Handler) http.Handler`                              | W3C Server-Timing header middleware             |
-| `ServerTimingMiddlewareWhen`     | `func(func(*http.Request) bool) func(http.Handler) http.Handler`      | Conditional Server-Timing middleware            |
+| `ServerTimingMiddleware`         | `func() func(http.Handler) http.Handler`                              | W3C Server-Timing middleware (`server_timing` module) |
+| `ServerTimingMiddlewareWhen`     | `func(func(*http.Request) bool) func(http.Handler) http.Handler`      | Conditional Server-Timing (`server_timing` module)    |
 | `ParseUintQuery`                 | `func(*http.Request, string) uint`                                    | Parse uint from query param                     |
 | `Metrics`                        | `func(MetricsConfig) func(http.Handler) http.Handler`                 | Request metrics recording                       |
 | `DefaultMetricsConfig`           | `func() MetricsConfig`                                                | Default metrics config                          |

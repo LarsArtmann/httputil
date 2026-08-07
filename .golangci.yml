@@ -146,7 +146,7 @@ linters:
     exhaustruct:
       exclude:
         - os/exec.Cmd
-        - github\.com/larsartmann/httputil\.(KeyedRateLimiterConfig|ServerTiming|serverTimingWriter)$
+        - github\.com/larsartmann/httputil\.KeyedRateLimiterConfig$
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true

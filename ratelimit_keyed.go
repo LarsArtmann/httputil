@@ -201,6 +201,8 @@ func buildKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 				} else {
 					w.Header().Set(headerRetryAfter, retryAfter)
 					w.WriteHeader(http.StatusTooManyRequests)
+
+					// Status already committed (429); write failure is unreportable.
 					_, _ = w.Write([]byte(rateLimitExceededMsg))
 				}
 

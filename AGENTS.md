@@ -6,7 +6,7 @@ These are the non-obvious rules that cause immediate lint failures. Read these b
 
 ### Allowed Dependencies
 
-`depguard` allows `$gostd`, `$module` root and subpackages (via explicit `github.com/larsartmann/httputil` + `/**` entries because `$module` does not expand correctly in depguard v2.12.2), `github.com/larsartmann/go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go extension for rate limiting), and `github.com/justinas/nosurf` (CSRF protection, used by `csrf.go`). No other third-party libraries.
+`depguard` allows `$gostd`, `$module` root and subpackages (via explicit `github.com/larsartmann/httputil` + `/**` entries because `$module` does not expand correctly in depguard v2.12.2), `github.com/larsartmann/httputil/server_timing` (the sub-module, listed explicitly because `/**` does not match separate go.mod modules), `github.com/larsartmann/go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go extension for rate limiting), and `github.com/justinas/nosurf` (CSRF protection, used by `csrf.go`). No other third-party libraries.
 
 ### `exhaustruct` — Every Struct Field Must Be Set
 
@@ -71,6 +71,9 @@ go test -bench=. ./...     # Benchmarks
 golangci-lint run          # Lint (~70 linters, 0 issues)
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
+
+# server_timing sub-module (run from server_timing/)
+cd server_timing && go test -race ./... && golangci-lint run
 ```
 
 **`go test -count=1` does NOT detect data races.** Only `go test -race` catches shared-state access between goroutines. After writing or modifying ANY test that uses `t.Parallel()`, shared fixtures, or closures over mutable state, run `go test -race -count=10 ./...` to surface timing-dependent races before declaring done. (See 2026-08-05 fix in `cors_ratelimit_specs_test.go:138` for an example of a race that passed `go test -count=1 ./...` clean but failed 60% of `-race` runs.)

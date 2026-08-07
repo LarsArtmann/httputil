@@ -133,6 +133,7 @@ type limitedReader struct {
 
 func (l *limitedReader) Read(p []byte) (int, error) {
 	if l.remaining <= 0 {
+		// Bomb-protection cleanup; error already returned to caller.
 		_ = l.rc.Close()
 
 		return 0, errDecompressionSizeExceeded

@@ -187,6 +187,8 @@ func RateLimit(cfg RateLimitConfig) Middleware {
 	if onDenied == nil {
 		onDenied = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(status)
+
+			// Status already committed; write failure is unreportable.
 			_, _ = w.Write([]byte("rate limit exceeded"))
 		})
 	}

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Server-Timing extracted into `server_timing` sub-module** (`server_timing/`): W3C Server-Timing instrumentation (`ServerTiming`, `ServerTimingMiddleware`, `MeasureServerTiming`, etc.) moved from the root `httputil` package to a dedicated Go module `github.com/larsartmann/httputil/server_timing` (package `servertiming`). The sub-module is stdlib-only with zero external dependencies. The root module references it via a `replace` directive; both are coordinated through `go.work`. Import path changed from `httputil.ServerTimingMiddleware` to `servertiming.ServerTimingMiddleware`.
+
 ### Fixed
 
 - **`parseETagList` now handles escaped quotes** (`etag.go`): backslash-escaped `\"` inside a quoted opaque-tag no longer toggles the quote state. The RFC 7232 §2.3 grammar permits `%x5C` in quoted-strings. An escaped DQUOTE is now skipped rather than flipping `inQuotes`, preventing incorrect comma-splitting.
