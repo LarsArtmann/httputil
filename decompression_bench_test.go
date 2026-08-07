@@ -4,45 +4,50 @@ import (
 	"bytes"
 	"compress/flate"
 	"compress/gzip"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-const benchDecompressionPayloadSize = 16 * 1024 // 16 KiB
+const (
+	benchDecompressionPayloadSize = 16 * 1024 // 16 KiB
+	benchDecompressionSeedText    = "the quick brown fox jumps over the lazy dog"
+)
 
 func benchDecompressionPayload(b *testing.B, encoding string) []byte {
 	b.Helper()
 
-	payload := bytes.Repeat([]byte("the quick brown fox jumps over the lazy dog"), benchDecompressionPayloadSize/len("the quick brown fox jumps over the lazy dog")+1)
+	repetitions := benchDecompressionPayloadSize/len(benchDecompressionSeedText) + 1
+	payload := bytes.Repeat([]byte(benchDecompressionSeedText), repetitions)
 	payload = payload[:benchDecompressionPayloadSize]
 
 	var buf bytes.Buffer
 
 	switch encoding {
 	case encodingGzip:
-		zw := gzip.NewWriter(&buf)
-		_, err := zw.Write(payload)
+		writer := gzip.NewWriter(&buf)
+		_, err := writer.Write(payload)
 		if err != nil {
 			b.Fatalf("gzip write: %v", err)
 		}
 
-		err = zw.Close()
+		err = writer.Close()
 		if err != nil {
 			b.Fatalf("gzip close: %v", err)
 		}
 	case encodingDeflate:
-		zw, err := flate.NewWriter(&buf, flate.DefaultCompression)
+		writer, err := flate.NewWriter(&buf, flate.DefaultCompression)
 		if err != nil {
 			b.Fatalf("flate writer: %v", err)
 		}
 
-		_, err = zw.Write(payload)
+		_, err = writer.Write(payload)
 		if err != nil {
 			b.Fatalf("flate write: %v", err)
 		}
 
-		err = zw.Close()
+		err = writer.Close()
 		if err != nil {
 			b.Fatalf("flate close: %v", err)
 		}
@@ -60,8 +65,7 @@ func BenchmarkDecompression_Gzip(b *testing.B) {
 
 	cfg := DefaultDecompressionConfig()
 	handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		// Drain the decompressed body to simulate a real handler reading it.
-		_, _ = readAllForBench(r)
+		_, _ = io.Copy(io.Discard, r.Body)
 	}))
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed))
@@ -83,7 +87,7 @@ func BenchmarkDecompression_Deflate(b *testing.B) {
 
 	cfg := DefaultDecompressionConfig()
 	handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		_, _ = readAllForBench(r)
+		_, _ = io.Copy(io.Discard, r.Body)
 	}))
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed))
@@ -105,7 +109,7 @@ func BenchmarkDecompression_Passthrough(b *testing.B) {
 
 	cfg := DefaultDecompressionConfig()
 	handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		_, _ = readAllForBench(r)
+		_, _ = io.Copy(io.Discard, r.Body)
 	}))
 
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
@@ -116,20 +120,5 @@ func BenchmarkDecompression_Passthrough(b *testing.B) {
 	for b.Loop() {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
-	}
-}
-
-// readAllForBench drains r.Body fully. Errors are ignored in benchmarks.
-func readAllForBench(r *http.Request) (int64, error) {
-	buf := make([]byte, 4096)
-
-	var total int64
-
-	for {
-		n, err := r.Body.Read(buf)
-		total += int64(n)
-		if err != nil {
-			return total, nil
-		}
 	}
 }
