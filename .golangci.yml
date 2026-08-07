@@ -135,6 +135,7 @@ linters:
           allow:
             - $gostd
             - $module
+            - $module/**
             - github.com/larsartmann/go-error-family
             - github.com/justinas/nosurf
             - golang.org/x/time
@@ -220,7 +221,6 @@ linters:
           - noctx
           - wsl_v5
           - noinlineerr
-          - depguard
       - path: _test\.go
         text: unused
         linters:
