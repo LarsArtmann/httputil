@@ -2,13 +2,13 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — ETag middleware extracted to `go-etag` module. All claims verified against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — ETag middleware re-integrated from `go-etag` module. All claims verified against current source with `go test -race -coverprofile`._
 
 ---
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (16 middlewares)
+### Core Middleware Suite (17 middlewares)
 
 | Middleware               | File                                   | Config Type                                                   | Tests | Examples                            | Benchmarks                    | Fuzz                |
 | ------------------------ | -------------------------------------- | ------------------------------------------------------------- | ----- | ----------------------------------- | ----------------------------- | ------------------- |
@@ -28,12 +28,13 @@ _Updated: 2026-08-07 — ETag middleware extracted to `go-etag` module. All clai
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`    | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`  | —                   |
 | Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | —                                   | —                             | —                   |
+| ETag                     | `etag.go`, `entity_tag.go`             | `ETagConfig` + `Validate()`, RFC 7232 conditional requests    | Yes   | `ExampleETag`, `ExampleEntityTag`   | `BenchmarkETag*`              | `FuzzETag`          |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Error Classification System
 
-- 4 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`.
+- 7 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed`, `ErrCodeETagConfigInvalid`, `ErrCodeETagHashWriteFailed`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
 - CSRF middleware uses `go-error-family` directly: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family), plus inline `NewInfrastructure` errors for config validation failures.
 - Message templates with `what/why/fix/wayOut` for all classified errors.
@@ -46,7 +47,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Infrastructure Types
 
-- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 11 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Compression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit).
+- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 12 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Compression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit, ETag).
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
