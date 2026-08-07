@@ -34,6 +34,7 @@ After removing `BenchmarkNegotiateEncoding`, the total benchmark count dropped f
 ### 5. Ran go mod verify (the skipped quality gate)
 
 Both modules verified:
+
 - Root module: `all modules verified`
 - `server_timing` sub-module: `all modules verified`
 
@@ -49,16 +50,16 @@ FEATURES.md listed `server_timing.go` for Server-Timing, but the file lives in t
 
 ### 8. Full verification suite passed
 
-| Gate | Result |
-|------|--------|
-| `golangci-lint run` | 0 issues (~70 linters) |
-| `golangci-lint fmt` | Clean |
-| `go vet ./...` | Clean |
-| `go test -race -count=10 ./...` | All passing (root + httpspec + server_timing) |
-| `go mod verify` (both modules) | All modules verified |
-| `govulncheck` (via `nix run .#vulncheck`) | No vulnerabilities |
-| `nix flake check` | All checks passed (after format fix — see section d) |
-| `bash scripts/check-changelog-links.sh` | Consistent |
+| Gate                                      | Result                                               |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `golangci-lint run`                       | 0 issues (~70 linters)                               |
+| `golangci-lint fmt`                       | Clean                                                |
+| `go vet ./...`                            | Clean                                                |
+| `go test -race -count=10 ./...`           | All passing (root + httpspec + server_timing)        |
+| `go mod verify` (both modules)            | All modules verified                                 |
+| `govulncheck` (via `nix run .#vulncheck`) | No vulnerabilities                                   |
+| `nix flake check`                         | All checks passed (after format fix — see section d) |
+| `bash scripts/check-changelog-links.sh`   | Consistent                                           |
 
 ### 9. Updated CHANGELOG [Unreleased]
 
