@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed, coverage corrected to 97.0%, benchmark (44) / example (24) / fuzz (19) counts verified against source, ETag adapter + Decompression rows updated. All claims checked against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed, coverage corrected to 97.0%, benchmark (43) / example (24) / fuzz (19) counts verified against source, ETag adapter + Decompression rows updated. All claims checked against current source with `go test -race -coverprofile`._
 
 ---
 
@@ -27,7 +27,7 @@ _Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed
 | Server-Timing            | `server_timing.go`                     | —                                                             | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`      | `FuzzServerTiming*` |
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`    | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`  | —                   |
-| Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | —                                   | `BenchmarkDecompression*`     | `FuzzDecompression` |
+| Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | `ExampleDecompression`              | `BenchmarkDecompression*`     | `FuzzDecompression` |
 | ETag                     | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | —                             | —                   |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
