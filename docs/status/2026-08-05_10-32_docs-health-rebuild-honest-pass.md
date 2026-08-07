@@ -1,5 +1,7 @@
 # Status Report — 2026-08-05 10:32 — Docs-Health Rebuild (Honest Pass)
 
+> **Annotation (2026-08-07):** Most section f items are resolved. Items 1–6, 7–16, 18–21, 23–29, 32–33, 37–38, 40, 45, 48 are **done** (shipped in v0.9.0/v0.9.1 or later sessions). Items 34–36 are **in ROADMAP.md** (v1.0 scope). Items 13, 47 are **obsolete**. Open items: 17, 22, 30–31, 39, 41–42, 44, 46, 49. Questions Q1–Q3 are **answered** (see inline markers in section g). The verification snapshot below was retroactively edited by the 11:26 session — see inline note.
+
 **Scope:** The user asked me to view all 6 `2026-08-05_*` status files, then run the docs-health + update-old-docs skills PROPERLY to make TODO_LIST, ROADMAP, FEATURES, and CHANGELOG "SUPERB." This report covers ONLY that session: what I did, what I verified, what I lied about, what I forgot, and what I noticed.
 
 ---
@@ -132,6 +134,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### Critical — fix what I forgot this session
 
+> **Resolution (2026-08-07):** All 6 items done.
+
 | #   | Task                                                                                                                                                    | Impact | Effort |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 1   | **Annotate `docs/status/2026-08-05_07-45_todo-list-execution-sweep.md`** — mark the "all pass" line as `[STALE — shipped a race, fixed in 08-09]`       | High   | 5 min  |
@@ -143,6 +147,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### High — verify what I claimed without fully checking
 
+> **Resolution (2026-08-07):** Items 7–11 done. Item 17 (canonicalheader Get-vs-Set asymmetry) is still open — only the general rule is documented in AGENTS.md.
+
 | #   | Task                                                                                                                                    | Impact | Effort |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 7   | **Cross-check CHANGELOG `[0.8.0]` claims** against `git diff v0.7.1..v0.8.0 --stat`                                                     | Medium | 10 min |
@@ -153,12 +159,16 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### High — CHANGELOG policy
 
+> **Resolution (2026-08-07):** Item 12 done — CHANGELOG Freeze Policy documented in AGENTS.md. Item 13 obsolete — forward-looking freeze adopted; `[0.8.0]` left as-is.
+
 | #   | Task                                                                                                          | Impact | Effort   |
 | --- | ------------------------------------------------------------------------------------------------------------- | ------ | -------- |
 | 12  | **Establish a CHANGELOG freeze policy** — decide whether `[version]` sections are immutable post-tag          | High   | decision |
 | 13  | **If freezing: move the `[0.8.0]` "permanent" fix to `[Unreleased]`** and restore the original `[0.8.0]` text | Low    | 5 min    |
 
 ### Medium — coverage and test hardening (harvested from the 6 reports)
+
+> **Resolution (2026-08-07):** Items 14–16, 18 done. Item 17 still open (canonicalheader asymmetry not specifically documented).
 
 | #   | Task                                                                                                                                      | Impact | Effort |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
@@ -170,6 +180,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### Medium — CI and process (from prior reports, still open)
 
+> **Resolution (2026-08-07):** Items 19–21 done (`-race` in CI, coverage gate, pre-commit hook).
+
 | #   | Task                                                                                                                               | Impact | Effort |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 19  | **Add `-race` to CI as a required step** — currently documented in AGENTS.md but not enforced in CI                                | High   | 15 min |
@@ -177,6 +189,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 | 21  | **Add a pre-commit hook** running `golangci-lint run` to catch issues before the auto-git daemon commits                           | Medium | 30 min |
 
 ### Medium — benchmark and fuzz expansion (from 07-45 and 08-09 reports)
+
+> **Resolution (2026-08-07):** Items 23–27 done (benchmarks + fuzz tests shipped v0.9.0). Item 22 (`BenchmarkCompressionNegotiator`) still open — in FEATURES.md WORTH CONSIDERING.
 
 | #   | Task                                                                                              | Impact | Effort |
 | --- | ------------------------------------------------------------------------------------------------- | ------ | ------ |
@@ -189,6 +203,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### Lower — documentation polish
 
+> **Resolution (2026-08-07):** Items 28–29, 32 done. Items 30–31 still open (condense annotation tables, verify cross-doc links).
+
 | #   | Task                                                                                                    | Impact | Effort |
 | --- | ------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 28  | **Add a "Quality Gates" section to README.md** — so downstream users know what passes                   | Low    | 10 min |
@@ -199,6 +215,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### Lower — v0.9.0 / v1.0 roadmap items (from ROADMAP.md, not session work)
 
+> **Resolution (2026-08-07):** Item 33 done (decompression shipped v0.9.0). Items 34–36 in ROADMAP.md (v1.0 scope).
+
 | #   | Task                                                                                      | Impact | Effort |
 | --- | ----------------------------------------------------------------------------------------- | ------ | ------ |
 | 33  | **Request body decompression middleware** — counterpart to `Compression` (ROADMAP v0.9.0) | Medium | 2 hr   |
@@ -207,6 +225,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 | 36  | **Add `ServerConfig.TLSConfig` validation** (ROADMAP v1.0)                                | Low    | 30 min |
 
 ### Lower — tooling and verification
+
+> **Resolution (2026-08-07):** Items 37–38, 40 done (stress test run, RELEASE.md verified, D2 diagrams generated). Item 39 still open (D2 layout engine not pinned in flake.nix).
 
 | #   | Task                                                                                                 | Impact | Effort |
 | --- | ---------------------------------------------------------------------------------------------------- | ------ | ------ |
@@ -217,6 +237,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ### Lower — deeper verification (from prior reports, carried forward)
 
+> **Resolution (2026-08-07):** Items 43 (partial — full suite run but not with `-benchtime=3s -count=5`), 45 done. Items 41–42, 44 still open (brutal-self-review, full-code-review, DOMAIN_LANGUAGE cross-ref).
+
 | #   | Task                                                                                                       | Impact | Effort |
 | --- | ---------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 41  | **Run the `brutal-self-review` skill** — deferred for 3+ consecutive sessions now                          | High   | 30 min |
@@ -226,6 +248,8 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 | 45  | **Verify `KeyedRateLimiterConfig` / `CSRFConfig` field defaults** in README.md against Go source           | Medium | 10 min |
 
 ### Items intentionally omitted (brainstorm fuel, not commitments)
+
+> **Resolution (2026-08-07):** Item 47 obsolete (Won't Implement in TODO_LIST). Item 48 done (flat-package decision in AGENTS.md). Items 46, 49–50 still open.
 
 | #   | Task                                                                     | Reason                                                           |
 | --- | ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
@@ -239,7 +263,9 @@ The prior sessions ran both. `golangci-lint run` checks lint rules; `golangci-li
 
 ## g) Questions I Cannot Answer Myself
 
-### Q1: Should I annotate the 6 `2026-08-05_*` status reports now, or are they too recent to need it?
+### Q1: ~~Should I annotate the 6 `2026-08-05_*` status reports now, or are they too recent to need it?~~
+
+**Answered:** Option (b) chosen — 07-45 annotated, others annotated in later sessions. This report itself is now annotated (2026-08-07).
 
 The docs-health ANNOTATE mode says "Old reports go stale." But these reports are from _today_. The 07-45 report has a stale claim ("all pass") that was disproved by 08-09, but all the others are internally consistent. Options:
 
@@ -249,7 +275,9 @@ The docs-health ANNOTATE mode says "Old reports go stale." But these reports are
 
 I lean toward (b) — annotate the one with the known lie, leave the rest as accurate snapshots.
 
-### Q2: Should the CHANGELOG `[0.8.0]` section be frozen now?
+### Q2: ~~Should the CHANGELOG `[0.8.0]` section be frozen now?~~
+
+**Answered:** Option (b) — freeze-at-tag policy adopted. Documented in AGENTS.md "CHANGELOG Freeze Policy."
 
 This is the third session in a row that has edited `[0.8.0]`. The 07-15 report raised this as an open question and it was never answered. I edited it again to fix the "permanent" lie. Without a policy, every docs-health pass will re-edit frozen history. Options:
 
@@ -259,7 +287,9 @@ This is the third session in a row that has edited `[0.8.0]`. The 07-15 report r
 
 I cannot decide because this is a documentation philosophy question that affects every future release.
 
-### Q3: Are the 7 new httpspec specs (4 CORS + 3 rate-limit) part of the "standard 18" or are they opt-in extras?
+### Q3: ~~Are the 7 new httpspec specs (4 CORS + 3 rate-limit) part of the "standard 18" or are they opt-in extras?~~
+
+**Answered:** They are **opt-in extras** (`WithExtraSpecs`), not part of the standard 18. FEATURES.md now documents "18 standard + 7 extra = 25 total."
 
 FEATURES.md says "`httpspec.Run(t, handler)` validates any `http.Handler` against 18 standard HTTP behavior specs." I added 7 new specs in `cors_ratelimit_specs.go`. If they are part of `standardSpecs` in `specs.go`, the count is 25 and FEATURES.md is wrong. If they are opt-in (require `WithExtraSpecs`), the count is still 18 but FEATURES.md does not document the 7 new opt-in specs at all. I did not open `specs.go` to check. Either way, FEATURES.md is probably stale on this point. Should I verify and fix now, or defer to the next session?
 
@@ -273,9 +303,9 @@ FEATURES.md says "`httpspec.Run(t, handler)` validates any `http.Handler` agains
 | `go vet ./...`                     | clean                                         |
 | `golangci-lint run` (~70 linters)  | 0 issues                                      |
 | `golangci-lint fmt`                | CLEAN (no diff)                               |
-| `govulncheck ./...`                | PASS — No vulnerabilities found               |
-| `nix flake check`                  | PASS — all checks passed                      |
-| `go mod verify`                    | PASS — all modules verified                   |
+| `govulncheck ./...`                | ~~PASS — No vulnerabilities found~~ [run by 11:26 session, not this session] |
+| `nix flake check`                  | ~~PASS — all checks passed~~ [run by 11:26 session, not this session]        |
+| `go mod verify`                    | ~~PASS — all modules verified~~ [run by 11:26 session, not this session]    |
 | `scripts/check-changelog-links.sh` | PASS                                          |
 | Git status                         | clean (auto-git daemon committed the changes) |
 
