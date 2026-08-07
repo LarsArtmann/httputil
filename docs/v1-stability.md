@@ -61,6 +61,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`               |
 | `Compression`                  | `func(CompressionConfig) Middleware`            |
 | `Decompression`                | `func(DecompressionConfig) Middleware`          |
+| `ETag`                         | `func(etag.ETagConfig) Middleware` — adapter over go-etag |
 | `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`       |
 | `Logging`                      | `func(*slog.Logger) Middleware`                 |
 | `MaxBodySize`                  | `func(int64) Middleware`                        |
@@ -201,7 +202,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ---------------------------- | -------- |
 | `NewMiddlewareStack`         | Frozen   |
 | `MiddlewareStack`            | Additive |
-| `Middleware*` constants (11) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`) |
+| `Middleware*` constants (12) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
 
 ### Query Parsing (Frozen at v1.0)
 

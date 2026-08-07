@@ -43,6 +43,7 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 | Metrics          | Request metrics recording with pluggable recorder interface                                        | `MetricsConfig`, `MetricsRecorder`           |
 | CSRF Protection  | Double-submit cookie CSRF defense backed by justinas/nosurf with HTMX-aware helpers                | `CSRFConfig`, `CSRFMiddleware`               |
 | Server-Timing    | W3C Server-Timing header instrumentation with CRLF-safe values and context-aware measurement       | `ServerTiming`, `ServerTimingMiddleware`     |
+| Conditional Requests | ETag generation and If-None-Match conditional GET handling (thin adapter over the independent go-etag module) | `ETag`, `etag.ETagConfig`                    |
 | Body Size Limit  | Enforcing maximum request body size                                                                | `MaxBodySize`                                |
 | Query Parameters | Parsing typed values from URL query parameters                                                     | `ParseUintQuery`                             |
 | Middleware Stack | Named middleware ordering with duplicate prevention                                                | `MiddlewareStack`                            |
@@ -68,6 +69,7 @@ Objects with identity and lifecycle within the library.
 | KeyedRateLimiter       | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API           | Rate Limiting    |
 | CSRFConfig             | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies)      | CSRF Protection  |
 | ServerTiming           | A per-request timing collector injected via context for handler-internal sub-metrics              | Server-Timing    |
+| ETagConfig             | A configuration value object (in go-etag) defining ETag strength, buffer size, hash function, and skip rules | Conditional Requests |
 | MetricsConfig          | A configuration value object defining metrics recording behavior                                  | Metrics          |
 | ServerConfig           | A configuration value object defining server address, timeouts, and TLS settings                  | Server Lifecycle |
 | MiddlewareStack        | A named middleware collection with duplicate prevention and ordering validation                   | Middleware Stack |
@@ -102,6 +104,10 @@ Immutable objects defined by their attributes.
 | Trusted Origin         | An origin explicitly allowed for cross-domain CSRF validation                                          | CSRF Protection  |
 | Trusted Proxy          | An IP/CIDR of a reverse proxy that may strip or overwrite origin/protocol headers                      | CSRF Protection  |
 | Server-Timing Metric   | A named sub-measurement within a single request's Server-Timing header (name + duration)               | Server-Timing    |
+| Entity Tag (ETag)       | An opaque string validator identifying a specific version of a representation, sent in the ETag response header | Conditional Requests |
+| Validator Strength      | Whether an ETag is strong or weak per RFC 7232 §2.1; strong ETags change on any byte change             | Conditional Requests |
+| Conditional Request     | A request carrying If-None-Match/If-Match headers that the server evaluates against the resource's ETag | Conditional Requests |
+| If-None-Match           | A request header listing ETags the client already holds; a match yields 304 Not Modified               | Conditional Requests |
 | Health Status          | The operational state reported by health endpoints: `up` or `down`                                     | Health           |
 | Ready Probe            | A function that returns true when the service is ready to accept traffic                               | Health           |
 
@@ -168,6 +174,7 @@ Actions the library performs.
 | `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                  | Server-Timing    |
 | `WithServerTiming(ctx, st)`          | Store a ServerTiming collector in a context                                                            | Server-Timing    |
 | `ServerTimingFromContext(ctx)`       | Retrieve the ServerTiming collector from a context                                                     | Server-Timing    |
+| `ETag(cfg)`                          | Create ETag middleware (thin adapter over go-etag) that generates ETags and serves 304 on If-None-Match | Conditional Requests |
 | `Metrics(cfg)`                       | Create middleware that records request metrics via a pluggable recorder                                | Metrics          |
 | `MaxBodySize(limit)`                 | Create middleware that rejects request bodies exceeding the limit                                      | Body Size Limit  |
 | `MaxBodySizeMiddleware(cfg)`         | Create body-size middleware from a validated `MaxBodySizeConfig`                                       | Body Size Limit  |
@@ -210,6 +217,8 @@ State transitions within the library.
 | CSRF Token Rotated            | InvalidateCSRFCookie expires the cookie, forcing a new token on the next request                          | CSRF Protection  |
 | Server-Timing Metric Recorded | A named sub-metric's duration is captured in the ServerTiming collector via stop() or RecordServerTiming  | Server-Timing    |
 | Server-Timing Header Emitted  | The ServerTimingMiddleware writes the W3C Server-Timing response header with CRLF-safe sanitized values   | Server-Timing    |
+| ETag Generated                | ETag middleware computes an ETag from the response body and writes the ETag response header              | Conditional Requests |
+| Not Modified Served           | ETag middleware matches If-None-Match and responds 304 Not Modified with an empty body                  | Conditional Requests |
 | Health Checked                | Health endpoint responds with current status                                                              | Health           |
 | Readiness Failed              | ReadyHandlerWithProbe calls ready() and it returns false; responds 503                                    | Health           |
 | Metrics Recorded              | Metrics middleware records request duration, status, and method                                           | Metrics          |
@@ -368,6 +377,16 @@ Invariants and policies that the library enforces.
 - Header values are sanitized against CRLF injection: quoted strings are escaped, raw CR/LF replaced
 - `delegatingWriter` transparently delegates Hijacker, Flusher, and Pusher to the underlying ResponseWriter
 
+### Conditional Requests Rules
+
+- `ETag(cfg)` is a thin adapter over the independent `go-etag` module; the config type (`etag.ETagConfig`) and domain types (`etag.ETag`, `etag.ParseETag`) live in go-etag, not httputil
+- For GET/HEAD requests, the middleware buffers the response body (up to `MaxBufferSize`, default 1 MB), computes an ETag via `HashFunc` (default FNV-64a), and writes the `ETag` response header
+- When `If-None-Match` matches the computed ETag, the middleware responds `304 Not Modified` with an empty body
+- Responses exceeding `MaxBufferSize` are streamed without an ETag (ETag generation abandoned)
+- `Skip` excludes requests from buffering (e.g., large file downloads, SSE)
+- `SkipIfPresent` respects a handler-set ETag instead of overwriting it
+- `RegisterErrorClassifications` registers a strict superset of go-etag's error templates, so consumers call only the httputil registration once
+
 ### Metrics Rules
 
 - `MetricsRecorder` is a pluggable interface for recording request metrics
@@ -397,6 +416,9 @@ Invariants and policies that the library enforces.
 | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write fails                                  |
 | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched                    |
 | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid (e.g., SameSite=None without Secure) |
+| `http.etag_write_failed`     | Transient      | Yes       | ETag writer fails to write buffered/streamed data              |
+| `http.etag_config_invalid`   | Rejection      | No        | ETagConfig has an invalid field value                          |
+| `http.etag_hash_write_failed`| Orchestration  | No        | Hash.Write fails, violating the hash.Hash contract             |
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`.
 
@@ -413,7 +435,7 @@ Patterns consumers and contributors should follow.
 | Classified errors      | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification                               |
 | Config validation      | All config types implement `Validate() error` for startup checks                                                        |
 | `httputil` import name | Consumers import as `httputil`; no aliases needed                                                                       |
-| Allowed dependencies   | `go-error-family`, `golang.org/x/time`, and `justinas/nosurf` are the only external dependencies (enforced by depguard) |
+| Allowed dependencies   | `go-error-family`, `golang.org/x/time`, `justinas/nosurf`, and `go-etag` are the only external dependencies (enforced by depguard) |
 
 ---
 

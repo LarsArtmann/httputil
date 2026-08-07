@@ -11,7 +11,7 @@ package httputil: {
   style.font-color: "#f4f4f0"
   style.stroke: "#ffb347"
 
-  middleware_chain: Middleware Chain (16) {
+  middleware_chain: Middleware Chain (17) {
     shape: package
     style.fill: "#16161a"
     style.font-color: "#f4f4f0"
@@ -31,6 +31,7 @@ package httputil: {
     csrf: CSRF
     servertiming: Server-Timing
     ratelimit_deprecated: RateLimit (deprecated)
+    etag: ETag
 
     recovery -> logging -> requestid -> timeout -> cors -> security -> compression -> handler
     maxbody -> handler
@@ -40,6 +41,7 @@ package httputil: {
     clientip -> handler
     csrf -> handler
     servertiming -> handler
+    etag -> handler
   }
 
   infra: Infrastructure {
@@ -100,6 +102,12 @@ nosurf: justinas/nosurf {
   style.font-color: "#f4f4f0"
 }
 
+goetag: go-etag {
+  shape: rectangle
+  style.fill: "#1d3557"
+  style.font-color: "#f4f4f0"
+}
+
 consumer -> middleware_chain: import
 compression -> wrapper: embeds
 wrapper -> recorder: delegates
@@ -107,6 +115,7 @@ errors -> errorfamily: classifies via
 ratelimit_keyed -> xtime: token bucket via
 ratelimit_deprecated -> xtime: deprecated
 csrf -> nosurf: wraps
+etag -> goetag: adapts
 middleware_chain -> stdlib: depends on
 httpspec -> stdlib: depends on (only)
 httpspec -> handler: validates any http.Handler
