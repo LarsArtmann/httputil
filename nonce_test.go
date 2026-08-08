@@ -134,7 +134,12 @@ func TestNonce_DefaultSizeWhenZero(t *testing.T) {
 
 	expectedLen := base64.RawURLEncoding.EncodedLen(defaultNonceSize)
 	if len(ctxNonce) != expectedLen {
-		t.Errorf("nonce length = %d, want %d (for %d bytes)", len(ctxNonce), expectedLen, defaultNonceSize)
+		t.Errorf(
+			"nonce length = %d, want %d (for %d bytes)",
+			len(ctxNonce),
+			expectedLen,
+			defaultNonceSize,
+		)
 	}
 }
 
@@ -163,7 +168,12 @@ func TestNonce_CustomSize(t *testing.T) {
 
 	expectedLen := base64.RawURLEncoding.EncodedLen(customSize)
 	if len(ctxNonce) != expectedLen {
-		t.Errorf("nonce length = %d, want %d (for %d bytes)", len(ctxNonce), expectedLen, customSize)
+		t.Errorf(
+			"nonce length = %d, want %d (for %d bytes)",
+			len(ctxNonce),
+			expectedLen,
+			customSize,
+		)
 	}
 }
 
@@ -504,7 +514,12 @@ func TestNonce_MinSizeMiddlewarePath(t *testing.T) {
 
 	expectedLen := base64.RawURLEncoding.EncodedLen(minNonceSize)
 	if len(ctxNonce) != expectedLen {
-		t.Errorf("nonce length = %d, want %d (for %d bytes)", len(ctxNonce), expectedLen, minNonceSize)
+		t.Errorf(
+			"nonce length = %d, want %d (for %d bytes)",
+			len(ctxNonce),
+			expectedLen,
+			minNonceSize,
+		)
 	}
 }
 

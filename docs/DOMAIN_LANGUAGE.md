@@ -31,7 +31,7 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 | Response Capture     | Recording response state for inspection (status, headers, body)                                               | `ResponseRecorder`, `Chain`                  |
 | Error Protocol       | Classified errors with behavioral families for retry decisions                                                | Error codes, `go-error-family`               |
 | Security Headers     | Setting common browser security headers on responses                                                          | `SecurityHeadersConfig`                      |
-| CSP Nonce            | Per-request cryptographic nonce generation for Content Security Policy inline script/style allowlisting      | `NonceConfig`, `Nonce`                       |
+| CSP Nonce            | Per-request cryptographic nonce generation for Content Security Policy inline script/style allowlisting       | `NonceConfig`, `Nonce`                       |
 | Request ID           | Propagating or generating unique request identifiers                                                          | `RequestIDConfig`                            |
 | Recovery             | Catching panics and returning 500 responses                                                                   | `Recovery`                                   |
 | Timeout              | Enforcing request deadlines via context cancellation                                                          | `Timeout`                                    |
@@ -61,7 +61,7 @@ Objects with identity and lifecycle within the library.
 | ResponseRecorder       | A wrapping `http.ResponseWriter` that captures the status code and write state                               | Response Capture     |
 | CORSConfig             | A configuration value object defining CORS policy (origins, methods, headers, etc.)                          | CORS                 |
 | SecurityHeadersConfig  | A configuration value object defining which security headers to set                                          | Security Headers     |
-| NonceConfig            | A configuration value object defining CSP nonce size and CSP header builder                                 | CSP Nonce            |
+| NonceConfig            | A configuration value object defining CSP nonce size and CSP header builder                                  | CSP Nonce            |
 | RequestIDConfig        | A configuration value object defining request ID header name and generation logic                            | Request ID           |
 | CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)                    | Compression          |
 | DecompressionConfig    | A configuration value object defining decompression parameters (encodings, bomb-protection limit)            | Decompression        |
@@ -112,8 +112,8 @@ Immutable objects defined by their attributes.
 | If-None-Match          | A request header listing ETags the client already holds; a match yields 304 Not Modified                        | Conditional Requests |
 | Health Status          | The operational state reported by health endpoints: `up` or `down`                                              | Health               |
 | Ready Probe            | A function that returns true when the service is ready to accept traffic                                        | Health               |
-| CSP Nonce              | A cryptographically random base64 string generated per request, matching inline elements to the CSP header    | CSP Nonce            |
-| CSP Builder            | A function that takes a nonce and returns a Content-Security-Policy header value                              | CSP Nonce            |
+| CSP Nonce              | A cryptographically random base64 string generated per request, matching inline elements to the CSP header      | CSP Nonce            |
+| CSP Builder            | A function that takes a nonce and returns a Content-Security-Policy header value                                | CSP Nonce            |
 
 ---
 
@@ -121,82 +121,82 @@ Immutable objects defined by their attributes.
 
 Actions the library performs.
 
-| Term                                 | Definition                                                                                              | Context              |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------- |
-| `ClientIP(r)`                        | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr  | Client IP            |
-| `ClientIPMiddleware(next)`           | Create middleware that injects the client IP into the request context                                   | Client IP            |
-| `ClientIPFromContext(ctx)`           | Retrieve the stored client IP from a context                                                            | Client IP            |
-| `WithClientIP(ctx, ip)`              | Store a client IP string in a context                                                                   | Client IP            |
-| `CORS(cfg)`                          | Create middleware that sets CORS response headers and handles preflight requests                        | CORS                 |
-| `DefaultCORSConfig()`                | Return a permissive CORS config suitable for local development (allows all origins)                     | CORS                 |
-| `NewResponseRecorder(w)`             | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state              | Response Capture     |
-| `Chain(handler, mw...)`              | Compose multiple middleware around a handler; first middleware in list is outermost                     | Response Capture     |
-| `HeaderSnapshot(rec)`                | Return an isolated copy of the response headers from a ResponseRecorder                                 | Response Capture     |
-| `SecurityHeaders(cfg)`               | Create middleware that sets security response headers (nosniff, frame-options, etc.)                    | Security Headers     |
-| `DefaultSecurityHeadersConfig()`     | Return a SecurityHeadersConfig with production defaults                                                 | Security Headers     |
+| Term                                 | Definition                                                                                                 | Context              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------- | -------------------- |
+| `ClientIP(r)`                        | Extract the client IP from a request using header precedence: X-Forwarded-For → X-Real-IP → RemoteAddr     | Client IP            |
+| `ClientIPMiddleware(next)`           | Create middleware that injects the client IP into the request context                                      | Client IP            |
+| `ClientIPFromContext(ctx)`           | Retrieve the stored client IP from a context                                                               | Client IP            |
+| `WithClientIP(ctx, ip)`              | Store a client IP string in a context                                                                      | Client IP            |
+| `CORS(cfg)`                          | Create middleware that sets CORS response headers and handles preflight requests                           | CORS                 |
+| `DefaultCORSConfig()`                | Return a permissive CORS config suitable for local development (allows all origins)                        | CORS                 |
+| `NewResponseRecorder(w)`             | Create a ResponseRecorder wrapping the given ResponseWriter, defaulting to unwritten state                 | Response Capture     |
+| `Chain(handler, mw...)`              | Compose multiple middleware around a handler; first middleware in list is outermost                        | Response Capture     |
+| `HeaderSnapshot(rec)`                | Return an isolated copy of the response headers from a ResponseRecorder                                    | Response Capture     |
+| `SecurityHeaders(cfg)`               | Create middleware that sets security response headers (nosniff, frame-options, etc.)                       | Security Headers     |
+| `DefaultSecurityHeadersConfig()`     | Return a SecurityHeadersConfig with production defaults                                                    | Security Headers     |
 | `Nonce(cfg)`                         | Create middleware that generates a per-request CSP nonce, sets the CSP header, and stores nonce in context | CSP Nonce            |
-| `DefaultNonceConfig()`               | Return a NonceConfig with 20-byte nonce and RecommendedCSPWithNonce builder                              | CSP Nonce            |
-| `NonceFromContext(ctx)`              | Retrieve the stored CSP nonce from a context                                                            | CSP Nonce            |
-| `NonceFromRequest(r)`                | Retrieve the CSP nonce from a request (convenience wrapper)                                             | CSP Nonce            |
-| `NonceAttr(r)`                       | Return an HTML `nonce="..."` attribute string for use in `<script>`/`<style>` tags                      | CSP Nonce            |
-| `RecommendedCSPWithNonce(nonce)`     | Build a Content-Security-Policy with script-src and style-src nonce sources                             | CSP Nonce            |
-| `ProductionCSPWithNonce(nonce)`      | Build a stricter CSP adding object-src, base-uri, and frame-ancestors restrictions                      | CSP Nonce            |
-| `WithNonce(ctx, nonce)`              | Store a CSP nonce string in a context                                                                   | CSP Nonce            |
-| `RequestID(cfg)`                     | Create middleware that propagates or generates a request ID                                             | Request ID           |
-| `DefaultRequestIDConfig()`           | Return a RequestIDConfig that reads/generates X-Request-ID                                              | Request ID           |
-| `RequestIDFromContext(ctx)`          | Retrieve the stored request ID from a context                                                           | Request ID           |
-| `Recovery(logger)`                   | Create middleware that catches panics, logs the stack trace, and returns 500                            | Recovery             |
-| `Timeout(duration)`                  | Create middleware that sets a deadline on the request context                                           | Timeout              |
-| `Logging(logger)`                    | Create middleware that logs each request with method, path, status, duration, and client IP             | Logging              |
-| `Compression(cfg)`                   | Create middleware that compresses responses based on Accept-Encoding negotiation                        | Compression          |
-| `DefaultCompressionConfig()`         | Return a CompressionConfig with sensible defaults (default level, 512-byte minimum)                     | Compression          |
-| `Decompression(cfg)`                 | Create middleware that decompresses request bodies based on Content-Encoding with bomb protection       | Decompression        |
-| `DefaultDecompressionConfig()`       | Return a DecompressionConfig with gzip+deflate and 16 MiB bomb-protection limit                         | Decompression        |
-| `HealthHandler()`                    | Return a handler that responds with `{"status":"up"}`                                                   | Health               |
-| `LiveHandler()`                      | Alias for `HealthHandler()` for Kubernetes liveness probes                                              | Health               |
-| `ReadyHandler()`                     | Return a handler for Kubernetes readiness probes (always up by default)                                 | Health               |
-| `ReadyHandlerWithProbe(ready)`       | Return a handler that calls `ready()` and responds 200 up or 503 down                                   | Health               |
-| `RegisterHealth(mux)`                | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                       | Health               |
-| `NewTokenBucketLimiter(rate,burst)`  | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0) _(deprecated)_         | Rate Limiting        |
-| `RateLimit(cfg)`                     | Create middleware that enforces rate limiting using the configured limiter _(deprecated)_               | Rate Limiting        |
-| `DefaultRateLimitConfig()`           | Return a RateLimitConfig with 429 status and RemoteAddr key func _(deprecated)_                         | Rate Limiting        |
-| `NewKeyedRateLimiter(cfg)`           | Create a keyed rate limiter with O(log n) eviction, MaxKeys cap, and monitoring API                     | Rate Limiting        |
-| `KeyedRateLimiterMiddleware(cfg)`    | Create middleware enforcing per-key rate limits with Retry-After on rejection                           | Rate Limiting        |
-| `DefaultKeyedRateLimiterConfig()`    | Return a KeyedRateLimiterConfig with sensible defaults (100 req/min, ClientIP key)                      | Rate Limiting        |
-| `KeyExtractorFromRemoteAddr()`       | Return a KeyExtractor that uses the request RemoteAddr for rate-limit keying                            | Rate Limiting        |
-| `KeyExtractorFromClientIP()`         | Return a KeyExtractor that uses the extracted ClientIP for rate-limit keying                            | Rate Limiting        |
-| `CSRFMiddleware(cfg)`                | Create double-submit cookie CSRF middleware backed by nosurf                                            | CSRF Protection      |
-| `CSRFResponseHeaderMiddleware(next)` | Create middleware that auto-sets the CSRF token in response headers for HTMX consumption                | CSRF Protection      |
-| `ValidateCSRF(r, cfg)`               | Validate a request's CSRF token; returns (ok, responseRecorder) for standalone use                      | CSRF Protection      |
-| `ConfigureNosurfHandler(h, cfg)`     | Configure the underlying nosurf handler with cookie, header, and origin settings                        | CSRF Protection      |
-| `WithCSRFToken(ctx, token)`          | Store a CSRF token in a context                                                                         | CSRF Protection      |
-| `CSRFTokenFromContext(ctx)`          | Retrieve the stored CSRF token from a context                                                           | CSRF Protection      |
-| `CSRFTokenFromRequest(r)`            | Extract the CSRF token from a request (header or cookie)                                                | CSRF Protection      |
-| `CSRFTokenHXHeaders(token)`          | Generate an `hx-headers` attribute string containing the CSRF token for HTMX                            | CSRF Protection      |
-| `CSRFTokenHTMLMeta(token)`           | Generate an HTML `<meta>` tag containing the CSRF token for templ rendering                             | CSRF Protection      |
-| `CSRFTokenFormField(token)`          | Generate an HTML hidden `<input>` field containing the CSRF token                                       | CSRF Protection      |
-| `InvalidateCSRFCookie(w, cfg)`       | Expire the CSRF cookie to force token rotation (e.g., on login/logout)                                  | CSRF Protection      |
-| `TranslateCSRFHeaders(h)`            | Translate HTMX-style CSRF headers to the canonical header name expected by nosurf                       | CSRF Protection      |
-| `SetPlaintextHTTPOrigin()`           | Configure the package to use plaintext HTTP origin for local development                                | CSRF Protection      |
-| `NewServerTiming()`                  | Create a ServerTiming collector for manual wrapping (without middleware)                                | Server-Timing        |
-| `ServerTimingMiddleware()`           | Create middleware that injects a ServerTiming collector via context and writes the header on response   | Server-Timing        |
-| `ServerTimingMiddlewareWhen(pred)`   | Create conditional Server-Timing middleware that only activates when the predicate returns true         | Server-Timing        |
-| `MeasureServerTiming(ctx, name)`     | Start a named sub-metric timer; returns a stop function that records the elapsed duration               | Server-Timing        |
-| `WrapServerTiming(w, r)`             | Manually wrap a ResponseWriter with Server-Timing instrumentation (without middleware)                  | Server-Timing        |
-| `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                   | Server-Timing        |
-| `WithServerTiming(ctx, st)`          | Store a ServerTiming collector in a context                                                             | Server-Timing        |
-| `ServerTimingFromContext(ctx)`       | Retrieve the ServerTiming collector from a context                                                      | Server-Timing        |
-| `ETag(cfg)`                          | Create ETag middleware (thin adapter over go-etag) that generates ETags and serves 304 on If-None-Match | Conditional Requests |
-| `Metrics(cfg)`                       | Create middleware that records request metrics via a pluggable recorder                                 | Metrics              |
-| `MaxBodySize(limit)`                 | Create middleware that rejects request bodies exceeding the limit                                       | Body Size Limit      |
-| `MaxBodySizeMiddleware(cfg)`         | Create body-size middleware from a validated `MaxBodySizeConfig`                                        | Body Size Limit      |
-| `MaxBodySizeConfig`                  | Configuration struct for body-size middleware with `Validate()`                                         | Body Size Limit      |
-| `ServerConfig.ShutdownTimeout`       | Duration the server waits for in-flight requests during graceful shutdown (default: 30s)                | Server Lifecycle     |
-| `NewServer(cfg)`                     | Create an HTTP server with configurable timeouts and graceful shutdown                                  | Server Lifecycle     |
-| `NewMiddlewareStack()`               | Create a named middleware stack with duplicate prevention and ordering validation                       | Middleware Stack     |
-| `RegisterErrorClassifications()`     | Register stdlib HTTP error sentinels and message templates with go-error-family                         | Error Protocol       |
-| `Validate()`                         | Check a config for invalid values at startup; all config types implement this                           | Universal            |
-| `ParseUintQuery(r, key)`             | Parse a uint value from a query parameter; returns 0 on missing, empty, or invalid values               | Query Parameters     |
+| `DefaultNonceConfig()`               | Return a NonceConfig with 20-byte nonce and RecommendedCSPWithNonce builder                                | CSP Nonce            |
+| `NonceFromContext(ctx)`              | Retrieve the stored CSP nonce from a context                                                               | CSP Nonce            |
+| `NonceFromRequest(r)`                | Retrieve the CSP nonce from a request (convenience wrapper)                                                | CSP Nonce            |
+| `NonceAttr(r)`                       | Return an HTML `nonce="..."` attribute string for use in `<script>`/`<style>` tags                         | CSP Nonce            |
+| `RecommendedCSPWithNonce(nonce)`     | Build a Content-Security-Policy with script-src and style-src nonce sources                                | CSP Nonce            |
+| `ProductionCSPWithNonce(nonce)`      | Build a stricter CSP adding object-src, base-uri, and frame-ancestors restrictions                         | CSP Nonce            |
+| `WithNonce(ctx, nonce)`              | Store a CSP nonce string in a context                                                                      | CSP Nonce            |
+| `RequestID(cfg)`                     | Create middleware that propagates or generates a request ID                                                | Request ID           |
+| `DefaultRequestIDConfig()`           | Return a RequestIDConfig that reads/generates X-Request-ID                                                 | Request ID           |
+| `RequestIDFromContext(ctx)`          | Retrieve the stored request ID from a context                                                              | Request ID           |
+| `Recovery(logger)`                   | Create middleware that catches panics, logs the stack trace, and returns 500                               | Recovery             |
+| `Timeout(duration)`                  | Create middleware that sets a deadline on the request context                                              | Timeout              |
+| `Logging(logger)`                    | Create middleware that logs each request with method, path, status, duration, and client IP                | Logging              |
+| `Compression(cfg)`                   | Create middleware that compresses responses based on Accept-Encoding negotiation                           | Compression          |
+| `DefaultCompressionConfig()`         | Return a CompressionConfig with sensible defaults (default level, 512-byte minimum)                        | Compression          |
+| `Decompression(cfg)`                 | Create middleware that decompresses request bodies based on Content-Encoding with bomb protection          | Decompression        |
+| `DefaultDecompressionConfig()`       | Return a DecompressionConfig with gzip+deflate and 16 MiB bomb-protection limit                            | Decompression        |
+| `HealthHandler()`                    | Return a handler that responds with `{"status":"up"}`                                                      | Health               |
+| `LiveHandler()`                      | Alias for `HealthHandler()` for Kubernetes liveness probes                                                 | Health               |
+| `ReadyHandler()`                     | Return a handler for Kubernetes readiness probes (always up by default)                                    | Health               |
+| `ReadyHandlerWithProbe(ready)`       | Return a handler that calls `ready()` and responds 200 up or 503 down                                      | Health               |
+| `RegisterHealth(mux)`                | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                          | Health               |
+| `NewTokenBucketLimiter(rate,burst)`  | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0) _(deprecated)_            | Rate Limiting        |
+| `RateLimit(cfg)`                     | Create middleware that enforces rate limiting using the configured limiter _(deprecated)_                  | Rate Limiting        |
+| `DefaultRateLimitConfig()`           | Return a RateLimitConfig with 429 status and RemoteAddr key func _(deprecated)_                            | Rate Limiting        |
+| `NewKeyedRateLimiter(cfg)`           | Create a keyed rate limiter with O(log n) eviction, MaxKeys cap, and monitoring API                        | Rate Limiting        |
+| `KeyedRateLimiterMiddleware(cfg)`    | Create middleware enforcing per-key rate limits with Retry-After on rejection                              | Rate Limiting        |
+| `DefaultKeyedRateLimiterConfig()`    | Return a KeyedRateLimiterConfig with sensible defaults (100 req/min, ClientIP key)                         | Rate Limiting        |
+| `KeyExtractorFromRemoteAddr()`       | Return a KeyExtractor that uses the request RemoteAddr for rate-limit keying                               | Rate Limiting        |
+| `KeyExtractorFromClientIP()`         | Return a KeyExtractor that uses the extracted ClientIP for rate-limit keying                               | Rate Limiting        |
+| `CSRFMiddleware(cfg)`                | Create double-submit cookie CSRF middleware backed by nosurf                                               | CSRF Protection      |
+| `CSRFResponseHeaderMiddleware(next)` | Create middleware that auto-sets the CSRF token in response headers for HTMX consumption                   | CSRF Protection      |
+| `ValidateCSRF(r, cfg)`               | Validate a request's CSRF token; returns (ok, responseRecorder) for standalone use                         | CSRF Protection      |
+| `ConfigureNosurfHandler(h, cfg)`     | Configure the underlying nosurf handler with cookie, header, and origin settings                           | CSRF Protection      |
+| `WithCSRFToken(ctx, token)`          | Store a CSRF token in a context                                                                            | CSRF Protection      |
+| `CSRFTokenFromContext(ctx)`          | Retrieve the stored CSRF token from a context                                                              | CSRF Protection      |
+| `CSRFTokenFromRequest(r)`            | Extract the CSRF token from a request (header or cookie)                                                   | CSRF Protection      |
+| `CSRFTokenHXHeaders(token)`          | Generate an `hx-headers` attribute string containing the CSRF token for HTMX                               | CSRF Protection      |
+| `CSRFTokenHTMLMeta(token)`           | Generate an HTML `<meta>` tag containing the CSRF token for templ rendering                                | CSRF Protection      |
+| `CSRFTokenFormField(token)`          | Generate an HTML hidden `<input>` field containing the CSRF token                                          | CSRF Protection      |
+| `InvalidateCSRFCookie(w, cfg)`       | Expire the CSRF cookie to force token rotation (e.g., on login/logout)                                     | CSRF Protection      |
+| `TranslateCSRFHeaders(h)`            | Translate HTMX-style CSRF headers to the canonical header name expected by nosurf                          | CSRF Protection      |
+| `SetPlaintextHTTPOrigin()`           | Configure the package to use plaintext HTTP origin for local development                                   | CSRF Protection      |
+| `NewServerTiming()`                  | Create a ServerTiming collector for manual wrapping (without middleware)                                   | Server-Timing        |
+| `ServerTimingMiddleware()`           | Create middleware that injects a ServerTiming collector via context and writes the header on response      | Server-Timing        |
+| `ServerTimingMiddlewareWhen(pred)`   | Create conditional Server-Timing middleware that only activates when the predicate returns true            | Server-Timing        |
+| `MeasureServerTiming(ctx, name)`     | Start a named sub-metric timer; returns a stop function that records the elapsed duration                  | Server-Timing        |
+| `WrapServerTiming(w, r)`             | Manually wrap a ResponseWriter with Server-Timing instrumentation (without middleware)                     | Server-Timing        |
+| `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                      | Server-Timing        |
+| `WithServerTiming(ctx, st)`          | Store a ServerTiming collector in a context                                                                | Server-Timing        |
+| `ServerTimingFromContext(ctx)`       | Retrieve the ServerTiming collector from a context                                                         | Server-Timing        |
+| `ETag(cfg)`                          | Create ETag middleware (thin adapter over go-etag) that generates ETags and serves 304 on If-None-Match    | Conditional Requests |
+| `Metrics(cfg)`                       | Create middleware that records request metrics via a pluggable recorder                                    | Metrics              |
+| `MaxBodySize(limit)`                 | Create middleware that rejects request bodies exceeding the limit                                          | Body Size Limit      |
+| `MaxBodySizeMiddleware(cfg)`         | Create body-size middleware from a validated `MaxBodySizeConfig`                                           | Body Size Limit      |
+| `MaxBodySizeConfig`                  | Configuration struct for body-size middleware with `Validate()`                                            | Body Size Limit      |
+| `ServerConfig.ShutdownTimeout`       | Duration the server waits for in-flight requests during graceful shutdown (default: 30s)                   | Server Lifecycle     |
+| `NewServer(cfg)`                     | Create an HTTP server with configurable timeouts and graceful shutdown                                     | Server Lifecycle     |
+| `NewMiddlewareStack()`               | Create a named middleware stack with duplicate prevention and ordering validation                          | Middleware Stack     |
+| `RegisterErrorClassifications()`     | Register stdlib HTTP error sentinels and message templates with go-error-family                            | Error Protocol       |
+| `Validate()`                         | Check a config for invalid values at startup; all config types implement this                              | Universal            |
+| `ParseUintQuery(r, key)`             | Parse a uint value from a query parameter; returns 0 on missing, empty, or invalid values                  | Query Parameters     |
 
 ---
 

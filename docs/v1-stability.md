@@ -178,17 +178,17 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### CSP Nonce (Frozen at v1.0)
 
-| Symbol                    | Tier     | Notes              |
-| ------------------------- | -------- | ------------------ |
-| `NonceConfig`             | Additive | New in [Unreleased]|
-| `Nonce`                   | Frozen   | New in [Unreleased]|
-| `DefaultNonceConfig`      | Frozen   | New in [Unreleased]|
-| `NonceFromContext`        | Frozen   | New in [Unreleased]|
-| `NonceFromRequest`        | Frozen   | New in [Unreleased]|
-| `NonceAttr`               | Frozen   | New in [Unreleased]|
-| `WithNonce`               | Frozen   | New in [Unreleased]|
-| `RecommendedCSPWithNonce` | Frozen   | New in [Unreleased]|
-| `ProductionCSPWithNonce`  | Frozen   | New in [Unreleased]|
+| Symbol                    | Tier     | Notes               |
+| ------------------------- | -------- | ------------------- |
+| `NonceConfig`             | Additive | New in [Unreleased] |
+| `Nonce`                   | Frozen   | New in [Unreleased] |
+| `DefaultNonceConfig`      | Frozen   | New in [Unreleased] |
+| `NonceFromContext`        | Frozen   | New in [Unreleased] |
+| `NonceFromRequest`        | Frozen   | New in [Unreleased] |
+| `NonceAttr`               | Frozen   | New in [Unreleased] |
+| `WithNonce`               | Frozen   | New in [Unreleased] |
+| `RecommendedCSPWithNonce` | Frozen   | New in [Unreleased] |
+| `ProductionCSPWithNonce`  | Frozen   | New in [Unreleased] |
 
 ### Server-Timing (Frozen at v1.0)
 
@@ -218,11 +218,11 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Middleware Stack (Frozen at v1.0)
 
-| Symbol                        | Tier     |
-| ----------------------------- | -------- |
-| `NewMiddlewareStack`          | Frozen   |
-| `MiddlewareStack`             | Additive |
-| `Middleware*` constants (14)  | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareNonce`, `MiddlewareCompression`, `MiddlewareDecompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
+| Symbol                       | Tier     |
+| ---------------------------- | -------- |
+| `NewMiddlewareStack`         | Frozen   |
+| `MiddlewareStack`            | Additive |
+| `Middleware*` constants (14) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareNonce`, `MiddlewareCompression`, `MiddlewareDecompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
 
 ### Query Parsing (Frozen at v1.0)
 

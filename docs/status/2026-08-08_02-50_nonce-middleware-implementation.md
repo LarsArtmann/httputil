@@ -13,18 +13,18 @@ other middleware touches were missed entirely.
 
 ## a) FULLY DONE
 
-| Item | Status | Evidence |
-|------|--------|----------|
-| `nonce.go` — core implementation | DONE | `NonceConfig`, `Nonce()`, `WithNonce()`, `NonceFromContext()`, `NonceFromRequest()`, `RecommendedCSPWithNonce()`, `Validate()` |
-| `nonce_test.go` — test suite | DONE | 16 test functions + 1 benchmark. Covers generation, context storage, CSP header, nil CSPBuilder, uniqueness, custom size, base64 encoding, from-request/from-context, Validate (3 cases), RecommendedCSPWithNonce |
-| Lint gate | DONE | `golangci-lint run` = 0 issues |
-| Race detection | DONE | `go test -race -count=10 ./...` = pass |
-| `AGENTS.md` file table entry | DONE | Row added with exports + purpose |
-| `AGENTS.md` non-obvious behaviors | DONE | Bullet added documenting per-request generation + CSPBuilder nil mode |
-| `AGENTS.md` file count | DONE | Updated 33 → 34 |
-| `AGENTS.md` test files list | DONE | Added `nonce_test.go` to middleware list |
-| `AGENTS.md` makezero note | DONE | Added `nonce.go` to makezero false-positive list |
-| Formatting | DONE | `golangci-lint fmt` applied |
+| Item                              | Status | Evidence                                                                                                                                                                                                          |
+| --------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nonce.go` — core implementation  | DONE   | `NonceConfig`, `Nonce()`, `WithNonce()`, `NonceFromContext()`, `NonceFromRequest()`, `RecommendedCSPWithNonce()`, `Validate()`                                                                                    |
+| `nonce_test.go` — test suite      | DONE   | 16 test functions + 1 benchmark. Covers generation, context storage, CSP header, nil CSPBuilder, uniqueness, custom size, base64 encoding, from-request/from-context, Validate (3 cases), RecommendedCSPWithNonce |
+| Lint gate                         | DONE   | `golangci-lint run` = 0 issues                                                                                                                                                                                    |
+| Race detection                    | DONE   | `go test -race -count=10 ./...` = pass                                                                                                                                                                            |
+| `AGENTS.md` file table entry      | DONE   | Row added with exports + purpose                                                                                                                                                                                  |
+| `AGENTS.md` non-obvious behaviors | DONE   | Bullet added documenting per-request generation + CSPBuilder nil mode                                                                                                                                             |
+| `AGENTS.md` file count            | DONE   | Updated 33 → 34                                                                                                                                                                                                   |
+| `AGENTS.md` test files list       | DONE   | Added `nonce_test.go` to middleware list                                                                                                                                                                          |
+| `AGENTS.md` makezero note         | DONE   | Added `nonce.go` to makezero false-positive list                                                                                                                                                                  |
+| Formatting                        | DONE   | `golangci-lint fmt` applied                                                                                                                                                                                       |
 
 ---
 
@@ -38,23 +38,23 @@ Nothing — the implementation is either done or not started, no half-measures.
 
 ### Integration Gaps (Every Other Middleware Has These)
 
-| # | Missing Item | Impact | Existing Pattern |
-|---|-------------|--------|-----------------|
-| 1 | **`MiddlewareNonce` constant in `stack.go`** | Nonce can't participate in `MiddlewareStack` ordering validation with a well-known name. **This is the biggest miss.** | Every middleware has a `Middleware*` constant (lines 11-25). ETag and Decompression both got theirs on the same session they were created. |
-| 2 | **`buildFullStack` in `stack_integration_test.go`** | Test comment says "all 17 middlewares" — now stale. Nonce not in the full-stack composition test. | Every middleware is added here. Count was already bumped 16→17 for ETag. |
-| 3 | **CHANGELOG.md `[Unreleased]` entry** | Release history gap. Every feature gets an entry here. | Decompression, ETag, TLSConfig, etc. all have detailed entries. |
-| 4 | **`ExampleNonce` in `example_test.go`** | No runnable example. `testableexamples` linter will flag this if the file is touched. | Every middleware has an `Example*` function with `// Output:` directive (25 examples total). |
-| 5 | **FEATURES.md update** | Nonce not listed in feature inventory. | Decompression and ETag both have entries. |
-| 6 | **README.md update** | No nonce documentation, no API table entry, no middleware ordering guidance for CSP nonce. | Every middleware is documented here. |
-| 7 | **DOMAIN_LANGUAGE.md update** | "nonce" only appears in the CSRF row. No CSP nonce bounded context. | Decompression got a full bounded context (entity, value objects, commands, events, rules). |
+| #   | Missing Item                                        | Impact                                                                                                                 | Existing Pattern                                                                                                                           |
+| --- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **`MiddlewareNonce` constant in `stack.go`**        | Nonce can't participate in `MiddlewareStack` ordering validation with a well-known name. **This is the biggest miss.** | Every middleware has a `Middleware*` constant (lines 11-25). ETag and Decompression both got theirs on the same session they were created. |
+| 2   | **`buildFullStack` in `stack_integration_test.go`** | Test comment says "all 17 middlewares" — now stale. Nonce not in the full-stack composition test.                      | Every middleware is added here. Count was already bumped 16→17 for ETag.                                                                   |
+| 3   | **CHANGELOG.md `[Unreleased]` entry**               | Release history gap. Every feature gets an entry here.                                                                 | Decompression, ETag, TLSConfig, etc. all have detailed entries.                                                                            |
+| 4   | **`ExampleNonce` in `example_test.go`**             | No runnable example. `testableexamples` linter will flag this if the file is touched.                                  | Every middleware has an `Example*` function with `// Output:` directive (25 examples total).                                               |
+| 5   | **FEATURES.md update**                              | Nonce not listed in feature inventory.                                                                                 | Decompression and ETag both have entries.                                                                                                  |
+| 6   | **README.md update**                                | No nonce documentation, no API table entry, no middleware ordering guidance for CSP nonce.                             | Every middleware is documented here.                                                                                                       |
+| 7   | **DOMAIN_LANGUAGE.md update**                       | "nonce" only appears in the CSRF row. No CSP nonce bounded context.                                                    | Decompression got a full bounded context (entity, value objects, commands, events, rules).                                                 |
 
 ### Testing Gaps
 
-| # | Missing Item | Impact |
-|---|-------------|--------|
-| 8 | **Fuzz test for `RecommendedCSPWithNonce`** | No CRLF injection fuzzing. `server_timing` has CRLF fuzz tests; nonce CSP output should be similarly hardened. |
-| 9 | **`generateNonce` isolated benchmark** | Current benchmark includes full middleware overhead. No isolated crypto/rand + base64 benchmark. |
-| 10 | **CSP header injection test** | No test verifying that nonces containing special characters (e.g., base64 `+`, `/`, `=`) don't break the CSP header. (Though `RawURLEncoding` avoids `+`/`/`/`=`, this is not tested.) |
+| #   | Missing Item                                | Impact                                                                                                                                                                                 |
+| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 8   | **Fuzz test for `RecommendedCSPWithNonce`** | No CRLF injection fuzzing. `server_timing` has CRLF fuzz tests; nonce CSP output should be similarly hardened.                                                                         |
+| 9   | **`generateNonce` isolated benchmark**      | Current benchmark includes full middleware overhead. No isolated crypto/rand + base64 benchmark.                                                                                       |
+| 10  | **CSP header injection test**               | No test verifying that nonces containing special characters (e.g., base64 `+`, `/`, `=`) don't break the CSP header. (Though `RawURLEncoding` avoids `+`/`/`/`=`, this is not tested.) |
 
 ---
 
@@ -179,13 +179,13 @@ constants, won't see it in examples, and won't find it in the README.
 
 ## Quality Gate Summary
 
-| Gate | Status |
-|------|--------|
-| `golangci-lint run` | PASS (0 issues) |
-| `go test -race -count=10 ./...` | PASS |
-| `golangci-lint fmt` | PASS |
+| Gate                                       | Status                                                                                                     |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `golangci-lint run`                        | PASS (0 issues)                                                                                            |
+| `go test -race -count=10 ./...`            | PASS                                                                                                       |
+| `golangci-lint fmt`                        | PASS                                                                                                       |
 | Feature completeness (vs other middleware) | **FAIL** — missing stack constant, integration test, CHANGELOG, example, README, FEATURES, DOMAIN_LANGUAGE |
-| Ecosystem integration | **FAIL** — not in `buildFullStack`, no CSP conflict resolution, no interaction tests |
+| Ecosystem integration                      | **FAIL** — not in `buildFullStack`, no CSP conflict resolution, no interaction tests                       |
 
 ---
 
