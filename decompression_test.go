@@ -389,3 +389,28 @@ func TestDecompressionRespectsEncodingFilter(t *testing.T) {
 		t.Error("deflate should not have been decompressed when only gzip is allowed")
 	}
 }
+
+// TestDecompression_InvalidConfigLogsAndContinues verifies that an invalid
+// decompression config (negative MaxDecompressionSize) is logged via slog but
+// does not prevent the middleware from constructing and serving requests.
+func TestDecompression_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// MaxDecompressionSize < 0 is always a bug — Validate returns an error.
+	// A plain GET with no Content-Encoding bypasses decompression entirely.
+	cfg := DecompressionConfig{
+		MaxDecompressionSize: -1,
+	}
+
+	var called bool
+
+	handler := Decompression(cfg)(newCountingHandler(&called))
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}

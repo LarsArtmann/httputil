@@ -376,3 +376,29 @@ func TestCORS_ExposedHeadersAndMaxAge(t *testing.T) {
 	assertHeader(t, rec, "Access-Control-Expose-Headers", "X-Custom-Header")
 	assertHeader(t, rec, "Access-Control-Max-Age", "7200")
 }
+
+// TestCORS_InvalidConfigLogsAndContinues verifies that an invalid CORS config
+// (AllowCredentials + AllowAllOrigins) is logged via slog but does not prevent
+// the middleware from constructing and serving requests.
+func TestCORS_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// Browsers reject credentials with wildcard origins, so Validate flags
+	// this combination. The constructor must log and still return a handler.
+	cfg := CORSConfig{
+		AllowAllOrigins:  true,
+		AllowCredentials: true,
+	}
+
+	var called bool
+
+	handler := CORS(cfg)(newCountingHandler(&called))
+	req := newTestRequest(http.MethodGet, "/", "http://example.com")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}

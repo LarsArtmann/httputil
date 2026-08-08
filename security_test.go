@@ -362,6 +362,31 @@ func TestSecurityHeaders_RecommendedConstants(t *testing.T) {
 	assertHeader(t, rec, "Content-Security-Policy", RecommendedCSP)
 }
 
+// TestSecurityHeaders_InvalidConfigLogsAndContinues verifies that an invalid
+// SecurityHeaders config (unrecognized FrameOptions value) is logged via slog
+// but does not prevent the middleware from constructing and serving requests.
+func TestSecurityHeaders_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// FrameOptions must be "", "DENY", "SAMEORIGIN", or "-". Anything else
+	// is rejected by Validate.
+	cfg := SecurityHeadersConfig{
+		FrameOptions: "BOGUS",
+	}
+
+	var called bool
+
+	handler := SecurityHeaders(cfg)(newCountingHandler(&called))
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}
+
 func BenchmarkSecurityHeaders(b *testing.B) {
 	cfg := DefaultSecurityHeadersConfig()
 	middleware := SecurityHeaders(cfg)

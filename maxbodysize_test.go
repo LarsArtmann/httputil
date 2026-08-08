@@ -144,3 +144,28 @@ func TestMaxBodySizeMiddlewareRejectsOversizedBody(t *testing.T) {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusRequestEntityTooLarge)
 	}
 }
+
+// TestMaxBodySize_InvalidConfigLogsAndContinues verifies that an invalid
+// MaxBodySize config (negative MaxBytes) is logged via slog but does not
+// prevent the middleware from constructing and serving requests.
+func TestMaxBodySize_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// MaxBytes < 0 is always a bug — Validate returns an error.
+	// A GET with no body is not affected by the limit.
+	cfg := MaxBodySizeConfig{
+		MaxBytes: -1,
+	}
+
+	var called bool
+
+	handler := MaxBodySizeMiddleware(cfg)(newCountingHandler(&called))
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}

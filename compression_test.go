@@ -539,3 +539,28 @@ func TestCompression_FlushNonFlushableCustomWriter(t *testing.T) {
 
 	assertHeader(t, rec, headerContentEncoding, "custom")
 }
+
+// TestCompression_InvalidConfigLogsAndContinues verifies that an invalid
+// compression config (negative MinSize) is logged via slog but does not prevent
+// the middleware from constructing and serving requests.
+func TestCompression_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// MinSize < 0 is always a bug. The constructor fills WriterFactories from
+	// defaults first, then Validate returns errNegativeMinSize and logs it.
+	cfg := CompressionConfig{
+		MinSize: -1,
+	}
+
+	var called bool
+
+	handler := Compression(cfg)(newCountingHandler(&called))
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}

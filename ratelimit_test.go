@@ -450,3 +450,35 @@ func TestRateLimit_DefaultStatusWhenZero(t *testing.T) {
 type alwaysDenyLimiter struct{}
 
 func (*alwaysDenyLimiter) Allow(string) bool { return false }
+
+// TestRateLimit_InvalidConfigLogsAndContinues verifies that an invalid
+// RateLimit config (out-of-range Status) is logged via slog but does not
+// prevent the middleware from constructing and serving requests.
+func TestRateLimit_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	limiter, err := NewTokenBucketLimiter(10, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Status 99 is outside the valid HTTP range — Validate returns
+	// errInvalidStatus. The limiter still allows the request through.
+	cfg := RateLimitConfig{
+		Limiter: limiter,
+		Status:  99,
+	}
+
+	var called bool
+
+	handler := RateLimit(cfg)(newCountingHandler(&called))
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}

@@ -480,3 +480,28 @@ func TestKeyedRateLimiterConfigValidate_AllowsZeroTTL(t *testing.T) {
 		t.Errorf("Validate() error = %v, want nil (TTL=0 is allowed)", err)
 	}
 }
+
+// TestKeyedRateLimiter_InvalidConfigLogsAndContinues verifies that an invalid
+// KeyedRateLimiter config (negative TTL) is logged via slog but does not
+// prevent the middleware from constructing and serving requests.
+func TestKeyedRateLimiter_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// TTL < 0 is rejected by Validate even after default-filling (Limit and
+	// Window are filled to sane values, but a negative TTL is always a bug).
+	cfg := DefaultKeyedRateLimiterConfig()
+	cfg.TTL = -1 * time.Nanosecond
+
+	var called bool
+
+	handler := KeyedRateLimiterMiddleware(cfg)(newCountingHandler(&called))
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}

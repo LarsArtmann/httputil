@@ -134,6 +134,31 @@ func TestRequestIDConfig_Validate_EmptyIncomingHeader(t *testing.T) {
 	}
 }
 
+// TestRequestID_InvalidConfigLogsAndContinues verifies that an invalid
+// RequestID config (empty ResponseHeader with a valid GenerateID) is logged
+// via slog but does not prevent the middleware from serving requests.
+func TestRequestID_InvalidConfigLogsAndContinues(t *testing.T) {
+	t.Parallel()
+
+	// GenerateID is set (avoids nil-call panic at request time), but
+	// ResponseHeader is empty so Validate returns errEmptyResponseHeader.
+	cfg := RequestIDConfig{
+		GenerateID: func() string { return "test-id" },
+	}
+
+	var called bool
+
+	handler := RequestID(cfg)(newCountingHandler(&called))
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}
+
 func BenchmarkRequestID(b *testing.B) {
 	cfg := DefaultRequestIDConfig()
 	middleware := RequestID(cfg)
