@@ -60,16 +60,16 @@ This session resolved both open design questions (Q1: Nonce coverage gap, Q2: Va
 
 ## b) PARTIALLY DONE
 
-### 1. validateConfig Coverage in 8 New Constructors — NOT TESTED
-The `validateConfig` helper itself is at 100% coverage (tested via the Nonce test), but the **call sites in 8 constructors** (CORS, SecurityHeaders, Compression, Decompression, MaxBodySize, RequestID, RateLimit, KeyedRateLimiter) are only covered by tests that pass valid `Default*()` configs. The `slog.Error` path in those constructors has **never been exercised**. No test constructs an invalid config for these middlewares and verifies the log+continue behavior.
+### ~~1. validateConfig Coverage in 8 New Constructors — NOT TESTED~~ → RESOLVED (session 5)
+All 8 constructors now have `*_InvalidConfigLogsAndContinues` tests: `TestCORS_`, `TestSecurityHeaders_`, `TestCompression_`, `TestDecompression_`, `TestMaxBodySize_`, `TestRequestID_`, `TestRateLimit_`, `TestKeyedRateLimiter_`. Each constructs with an intentionally invalid config, verifies the middleware still serves requests without panicking, and that the handler chain is intact. All constructors at 100% coverage (Decompression 84.8% on body-processing branches, validation line covered).
 
 **Impact:** Low — the code works correctly, the pattern is identical to Nonce/CSRF (which ARE tested), and invalid configs in production would produce a log warning + fallback behavior. But for full rigor, each constructor should have a "rejects invalid config" test.
 
 ### 2. CHANGELOG README Section — Coverage Value Not Updated
 The CHANGELOG `[0.10.0]` section says "Coverage now 97.0%" (from the v0.10.0 release). The current aggregate is 97.5%. This is **frozen history** per the CHANGELOG Freeze Policy and should NOT be edited — the current value is accurately reflected in the README badge. No action needed, but noting it.
 
-### 3. MaxBodySizeMiddleware Doc Comment Stale
-`maxbodysize.go:39-40` says "Call [MaxBodySizeConfig.Validate] before constructing the middleware to surface configuration errors at startup." This is now misleading — the constructor calls `Validate()` itself. The doc comment should be updated.
+### ~~3. MaxBodySizeMiddleware Doc Comment Stale~~ → RESOLVED (session 5)
+Fixed in both `maxbodysize.go` (constructor doc comment now says "validated at construction time") and `ratelimit_keyed.go` (Validate doc comment updated to note the constructor calls Validate at construction time). A full audit (`rg 'Call.*Validate' --type go`) confirmed no other stale comments remain.
 
 ---
 
@@ -107,17 +107,11 @@ The middleware logged a warning but happily generated insecure nonces. I found a
 
 ## e) WHAT WE SHOULD IMPROVE
 
-### 1. Constructor Validate-Error Tests for All Middleware
-Every constructor now calls `validateConfig`, but only Nonce and CSRF have tests for the invalid-config path. The other 8 constructors should each have a test like:
-```go
-func TestCORS_InvalidConfigLogsAndContinues(t *testing.T) {
-    // Construct with AllowCredentials=true + AllowAllOrigins=true
-    // Verify slog.Error is called and middleware still works
-}
-```
+### ~~1. Constructor Validate-Error Tests for All Middleware~~ → RESOLVED (session 5)
+All 8 constructors now have `*_InvalidConfigLogsAndContinues` tests. Each constructs with an intentionally invalid config and verifies the middleware still serves requests without panicking.
 
-### 2. Stale Doc Comment in maxbodysize.go
-`maxbodysize.go:39-40` tells users to call `Validate()` before constructing the middleware. The middleware now does this itself. Update the comment.
+### ~~2. Stale Doc Comment in maxbodysize.go~~ → RESOLVED (session 5)
+Fixed in `maxbodysize.go` and `ratelimit_keyed.go`. Full audit confirmed no other stale comments.
 
 ### 3. Decompression() and Compression() Coverage Dropped
 - `Decompression` constructor: 78.8% (was higher — the validateConfig line is uncovered)
@@ -138,20 +132,20 @@ The validate-and-log pattern means invalid configs are silently absorbed in prod
 ## f) Up to 50 Things to Get Done Next
 
 #### Coverage & Tests
-1. Add `TestCORS_InvalidConfigLogsAndContinues` — AllowCredentials + AllowAllOrigins
-2. Add `TestSecurityHeaders_InvalidConfigLogsAndContinues` — invalid FrameOptions
-3. Add `TestCompression_InvalidConfigLogsAndContinues` — invalid Level
-4. Add `TestDecompression_InvalidConfigLogsAndContinues` — negative MaxDecompressionSize
-5. Add `TestMaxBodySize_InvalidConfigLogsAndContinues` — negative MaxBytes
-6. Add `TestRequestID_InvalidConfigLogsAndContinues` — nil GenerateID
-7. Add `TestRateLimit_InvalidConfigLogsAndContinues` — nil Limiter
-8. Add `TestKeyedRateLimiter_InvalidConfigLogsAndContinues` — negative TTL (after defaults)
+1. ~~Add `TestCORS_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+2. ~~Add `TestSecurityHeaders_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+3. ~~Add `TestCompression_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+4. ~~Add `TestDecompression_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+5. ~~Add `TestMaxBodySize_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+6. ~~Add `TestRequestID_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+7. ~~Add `TestRateLimit_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
+8. ~~Add `TestKeyedRateLimiter_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
 9. Add `TestValidateConfig` — dedicated unit test for the helper
 10. Add `TestValidateConfig_NilError` — verify nil error does not log
 
 #### Documentation
-11. Fix `maxbodysize.go:39-40` stale doc comment (says "Call Validate before constructing")
-12. Check other constructors for similar stale "call Validate" comments
+11. ~~Fix `maxbodysize.go:39-40` stale doc comment~~ → RESOLVED (session 5)
+12. ~~Check other constructors for similar stale "call Validate" comments~~ → RESOLVED (session 5) — found and fixed `ratelimit_keyed.go` too
 13. Update `docs/v1-stability.md` with `validateConfig` helper classification
 14. Add `validateConfig` to the API table in AGENTS.md (done for recorder.go row)
 15. Document the validate-and-log pattern in README or docs
@@ -204,7 +198,7 @@ The validate-and-log pattern means invalid configs are silently absorbed in prod
 48. Add Server-Timing coverage of the validation path
 
 #### General
-49. Audit all `// Call Validate before constructing` doc comments across the codebase
+49. ~~Audit all `// Call Validate before constructing` doc comments across the codebase~~ → RESOLVED (session 5) — only `maxbodysize.go` and `ratelimit_keyed.go` had stale comments; both fixed
 50. Consider a `Config[T]` interface or type constraint for config types that have `Validate()`
 
 ---

@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Nonce hardening tests** (`nonce_test.go`): 8 new tests covering `Size == 0` validation, minimum-size middleware path, wrong-ordering CSP loss documentation, context isolation across requests, empty CSPBuilder return, large (1024-byte) size, and Recovery composition (CSP present on panic-recovery 500s).
 - **`BenchmarkNonceAttr`** (`nonce_test.go`): isolated benchmark for the `NonceAttr` template helper.
 - **`TestNonce_InvalidConfigLogsAndFallsBack`** (`nonce_test.go`): covers the `Nonce()` Validate-error branch, bringing `Nonce()` to 100% coverage.
+- **Invalid-config tests for all middleware constructors** (`cors_test.go`, `security_test.go`, `compression_test.go`, `decompression_test.go`, `maxbodysize_test.go`, `requestid_test.go`, `ratelimit_test.go`, `ratelimit_keyed_test.go`): 8 new `*_InvalidConfigLogsAndContinues` tests verify the validate-and-log pattern works end-to-end for every constructor — each constructs with an intentionally invalid config, confirms the middleware still serves requests without panicking, and that the handler chain is intact.
 - **`FuzzNonce` moved to `nonce_fuzz_test.go`**: matches the `*_fuzz_test.go` file naming convention.
 - **Caching warning** (`README.md`, `nonce.go` doc comment): documents that responses with per-request nonces must set `Cache-Control: no-store`.
 - **`ProductionCSPWithNonce` code example** (`README.md`): shows how to use the stricter CSP builder.
@@ -21,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **`Nonce()` falls back to default size for invalid Size** (`nonce.go`): when `Size < minNonceSize` (including non-zero values below 16), the constructor now uses `defaultNonceSize` instead of the invalid value. Previously, only `Size <= 0` triggered the fallback; a non-zero but too-small value like `Size: 8` would log a warning but still generate an insecure nonce.
 - **CSRF and Nonce validation refactored to shared `validateConfig` helper** (`recorder.go`): the inline `cfg.Validate()` + `slog.Error` pattern in `CSRFMiddleware` and `Nonce` now uses the same `validateConfig(name, err)` helper as all other constructors, eliminating duplication.
+- **Stale `Validate()` doc comments updated** (`maxbodysize.go`, `ratelimit_keyed.go`): both said "call Validate before constructing the middleware" but constructors now validate automatically at construction time. Reworded to describe the actual behavior.
 
 ### Fixed
 
