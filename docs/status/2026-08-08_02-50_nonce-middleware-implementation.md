@@ -36,25 +36,30 @@ Nothing — the implementation is either done or not started, no half-measures.
 
 ## c) NOT STARTED (Critical Omissions)
 
+> **Annotation (2026-08-08 04:00):** All 11 items below (1-7 integration gaps +
+> 8-10 testing gaps) were resolved in the subsequent session. See the
+> comprehensive audit at `2026-08-08_03-20_nonce-middleware-comprehensive-audit.md`
+> for details. Inline markers below.
+
 ### Integration Gaps (Every Other Middleware Has These)
 
 | #   | Missing Item                                        | Impact                                                                                                                 | Existing Pattern                                                                                                                           |
 | --- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **`MiddlewareNonce` constant in `stack.go`**        | Nonce can't participate in `MiddlewareStack` ordering validation with a well-known name. **This is the biggest miss.** | Every middleware has a `Middleware*` constant (lines 11-25). ETag and Decompression both got theirs on the same session they were created. |
-| 2   | **`buildFullStack` in `stack_integration_test.go`** | Test comment says "all 17 middlewares" — now stale. Nonce not in the full-stack composition test.                      | Every middleware is added here. Count was already bumped 16→17 for ETag.                                                                   |
-| 3   | **CHANGELOG.md `[Unreleased]` entry**               | Release history gap. Every feature gets an entry here.                                                                 | Decompression, ETag, TLSConfig, etc. all have detailed entries.                                                                            |
-| 4   | **`ExampleNonce` in `example_test.go`**             | No runnable example. `testableexamples` linter will flag this if the file is touched.                                  | Every middleware has an `Example*` function with `// Output:` directive (25 examples total).                                               |
-| 5   | **FEATURES.md update**                              | Nonce not listed in feature inventory.                                                                                 | Decompression and ETag both have entries.                                                                                                  |
-| 6   | **README.md update**                                | No nonce documentation, no API table entry, no middleware ordering guidance for CSP nonce.                             | Every middleware is documented here.                                                                                                       |
-| 7   | **DOMAIN_LANGUAGE.md update**                       | "nonce" only appears in the CSRF row. No CSP nonce bounded context.                                                    | Decompression got a full bounded context (entity, value objects, commands, events, rules).                                                 |
+| 1   | **`MiddlewareNonce` constant in `stack.go`**        | ~~Resolved at `stack.go:25` — `MiddlewareNonce = "nonce"` added.~~                                                      | Every middleware has a `Middleware*` constant (lines 11-25). ETag and Decompression both got theirs on the same session they were created. |
+| 2   | **`buildFullStack` in `stack_integration_test.go`** | ~~Resolved — Nonce added to `buildFullStack`, count bumped to 18, `verifyGETHeaders` checks CSP header presence.~~      | Every middleware is added here. Count was already bumped 16→17 for ETag.                                                                   |
+| 3   | **CHANGELOG.md `[Unreleased]` entry**               | ~~Resolved — detailed entry added with all features listed.~~                                                           | Decompression, ETag, TLSConfig, etc. all have detailed entries.                                                                            |
+| 4   | **`ExampleNonce` in `example_test.go`**             | ~~Resolved — `ExampleNonce` added with `// Output:` directive.~~                                                       | Every middleware has an `Example*` function with `// Output:` directive (25 examples total).                                               |
+| 5   | **FEATURES.md update**                              | ~~Resolved — nonce row added, suite count updated to 18, header refreshed.~~                                            | Decompression and ETag both have entries.                                                                                                  |
+| 6   | **README.md update**                                | ~~Resolved — CSP Nonce section with code examples, ProductionCSPWithNonce, NonceAttr, ordering + caching guidance.~~    | Every middleware is documented here.                                                                                                       |
+| 7   | **DOMAIN_LANGUAGE.md update**                       | ~~Resolved — CSP Nonce bounded context, entity, value objects, 8 commands added.~~                                     | Decompression got a full bounded context (entity, value objects, commands, events, rules).                                                 |
 
 ### Testing Gaps
 
 | #   | Missing Item                                | Impact                                                                                                                                                                                 |
 | --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 8   | **Fuzz test for `RecommendedCSPWithNonce`** | No CRLF injection fuzzing. `server_timing` has CRLF fuzz tests; nonce CSP output should be similarly hardened.                                                                         |
-| 9   | **`generateNonce` isolated benchmark**      | Current benchmark includes full middleware overhead. No isolated crypto/rand + base64 benchmark.                                                                                       |
-| 10  | **CSP header injection test**               | No test verifying that nonces containing special characters (e.g., base64 `+`, `/`, `=`) don't break the CSP header. (Though `RawURLEncoding` avoids `+`/`/`/`=`, this is not tested.) |
+| 8   | **Fuzz test for `RecommendedCSPWithNonce`** | ~~Resolved — `FuzzNonce` in `nonce_fuzz_test.go`, 610K execs, 0 failures, covers both CSP builders for CRLF injection.~~                                                              |
+| 9   | **`generateNonce` isolated benchmark**      | ~~Resolved — `BenchmarkGenerateNonce` added to `nonce_test.go`.~~                                                                                                                      |
+| 10  | **CSP header injection test**               | ~~Resolved — covered by `FuzzNonce` which verifies base64 validity + CRLF resistance across all sizes 1-1024.~~                                                                        |
 
 ---
 
@@ -71,31 +76,24 @@ constants, won't see it in examples, and won't find it in the README.
 
 ### Design Issues to Address
 
-1. **CSP header conflict between `SecurityHeaders` and `Nonce`** — If a
-   user chains `SecurityHeaders` (which may set a static CSP) with `Nonce`
-   (which sets a dynamic CSP), `Header.Set` is last-writer-wins. This is a
-   **footgun**. Options:
-   - Document that `Nonce` must be placed after `SecurityHeaders` (and
-     `SecurityHeaders` CSP should be empty/suppressed when using nonces)
-   - Add a `NonceFromContext`-aware CSP builder to `SecurityHeaders`
-   - Add a `SecurityHeadersConfig.NonceAware bool` flag
+1. **CSP header conflict between `SecurityHeaders` and `Nonce`** — ~~Resolved
+   via documentation: README + nonce.go doc comment specify placing `Nonce`
+   after `SecurityHeaders`. Tests `TestNonce_OverwritesStaticCSP` (correct
+   ordering) and `TestNonce_BeforeSecurityHeaders_LosesCSP` (wrong ordering)
+   document the behavior.~~
 
-2. **`Nonce()` doesn't call `Validate()`** — Consistent with other
-   middleware, but `Size == 0` silently uses the default instead of being
-   validated. A user who sets `Size: 8` gets 8 bytes and doesn't know it's
-   below the CSP Level 3 minimum. `Validate()` exists but is never called
-   by `Nonce()`.
+2. **`Nonce()` doesn't call `Validate()`** — ~~Resolved: `Nonce()` now calls
+   `cfg.Validate()` at construction time (matching CSRF pattern). `Validate()`
+   was also updated to accept `Size == 0` as valid (use default). Invalid
+   configs are logged via `slog.Error`.~~
 
-3. **`RecommendedCSPWithNonce` is minimal** — Only covers `default-src`,
-   `script-src`, `style-src`. Missing `img-src`, `connect-src`, `font-src`,
-   `object-src 'none'`, `base-uri 'self'`. Production CSP typically needs
-   more. Consider a `ProductionCSPWithNonce` variant or a `CSPBuilder`
-   that merges into an existing policy.
+3. **`RecommendedCSPWithNonce` is minimal** — ~~Resolved: `ProductionCSPWithNonce`
+   added with `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`.~~
 
-4. **No `Nonce` in stack ordering validation** — `Validate()` in `stack.go`
-   enforces Recovery is outermost. Should it also enforce that Nonce is
-   before SecurityHeaders (or vice versa)? At minimum document the
-   interaction.
+4. **No `Nonce` in stack ordering validation** — ~~Resolved via documentation
+   and tests. Structural enforcement in `stack.Validate()` was not added (not
+   needed — the conflict is last-writer-wins and the inner middleware wins,
+   which is the desired behavior when ordering is correct).~~
 
 ---
 
