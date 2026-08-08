@@ -1,0 +1,147 @@
+package httputil
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+// CSP (Content Security Policy) nonce generation and propagation.
+//
+// Generates a cryptographically random, per-request nonce that allows specific
+// inline <script> and <style> elements to execute while blocking all others.
+// The browser matches the nonce in the Content-Security-Policy header against
+// the nonce attribute on inline elements — any mismatched inline content is
+// blocked. This eliminates the need for 'unsafe-inline' in CSP directives.
+//
+// Typical usage:
+//
+//	stack := httputil.NewMiddlewareStack()
+//	stack.Use(httputil.Nonce(httputil.DefaultNonceConfig()))
+//
+//	// In a handler or template:
+//	nonce := httputil.NonceFromRequest(r)
+//	// <script nonce="{{ nonce }}">...</script>
+
+const (
+	// defaultNonceSize is the number of random bytes (before base64 encoding)
+	// generated per request. 20 bytes = 160 bits, exceeding the CSP Level 3
+	// recommendation of at least 128 bits.
+	defaultNonceSize = 20
+
+	// minNonceSize is the minimum allowed nonce size per CSP Level 3
+	// (128 bits). Validate rejects anything smaller.
+	minNonceSize = 16
+)
+
+var errNonceTooSmall = errors.New(
+	"NonceConfig.Size must be at least 16 (128 bits per CSP Level 3 recommendation)",
+)
+
+// NonceConfig configures per-request CSP nonce generation and propagation.
+type NonceConfig struct {
+	// Size is the number of random bytes generated per request before base64
+	// encoding. A value of 0 uses the default (20 bytes / 160 bits). Minimum
+	// recommended: 16 (128 bits per CSP Level 3).
+	Size int
+
+	// CSPBuilder takes the generated base64-encoded nonce and returns the
+	// Content-Security-Policy header value. If nil, no CSP header is set —
+	// the nonce is only available via NonceFromContext/NonceFromRequest for
+	// template use. Default: RecommendedCSPWithNonce.
+	CSPBuilder func(nonce string) string
+}
+
+// DefaultNonceConfig returns a NonceConfig with sensible defaults: 20 random
+// bytes (160 bits) and a CSP policy that allows self plus the nonce for
+// script-src and style-src.
+func DefaultNonceConfig() NonceConfig {
+	return NonceConfig{
+		Size:       defaultNonceSize,
+		CSPBuilder: RecommendedCSPWithNonce,
+	}
+}
+
+// RecommendedCSPWithNonce returns a Content-Security-Policy header value that
+// extends RecommendedCSP with per-request nonces for script-src and style-src.
+// Use this as NonceConfig.CSPBuilder, or call it directly if you prefer to set
+// the CSP header yourself.
+func RecommendedCSPWithNonce(nonce string) string {
+	return fmt.Sprintf(
+		"default-src 'self'; script-src 'self' 'nonce-%[1]s'; style-src 'self' 'nonce-%[1]s'",
+		nonce,
+	)
+}
+
+// Validate checks the NonceConfig for invalid values.
+func (c NonceConfig) Validate() error {
+	if c.Size < minNonceSize {
+		return errNonceTooSmall
+	}
+
+	return nil
+}
+
+// generateNonce generates a cryptographically random nonce of the given byte
+// size and returns it base64-encoded (URL-safe, no padding). Panics only if
+// crypto/rand fails, which should never happen on a healthy system.
+func generateNonce(size int) string {
+	//nolint:makezero // pre-allocated for crypto/rand to fill, not append
+	buf := make([]byte, size)
+
+	_, err := rand.Read(buf)
+	if err != nil {
+		panic("httputil: crypto/rand.Read failed: " + err.Error())
+	}
+
+	return base64.RawURLEncoding.EncodeToString(buf)
+}
+
+// Nonce returns middleware that generates a per-request CSP nonce, stores it
+// in the request context for template access, and optionally sets the
+// Content-Security-Policy response header.
+func Nonce(cfg NonceConfig) Middleware {
+	size := cfg.Size
+	if size <= 0 {
+		size = defaultNonceSize
+	}
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			nonce := generateNonce(size)
+
+			if cfg.CSPBuilder != nil {
+				w.Header().Set("Content-Security-Policy", cfg.CSPBuilder(nonce))
+			}
+
+			ctx := WithNonce(r.Context(), nonce)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// WithNonce stores the nonce in the request context. Retrieve it with
+// NonceFromContext or NonceFromRequest.
+func WithNonce(parent context.Context, nonce string) context.Context {
+	return context.WithValue(parent, nonceKey{}, nonce)
+}
+
+// NonceFromContext retrieves the nonce from the context. Returns an empty
+// string if no nonce was stored.
+func NonceFromContext(ctx context.Context) string {
+	nonce, _ := ctx.Value(nonceKey{}).(string)
+
+	return nonce
+}
+
+// NonceFromRequest retrieves the nonce from the request context. Returns an
+// empty string if no nonce was stored. Convenience wrapper around
+// NonceFromContext.
+func NonceFromRequest(r *http.Request) string {
+	return NonceFromContext(r.Context())
+}
+
+type nonceKey struct{}
