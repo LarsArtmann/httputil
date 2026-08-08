@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`Nonce()` calls `Validate()` at construction** (`nonce.go`): matches the CSRF pattern — invalid `NonceConfig` (e.g., `Size: 8`) now logs `slog.Error` instead of silently using a too-small nonce. `Validate()` updated to accept `Size == 0` as valid (use default).
+- **Nonce hardening tests** (`nonce_test.go`): 8 new tests covering `Size == 0` validation, minimum-size middleware path, wrong-ordering CSP loss documentation, context isolation across requests, empty CSPBuilder return, large (1024-byte) size, and Recovery composition (CSP present on panic-recovery 500s).
+- **`BenchmarkNonceAttr`** (`nonce_test.go`): isolated benchmark for the `NonceAttr` template helper.
+- **`FuzzNonce` moved to `nonce_fuzz_test.go`**: matches the `*_fuzz_test.go` file naming convention.
+- **Caching warning** (`README.md`, `nonce.go` doc comment): documents that responses with per-request nonces must set `Cache-Control: no-store`.
+- **`ProductionCSPWithNonce` code example** (`README.md`): shows how to use the stricter CSP builder.
+
+### Fixed
+
+- **`nonce.go` doc comment referenced non-existent `stack.Use()` API** — replaced with `stack.Add(MiddlewareNonce, ...)`. Also mentions `NonceAttr` and `ProductionCSPWithNonce`.
+
 ## [0.10.0] - 2026-08-08
 
 ### Added
