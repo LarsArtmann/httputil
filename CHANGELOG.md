@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-08
+
 ### Added
 
 - **CSP nonce middleware** (`nonce.go`, `nonce_test.go`): per-request Content Security Policy nonce generation and propagation. `Nonce(NonceConfig)` generates a cryptographically random nonce (20 bytes / 160 bits default, minimum 16 bytes / 128 bits per CSP Level 3) via `crypto/rand` + `base64.RawURLEncoding`, stores it in request context, and optionally sets the `Content-Security-Policy` response header. `NonceFromContext` / `NonceFromRequest` retrieve the raw nonce for template use. `NonceAttr` returns a ready-to-use `nonce="..."` HTML attribute for `<script>` / `<style>` tags. Two CSP builder functions: `RecommendedCSPWithNonce` (script-src + style-src with nonce) and `ProductionCSPWithNonce` (adds `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`). Injectable `CSPBuilder` field allows custom policies; nil disables the CSP header entirely (context-only mode). `NonceConfig.Validate()` enforces the 128-bit minimum. `MiddlewareNonce = "nonce"` constant added to `stack.go`. Integrated into `buildFullStack` (now 18 middlewares). Includes 23 tests + `ExampleNonce` + `FuzzNonce` (CRLF injection resistance) + `BenchmarkNonce` + `BenchmarkGenerateNonce`.
@@ -351,7 +353,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/larsartmann/httputil/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/larsartmann/httputil/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/larsartmann/httputil/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/larsartmann/httputil/compare/v0.7.1...v0.8.0
