@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-09
+
 ### Added
 
 - **Validate-at-construction for all middleware** (`recorder.go`, 10 constructor files): all middleware constructors now call `cfg.Validate()` at startup via a shared `validateConfig(name, err)` helper in `recorder.go`, logging invalid configurations via `slog.Error`. Previously only `CSRFMiddleware` and `Nonce` validated at construction; `Compression`, `CORS`, `SecurityHeaders`, `Decompression`, `MaxBodySize`, `RequestID`, `RateLimit`, and `KeyedRateLimiterMiddleware` now do too. The validate-and-log pattern (not validate-and-abort) ensures invalid configs produce a warning but still construct a working middleware with fallback defaults.
@@ -376,7 +378,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/larsartmann/httputil/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/larsartmann/httputil/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/larsartmann/httputil/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/larsartmann/httputil/compare/v0.8.0...v0.9.0

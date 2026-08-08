@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-08 — CSP nonce middleware added (18 middlewares). Coverage 97.4%, benchmark (46) / example (26) / fuzz (20) counts verified against source. All claims checked with `go test -race -coverprofile`._
+_Updated: 2026-08-09 — validate-at-construction unified across all middleware. Coverage 97.3% (`httputil`), 99.3% (`httpspec`). All claims checked with `go test -race -coverprofile`._
 
 ---
 
@@ -51,6 +51,12 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 14 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Nonce, Compression, Decompression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit, ETag).
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
+
+### Validate-at-Construction
+
+- All middleware constructors call `cfg.Validate()` at startup via a shared `validateConfig(name, err)` helper in `recorder.go` (new in v0.11.0).
+- Invalid configs are logged via `slog.Error` and fall back to default values — the validate-and-log pattern, not validate-and-abort.
+- Previously only `CSRFMiddleware` and `Nonce` validated at construction; `Compression`, `CORS`, `SecurityHeaders`, `Decompression`, `MaxBodySize`, `RequestID`, `RateLimit`, and `KeyedRateLimiterMiddleware` now do too.
 
 ### CORS Security
 
@@ -155,7 +161,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.0% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-07 with race detection enabled.
+- `go test -race ./...` passes across the full suite with **97.3% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-09 with race detection enabled.
 - 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), Decompression (malformed compressed bodies), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, decompression, and CSRF fuzz tests verified with `-fuzztime`.
 - 43 benchmarks and 25 example functions across both packages.
 - `go vet` clean.
@@ -181,7 +187,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-08-07 with `go test -race -coverprofile`: **97.0%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-08-09 with `go test -race -coverprofile`: **97.3%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
