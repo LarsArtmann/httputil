@@ -91,6 +91,8 @@ No `httpspec` spec exists for CSP nonce header presence + format validation. The
 
 The prior session left open whether to tag v0.11.0 with the hardening changes. Not addressed this session.
 
+~~**Resolved at v0.11.0 (2026-08-09):** tagged as v0.11.0 — validate-at-construction unification is a feature addition (new behavior in 8 constructors), not a patch.~~
+
 ### 3. Nonce Generator Injectable Field
 
 The prior audit suggested making the nonce generator injectable (for testing/deterministic nonces). `NonceConfig` currently has no `Generator` field. Not started.
