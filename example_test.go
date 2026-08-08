@@ -296,3 +296,21 @@ func ExampleMaxBodySize() {
 
 	// Output: 413
 }
+
+func ExampleNonce() {
+	handler := Nonce(DefaultNonceConfig())(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		// Use in templates: <script {{ NonceAttr }}>...</script>
+		fmt.Println(NonceAttr(r) != "")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Header().Get("Content-Security-Policy") != "")
+
+	// Output:
+	// true
+	// true
+}

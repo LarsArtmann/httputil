@@ -6,7 +6,7 @@
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag adapter), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag adapter), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
 Minimal footprint — four dependencies (`go-error-family` + `go-etag` same-author, `golang.org/x/time`, `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
 
@@ -170,6 +170,35 @@ handler := httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())(mux
 ```
 
 Headers set by default: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
+
+### CSP Nonce
+
+Generates a per-request cryptographic nonce for Content Security Policy, allowing specific inline `<script>` and `<style>` elements to execute while blocking all others — no `'unsafe-inline'` needed.
+
+```go
+handler := httputil.Nonce(httputil.DefaultNonceConfig())(mux)
+```
+
+Retrieve the nonce in handlers or templates:
+
+```go
+// In a handler:
+nonce := httputil.NonceFromRequest(r)
+
+// In a Go template:
+//   <script {{ NonceAttr }}>...</script>
+//   <style {{ NonceAttr }}>...</style>
+attr := httputil.NonceAttr(r) // returns nonce="abc123"
+```
+
+Two built-in CSP builders:
+
+- `RecommendedCSPWithNonce` (default): `script-src` and `style-src` with nonce.
+- `ProductionCSPWithNonce`: adds `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`.
+
+Use a custom CSP by setting `CSPBuilder`, or set it to `nil` to disable the header entirely (context-only mode for when you set CSP elsewhere).
+
+> **Ordering:** Place `Nonce` **after** `SecurityHeaders` in the chain so the nonce-bearing CSP overwrites any static CSP. The default `SecurityHeadersConfig` does not set a CSP, so there is no conflict unless you explicitly set `ContentSecurityPolicy` in both.
 
 ### Request ID
 
@@ -579,6 +608,7 @@ handler := Chain(mux,
     Timeout(30*time.Second),  // enforces deadline
     RequestID(DefaultRequestIDConfig()),
     SecurityHeaders(DefaultSecurityHeadersConfig()),
+    Nonce(DefaultNonceConfig()), // after SecurityHeaders so nonce CSP wins
     CORS(DefaultCORSConfig()),
 )
 ```

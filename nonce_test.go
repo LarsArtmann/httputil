@@ -340,3 +340,161 @@ func BenchmarkNonce(b *testing.B) {
 		handler.ServeHTTP(rec, req)
 	}
 }
+
+func TestProductionCSPWithNonce(t *testing.T) {
+	t.Parallel()
+
+	nonce := "abc123test"
+
+	csp := ProductionCSPWithNonce(nonce)
+
+	if !strings.Contains(csp, "'nonce-"+nonce+"'") {
+		t.Errorf("CSP = %q, want it to contain 'nonce-%s'", csp, nonce)
+	}
+
+	for _, expected := range []string{
+		"object-src 'none'",
+		"base-uri 'self'",
+		"frame-ancestors 'none'",
+	} {
+		if !strings.Contains(csp, expected) {
+			t.Errorf("CSP = %q, want it to contain %q", csp, expected)
+		}
+	}
+}
+
+func TestNonce_ProductionCSPBuilder(t *testing.T) {
+	t.Parallel()
+
+	cfg := NonceConfig{
+		Size:       defaultNonceSize,
+		CSPBuilder: ProductionCSPWithNonce,
+	}
+
+	var ctxNonce string
+
+	inner := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		ctxNonce = NonceFromRequest(r)
+	})
+
+	handler := Nonce(cfg)(inner)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+
+	if !strings.Contains(csp, "object-src 'none'") {
+		t.Errorf("CSP = %q, want production directives", csp)
+	}
+
+	if !strings.Contains(csp, "'nonce-"+ctxNonce+"'") {
+		t.Errorf("CSP = %q, want nonce %q", csp, ctxNonce)
+	}
+}
+
+func TestNonceAttr(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultNonceConfig()
+
+	var attr, nonce string
+
+	inner := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		nonce = NonceFromRequest(r)
+		attr = NonceAttr(r)
+	})
+
+	handler := Nonce(cfg)(inner)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	expected := `nonce="` + nonce + `"`
+	if attr != expected {
+		t.Errorf("NonceAttr = %q, want %q", attr, expected)
+	}
+}
+
+func TestNonceAttr_EmptyWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	attr := NonceAttr(req)
+	if attr != "" {
+		t.Errorf("NonceAttr() = %q, want empty for request without nonce", attr)
+	}
+}
+
+func TestNonce_OverwritesStaticCSP(t *testing.T) {
+	t.Parallel()
+
+	secCfg := DefaultSecurityHeadersConfig()
+	secCfg.ContentSecurityPolicy = "default-src 'none'"
+
+	// SecurityHeaders is outermost, Nonce is inner. The inner middleware
+	// sets Content-Security-Policy after the outer one, so the nonce-bearing
+	// CSP wins. This is the correct ordering.
+	handler := Chain(
+		newNoOpHandler(),
+		SecurityHeaders(secCfg),
+		Nonce(DefaultNonceConfig()),
+	)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(csp, "'nonce-") {
+		t.Errorf(
+			"CSP = %q, want nonce-bearing policy (Nonce middleware must overwrite SecurityHeaders' static CSP)",
+			csp,
+		)
+	}
+}
+
+func FuzzNonce(f *testing.F) {
+	f.Add(minNonceSize)
+	f.Add(defaultNonceSize)
+	f.Add(32)
+	f.Add(64)
+
+	f.Fuzz(func(t *testing.T, size int) {
+		if size < 1 || size > 1024 {
+			t.Skip()
+		}
+
+		nonce := generateNonce(size)
+
+		decoded, err := base64.RawURLEncoding.DecodeString(nonce)
+		if err != nil {
+			t.Fatalf("nonce %q is not valid base64: %v", nonce, err)
+		}
+
+		if len(decoded) != size {
+			t.Fatalf("decoded length %d, want %d", len(decoded), size)
+		}
+
+		for _, csp := range []string{
+			RecommendedCSPWithNonce(nonce),
+			ProductionCSPWithNonce(nonce),
+		} {
+			if strings.ContainsAny(csp, "\r\n") {
+				t.Fatalf("CSP contains CRLF (header injection): %q", csp)
+			}
+		}
+	})
+}
+
+func BenchmarkGenerateNonce(b *testing.B) {
+	for b.Loop() {
+		_ = generateNonce(defaultNonceSize)
+	}
+}
