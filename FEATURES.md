@@ -29,7 +29,7 @@ _Updated: 2026-08-08 — CSP nonce middleware added (18 middlewares). Coverage 9
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`  | —                   |
 | Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | `ExampleDecompression`              | `BenchmarkDecompression*`     | `FuzzDecompression` |
 | ETag                     | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | —                             | —                   |
-| CSP Nonce                | `nonce.go`                             | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders       | Yes   | `ExampleNonce`                      | `BenchmarkNonce`, `BenchmarkGenerateNonce` | `FuzzNonce`         |
+| CSP Nonce                | `nonce.go`                             | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders       | Yes   | `ExampleNonce`                      | `BenchmarkNonce*`             | `FuzzNonce`         |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
