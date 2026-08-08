@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed, coverage corrected to 97.0%, benchmark (43) / example (25) / fuzz (19) counts verified against source, ETag adapter + Decompression rows updated. All claims checked against current source with `go test -race -coverprofile`._
+_Updated: 2026-08-08 — CSP nonce middleware added (18 middlewares). Coverage 97.4%, benchmark (46) / example (26) / fuzz (20) counts verified against source. All claims checked with `go test -race -coverprofile`._
 
 ---
 

@@ -196,9 +196,17 @@ Two built-in CSP builders:
 - `RecommendedCSPWithNonce` (default): `script-src` and `style-src` with nonce.
 - `ProductionCSPWithNonce`: adds `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`.
 
+```go
+cfg := httputil.DefaultNonceConfig()
+cfg.CSPBuilder = httputil.ProductionCSPWithNonce // stricter policy
+handler := httputil.Nonce(cfg)(mux)
+```
+
 Use a custom CSP by setting `CSPBuilder`, or set it to `nil` to disable the header entirely (context-only mode for when you set CSP elsewhere).
 
 > **Ordering:** Place `Nonce` **after** `SecurityHeaders` in the chain so the nonce-bearing CSP overwrites any static CSP. The default `SecurityHeadersConfig` does not set a CSP, so there is no conflict unless you explicitly set `ContentSecurityPolicy` in both.
+
+> **Caching:** Responses with per-request nonces **must not be cached** — a cached page would serve a stale nonce that no longer matches the CSP header. Set `Cache-Control: no-store` in your handler or caching middleware when using nonce-based CSP.
 
 ### Request ID
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 	"testing"
@@ -464,4 +465,194 @@ func BenchmarkGenerateNonce(b *testing.B) {
 	for b.Loop() {
 		_ = generateNonce(defaultNonceSize)
 	}
+}
+
+func TestNonceConfig_Validate_AcceptsZeroSize(t *testing.T) {
+	t.Parallel()
+
+	cfg := NonceConfig{
+		Size:       0,
+		CSPBuilder: RecommendedCSPWithNonce,
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for Size = 0 (use default)", err)
+	}
+}
+
+func TestNonce_MinSizeMiddlewarePath(t *testing.T) {
+	t.Parallel()
+
+	cfg := NonceConfig{
+		Size:       minNonceSize,
+		CSPBuilder: nil,
+	}
+
+	var ctxNonce string
+
+	inner := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		ctxNonce = NonceFromRequest(r)
+	})
+
+	handler := Nonce(cfg)(inner)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	expectedLen := base64.RawURLEncoding.EncodedLen(minNonceSize)
+	if len(ctxNonce) != expectedLen {
+		t.Errorf("nonce length = %d, want %d (for %d bytes)", len(ctxNonce), expectedLen, minNonceSize)
+	}
+}
+
+func TestNonce_BeforeSecurityHeaders_LosesCSP(t *testing.T) {
+	t.Parallel()
+
+	secCfg := DefaultSecurityHeadersConfig()
+	secCfg.ContentSecurityPolicy = "default-src 'none'"
+
+	// Wrong ordering: Nonce is outer (first in Chain), SecurityHeaders is
+	// inner. SecurityHeaders overwrites the nonce-bearing CSP. This test
+	// documents the footgun -- always place Nonce after SecurityHeaders.
+	handler := Chain(
+		newNoOpHandler(),
+		Nonce(DefaultNonceConfig()),
+		SecurityHeaders(secCfg),
+	)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if strings.Contains(csp, "'nonce-") {
+		t.Errorf("CSP = %q, should not contain nonce when Nonce is outer (wrong ordering)", csp)
+	}
+}
+
+func TestNonce_DoesNotLeakBetweenRequests(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultNonceConfig()
+
+	var firstNonce string
+
+	inner := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		nonce := NonceFromRequest(r)
+		if firstNonce == "" {
+			firstNonce = nonce
+		} else if nonce == firstNonce {
+			t.Errorf("nonce leaked: request got same nonce as first request (%q)", nonce)
+		}
+	})
+
+	handler := Nonce(cfg)(inner)
+
+	for range nonceUniqueTestRequests {
+		req := newTestRequest(http.MethodGet, "/", "")
+		rec := newRecorder()
+
+		handler.ServeHTTP(rec, req)
+	}
+}
+
+func TestNonce_CSPBuilderReturnsEmpty(t *testing.T) {
+	t.Parallel()
+
+	cfg := NonceConfig{
+		Size: defaultNonceSize,
+		CSPBuilder: func(_ string) string {
+			return ""
+		},
+	}
+
+	handler := Nonce(cfg)(newNoOpHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if csp != "" {
+		t.Errorf("CSP = %q, want empty when CSPBuilder returns empty string", csp)
+	}
+}
+
+func TestNonce_LargeSize(t *testing.T) {
+	t.Parallel()
+
+	largeSize := 1024
+
+	cfg := NonceConfig{
+		Size:       largeSize,
+		CSPBuilder: nil,
+	}
+
+	var ctxNonce string
+
+	inner := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		ctxNonce = NonceFromRequest(r)
+	})
+
+	handler := Nonce(cfg)(inner)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	expectedLen := base64.RawURLEncoding.EncodedLen(largeSize)
+	if len(ctxNonce) != expectedLen {
+		t.Errorf("nonce length = %d, want %d (for %d bytes)", len(ctxNonce), expectedLen, largeSize)
+	}
+}
+
+func TestNonce_WithRecoveryComposition(t *testing.T) {
+	t.Parallel()
+
+	panickingHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		panic("test panic")
+	})
+
+	// Recovery is outermost, Nonce is inner. CSP header should be set
+	// even when the handler panics, because Nonce middleware runs before
+	// dispatching to the handler.
+	handler := Chain(
+		panickingHandler,
+		Recovery(slog.New(slog.DiscardHandler)),
+		Nonce(DefaultNonceConfig()),
+	)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(csp, "'nonce-") {
+		t.Errorf("CSP = %q, want nonce-bearing CSP even on panic-recovery 500", csp)
+	}
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
+	}
+}
+
+func BenchmarkNonceAttr(b *testing.B) {
+	nonce := generateNonce(defaultNonceSize)
+	req := newTestRequest(http.MethodGet, "/", "")
+	req = req.WithContext(WithNonce(req.Context(), nonce))
+
+	var attr string
+
+	for b.Loop() {
+		attr = NonceAttr(req)
+	}
+
+	_ = attr
 }
