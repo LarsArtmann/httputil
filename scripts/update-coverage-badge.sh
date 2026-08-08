@@ -36,13 +36,20 @@ formatted=$(printf "%.1f" "$total")
 # Aligns with shields.io conventions for coverage badges.
 color=$(awk -v t="$total" 'BEGIN { if (t >= 90) print "green"; else if (t >= 70) print "yellow"; else print "red" }')
 
-# Replace the badge line in the README. The pattern matches the static
-# 97.8% green badge and any prior dynamic value.
+# Replace the badge line in the README. The pattern matches any line
+# containing the static shields.io coverage badge URL.
 new_badge="[![Coverage](https://img.shields.io/badge/coverage-${formatted}%25-${color})](#)"
 
 if grep -q 'shields.io/badge/coverage-' "$README"; then
-    sed -i.bak "s|!\\[Coverage\\](https://img.shields.io/badge/coverage-[^)]*)|${new_badge}|g" "$README"
-    rm -f "$README.bak"
+    # Use awk for reliable whole-line replacement. The old sed approach
+    # matched only the inner image (![Coverage](...)) but new_badge
+    # includes the outer markdown link wrapper, causing nested brackets
+    # to accumulate on every run.
+    tmp="${README}.tmp"
+    awk -v replacement="$new_badge" '
+        /shields\.io\/badge\/coverage-/ { print replacement; next }
+        { print }
+    ' "$README" > "$tmp" && mv "$tmp" "$README"
     echo "Updated coverage badge: ${formatted}% (${color})"
 else
     echo "WARNING: no coverage badge found in $README — skipping update"
