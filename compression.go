@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -179,6 +180,11 @@ func Compression(cfg CompressionConfig) Middleware {
 		}
 
 		cfg.WriterFactories = DefaultWriterFactoriesForLevel(level)
+	}
+
+	err := cfg.Validate()
+	if err != nil {
+		slog.Error("httputil: CompressionConfig validation failed", slog.String("error", err.Error()))
 	}
 
 	neg := buildNegotiator(cfg.WriterFactories)

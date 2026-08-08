@@ -3,6 +3,7 @@ package httputil
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -80,6 +81,11 @@ func (c CORSConfig) Validate() error {
 // Preflight OPTIONS requests receive a 204 No Content response unless
 // OptionsPassthrough is set.
 func CORS(cfg CORSConfig) Middleware {
+	err := cfg.Validate()
+	if err != nil {
+		slog.Error("httputil: CORSConfig validation failed", slog.String("error", err.Error()))
+	}
+
 	allowCredentials := "false"
 	if cfg.AllowCredentials {
 		allowCredentials = "true"

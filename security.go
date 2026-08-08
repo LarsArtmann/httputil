@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 )
 
@@ -90,6 +91,11 @@ func (c SecurityHeadersConfig) Validate() error {
 // SecurityHeaders returns middleware that sets common security response headers
 // based on the given configuration.
 func SecurityHeaders(cfg SecurityHeadersConfig) Middleware {
+	err := cfg.Validate()
+	if err != nil {
+		slog.Error("httputil: SecurityHeadersConfig validation failed", slog.String("error", err.Error()))
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			// ContentTypeOptions (explicit string) takes precedence over

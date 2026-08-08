@@ -3,6 +3,7 @@ package httputil
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
@@ -39,6 +40,11 @@ func (c MaxBodySizeConfig) Validate() error {
 // the provided configuration. Call [MaxBodySizeConfig.Validate] before
 // constructing the middleware to surface configuration errors at startup.
 func MaxBodySizeMiddleware(cfg MaxBodySizeConfig) Middleware {
+	err := cfg.Validate()
+	if err != nil {
+		slog.Error("httputil: MaxBodySizeConfig validation failed", slog.String("error", err.Error()))
+	}
+
 	return MaxBodySize(cfg.MaxBytes)
 }
 

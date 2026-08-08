@@ -3,6 +3,7 @@ package httputil
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 )
 
@@ -55,6 +56,11 @@ func (c RequestIDConfig) Validate() error {
 // RequestID returns middleware that propagates or generates a request ID.
 // The ID is stored in the request context and set as a response header.
 func RequestID(cfg RequestIDConfig) Middleware {
+	err := cfg.Validate()
+	if err != nil {
+		slog.Error("httputil: RequestIDConfig validation failed", slog.String("error", err.Error()))
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 			requestID := req.Header.Get(cfg.IncomingHeader)
