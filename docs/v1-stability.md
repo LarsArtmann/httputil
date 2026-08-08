@@ -31,7 +31,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
 | `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
-| `NonceConfig`            | Additive | New in v0.10.0                                       |
+| `NonceConfig`            | Additive | New in v0.10.0                                            |
 | `RateLimitConfig`        | Additive | Deprecated v0.8.0; removal targeted for v1.0              |
 | `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
 | `SecurityHeadersConfig`  | Additive |                                                           |
@@ -178,8 +178,8 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### CSP Nonce (Frozen at v1.0)
 
-| Symbol                    | Tier     | Notes               |
-| ------------------------- | -------- | ------------------- |
+| Symbol                    | Tier     | Notes          |
+| ------------------------- | -------- | -------------- |
 | `NonceConfig`             | Additive | New in v0.10.0 |
 | `Nonce`                   | Frozen   | New in v0.10.0 |
 | `DefaultNonceConfig`      | Frozen   | New in v0.10.0 |
