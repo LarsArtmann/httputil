@@ -4,7 +4,6 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"sync"
@@ -183,10 +182,7 @@ func buildKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 		cfg.Burst = cfg.Limit
 	}
 
-	err := cfg.Validate()
-	if err != nil {
-		slog.Error("httputil: KeyedRateLimiterConfig validation failed", slog.String("error", err.Error()))
-	}
+	validateConfig("KeyedRateLimiterConfig", cfg.Validate())
 
 	limit := rate.Limit(float64(cfg.Limit) / cfg.Window.Seconds())
 	retryAfter := strconv.Itoa(int(cfg.Window.Seconds()))

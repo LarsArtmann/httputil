@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -61,10 +60,7 @@ func (c DecompressionConfig) Validate() error {
 // decompression bomb attack sends a small compressed payload that decompresses
 // to an enormous size, exhausting server memory.
 func Decompression(cfg DecompressionConfig) Middleware {
-	err := cfg.Validate()
-	if err != nil {
-		slog.Error("httputil: DecompressionConfig validation failed", slog.String("error", err.Error()))
-	}
+	validateConfig("DecompressionConfig", cfg.Validate())
 
 	allowed := make(map[string]bool)
 	for _, enc := range cfg.Encodings {

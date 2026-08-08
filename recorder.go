@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"bufio"
+	"log/slog"
 	"net"
 	"net/http"
 	"slices"
@@ -12,6 +13,20 @@ import (
 
 // Middleware wraps an http.Handler to intercept or modify request flow.
 type Middleware func(http.Handler) http.Handler
+
+// validateConfig logs a configuration validation error at startup. Called by
+// all middleware constructors to surface misconfigurations early — the pattern
+// is validate-and-log, not validate-and-abort, matching the CSRF and Nonce
+// precedent: invalid configs produce a warning but still construct a working
+// middleware (falling back to defaults where applicable).
+func validateConfig(configName string, err error) {
+	if err != nil {
+		slog.Error(
+			"httputil: "+configName+" validation failed",
+			slog.String("error", err.Error()),
+		)
+	}
+}
 
 // ResponseRecorder wraps an http.ResponseWriter to capture the status code.
 // It also supports http.Flusher and http.Hijacker when the underlying

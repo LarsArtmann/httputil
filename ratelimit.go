@@ -3,7 +3,6 @@ package httputil
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -180,10 +179,7 @@ func (c RateLimitConfig) Validate() error {
 // Deprecated: Use [KeyedRateLimiterMiddleware], which provides min-heap eviction,
 // a MaxKeys cap, Retry-After headers, and a monitoring API.
 func RateLimit(cfg RateLimitConfig) Middleware {
-	err := cfg.Validate()
-	if err != nil {
-		slog.Error("httputil: RateLimitConfig validation failed", slog.String("error", err.Error()))
-	}
+	validateConfig("RateLimitConfig", cfg.Validate())
 
 	status := cfg.Status
 	if status == 0 {

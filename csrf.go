@@ -333,10 +333,7 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //   - The X-CSRF-Token header (HTMX default)
 //   - A form field named "csrf_token"
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
-	err := cfg.Validate()
-	if err != nil {
-		slog.Error("httputil: CSRFConfig validation failed", slog.String("error", err.Error()))
-	}
+	validateConfig("CSRFConfig", cfg.Validate())
 
 	warnEmptyTrustedProxies(cfg)
 

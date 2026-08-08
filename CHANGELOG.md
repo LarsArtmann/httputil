@@ -8,16 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Validate-at-construction for all middleware** (`recorder.go`, 10 constructor files): all middleware constructors now call `cfg.Validate()` at startup via a shared `validateConfig(name, err)` helper in `recorder.go`, logging invalid configurations via `slog.Error`. Previously only `CSRFMiddleware` and `Nonce` validated at construction; `Compression`, `CORS`, `SecurityHeaders`, `Decompression`, `MaxBodySize`, `RequestID`, `RateLimit`, and `KeyedRateLimiterMiddleware` now do too. The validate-and-log pattern (not validate-and-abort) ensures invalid configs produce a warning but still construct a working middleware with fallback defaults.
 - **`Nonce()` calls `Validate()` at construction** (`nonce.go`): matches the CSRF pattern — invalid `NonceConfig` (e.g., `Size: 8`) now logs `slog.Error` instead of silently using a too-small nonce. `Validate()` updated to accept `Size == 0` as valid (use default).
 - **Nonce hardening tests** (`nonce_test.go`): 8 new tests covering `Size == 0` validation, minimum-size middleware path, wrong-ordering CSP loss documentation, context isolation across requests, empty CSPBuilder return, large (1024-byte) size, and Recovery composition (CSP present on panic-recovery 500s).
 - **`BenchmarkNonceAttr`** (`nonce_test.go`): isolated benchmark for the `NonceAttr` template helper.
+- **`TestNonce_InvalidConfigLogsAndFallsBack`** (`nonce_test.go`): covers the `Nonce()` Validate-error branch, bringing `Nonce()` to 100% coverage.
 - **`FuzzNonce` moved to `nonce_fuzz_test.go`**: matches the `*_fuzz_test.go` file naming convention.
 - **Caching warning** (`README.md`, `nonce.go` doc comment): documents that responses with per-request nonces must set `Cache-Control: no-store`.
 - **`ProductionCSPWithNonce` code example** (`README.md`): shows how to use the stricter CSP builder.
 
+### Changed
+
+- **`Nonce()` falls back to default size for invalid Size** (`nonce.go`): when `Size < minNonceSize` (including non-zero values below 16), the constructor now uses `defaultNonceSize` instead of the invalid value. Previously, only `Size <= 0` triggered the fallback; a non-zero but too-small value like `Size: 8` would log a warning but still generate an insecure nonce.
+- **CSRF and Nonce validation refactored to shared `validateConfig` helper** (`recorder.go`): the inline `cfg.Validate()` + `slog.Error` pattern in `CSRFMiddleware` and `Nonce` now uses the same `validateConfig(name, err)` helper as all other constructors, eliminating duplication.
+
 ### Fixed
 
 - **`nonce.go` doc comment referenced non-existent `stack.Use()` API** — replaced with `stack.Add(MiddlewareNonce, ...)`. Also mentions `NonceAttr` and `ProductionCSPWithNonce`.
+- **Badge script bracket accumulation** (`scripts/update-coverage-badge.sh`): the sed pattern matched only the inner image `![Coverage](...)` but `new_badge` included the outer markdown link wrapper, causing `[...](#)` layers to accumulate on every run (`[[[![Coverage](...)](#)](#)]`). Replaced with awk whole-line replacement.
 
 ## [0.10.0] - 2026-08-08
 

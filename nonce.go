@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"html"
-	"log/slog"
 	"net/http"
 )
 
@@ -130,10 +129,7 @@ type nonceKey struct{}
 // in the request context for template access, and optionally sets the
 // Content-Security-Policy response header.
 func Nonce(cfg NonceConfig) Middleware {
-	err := cfg.Validate()
-	if err != nil {
-		slog.Error("httputil: NonceConfig validation failed", slog.String("error", err.Error()))
-	}
+	validateConfig("NonceConfig", cfg.Validate())
 
 	size := cfg.Size
 	if size < minNonceSize {
