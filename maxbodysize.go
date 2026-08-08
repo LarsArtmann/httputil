@@ -36,8 +36,9 @@ func (c MaxBodySizeConfig) Validate() error {
 }
 
 // MaxBodySizeMiddleware returns middleware that limits request body size using
-// the provided configuration. Call [MaxBodySizeConfig.Validate] before
-// constructing the middleware to surface configuration errors at startup.
+// the provided configuration. The config is validated at construction time;
+// invalid values are logged via slog and the middleware continues with the
+// provided values.
 func MaxBodySizeMiddleware(cfg MaxBodySizeConfig) Middleware {
 	validateConfig("MaxBodySizeConfig", cfg.Validate())
 

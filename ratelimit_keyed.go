@@ -99,9 +99,10 @@ func DefaultKeyedRateLimiterConfig() KeyedRateLimiterConfig {
 }
 
 // Validate checks the KeyedRateLimiterConfig for invalid values. Returns nil
-// if the config is usable, or a descriptive error otherwise. Callers that
-// build config values programmatically should invoke Validate before passing
-// the config to NewKeyedRateLimiter or KeyedRateLimiterMiddleware.
+// if the config is usable, or a descriptive error otherwise. The constructor
+// ([NewKeyedRateLimiter] / [KeyedRateLimiterMiddleware]) calls Validate at
+// construction time, but applies defaults first — so a direct Validate call
+// catches zero-value Limit and Window errors that default-filling would mask.
 //
 // Note: this method intentionally does NOT fill in defaults — validation is
 // for catching user errors, not for silently coercing zero values. Defaults
