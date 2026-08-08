@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"log/slog"
 	"net/http"
 )
 
@@ -21,11 +22,15 @@ import (
 // Typical usage:
 //
 //	stack := httputil.NewMiddlewareStack()
-//	stack.Use(httputil.Nonce(httputil.DefaultNonceConfig()))
+//	stack.Add(httputil.MiddlewareNonce, httputil.Nonce(httputil.DefaultNonceConfig()))
 //
 //	// In a handler or template:
-//	nonce := httputil.NonceFromRequest(r)
-//	// <script nonce="{{ nonce }}">...</script>
+//	attr := httputil.NonceAttr(r) // returns nonce="abc123"
+//	// <script {{ NonceAttr }}>...</script>
+//
+// For a stricter policy, use ProductionCSPWithNonce as the CSPBuilder.
+// Responses with per-request nonces must not be cached — set
+// Cache-Control: no-store in your handler or caching middleware.
 
 const (
 	// defaultNonceSize is the number of random bytes (before base64 encoding)
@@ -39,7 +44,7 @@ const (
 )
 
 var errNonceTooSmall = errors.New(
-	"NonceConfig.Size must be at least 16 (128 bits per CSP Level 3 recommendation)",
+	"NonceConfig.Size must be 0 (use default) or at least 16 (128 bits per CSP Level 3 recommendation)",
 )
 
 // NonceConfig configures per-request CSP nonce generation and propagation.
@@ -92,9 +97,11 @@ func ProductionCSPWithNonce(nonce string) string {
 	)
 }
 
-// Validate checks the NonceConfig for invalid values.
+// Validate checks the NonceConfig for invalid values. A Size of 0 means
+// "use default" and is always valid. Any non-zero Size below 16 (128 bits)
+// is rejected per the CSP Level 3 recommendation.
 func (c NonceConfig) Validate() error {
-	if c.Size < minNonceSize {
+	if c.Size != 0 && c.Size < minNonceSize {
 		return errNonceTooSmall
 	}
 
@@ -116,10 +123,18 @@ func generateNonce(size int) string {
 	return base64.RawURLEncoding.EncodeToString(buf)
 }
 
+// nonceKey is the context key for storing the per-request CSP nonce.
+type nonceKey struct{}
+
 // Nonce returns middleware that generates a per-request CSP nonce, stores it
 // in the request context for template access, and optionally sets the
 // Content-Security-Policy response header.
 func Nonce(cfg NonceConfig) Middleware {
+	err := cfg.Validate()
+	if err != nil {
+		slog.Error("httputil: NonceConfig validation failed", slog.String("error", err.Error()))
+	}
+
 	size := cfg.Size
 	if size <= 0 {
 		size = defaultNonceSize
@@ -178,5 +193,3 @@ func NonceAttr(r *http.Request) string {
 
 	return `nonce="` + html.EscapeString(nonce) + `"`
 }
-
-type nonceKey struct{}
