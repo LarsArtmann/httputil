@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 )
 
@@ -76,6 +77,21 @@ func RecommendedCSPWithNonce(nonce string) string {
 	)
 }
 
+// ProductionCSPWithNonce returns a stricter Content-Security-Policy for
+// production deployments: adds object-src 'none' (blocks Flash/plugins),
+// base-uri 'self' (prevents base-tag hijacking), and frame-ancestors 'none'
+// (clickjacking defense via CSP instead of X-Frame-Options).
+// Use this as NonceConfig.CSPBuilder when you want defense-in-depth beyond the
+// baseline RecommendedCSPWithNonce.
+func ProductionCSPWithNonce(nonce string) string {
+	return fmt.Sprintf(
+		"default-src 'self'; script-src 'self' 'nonce-%[1]s'; "+
+			"style-src 'self' 'nonce-%[1]s'; object-src 'none'; "+
+			"base-uri 'self'; frame-ancestors 'none'",
+		nonce,
+	)
+}
+
 // Validate checks the NonceConfig for invalid values.
 func (c NonceConfig) Validate() error {
 	if c.Size < minNonceSize {
@@ -142,6 +158,25 @@ func NonceFromContext(ctx context.Context) string {
 // NonceFromContext.
 func NonceFromRequest(r *http.Request) string {
 	return NonceFromContext(r.Context())
+}
+
+// NonceAttr returns an HTML nonce attribute (e.g. `nonce="abc123"`) suitable
+// for use in <script> and <style> tags within Go templates:
+//
+//	<script {{ NonceAttr }}>...</script>
+//	<style {{ NonceAttr }}>...</style>
+//
+// Returns an empty string when no nonce is present, so templates render
+// `<script >...</script>` (harmless) instead of `<script nonce="">` (invalid).
+// The nonce value is HTML-escaped for defense in depth, though base64
+// URL-safe encoding only produces [A-Za-z0-9_-] which requires no escaping.
+func NonceAttr(r *http.Request) string {
+	nonce := NonceFromRequest(r)
+	if nonce == "" {
+		return ""
+	}
+
+	return `nonce="` + html.EscapeString(nonce) + `"`
 }
 
 type nonceKey struct{}
