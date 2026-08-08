@@ -31,6 +31,7 @@ The library has these bounded contexts, each with a distinct vocabulary and resp
 | Response Capture     | Recording response state for inspection (status, headers, body)                                               | `ResponseRecorder`, `Chain`                  |
 | Error Protocol       | Classified errors with behavioral families for retry decisions                                                | Error codes, `go-error-family`               |
 | Security Headers     | Setting common browser security headers on responses                                                          | `SecurityHeadersConfig`                      |
+| CSP Nonce            | Per-request cryptographic nonce generation for Content Security Policy inline script/style allowlisting      | `NonceConfig`, `Nonce`                       |
 | Request ID           | Propagating or generating unique request identifiers                                                          | `RequestIDConfig`                            |
 | Recovery             | Catching panics and returning 500 responses                                                                   | `Recovery`                                   |
 | Timeout              | Enforcing request deadlines via context cancellation                                                          | `Timeout`                                    |
@@ -60,6 +61,7 @@ Objects with identity and lifecycle within the library.
 | ResponseRecorder       | A wrapping `http.ResponseWriter` that captures the status code and write state                               | Response Capture     |
 | CORSConfig             | A configuration value object defining CORS policy (origins, methods, headers, etc.)                          | CORS                 |
 | SecurityHeadersConfig  | A configuration value object defining which security headers to set                                          | Security Headers     |
+| NonceConfig            | A configuration value object defining CSP nonce size and CSP header builder                                 | CSP Nonce            |
 | RequestIDConfig        | A configuration value object defining request ID header name and generation logic                            | Request ID           |
 | CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)                    | Compression          |
 | DecompressionConfig    | A configuration value object defining decompression parameters (encodings, bomb-protection limit)            | Decompression        |
@@ -110,6 +112,8 @@ Immutable objects defined by their attributes.
 | If-None-Match          | A request header listing ETags the client already holds; a match yields 304 Not Modified                        | Conditional Requests |
 | Health Status          | The operational state reported by health endpoints: `up` or `down`                                              | Health               |
 | Ready Probe            | A function that returns true when the service is ready to accept traffic                                        | Health               |
+| CSP Nonce              | A cryptographically random base64 string generated per request, matching inline elements to the CSP header    | CSP Nonce            |
+| CSP Builder            | A function that takes a nonce and returns a Content-Security-Policy header value                              | CSP Nonce            |
 
 ---
 
@@ -130,6 +134,14 @@ Actions the library performs.
 | `HeaderSnapshot(rec)`                | Return an isolated copy of the response headers from a ResponseRecorder                                 | Response Capture     |
 | `SecurityHeaders(cfg)`               | Create middleware that sets security response headers (nosniff, frame-options, etc.)                    | Security Headers     |
 | `DefaultSecurityHeadersConfig()`     | Return a SecurityHeadersConfig with production defaults                                                 | Security Headers     |
+| `Nonce(cfg)`                         | Create middleware that generates a per-request CSP nonce, sets the CSP header, and stores nonce in context | CSP Nonce            |
+| `DefaultNonceConfig()`               | Return a NonceConfig with 20-byte nonce and RecommendedCSPWithNonce builder                              | CSP Nonce            |
+| `NonceFromContext(ctx)`              | Retrieve the stored CSP nonce from a context                                                            | CSP Nonce            |
+| `NonceFromRequest(r)`                | Retrieve the CSP nonce from a request (convenience wrapper)                                             | CSP Nonce            |
+| `NonceAttr(r)`                       | Return an HTML `nonce="..."` attribute string for use in `<script>`/`<style>` tags                      | CSP Nonce            |
+| `RecommendedCSPWithNonce(nonce)`     | Build a Content-Security-Policy with script-src and style-src nonce sources                             | CSP Nonce            |
+| `ProductionCSPWithNonce(nonce)`      | Build a stricter CSP adding object-src, base-uri, and frame-ancestors restrictions                      | CSP Nonce            |
+| `WithNonce(ctx, nonce)`              | Store a CSP nonce string in a context                                                                   | CSP Nonce            |
 | `RequestID(cfg)`                     | Create middleware that propagates or generates a request ID                                             | Request ID           |
 | `DefaultRequestIDConfig()`           | Return a RequestIDConfig that reads/generates X-Request-ID                                              | Request ID           |
 | `RequestIDFromContext(ctx)`          | Retrieve the stored request ID from a context                                                           | Request ID           |

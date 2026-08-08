@@ -198,7 +198,7 @@ func verifyGETHeaders(t *testing.T, handler http.Handler, called *atomic.Bool) {
 		{"X-Request-ID", ""}, // non-empty
 		{"X-Content-Type-Options", "nosniff"},
 		{"Access-Control-Allow-Origin", "*"},
-		{"Content-Security-Policy", ""}, // non-empty (nonce middleware)
+		{"Content-Security-Policy", ""},       // non-empty (nonce middleware)
 		{servertiming.HeaderServerTiming, ""}, // non-empty
 	}
 

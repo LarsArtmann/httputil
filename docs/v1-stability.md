@@ -31,6 +31,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
 | `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
+| `NonceConfig`            | Additive | New in [Unreleased]                                       |
 | `RateLimitConfig`        | Additive | Deprecated v0.8.0; removal targeted for v1.0              |
 | `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
 | `SecurityHeadersConfig`  | Additive |                                                           |
@@ -49,6 +50,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig`       |
 | `DefaultMaxBodySizeConfig`      | `MaxBodySizeConfig`            |
 | `DefaultMetricsConfig`          | `MetricsConfig`                |
+| `DefaultNonceConfig`            | `NonceConfig`                  |
 | `DefaultRateLimitConfig`        | `RateLimitConfig` (deprecated) |
 | `DefaultRequestIDConfig`        | `RequestIDConfig`              |
 | `DefaultSecurityHeadersConfig`  | `SecurityHeadersConfig`        |
@@ -69,6 +71,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `MaxBodySize`                  | `func(int64) Middleware`                                  |
 | `MaxBodySizeMiddleware`        | `func(MaxBodySizeConfig) Middleware`                      |
 | `Metrics`                      | `func(MetricsConfig) Middleware`                          |
+| `Nonce`                        | `func(NonceConfig) Middleware`                            |
 | `RateLimit`                    | `func(RateLimitConfig) Middleware` (deprecated)           |
 | `Recovery`                     | `func(*slog.Logger) Middleware`                           |
 | `RequestID`                    | `func(RequestIDConfig) Middleware`                        |
@@ -173,6 +176,20 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ErrCSRFInvalid`               | Frozen   | Sentinel error |
 | `ErrCSRFConfig`                | Frozen   | Sentinel error |
 
+### CSP Nonce (Frozen at v1.0)
+
+| Symbol                    | Tier     | Notes              |
+| ------------------------- | -------- | ------------------ |
+| `NonceConfig`             | Additive | New in [Unreleased]|
+| `Nonce`                   | Frozen   | New in [Unreleased]|
+| `DefaultNonceConfig`      | Frozen   | New in [Unreleased]|
+| `NonceFromContext`        | Frozen   | New in [Unreleased]|
+| `NonceFromRequest`        | Frozen   | New in [Unreleased]|
+| `NonceAttr`               | Frozen   | New in [Unreleased]|
+| `WithNonce`               | Frozen   | New in [Unreleased]|
+| `RecommendedCSPWithNonce` | Frozen   | New in [Unreleased]|
+| `ProductionCSPWithNonce`  | Frozen   | New in [Unreleased]|
+
 ### Server-Timing (Frozen at v1.0)
 
 | Symbol                       | Tier     | Notes           |
@@ -201,11 +218,11 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Middleware Stack (Frozen at v1.0)
 
-| Symbol                       | Tier     |
-| ---------------------------- | -------- |
-| `NewMiddlewareStack`         | Frozen   |
-| `MiddlewareStack`            | Additive |
-| `Middleware*` constants (13) | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareCompression`, `MiddlewareDecompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
+| Symbol                        | Tier     |
+| ----------------------------- | -------- |
+| `NewMiddlewareStack`          | Frozen   |
+| `MiddlewareStack`             | Additive |
+| `Middleware*` constants (14)  | Frozen   | Name constants for ordering validation (`MiddlewareRecovery`, `MiddlewareLogging`, `MiddlewareRequestID`, `MiddlewareCORS`, `MiddlewareSecurityHeaders`, `MiddlewareNonce`, `MiddlewareCompression`, `MiddlewareDecompression`, `MiddlewareTimeout`, `MiddlewareClientIP`, `MiddlewareCSRF`, `MiddlewareServerTiming`, `MiddlewareKeyedRateLimit`, `MiddlewareETag`) |
 
 ### Query Parsing (Frozen at v1.0)
 

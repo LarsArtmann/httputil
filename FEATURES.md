@@ -8,7 +8,7 @@ _Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (17 middlewares)
+### Core Middleware Suite (18 middlewares)
 
 | Middleware               | File                                   | Config Type                                                   | Tests | Examples                            | Benchmarks                    | Fuzz                |
 | ------------------------ | -------------------------------------- | ------------------------------------------------------------- | ----- | ----------------------------------- | ----------------------------- | ------------------- |
@@ -29,6 +29,7 @@ _Updated: 2026-08-07 — full docs-health audit. Ghost CHANGELOG entries removed
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`  | —                   |
 | Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | `ExampleDecompression`              | `BenchmarkDecompression*`     | `FuzzDecompression` |
 | ETag                     | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | —                             | —                   |
+| CSP Nonce                | `nonce.go`                             | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders       | Yes   | `ExampleNonce`                      | `BenchmarkNonce`, `BenchmarkGenerateNonce` | `FuzzNonce`         |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
 
@@ -47,7 +48,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Infrastructure Types
 
-- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 12 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Compression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit, ETag).
+- `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 14 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Nonce, Compression, Decompression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit, ETag).
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 

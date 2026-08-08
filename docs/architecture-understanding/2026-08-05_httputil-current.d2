@@ -11,7 +11,7 @@ package httputil: {
   style.font-color: "#f4f4f0"
   style.stroke: "#ffb347"
 
-  middleware_chain: Middleware Chain (17) {
+  middleware_chain: Middleware Chain (18) {
     shape: package
     style.fill: "#16161a"
     style.font-color: "#f4f4f0"
@@ -32,8 +32,9 @@ package httputil: {
     servertiming: Server-Timing
     ratelimit_deprecated: RateLimit (deprecated)
     etag: ETag
+    nonce: Nonce
 
-    recovery -> logging -> requestid -> timeout -> cors -> security -> compression -> handler
+    recovery -> logging -> requestid -> timeout -> cors -> security -> nonce -> compression -> handler
     maxbody -> handler
     decompression -> handler
     ratelimit_keyed -> handler
@@ -42,6 +43,7 @@ package httputil: {
     csrf -> handler
     servertiming -> handler
     etag -> handler
+    nonce -> handler
   }
 
   infra: Infrastructure {

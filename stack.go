@@ -22,7 +22,7 @@ const (
 	MiddlewareServerTiming    = "server-timing"
 	MiddlewareKeyedRateLimit  = "keyed-rate-limit"
 	MiddlewareETag            = "etag"
-	MiddlewareNonce          = "nonce"
+	MiddlewareNonce           = "nonce"
 )
 
 var (
