@@ -658,6 +658,41 @@ func TestNonce_WithRecoveryComposition(t *testing.T) {
 	}
 }
 
+func TestNonce_InvalidConfigLogsAndFallsBack(t *testing.T) {
+	t.Parallel()
+
+	// Size 8 is below minNonceSize (16) and non-zero, so Validate() returns
+	// errNonceTooSmall. The constructor logs via slog.Error and continues with
+	// the default size — it must NOT panic or produce a broken middleware.
+	cfg := NonceConfig{
+		Size:       minNonceSize / 2,
+		CSPBuilder: nil,
+	}
+
+	var ctxNonce string
+
+	inner := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		ctxNonce = NonceFromRequest(r)
+	})
+
+	handler := Nonce(cfg)(inner)
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	// Invalid Size falls back to defaultNonceSize.
+	expectedLen := base64.RawURLEncoding.EncodedLen(defaultNonceSize)
+	if len(ctxNonce) != expectedLen {
+		t.Errorf(
+			"nonce length = %d, want %d (invalid Size should fall back to default)",
+			len(ctxNonce),
+			expectedLen,
+		)
+	}
+}
+
 func BenchmarkNonceAttr(b *testing.B) {
 	nonce := generateNonce(defaultNonceSize)
 	req := newTestRequest(http.MethodGet, "/", "")

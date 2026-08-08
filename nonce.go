@@ -136,7 +136,7 @@ func Nonce(cfg NonceConfig) Middleware {
 	}
 
 	size := cfg.Size
-	if size <= 0 {
+	if size < minNonceSize {
 		size = defaultNonceSize
 	}
 
