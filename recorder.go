@@ -106,7 +106,7 @@ func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 
 // Chain wraps a handler with multiple middleware, applying them in reverse
 // order so the first middleware in the variadic list is the outermost.
-func Chain(handler http.Handler, middlewares ...Middleware) http.Handler {
+func Chain(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
 	for _, mw := range slices.Backward(middlewares) {
 		handler = mw(handler)
 	}

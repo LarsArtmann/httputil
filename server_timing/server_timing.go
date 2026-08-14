@@ -396,7 +396,7 @@ func WrapServerTiming(w http.ResponseWriter, r *http.Request) (http.ResponseWrit
 //
 //	mux.Use(servertiming.ServerTimingMiddleware())
 //	// …in a handler:
-//	stop := httputil.MeasureServerTiming(r.Context(), "db")
+//	stop := servertiming.MeasureServerTiming(r.Context(), "db")
 //	db.Query(...)
 //	stop()
 //

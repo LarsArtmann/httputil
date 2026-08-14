@@ -41,7 +41,7 @@ type MiddlewareStack struct {
 
 type middlewareEntry struct {
 	name       string
-	middleware Middleware
+	middleware func(http.Handler) http.Handler
 }
 
 // NewMiddlewareStack returns an empty stack ready for [MiddlewareStack.Add].
@@ -52,7 +52,7 @@ func NewMiddlewareStack() *MiddlewareStack {
 // Add appends a named middleware to the stack. The first middleware added
 // becomes the outermost wrapper when [MiddlewareStack.Build] is called.
 // Returns an error if a middleware with the same name is already present.
-func (s *MiddlewareStack) Add(name string, middleware Middleware) error {
+func (s *MiddlewareStack) Add(name string, middleware func(http.Handler) http.Handler) error {
 	for _, e := range s.entries {
 		if e.name == name {
 			return fmt.Errorf("%w: %q", errDuplicateMiddleware, name)
@@ -93,7 +93,7 @@ func (s *MiddlewareStack) Validate() error {
 // [MiddlewareStack.Validate]; call it separately to check ordering.
 func (s *MiddlewareStack) Build(handler http.Handler) http.Handler {
 	//nolint:makezero // pre-allocated with known length, not append
-	mws := make([]Middleware, len(s.entries))
+	mws := make([]func(http.Handler) http.Handler, len(s.entries))
 
 	for i, e := range s.entries {
 		mws[i] = e.middleware

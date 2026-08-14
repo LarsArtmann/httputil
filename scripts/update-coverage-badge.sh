@@ -10,13 +10,13 @@ COVERAGE_FILE="${1:-coverage.out}"
 README="${2:-README.md}"
 
 if [ ! -f "$COVERAGE_FILE" ]; then
-    echo "ERROR: coverage file $COVERAGE_FILE not found"
-    exit 1
+	echo "ERROR: coverage file $COVERAGE_FILE not found"
+	exit 1
 fi
 
 if [ ! -f "$README" ]; then
-    echo "ERROR: README file $README not found"
-    exit 1
+	echo "ERROR: README file $README not found"
+	exit 1
 fi
 
 # Compute total coverage percentage from coverage.out.
@@ -25,8 +25,8 @@ fi
 total=$(go tool cover -func="$COVERAGE_FILE" | awk '/^total:/ { gsub("%", "", $3); print $3 }')
 
 if [ -z "$total" ]; then
-    echo "ERROR: could not extract coverage from $COVERAGE_FILE"
-    exit 1
+	echo "ERROR: could not extract coverage from $COVERAGE_FILE"
+	exit 1
 fi
 
 # Round to one decimal place for stable display.
@@ -41,16 +41,16 @@ color=$(awk -v t="$total" 'BEGIN { if (t >= 90) print "green"; else if (t >= 70)
 new_badge="[![Coverage](https://img.shields.io/badge/coverage-${formatted}%25-${color})](#)"
 
 if grep -q 'shields.io/badge/coverage-' "$README"; then
-    # Use awk for reliable whole-line replacement. The old sed approach
-    # matched only the inner image (![Coverage](...)) but new_badge
-    # includes the outer markdown link wrapper, causing nested brackets
-    # to accumulate on every run.
-    tmp="${README}.tmp"
-    awk -v replacement="$new_badge" '
+	# Use awk for reliable whole-line replacement. The old sed approach
+	# matched only the inner image (![Coverage](...)) but new_badge
+	# includes the outer markdown link wrapper, causing nested brackets
+	# to accumulate on every run.
+	tmp="${README}.tmp"
+	awk -v replacement="$new_badge" '
         /shields\.io\/badge\/coverage-/ { print replacement; next }
         { print }
-    ' "$README" > "$tmp" && mv "$tmp" "$README"
-    echo "Updated coverage badge: ${formatted}% (${color})"
+    ' "$README" >"$tmp" && mv "$tmp" "$README"
+	echo "Updated coverage badge: ${formatted}% (${color})"
 else
-    echo "WARNING: no coverage badge found in $README — skipping update"
+	echo "WARNING: no coverage badge found in $README — skipping update"
 fi
