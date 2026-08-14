@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pareto Plan — Typed Hierarchical Error System</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover, .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+
+      .main { flex: 1; min-width: 0; }
+
+      h1, h2, h3, h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p { margin: 0 0 1rem; }
+      ul, ol { margin: 0 0 1rem 1.25rem; }
+      li { margin: 0 0 0.35rem; }
+
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .stat-card:last-child { border-right: none; }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.2rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .stat-bad { background: var(--problem); color: var(--surface); }
+      .stat-warn { background: var(--warning); color: var(--text); }
+      .stat-good { background: var(--solution); color: var(--surface); }
+
+      .card, .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem, .issue-critical { border-left-color: var(--problem); }
+      .card-solution, .issue-nice { border-left-color: var(--solution); }
+      .card-warning, .issue-important { border-left-color: var(--warning); }
+
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.15rem 0.4rem;
+        margin-bottom: 0.6rem;
+        border: 1px solid var(--text);
+      }
+      .severity-critical { background: var(--problem); color: var(--surface); border-color: var(--problem); }
+      .severity-high { background: var(--warning); color: var(--text); border-color: var(--warning); }
+      .severity-medium { background: var(--surface-sunken); color: var(--text); }
+      .severity-low { background: var(--surface); color: var(--text-muted); border-style: dashed; }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th, td {
+        border: 1px solid var(--border-strong);
+        padding: 0.6rem 0.7rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: var(--surface-sunken);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      tr:nth-child(even) { background: rgba(17, 17, 17, 0.02); }
+
+      .migration-step {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 2px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .migration-step .num {
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .migration-step h4 { margin-top: 0.1rem; }
+
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin: 0 0 1rem;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 0.05em 0.2em;
+      }
+      pre code { background: transparent; padding: 0; }
+
+      .tok-keyword { color: #c678dd; }
+      .tok-type { color: #e5c07b; }
+      .tok-string { color: #98c379; }
+      .tok-comment { color: #5c6370; font-style: italic; }
+      .tok-func { color: #61afef; }
+      .tok-number { color: #d19a66; }
+      .tok-generic { color: #e06c75; }
+      .tok-builtin { color: #56b6c2; }
+
+      .callout {
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border-left: 8px solid var(--accent);
+      }
+
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 800px) {
+        .layout { flex-direction: column; }
+        .sidebar { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>httputil / planning</span>
+      <span>2026-08-14 13:53</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Sections</div>
+          <a href="#hero">Hero</a>
+          <a href="#pareto">Pareto Breakdown</a>
+          <a href="#comprehensive">Comprehensive Plan</a>
+          <a href="#detailed">Detailed Breakdown</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#checklist">Anti-V Checklist</a>
+          <a href="#questions">Open Questions</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="hero" class="hero">
+          <div class="eyebrow">Pareto Execution Plan</div>
+          <h1>Typed, Hierarchical Error System</h1>
+          <p class="subtitle">
+            A ranked execution plan to move <code>httputil</code> from a mixed stdlib / classified error model to a fully typed, hierarchical, <code>go-error-family</code>-native error system.
+          </p>
+          <div class="meta">
+            <span class="tag">httputil</span>
+            <span class="tag amber">83 erraudit violations</span>
+            <span class="tag teal">~11 hours total</span>
+          </div>
+        </section>
+
+        <section id="pareto">
+          <h2><span class="num">01</span> Pareto Breakdown</h2>
+
+          <div class="stat-grid">
+            <div class="stat-card stat-bad">
+              <div class="stat-value">3</div>
+              <div class="stat-label">tasks in 1% tier</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">5</div>
+              <div class="stat-label">tasks in 4% tier</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">12</div>
+              <div class="stat-label">tasks in 20% tier</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">62</div>
+              <div class="stat-label">fine tasks</div>
+            </div>
+          </div>
+
+          <div class="card card-problem">
+            <div class="severity severity-critical">1% Tier — 51% of value</div>
+            <h3>Establish the typed-code model and convert CORS</h3>
+            <p>Three small tasks create the pattern that every subsequent task copies: a <code>Code</code> type, a domain extractor, typed HTTP constants, and CORS validation converted to classified errors with a test proving the model.</p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="severity severity-high">4% Tier — 64% of value</div>
+            <h3>Convert the three critical validators and add hierarchy helpers</h3>
+            <p>Server, Compression, and KeyedRateLimiter configs become classified. Add <code>DomainOf()</code> and <code>InDomain()</code> so consumers can match errors by domain without string parsing.</p>
+          </div>
+
+          <div class="card card-solution">
+            <div class="severity severity-medium">20% Tier — 80% of value</div>
+            <h3>Convert all remaining validators, register templates, align tooling</h3>
+            <p>Complete CSRF, MaxBodySize, RequestID, SecurityHeaders, Decompression, Metrics, Nonce, RateLimit, and MiddlewareStack validators. Register user-facing templates, centralize write swallows, update AGENTS.md, and fix erraudit policy.</p>
+          </div>
+
+          <div class="card">
+            <div class="severity severity-low">Rest — 100% of value</div>
+            <h3>Polish and future-proof</h3>
+            <p>Migrate string constants to typed codes, add domain predicates, integration tests, README guidance, benchmarks, and consider v1 concrete return types.</p>
+          </div>
+        </section>
+
+        <section id="comprehensive">
+          <h2><span class="num">02</span> Comprehensive Plan (30–100 min tasks)</h2>
+          <p>Sorted by importance → impact → effort → customer-value.</p>
+
+          <table>
+            <thead>
+              <tr><th>#</th><th>Task</th><th>Tier</th><th>Impact</th><th>Effort</th><th>Customer Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>M1</td><td>Add <code>type Code string</code>, <code>Code.Domain()</code>, typed HTTP constants in errors.go</td><td>1%</td><td>Critical</td><td>30 min</td><td>Type safety</td></tr>
+              <tr><td>M2</td><td>Convert CORSConfig.Validate() to classified errors + tests</td><td>1%</td><td>High</td><td>30 min</td><td>Model proof</td></tr>
+              <tr><td>M3</td><td>Convert ServerConfig.Validate() to classified errors + tests</td><td>4%</td><td>High</td><td>60 min</td><td>Correctness</td></tr>
+              <tr><td>M4</td><td>Convert CompressionConfig.Validate() to classified errors + tests</td><td>4%</td><td>High</td><td>60 min</td><td>Correctness</td></tr>
+              <tr><td>M5</td><td>Convert KeyedRateLimiterConfig.Validate() to classified errors + tests</td><td>4%</td><td>High</td><td>45 min</td><td>Correctness</td></tr>
+              <tr><td>M6</td><td>Add DomainOf() / InDomain() helpers + tests</td><td>4%</td><td>High</td><td>30 min</td><td>Hierarchy</td></tr>
+              <tr><td>M7</td><td>Convert CSRFConfig.Validate() to classified errors + tests</td><td>20%</td><td>Medium</td><td>45 min</td><td>Consistency</td></tr>
+              <tr><td>M8</td><td>Convert MaxBodySize / RequestID / SecurityHeaders validators + tests</td><td>20%</td><td>Medium</td><td>45 min</td><td>Coverage</td></tr>
+              <tr><td>M9</td><td>Convert Decompression / Metrics / Nonce validators + tests</td><td>20%</td><td>Medium</td><td>45 min</td><td>Coverage</td></tr>
+              <tr><td>M10</td><td>Convert RateLimit / MiddlewareStack validators + tests</td><td>20%</td><td>Low</td><td>45 min</td><td>Coverage</td></tr>
+              <tr><td>M11</td><td>Register error templates for all new config codes</td><td>20%</td><td>Medium</td><td>30 min</td><td>UX</td></tr>
+              <tr><td>M12</td><td>Centralize post-header write swallows in writeCommittedBody()</td><td>20%</td><td>Low</td><td>30 min</td><td>Clarity</td></tr>
+              <tr><td>M13</td><td>Update AGENTS.md error model documentation</td><td>20%</td><td>Medium</td><td>30 min</td><td>Trust</td></tr>
+              <tr><td>M14</td><td>Align erraudit config with go-error-family policy</td><td>20%</td><td>High</td><td>30 min</td><td>Trust</td></tr>
+              <tr><td>M15</td><td>Migrate string error-code constants to typed Code constants (compat)</td><td>Rest</td><td>Medium</td><td>45 min</td><td>Type safety</td></tr>
+              <tr><td>M16</td><td>Add domain predicates + integration tests + README guidance</td><td>Rest</td><td>Low</td><td>60 min</td><td>Polish</td></tr>
+              <tr><td>M17</td><td>Benchmark error construction + final verification suite</td><td>Rest</td><td>Low</td><td>60 min</td><td>Confidence</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="detailed">
+          <h2><span class="num">03</span> Detailed Breakdown (max 12 min per task)</h2>
+          <p>Every medium task split into subtasks. 62 fine tasks in total.</p>
+
+          <h3>Tier 1% — Establish the Model</h3>
+          <table>
+            <thead><tr><th>#</th><th>Subtask</th><th>Parent</th><th>Effort</th></tr></thead>
+            <tbody>
+              <tr><td>F1.1</td><td>Define <code>type Code string</code> and <code>func (Code) Domain()</code></td><td>M1</td><td>10 min</td></tr>
+              <tr><td>F1.2</td><td>Add typed constants for http.* codes and backward-compatible string aliases</td><td>M1</td><td>10 min</td></tr>
+              <tr><td>F1.3</td><td>Add DomainOf(err) helper using errors.AsType[errorfamily.Coded]</td><td>M1</td><td>10 min</td></tr>
+              <tr><td>F1.4</td><td>Add tests for Code.Domain() and DomainOf()</td><td>M1</td><td>10 min</td></tr>
+              <tr><td>F2.1</td><td>Replace CORS stdlib sentinels with errorfamily.NewRejection constants</td><td>M2</td><td>10 min</td></tr>
+              <tr><td>F2.2</td><td>Update CORSConfig.Validate() to clone sentinels with context</td><td>M2</td><td>10 min</td></tr>
+              <tr><td>F2.3</td><td>Add test asserting CORS error is Coded/Classified/Contextual</td><td>M2</td><td>10 min</td></tr>
+              <tr><td>F2.4</td><td>Run go test -race ./... and golangci-lint run for CORS changes</td><td>M2</td><td>5 min</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Tier 4% — Critical Validators + Hierarchy Helpers</h3>
+          <table>
+            <thead><tr><th>#</th><th>Subtask</th><th>Parent</th><th>Effort</th></tr></thead>
+            <tbody>
+              <tr><td>F3.1</td><td>Replace ServerConfig stdlib sentinels with classified constants</td><td>M3</td><td>12 min</td></tr>
+              <tr><td>F3.2</td><td>Update ServerConfig.Validate() branches to clone with context</td><td>M3</td><td>12 min</td></tr>
+              <tr><td>F3.3</td><td>Add tests for all ServerConfig validation error codes</td><td>M3</td><td>12 min</td></tr>
+              <tr><td>F3.4</td><td>Run verification suite after ServerConfig changes</td><td>M3</td><td>5 min</td></tr>
+              <tr><td>F4.1</td><td>Replace CompressionConfig stdlib sentinels with classified constants</td><td>M4</td><td>12 min</td></tr>
+              <tr><td>F4.2</td><td>Update CompressionConfig.Validate() branches to clone with context</td><td>M4</td><td>12 min</td></tr>
+              <tr><td>F4.3</td><td>Add tests for all CompressionConfig validation error codes</td><td>M4</td><td>12 min</td></tr>
+              <tr><td>F4.4</td><td>Verify compression tests still pass</td><td>M4</td><td>5 min</td></tr>
+              <tr><td>F5.1</td><td>Replace KeyedRateLimiterConfig stdlib sentinels with classified constants</td><td>M5</td><td>10 min</td></tr>
+              <tr><td>F5.2</td><td>Update KeyedRateLimiterConfig.Validate() branches</td><td>M5</td><td>10 min</td></tr>
+              <tr><td>F5.3</td><td>Add tests for KeyedRateLimiterConfig validation errors</td><td>M5</td><td>10 min</td></tr>
+              <tr><td>F6.1</td><td>Implement InDomain(err, domain string) bool helper</td><td>M6</td><td>10 min</td></tr>
+              <tr><td>F6.2</td><td>Add table-driven test for DomainOf/InDomain across sample errors</td><td>M6</td><td>12 min</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Tier 20% — Remaining Validators + Tooling</h3>
+          <table>
+            <thead><tr><th>#</th><th>Subtask</th><th>Parent</th><th>Effort</th></tr></thead>
+            <tbody>
+              <tr><td>F7.1</td><td>Convert CSRF errors.New sentinels in CSRFConfig.Validate()</td><td>M7</td><td>12 min</td></tr>
+              <tr><td>F7.2</td><td>Add context to CSRF validation errors and update tests</td><td>M7</td><td>12 min</td></tr>
+              <tr><td>F7.3</td><td>Verify CSRF tests still pass</td><td>M7</td><td>5 min</td></tr>
+              <tr><td>F8.1</td><td>Convert MaxBodySizeConfig.Validate() to classified errors</td><td>M8</td><td>10 min</td></tr>
+              <tr><td>F8.2</td><td>Convert RequestIDConfig.Validate() to classified errors</td><td>M8</td><td>10 min</td></tr>
+              <tr><td>F8.3</td><td>Convert SecurityHeadersConfig.Validate() to classified errors</td><td>M8</td><td>12 min</td></tr>
+              <tr><td>F8.4</td><td>Add tests for M8 validators</td><td>M8</td><td>10 min</td></tr>
+              <tr><td>F9.1</td><td>Convert DecompressionConfig.Validate() to classified errors</td><td>M9</td><td>10 min</td></tr>
+              <tr><td>F9.2</td><td>Convert MetricsConfig.Validate() to classified errors</td><td>M9</td><td>10 min</td></tr>
+              <tr><td>F9.3</td><td>Convert NonceConfig.Validate() to classified errors</td><td>M9</td><td>10 min</td></tr>
+              <tr><td>F9.4</td><td>Add tests for M9 validators</td><td>M9</td><td>10 min</td></tr>
+              <tr><td>F10.1</td><td>Convert RateLimitConfig.Validate() to classified errors</td><td>M10</td><td>12 min</td></tr>
+              <tr><td>F10.2</td><td>Convert MiddlewareStack.Validate() to classified errors</td><td>M10</td><td>12 min</td></tr>
+              <tr><td>F10.3</td><td>Add tests for M10 validators</td><td>M10</td><td>10 min</td></tr>
+              <tr><td>F11.1</td><td>Collect all new config error codes</td><td>M11</td><td>5 min</td></tr>
+              <tr><td>F11.2</td><td>Register message templates for new config codes in RegisterErrorClassifications()</td><td>M11</td><td>12 min</td></tr>
+              <tr><td>F11.3</td><td>Add test verifying templates exist for every config code</td><td>M11</td><td>10 min</td></tr>
+              <tr><td>F12.1</td><td>Create writeCommittedBody(w, body) helper</td><td>M12</td><td>10 min</td></tr>
+              <tr><td>F12.2</td><td>Replace scattered post-header write swallows with helper</td><td>M12</td><td>12 min</td></tr>
+              <tr><td>F12.3</td><td>Add doc comment explaining intentional swallow</td><td>M12</td><td>5 min</td></tr>
+              <tr><td>F13.1</td><td>Add "Error Model" section to AGENTS.md</td><td>M13</td><td>12 min</td></tr>
+              <tr><td>F13.2</td><td>Update error classification table with new config codes</td><td>M13</td><td>10 min</td></tr>
+              <tr><td>F14.1</td><td>Document the correct erraudit invocation for this project</td><td>M14</td><td>10 min</td></tr>
+              <tr><td>F14.2</td><td>Update any tooling/scripts that pass --enforce-samber-oops</td><td>M14</td><td>10 min</td></tr>
+              <tr><td>F14.3</td><td>Re-run erraudit with aligned flags and confirm clean</td><td>M14</td><td>5 min</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Tier Rest — Polish + Future-Proofing</h3>
+          <table>
+            <thead><tr><th>#</th><th>Subtask</th><th>Parent</th><th>Effort</th></tr></thead>
+            <tbody>
+              <tr><td>F15.1</td><td>Convert ErrCodeWriteFailed etc. to typed Code constants</td><td>M15</td><td>12 min</td></tr>
+              <tr><td>F15.2</td><td>Preserve backward-compatible string aliases</td><td>M15</td><td>5 min</td></tr>
+              <tr><td>F15.3</td><td>Update internal call sites to use typed constants</td><td>M15</td><td>12 min</td></tr>
+              <tr><td>F15.4</td><td>Add compile-time assertion that Code is a string alias</td><td>M15</td><td>5 min</td></tr>
+              <tr><td>F16.1</td><td>Add IsCORSConfigError, IsCompressionConfigError, etc. predicates</td><td>M16</td><td>12 min</td></tr>
+              <tr><td>F16.2</td><td>Add integration test matching errors by code/domain</td><td>M16</td><td>12 min</td></tr>
+              <tr><td>F16.3</td><td>Add README section: "Handling errors from httputil"</td><td>M16</td><td>12 min</td></tr>
+              <tr><td>F17.1</td><td>Write benchmark for errorfamily.NewRejection and sentinel clone</td><td>M17</td><td>12 min</td></tr>
+              <tr><td>F17.2</td><td>Run go test -race -count=10 ./... final verification</td><td>M17</td><td>12 min</td></tr>
+              <tr><td>F17.3</td><td>Run golangci-lint run and go vet ./... final verification</td><td>M17</td><td>10 min</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="graph">
+          <h2><span class="num">04</span> Execution Graph</h2>
+          <pre class="mermaid">
+graph TD
+    subgraph "Tier 1% — Establish the Model (~25 min)"
+        M1[M1: Add typed Code + Domain helper]
+        M2[M2: Convert CORS validation]
+    end
+
+    subgraph "Tier 4% — Critical Validators + Hierarchy (~2.5 hr)"
+        M3[M3: Convert ServerConfig validation]
+        M4[M4: Convert CompressionConfig validation]
+        M5[M5: Convert KeyedRateLimiterConfig validation]
+        M6[M6: Add DomainOf / InDomain helpers]
+    end
+
+    subgraph "Tier 20% — Remaining Validators + Tooling (~3.5 hr)"
+        M7[M7: Convert CSRF validation]
+        M8[M8: Convert MaxBodySize/RequestID/SecurityHeaders]
+        M9[M9: Convert Decompression/Metrics/Nonce]
+        M10[M10: Convert RateLimit/MiddlewareStack]
+        M11[M11: Register error templates]
+        M12[M12: Centralize writeCommittedBody]
+        M13[M13: Update AGENTS.md error model docs]
+        M14[M14: Align erraudit config]
+    end
+
+    subgraph "Tier Rest — Polish + Future-Proofing (~2 hr)"
+        M15[M15: Migrate string constants to typed Code]
+        M16[M16: Add predicates + integration tests + README]
+        M17[M17: Benchmarks + final verification]
+    end
+
+    M1 --> M2
+    M1 --> M6
+    M2 --> M7
+    M3 --> M4
+    M4 --> M5
+    M5 --> M6
+    M6 --> M8
+    M6 --> M9
+    M6 --> M10
+    M6 --> M16
+    M7 --> M11
+    M8 --> M11
+    M9 --> M11
+    M10 --> M11
+    M11 --> M13
+    M12 --> M13
+    M13 --> M14
+    M14 --> M17
+    M15 --> M16
+    M16 --> M17
+
+    style M1 fill:#dc2626,color:#fff
+    style M2 fill:#dc2626,color:#fff
+    style M3 fill:#ea580c,color:#fff
+    style M4 fill:#ea580c,color:#fff
+    style M5 fill:#ea580c,color:#fff
+    style M6 fill:#ea580c,color:#fff
+    style M7 fill:#d97706,color:#fff
+    style M8 fill:#d97706,color:#fff
+    style M9 fill:#d97706,color:#fff
+    style M10 fill:#d97706,color:#fff
+    style M11 fill:#d97706,color:#fff
+    style M12 fill:#d97706,color:#fff
+    style M13 fill:#d97706,color:#fff
+    style M14 fill:#d97706,color:#fff
+          </pre>
+          <p><strong>Legend:</strong> Red = 1% tier. Orange = 4% tier. Amber = 20% tier. Uncolored = rest/roadmap.</p>
+          <p><strong>Critical path:</strong> M1 → M2 → M7 → M11 → M13 → M14 → M17. Shortest path to a fully typed, classified, documented, and verified error system.</p>
+        </section>
+
+        <section id="checklist">
+          <h2><span class="num">05</span> Anti-Verschlimmbesserung Checklist</h2>
+          <div class="card card-problem">
+            <ul>
+              <li><strong>Does this change break the build?</strong> Run <code>go test -race ./...</code> after every code change.</li>
+              <li><strong>Does this introduce a new unclassified error?</strong> Every new error must implement Coded/Classified/Contextual.</li>
+              <li><strong>Does this alter a public API signature?</strong> Keep <code>Validate() error</code> in v0.x.</li>
+              <li><strong>Does this remove an exported constant?</strong> Preserve string aliases like <code>ErrCodeWriteFailed</code>.</li>
+              <li><strong>Does this contradict AGENTS.md?</strong> Update the error classification table.</li>
+              <li><strong>Am I running aligned erraudit flags?</strong> Do not use <code>--enforce-samber-oops</code>.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="questions">
+          <h2><span class="num">06</span> Open Questions</h2>
+          <div class="card card-warning">
+            <ol>
+              <li><strong>Return-type migration:</strong> Should v1.0 change <code>Validate() error</code> to <code>Validate() *errorfamily.Error</code>?</li>
+              <li><strong>erraudit policy:</strong> Add a project erraudit config file, or document the correct CLI invocation?</li>
+              <li><strong>Execution mode:</strong> Execute the full plan now, stop for approval, or run only 1%/4% tiers first?</li>
+            </ol>
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated by Crush on 2026-08-14 13:53 CEST for the httputil project. Point-in-time snapshot; route new findings to TODO_LIST.md via docs-health HARVEST.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
