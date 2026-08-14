@@ -293,10 +293,10 @@ ETag generation and `If-None-Match` handling via the [go-etag](https://github.co
 ```go
 import "github.com/larsartmann/go-etag"
 
-handler := httputil.ETag(etag.DefaultETagConfig())(mux)
+handler := etag.New(etag.DefaultETagConfig())(mux)
 ```
 
-For domain types (`etag.ETag`, `etag.ParseETag`, `etag.MatchesIfNoneMatch`, etc.), import go-etag directly. The adapter only bridges the middleware to httputil's `Middleware` type so it composes with `Chain` and `MiddlewareStack`.
+For domain types (`etag.ETag`, `etag.ParseETag`, `etag.MatchesIfNoneMatch`, etc.), import go-etag directly. `etag.New` returns `func(http.Handler) http.Handler`, which composes directly with `Chain` and `MiddlewareStack`.
 
 ### HTTP Server
 
@@ -456,7 +456,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression        |
 | `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection          |
 | `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                                 |
-| `ETag`                           | `func(etag.ETagConfig) Middleware`                                    | ETag adapter over go-etag                             |
+| `ETag`                           | `func(etag.ETagConfig) Middleware`                                    | ETag adapter over go-etag _(deprecated — use `etag.New`)_ |
 | `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_             |
 | `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config _(deprecated)_              |
 | `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor _(deprecated)_       |
@@ -635,7 +635,7 @@ handler := Chain(mux, Decompression(cfg), MaxBodySize(1<<20))
 // Compression outer, ETag inner: ETag hashes the body the handler produced,
 // not the bytes that left over the wire. All clients see the same ETag value
 // regardless of which Accept-Encoding they negotiated.
-handler := Chain(mux, Compression(cfg), ETag(etag.DefaultETagConfig()))
+handler := Chain(mux, Compression(cfg), etag.New(etag.DefaultETagConfig()))
 ```
 
 ### Compression Extensibility

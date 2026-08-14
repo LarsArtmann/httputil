@@ -65,7 +65,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`                         |
 | `Compression`                  | `func(CompressionConfig) Middleware`                      |
 | `Decompression`                | `func(DecompressionConfig) Middleware`                    |
-| `ETag`                         | `func(etag.ETagConfig) Middleware` — adapter over go-etag |
+| `ETag`                         | `func(etag.ETagConfig) Middleware` — deprecated, use `etag.New` |
 | `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`                 |
 | `Logging`                      | `func(*slog.Logger) Middleware`                           |
 | `MaxBodySize`                  | `func(int64) Middleware`                                  |

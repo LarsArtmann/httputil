@@ -122,7 +122,7 @@ func TestStack_DuplicateMiddlewareRejected(t *testing.T) {
 
 // addStackMiddleware adds a named middleware to a stack and fails the test if
 // Add returns an error.
-func addStackMiddleware(t *testing.T, stack *MiddlewareStack, name string, mw func(http.Handler) http.Handler) {
+func addStackMiddleware(t *testing.T, stack *MiddlewareStack, name string, mw Middleware) {
 	t.Helper()
 
 	if err := stack.Add(name, mw); err != nil {
@@ -158,7 +158,7 @@ func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	)
 	addStackMiddleware(t, stack, MiddlewareCSRF, CSRFMiddleware(CSRFConfig{}))
 	addStackMiddleware(t, stack, MiddlewareCompression, Compression(DefaultCompressionConfig()))
-	addStackMiddleware(t, stack, MiddlewareETag, ETag(etag.DefaultETagConfig()))
+	addStackMiddleware(t, stack, MiddlewareETag, etag.New(etag.DefaultETagConfig()))
 	addStackMiddleware(t, stack, MiddlewareTimeout, Timeout(30*time.Second))
 	addStackMiddleware(t, stack, MiddlewareClientIP, ClientIPMiddleware)
 	addStackMiddleware(t, stack, MiddlewareServerTiming, servertiming.ServerTimingMiddleware())

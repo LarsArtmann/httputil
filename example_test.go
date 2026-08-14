@@ -252,7 +252,7 @@ func ExampleKeyedRateLimiterMiddleware() {
 }
 
 func ExampleETag() {
-	handler := ETag(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
+	handler := etag.New(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
 
 	// First request: the middleware computes and sets the ETag header.
 	rec := httptest.NewRecorder()

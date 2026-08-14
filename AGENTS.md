@@ -135,7 +135,7 @@ The root `httputil` package has 34 non-test files in one directory. **Decision c
 | `queryparam.go` | `ParseUintQuery()` | Parse uint values from HTTP query parameters |
 | `decompression.go` | `DecompressionConfig`, `DefaultDecompressionConfig()`, `Decompression()`, `Validate()` | Request body decompression middleware (gzip/deflate) with bomb protection |
 | `csrf.go` | `CSRFConfig`, `Validate()`, `CSRFMiddleware()`, `ConfigureNosurfHandler()`, `CSRFResponseHeaderMiddleware()`, `ValidateCSRF()`, `WithCSRFToken()`, `CSRFTokenFromContext()`, `CSRFTokenFromRequest()`, `InvalidateCSRFCookie()`, `CSRFTokenHXHeaders()`, `CSRFTokenHTMLMeta()`, `CSRFTokenFormField()`, `CSRFTestToken()`, `SetPlaintextHTTPOrigin()`, `TranslateCSRFHeaders()`, `ForbiddenHandler()`, `ErrCSRFInvalid`, `ErrCSRFConfig` | CSRF protection middleware via `justinas/nosurf` (double-submit cookie) |
-| `etag.go` | `ETag()` | Thin adapter over [go-etag]: ETag generation + If-None-Match 304 handling |
+| `etag.go` | `ETag()` _(deprecated — use `etag.New()` directly)_ | Deprecated thin adapter over [go-etag]: now that `Middleware` is a type alias, `etag.New()` composes directly |
 | `testutil_test.go` | (unexported `newNoOpHandler`, `newCountingHandler`, `newWriteStatusHandler`, `newWriteBodyHandler`, `newStatusOnlyHandler`, `newTypedBodyHandler`, `newTestRequest`, `newRecorder`, `newFlushHandler`, `assertSliceEqual`) | Shared test helpers for consistent test patterns |
 | `doc.go` | (package doc only) | Package-level GoDoc documentation |
 

@@ -186,7 +186,7 @@ Actions the library performs.
 | `RecordServerTiming(ctx, name, dur)` | Record a named sub-metric with an explicit duration (no timer needed)                                      | Server-Timing        |
 | `WithServerTiming(ctx, st)`          | Store a ServerTiming collector in a context                                                                | Server-Timing        |
 | `ServerTimingFromContext(ctx)`       | Retrieve the ServerTiming collector from a context                                                         | Server-Timing        |
-| `ETag(cfg)`                          | Create ETag middleware (thin adapter over go-etag) that generates ETags and serves 304 on If-None-Match    | Conditional Requests |
+| `etag.New(cfg)`                      | Create ETag middleware (from go-etag module) that generates ETags and serves 304 on If-None-Match          | Conditional Requests |
 | `Metrics(cfg)`                       | Create middleware that records request metrics via a pluggable recorder                                    | Metrics              |
 | `MaxBodySize(limit)`                 | Create middleware that rejects request bodies exceeding the limit                                          | Body Size Limit      |
 | `MaxBodySizeMiddleware(cfg)`         | Create body-size middleware from a validated `MaxBodySizeConfig`                                           | Body Size Limit      |
@@ -391,7 +391,7 @@ Invariants and policies that the library enforces.
 
 ### Conditional Requests Rules
 
-- `ETag(cfg)` is a thin adapter over the independent `go-etag` module; the config type (`etag.ETagConfig`) and domain types (`etag.ETag`, `etag.ParseETag`) live in go-etag, not httputil
+- `etag.New(cfg)` is the ETag middleware constructor from the independent `go-etag` module; it composes directly with httputil's `Chain` and `MiddlewareStack` via the `Middleware` type alias. The deprecated `httputil.ETag()` is a pure passthrough.
 - For GET/HEAD requests, the middleware buffers the response body (up to `MaxBufferSize`, default 1 MB), computes an ETag via `HashFunc` (default FNV-64a), and writes the `ETag` response header
 - When `If-None-Match` matches the computed ETag, the middleware responds `304 Not Modified` with an empty body
 - Responses exceeding `MaxBufferSize` are streamed without an ETag (ETag generation abandoned)

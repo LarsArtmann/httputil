@@ -10,7 +10,7 @@ import (
 func TestETag_GeneratesHeader(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
+	handler := etag.New(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -27,7 +27,7 @@ func TestETag_GeneratesHeader(t *testing.T) {
 func TestETag_IfNoneMatch_Returns304(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
+	handler := etag.New(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set("If-None-Match", `"779a65e7023cd2e7"`)
@@ -42,7 +42,7 @@ func TestETag_IfNoneMatch_Returns304(t *testing.T) {
 func TestETag_PostRequest_NoETag(t *testing.T) {
 	t.Parallel()
 
-	handler := ETag(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
+	handler := etag.New(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
 
 	req := newTestRequest(http.MethodPost, "/", "")
 	rec := newRecorder()
@@ -69,7 +69,7 @@ func TestETag_WorksInChain(t *testing.T) {
 
 	inner := newWriteStatusHandler("hello world")
 
-	handler := Chain(inner, ETag(etag.DefaultETagConfig()))
+	handler := Chain(inner, etag.New(etag.DefaultETagConfig()))
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	rec := newRecorder()
@@ -88,7 +88,7 @@ func TestETag_WorksInMiddlewareStack(t *testing.T) {
 
 	stack := NewMiddlewareStack()
 
-	err := stack.Add(MiddlewareETag, ETag(etag.DefaultETagConfig()))
+	err := stack.Add(MiddlewareETag, etag.New(etag.DefaultETagConfig()))
 	if err != nil {
 		t.Fatalf("stack.Add failed: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestETag_ChainedWithCompression(t *testing.T) {
 	handler := Chain(
 		inner,
 		Compression(CompressionConfig{MinSize: 1, Level: -2}),
-		ETag(etag.DefaultETagConfig()),
+		etag.New(etag.DefaultETagConfig()),
 	)
 
 	// First GET: both an ETag and Content-Encoding header are produced.

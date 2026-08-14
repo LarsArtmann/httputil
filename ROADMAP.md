@@ -12,7 +12,7 @@ v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validat
 
 v0.9.1 (2026-08-06) is an RFC 7232 compliance patch for the ETag middleware.
 
-**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module and re-integrated as a thin adapter (`httputil.ETag()`). `ServerConfig.TLSConfig` validation, decompression benchmarks/fuzz, and govulncheck in the devShell. 97.0% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
+**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module; `httputil.ETag()` adapter deprecated in favor of `etag.New()` (composes directly via the `Middleware` type alias). `ServerConfig.TLSConfig` validation, decompression benchmarks/fuzz, and govulncheck in the devShell. 97.0% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
 
 ## v0.9.0 — Feature additions
 
@@ -28,7 +28,7 @@ Before v1.0:
 
 - **Remove the deprecated `TokenBucketLimiter` / `RateLimiter` interface** — superseded by `KeyedRateLimiter`. Migration guide: [`docs/migrating-to-keyed-rate-limiter.md`](docs/migrating-to-keyed-rate-limiter.md).
 - **Rate limiter interface refinement** — `AllowN` (burst > 1 per request) was evaluated and rejected (`KeyedRateLimiter` uses `MaxKeys`, not per-request burst). `context.Context` cancellation support on `KeyedRateLimiter` remains deferred to v1.0 because it could shape the final interface.
-- **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module, integrated into httputil via a thin adapter (`httputil.ETag()`). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
+- **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module (`etag.New()` composes directly with httputil via the `Middleware` type alias). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
 - One stabilization cycle before the commitment.
 
 ## Post-v1.0 ideas

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`Middleware` is now a type alias** (`recorder.go`, `server_timing/middleware.go`, `go-etag/middleware.go`): changed from `type Middleware func(http.Handler) http.Handler` (named type) to `type Middleware = func(http.Handler) http.Handler` (type alias). This eliminates all conversion friction at composition boundaries — `servertiming.Middleware`, `etag.Middleware`, and any external middleware (e.g., otelhttp) now compose directly with `Chain` and `MiddlewareStack` without explicit `Middleware()` conversions.
+
+### Deprecated
+
+- **`httputil.ETag()`** (`etag.go`): deprecated in favor of `etag.New()` from the `go-etag` module. Now that `Middleware` is a type alias, `etag.New()` composes directly with `Chain` and `MiddlewareStack` — the adapter adds no behavior. Error classification guidance moved to `RegisterErrorClassifications()` doc comment.
+
 ## [0.11.0] - 2026-08-09
 
 ### Added
