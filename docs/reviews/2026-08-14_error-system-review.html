@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>httputil Error System Review</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover, .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+
+      .main { flex: 1; min-width: 0; }
+
+      h1, h2, h3, h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p { margin: 0 0 1rem; }
+      ul, ol { margin: 0 0 1rem 1.25rem; }
+      li { margin: 0 0 0.35rem; }
+
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .stat-card:last-child { border-right: none; }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.2rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .stat-bad { background: var(--problem); color: var(--surface); }
+      .stat-warn { background: var(--warning); color: var(--text); }
+      .stat-good { background: var(--solution); color: var(--surface); }
+
+      .card, .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem, .issue-critical { border-left-color: var(--problem); }
+      .card-solution, .issue-nice { border-left-color: var(--solution); }
+      .card-warning, .issue-important { border-left-color: var(--warning); }
+
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.15rem 0.4rem;
+        margin-bottom: 0.6rem;
+        border: 1px solid var(--text);
+      }
+      .severity-critical { background: var(--problem); color: var(--surface); border-color: var(--problem); }
+      .severity-high { background: var(--warning); color: var(--text); border-color: var(--warning); }
+      .severity-medium { background: var(--surface-sunken); color: var(--text); }
+      .severity-low { background: var(--surface); color: var(--text-muted); border-style: dashed; }
+
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .compare-before, .compare-after {
+        border: 2px solid var(--text);
+        padding: 1rem;
+        background: var(--surface-raised);
+      }
+      .compare-before { border-top: 6px solid var(--problem); }
+      .compare-after { border-top: 6px solid var(--solution); }
+      .compare-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.75rem;
+      }
+
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin: 0 0 1rem;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 0.05em 0.2em;
+      }
+      pre code { background: transparent; padding: 0; }
+
+      .tok-keyword { color: #c678dd; }
+      .tok-type { color: #e5c07b; }
+      .tok-string { color: #98c379; }
+      .tok-comment { color: #5c6370; font-style: italic; }
+      .tok-func { color: #61afef; }
+      .tok-number { color: #d19a66; }
+      .tok-generic { color: #e06c75; }
+      .tok-builtin { color: #56b6c2; }
+
+      .migration-step {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 2px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .migration-step .num {
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .migration-step h4 { margin-top: 0.1rem; }
+
+      .callout {
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border-left: 8px solid var(--accent);
+      }
+
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 800px) {
+        .layout { flex-direction: column; }
+        .sidebar { display: none; }
+        .compare { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>httputil / review</span>
+      <span>2026-08-14</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Sections</div>
+          <a href="#hero">Hero</a>
+          <a href="#current-state">Current State</a>
+          <a href="#problem-catalog">Problem Catalog</a>
+          <a href="#vision">The Vision</a>
+          <a href="#go-model">Go Data Model</a>
+          <a href="#composition">Composition in Action</a>
+          <a href="#validation">Validation Layer</a>
+          <a href="#decisions">Decision Log</a>
+          <a href="#anti-patterns">Anti-Patterns</a>
+          <a href="#roadmap">Migration Roadmap</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="hero" class="hero">
+          <div class="eyebrow">Architecture Deep-Dive</div>
+          <h1>Toward a Typed, Hierarchical Error System</h1>
+          <p class="subtitle">
+            A review of how <code>httputil</code> creates, classifies, and propagates errors today, and a concrete design for making them type-safe, hierarchical, and fully leverage <code>github.com/larsartmann/go-error-family</code>.
+          </p>
+          <div class="meta">
+            <span class="tag">httputil</span>
+            <span class="tag amber">83 erraudit violations</span>
+            <span class="tag teal">go-error-family v0.10.0</span>
+          </div>
+        </section>
+
+        <section id="current-state">
+          <h2><span class="num">01</span> Current State</h2>
+          <p>
+            The project already uses <code>go-error-family</code> for behavioral classification (Transient, Infrastructure, Rejection, Orchestration) at runtime error sites. However, configuration-validation errors are still plain stdlib sentinels wrapped with <code>fmt.Errorf</code>, and error codes are raw strings.
+          </p>
+          <div class="stat-grid">
+            <div class="stat-card stat-bad">
+              <div class="stat-value">83</div>
+              <div class="stat-label">erraudit violations</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">61</div>
+              <div class="stat-label">stdlib constructors</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">11</div>
+              <div class="stat-label">ignored errors</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">11</div>
+              <div class="stat-label">generic returns</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">35</div>
+              <div class="stat-label">errorfamily call sites</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">39</div>
+              <div class="stat-label">named errors</div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Important context:</strong> the <code>--enforce-samber-oops</code> flag in the supplied erraudit command is the source of most "stdlib constructor" warnings. The project policy is <code>go-error-family</code>, not <code>samber/oops</code>. The right fix is not to switch libraries but to use the current library consistently.
+          </div>
+        </section>
+
+        <section id="problem-catalog">
+          <h2><span class="num">02</span> Problem Catalog</h2>
+
+          <div class="card card-problem">
+            <div class="severity severity-critical">Critical</div>
+            <h3>P1 — Validation errors are plain stdlib sentinels</h3>
+            <p>
+              Every config <code>Validate()</code> method defines unexported <code>var err* = errors.New(...)</code> sentinels and wraps them with <code>fmt.Errorf("%w: ...")</code>. The resulting errors are not classified, not coded, and not contextual. Callers can only match them by fragile string comparisons.
+            </p>
+            <p><strong>Fix:</strong> define package-level <code>errorfamily.NewRejection</code> / <code>NewInfrastructure</code> sentinels with machine-readable codes, then clone them with context in each validation branch.</p>
+          </div>
+
+          <div class="card card-problem">
+            <div class="severity severity-high">High</div>
+            <h3>P2 — Error codes are stringly-typed constants</h3>
+            <p>
+              <code>ErrCodeWriteFailed = "http.write_failed"</code> is a raw <code>string</code>. Nothing prevents a typo or mixing a CORS code into a compression site. The codes have no compile-time grouping or hierarchy.
+            </p>
+            <p><strong>Fix:</strong> introduce a branded <code>type Code string</code> and domain-grouped typed constants. Provide a <code>Code.Domain()</code> method to extract hierarchy at runtime.</p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="severity severity-medium">Medium</div>
+            <h3>P3 — Public APIs return bare <code>error</code></h3>
+            <p>
+              <code>Validate() error</code>, <code>Shutdown() error</code>, and <code>Add() error</code> discard static type information at the signature level. Callers must rely on interface assertions at the call site.
+            </p>
+            <p><strong>Fix:</strong> keep <code>error</code> signatures for backward compatibility in v0.x, but guarantee that every returned value implements <code>Coded</code>, <code>Classified</code>, and <code>Contextual</code>. Consider concrete return types for a future v1.</p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="severity severity-low">Low</div>
+            <h3>P4 — Intentionally-swallowed writes are scattered</h3>
+            <p>
+              After HTTP headers are committed, write failures cannot be reported to the caller. The codebase uses <code>_, _ = w.Write(...)</code> at multiple sites with inline comments. This is correct but noisy and easy to misread as a bug.
+            </p>
+            <p><strong>Fix:</strong> centralize the pattern in a single <code>writeCommittedBody</code> helper whose name and docstring make the intentional swallow explicit.</p>
+          </div>
+
+          <div class="card card-problem">
+            <div class="severity severity-high">High</div>
+            <h3>P5 — erraudit is being run with a mismatched policy</h3>
+            <p>
+              The command <code>--enforce-samber-oops</code> flags every <code>errors.New</code> and <code>fmt.Errorf</code> as a violation, even though the project deliberately uses <code>go-error-family</code>. This produces 61 false-positive-looking findings and distracts from the real gaps.
+            </p>
+            <p><strong>Fix:</strong> run erraudit without the samber/oops flag, or add a project erraudit config that reflects the actual library choice. The goal is consistent classification, not a dependency swap.</p>
+          </div>
+        </section>
+
+        <section id="vision">
+          <h2><span class="num">03</span> The Vision</h2>
+          <div class="card card-solution">
+            <ul>
+              <li>Every exported error value is <strong>coded, classified, and contextual</strong>.</li>
+              <li>Configuration mistakes produce <code>Rejection</code> errors with the offending field, value, and invariant attached.</li>
+              <li>Runtime HTTP failures produce <code>Transient</code> or <code>Infrastructure</code> errors with the underlying cause preserved.</li>
+              <li>Error codes form a <strong>hierarchy</strong>: <code>http.*</code>, <code>cors.*</code>, <code>csrf.*</code>, <code>compression.*</code>, <code>server.*</code>, etc.</li>
+              <li>Callers use <code>errors.AsType[errorfamily.Coded]</code> instead of string matching.</li>
+              <li>No raw <code>errors.New</code> or <code>fmt.Errorf</code> for domain errors; only for genuine stdlib bridge points.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="go-model">
+          <h2><span class="num">04</span> Go Data Model</h2>
+          <p>
+            The new model builds on the existing <code>go-error-family</code> foundation. It adds a typed code constant, domain extraction, and a centralized validation-error constructor.
+          </p>
+
+<pre><code><span class="tok-comment">// Code is a typed error code. It prevents accidental mixing of codes across domains.</span>
+<span class="tok-keyword">type</span> <span class="tok-type">Code</span> <span class="tok-keyword">string</span>
+
+<span class="tok-comment">// Domain returns the hierarchical domain prefix of a code.</span>
+<span class="tok-comment">// Example: Code("cors.negative_max_age").Domain() == "cors".</span>
+<span class="tok-keyword">func</span> (<span class="tok-generic">c</span> <span class="tok-type">Code</span>) <span class="tok-func">Domain</span>() <span class="tok-keyword">string</span> {
+    <span class="tok-keyword">if</span> <span class="tok-generic">i</span> := <span class="tok-type">strings</span>.<span class="tok-func">Index</span>(<span class="tok-keyword">string</span>(<span class="tok-generic">c</span>), <span class="tok-string">"."</span>); <span class="tok-generic">i</span> &gt;= <span class="tok-number">0</span> {
+        <span class="tok-keyword">return</span> <span class="tok-keyword">string</span>(<span class="tok-generic">c</span>[:<span class="tok-generic">i</span>])
+    }
+    <span class="tok-keyword">return</span> <span class="tok-string">"http"</span>
+}
+
+<span class="tok-comment">// Domain-grouped, typed codes.</span>
+<span class="tok-keyword">const</span> (
+    <span class="tok-comment">// HTTP layer</span>
+    <span class="tok-type">CodeWriteFailed</span>         <span class="tok-type">Code</span> = <span class="tok-string">"http.write_failed"</span>
+    <span class="tok-type">CodeHijackUnsupported</span>   <span class="tok-type">Code</span> = <span class="tok-string">"http.hijack_unsupported"</span>
+    <span class="tok-type">CodeHijackFailed</span>        <span class="tok-type">Code</span> = <span class="tok-string">"http.hijack_failed"</span>
+    <span class="tok-type">CodeCompressWriteFailed</span> <span class="tok-type">Code</span> = <span class="tok-string">"http.compress_write_failed"</span>
+
+    <span class="tok-comment">// CORS</span>
+    <span class="tok-type">CodeCORSCredentialsWithAllOrigins</span> <span class="tok-type">Code</span> = <span class="tok-string">"cors.credentials_with_all_origins"</span>
+    <span class="tok-type">CodeCORSNegativeMaxAge</span>          <span class="tok-type">Code</span> = <span class="tok-string">"cors.negative_max_age"</span>
+
+    <span class="tok-comment">// Server</span>
+    <span class="tok-type">CodeServerAddrEmpty</span>       <span class="tok-type">Code</span> = <span class="tok-string">"server.addr_empty"</span>
+    <span class="tok-type">CodeServerShutdownFailed</span>    <span class="tok-type">Code</span> = <span class="tok-string">"server.shutdown_failed"</span>
+    <span class="tok-type">CodeServerTLSMinVersion</span>   <span class="tok-type">Code</span> = <span class="tok-string">"server.tls_min_version_insecure"</span>
+)
+
+<span class="tok-comment">// Backward-compatible string constants.</span>
+<span class="tok-keyword">const</span> (
+    <span class="tok-type">ErrCodeWriteFailed</span> = <span class="tok-keyword">string</span>(<span class="tok-type">CodeWriteFailed</span>)
+    <span class="tok-comment">// ...</span>
+)
+
+<span class="tok-comment">// newConfigError builds a classified, contextual validation error.</span>
+<span class="tok-keyword">func</span> <span class="tok-func">newConfigError</span>(<span class="tok-generic">code</span> <span class="tok-type">Code</span>, <span class="tok-generic">config</span>, <span class="tok-generic">field</span>, <span class="tok-generic">value</span>, <span class="tok-generic">rule</span> <span class="tok-keyword">string</span>) *<span class="tok-type">errorfamily.Error</span> {
+    <span class="tok-keyword">return</span> <span class="tok-type">errorfamily</span>.<span class="tok-func">NewRejection</span>(<span class="tok-keyword">string</span>(<span class="tok-generic">code</span>), <span class="tok-generic">config</span>+<span class="tok-string">"."</span>+<span class="tok-generic">field</span>+<span class="tok-string">" "</span>+<span class="tok-generic">rule</span>).
+        <span class="tok-func">WithContextMap</span>(<span class="tok-keyword">map</span>[<span class="tok-keyword">string</span>]<span class="tok-keyword">string</span>{
+            <span class="tok-string">"config"</span>: <span class="tok-generic">config</span>,
+            <span class="tok-string">"field"</span>:  <span class="tok-generic">field</span>,
+            <span class="tok-string">"value"</span>:  <span class="tok-generic">value</span>,
+            <span class="tok-string">"rule"</span>:   <span class="tok-generic">rule</span>,
+        })
+}</span></code></pre>
+        </section>
+
+        <section id="composition">
+          <h2><span class="num">05</span> Composition in Action</h2>
+          <p>
+            Converting a config validator from stdlib sentinels to classified errors removes string wrapping and attaches structured context in one move.
+          </p>
+
+          <div class="compare">
+            <div class="compare-before">
+              <div class="compare-label">Before: stdlib sentinel</div>
+<pre><code><span class="tok-keyword">var</span> <span class="tok-type">errNegativeMaxAge</span> = <span class="tok-type">errors</span>.<span class="tok-func">New</span>(<span class="tok-string">"CORSConfig: MaxAge must not be negative"</span>)
+
+<span class="tok-keyword">func</span> (<span class="tok-generic">c</span> <span class="tok-type">CORSConfig</span>) <span class="tok-func">Validate</span>() <span class="tok-type">error</span> {
+    <span class="tok-keyword">if</span> <span class="tok-generic">c</span>.<span class="tok-type">MaxAge</span> &lt; <span class="tok-number">0</span> {
+        <span class="tok-keyword">return</span> <span class="tok-type">fmt</span>.<span class="tok-func">Errorf</span>(<span class="tok-string">"%w: got %d"</span>, <span class="tok-type">errNegativeMaxAge</span>, <span class="tok-generic">c</span>.<span class="tok-type">MaxAge</span>)
+    }
+    <span class="tok-keyword">return</span> <span class="tok-keyword">nil</span>
+}</span></code></pre>
+            </div>
+            <div class="compare-after">
+              <div class="compare-label">After: classified + contextual</div>
+<pre><code><span class="tok-keyword">var</span> <span class="tok-type">errCORSNegativeMaxAge</span> = <span class="tok-type">errorfamily</span>.<span class="tok-func">NewRejection</span>(
+    <span class="tok-keyword">string</span>(<span class="tok-type">CodeCORSNegativeMaxAge</span>),
+    <span class="tok-string">"CORSConfig.MaxAge must not be negative"</span>,
+)
+
+<span class="tok-keyword">func</span> (<span class="tok-generic">c</span> <span class="tok-type">CORSConfig</span>) <span class="tok-func">Validate</span>() <span class="tok-type">error</span> {
+    <span class="tok-keyword">if</span> <span class="tok-generic">c</span>.<span class="tok-type">MaxAge</span> &lt; <span class="tok-number">0</span> {
+        <span class="tok-keyword">return</span> <span class="tok-type">errCORSNegativeMaxAge</span>.<span class="tok-func">WithContext</span>(<span class="tok-string">"value"</span>, <span class="tok-type">strconv</span>.<span class="tok-func">Itoa</span>(<span class="tok-generic">c</span>.<span class="tok-type">MaxAge</span>))
+    }
+    <span class="tok-keyword">return</span> <span class="tok-keyword">nil</span>
+}</span></code></pre>
+            </div>
+          </div>
+
+          <p>
+            The new value is a <code>*errorfamily.Error</code>, so callers can do type-safe matching:
+          </p>
+
+<pre><code><span class="tok-type">coded</span>, <span class="tok-type">ok</span> := <span class="tok-type">errors</span>.<span class="tok-func">AsType</span>[<span class="tok-type">errorfamily.Coded</span>](<span class="tok-type">err</span>)
+<span class="tok-keyword">if</span> <span class="tok-type">ok</span> &amp;&amp; <span class="tok-type">coded</span>.<span class="tok-func">ErrorCode</span>() == <span class="tok-keyword">string</span>(<span class="tok-type">CodeCORSNegativeMaxAge</span>) {
+    <span class="tok-comment">// handle specific CORS config failure</span>
+}</span></code></pre>
+        </section>
+
+        <section id="validation">
+          <h2><span class="num">06</span> Validation Layer</h2>
+          <p>
+            With the new model, an invalid config is not a generic string. It is a <code>Rejection</code> error carrying the exact invariant that was violated. The type system does not make invalid states unrepresentable (configs are still structs), but the error model makes them <strong>diagnosable</strong>.
+          </p>
+
+          <div class="card card-solution">
+            <h4>Example output</h4>
+            <pre>[rejection:cors.negative_max_age] CORSConfig.MaxAge must not be negative: value=-10</pre>
+            <p>Consumers can extract the code, family, and context map without parsing strings.</p>
+          </div>
+
+          <p>
+            The hierarchy is encoded in the code string. A small helper makes it queryable:
+          </p>
+
+<pre><code><span class="tok-keyword">func</span> <span class="tok-func">DomainOf</span>(<span class="tok-generic">err</span> <span class="tok-type">error</span>) <span class="tok-keyword">string</span> {
+    <span class="tok-type">coded</span>, <span class="tok-type">ok</span> := <span class="tok-type">errors</span>.<span class="tok-func">AsType</span>[<span class="tok-type">errorfamily.Coded</span>](<span class="tok-generic">err</span>)
+    <span class="tok-keyword">if</span> !<span class="tok-type">ok</span> {
+        <span class="tok-keyword">return</span> <span class="tok-string">"unknown"</span>
+    }
+    <span class="tok-keyword">return</span> <span class="tok-type">Code</span>(<span class="tok-type">coded</span>.<span class="tok-func">ErrorCode</span>()).<span class="tok-func">Domain</span>()
+}</span></code></pre>
+        </section>
+
+        <section id="decisions">
+          <h2><span class="num">07</span> Decision Log</h2>
+
+          <div class="issue issue-nice">
+            <h4>Keep <code>go-error-family</code>; do not adopt <code>samber/oops</code></h4>
+            <p>
+              Switching would add a dependency, lose the family-classification model, and force a rewrite of 35+ call sites. The project already owns a library purpose-built for classified errors; the fix is consistency, not a swap.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h4>Keep <code>error</code> return signatures in v0.x</h4>
+            <p>
+              Changing <code>Validate() error</code> to <code>Validate() *errorfamily.Error</code> is a breaking API change. Because <code>*errorfamily.Error</code> implements <code>error</code>, callers still receive a classified value. The report recommends concrete returns only for new internal APIs or a future v1.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h4>Use dot-notation codes for hierarchy</h4>
+            <p>
+              A typed <code>Code</code> plus a <code>Domain()</code> method gives a hierarchy without introducing a heavy tree of custom types. It is simple, inspectable, and serializable.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <h4>Package-level sentinels with per-instance context</h4>
+            <p>
+              This satisfies the project's <code>err113</code> rule (no inline <code>errors.New</code>) while avoiding repeated allocations. <code>WithContext</code> clones the sentinel safely.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <h4>Ignored post-header writes are intentional</h4>
+            <p>
+              Once headers are committed, a write error cannot be surfaced. The recommendation is to centralize the swallow pattern, not to "fix" every site by returning an error that cannot be acted upon.
+            </p>
+          </div>
+        </section>
+
+        <section id="anti-patterns">
+          <h2><span class="num">08</span> Anti-Patterns</h2>
+
+          <div class="card card-problem">
+            <h3>Do not invent a parallel error tree</h3>
+            <p>
+              Adding a custom <code>httputil.Error</code> interface that duplicates <code>Coded + Classified + Contextual</code> fragments the protocol. Use the interfaces from <code>go-error-family</code> directly.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>Do not switch to <code>samber/oops</code> just to silence erraudit</h3>
+            <p>
+              That would replace one set of tool warnings with a different error model that does not match the project's classification needs.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>Do not use unexported sentinels as the public matching API</h3>
+            <p>
+              Consumers need exported codes or typed predicates. Keep sentinels unexported if desired, but expose the <code>Code</code> constants and document them.
+            </p>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="num">09</span> Migration Roadmap</h2>
+
+          <div class="migration-step">
+            <div class="num">1</div>
+            <div>
+              <h4>Introduce typed <code>Code</code> and domain helpers in <code>errors.go</code></h4>
+              <p>Keep existing string constants for backward compatibility. Add the <code>Code</code> type, typed constants per domain, and <code>Domain()</code> / <code>DomainOf()</code>.</p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="num">2</div>
+            <div>
+              <h4>Convert one middleware at a time</h4>
+              <p>Start with <code>cors.go</code> or <code>server.go</code>: replace <code>errors.New</code> sentinels with package-level <code>errorfamily.New*</code> sentinels and update <code>Validate()</code> branches to clone with context.</p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="num">3</div>
+            <div>
+              <h4>Add tests that assert classification</h4>
+              <p>For every validation error, add a test verifying it implements <code>Coded</code>, <code>Classified</code>, and <code>Contextual</code> and that the code matches the expected typed constant.</p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="num">4</div>
+            <div>
+              <h4>Register templates for new config error codes</h4>
+              <p>Extend <code>RegisterErrorClassifications()</code> so the user-facing <code>what/why/fix/escape</code> messages are available through the error family registry.</p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="num">5</div>
+            <div>
+              <h4>Centralize intentional write swallows</h4>
+              <p>Replace scattered <code>_, _ = w.Write(...)</code> sites with a documented helper such as <code>writeCommittedBody</code>.</p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="num">6</div>
+            <div>
+              <h4>Update project erraudit configuration</h4>
+              <p>Remove or neutralize the <code>--enforce-samber-oops</code> flag. Align erraudit with <code>go-error-family</code> so warnings reflect actual project policy.</p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="num">7</div>
+            <div>
+              <h4>Document the error model in <code>AGENTS.md</code></h4>
+              <p>Add a section explaining how errors are classified, how codes are grouped by domain, and how consumers should match them.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <h2><span class="num">10</span> Conclusion</h2>
+          <p>
+            The project is not starting from zero. It has a solid classification library and already uses it at runtime error boundaries. The missing layer is the <strong>configuration-validation surface</strong>: errors there are still plain strings, unexported, and unclassified.
+          </p>
+          <p>
+            The best next step is to bring every config validator into the same model: typed <code>Code</code> constants, package-level classified sentinels, and contextual clones. That gives a typed, hierarchical error system without adding dependencies or breaking the public API.
+          </p>
+          <div class="callout">
+            <strong>Bottom line:</strong> fully adopt the library you already have.
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated by Crush on 2026-08-14 for the httputil project. This is a snapshot review; not a living document.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
