@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -18,22 +17,48 @@ const (
 	defaultAddr                     = ":8080"
 )
 
+// Error codes for ServerConfig validation. All config codes are classified
+// as Rejection: an invalid config is unacceptable input.
+const (
+	codeServerAddrEmpty                 = Code("server.addr_empty")
+	codeServerReadTimeoutNegative       = Code("server.read_timeout_negative")
+	codeServerReadHeaderTimeoutNegative = Code("server.read_header_timeout_negative")
+	codeServerWriteTimeoutNegative      = Code("server.write_timeout_negative")
+	codeServerIdleTimeoutNegative       = Code("server.idle_timeout_negative")
+	codeServerShutdownTimeoutNegative   = Code("server.shutdown_timeout_negative")
+	codeServerTimeoutOrdering           = Code("server.timeout_ordering")
+	codeServerTLSMinVersionInsecure     = Code("server.tls_min_version_insecure")
+	codeServerShutdownFailed            = Code("server.shutdown_failed")
+)
+
 var (
-	errReadTimeoutNegative       = errors.New("ServerConfig.ReadTimeout must not be negative")
-	errReadHeaderTimeoutNegative = errors.New("ServerConfig.ReadHeaderTimeout must not be negative")
-	errWriteTimeoutNegative      = errors.New("ServerConfig.WriteTimeout must not be negative")
-	errIdleTimeoutNegative       = errors.New("ServerConfig.IdleTimeout must not be negative")
-	errShutdownTimeoutNegative   = errors.New("ServerConfig.ShutdownTimeout must not be negative")
-	errServerShutdownFailed      = errors.New("server shutdown failed")
-	errServerAddrEmpty           = errors.New(
+	errReadTimeoutNegative = codeServerReadTimeoutNegative.Rejection(
+		"ServerConfig.ReadTimeout must not be negative",
+	)
+	errReadHeaderTimeoutNegative = codeServerReadHeaderTimeoutNegative.Rejection(
+		"ServerConfig.ReadHeaderTimeout must not be negative",
+	)
+	errWriteTimeoutNegative = codeServerWriteTimeoutNegative.Rejection(
+		"ServerConfig.WriteTimeout must not be negative",
+	)
+	errIdleTimeoutNegative = codeServerIdleTimeoutNegative.Rejection(
+		"ServerConfig.IdleTimeout must not be negative",
+	)
+	errShutdownTimeoutNegative = codeServerShutdownTimeoutNegative.Rejection(
+		"ServerConfig.ShutdownTimeout must not be negative",
+	)
+	errServerAddrEmpty = codeServerAddrEmpty.Rejection(
 		"ServerConfig.Addr must not be empty (e.g. \":8080\" or \":http\")",
 	)
-	errServerTimeoutOrdering = errors.New(
+	errServerTimeoutOrdering = codeServerTimeoutOrdering.Rejection(
 		"ServerConfig.ReadHeaderTimeout must be <= ReadTimeout (RFC 7230 §6)",
 	)
-	errTLSMinVersionInsecure = errors.New(
+	errTLSMinVersionInsecure = codeServerTLSMinVersionInsecure.Rejection(
 		"ServerConfig.TLSConfig.MinVersion must be at least TLS 1.2 (RFC 8996)",
 	)
+	// errServerShutdownFailed wraps shutdown failures as Infrastructure: the
+	// surrounding process state, not the request, is what failed.
+	errServerShutdownFailed = codeServerShutdownFailed.Infrastructure("server shutdown failed")
 )
 
 // ServerConfig holds the configuration for an HTTP server.
@@ -76,40 +101,34 @@ func (c ServerConfig) Validate() error {
 	}
 
 	if c.ReadTimeout < 0 {
-		return fmt.Errorf("%w: %v", errReadTimeoutNegative, c.ReadTimeout)
+		return errReadTimeoutNegative.WithContextAny("read_timeout", c.ReadTimeout)
 	}
 
 	if c.ReadHeaderTimeout < 0 {
-		return fmt.Errorf("%w: %v", errReadHeaderTimeoutNegative, c.ReadHeaderTimeout)
+		return errReadHeaderTimeoutNegative.WithContextAny("read_header_timeout", c.ReadHeaderTimeout)
 	}
 
 	if c.WriteTimeout < 0 {
-		return fmt.Errorf("%w: %v", errWriteTimeoutNegative, c.WriteTimeout)
+		return errWriteTimeoutNegative.WithContextAny("write_timeout", c.WriteTimeout)
 	}
 
 	if c.IdleTimeout < 0 {
-		return fmt.Errorf("%w: %v", errIdleTimeoutNegative, c.IdleTimeout)
+		return errIdleTimeoutNegative.WithContextAny("idle_timeout", c.IdleTimeout)
 	}
 
 	if c.ShutdownTimeout < 0 {
-		return fmt.Errorf("%w: %v", errShutdownTimeoutNegative, c.ShutdownTimeout)
+		return errShutdownTimeoutNegative.WithContextAny("shutdown_timeout", c.ShutdownTimeout)
 	}
 
 	if c.ReadTimeout > 0 && c.ReadHeaderTimeout > c.ReadTimeout {
-		return fmt.Errorf(
-			"%w: ReadHeaderTimeout=%v > ReadTimeout=%v",
-			errServerTimeoutOrdering,
-			c.ReadHeaderTimeout, c.ReadTimeout,
-		)
+		return errServerTimeoutOrdering.
+			WithContextAny("read_header_timeout", c.ReadHeaderTimeout).
+			WithContextAny("read_timeout", c.ReadTimeout)
 	}
 
 	if c.TLSConfig != nil && c.TLSConfig.MinVersion != 0 &&
 		c.TLSConfig.MinVersion < tls.VersionTLS12 {
-		return fmt.Errorf(
-			"%w: MinVersion=0x%04x",
-			errTLSMinVersionInsecure,
-			c.TLSConfig.MinVersion,
-		)
+		return errTLSMinVersionInsecure.WithContextf("min_version", "0x%04x", c.TLSConfig.MinVersion)
 	}
 
 	return nil
@@ -182,7 +201,7 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 
 	err := srv.httpServer.Shutdown(ctx)
 	if err != nil {
-		return fmt.Errorf("%w: %w", errServerShutdownFailed, err)
+		return errServerShutdownFailed.WithCause(err)
 	}
 
 	return nil

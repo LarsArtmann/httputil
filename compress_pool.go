@@ -1,12 +1,21 @@
 package httputil
 
 import (
-	"errors"
 	"io"
 	"sync"
 )
 
-var errUnexpectedPoolType = errors.New("unexpected pool element type")
+// errUnexpectedPoolType is returned when a writer pool yields an element
+// that does not satisfy io.WriteCloser, meaning the pool and the factory
+// disagree on the writer type. Classified as Infrastructure: this is a
+// programming error in the WriterFactory contract, not a runtime condition.
+var errUnexpectedPoolType = codeCompressionPoolTypeUnexpected.Infrastructure(
+	"unexpected pool element type",
+)
+
+// codeCompressionPoolTypeUnexpected identifies a writer pool whose elements
+// do not satisfy the io.WriteCloser contract of the factory that filled it.
+const codeCompressionPoolTypeUnexpected = Code("compression.pool_type_unexpected")
 
 // newWriterPool builds a sync.Pool whose New constructs fresh compression
 // writers via factory bound to io.Discard. Callers Reset() the pooled writer

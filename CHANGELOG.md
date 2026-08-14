@@ -6,9 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Typed hierarchical error model** (`code.go`): new `Code` and `Domain` types. Every error code is hierarchical (`domain.specific_failure`, e.g. `cors.max_age_negative`); `Code.Domain()` extracts the component prefix, and the new `DomainOf(err)` / `InDomain(err, domain)` helpers query errors by failing component via `errors.AsType[errorfamily.Coded]` (Go 1.26). `Code` constructor methods (`Code.Rejection(msg)`, `Code.WrapTransient(cause, msg)`, ...) build `*errorfamily.Error` values directly.
+- **All config validators return classified errors**: `CORSConfig`, `ServerConfig`, `CompressionConfig`, `KeyedRateLimiterConfig`, `RateLimitConfig`, `MaxBodySizeConfig`, `RequestIDConfig`, `SecurityHeadersConfig`, `DecompressionConfig`, `MetricsConfig`, `NonceConfig`, `CSRFConfig`, and `MiddlewareStack` validation failures now carry machine-readable codes, the `Rejection` family, and the offending field value in structured context. Existing `errors.Is` matching keeps working (sentinels match by code+family).
+- **Runtime error classification completed**: decompression-bomb protection (`decompression.size_exceeded`, Rejection), corrupt compressed bodies (`decompression.read_failed`, Corruption, cause preserved), decompressor close (`decompression.close_failed`, Transient), server shutdown (`server.shutdown_failed`, Infrastructure, cause preserved), compression writer-pool contract violations (`compression.pool_type_unexpected`, Infrastructure), and Accept-Encoding q-value parse errors (`compression.qvalue_*`, Rejection).
+- **Message templates for every error code**: `RegisterErrorClassifications()` now registers user-facing `what/why/fix/escape` templates (with `{key}` context placeholders) for all httputil, CSRF, and go-etag codes. A completeness test (`errors_templates_test.go`) fails when a code is added without a template.
+- **Structured validation logging**: `validateConfig` (used by every middleware constructor) now logs `code`, `family`, and `domain` as structured slog fields when the error is classified, so log pipelines can route misconfigurations without parsing messages.
+- **README section "Handling errors from httputil"** documenting domain-based matching, code extraction, and retry decisions for consumers.
+
 ### Changed
 
 - **`Middleware` is now a type alias** (`recorder.go`, `server_timing/middleware.go`, `go-etag/middleware.go`): changed from `type Middleware func(http.Handler) http.Handler` (named type) to `type Middleware = func(http.Handler) http.Handler` (type alias). This eliminates all conversion friction at composition boundaries — `servertiming.Middleware`, `etag.Middleware`, and any external middleware (e.g., otelhttp) now compose directly with `Chain` and `MiddlewareStack` without explicit `Middleware()` conversions.
+- **Post-header-commit body writes centralized** in `writeCommittedBody` (`recorder.go`): Recovery, CSRF, and rate-limit error responses share one documented "honest silence" helper instead of scattered `_, _ = w.Write(...)` sites.
+- **erraudit alignment**: the correct invocation is `erraudit lint ./... --type-aware --enforce-go-error-family` (never `--enforce-samber-oops`); the project gates on zero `legacy_as` and zero `stdlib_constructor` findings.
 
 ### Deprecated
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"html"
 	"net/http"
@@ -42,7 +41,10 @@ const (
 	minNonceSize = 16
 )
 
-var errNonceTooSmall = errors.New(
+// codeNonceTooSmall classifies an undersized nonce as Rejection.
+const codeNonceTooSmall = Code("nonce.size_too_small")
+
+var errNonceTooSmall = codeNonceTooSmall.Rejection(
 	"NonceConfig.Size must be 0 (use default) or at least 16 (128 bits per CSP Level 3 recommendation)",
 )
 
@@ -101,7 +103,7 @@ func ProductionCSPWithNonce(nonce string) string {
 // is rejected per the CSP Level 3 recommendation.
 func (c NonceConfig) Validate() error {
 	if c.Size != 0 && c.Size < minNonceSize {
-		return errNonceTooSmall
+		return errNonceTooSmall.WithContextAny("size", c.Size)
 	}
 
 	return nil

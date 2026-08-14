@@ -1,8 +1,6 @@
 package httputil
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -10,11 +8,20 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// Error codes for RateLimitConfig validation and TokenBucketLimiter
+// construction, classified as Rejection.
+const (
+	codeRatelimitNilLimiter    = Code("ratelimit.nil_limiter")
+	codeRatelimitInvalidRate   = Code("ratelimit.rate_not_positive")
+	codeRatelimitInvalidBurst  = Code("ratelimit.burst_not_positive")
+	codeRatelimitInvalidStatus = Code("ratelimit.status_invalid")
+)
+
 var (
-	errNilRateLimiter = errors.New("rate limit config: Limiter must not be nil")
-	errInvalidRate    = errors.New("rate must be greater than zero")
-	errInvalidBurst   = errors.New("burst must be greater than zero")
-	errInvalidStatus  = errors.New(
+	errNilRateLimiter = codeRatelimitNilLimiter.Rejection("rate limit config: Limiter must not be nil")
+	errInvalidRate    = codeRatelimitInvalidRate.Rejection("rate must be greater than zero")
+	errInvalidBurst   = codeRatelimitInvalidBurst.Rejection("burst must be greater than zero")
+	errInvalidStatus  = codeRatelimitInvalidStatus.Rejection(
 		"RateLimitConfig.Status must be a valid HTTP status code (100-599) or zero for default",
 	)
 )
@@ -166,7 +173,7 @@ func (c RateLimitConfig) Validate() error {
 	}
 
 	if c.Status != 0 && (c.Status < 100 || c.Status > 599) {
-		return fmt.Errorf("%w: got %d", errInvalidStatus, c.Status)
+		return errInvalidStatus.WithContextAny("status", c.Status)
 	}
 
 	return nil
@@ -198,8 +205,7 @@ func RateLimit(cfg RateLimitConfig) Middleware {
 		onDenied = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(status)
 
-			// Status already committed; write failure is unreportable.
-			_, _ = w.Write([]byte("rate limit exceeded"))
+			writeCommittedBody(w, []byte("rate limit exceeded"))
 		})
 	}
 

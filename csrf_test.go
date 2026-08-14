@@ -234,9 +234,7 @@ func TestValidateCSRF_RejectsRequestWithoutToken(t *testing.T) {
 
 	if rec == nil {
 		t.Fatal("expected non-nil recorder")
-	}
-
-	if rec.Code != http.StatusForbidden {
+	} else if rec.Code != http.StatusForbidden {
 		t.Fatalf("expected 403, got %d", rec.Code)
 	}
 }

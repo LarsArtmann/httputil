@@ -1,7 +1,6 @@
 package httputil
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -42,7 +41,7 @@ func parseQValue(input string) (float64, error) {
 	intPart, newPos, ok := parseQValueInt(input, pos)
 
 	if !ok {
-		return 0, fmt.Errorf("%w: %q", errInvalidQInt, input)
+		return 0, errInvalidQInt.WithContext("input", input)
 	}
 
 	pos = newPos
@@ -51,11 +50,11 @@ func parseQValue(input string) (float64, error) {
 	pos = newPos
 
 	if pos != len(input) {
-		return 0, fmt.Errorf("%w: %q", errTrailingQChars, input)
+		return 0, errTrailingQChars.WithContext("input", input)
 	}
 
 	if intPart == 1 && frac > 0 {
-		return 0, fmt.Errorf("%w: %q", errQValueTooLarge, input)
+		return 0, errQValueTooLarge.WithContext("input", input)
 	}
 
 	return composeQValue(intPart, frac, fracDiv, neg), nil

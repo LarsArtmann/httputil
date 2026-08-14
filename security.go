@@ -1,7 +1,6 @@
 package httputil
 
 import (
-	"errors"
 	"net/http"
 )
 
@@ -30,7 +29,11 @@ const (
 	RecommendedCSP = "default-src 'self'; script-src 'self'; style-src 'self'"
 )
 
-var errSecurityInvalidFrameOptions = errors.New(
+// codeSecurityInvalidFrameOptions classifies an invalid FrameOptions value
+// as Rejection.
+const codeSecurityInvalidFrameOptions = Code("security.invalid_frame_options")
+
+var errSecurityInvalidFrameOptions = codeSecurityInvalidFrameOptions.Rejection(
 	"SecurityHeadersConfig.FrameOptions must be DENY, SAMEORIGIN, SecurityHeaderSkip, or empty (default = no header)",
 )
 
@@ -83,7 +86,7 @@ func (c SecurityHeadersConfig) Validate() error {
 	case "", frameOptionsDeny, frameOptionsSameOrigin, SecurityHeaderSkip:
 		return nil
 	default:
-		return errSecurityInvalidFrameOptions
+		return errSecurityInvalidFrameOptions.WithContext("frame_options", c.FrameOptions)
 	}
 }
 

@@ -3,7 +3,6 @@ package httputil
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"html"
 	"log/slog"
 	"net"
@@ -46,10 +45,26 @@ func ForbiddenHandler(w http.ResponseWriter, _ *http.Request, _ error) {
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does
 // not match. Uses justinas/nosurf under the hood for token generation and
 // validation.
-var ErrCSRFInvalid = errorfamily.NewRejection("csrf_invalid", "invalid or missing CSRF token")
+var ErrCSRFInvalid = errorfamily.NewRejection(string(codeCSRFInvalid), "invalid or missing CSRF token")
 
 // ErrCSRFConfig is returned when the CSRF configuration is invalid or insecure.
-var ErrCSRFConfig = errorfamily.NewInfrastructure("csrf_config", "invalid CSRF configuration")
+var ErrCSRFConfig = errorfamily.NewInfrastructure(string(codeCSRFConfig), "invalid CSRF configuration")
+
+// Legacy underscore-spelled codes for the exported CSRF sentinels, kept for
+// backward compatibility; new codes use the domain.dot format.
+const (
+	codeCSRFInvalid = Code("csrf_invalid")
+	codeCSRFConfig  = Code("csrf_config")
+)
+
+// Error codes for CSRFConfig validation, classified as Infrastructure to
+// match ErrCSRFConfig (kept for backward compatibility).
+const (
+	codeCSRFSameSiteInsecure = Code("csrf_samesite_insecure")
+	codeCSRFUnsafeOrigin     = Code("csrf_unsafe_origin")
+	codeCSRFUnsafeProxy      = Code("csrf_unsafe_proxy")
+	codeCSRFInvalidCIDR      = Code("csrf_invalid_cidr")
+)
 
 // CSRFConfig configures CSRF protection.
 //
@@ -159,19 +174,17 @@ func (c *CSRFConfig) path() string {
 // Returns a non-nil error if the config would produce insecure or broken behavior.
 func (c *CSRFConfig) Validate() error {
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
-		return errorfamily.NewInfrastructure("csrf_samesite_insecure", "SameSite=None requires Secure=true").
-			WithCause(ErrCSRFConfig)
+		return codeCSRFSameSiteInsecure.Infrastructure("SameSite=None requires Secure=true").
+			WithCause(ErrCSRFConfig).
+			WithContextAny("secure", c.Secure)
 	}
 
 	for _, origin := range c.TrustedOrigins {
 		if origin == "" || origin == "*" {
-			return errorfamily.NewInfrastructure(
-				"csrf_unsafe_origin",
-				fmt.Sprintf(
-					"TrustedOrigins contains unsafe entry %q — use specific domain names only",
-					origin,
-				),
-			).WithCause(ErrCSRFConfig)
+			return codeCSRFUnsafeOrigin.Infrastructure(
+				"TrustedOrigins contains unsafe entry; use specific domain names only",
+			).WithCause(ErrCSRFConfig).
+				WithContext("origin", origin)
 		}
 	}
 
@@ -186,16 +199,18 @@ func (c *CSRFConfig) Validate() error {
 	c.TrustedProxiesCIDR = nil
 	for _, p := range c.TrustedProxies {
 		if p == "" {
-			return errorfamily.NewInfrastructure("csrf_unsafe_proxy",
-				"TrustedProxies contains empty entry").WithCause(ErrCSRFConfig)
+			return codeCSRFUnsafeProxy.Infrastructure(
+				"TrustedProxies contains empty entry",
+			).WithCause(ErrCSRFConfig)
 		}
 
 		if strings.Contains(p, "/") {
 			_, ipnet, err := net.ParseCIDR(p)
 			if err != nil {
-				return errorfamily.NewInfrastructure("csrf_invalid_cidr",
-					fmt.Sprintf("TrustedProxies contains invalid CIDR %q: %v", p, err)).
-					WithCause(ErrCSRFConfig)
+				return codeCSRFInvalidCIDR.Infrastructure("TrustedProxies contains invalid CIDR").
+					WithCause(ErrCSRFConfig).
+					WithContext("proxy", p).
+					WithContextAny("parse_error", err)
 			}
 
 			c.TrustedProxiesCIDR = append(c.TrustedProxiesCIDR, ipnet)
@@ -244,8 +259,7 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 			w.Header().Set("Content-Type", contentTypePlain)
 			w.WriteHeader(http.StatusForbidden)
 
-			// Status already committed (403); write failure is unreportable.
-			_, _ = w.Write([]byte(err.Error()))
+			writeCommittedBody(w, []byte(err.Error()))
 		}
 	}
 

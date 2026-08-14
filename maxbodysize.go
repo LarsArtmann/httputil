@@ -1,14 +1,17 @@
 package httputil
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 )
 
 const defaultMaxBodySizeBytes = 1 << 20 // 1 MiB
 
-var errMaxBodySizeNegative = errors.New("MaxBodySizeConfig.MaxBytes must not be negative")
+// codeMaxBodySizeNegative classifies a negative body-size limit as Rejection.
+const codeMaxBodySizeNegative = Code("maxbodysize.max_bytes_negative")
+
+var errMaxBodySizeNegative = codeMaxBodySizeNegative.Rejection(
+	"MaxBodySizeConfig.MaxBytes must not be negative",
+)
 
 // MaxBodySizeConfig holds the configuration for the MaxBodySize middleware.
 type MaxBodySizeConfig struct {
@@ -29,7 +32,7 @@ func DefaultMaxBodySizeConfig() MaxBodySizeConfig {
 //   - MaxBytes is non-negative (a negative limit is always a bug)
 func (c MaxBodySizeConfig) Validate() error {
 	if c.MaxBytes < 0 {
-		return fmt.Errorf("%w: %d", errMaxBodySizeNegative, c.MaxBytes)
+		return errMaxBodySizeNegative.WithContextAny("max_bytes", c.MaxBytes)
 	}
 
 	return nil

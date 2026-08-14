@@ -14,7 +14,7 @@ When creating any struct literal, you must populate **every field**. This applie
 
 ### `err113` — No Inline `errors.New()`
 
-Package-level sentinel errors only. Do not call `errors.New()` or `fmt.Errorf()` inside functions to create error values that could be package-level sentinels.
+Package-level sentinel errors only. Do not call `errors.New()` or `fmt.Errorf()` inside functions to create error values that could be package-level sentinels. The approved construction pattern is the `Code` type in `code.go`: define a `const codeFoo = Code("foo.failure")` and a package-level `var errFoo = codeFoo.Rejection("message")` sentinel, then return `errFoo.WithContext(...)` / `WithCause(...)` clones (they are safe: With* methods copy).
 
 ### `wsl_v5` — Strict Whitespace Rules
 
@@ -72,6 +72,14 @@ golangci-lint run          # Lint (~70 linters, 0 issues)
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
+# erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops)
+GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
+# Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors
+GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as
+GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
+# The full --type-aware run reports ~30 `errors.Is` advisories in tests — all are
+# correct sentinel matches (package-level err*/Err* vars); do NOT migrate them.
+
 # server_timing sub-module (run from server_timing/)
 cd server_timing && go test -race ./... && golangci-lint run
 ```
@@ -105,8 +113,9 @@ The root `httputil` package has 34 non-test files in one directory. **Decision c
 | `cors.go`                     | `CORSConfig`, `DefaultCORSConfig()`, `CORS()`, `Validate()`                                                                                                                                                                          | CORS middleware + wildcard origin matching                                                   |
 | `clientip.go`                 | `ClientIP()`                                                                                                                                                                                                                         | Client IP extraction (X-Forwarded-For → X-Real-IP → RemoteAddr)                              |
 | `context.go`                  | `WithClientIP()`, `ClientIPFromContext()`, `ClientIPMiddleware()`                                                                                                                                                                    | Request context helpers for client IP                                                        |
-| `recorder.go`                 | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()`, `HeaderSnapshot()`, `validateConfig()` (unexported)                                                                                                                          | Response capture + middleware chaining + shared config-validation helper                     |
-| `errors.go`                   | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `RegisterErrorClassifications()`                                                                                              | Error codes + stdlib sentinel registration + message templates                               |
+| `recorder.go`                 | `ResponseRecorder`, `NewResponseRecorder()`, `Chain()`, `HeaderSnapshot()`, `validateConfig()` (unexported), `writeCommittedBody()` (unexported)                                                                                    | Response capture + middleware chaining + shared config-validation helper + committed-write helper |
+| `code.go`                     | `Code`, `Domain`, `Code.Domain()`, `Code.Rejection/Transient/...`, `Code.Wrap*()`, `DomainOf()`, `InDomain()`                                                                                                                        | Typed hierarchical error-code model (domain = code prefix before first dot)                  |
+| `errors.go`                   | `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`, `RegisterErrorClassifications()`                                                                                              | Error codes + stdlib sentinel registration + message-template table (`errorTemplates`)       |
 | `security.go`                 | `SecurityHeadersConfig`, `DefaultSecurityHeadersConfig()`, `SecurityHeaders()`, `Validate()`                                                                                                                                         | Security response headers middleware                                                         |
 | `nonce.go`                    | `NonceConfig`, `DefaultNonceConfig()`, `Nonce()`, `RecommendedCSPWithNonce()`, `ProductionCSPWithNonce()`, `NonceAttr()`, `WithNonce()`, `NonceFromContext()`, `NonceFromRequest()`, `Validate()`                                    | CSP nonce generation + propagation middleware (per-request inline script/style allow-list)   |
 | `requestid.go`                | `RequestIDConfig`, `DefaultRequestIDConfig()`, `RequestID()`, `RequestIDFromContext()`, `Validate()`                                                                                                                                 | Request ID propagation/generation middleware                                                 |
@@ -166,9 +175,19 @@ Separate Go module (`github.com/larsartmann/httputil/server_timing`, package `se
 | `server_timing/server_timing_bench_test.go` | (benchmarks)                                                                                                                                                                                                                                                                                                               | Benchmarks for disabled overhead, measure, record, header rendering |
 | `server_timing/server_timing_fuzz_test.go`  | (fuzz tests)                                                                                                                                                                                                                                                                                                               | Fuzz tests for HeaderValue CRLF injection and middleware robustness |
 
-## Error Classification
+## Error Model
 
-Errors from `ResponseRecorder`, `compressWriter`, `CSRFMiddleware`, and the go-etag writer are classified using `go-error-family`:
+Every error the package produces is classified via `go-error-family` and typed through the `Code`/`Domain` model in `code.go`:
+
+- **`Code`** (`type Code string`, e.g. `cors.max_age_negative`) — machine-readable identity. Constructor methods (`code.Rejection(msg)`, `code.WrapTransient(cause, msg)`, ...) return `*errorfamily.Error`.
+- **`Domain`** — the code prefix before the first dot (`cors`, `server`, `compression`, `decompression`, `ratelimit`, `stack`, `maxbodysize`, `requestid`, `security`, `metrics`, `nonce`, `http`, `csrf`). By component, not lifecycle — `Family` encodes lifecycle.
+- **`DomainOf(err)` / `InDomain(err, domain)`** — hierarchy queries via `errors.AsType[errorfamily.Coded]` (Go 1.26 generic).
+- **Sentinels**: package-level `err*` vars built from `Code` constructors. `errors.Is` matches by code+family (errorfamily `Is` semantics), so `WithContext`/`WithCause` clones still match their sentinel.
+- **Exported `ErrCode*` string constants stay untyped** for backward compatibility; internal construction uses typed mirrors (`codeWriteFailed = Code(ErrCodeWriteFailed)`). Do NOT create parallel exported `Code` aliases.
+- **Config errors are `Rejection`** (fix the config, never retry); runtime write/hijack failures are `Transient`; shutdown and pool-contract violations are `Infrastructure`; corrupt compressed bodies are `Corruption`. Legacy CSRF config codes stay `Infrastructure` with `WithCause(ErrCSRFConfig)` chaining for backward compatibility, and use the historical underscore spelling (`csrf_samesite_insecure`, no dot).
+- **Message templates**: `errors.go` holds an `errorTemplates` map (what/why/fix/wayOut per code, `{key}` placeholders from context). `errors_templates_test.go` asserts completeness via `allHTTputilErrorCodes` — when adding a code, add it to the map, the list, and the domain test.
+
+## Error Classification
 
 | Source     | Error Code                    | Family         | Retryable | When                                                           |
 | ---------- | ----------------------------- | -------------- | --------- | -------------------------------------------------------------- |
@@ -176,13 +195,21 @@ Errors from `ResponseRecorder`, `compressWriter`, `CSRFMiddleware`, and the go-e
 | `Hijack`   | `http.hijack_unsupported`     | Infrastructure | No        | Underlying writer doesn't implement Hijacker                   |
 | `Hijack`   | `http.hijack_failed`          | Transient      | Yes       | Underlying Hijack call fails                                   |
 | `Compress` | `http.compress_write_failed`  | Transient      | Yes       | Compression writer Write/Close fails                           |
+| `Compress` | `compression.pool_type_unexpected` | Infrastructure | No   | Writer pool and WriterFactory disagree on writer type (internal contract bug) |
+| `Compress` | `compression.qvalue_*`        | Rejection      | No        | Malformed Accept-Encoding q-value (diagnostic; negotiation falls back to default) |
 | `CSRF`     | `csrf_invalid`                | Rejection      | No        | CSRF token missing, malformed, or mismatched                   |
-| `CSRF`     | `csrf_config`                 | Infrastructure | No        | CSRF configuration invalid (e.g. SameSite=None without Secure) |
+| `CSRF`     | `csrf_config` / `csrf_*`      | Infrastructure | No        | CSRF configuration invalid (legacy underscore codes, cause-chained to `ErrCSRFConfig`) |
 | `ETag`     | `http.etag_write_failed`      | Transient      | Yes       | ETag writer fails to stream buffered data                      |
 | `ETag`     | `http.etag_config_invalid`    | Rejection      | No        | ETagConfig has an invalid field value                          |
 | `ETag`     | `http.etag_hash_write_failed` | Orchestration  | No        | Hash.Write fails, violating the hash.Hash contract             |
+| Server     | `server.shutdown_failed`      | Infrastructure | No        | `http.Server.Shutdown` fails (cause preserved via `WithCause`) |
+| Decompress | `decompression.size_exceeded` | Rejection      | No        | Decompression-bomb protection tripped (client's fault)         |
+| Decompress | `decompression.read_failed`   | Corruption     | No        | Compressed request body is corrupt or truncated                |
+| Decompress | `decompression.close_failed`  | Transient      | Yes       | Decompressor/body Close fails (cleanup)                        |
 
-All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions.
+**All config validators** (`CORSConfig`, `ServerConfig`, `CompressionConfig`, `KeyedRateLimiterConfig`, `RateLimitConfig`, `MaxBodySizeConfig`, `RequestIDConfig`, `SecurityHeadersConfig`, `DecompressionConfig`, `MetricsConfig`, `NonceConfig`, `CSRFConfig`, `MiddlewareStack`) return classified errors: `<domain>.<failure>` codes, `Rejection` family, offending field values in context (e.g. `max_age=-5`). Sentinel vars live next to their validators (e.g. `errNegativeMaxAge` in `cors.go`).
+
+All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions and `httputil.InDomain(err, domain)` to route by failing component.
 
 Context is attached where relevant (e.g., `status` on write errors).
 
@@ -204,9 +231,9 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **`CSRFMiddleware` wraps `justinas/nosurf`** — the CSRF middleware requires the `github.com/justinas/nosurf` dependency (the third external dep). The middleware uses a double-submit cookie pattern. `CSRFConfig.Validate()` enforces secure defaults. HTMX-aware helpers (`CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField`) expose the token in formats templ/HTMX can consume.
 - **`ServerTimingMiddleware` lives in the `server_timing` sub-module** — import `github.com/larsartmann/httputil/server_timing` (package `servertiming`). It injects `*servertiming.ServerTiming` via context — use `servertiming.ServerTimingFromContext(ctx)` or `servertiming.MeasureServerTiming(ctx, name)` to record metrics inside handlers. `servertiming.WrapServerTiming(w, r)` provides manual wrapping without the middleware. Header values are sanitized against CRLF injection.
 - **`MiddlewareStack.Validate()` is opt-in** — `Build()` does NOT call `Validate()`. The caller decides whether to check ordering. `Validate()` enforces that Recovery is outermost when present.
-- **All middleware constructors call `Validate()` at construction** — every constructor (`CORS`, `SecurityHeaders`, `Compression`, `Decompression`, `MaxBodySizeMiddleware`, `RequestID`, `RateLimit`, `KeyedRateLimiterMiddleware`, `CSRFMiddleware`, `Nonce`) calls `cfg.Validate()` via a shared `validateConfig(name, err)` helper in `recorder.go`. Invalid configs are logged via `slog.Error` but do NOT abort construction — the middleware falls back to default values where applicable. This is the validate-and-log pattern, not validate-and-abort. For constructors with default-filling logic (Compression fills `WriterFactories`, KeyedRateLimiter fills `Limit`/`Window`), `Validate()` runs **after** defaults are applied to avoid false-positive warnings on zero-value fields.
+- **All middleware constructors call `Validate()` at construction** — every constructor (`CORS`, `SecurityHeaders`, `Compression`, `Decompression`, `MaxBodySizeMiddleware`, `RequestID`, `RateLimit`, `KeyedRateLimiterMiddleware`, `CSRFMiddleware`, `Nonce`) calls `cfg.Validate()` via a shared `validateConfig(name, err)` helper in `recorder.go`. Invalid configs are logged via `slog` (JSON handler record with structured `code`, `family`, and `domain` fields when the error is classified) but do NOT abort construction — the middleware falls back to default values where applicable. This is the validate-and-log pattern, not validate-and-abort. For constructors with default-filling logic (Compression fills `WriterFactories`, KeyedRateLimiter fills `Limit`/`Window`), `Validate()` runs **after** defaults are applied to avoid false-positive warnings on zero-value fields. Tests that swap `slog.SetDefault` must NOT use `t.Parallel()` (global mutation races with constructor tests that log).
 - **`Nonce` generates a per-request CSP nonce** — `Nonce()` produces a cryptographically random base64-encoded value (default 20 bytes / 160 bits), stores it in context via `WithNonce()`, and optionally sets the `Content-Security-Policy` header via `CSPBuilder`. Set `CSPBuilder` to nil for context-only mode (no CSP header). The nonce value in context is the raw base64 string (no `'nonce-'` prefix) — use it directly in HTML `nonce="..."` attributes or via `NonceAttr(r)` which returns `nonce="<value>"`. `Nonce()` calls `Validate()` at construction via the shared `validateConfig` helper; `Size == 0` is valid and uses the default. When `Size` is non-zero but below `minNonceSize` (16), the constructor logs a warning and falls back to `defaultNonceSize` (20) — it does NOT use the insecure small size. Two CSP builders: `RecommendedCSPWithNonce` (script-src + style-src) and `ProductionCSPWithNonce` (adds object-src/base-uri/frame-ancestors). When chaining with `SecurityHeaders`, place `Nonce` **after** (inner to) `SecurityHeaders` so the nonce-bearing CSP overwrites any static CSP — the default `SecurityHeadersConfig` sets no CSP, so there is no conflict unless you explicitly set `ContentSecurityPolicy` in both. Responses with per-request nonces must not be cached (set `Cache-Control: no-store`).
-- **Post-header-commit writes discard errors by design ("honest silence")** — after `WriteHeader` is called, the HTTP response is in-flight and write failures cannot be surfaced to the client or caller. All such sites use `_, _ = w.Write(...)` or `_ = closer.Close()` with an inline comment explaining why. Sites: `compressWriter.Flush()` (post-handler body flush); `Recovery()`, `CSRFMiddleware()`, `KeyedRateLimiterMiddleware()`, `RateLimit()` (error-response writes after committed status); `Compression()` defer Close (cleanup); `limitedReader.Read()` bomb-protection Close.
+- **Post-header-commit writes discard errors by design ("honest silence")** — after `WriteHeader` is called, the HTTP response is in-flight and write failures cannot be surfaced to the client or caller. Error-response body writes go through the `writeCommittedBody(w, body)` helper in `recorder.go` (used by `Recovery()`, `CSRFMiddleware()`, `KeyedRateLimiterMiddleware()`, `RateLimit()`). Other intentional discards with inline comments: `compressWriter.Flush()` (post-handler body flush); `Compression()` defer Close (cleanup); `limitedReader.Read()` bomb-protection Close.
 
 ## Testing Conventions
 

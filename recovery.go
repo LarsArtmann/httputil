@@ -24,8 +24,7 @@ func Recovery(logger *slog.Logger) Middleware {
 					resp.Header().Set(headerContentType, "text/plain; charset=utf-8")
 					resp.WriteHeader(http.StatusInternalServerError)
 
-					// Status already committed (500); write failure is unreportable.
-					_, _ = resp.Write([]byte("Internal Server Error"))
+					writeCommittedBody(resp, []byte("Internal Server Error"))
 				}
 			}()
 

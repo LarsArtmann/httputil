@@ -1,10 +1,7 @@
 package httputil
 
 import (
-	"fmt"
 	"io"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func (w *compressWriter) startCompression() error {
@@ -20,9 +17,8 @@ func (w *compressWriter) startCompression() error {
 
 	writer, ok := raw.(io.WriteCloser)
 	if !ok {
-		return errorfamily.WrapTransient(
-			fmt.Errorf("%w: %T", errUnexpectedPoolType, raw),
-			ErrCodeCompressWriteFailed,
+		return codeCompressWriteFailed.WrapTransient(
+			errUnexpectedPoolType.WithContextf("pool_element_type", "%T", raw),
 			"pool returned unexpected type",
 		).WithContext("encoding", w.encoding)
 	}
@@ -33,9 +29,8 @@ func (w *compressWriter) startCompression() error {
 		// Custom factory without Reset support: fall back to fresh writer.
 		fresh, err := w.factory(w.ResponseWriter)
 		if err != nil {
-			return errorfamily.WrapTransient(
+			return codeCompressWriteFailed.WrapTransient(
 				err,
-				ErrCodeCompressWriteFailed,
 				"failed to create compression writer",
 			).WithContext("encoding", w.encoding)
 		}
@@ -58,9 +53,8 @@ func (w *compressWriter) startCompression() error {
 		w.buf = w.buf[:0]
 
 		if err != nil {
-			return errorfamily.WrapTransient(
+			return codeCompressWriteFailed.WrapTransient(
 				err,
-				ErrCodeCompressWriteFailed,
 				"compression writer buffered write failed",
 			).WithContext("encoding", w.encoding)
 		}

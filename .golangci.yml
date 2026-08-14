@@ -236,6 +236,12 @@ linters:
       - text: '"X-CSRF-Token" is not canonical'
         linters:
           - canonicalheader
+      # "X-RateLimit-*" (capital L) is the de-facto industry spelling (GitHub,
+      # Stripe, Twitter). httpspec tests it deliberately; rationale documented
+      # in httpspec/cors_ratelimit_specs.go.
+      - path: httpspec/cors_ratelimit_specs
+        linters:
+          - canonicalheader
     paths:
       - _templ\.go$
       - \.gen\.go$

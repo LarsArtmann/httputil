@@ -599,6 +599,32 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `WriteTimeout`      | `time.Duration` | `30s`     | Maximum duration before timing out writes                 |
 | `IdleTimeout`       | `time.Duration` | `60s`     | Maximum time to wait for the next request on a connection |
 
+## Handling errors from httputil
+
+Every error this package produces is classified via [go-error-family](https://github.com/larsartmann/go-error-family): it carries a machine-readable code (`cors.max_age_negative`), a behavioral family (`Rejection`, `Transient`, ...), and factual context (the offending field value). Three questions cover every consumer need:
+
+```go
+// 1. Which component failed? Match by domain (the code's prefix).
+if httputil.InDomain(err, httputil.Domain("cors")) {
+    // a CORS misconfiguration, not a network failure
+}
+
+// 2. What is the exact failure? Read the code via the Coded interface.
+if coded, ok := errors.AsType[errorfamily.Coded](err); ok {
+    log.Printf("code=%s", coded.ErrorCode()) // e.g. "server.timeout_ordering"
+}
+
+// 3. Should I retry? Ask the family.
+if errorfamily.IsRetryable(err) { backoffAndRetry(err) }
+```
+
+Conventions:
+
+- **Codes are hierarchical**: `domain.specific_failure` (e.g. `compression.qvalue_too_large`). Config-validation codes are `Rejection` (fix the config, never retry); runtime write/hijack failures are `Transient`; shutdown and pool-contract violations are `Infrastructure`.
+- **Sentinels still work**: `errors.Is(err, ErrCSRFInvalid)` matches by code and family, including through wrapped chains.
+- **Message templates**: call `httputil.RegisterErrorClassifications()` once at startup to register user-facing `what/why/fix/escape` templates for every code; retrieve them with `errorfamily.TemplateForCode`.
+- **Constructor logging**: middleware constructors log invalid configs (validate-and-log, not abort) with structured `code`, `family`, and `domain` fields, so log pipelines can route misconfigurations without parsing messages.
+
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework

@@ -2,11 +2,14 @@ package httputil
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"log/slog"
 	"net"
 	"net/http"
 	"slices"
 	"strconv"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -19,13 +22,42 @@ type Middleware = func(http.Handler) http.Handler
 // is validate-and-log, not validate-and-abort, matching the CSRF and Nonce
 // precedent: invalid configs produce a warning but still construct a working
 // middleware (falling back to defaults where applicable).
+//
+// When err is classified (implements errorfamily.Coded and Classified), the
+// machine-readable code, family, and domain are logged as structured fields
+// so log consumers can route by them without parsing messages.
 func validateConfig(configName string, err error) {
-	if err != nil {
-		slog.Error(
-			"httputil: "+configName+" validation failed",
-			slog.String("error", err.Error()),
-		)
+	if err == nil {
+		return
 	}
+
+	attrs := []slog.Attr{slog.String("error", err.Error())}
+
+	if coded, ok := errors.AsType[errorfamily.Coded](err); ok {
+		attrs = append(attrs, slog.String("code", coded.ErrorCode()))
+
+		if domain, ok := DomainOf(err); ok {
+			attrs = append(attrs, slog.String("domain", string(domain)))
+		}
+	}
+
+	if classified, ok := errors.AsType[errorfamily.Classified](err); ok {
+		attrs = append(attrs, slog.String("family", classified.ErrorFamily().String()))
+	}
+
+	record := slog.NewRecord(time.Time{}, slog.LevelError, "httputil: "+configName+" validation failed", 0)
+	record.AddAttrs(attrs...)
+
+	_ = slog.Default().Handler().Handle(context.Background(), record)
+}
+
+// writeCommittedBody writes body bytes to a ResponseWriter whose status is
+// already committed. Write failures at this point cannot be surfaced to the
+// client or to the caller, so they are intentionally discarded: honest
+// silence, not a swallowed bug. Callers must have called WriteHeader first.
+func writeCommittedBody(w http.ResponseWriter, body []byte) {
+	// Status already committed; write failure is unreportable ("honest silence").
+	_, _ = w.Write(body)
 }
 
 // ResponseRecorder wraps an http.ResponseWriter to capture the status code.
@@ -85,7 +117,7 @@ func (r *ResponseRecorder) Write(b []byte) (int, error) {
 
 	written, err := r.ResponseWriter.Write(b)
 	if err != nil {
-		return written, errorfamily.WrapTransient(err, ErrCodeWriteFailed, "response writer write failed").
+		return written, codeWriteFailed.WrapTransient(err, "response writer write failed").
 			WithContext("status", strconv.Itoa(r.status))
 	}
 

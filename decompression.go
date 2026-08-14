@@ -4,7 +4,6 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -12,11 +11,25 @@ import (
 
 const defaultMaxDecompressionSize = 1 << 24 // 16 MiB
 
-var errMaxDecompressionSizeNegative = errors.New(
+// Error codes for DecompressionConfig validation (Rejection: invalid input)
+// and runtime decompression failures.
+const (
+	codeDecompressionSizeNegative = Code("decompression.max_size_negative")
+	codeDecompressionSizeExceeded = Code("decompression.size_exceeded")
+	codeDecompressionReadFailed   = Code("decompression.read_failed")
+	codeDecompressionCloseFailed  = Code("decompression.close_failed")
+)
+
+var errMaxDecompressionSizeNegative = codeDecompressionSizeNegative.Rejection(
 	"DecompressionConfig.MaxDecompressionSize must not be negative",
 )
 
-var errDecompressionSizeExceeded = errors.New("decompression size limit exceeded")
+// errDecompressionSizeExceeded is the bomb-protection trip: the decompressed
+// body exceeded the configured limit. Classified as Rejection — the client
+// sent a decompression bomb, retrying the same request cannot succeed.
+var errDecompressionSizeExceeded = codeDecompressionSizeExceeded.Rejection(
+	"decompression size limit exceeded",
+)
 
 // DecompressionConfig holds the configuration for the Decompression middleware.
 type DecompressionConfig struct {
@@ -42,7 +55,7 @@ func DefaultDecompressionConfig() DecompressionConfig {
 // Validate checks the DecompressionConfig for invalid values.
 func (c DecompressionConfig) Validate() error {
 	if c.MaxDecompressionSize < 0 {
-		return fmt.Errorf("%w: %d", errMaxDecompressionSizeNegative, c.MaxDecompressionSize)
+		return errMaxDecompressionSizeNegative.WithContextAny("max_decompression_size", c.MaxDecompressionSize)
 	}
 
 	return nil
@@ -153,7 +166,7 @@ func (l *limitedReader) Read(p []byte) (int, error) {
 			return n, io.EOF
 		}
 
-		return n, fmt.Errorf("decompression read failed: %w", err)
+		return n, codeDecompressionReadFailed.WrapCorruption(err, "decompression read failed")
 	}
 
 	return n, nil
@@ -162,7 +175,7 @@ func (l *limitedReader) Read(p []byte) (int, error) {
 func (l *limitedReader) Close() error {
 	err := l.rc.Close()
 	if err != nil {
-		return fmt.Errorf("decompression close failed: %w", err)
+		return codeDecompressionCloseFailed.WrapTransient(err, "decompression close failed")
 	}
 
 	return nil

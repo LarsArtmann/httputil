@@ -3,8 +3,6 @@ package httputil
 import (
 	"compress/flate"
 	"compress/gzip"
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -131,29 +129,42 @@ func DefaultCompressionConfig() CompressionConfig {
 	}
 }
 
+// Error codes for CompressionConfig validation and Accept-Encoding q-value
+// parsing. Config codes are Rejection (invalid input); q-value codes are
+// Rejection too — a malformed Accept-Encoding header is the client's input.
+const (
+	codeCompressionLevelInvalid  = Code("compression.level_invalid")
+	codeCompressionMinSizeNeg    = Code("compression.min_size_negative")
+	codeCompressionNoFactory     = Code("compression.no_writer_factory")
+	codeCompressionQValueEmpty   = Code("compression.qvalue_empty")
+	codeCompressionQValueInvalid = Code("compression.qvalue_invalid_int")
+	codeCompressionQValueTrail   = Code("compression.qvalue_trailing_chars")
+	codeCompressionQValueTooBig  = Code("compression.qvalue_too_large")
+)
+
 var (
-	errInvalidCompressionLevel = errors.New(
+	errInvalidCompressionLevel = codeCompressionLevelInvalid.Rejection(
 		"compression level must be between gzip.HuffmanOnly and gzip.BestCompression",
 	)
-	errNegativeMinSize = errors.New("compression minimum size must not be negative")
-	errNoWriterFactory = errors.New(
+	errNegativeMinSize = codeCompressionMinSizeNeg.Rejection("compression minimum size must not be negative")
+	errNoWriterFactory = codeCompressionNoFactory.Rejection(
 		"compression WriterFactories is empty; at least one encoding is required",
 	)
-	errEmptyQValue    = errors.New("empty q-value")
-	errInvalidQInt    = errors.New("invalid q-value integer")
-	errTrailingQChars = errors.New("trailing chars in q-value")
-	errQValueTooLarge = errors.New("q-value > 1.0")
+	errEmptyQValue    = codeCompressionQValueEmpty.Rejection("empty q-value")
+	errInvalidQInt    = codeCompressionQValueInvalid.Rejection("invalid q-value integer")
+	errTrailingQChars = codeCompressionQValueTrail.Rejection("trailing chars in q-value")
+	errQValueTooLarge = codeCompressionQValueTooBig.Rejection("q-value > 1.0")
 )
 
 // Validate checks the CompressionConfig for invalid values.
 func (c CompressionConfig) Validate() error {
 	if c.Level != gzip.DefaultCompression &&
 		(c.Level < gzip.HuffmanOnly || c.Level > gzip.BestCompression) {
-		return fmt.Errorf("%w: got %d", errInvalidCompressionLevel, c.Level)
+		return errInvalidCompressionLevel.WithContextAny("level", c.Level)
 	}
 
 	if c.MinSize < 0 {
-		return fmt.Errorf("%w: got %d", errNegativeMinSize, c.MinSize)
+		return errNegativeMinSize.WithContextAny("min_size", c.MinSize)
 	}
 
 	if len(c.WriterFactories) == 0 {

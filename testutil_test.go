@@ -233,6 +233,51 @@ func assertClassified(t *testing.T, err error, wantFamily errorfamily.Family, wa
 	}
 }
 
+// assertValidationClassified verifies that a validation error carries the full
+// errorfamily classification: sentinel matching via errors.Is, the
+// Coded/Classified/Contextual interfaces, the expected code and domain, and
+// the expected family.
+func assertValidationClassified(
+	t *testing.T,
+	err, sentinel error,
+	code Code,
+	wantFamily errorfamily.Family,
+) {
+	t.Helper()
+
+	if err == nil {
+		t.Fatal("error = nil, want non-nil")
+	}
+
+	if !errors.Is(err, sentinel) {
+		t.Errorf("errors.Is(err, sentinel) = false, want true (err = %v)", err)
+	}
+
+	coded, ok := errors.AsType[errorfamily.Coded](err)
+	if !ok {
+		t.Fatalf("error does not implement errorfamily.Coded: %v", err)
+	}
+
+	if got := coded.ErrorCode(); got != string(code) {
+		t.Errorf("ErrorCode() = %q, want %q", got, string(code))
+	}
+
+	if _, ok := errors.AsType[errorfamily.Classified](err); !ok {
+		t.Error("error does not implement errorfamily.Classified")
+	}
+
+	if _, ok := errors.AsType[errorfamily.Contextual](err); !ok {
+		t.Error("error does not implement errorfamily.Contextual")
+	}
+
+	domain, ok := DomainOf(err)
+	if !ok || domain != code.Domain() {
+		t.Errorf("DomainOf(err) = %q, ok = %v; want %q, true", domain, ok, code.Domain())
+	}
+
+	assertClassified(t, err, wantFamily, wantFamily.IsRetryable())
+}
+
 // newRequestIDConfigForTest returns a RequestIDConfig with a stub ID
 // generator and the supplied header names. Used by validation tests where
 // the exact header field under test is the only varying input.

@@ -6,8 +6,6 @@ import (
 	"net"
 	"net/http"
 	"sync"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // compressWriter wraps an http.ResponseWriter, buffering small responses to
@@ -87,9 +85,8 @@ func (w *compressWriter) Write(b []byte) (int, error) {
 // for diagnostics. It is the single wrapping site so every Write and Close
 // error path reports a consistent family, code, and context.
 func (w *compressWriter) compressWriteError(err error, message string) error {
-	return errorfamily.WrapTransient(
+	return codeCompressWriteFailed.WrapTransient(
 		err,
-		ErrCodeCompressWriteFailed,
 		message,
 	).WithContext("encoding", w.encoding)
 }

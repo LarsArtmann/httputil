@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"net"
 	"net/http"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // responseWrapper provides common ResponseWriter wrapping behavior used by
@@ -55,18 +53,16 @@ func (w *responseWrapper) writeDefaultOK() {
 func hijackDelegate(w http.ResponseWriter) (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {
-		return nil, nil, errorfamily.WrapInfrastructure(
+		return nil, nil, codeHijackUnsupported.WrapInfrastructure(
 			http.ErrNotSupported,
-			ErrCodeHijackUnsupported,
 			"response writer does not implement http.Hijacker",
 		)
 	}
 
 	conn, rw, err := hijacker.Hijack()
 	if err != nil {
-		return conn, rw, errorfamily.WrapTransient(
+		return conn, rw, codeHijackFailed.WrapTransient(
 			err,
-			ErrCodeHijackFailed,
 			"response writer hijack failed",
 		)
 	}

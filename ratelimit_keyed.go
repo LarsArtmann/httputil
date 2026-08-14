@@ -2,8 +2,6 @@ package httputil
 
 import (
 	"container/heap"
-	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -24,10 +22,22 @@ const (
 	rateLimitExceededMsg = "rate limit exceeded"
 )
 
+// errKeyedLimitZero and friends are classified as Rejection: an invalid
+// rate-limit config is unacceptable input.
+const (
+	codeRatelimitKeyedLimitZero   = Code("ratelimit.keyed_limit_zero")
+	codeRatelimitKeyedWindowZero  = Code("ratelimit.keyed_window_zero")
+	codeRatelimitKeyedTTLNegative = Code("ratelimit.keyed_ttl_negative")
+)
+
 var (
-	errKeyedLimitZero   = errors.New("KeyedRateLimiterConfig.Limit must be greater than zero")
-	errKeyedWindowZero  = errors.New("KeyedRateLimiterConfig.Window must be greater than zero")
-	errKeyedTTLNegative = errors.New("KeyedRateLimiterConfig.TTL must not be negative")
+	errKeyedLimitZero = codeRatelimitKeyedLimitZero.Rejection(
+		"KeyedRateLimiterConfig.Limit must be greater than zero",
+	)
+	errKeyedWindowZero = codeRatelimitKeyedWindowZero.Rejection(
+		"KeyedRateLimiterConfig.Window must be greater than zero",
+	)
+	errKeyedTTLNegative = codeRatelimitKeyedTTLNegative.Rejection("KeyedRateLimiterConfig.TTL must not be negative")
 )
 
 // KeyExtractor extracts a rate-limit key from an HTTP request.
@@ -117,11 +127,11 @@ func (c KeyedRateLimiterConfig) Validate() error {
 	}
 
 	if c.Window <= 0 {
-		return errKeyedWindowZero
+		return errKeyedWindowZero.WithContextAny("window", c.Window)
 	}
 
 	if c.TTL < 0 {
-		return fmt.Errorf("%w: %v", errKeyedTTLNegative, c.TTL)
+		return errKeyedTTLNegative.WithContextAny("ttl", c.TTL)
 	}
 
 	return nil
@@ -212,8 +222,7 @@ func buildKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 					w.Header().Set(headerRetryAfter, retryAfter)
 					w.WriteHeader(http.StatusTooManyRequests)
 
-					// Status already committed (429); write failure is unreportable.
-					_, _ = w.Write([]byte(rateLimitExceededMsg))
+					writeCommittedBody(w, []byte(rateLimitExceededMsg))
 				}
 
 				return

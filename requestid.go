@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"context"
-	"errors"
 	"net/http"
 )
 
@@ -29,10 +28,21 @@ func DefaultRequestIDConfig() RequestIDConfig {
 	}
 }
 
+// Error codes for RequestIDConfig validation, classified as Rejection.
+const (
+	codeRequestIDNilGenerateID       = Code("requestid.nil_generate_id")
+	codeRequestIDEmptyResponseHeader = Code("requestid.empty_response_header")
+	codeRequestIDEmptyIncomingHeader = Code("requestid.empty_incoming_header")
+)
+
 var (
-	errNilGenerateID       = errors.New("RequestIDConfig.GenerateID must not be nil")
-	errEmptyResponseHeader = errors.New("RequestIDConfig.ResponseHeader must not be empty")
-	errEmptyIncomingHeader = errors.New("RequestIDConfig.IncomingHeader must not be empty")
+	errNilGenerateID       = codeRequestIDNilGenerateID.Rejection("RequestIDConfig.GenerateID must not be nil")
+	errEmptyResponseHeader = codeRequestIDEmptyResponseHeader.Rejection(
+		"RequestIDConfig.ResponseHeader must not be empty",
+	)
+	errEmptyIncomingHeader = codeRequestIDEmptyIncomingHeader.Rejection(
+		"RequestIDConfig.IncomingHeader must not be empty",
+	)
 )
 
 // Validate checks the RequestIDConfig for invalid values.

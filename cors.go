@@ -1,8 +1,6 @@
 package httputil
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,11 +49,19 @@ func DefaultCORSConfig() CORSConfig {
 	}
 }
 
+// Error codes for CORSConfig validation. All classified as Rejection:
+// an invalid config is unacceptable input, retrying without changing it
+// cannot succeed.
+const (
+	codeCorsCredentialsWithAllOrigins = Code("cors.credentials_with_all_origins")
+	codeCorsMaxAgeNegative            = Code("cors.max_age_negative")
+)
+
 var (
-	errCredentialsWithAllOrigins = errors.New(
+	errCredentialsWithAllOrigins = codeCorsCredentialsWithAllOrigins.Rejection(
 		"CORSConfig: AllowCredentials=true with AllowAllOrigins=true is not permitted by the CORS spec",
 	)
-	errNegativeMaxAge = errors.New("CORSConfig: MaxAge must not be negative")
+	errNegativeMaxAge = codeCorsMaxAgeNegative.Rejection("CORSConfig: MaxAge must not be negative")
 )
 
 // Validate checks the CORSConfig for invalid combinations and returns an error
@@ -63,14 +69,13 @@ var (
 // causing browser-side CORS failures.
 func (c CORSConfig) Validate() error {
 	if c.AllowCredentials && c.AllowAllOrigins {
-		return fmt.Errorf(
-			"%w: browsers reject Access-Control-Allow-Origin: * when credentials are enabled",
-			errCredentialsWithAllOrigins,
-		)
+		return errCredentialsWithAllOrigins.
+			WithContextAny("allow_credentials", c.AllowCredentials).
+			WithContextAny("allow_all_origins", c.AllowAllOrigins)
 	}
 
 	if c.MaxAge < 0 {
-		return fmt.Errorf("%w: got %d", errNegativeMaxAge, c.MaxAge)
+		return errNegativeMaxAge.WithContextAny("max_age", c.MaxAge)
 	}
 
 	return nil

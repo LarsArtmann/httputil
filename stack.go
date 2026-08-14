@@ -1,8 +1,6 @@
 package httputil
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -25,9 +23,17 @@ const (
 	MiddlewareNonce           = "nonce"
 )
 
+// Error codes for MiddlewareStack construction, classified as Rejection.
+const (
+	codeStackDuplicateMiddleware = Code("stack.duplicate_middleware")
+	codeStackRecoveryNotFirst    = Code("stack.recovery_not_first")
+)
+
 var (
-	errDuplicateMiddleware = errors.New("middleware with this name is already in the stack")
-	errRecoveryNotFirst    = errors.New(
+	errDuplicateMiddleware = codeStackDuplicateMiddleware.Rejection(
+		"middleware with this name is already in the stack",
+	)
+	errRecoveryNotFirst = codeStackRecoveryNotFirst.Rejection(
 		"recovery middleware must be first (outermost) so it can catch panics from all other middleware",
 	)
 )
@@ -55,7 +61,7 @@ func NewMiddlewareStack() *MiddlewareStack {
 func (s *MiddlewareStack) Add(name string, middleware Middleware) error {
 	for _, e := range s.entries {
 		if e.name == name {
-			return fmt.Errorf("%w: %q", errDuplicateMiddleware, name)
+			return errDuplicateMiddleware.WithContext("name", name)
 		}
 	}
 
@@ -81,7 +87,7 @@ func (s *MiddlewareStack) Names() []string {
 func (s *MiddlewareStack) Validate() error {
 	for i, e := range s.entries {
 		if e.name == MiddlewareRecovery && i != 0 {
-			return fmt.Errorf("%w: found at position %d, expected 0", errRecoveryNotFirst, i)
+			return errRecoveryNotFirst.WithContextAny("position", i)
 		}
 	}
 
