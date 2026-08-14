@@ -161,7 +161,7 @@ func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	addStackMiddleware(t, stack, MiddlewareETag, ETag(etag.DefaultETagConfig()))
 	addStackMiddleware(t, stack, MiddlewareTimeout, Timeout(30*time.Second))
 	addStackMiddleware(t, stack, MiddlewareClientIP, ClientIPMiddleware)
-	addStackMiddleware(t, stack, MiddlewareServerTiming, servertiming.ServerTimingMiddleware())
+	addStackMiddleware(t, stack, MiddlewareServerTiming, Middleware(servertiming.ServerTimingMiddleware()))
 }
 
 // newInnerHandler returns the inner handler used by stack composition tests.
@@ -340,7 +340,7 @@ func TestServerTimingMiddleware_ComposesWithChain(t *testing.T) {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	stacked := Chain(inner, servertiming.ServerTimingMiddleware())
+	stacked := Chain(inner, Middleware(servertiming.ServerTimingMiddleware()))
 
 	rec := newRecorder()
 	stacked.ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))

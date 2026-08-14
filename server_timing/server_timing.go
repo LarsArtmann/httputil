@@ -242,14 +242,14 @@ func RecordServerTiming(ctx context.Context, name, desc string, dur time.Duratio
 //
 // Use it to time a region that completes BEFORE the response is written:
 //
-//	stop := httputil.MeasureServerTiming(r.Context(), "db")
+//	stop := servertiming.MeasureServerTiming(r.Context(), "db")
 //	result, err := db.Query(ctx)
 //	stop()
 //	renderResult(w, result) // response committed here — header includes db
 //
 // AVOID the defer idiom for non-streaming handlers:
 //
-//	defer httputil.MeasureServerTiming(r.Context(), "render")()
+//	defer servertiming.MeasureServerTiming(r.Context(), "render")()
 //	// ... writes response during this function ...
 //	// ^ defer fires at return — AFTER the write — so "render" misses the header.
 //
@@ -394,7 +394,7 @@ func WrapServerTiming(w http.ResponseWriter, r *http.Request) (http.ResponseWrit
 // collector in the request context so downstream handlers can record
 // sub-metrics:
 //
-//	mux.Use(httputil.ServerTimingMiddleware())
+//	mux.Use(servertiming.ServerTimingMiddleware())
 //	// …in a handler:
 //	stop := httputil.MeasureServerTiming(r.Context(), "db")
 //	db.Query(...)
@@ -402,7 +402,7 @@ func WrapServerTiming(w http.ResponseWriter, r *http.Request) (http.ResponseWrit
 //
 // Server-Timing can leak internal performance details; gate it for
 // debug/admin requests with [ServerTimingMiddlewareWhen].
-func ServerTimingMiddleware() func(http.Handler) http.Handler {
+func ServerTimingMiddleware() Middleware {
 	return ServerTimingMiddlewareWhen(func(*http.Request) bool { return true })
 }
 
@@ -415,10 +415,10 @@ func ServerTimingMiddleware() func(http.Handler) http.Handler {
 // Use this to gate Server-Timing behind a debug flag, an admin role, or a
 // request query/header check:
 //
-//	httputil.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+//	servertiming.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
 //	    return r.URL.Query().Has("debug")
 //	})
-func ServerTimingMiddlewareWhen(pred func(*http.Request) bool) func(http.Handler) http.Handler {
+func ServerTimingMiddlewareWhen(pred func(*http.Request) bool) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if pred == nil || !pred(r) {
