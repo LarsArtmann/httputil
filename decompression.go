@@ -55,7 +55,10 @@ func DefaultDecompressionConfig() DecompressionConfig {
 // Validate checks the DecompressionConfig for invalid values.
 func (c DecompressionConfig) Validate() error {
 	if c.MaxDecompressionSize < 0 {
-		return errMaxDecompressionSizeNegative.WithContextAny("max_decompression_size", c.MaxDecompressionSize)
+		return errMaxDecompressionSizeNegative.WithContextAny(
+			"max_decompression_size",
+			c.MaxDecompressionSize,
+		)
 	}
 
 	return nil

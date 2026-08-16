@@ -36,7 +36,9 @@ const (
 )
 
 var (
-	errNilGenerateID       = codeRequestIDNilGenerateID.Rejection("RequestIDConfig.GenerateID must not be nil")
+	errNilGenerateID = codeRequestIDNilGenerateID.Rejection(
+		"RequestIDConfig.GenerateID must not be nil",
+	)
 	errEmptyResponseHeader = codeRequestIDEmptyResponseHeader.Rejection(
 		"RequestIDConfig.ResponseHeader must not be empty",
 	)

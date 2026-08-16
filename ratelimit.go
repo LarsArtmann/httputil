@@ -18,10 +18,12 @@ const (
 )
 
 var (
-	errNilRateLimiter = codeRatelimitNilLimiter.Rejection("rate limit config: Limiter must not be nil")
-	errInvalidRate    = codeRatelimitInvalidRate.Rejection("rate must be greater than zero")
-	errInvalidBurst   = codeRatelimitInvalidBurst.Rejection("burst must be greater than zero")
-	errInvalidStatus  = codeRatelimitInvalidStatus.Rejection(
+	errNilRateLimiter = codeRatelimitNilLimiter.Rejection(
+		"rate limit config: Limiter must not be nil",
+	)
+	errInvalidRate   = codeRatelimitInvalidRate.Rejection("rate must be greater than zero")
+	errInvalidBurst  = codeRatelimitInvalidBurst.Rejection("burst must be greater than zero")
+	errInvalidStatus = codeRatelimitInvalidStatus.Rejection(
 		"RateLimitConfig.Status must be a valid HTTP status code (100-599) or zero for default",
 	)
 )

@@ -2,7 +2,7 @@ package httputil
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -133,7 +133,7 @@ func FuzzHealthResponse_Encoding(f *testing.F) {
 
 		var buf bytes.Buffer
 
-		err := json.NewEncoder(&buf).Encode(HealthResponse{Status: HealthStatus(status)})
+		err := json.MarshalWrite(&buf, HealthResponse{Status: HealthStatus(status)})
 		if err != nil {
 			t.Fatalf("Encode error = %v, want nil for status %q", err, status)
 		}

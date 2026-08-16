@@ -20,7 +20,13 @@ func TestCORSValidationErrorsClassified(t *testing.T) {
 
 	cfg := DefaultCORSConfig()
 	cfg.MaxAge = -1
-	assertValidationClassified(t, cfg.Validate(), errNegativeMaxAge, codeCorsMaxAgeNegative, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		cfg.Validate(),
+		errNegativeMaxAge,
+		codeCorsMaxAgeNegative,
+		errorfamily.Rejection,
+	)
 
 	cfg = DefaultCORSConfig()
 	cfg.AllowCredentials = true
@@ -91,7 +97,13 @@ func TestServerAddrEmptyClassified(t *testing.T) {
 
 	cfg := DefaultServerConfig()
 	cfg.Addr = ""
-	assertValidationClassified(t, cfg.Validate(), errServerAddrEmpty, codeServerAddrEmpty, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		cfg.Validate(),
+		errServerAddrEmpty,
+		codeServerAddrEmpty,
+		errorfamily.Rejection,
+	)
 }
 
 func TestServerShutdownFailedClassified(t *testing.T) {
@@ -151,16 +163,40 @@ func TestQValueParseErrorsClassified(t *testing.T) {
 	t.Parallel()
 
 	_, err := parseQValue("")
-	assertValidationClassified(t, err, errEmptyQValue, codeCompressionQValueEmpty, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		err,
+		errEmptyQValue,
+		codeCompressionQValueEmpty,
+		errorfamily.Rejection,
+	)
 
 	_, err = parseQValue("x")
-	assertValidationClassified(t, err, errInvalidQInt, codeCompressionQValueInvalid, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		err,
+		errInvalidQInt,
+		codeCompressionQValueInvalid,
+		errorfamily.Rejection,
+	)
 
 	_, err = parseQValue("0.5x")
-	assertValidationClassified(t, err, errTrailingQChars, codeCompressionQValueTrail, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		err,
+		errTrailingQChars,
+		codeCompressionQValueTrail,
+		errorfamily.Rejection,
+	)
 
 	_, err = parseQValue("1.5")
-	assertValidationClassified(t, err, errQValueTooLarge, codeCompressionQValueTooBig, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		err,
+		errQValueTooLarge,
+		codeCompressionQValueTooBig,
+		errorfamily.Rejection,
+	)
 }
 
 func TestKeyedRateLimiterValidationErrorsClassified(t *testing.T) {
@@ -276,7 +312,13 @@ func TestNonceValidationErrorClassified(t *testing.T) {
 
 	cfg := DefaultNonceConfig()
 	cfg.Size = 8
-	assertValidationClassified(t, cfg.Validate(), errNonceTooSmall, codeNonceTooSmall, errorfamily.Rejection)
+	assertValidationClassified(
+		t,
+		cfg.Validate(),
+		errNonceTooSmall,
+		codeNonceTooSmall,
+		errorfamily.Rejection,
+	)
 }
 
 func TestRateLimitValidationErrorsClassified(t *testing.T) {

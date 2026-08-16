@@ -37,7 +37,9 @@ var (
 	errKeyedWindowZero = codeRatelimitKeyedWindowZero.Rejection(
 		"KeyedRateLimiterConfig.Window must be greater than zero",
 	)
-	errKeyedTTLNegative = codeRatelimitKeyedTTLNegative.Rejection("KeyedRateLimiterConfig.TTL must not be negative")
+	errKeyedTTLNegative = codeRatelimitKeyedTTLNegative.Rejection(
+		"KeyedRateLimiterConfig.TTL must not be negative",
+	)
 )
 
 // KeyExtractor extracts a rate-limit key from an HTTP request.

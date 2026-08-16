@@ -146,7 +146,9 @@ var (
 	errInvalidCompressionLevel = codeCompressionLevelInvalid.Rejection(
 		"compression level must be between gzip.HuffmanOnly and gzip.BestCompression",
 	)
-	errNegativeMinSize = codeCompressionMinSizeNeg.Rejection("compression minimum size must not be negative")
+	errNegativeMinSize = codeCompressionMinSizeNeg.Rejection(
+		"compression minimum size must not be negative",
+	)
 	errNoWriterFactory = codeCompressionNoFactory.Rejection(
 		"compression WriterFactories is empty; at least one encoding is required",
 	)

@@ -45,7 +45,12 @@ func validateConfig(configName string, err error) {
 		attrs = append(attrs, slog.String("family", classified.ErrorFamily().String()))
 	}
 
-	record := slog.NewRecord(time.Time{}, slog.LevelError, "httputil: "+configName+" validation failed", 0)
+	record := slog.NewRecord(
+		time.Time{},
+		slog.LevelError,
+		"httputil: "+configName+" validation failed",
+		0,
+	)
 	record.AddAttrs(attrs...)
 
 	_ = slog.Default().Handler().Handle(context.Background(), record)

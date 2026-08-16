@@ -105,7 +105,10 @@ func (c ServerConfig) Validate() error {
 	}
 
 	if c.ReadHeaderTimeout < 0 {
-		return errReadHeaderTimeoutNegative.WithContextAny("read_header_timeout", c.ReadHeaderTimeout)
+		return errReadHeaderTimeoutNegative.WithContextAny(
+			"read_header_timeout",
+			c.ReadHeaderTimeout,
+		)
 	}
 
 	if c.WriteTimeout < 0 {
@@ -128,7 +131,11 @@ func (c ServerConfig) Validate() error {
 
 	if c.TLSConfig != nil && c.TLSConfig.MinVersion != 0 &&
 		c.TLSConfig.MinVersion < tls.VersionTLS12 {
-		return errTLSMinVersionInsecure.WithContextf("min_version", "0x%04x", c.TLSConfig.MinVersion)
+		return errTLSMinVersionInsecure.WithContextf(
+			"min_version",
+			"0x%04x",
+			c.TLSConfig.MinVersion,
+		)
 	}
 
 	return nil

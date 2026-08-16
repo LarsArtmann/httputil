@@ -2,7 +2,7 @@ package httputil
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"html"
 	"log/slog"
 	"net"
@@ -45,10 +45,16 @@ func ForbiddenHandler(w http.ResponseWriter, _ *http.Request, _ error) {
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does
 // not match. Uses justinas/nosurf under the hood for token generation and
 // validation.
-var ErrCSRFInvalid = errorfamily.NewRejection(string(codeCSRFInvalid), "invalid or missing CSRF token")
+var ErrCSRFInvalid = errorfamily.NewRejection(
+	string(codeCSRFInvalid),
+	"invalid or missing CSRF token",
+)
 
 // ErrCSRFConfig is returned when the CSRF configuration is invalid or insecure.
-var ErrCSRFConfig = errorfamily.NewInfrastructure(string(codeCSRFConfig), "invalid CSRF configuration")
+var ErrCSRFConfig = errorfamily.NewInfrastructure(
+	string(codeCSRFConfig),
+	"invalid CSRF configuration",
+)
 
 // Legacy underscore-spelled codes for the exported CSRF sentinels, kept for
 // backward compatibility; new codes use the domain.dot format.
