@@ -9,8 +9,11 @@ permissions:
   contents: write
 
 env:
-  GO_VERSION: "1.26.x"
+  GO_VERSION: "1.26"
   GOLANGCI_LINT_VERSION: v2.12
+  # setup-go's manifest lags new Go patches; pin the toolchain via Go
+  # itself so govulncheck scans a stdlib with current security fixes.
+  GOTOOLCHAIN: go1.26.6
 
 jobs:
   release:

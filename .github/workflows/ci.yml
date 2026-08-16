@@ -13,6 +13,10 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      # setup-go's manifest lags new Go patches; pin the toolchain via Go
+      # itself so govulncheck scans a stdlib with current security fixes.
+      GOTOOLCHAIN: go1.26.6
     strategy:
       matrix:
         go-version: ["1.26.x"]
