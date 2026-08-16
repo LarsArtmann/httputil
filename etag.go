@@ -1,7 +1,7 @@
 package httputil
 
 import (
-	etag "github.com/larsartmann/go-etag"
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // ETag returns middleware that generates ETag headers based on response body

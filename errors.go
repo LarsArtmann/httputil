@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	etag "github.com/larsartmann/go-etag"
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // Error codes for classified errors returned by ResponseRecorder operations.

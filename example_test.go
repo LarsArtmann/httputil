@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"time"
 
-	etag "github.com/larsartmann/go-etag"
+	etag "github.com/larsartmann/go-etag/server"
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 

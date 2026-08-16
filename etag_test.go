@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	etag "github.com/larsartmann/go-etag"
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 func TestETag_GeneratesHeader(t *testing.T) {

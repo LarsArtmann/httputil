@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	etag "github.com/larsartmann/go-etag"
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // allHTTputilErrorCodes is the authoritative list of every error code the
