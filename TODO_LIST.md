@@ -8,7 +8,7 @@ _Updated: 2026-08-07 — all prior items shipped including `ExampleMaxBodySize`.
 
 ## High Priority
 
-_(none — all high-priority items shipped)_
+- [ ] **Extract response compression into `go-compression`** — full Pareto plan with 27 medium / 110 fine tasks: [docs/planning/2026-08-16_08-03_extract-compression-into-go-compression.md](docs/planning/2026-08-16_08-03_extract-compression-into-go-compression.md). Trigger: go-datastar needs SSE-safe compression without dragging codec deps into its root module. Epics: (1) mechanical move of 16 files to a new repo with green tests, (2) infra + tag v0.1.0 + httputil adapter migration, (3) SSE flush-guarantee tests + optional brotli/zstd subpackages + go-datastar README row flip, (4) benchmarks, pkg.go.dev, docs reconciliation. Decompression stays in httputil.
 
 ## Medium Priority
 
