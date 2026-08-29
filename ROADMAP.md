@@ -12,7 +12,7 @@ v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validat
 
 v0.9.1 (2026-08-06) is an RFC 7232 compliance patch for the ETag middleware.
 
-**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module; `httputil.ETag()` adapter deprecated in favor of `etag.New()` (composes directly via the `Middleware` type alias). `ServerConfig.TLSConfig` validation, decompression benchmarks/fuzz, and govulncheck in the devShell. 97.0% httputil / 99.3% httpspec coverage with ~70 linters at 0 issues.
+**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module; `httputil.ETag()` adapter deprecated in favor of `etag.New()` (composes directly via the `Middleware` type alias). `ServerConfig.TLSConfig` validation, decompression benchmarks/fuzz, and govulncheck in the devShell. 96.9% httputil / 98.8% httpspec coverage with ~70 linters at 0 issues.
 
 ## v0.9.0 — Feature additions
 

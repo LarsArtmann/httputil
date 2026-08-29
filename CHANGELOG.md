@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`Server.StartTLS(certFile, keyFile)`** (`server.go`): HTTPS serving. `ServerConfig.TLSConfig` was validated but never used — `Start()` only called `ListenAndServe`. `StartTLS` wraps `ListenAndServeTLS` (TLS 1.2+ minimum enforced by validation); in-memory certificates work via `TLSConfig.GetCertificate` with empty paths. Integration-tested with a self-signed certificate.
+- **httpspec `ExpectJSON` / `ExpectHTML` check builders**: validate a response is valid JSON (plus JSON Content-Type, structured-syntax suffixes supported) or HTML (incl. XHTML), with optional exact Content-Type matching.
+- **httpspec `ExpectVaryContains` / `ExpectNotModifiedWithETag` builders**: pin cache-correctness (`Vary` field presence, `Vary: *` aware) and ETag conditional-request (304) contracts for opt-in composition via `WithExtraSpecs`.
+- **httpspec no-duplicates spec extended**: fails when the same header is set under two casings (direct map writes bypass Go's canonicalization).
+- **New fuzz targets**: `FuzzResponseRecorder` (recorder state machine), `FuzzLimitedReadCloser` (bomb-protection boundary), `FuzzDecompressionInvariants` (header removal + round-trip invariants). A nightly CI workflow runs all eight fuzzers for 5 minutes each.
+- **Module-boundary CI check**: `scripts/check-module-boundaries.sh` builds and vets each module with `GOWORK=off` (the consumer view) and verifies `go.work` completeness.
+
+### Fixed
+
+- **Health endpoints emit the documented trailing newline again**: the 2026-08-16 `encoding/json/v2` migration silently replaced `json.Encoder.Encode` (appends `
+`) with `json.MarshalWrite` (does not), shrinking probe bodies from 16 to 15 bytes and leaving six tests failing. All health endpoints (`/health`, `/health/live`, `/health/ready`) now write the payload plus an explicit newline through one `writeHealthBody` helper; the exact-bytes test passes again.
+
+### Changed
+
+- **`Decompression` pass-through default case documented** (`decompression.go`): the switch's `default:` is the documented contract for configured-but-unsupported custom encodings, not dead code.
+- **D2 diagrams pinned to the flake's d2 (elk layout)**: `d2` added to the devShell; architecture SVG regeneration documented in `docs/RELEASE.md`.
+
 ## [0.12.0] - 2026-08-16
 
 ### Added

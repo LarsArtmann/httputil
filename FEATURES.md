@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-09 — validate-at-construction unified across all middleware. Coverage 97.3% (`httputil`), 99.3% (`httpspec`). All claims checked with `go test -race -coverprofile`._
+_Updated: 2026-08-09 — validate-at-construction unified across all middleware. Coverage 96.9% (`httputil`), 98.8% (`httpspec`). All claims checked with `go test -race -coverprofile`._
 
 ---
 
@@ -162,7 +162,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.3% statement coverage** (`httputil`), **99.3%** (`httpspec`) — measured 2026-08-09 with race detection enabled.
+- `go test -race ./...` passes across the full suite with **96.9% statement coverage** (`httputil`), **98.8%** (`httpspec`) — measured 2026-08-29 with race detection enabled.
 - 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), Decompression (malformed compressed bodies), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, decompression, and CSRF fuzz tests verified with `-fuzztime`.
 - 43 benchmarks and 25 example functions across both packages.
 - `go vet` clean.
@@ -188,7 +188,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-08-09 with `go test -race -coverprofile`: **97.3%** (`httputil`), **99.3%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-08-29 with `go test -race -coverprofile`: **96.9%** (`httputil`), **98.8%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit):**
 
