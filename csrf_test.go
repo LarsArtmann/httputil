@@ -681,3 +681,44 @@ func TestCSRFMiddleware_WithCustomHeaderName(t *testing.T) {
 		t.Fatalf("expected 200 with valid token in custom header, got %d", rec.Code)
 	}
 }
+
+func TestForbiddenHandler_WritesStatusOnly(t *testing.T) {
+	t.Parallel()
+
+	rec := httptest.NewRecorder()
+	ForbiddenHandler(rec, nil, nil)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("got %d, want %d", rec.Code, http.StatusForbidden)
+	}
+
+	if got := rec.Header().Get("Content-Type"); got != "" {
+		t.Errorf("ForbiddenHandler contract is status-only; got unexpected Content-Type %q", got)
+	}
+}
+
+func TestCSRFMiddleware_RejectionSetsPlainTextContentType(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("POST without token should be rejected with 403, got %d", rec.Code)
+	}
+
+	if got := rec.Header().Get("Content-Type"); got != contentTypePlain {
+		t.Errorf("rejection Content-Type = %q, want %q", got, contentTypePlain)
+	}
+
+	if rec.Body.Len() == 0 {
+		t.Error("rejection body should name the failure reason")
+	}
+}

@@ -123,6 +123,12 @@ func Decompression(cfg DecompressionConfig) Middleware {
 			case encodingDeflate:
 				reader = flate.NewReader(r.Body)
 			default:
+				// Configured-but-unsupported encodings (Encodings is
+				// user-extensible, the switch is not) pass through
+				// uncompressed rather than failing the request. Reachable
+				// only with a custom Encodings entry; dead for the default
+				// gzip/deflate allowlist because the filter above already
+				// rejected unknown encodings.
 				next.ServeHTTP(w, r)
 
 				return

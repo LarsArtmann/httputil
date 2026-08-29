@@ -169,3 +169,71 @@ func TestMaxBodySize_InvalidConfigLogsAndContinues(t *testing.T) {
 		t.Error("inner handler was not called (invalid config should log and continue)")
 	}
 }
+
+func TestMaxBodySizeContentLengthPassesThroughUnderLimit(t *testing.T) {
+	t.Parallel()
+
+	mw := MaxBodySizeMiddleware(MaxBodySizeConfig{MaxBytes: 1024})
+
+	var seenContentLength int64 = -1
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		seenContentLength = r.ContentLength
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("hello"))
+	mw(handler).ServeHTTP(httptest.NewRecorder(), req)
+
+	if seenContentLength != 5 {
+		t.Errorf("ContentLength = %d, want 5 (unchanged under the limit)", seenContentLength)
+	}
+}
+
+func TestMaxBodySizeReadBeyondLimitReturnsMaxBytesError(t *testing.T) {
+	t.Parallel()
+
+	mw := MaxBodySizeMiddleware(MaxBodySizeConfig{MaxBytes: 8})
+
+	var tooMany *http.MaxBytesError
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		_, err := io.ReadAll(r.Body)
+		if errors.As(err, &tooMany) {
+			// expected
+			return
+		}
+
+		t.Errorf("expected *http.MaxBytesError, got %v", err)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("way more than eight bytes"))
+	mw(handler).ServeHTTP(httptest.NewRecorder(), req)
+
+	if tooMany == nil {
+		t.Fatal("expected the read to fail with *http.MaxBytesError")
+	}
+
+	if tooMany.Limit != 8 {
+		t.Errorf("MaxBytesError.Limit = %d, want 8", tooMany.Limit)
+	}
+}
+
+func TestMaxBodySizeKeepsBodyUntouchedForGET(t *testing.T) {
+	t.Parallel()
+
+	mw := MaxBodySizeMiddleware(MaxBodySizeConfig{MaxBytes: 1024})
+
+	called := false
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+
+		if r.Body == nil {
+			t.Error("GET request body must not be replaced with a nil reader")
+		}
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	mw(handler).ServeHTTP(httptest.NewRecorder(), req)
+
+	if !called {
+		t.Error("handler should have been called")
+	}
+}

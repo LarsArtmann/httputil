@@ -9,11 +9,6 @@ import (
 
 const (
 	defaultCompressionMinSize = 512
-	headerAcceptEncoding      = "Accept-Encoding"
-	headerContentEncoding     = "Content-Encoding"
-	headerContentLength       = "Content-Length"
-	headerContentType         = "Content-Type"
-	headerVary                = "Vary"
 )
 
 const (
