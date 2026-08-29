@@ -1,6 +1,6 @@
 # Status Report: ETag Extraction to `go-etag` Module
 
-**Date:** 2026-08-07 06:44  
+**Date:** 2026-08-07 06:44\
 **Session scope:** Extract the ETag middleware from `httputil` into a standalone `github.com/larsartmann/go-etag` module at `../go-etag`.
 
 ---

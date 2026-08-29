@@ -3,7 +3,6 @@
 **Date:** 2026-08-07 22:22
 **Session scope:** Correcting the disastrous code-copying approach from the prior session, reverting it, and implementing the correct thin-adapter approach over the independent `go-etag` module.
 
-
 ---
 
 ## Context: What happened this session

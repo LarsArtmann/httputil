@@ -9,20 +9,20 @@
 
 ## a) FULLY DONE (verified)
 
-| #   | Task                                                                                                                                                                                 | Verification                                                                                  |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| ~~1~~   | ~~Loaded `docs-health` skill SKILL.md before any action~~ done at `dab5dc3` | ~~Read in full; followed AUDIT mode~~ |
-| ~~2~~   | ~~Read every `2026-07-*` and `2026-07-3*` `.md` status file in full before touching anything (11 files, some 300+ lines, all read line-by-line incl. offsets)~~ done at `dab5dc3` | ~~Every file read completely~~ |
-| ~~3~~   | ~~Verified current state via code: `go test -race -coverprofile`, `go tool cover -func`, `go.mod`, `git log v0.7.1..v0.8.0`~~ done at `dab5dc3` | ~~Coverage 97.8% / 98.3%, 0 lint issues, 14 sub-100% functions enumerated~~ |
-| ~~4~~   | ~~Annotated 9 recent historical status files (`2026-07-22_*` through `2026-07-31_*`) inline with per-item resolution tables~~ done at `405ca70`, `fc9430a` | ~~Each numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker~~ |
-| ~~5~~   | ~~Annotated 6 earlier historical status files (`2026-07-02_*`, `2026-07-05_*`, `2026-07-06_*`, `2026-07-10_*`, `2026-07-16_*`) with concise final-resolution blocks via heredoc append~~ done at `405ca70`, `fc9430a` | ~~Each now references v0.8.0 as the resolution point~~ |
-| ~~6~~   | ~~Rebuilt `TODO_LIST.md` from scratch: 0 high, 5 medium, 6 low, 8 won't-implement (with reasoning)~~ done at `2fb8358` | ~~Every open item verified against current code; every won't-implement has a reason~~ |
-| ~~7~~   | ~~Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory~~ done at `2fb8358` | ~~v0.7.0 + v0.8.0 resolved items struck through; v0.9.0 focus defined; v1.0 commitment explicit~~ |
-| ~~8~~   | ~~Rewrote `FEATURES.md` with verified feature inventory~~ done at `dab5dc3` | ~~Coverage 97.8% / 98.3% measured live; 14 sub-100% functions documented as defensive~~ |
-| ~~9~~   | ~~Expanded `CHANGELOG [0.8.0]` with full release scope (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure)~~ done at `dab5dc3` | ~~Cross-referenced against `git log v0.7.1..v0.8.0`~~ |
-| ~~10~~  | ~~Added `[Unreleased]` Changed block documenting this docs-health pass~~ done at `dab5dc3` | ~~Dated, scoped~~ |
-| ~~11~~  | ~~Added missing `[0.8.0]` comparison link at CHANGELOG bottom; updated `[Unreleased]` to point to `v0.8.0...HEAD`~~ done at `dab5dc3` | ~~`scripts/check-changelog-links.sh` PASS~~ |
-| ~~12~~  | ~~Full quality gate passed post-edit: `go test -race -count=1 ./...` PASS, `go vet ./...` clean, `golangci-lint run` 0 issues~~ done at `dab5dc3` | ~~All three run after doc edits~~ |
+| #      | Task                                                                                                                                                                                                                  | Verification                                                                                      |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| ~~1~~  | ~~Loaded `docs-health` skill SKILL.md before any action~~ done at `dab5dc3`                                                                                                                                           | ~~Read in full; followed AUDIT mode~~                                                             |
+| ~~2~~  | ~~Read every `2026-07-*` and `2026-07-3*` `.md` status file in full before touching anything (11 files, some 300+ lines, all read line-by-line incl. offsets)~~ done at `dab5dc3`                                     | ~~Every file read completely~~                                                                    |
+| ~~3~~  | ~~Verified current state via code: `go test -race -coverprofile`, `go tool cover -func`, `go.mod`, `git log v0.7.1..v0.8.0`~~ done at `dab5dc3`                                                                       | ~~Coverage 97.8% / 98.3%, 0 lint issues, 14 sub-100% functions enumerated~~                       |
+| ~~4~~  | ~~Annotated 9 recent historical status files (`2026-07-22_*` through `2026-07-31_*`) inline with per-item resolution tables~~ done at `405ca70`, `fc9430a`                                                            | ~~Each numbered `f-item` now has a `done at` / `Won't implement` / `deferred to vN.M` marker~~    |
+| ~~5~~  | ~~Annotated 6 earlier historical status files (`2026-07-02_*`, `2026-07-05_*`, `2026-07-06_*`, `2026-07-10_*`, `2026-07-16_*`) with concise final-resolution blocks via heredoc append~~ done at `405ca70`, `fc9430a` | ~~Each now references v0.8.0 as the resolution point~~                                            |
+| ~~6~~  | ~~Rebuilt `TODO_LIST.md` from scratch: 0 high, 5 medium, 6 low, 8 won't-implement (with reasoning)~~ done at `2fb8358`                                                                                                | ~~Every open item verified against current code; every won't-implement has a reason~~             |
+| ~~7~~  | ~~Rewrote `ROADMAP.md` for v0.8.0 / v0.9.0 / v1.0 trajectory~~ done at `2fb8358`                                                                                                                                      | ~~v0.7.0 + v0.8.0 resolved items struck through; v0.9.0 focus defined; v1.0 commitment explicit~~ |
+| ~~8~~  | ~~Rewrote `FEATURES.md` with verified feature inventory~~ done at `dab5dc3`                                                                                                                                           | ~~Coverage 97.8% / 98.3% measured live; 14 sub-100% functions documented as defensive~~           |
+| ~~9~~  | ~~Expanded `CHANGELOG [0.8.0]` with full release scope (CSRF, Server-Timing, KeyedRateLimit, examples, migration guide, CI hardening, coverage closure)~~ done at `dab5dc3`                                           | ~~Cross-referenced against `git log v0.7.1..v0.8.0`~~                                             |
+| ~~10~~ | ~~Added `[Unreleased]` Changed block documenting this docs-health pass~~ done at `dab5dc3`                                                                                                                            | ~~Dated, scoped~~                                                                                 |
+| ~~11~~ | ~~Added missing `[0.8.0]` comparison link at CHANGELOG bottom; updated `[Unreleased]` to point to `v0.8.0...HEAD`~~ done at `dab5dc3`                                                                                 | ~~`scripts/check-changelog-links.sh` PASS~~                                                       |
+| ~~12~~ | ~~Full quality gate passed post-edit: `go test -race -count=1 ./...` PASS, `go vet ./...` clean, `golangci-lint run` 0 issues~~ done at `dab5dc3`                                                                     | ~~All three run after doc edits~~                                                                 |
 
 ---
 
@@ -49,19 +49,19 @@ The FEATURES.md middleware table lists `ExampleCSRFMiddleware`, `ExampleServerTi
 
 ## c) NOT STARTED
 
-| #   | Task                                                                                          | Why it matters                                                                                                            |
-| --- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| ~~1~~   | ~~Run `govulncheck ./...` locally~~ done at `b90616e` | ~~Claimed "CI-gated, Done" in resolution tables — but I never ran it this session. Recurring gap across every prior report.~~ |
-| ~~2~~   | ~~Run `nix flake check`~~ done at `b90616e` | ~~Claimed "passes" in resolution tables — never ran it this session.~~ |
-| ~~3~~   | ~~Run `go mod verify`~~ done at `b90616e` | ~~Claimed "passes" — never ran it this session.~~ |
-| ~~4~~   | ~~Audit CONTRIBUTING.md~~ done at `b90616e` | ~~Claimed in CHANGELOG `[0.8.0]` that it was updated — did not open the file this session.~~ |
-| ~~5~~   | ~~Audit README.md API table, config tables, middleware ordering section~~ done at `b90616e` | ~~Trusted prior reports; did not verify.~~ |
-| ~~6~~   | ~~Audit `docs/v1-stability.md` for completeness~~ done at `b90616e` | ~~Trusted prior reports; did not verify.~~ |
-| ~~7~~   | ~~Audit `docs/DOMAIN_LANGUAGE.md` for new vocabulary~~ done at `eb07018` | ~~Trusted prior reports; did not verify.~~ |
-| ~~8~~   | ~~Investigate the unexpected `AGENTS.md` change + `docs/modularization/2026-08-05_*.html` files~~ done (investigated — owner-authored concurrent work, KEEP (see the h) resolution table)) | ~~These appeared in the auto-commit daemon's `dab5dc3` commit but I did not author them. Possible concurrent owner session.~~ |
-| 9   | Run the `brutal-self-review` skill                                                            | User asked for SUPERB work; the skill exists for exactly this self-critique purpose. I did not invoke it.                 |
-| ~~10~~  | ~~Verify Example* function names in FEATURES.md middleware table~~ done at `b90616e` | ~~Listed 3 Example functions without `grep`-confirming they exist.~~ |
-| ~~11~~  | ~~Verify CHANGELOG `[0.8.0]` claims against `git diff v0.7.1..v0.8.0`~~ done at `994d030` | ~~Wrote detailed CHANGELOG entry from memory + commit messages; did not diff the actual code changes.~~ |
+| #      | Task                                                                                                                                                                                       | Why it matters                                                                                                                |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| ~~1~~  | ~~Run `govulncheck ./...` locally~~ done at `b90616e`                                                                                                                                      | ~~Claimed "CI-gated, Done" in resolution tables — but I never ran it this session. Recurring gap across every prior report.~~ |
+| ~~2~~  | ~~Run `nix flake check`~~ done at `b90616e`                                                                                                                                                | ~~Claimed "passes" in resolution tables — never ran it this session.~~                                                        |
+| ~~3~~  | ~~Run `go mod verify`~~ done at `b90616e`                                                                                                                                                  | ~~Claimed "passes" — never ran it this session.~~                                                                             |
+| ~~4~~  | ~~Audit CONTRIBUTING.md~~ done at `b90616e`                                                                                                                                                | ~~Claimed in CHANGELOG `[0.8.0]` that it was updated — did not open the file this session.~~                                  |
+| ~~5~~  | ~~Audit README.md API table, config tables, middleware ordering section~~ done at `b90616e`                                                                                                | ~~Trusted prior reports; did not verify.~~                                                                                    |
+| ~~6~~  | ~~Audit `docs/v1-stability.md` for completeness~~ done at `b90616e`                                                                                                                        | ~~Trusted prior reports; did not verify.~~                                                                                    |
+| ~~7~~  | ~~Audit `docs/DOMAIN_LANGUAGE.md` for new vocabulary~~ done at `eb07018`                                                                                                                   | ~~Trusted prior reports; did not verify.~~                                                                                    |
+| ~~8~~  | ~~Investigate the unexpected `AGENTS.md` change + `docs/modularization/2026-08-05_*.html` files~~ done (investigated — owner-authored concurrent work, KEEP (see the h) resolution table)) | ~~These appeared in the auto-commit daemon's `dab5dc3` commit but I did not author them. Possible concurrent owner session.~~ |
+| 9      | Run the `brutal-self-review` skill                                                                                                                                                         | User asked for SUPERB work; the skill exists for exactly this self-critique purpose. I did not invoke it.                     |
+| ~~10~~ | ~~Verify Example* function names in FEATURES.md middleware table~~ done at `b90616e`                                                                                                       | ~~Listed 3 Example functions without `grep`-confirming they exist.~~                                                          |
+| ~~11~~ | ~~Verify CHANGELOG `[0.8.0]` claims against `git diff v0.7.1..v0.8.0`~~ done at `994d030`                                                                                                  | ~~Wrote detailed CHANGELOG entry from memory + commit messages; did not diff the actual code changes.~~                       |
 
 ---
 
@@ -150,93 +150,93 @@ The `[Unreleased]` Changed block I added is one giant parenthesized run-on sente
 
 ### Critical — fix the lies I left
 
-| #   | Task                                                                                                                                              | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | ~~**Fix FEATURES.md `mustRequest` contradiction** — remove "now covered in v0.8.0"; state it's still 75%~~ done at `b90616e` (gap closed to 100%) | High   | 1 min  |
-| 2   | ~~**Run `govulncheck ./...` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: No vulnerabilities found**           | High   | 2 min  |
-| 3   | ~~**Run `nix flake check` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all checks passed**                    | High   | 5 min  |
-| 4   | ~~**Run `go mod verify` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all modules verified**                   | High   | 1 min  |
-| 5   | ~~**Fix TODO_LIST.md "v0.8.0.0" typo**~~ done at `b90616e`                                                                                        | Low    | 1 min  |
-| 6   | ~~**Split CHANGELOG `[Unreleased]` run-on bullet into 5 distinct bullets**~~ done at `2e15780` (rewrote with 11 Added, 3 Fixed, 3 Changed)        | Low    | 5 min  |
+| # | Task                                                                                                                                              | Impact | Effort |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | ~~**Fix FEATURES.md `mustRequest` contradiction** — remove "now covered in v0.8.0"; state it's still 75%~~ done at `b90616e` (gap closed to 100%) | High   | 1 min  |
+| 2 | ~~**Run `govulncheck ./...` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: No vulnerabilities found**           | High   | 2 min  |
+| 3 | ~~**Run `nix flake check` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all checks passed**                    | High   | 5 min  |
+| 4 | ~~**Run `go mod verify` locally** and replace "Done" claims with actual results~~ **VERIFIED 2026-08-05: all modules verified**                   | High   | 1 min  |
+| 5 | ~~**Fix TODO_LIST.md "v0.8.0.0" typo**~~ done at `b90616e`                                                                                        | Low    | 1 min  |
+| 6 | ~~**Split CHANGELOG `[Unreleased]` run-on bullet into 5 distinct bullets**~~ done at `2e15780` (rewrote with 11 Added, 3 Fixed, 3 Changed)        | Low    | 5 min  |
 
 ### High — verify what I trusted
 
-| #   | Task                                                                                                                                                                | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| ~~7~~   | ~~**Open CONTRIBUTING.md and verify** the dependency list, commands, and middleware references are current~~ done at `b90616e` | ~~High~~ | ~~5 min~~ |
-| ~~8~~   | ~~**Open README.md and verify** the API table, config field tables, and middleware ordering section are current~~ done at `b90616e` | ~~High~~ | ~~15 min~~ |
-| ~~9~~   | ~~**Open `docs/v1-stability.md` and verify** all new types (CSRF, Server-Timing, KeyedRateLimit) are classified~~ done at `b90616e` | ~~High~~ | ~~10 min~~ |
-| ~~10~~  | ~~**Open `docs/DOMAIN_LANGUAGE.md` and verify** CSRF / Server-Timing / KeyedRateLimit vocabulary is present~~ done at `eb07018` | ~~Medium~~ | ~~10 min~~ |
-| ~~11~~  | ~~**`grep` for `ExampleCSRFMiddleware` / `ExampleServerTimingMiddleware` / `ExampleKeyedRateLimiterMiddleware`** to confirm they exist before FEATURES.md claims them~~ done at `b90616e` | ~~Medium~~ | ~~2 min~~ |
-| ~~12~~  | ~~**`git diff v0.7.1..v0.8.0 --stat`** and cross-check CHANGELOG `[0.8.0]` claims against actual file changes~~ done at `994d030` | ~~Medium~~ | ~~10 min~~ |
+| #      | Task                                                                                                                                                                                      | Impact     | Effort     |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~7~~  | ~~**Open CONTRIBUTING.md and verify** the dependency list, commands, and middleware references are current~~ done at `b90616e`                                                            | ~~High~~   | ~~5 min~~  |
+| ~~8~~  | ~~**Open README.md and verify** the API table, config field tables, and middleware ordering section are current~~ done at `b90616e`                                                       | ~~High~~   | ~~15 min~~ |
+| ~~9~~  | ~~**Open `docs/v1-stability.md` and verify** all new types (CSRF, Server-Timing, KeyedRateLimit) are classified~~ done at `b90616e`                                                       | ~~High~~   | ~~10 min~~ |
+| ~~10~~ | ~~**Open `docs/DOMAIN_LANGUAGE.md` and verify** CSRF / Server-Timing / KeyedRateLimit vocabulary is present~~ done at `eb07018`                                                           | ~~Medium~~ | ~~10 min~~ |
+| ~~11~~ | ~~**`grep` for `ExampleCSRFMiddleware` / `ExampleServerTimingMiddleware` / `ExampleKeyedRateLimiterMiddleware`** to confirm they exist before FEATURES.md claims them~~ done at `b90616e` | ~~Medium~~ | ~~2 min~~  |
+| ~~12~~ | ~~**`git diff v0.7.1..v0.8.0 --stat`** and cross-check CHANGELOG `[0.8.0]` claims against actual file changes~~ done at `994d030`                                                         | ~~Medium~~ | ~~10 min~~ |
 
 ### High — investigate unexpected changes
 
-| #   | Task                                                                                                                                     | Impact | Effort |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| ~~13~~  | ~~**Investigate the `AGENTS.md` "Why the Root Package Is Flat" note** — did the owner author it, or was it auto-inferred?~~ done (investigated — owner-authored, KEEP (d.3)) | ~~High~~ | ~~5 min~~ |
-| ~~14~~  | ~~**Investigate `docs/modularization/2026-08-05_DECISION.html` + `2026-08-05_06-56_package-structure-analysis.html`** — who created these?~~ done (investigated — owner-authored, KEEP (d.3)) | ~~High~~ | ~~5 min~~ |
-| ~~15~~  | ~~**Decide whether to keep or `trash` the 11MB committed `httputil.test` binary** in repo root~~ done (resolved — the binary was removed from the repo root in a later session (absent as of 2026-08-29)) | ~~Medium~~ | ~~2 min~~ |
+| #      | Task                                                                                                                                                                                                      | Impact     | Effort    |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------- |
+| ~~13~~ | ~~**Investigate the `AGENTS.md` "Why the Root Package Is Flat" note** — did the owner author it, or was it auto-inferred?~~ done (investigated — owner-authored, KEEP (d.3))                              | ~~High~~   | ~~5 min~~ |
+| ~~14~~ | ~~**Investigate `docs/modularization/2026-08-05_DECISION.html` + `2026-08-05_06-56_package-structure-analysis.html`** — who created these?~~ done (investigated — owner-authored, KEEP (d.3))             | ~~High~~   | ~~5 min~~ |
+| ~~15~~ | ~~**Decide whether to keep or `trash` the 11MB committed `httputil.test` binary** in repo root~~ done (resolved — the binary was removed from the repo root in a later session (absent as of 2026-08-29)) | ~~Medium~~ | ~~2 min~~ |
 
 ### Medium — close the remaining real coverage gap I lied about
 
-| #   | Task                                                                                                                                                                                                                        | Impact | Effort |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 16  | ~~**Close `httpspec.mustRequest` 75%** — the malformed-HTTP-construction error path. Write a test that triggers `httptest.NewRequest` with a malformed method.~~ done at `b90616e` (`TestMustRequestPanicsOnInvalidMethod`) | Medium | 20 min |
-| 17  | ~~**Or: honestly document `mustRequest` as a permanent defensive path** in FEATURES.md instead of closing it~~ N/A — gap was closed, not documented as permanent                                                            | Medium | 2 min  |
+| #  | Task                                                                                                                                                                                                                        | Impact | Effort |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 16 | ~~**Close `httpspec.mustRequest` 75%** — the malformed-HTTP-construction error path. Write a test that triggers `httptest.NewRequest` with a malformed method.~~ done at `b90616e` (`TestMustRequestPanicsOnInvalidMethod`) | Medium | 20 min |
+| 17 | ~~**Or: honestly document `mustRequest` as a permanent defensive path** in FEATURES.md instead of closing it~~ N/A — gap was closed, not documented as permanent                                                            | Medium | 2 min  |
 
 ### Medium — depth and modernization
 
-| #   | Task                                                                                                                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 18  | ~~**Run the `brutal-self-review` skill** on this session's output and incorporate its findings~~ scheduled as M17 in Pareto plan                               | High   | 30 min |
-| 19  | ~~**Add CSRF fuzz tests** (`FuzzCSRFTokenValidation`, `FuzzCSRFOriginMatching`) — CSRF processes untrusted input~~ done at `e31f144` (6 `FuzzCSRF*` functions) | High   | 60 min |
-| 20  | ~~**Add `FuzzKeyedRateLimiterKeyExtraction`** — untrusted RemoteAddr strings~~ Won't implement — rate limiter keys come from server-controlled RemoteAddr      | Medium | 30 min |
-| 21  | ~~**Add `BenchmarkCSRFMiddleware`** — no benchmark exists for the new security middleware~~ done at `eb1ac6a` (6 variants)                                     | Medium | 30 min |
-| 22  | ~~**Add `BenchmarkKeyedRateLimiter`** with various `MaxKeys` / `EvictionTTL` settings~~ done at `eb1ac6a` (6 variants)                                         | Medium | 30 min |
-| 23  | ~~**Modernize `server_timing_bench_test.go`** — migrate `b.N` → `b.Loop()` (6 gopls warnings)~~ done at `ae78e9a`                                              | Low    | 10 min |
-| 24  | ~~**Add `httpspec` spec for CORS headers** — extend the BDD suite with CORS behavior validation~~ done at `538a575` (`CORSSpecs()`, 4 specs)                   | Medium | 30 min |
-| 25  | ~~**Add `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`~~ done at `538a575` (`RateLimitSpecs()`, 3 specs)                            | Medium | 30 min |
-| 26  | ~~**Add integration test chaining all 16 middlewares** in recommended order~~ done at `eb1ac6a` (`stack_integration_test.go`)                                  | Medium | 30 min |
-| 27  | ~~**Audit all `Validate()` methods for completeness~~ done at `eb1ac6a` (but MaxBodySize + ShutdownTimeout still open in TODO_LIST)                            | Medium | 60 min |
+| #  | Task                                                                                                                                                           | Impact | Effort |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 18 | ~~**Run the `brutal-self-review` skill** on this session's output and incorporate its findings~~ scheduled as M17 in Pareto plan                               | High   | 30 min |
+| 19 | ~~**Add CSRF fuzz tests** (`FuzzCSRFTokenValidation`, `FuzzCSRFOriginMatching`) — CSRF processes untrusted input~~ done at `e31f144` (6 `FuzzCSRF*` functions) | High   | 60 min |
+| 20 | ~~**Add `FuzzKeyedRateLimiterKeyExtraction`** — untrusted RemoteAddr strings~~ Won't implement — rate limiter keys come from server-controlled RemoteAddr      | Medium | 30 min |
+| 21 | ~~**Add `BenchmarkCSRFMiddleware`** — no benchmark exists for the new security middleware~~ done at `eb1ac6a` (6 variants)                                     | Medium | 30 min |
+| 22 | ~~**Add `BenchmarkKeyedRateLimiter`** with various `MaxKeys` / `EvictionTTL` settings~~ done at `eb1ac6a` (6 variants)                                         | Medium | 30 min |
+| 23 | ~~**Modernize `server_timing_bench_test.go`** — migrate `b.N` → `b.Loop()` (6 gopls warnings)~~ done at `ae78e9a`                                              | Low    | 10 min |
+| 24 | ~~**Add `httpspec` spec for CORS headers** — extend the BDD suite with CORS behavior validation~~ done at `538a575` (`CORSSpecs()`, 4 specs)                   | Medium | 30 min |
+| 25 | ~~**Add `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`~~ done at `538a575` (`RateLimitSpecs()`, 3 specs)                            | Medium | 30 min |
+| 26 | ~~**Add integration test chaining all 16 middlewares** in recommended order~~ done at `eb1ac6a` (`stack_integration_test.go`)                                  | Medium | 30 min |
+| 27 | ~~**Audit all `Validate()` methods for completeness~~ done at `eb1ac6a` (but MaxBodySize + ShutdownTimeout still open in TODO_LIST)                            | Medium | 60 min |
 
 ### Medium — polish what I shipped
 
-| #   | Task                                                                                                                                                 | Impact | Effort |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 28  | **Condense the 9 verbose historical-report resolution tables** — several repeat "Won't implement in v0.8.0" 10+ times; collapse to grouped summaries | Low    | 30 min |
-| 29  | **Verify all internal markdown links resolve** across the 4 rebuilt living docs                                                                      | Low    | 10 min |
-| ~~30~~  | ~~**Verify FEATURES.md middleware table Fuzz column** — `grep` for each `Fuzz*` function name before claiming it~~ done at `2e15780` | ~~Low~~ | ~~5 min~~ |
-| ~~31~~  | ~~**Verify FEATURES.md Examples column** — `grep` for each `Example*` function name before claiming it~~ done at `2e15780` | ~~Low~~ | ~~5 min~~ |
-| 32  | ~~**Make README coverage badge dynamic** — wire to CI output~~ done at `eb1ac6a` (`scripts/update-coverage-badge.sh` + CI wired)                     | Low    | 30 min |
+| #      | Task                                                                                                                                                 | Impact  | Effort    |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------- |
+| 28     | **Condense the 9 verbose historical-report resolution tables** — several repeat "Won't implement in v0.8.0" 10+ times; collapse to grouped summaries | Low     | 30 min    |
+| 29     | **Verify all internal markdown links resolve** across the 4 rebuilt living docs                                                                      | Low     | 10 min    |
+| ~~30~~ | ~~**Verify FEATURES.md middleware table Fuzz column** — `grep` for each `Fuzz*` function name before claiming it~~ done at `2e15780`                 | ~~Low~~ | ~~5 min~~ |
+| ~~31~~ | ~~**Verify FEATURES.md Examples column** — `grep` for each `Example*` function name before claiming it~~ done at `2e15780`                           | ~~Low~~ | ~~5 min~~ |
+| 32     | ~~**Make README coverage badge dynamic** — wire to CI output~~ done at `eb1ac6a` (`scripts/update-coverage-badge.sh` + CI wired)                     | Low     | 30 min    |
 
 ### Lower — roadmap items (v0.9.0 / v1.0)
 
-| #   | Task                                                                                                   | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| ~~33~~  | ~~**Request body decompression middleware** — counterpart to `Compression` (ROADMAP v0.9.0)~~ done at `3ba8449` | ~~Medium~~ | ~~2 hr~~ |
-| 34  | **Rate limiter `context.Context` cancellation support** (ROADMAP v1.0)                                 | Low    | 30 min |
-| 35  | **Remove deprecated `TokenBucketLimiter` / `RateLimiter` / `RateLimitConfig` / `RateLimit()` at v1.0** | Medium | 30 min |
-| ~~36~~  | ~~**Add `ServerConfig.TLSConfig` validation** (ROADMAP v1.0)~~ done at `e81a714`, `9a4d0de` | ~~Low~~ | ~~30 min~~ |
-| 37  | **Property-based tests for token bucket** (ROADMAP — may not implement)                                | Low    | 1 hr   |
-| 38  | **Add `httpspec.ExpectJSON` / `ExpectHTML` builders**                                                  | Low    | 15 min |
-| 39  | **Add `Content-Length` preservation test** for small responses                                         | Low    | 30 min |
-| ~~40~~  | ~~**Evaluate `nopCloserWriter` / `nopFlushCloser` dead-code status** periodically~~ done (decided — kept for API safety; documented in AGENTS.md and the TODO_LIST rejected list) | ~~Low~~ | ~~5 min~~ |
+| #      | Task                                                                                                                                                                              | Impact     | Effort     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~33~~ | ~~**Request body decompression middleware** — counterpart to `Compression` (ROADMAP v0.9.0)~~ done at `3ba8449`                                                                   | ~~Medium~~ | ~~2 hr~~   |
+| 34     | **Rate limiter `context.Context` cancellation support** (ROADMAP v1.0)                                                                                                            | Low        | 30 min     |
+| 35     | **Remove deprecated `TokenBucketLimiter` / `RateLimiter` / `RateLimitConfig` / `RateLimit()` at v1.0**                                                                            | Medium     | 30 min     |
+| ~~36~~ | ~~**Add `ServerConfig.TLSConfig` validation** (ROADMAP v1.0)~~ done at `e81a714`, `9a4d0de`                                                                                       | ~~Low~~    | ~~30 min~~ |
+| 37     | **Property-based tests for token bucket** (ROADMAP — may not implement)                                                                                                           | Low        | 1 hr       |
+| 38     | **Add `httpspec.ExpectJSON` / `ExpectHTML` builders**                                                                                                                             | Low        | 15 min     |
+| 39     | **Add `Content-Length` preservation test** for small responses                                                                                                                    | Low        | 30 min     |
+| ~~40~~ | ~~**Evaluate `nopCloserWriter` / `nopFlushCloser` dead-code status** periodically~~ done (decided — kept for API safety; documented in AGENTS.md and the TODO_LIST rejected list) | ~~Low~~    | ~~5 min~~  |
 
 ### Lower — process and tooling
 
-| #   | Task                                                                                                                                  | Impact | Effort   |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| ~~41~~  | ~~**Add a pre-commit hook** that runs `govulncheck ./...` when `go.mod` changes — scheduled as M14 in Pareto plan (golangci-lint based)~~ done (govulncheck wired into tooling and CI (4c5798c); the devShell pre-commit hook covers formatting (dprint)) | ~~Medium~~ | ~~30 min~~ |
-| ~~42~~  | ~~**Add `.gitignore` entry for `httputil.test`** and remove the committed binary~~ done (resolved — the binary was removed; the gitignore entry became moot) | ~~Medium~~ | ~~2 min~~ |
-| ~~43~~  | ~~**Document the auto-commit daemon's behavior** in AGENTS.md — scheduled as M15 in Pareto plan~~ done at `fd33810` | ~~Low~~ | ~~10 min~~ |
-| ~~44~~  | ~~**Establish a recurring doc-freshness cadence** (monthly?) — scheduled as M15 in Pareto plan~~ done at `fd33810` | ~~Low~~ | ~~5 min~~ |
-| 45  | **Run the `full-code-review` skill** on the v0.8.0 state — scheduled as M23 in Pareto plan                                            | Low    | 2 hr     |
-| 46  | **Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                               | Low    | 5 min    |
-| 47  | **Run full benchmark suite with `-benchtime=3s -count=5`** for a statistically significant baseline                                   | Low    | 15 min   |
-| ~~48~~  | ~~**Verify `docs/RELEASE.md` includes `go mod verify` + `govulncheck` as mandatory pre-release steps**~~ done at `994d030` | ~~Low~~ | ~~5 min~~ |
-| ~~49~~  | ~~**Schedule the next docs-health pass** to run before v0.9.0 tag~~ done (done — multiple docs-health passes ran around the v0.9.0 tag and after) | ~~Low~~ | ~~5 min~~ |
-| ~~50~~  | ~~**Consider squashing the 5 auto-committed session commits** into one clean `docs: 2026-08-05 docs-health pass` commit before pushing~~ done (answered — no squash; the auto-commit daemon manages history (see g Q3)) | ~~Medium~~ | ~~decision~~ |
+| #      | Task                                                                                                                                                                                                                                                      | Impact     | Effort       |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ |
+| ~~41~~ | ~~**Add a pre-commit hook** that runs `govulncheck ./...` when `go.mod` changes — scheduled as M14 in Pareto plan (golangci-lint based)~~ done (govulncheck wired into tooling and CI (4c5798c); the devShell pre-commit hook covers formatting (dprint)) | ~~Medium~~ | ~~30 min~~   |
+| ~~42~~ | ~~**Add `.gitignore` entry for `httputil.test`** and remove the committed binary~~ done (resolved — the binary was removed; the gitignore entry became moot)                                                                                              | ~~Medium~~ | ~~2 min~~    |
+| ~~43~~ | ~~**Document the auto-commit daemon's behavior** in AGENTS.md — scheduled as M15 in Pareto plan~~ done at `fd33810`                                                                                                                                       | ~~Low~~    | ~~10 min~~   |
+| ~~44~~ | ~~**Establish a recurring doc-freshness cadence** (monthly?) — scheduled as M15 in Pareto plan~~ done at `fd33810`                                                                                                                                        | ~~Low~~    | ~~5 min~~    |
+| 45     | **Run the `full-code-review` skill** on the v0.8.0 state — scheduled as M23 in Pareto plan                                                                                                                                                                | Low        | 2 hr         |
+| 46     | **Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                                                                                                                                                   | Low        | 5 min        |
+| 47     | **Run full benchmark suite with `-benchtime=3s -count=5`** for a statistically significant baseline                                                                                                                                                       | Low        | 15 min       |
+| ~~48~~ | ~~**Verify `docs/RELEASE.md` includes `go mod verify` + `govulncheck` as mandatory pre-release steps**~~ done at `994d030`                                                                                                                                | ~~Low~~    | ~~5 min~~    |
+| ~~49~~ | ~~**Schedule the next docs-health pass** to run before v0.9.0 tag~~ done (done — multiple docs-health passes ran around the v0.9.0 tag and after)                                                                                                         | ~~Low~~    | ~~5 min~~    |
+| ~~50~~ | ~~**Consider squashing the 5 auto-committed session commits** into one clean `docs: 2026-08-05 docs-health pass` commit before pushing~~ done (answered — no squash; the auto-commit daemon manages history (see g Q3))                                   | ~~Medium~~ | ~~decision~~ |
 
 ---
 
@@ -281,16 +281,16 @@ I cannot decide because this depends on your push policy and whether the bundled
 
 ## Verification Snapshot
 
-| Check                              | Result                                                          |
-| ---------------------------------- | --------------------------------------------------------------- |
+| Check                              | Result                                                                                                                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `go test -race -count=1 ./...`     | ~~PASS (97.8% httputil, 98.9% httpspec)~~ PASS — but the 98.9% httpspec figure was wrong (the new specs file was unaccounted); actual ≈96.0%, corrected by later passes |
-| `go vet ./...`                     | clean                                                           |
-| `golangci-lint run` (~70 linters)  | 0 issues                                                        |
-| `scripts/check-changelog-links.sh` | PASS                                                            |
-| `govulncheck ./...`                | PASS — no vulnerabilities found (verified 2026-08-05 follow-up) |
-| `nix flake check`                  | PASS — all checks passed (verified 2026-08-05 follow-up)        |
-| `go mod verify`                    | PASS — all modules verified (verified 2026-08-05 follow-up)     |
-| Git state                          | auto-commits ahead of origin/master                             |
+| `go vet ./...`                     | clean                                                                                                                                                                   |
+| `golangci-lint run` (~70 linters)  | 0 issues                                                                                                                                                                |
+| `scripts/check-changelog-links.sh` | PASS                                                                                                                                                                    |
+| `govulncheck ./...`                | PASS — no vulnerabilities found (verified 2026-08-05 follow-up)                                                                                                         |
+| `nix flake check`                  | PASS — all checks passed (verified 2026-08-05 follow-up)                                                                                                                |
+| `go mod verify`                    | PASS — all modules verified (verified 2026-08-05 follow-up)                                                                                                             |
+| Git state                          | auto-commits ahead of origin/master                                                                                                                                     |
 
 ## Files Changed This Session
 
@@ -355,11 +355,11 @@ All items from sections c) NOT STARTED and d) TOTALLY FUCKED UP were addressed i
 
 ### Section g) Questions — Resolution
 
-| #   | Question                                                             | Answer                                                                                                                                                               |
-| --- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1  | Who authored AGENTS.md note + modularization HTMLs?                  | **Answered.** Lars Artmann (owner) authored them in a concurrent session. Legitimate work. Decision: KEEP.                                                           |
-| Q2  | Close `mustRequest` 75% now or document as permanent defensive path? | **Answered.** Closed it. `TestMustRequestPanicsOnInvalidMethod` triggers the panic path via `http.NewRequestWithContext` rejecting a method with spaces. 75% → 100%. |
-| Q3  | Squash the 5 auto-committed session commits before pushing?          | **Answered.** No squash needed — auto-commit daemon manages commits. Per global AGENTS.md: never rebase, never force-push. Leave as-is.                              |
+| #  | Question                                                             | Answer                                                                                                                                                               |
+| -- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1 | Who authored AGENTS.md note + modularization HTMLs?                  | **Answered.** Lars Artmann (owner) authored them in a concurrent session. Legitimate work. Decision: KEEP.                                                           |
+| Q2 | Close `mustRequest` 75% now or document as permanent defensive path? | **Answered.** Closed it. `TestMustRequestPanicsOnInvalidMethod` triggers the panic path via `http.NewRequestWithContext` rejecting a method with spaces. 75% → 100%. |
+| Q3 | Squash the 5 auto-committed session commits before pushing?          | **Answered.** No squash needed — auto-commit daemon manages commits. Per global AGENTS.md: never rebase, never force-push. Leave as-is.                              |
 
 ---
 

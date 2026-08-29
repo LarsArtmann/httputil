@@ -85,7 +85,7 @@
    - Then: removed them (when `Chain` params changed to unnamed type).
    - Then: the auto-git-commit daemon reformatted the file, causing a stale-read edit failure.
    - Then: re-read and re-edited.
-   This churn was caused by me changing the design mid-session (named type → unnamed params → alias) instead of thinking through the design first. The final state is correct, but the path was wasteful.
+     This churn was caused by me changing the design mid-session (named type → unnamed params → alias) instead of thinking through the design first. The final state is correct, but the path was wasteful.
 
 2. **The `nosurf.NewPure` fabrication.** In an earlier response, I wrote `nosurf.NewPure CSRFProtection(csrfFailureHandler)` as an example of middleware that would compose frictionlessly. This was completely fabricated — `nosurf.NewPure` returns `http.Handler`, not `func(http.Handler) http.Handler`. It's not middleware at all. I should have verified the API before using it in an example.
 

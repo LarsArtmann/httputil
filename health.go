@@ -23,16 +23,16 @@ type HealthResponse struct {
 // HealthHandler returns an http.HandlerFunc that responds with a simple
 // {"status": "up"} JSON payload. Use this for basic liveness probes.
 //
-// json.Encoder.Encode appends a trailing newline after the JSON body,
-// producing `{"status":"up"}\n` (16 bytes). This is intentional: the newline
-// improves terminal output and matches the convention of json.Marshal followed
-// by fmt.Println. The exact-byte test in health_test.go guards this behavior.
+// The trailing newline after the JSON body (producing `{"status":"up"}\n`,
+// 16 bytes) is intentional: the newline improves terminal output and matches
+// the convention of json.Marshal followed by fmt.Println. The exact-byte test
+// in health_test.go guards this behavior.
 func HealthHandler() http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "application/json")
 		resp.WriteHeader(http.StatusOK)
 
-		_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusUp})
+		writeHealthBody(resp, HealthStatusUp)
 	}
 }
 
@@ -62,15 +62,27 @@ func ReadyHandlerWithProbe(ready func() bool) http.HandlerFunc {
 		if ready() {
 			resp.WriteHeader(http.StatusOK)
 
-			_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusUp})
+			writeHealthBody(resp, HealthStatusUp)
 
 			return
 		}
 
 		resp.WriteHeader(http.StatusServiceUnavailable)
 
-		_ = json.MarshalWrite(resp, HealthResponse{Status: HealthStatusDown})
+		writeHealthBody(resp, HealthStatusDown)
 	}
+}
+
+// writeHealthBody writes the JSON health payload followed by a trailing
+// newline. json.MarshalWrite does not append one (unlike the json.Encoder
+// this file used before the encoding/json/v2 migration), so the newline is
+// written explicitly to keep the documented 16-byte body stable.
+func writeHealthBody(resp http.ResponseWriter, status HealthStatus) {
+	// Post-header-commit writes cannot be reported to the client (honest
+	// silence, same convention as Recovery/CSRF body writes).
+	_ = json.MarshalWrite(resp, HealthResponse{Status: status})
+
+	_, _ = resp.Write([]byte("\n"))
 }
 
 // RegisterHealth registers /health, /health/live, and /health/ready on the

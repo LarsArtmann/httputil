@@ -92,83 +92,83 @@
 
 > **Resolution (2026-08-07):** Items 1–3 fixed — coverage, sub-100% count, and middleware count corrected in FEATURES.md, README.md, and ROADMAP.md. Items 4–5 still open (Decompression sub-100% list + README API table).
 
-| #   | Task                                                                                      | Impact   | Effort |
-| --- | ----------------------------------------------------------------------------------------- | -------- | ------ |
-| ~~1~~   | ~~**Re-measure coverage** with decompression.go included and update ALL docs (97.6%→96.9%)~~ done at `166c181` | ~~Critical~~ | ~~5 min~~ |
-| ~~2~~   | ~~**Update sub-100% count** from 14 to 18 in FEATURES.md (3 new decompression.go functions)~~ done at `166c181` | ~~Critical~~ | ~~2 min~~ |
-| ~~3~~   | ~~**Update middleware count** from 16 to 17 everywhere (FEATURES, ROADMAP, README)~~ done at `166c181` | ~~Critical~~ | ~~5 min~~ |
-| ~~4~~   | ~~**Add decompression.go to FEATURES.md sub-100% list** with actual percentages~~ done at `166c181` | ~~Critical~~ | ~~5 min~~ |
-| ~~5~~   | ~~**Add Decompression to README.md** API table and middleware ordering section~~ done (done — README documents Decompression (API table and ordering section)) | ~~High~~ | ~~15 min~~ |
+| #     | Task                                                                                                                                                           | Impact       | Effort     |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------- |
+| ~~1~~ | ~~**Re-measure coverage** with decompression.go included and update ALL docs (97.6%→96.9%)~~ done at `166c181`                                                 | ~~Critical~~ | ~~5 min~~  |
+| ~~2~~ | ~~**Update sub-100% count** from 14 to 18 in FEATURES.md (3 new decompression.go functions)~~ done at `166c181`                                                | ~~Critical~~ | ~~2 min~~  |
+| ~~3~~ | ~~**Update middleware count** from 16 to 17 everywhere (FEATURES, ROADMAP, README)~~ done at `166c181`                                                         | ~~Critical~~ | ~~5 min~~  |
+| ~~4~~ | ~~**Add decompression.go to FEATURES.md sub-100% list** with actual percentages~~ done at `166c181`                                                            | ~~Critical~~ | ~~5 min~~  |
+| ~~5~~ | ~~**Add Decompression to README.md** API table and middleware ordering section~~ done (done — README documents Decompression (API table and ordering section)) | ~~High~~     | ~~15 min~~ |
 
 ### High — close the decompression coverage gaps
 
 > **Resolution (2026-08-07):** All 3 items still open. `limitedReader.Close()` coverage and bomb-protection test gaps remain.
 
-| #   | Task                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
-| ~~6~~   | ~~**Write test for `limitedReader.Close()`** (currently 0%)~~ done at `ac3ac1c`, `54afaa7` | ~~High~~ | ~~5 min~~ |
-| ~~7~~   | ~~**Write test for `limitedReader.Read()` error path** (currently 58.3%)~~ done at `ac3ac1c`, `54afaa7` | ~~High~~ | ~~10 min~~ |
-| ~~8~~   | ~~**Write test for decompression bomb protection** (exceed MaxDecompressionSize)~~ done at `54afaa7` | ~~High~~ | ~~10 min~~ |
-| ~~9~~   | ~~**Write test for `Decompression()` encoding filter** (rejecting unallowed encoding)~~ done at `54afaa7` | ~~High~~ | ~~5 min~~ |
-| ~~10~~  | ~~**Write `ExampleDecompression`** function (consistency with all other middleware)~~ done (exists — ExampleDecompression (example_test.go)) | ~~Medium~~ | ~~10 min~~ |
+| #      | Task                                                                                                                                         | Impact     | Effort     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~6~~  | ~~**Write test for `limitedReader.Close()`** (currently 0%)~~ done at `ac3ac1c`, `54afaa7`                                                   | ~~High~~   | ~~5 min~~  |
+| ~~7~~  | ~~**Write test for `limitedReader.Read()` error path** (currently 58.3%)~~ done at `ac3ac1c`, `54afaa7`                                      | ~~High~~   | ~~10 min~~ |
+| ~~8~~  | ~~**Write test for decompression bomb protection** (exceed MaxDecompressionSize)~~ done at `54afaa7`                                         | ~~High~~   | ~~10 min~~ |
+| ~~9~~  | ~~**Write test for `Decompression()` encoding filter** (rejecting unallowed encoding)~~ done at `54afaa7`                                    | ~~High~~   | ~~5 min~~  |
+| ~~10~~ | ~~**Write `ExampleDecompression`** function (consistency with all other middleware)~~ done (exists — ExampleDecompression (example_test.go)) | ~~Medium~~ | ~~10 min~~ |
 
 ### Medium — actually do the work I claimed I did
 
 > **Resolution (2026-08-07):** Item 14 done (CI YAML valid). Items 11–13 still open (full-code-review, condense annotations, pre-commit hook test).
 
-| #   | Task                                                                                       | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| 11  | **Actually run the `full-code-review` skill** (M23 — claimed but not done)                 | Medium | 30 min |
-| 12  | **Actually condense verbose annotation tables** (M20 — claimed but not done)               | Low    | 30 min |
-| 13  | **Test the pre-commit hook** with a deliberate lint failure (F14.3 — planned but not done) | Medium | 10 min |
-| ~~14~~  | ~~**Validate the CI YAML** is syntactically valid (F7.3 — planned but not done)~~ done (CI has run green on every push since, validating the workflow in practice) | ~~Medium~~ | ~~5 min~~ |
+| #      | Task                                                                                                                                                               | Impact     | Effort    |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | --------- |
+| 11     | **Actually run the `full-code-review` skill** (M23 — claimed but not done)                                                                                         | Medium     | 30 min    |
+| 12     | **Actually condense verbose annotation tables** (M20 — claimed but not done)                                                                                       | Low        | 30 min    |
+| 13     | **Test the pre-commit hook** with a deliberate lint failure (F14.3 — planned but not done)                                                                         | Medium     | 10 min    |
+| ~~14~~ | ~~**Validate the CI YAML** is syntactically valid (F7.3 — planned but not done)~~ done (CI has run green on every push since, validating the workflow in practice) | ~~Medium~~ | ~~5 min~~ |
 
 ### Medium — decompression completeness
 
 > **Resolution (2026-08-07):** Item 19 done (AGENTS.md has decompression.go). Item 20 done (*.test in .gitignore). Items 15–18, 21–23 still open.
 
-| #   | Task                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
-| ~~15~~  | ~~**Add `DecompressionConfig` to DOMAIN_LANGUAGE.md**~~ done at `d0f9e7f` | ~~Medium~~ | ~~5 min~~ |
-| ~~16~~  | ~~**Write `BenchmarkDecompression`** (gzip + deflate + passthrough)~~ done at `8c1cb47` | ~~Medium~~ | ~~15 min~~ |
-| ~~17~~  | ~~**Write `FuzzDecompression`** (random compressed bodies)~~ done (exists — decompression_fuzz_test.go (08-07 sessions)) | ~~Medium~~ | ~~20 min~~ |
-| 18  | **Add `testdata/fuzz/` to `.gitignore`**                                            | Low    | 2 min  |
-| ~~19~~  | ~~**Update AGENTS.md middleware table** with decompression.go (already added, verify)~~ done at `d0f9e7f` | ~~Low~~ | ~~2 min~~ |
+| #      | Task                                                                                                                     | Impact     | Effort     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
+| ~~15~~ | ~~**Add `DecompressionConfig` to DOMAIN_LANGUAGE.md**~~ done at `d0f9e7f`                                                | ~~Medium~~ | ~~5 min~~  |
+| ~~16~~ | ~~**Write `BenchmarkDecompression`** (gzip + deflate + passthrough)~~ done at `8c1cb47`                                  | ~~Medium~~ | ~~15 min~~ |
+| ~~17~~ | ~~**Write `FuzzDecompression`** (random compressed bodies)~~ done (exists — decompression_fuzz_test.go (08-07 sessions)) | ~~Medium~~ | ~~20 min~~ |
+| 18     | **Add `testdata/fuzz/` to `.gitignore`**                                                                                 | Low        | 2 min      |
+| ~~19~~ | ~~**Update AGENTS.md middleware table** with decompression.go (already added, verify)~~ done at `d0f9e7f`                | ~~Low~~    | ~~2 min~~  |
 
 ### Medium — CI and process
 
 > **Resolution (2026-08-07):** Items covered by v0.9.0 CI hardening (race, coverage gate, pre-commit hook shipped). Item 23 (awk script) still open.
 
-| #   | Task                                                                                   | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------- | ------ | ------ |
-| ~~20~~  | ~~**Add `.gitignore` entry for `httputil.test` binary** (from prior session TODO)~~ done (resolved — the binary was removed (see the 07-02 report, e8)) | ~~Medium~~ | ~~2 min~~ |
-| ~~21~~  | ~~**Update `docs/v1-stability.md`** to classify Decompression (Frozen/Additive/Evolving)~~ done (done — v1-stability.md classifies Decompression) | ~~Medium~~ | ~~10 min~~ |
-| 22  | **Verify `docs/RELEASE.md`** includes decompression in the pre-release checklist       | Low    | 5 min  |
-| 23  | **The CI coverage threshold awk script** is fragile — consider a Go-based checker      | Low    | 30 min |
+| #      | Task                                                                                                                                                    | Impact     | Effort     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~20~~ | ~~**Add `.gitignore` entry for `httputil.test` binary** (from prior session TODO)~~ done (resolved — the binary was removed (see the 07-02 report, e8)) | ~~Medium~~ | ~~2 min~~  |
+| ~~21~~ | ~~**Update `docs/v1-stability.md`** to classify Decompression (Frozen/Additive/Evolving)~~ done (done — v1-stability.md classifies Decompression)       | ~~Medium~~ | ~~10 min~~ |
+| 22     | **Verify `docs/RELEASE.md`** includes decompression in the pre-release checklist                                                                        | Low        | 5 min      |
+| 23     | **The CI coverage threshold awk script** is fragile — consider a Go-based checker                                                                       | Low        | 30 min     |
 
 ### Lower — polish and roadmap
 
 > **Resolution (2026-08-07):** Item 24 obsolete (v0.9.0 shipped). Item 26 obsolete (N/A — migration doc is rate-limiter only). Items 28–31 in ROADMAP.md (v1.0 scope). Item 33 done (doc-freshness cadence in AGENTS.md). Remaining items still open.
 
-| #   | Task                                                                                      | Impact | Effort   |
-| --- | ----------------------------------------------------------------------------------------- | ------ | -------- |
-| ~~24~~  | ~~**v0.9.0 milestone is now empty** — decompression was the only planned v0.9.0 feature~~ done (resolved — v0.9.0 shipped with decompression (b98009b)) | ~~Medium~~ | ~~decision~~ |
-| ~~25~~  | ~~**Evaluate whether Decompression should be in the `MiddlewareStack` name constants**~~ done (decided — MiddlewareDecompression is in the stack constants (stack.go)) | ~~Low~~ | ~~10 min~~ |
-| ~~26~~  | ~~**Add decompression to `docs/migrating-to-keyed-rate-limiter.md`** — N/A, but check docs/~~ done (N/A — the migration guide is rate-limiter-specific) | ~~Low~~ | ~~5 min~~ |
-| ~~27~~  | ~~**Run `art-dupl` to verify decompression doesn't introduce duplication**~~ done (verified — AGENTS.md records 0 clone groups through the 08-14 sessions) | ~~Low~~ | ~~5 min~~ |
-| 28  | **Consider brotli/zstd decompression support** via plugin interface                       | Low    | future   |
-| 29  | **Evaluate `context.Context` support for `KeyedRateLimiter`** (v1.0 prep)                 | Low    | 30 min   |
-| 30  | **Design `ServerConfig.TLSConfig` validation** (v1.0 prep)                                | Low    | 30 min   |
-| 31  | **Remove `TokenBucketLimiter`** at v1.0 (evaluate migration guide completeness)           | Low    | 30 min   |
-| 32  | **Run `brutal-self-review` skill** properly with HTML report output                       | Low    | 30 min   |
-| ~~33~~  | ~~**Establish recurring doc-freshness cadence** (monthly docs-health pass)~~ done at `fd33810` | ~~Low~~ | ~~5 min~~ |
-| 34  | **Pin D2 layout engine version** in flake.nix                                             | Low    | 5 min    |
-| 35  | **Consider `ExpectJSON` / `ExpectHTML` builders for httpspec**                            | Low    | 15 min   |
-| 36  | **Profile `httptest.NewRequest` cost in fuzz tests**                                      | Low    | 15 min   |
-| 37  | **Add `Content-Length` preservation test** for small responses                            | Low    | 30 min   |
-| ~~38~~  | ~~**Verify `art-dupl` "0 clones" claim** is still true after decompression.go~~ done (verified — AGENTS.md records 0 clone groups through the 08-14 sessions) | ~~Low~~ | ~~5 min~~ |
-| 39  | **Run full benchmark suite** with `-benchtime=3s -count=5` for baselines                  | Low    | 15 min   |
-| 40  | **Consider HTMX-specific middleware helpers** beyond CSRF token helpers                   | Low    | future   |
+| #      | Task                                                                                                                                                                   | Impact     | Effort       |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ |
+| ~~24~~ | ~~**v0.9.0 milestone is now empty** — decompression was the only planned v0.9.0 feature~~ done (resolved — v0.9.0 shipped with decompression (b98009b))                | ~~Medium~~ | ~~decision~~ |
+| ~~25~~ | ~~**Evaluate whether Decompression should be in the `MiddlewareStack` name constants**~~ done (decided — MiddlewareDecompression is in the stack constants (stack.go)) | ~~Low~~    | ~~10 min~~   |
+| ~~26~~ | ~~**Add decompression to `docs/migrating-to-keyed-rate-limiter.md`** — N/A, but check docs/~~ done (N/A — the migration guide is rate-limiter-specific)                | ~~Low~~    | ~~5 min~~    |
+| ~~27~~ | ~~**Run `art-dupl` to verify decompression doesn't introduce duplication**~~ done (verified — AGENTS.md records 0 clone groups through the 08-14 sessions)             | ~~Low~~    | ~~5 min~~    |
+| 28     | **Consider brotli/zstd decompression support** via plugin interface                                                                                                    | Low        | future       |
+| 29     | **Evaluate `context.Context` support for `KeyedRateLimiter`** (v1.0 prep)                                                                                              | Low        | 30 min       |
+| 30     | **Design `ServerConfig.TLSConfig` validation** (v1.0 prep)                                                                                                             | Low        | 30 min       |
+| 31     | **Remove `TokenBucketLimiter`** at v1.0 (evaluate migration guide completeness)                                                                                        | Low        | 30 min       |
+| 32     | **Run `brutal-self-review` skill** properly with HTML report output                                                                                                    | Low        | 30 min       |
+| ~~33~~ | ~~**Establish recurring doc-freshness cadence** (monthly docs-health pass)~~ done at `fd33810`                                                                         | ~~Low~~    | ~~5 min~~    |
+| 34     | **Pin D2 layout engine version** in flake.nix                                                                                                                          | Low        | 5 min        |
+| 35     | **Consider `ExpectJSON` / `ExpectHTML` builders for httpspec**                                                                                                         | Low        | 15 min       |
+| 36     | **Profile `httptest.NewRequest` cost in fuzz tests**                                                                                                                   | Low        | 15 min       |
+| 37     | **Add `Content-Length` preservation test** for small responses                                                                                                         | Low        | 30 min       |
+| ~~38~~ | ~~**Verify `art-dupl` "0 clones" claim** is still true after decompression.go~~ done (verified — AGENTS.md records 0 clone groups through the 08-14 sessions)          | ~~Low~~    | ~~5 min~~    |
+| 39     | **Run full benchmark suite** with `-benchtime=3s -count=5` for baselines                                                                                               | Low        | 15 min       |
+| 40     | **Consider HTMX-specific middleware helpers** beyond CSRF token helpers                                                                                                | Low        | future       |
 
 ---
 

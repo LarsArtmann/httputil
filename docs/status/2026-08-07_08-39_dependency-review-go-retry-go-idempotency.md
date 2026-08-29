@@ -20,18 +20,18 @@ The user asked: _"Review go-retry and go-idempotency — any use for them in thi
 
 ## a) FULLY DONE
 
-| #   | Item                                                                                        | Notes                                                                                                                                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ~~1~~   | ~~Read both repos' README + AGENTS + public exports~~ done at `510f06d` | ~~`go-retry`: `Do`/`Config`/`Backoff`/`ComputeDelay` + `ErrExhausted`/`ErrCanceled`, `go-error-family`-based. `go-idempotency`: `Store` iface, `MemoryStore` (`Seen`/`Record`/`CheckAndRecord`/`Close`), `ErrDuplicate` as `Conflict`.~~ |
-| ~~2~~   | ~~Cross-checked httputil's ROADMAP / FEATURES / TODO for existing idempotency/retry mentions~~ done at `510f06d` | ~~Only hits were `Retry-After` headers in rate limiting and `httpspec` rate-limit specs — unrelated to these libs. No prior idempotency-key work exists.~~ |
-| ~~3~~   | ~~Produced a categorized recommendation (no-fit / pattern-fit-but-defer / plugin-over-import)~~ done at `510f06d` | ~~Delivered in chat with reasoning grounded in httputil's dependency policy and plugin conventions.~~ |
+| #     | Item                                                                                                              | Notes                                                                                                                                                                                                                                    |
+| ----- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~1~~ | ~~Read both repos' README + AGENTS + public exports~~ done at `510f06d`                                           | ~~`go-retry`: `Do`/`Config`/`Backoff`/`ComputeDelay` + `ErrExhausted`/`ErrCanceled`, `go-error-family`-based. `go-idempotency`: `Store` iface, `MemoryStore` (`Seen`/`Record`/`CheckAndRecord`/`Close`), `ErrDuplicate` as `Conflict`.~~ |
+| ~~2~~ | ~~Cross-checked httputil's ROADMAP / FEATURES / TODO for existing idempotency/retry mentions~~ done at `510f06d`  | ~~Only hits were `Retry-After` headers in rate limiting and `httpspec` rate-limit specs — unrelated to these libs. No prior idempotency-key work exists.~~                                                                               |
+| ~~3~~ | ~~Produced a categorized recommendation (no-fit / pattern-fit-but-defer / plugin-over-import)~~ done at `510f06d` | ~~Delivered in chat with reasoning grounded in httputil's dependency policy and plugin conventions.~~                                                                                                                                    |
 
 ## b) PARTIALLY DONE
 
-| #   | Item                                    | What's missing                                                                                                                                                 |
-| --- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~1~~   | ~~**ROADMAP note for idempotency**~~ done at `a5e9944` | ~~I **recommended** "file idempotency as a post-v1.0 idea in `ROADMAP.md`" but **did not actually write it**. This is the session's primary gap — see (d) below.~~ |
-| ~~2~~   | ~~Applicability assessment for `go-retry`~~ done at `a5e9944` | ~~Analysis is complete but I did not record the "non-goal" rationale anywhere durable (e.g. a ROADMAP non-goal entry), so the reasoning is session-only.~~ |
+| #     | Item                                                          | What's missing                                                                                                                                                     |
+| ----- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ~~1~~ | ~~**ROADMAP note for idempotency**~~ done at `a5e9944`        | ~~I **recommended** "file idempotency as a post-v1.0 idea in `ROADMAP.md`" but **did not actually write it**. This is the session's primary gap — see (d) below.~~ |
+| ~~2~~ | ~~Applicability assessment for `go-retry`~~ done at `a5e9944` | ~~Analysis is complete but I did not record the "non-goal" rationale anywhere durable (e.g. a ROADMAP non-goal entry), so the reasoning is session-only.~~         |
 
 ## c) NOT STARTED
 

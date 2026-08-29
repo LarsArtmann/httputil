@@ -63,6 +63,10 @@ Any function taking `*testing.T` that calls `t.Fatal`/`t.Error` must start with 
 ## Commands
 
 ```bash
+# /mnt/buildcache is unwritable in some environments — export these first or every
+# Go toolchain invocation fails with "failed to initialize build cache":
+export GOCACHE=$HOME/.cache/go-build-httputil GOLANGCI_LINT_CACHE=$HOME/.cache/golangci-lint-httputil
+
 go test ./...              # Run tests
 go test -race ./...        # Race detection (REQUIRED for tests with t.Parallel() or shared state)
 go test -race -count=N ./... # Surface timing-dependent races — repeat N times
@@ -106,7 +110,7 @@ Once a version tag (e.g., `v0.8.0`) is created, the corresponding `[version]` se
 
 ### Why the Root Package Is Flat (Deliberate, Not Debt)
 
-The root `httputil` package has 34 non-test files in one directory. **Decision confirmed by the user (2026-08-05) based on ergonomics**: for a middleware library where everything shares one signature (`func(http.Handler) http.Handler`), a single import path (`httputil.CORS()`) beats fragmented sub-package namespaces (`httputil/cors.CORS()`). Public sub-packages are also structurally impossible: compression depends on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), creating circular imports if extracted. An `internal/` extraction is technically viable (root → internal is one direction, no cycles) but deferred until post-v1.0 or if root exceeds ~50 non-test files. See `docs/architecture-understanding/2026-08-05_06-56_package-structure-analysis.html` and `docs/modularization/2026-08-05_DECISION.html` for the full analysis.
+The root `httputil` package has 35 non-test files in one directory. **Decision confirmed by the user (2026-08-05) based on ergonomics**: for a middleware library where everything shares one signature (`func(http.Handler) http.Handler`), a single import path (`httputil.CORS()`) beats fragmented sub-package namespaces (`httputil/cors.CORS()`). Public sub-packages are also structurally impossible: compression depends on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), creating circular imports if extracted. An `internal/` extraction is technically viable (root → internal is one direction, no cycles) but deferred until post-v1.0 or if root exceeds ~50 non-test files. See `docs/architecture-understanding/2026-08-05_06-56_package-structure-analysis.html` and `docs/modularization/2026-08-05_DECISION.html` for the full analysis.
 
 | File                          | Exports                                                                                                                                                                                                                              | Purpose                                                                                      |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |

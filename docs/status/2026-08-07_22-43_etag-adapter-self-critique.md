@@ -13,18 +13,18 @@ Completed 10 of 10 planned tasks. Build, vet, lint (0 issues), and race tests pa
 
 ## a) FULLY DONE (verified this session)
 
-| #   | Task                                                                                                                                                       | Evidence                                                                        |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| ~~1~~   | ~~`go mod tidy` — removed `// indirect` marker from go-etag~~ done at `6292117` | ~~`go.mod` line 13: `require github.com/larsartmann/go-etag v0.1.0` (no indirect)~~ |
-| ~~2~~   | ~~`etag.go` doc comment — documented 3 adapter decisions (no re-exports, no DefaultETagConfig wrapper, registration is a superset)~~ done at `6292117` | ~~`etag.go:7-17`, lint clean~~ |
-| ~~3~~   | ~~`CONTRIBUTING.md` — go-etag added to allowed dependencies~~ done at `6292117` | ~~Line 39~~ |
-| ~~4~~   | ~~`docs/v1-stability.md` — `ETag` factory + `MiddlewareETag` constant (11→12)~~ done at `bbb4a34` | ~~Lines 64, 204~~ |
-| ~~5~~   | ~~D2 `.d2` source — 16→17, ETag node, go-etag dependency box~~ done at `6292117` | ~~`2026-08-05_httputil-current.d2`~~ |
-| ~~6~~   | ~~D2 `.svg` regenerated from updated source~~ done at `6292117` | ~~Verified: "Middleware Chain (17)", ETag node, go-etag box present in SVG text~~ |
-| ~~7~~   | ~~`docs/DOMAIN_LANGUAGE.md` — full Conditional Requests bounded context (entity, 5 value objects, command, 3 events, rules section, 3 error codes, dep list)~~ done at `bbb4a34` | ~~Multiple sections updated~~ |
-| ~~8~~   | ~~`AGENTS.md` — 4 deps, 33 files, `etag.go` file-table row, error-classification table (3 ETag rows), test list~~ done at `bea5d08` | ~~Multiple sections updated~~ |
-| ~~9~~   | ~~`ExampleETag` added to `example_test.go` — demonstrates ETag generation + conditional 304 through two requests~~ done at `bea5d08` | ~~`go test -run ExampleETag` PASS~~ |
-| ~~10~~  | ~~`TestETag_ChainedWithCompression` added to `etag_test.go` — verifies ETag + Content-Encoding both produced, then 304 through the chain~~ done at `58ed5e1` | ~~`go test -race -run TestETag_ChainedWithCompression` PASS~~ |
+| #      | Task                                                                                                                                                                             | Evidence                                                                            |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| ~~1~~  | ~~`go mod tidy` — removed `// indirect` marker from go-etag~~ done at `6292117`                                                                                                  | ~~`go.mod` line 13: `require github.com/larsartmann/go-etag v0.1.0` (no indirect)~~ |
+| ~~2~~  | ~~`etag.go` doc comment — documented 3 adapter decisions (no re-exports, no DefaultETagConfig wrapper, registration is a superset)~~ done at `6292117`                           | ~~`etag.go:7-17`, lint clean~~                                                      |
+| ~~3~~  | ~~`CONTRIBUTING.md` — go-etag added to allowed dependencies~~ done at `6292117`                                                                                                  | ~~Line 39~~                                                                         |
+| ~~4~~  | ~~`docs/v1-stability.md` — `ETag` factory + `MiddlewareETag` constant (11→12)~~ done at `bbb4a34`                                                                                | ~~Lines 64, 204~~                                                                   |
+| ~~5~~  | ~~D2 `.d2` source — 16→17, ETag node, go-etag dependency box~~ done at `6292117`                                                                                                 | ~~`2026-08-05_httputil-current.d2`~~                                                |
+| ~~6~~  | ~~D2 `.svg` regenerated from updated source~~ done at `6292117`                                                                                                                  | ~~Verified: "Middleware Chain (17)", ETag node, go-etag box present in SVG text~~   |
+| ~~7~~  | ~~`docs/DOMAIN_LANGUAGE.md` — full Conditional Requests bounded context (entity, 5 value objects, command, 3 events, rules section, 3 error codes, dep list)~~ done at `bbb4a34` | ~~Multiple sections updated~~                                                       |
+| ~~8~~  | ~~`AGENTS.md` — 4 deps, 33 files, `etag.go` file-table row, error-classification table (3 ETag rows), test list~~ done at `bea5d08`                                              | ~~Multiple sections updated~~                                                       |
+| ~~9~~  | ~~`ExampleETag` added to `example_test.go` — demonstrates ETag generation + conditional 304 through two requests~~ done at `bea5d08`                                             | ~~`go test -run ExampleETag` PASS~~                                                 |
+| ~~10~~ | ~~`TestETag_ChainedWithCompression` added to `etag_test.go` — verifies ETag + Content-Encoding both produced, then 304 through the chain~~ done at `58ed5e1`                     | ~~`go test -race -run TestETag_ChainedWithCompression` PASS~~                       |
 
 **Verification passed:** `go build ./...`, `go vet ./...`, `golangci-lint run` (0 issues), `go test -race ./...` (both packages pass).
 

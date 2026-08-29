@@ -16,36 +16,36 @@ Single task: clean up `ROADMAP.md`.
 
 ## a) FULLY DONE
 
-| #   | Item                                                                                                                                                                                | Evidence                                         |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| ~~1~~   | ~~Read ROADMAP.md, TODO_LIST.md, FEATURES.md, CHANGELOG.md before editing~~ done at `b90616e` | ~~All four viewed in session~~ |
-| ~~2~~   | ~~Verified referenced doc paths exist (`docs/v1-stability.md`, `docs/migrating-to-keyed-rate-limiter.md`, `docs/integrations/`, `docs/research/deny-unmatched-default-evaluation.md`)~~ done at `b90616e` | ~~`ls` confirmed~~ |
-| ~~3~~   | ~~Rewrote ROADMAP.md: 101 → 48 lines~~ done at `b90616e` | ~~`write` succeeded; file re-read and verified~~ |
-| ~~4~~   | ~~Removed ~15 strikethrough "Resolved" items (v0.7.0/v0.8.0 renames, coverage close, example docs)~~ done at `b90616e` | ~~These live in CHANGELOG `[0.7.x]`/`[0.8.0]`~~ |
-| ~~5~~   | ~~Moved refined ideas (CORS spec, rate-limit spec, full-stack integration test) out — they are bounded TODO_LIST tasks~~ done at `b90616e` | ~~TODO_LIST.md lines 21–23~~ |
-| ~~6~~   | ~~Consolidated the property-based-tests split brain (was "deferred indefinitely" + "raw idea" + "Won't Implement") into a single Non-goal with reasoning~~ done at `b90616e` | ~~ROADMAP.md Non-goals~~ |
-| ~~7~~   | ~~Restructured 3 depleted "Theme" sections into milestone-based sections (v0.9.0 / v1.0 / Dependency Policy / Non-goals)~~ done at `b90616e` | ~~Themes 2–3 had no raw ideas left after cleanup~~ |
-| ~~8~~   | ~~Added TODO_LIST + CHANGELOG cross-links in the header~~ done at `b90616e` | ~~ROADMAP.md lines 4–5~~ |
-| ~~9~~   | ~~Spotted that TODO_LIST lists `Example*` functions (CSRF/ServerTiming/KeyedRateLimit) as `[ ]` TODO despite all three existing in source~~ done at `b90616e` | ~~`rg` confirmed all three `func Example...` exist~~ |
+| #     | Item                                                                                                                                                                                                      | Evidence                                             |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| ~~1~~ | ~~Read ROADMAP.md, TODO_LIST.md, FEATURES.md, CHANGELOG.md before editing~~ done at `b90616e`                                                                                                             | ~~All four viewed in session~~                       |
+| ~~2~~ | ~~Verified referenced doc paths exist (`docs/v1-stability.md`, `docs/migrating-to-keyed-rate-limiter.md`, `docs/integrations/`, `docs/research/deny-unmatched-default-evaluation.md`)~~ done at `b90616e` | ~~`ls` confirmed~~                                   |
+| ~~3~~ | ~~Rewrote ROADMAP.md: 101 → 48 lines~~ done at `b90616e`                                                                                                                                                  | ~~`write` succeeded; file re-read and verified~~     |
+| ~~4~~ | ~~Removed ~15 strikethrough "Resolved" items (v0.7.0/v0.8.0 renames, coverage close, example docs)~~ done at `b90616e`                                                                                    | ~~These live in CHANGELOG `[0.7.x]`/`[0.8.0]`~~      |
+| ~~5~~ | ~~Moved refined ideas (CORS spec, rate-limit spec, full-stack integration test) out — they are bounded TODO_LIST tasks~~ done at `b90616e`                                                                | ~~TODO_LIST.md lines 21–23~~                         |
+| ~~6~~ | ~~Consolidated the property-based-tests split brain (was "deferred indefinitely" + "raw idea" + "Won't Implement") into a single Non-goal with reasoning~~ done at `b90616e`                              | ~~ROADMAP.md Non-goals~~                             |
+| ~~7~~ | ~~Restructured 3 depleted "Theme" sections into milestone-based sections (v0.9.0 / v1.0 / Dependency Policy / Non-goals)~~ done at `b90616e`                                                              | ~~Themes 2–3 had no raw ideas left after cleanup~~   |
+| ~~8~~ | ~~Added TODO_LIST + CHANGELOG cross-links in the header~~ done at `b90616e`                                                                                                                               | ~~ROADMAP.md lines 4–5~~                             |
+| ~~9~~ | ~~Spotted that TODO_LIST lists `Example*` functions (CSRF/ServerTiming/KeyedRateLimit) as `[ ]` TODO despite all three existing in source~~ done at `b90616e`                                             | ~~`rg` confirmed all three `func Example...` exist~~ |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| #   | Item                                                | Why partial                                                                                                                                                                                                                                                                                                                                                                                  |
-| --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~1~~   | ~~"Verify ROADMAP claims against source"~~ done (later docs-health passes ran VERIFY on the rebuilt docs) | ~~I verified doc **paths** exist, but did NOT run a VERIFY pass on **factual claims** (e.g. is decompression really not started? is `TokenBucketLimiter` really still present?). The `docs-health` skill defines a VERIFY mode I did not invoke.~~ |
-| ~~2~~   | ~~"Zero information loss" claim in my closing message~~ done (confirmed dropped — the milestone-based ROADMAP persisted without them) | ~~Mostly true for forward-looking content, but I dropped two **vision statements**: the "Extensibility without new dependencies" aspirational framing (now a static "Dependency policy" section) and the "Depth and confidence — deep enough to trust without audit" rationale. These are minor narrative losses, not data loss, but my "zero information loss" claim was slightly too strong.~~ |
+| #     | Item                                                                                                                                  | Why partial                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ~~1~~ | ~~"Verify ROADMAP claims against source"~~ done (later docs-health passes ran VERIFY on the rebuilt docs)                             | ~~I verified doc **paths** exist, but did NOT run a VERIFY pass on **factual claims** (e.g. is decompression really not started? is `TokenBucketLimiter` really still present?). The `docs-health` skill defines a VERIFY mode I did not invoke.~~                                                                                                                                               |
+| ~~2~~ | ~~"Zero information loss" claim in my closing message~~ done (confirmed dropped — the milestone-based ROADMAP persisted without them) | ~~Mostly true for forward-looking content, but I dropped two **vision statements**: the "Extensibility without new dependencies" aspirational framing (now a static "Dependency policy" section) and the "Depth and confidence — deep enough to trust without audit" rationale. These are minor narrative losses, not data loss, but my "zero information loss" claim was slightly too strong.~~ |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                                                                                                                         |
-| --- | ---------------------------------------------------------------------------------------------------------------------------- |
-| ~~1~~   | ~~Fixing the TODO_LIST stale `Example*` items I detected (see section d)~~ done at `b90616e` |
-| ~~2~~   | ~~A `docs-health` HARVEST pass to route this report's findings into TODO_LIST/ROADMAP~~ done (done — later passes harvested and rebuilt TODO_LIST) |
-| ~~3~~   | ~~Checking whether other docs (README, AGENTS.md project-doc table) reference the old ROADMAP section structure I restructured~~ done (current docs reference no Themes structure) |
+| #     | Item                                                                                                                                                                               |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~1~~ | ~~Fixing the TODO_LIST stale `Example*` items I detected (see section d)~~ done at `b90616e`                                                                                       |
+| ~~2~~ | ~~A `docs-health` HARVEST pass to route this report's findings into TODO_LIST/ROADMAP~~ done (done — later passes harvested and rebuilt TODO_LIST)                                 |
+| ~~3~~ | ~~Checking whether other docs (README, AGENTS.md project-doc table) reference the old ROADMAP section structure I restructured~~ done (current docs reference no Themes structure) |
 
 ---
 

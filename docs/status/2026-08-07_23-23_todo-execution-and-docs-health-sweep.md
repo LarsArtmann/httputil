@@ -23,28 +23,28 @@
 
 ## a) FULLY DONE (verified this session)
 
-| #   | Task                                                                            | Evidence                                                                                                                                                                   |
-| --- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Added `MiddlewareETag` to `buildFullStack` in `stack_integration_test.go`       | Placed after `MiddlewareCompression` so ETag hashes uncompressed body; comment updated "16"→"17"; `etag` import added; test passes                                         |
-| 2   | Added ETag positioning guidance to `README.md`                                  | Middleware Ordering section now documents: ETag must be inside (after) Compression so it hashes uncompressed bytes; explains why placing before Compression breaks caching |
-| 3   | Removed unused `assertBodyEmpty` from `testutil_test.go`                        | Was `gopls unusedfunc` flagged; 0 callers verified via `grep -rn`; dead code from old in-package ETag tests                                                                |
-| 4   | Added `MiddlewareDecompression = "decompression"` constant to `stack.go`        | All 13 middlewares now have `Middleware*` constants; enables `stack.Add(MiddlewareDecompression, ...)`                                                                     |
-| 5   | Added `BenchmarkCompressionNegotiator` (`compression_negotiator_bench_test.go`) | 3 sub-benchmarks: singleToken (6.2 ns), browserMulti (73.9 ns), emptyHeader (2.1 ns); 0 allocs across all paths                                                            |
-| 6   | Fixed README.md coverage split brain                                            | Badge: 96.9%→97.0%; Quality Gates table: 96.9%→97.0%; verified 0 stale `96.9%` remain outside historical reports                                                           |
-| 7   | Updated FEATURES.md benchmark count                                             | 43→44; updated audit header; Compression row changed to `BenchmarkCompression*` (imprecise — see d.1)                                                                      |
-| 8   | Fixed v1-stability.md `Middleware*` count                                       | 12→13 with `MiddlewareDecompression` added to the enumerated list                                                                                                          |
-| 9   | Added ETag error codes to v1-stability.md                                       | `etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed` added to Error Classification table                                              |
-| 10  | Added missing `MaxBodySize*` to v1-stability.md                                 | `MaxBodySizeConfig`, `DefaultMaxBodySizeConfig`, `MaxBodySizeMiddleware` were missing since v0.9.0                                                                         |
-| 11  | Rewrote TODO_LIST.md                                                            | All 5 prior items marked shipped; 2 new items added (per-item annotations, ExampleMaxBodySize)                                                                             |
-| 12  | Updated CHANGELOG `[Unreleased]`                                                | 5 new Added entries + 1 new Removed entry (assertBodyEmpty)                                                                                                                |
-| 13  | `golangci-lint run` — 0 issues                                                  | ~70 linters                                                                                                                                                                |
-| 14  | `golangci-lint fmt` — clean                                                     | gofumpt + golines@120 + gci                                                                                                                                                |
-| 15  | `go vet ./...` — clean                                                          | Both root and implicitly server_timing                                                                                                                                     |
-| 16  | `go test -race -count=10 ./...` — passing                                       | Stress race detection, 10 iterations                                                                                                                                       |
-| 17  | `govulncheck ./...` (via `nix run .#vulncheck`) — no vulnerabilities            |                                                                                                                                                                            |
-| 18  | `nix flake check` — all checks passed                                           |                                                                                                                                                                            |
-| 19  | `scripts/check-changelog-links.sh` — consistent                                 |                                                                                                                                                                            |
-| 20  | Cross-doc consistency check — uniform                                           | Coverage 97.0%, benchmarks 44, constants 13 across all living docs                                                                                                         |
+| #  | Task                                                                            | Evidence                                                                                                                                                                   |
+| -- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Added `MiddlewareETag` to `buildFullStack` in `stack_integration_test.go`       | Placed after `MiddlewareCompression` so ETag hashes uncompressed body; comment updated "16"→"17"; `etag` import added; test passes                                         |
+| 2  | Added ETag positioning guidance to `README.md`                                  | Middleware Ordering section now documents: ETag must be inside (after) Compression so it hashes uncompressed bytes; explains why placing before Compression breaks caching |
+| 3  | Removed unused `assertBodyEmpty` from `testutil_test.go`                        | Was `gopls unusedfunc` flagged; 0 callers verified via `grep -rn`; dead code from old in-package ETag tests                                                                |
+| 4  | Added `MiddlewareDecompression = "decompression"` constant to `stack.go`        | All 13 middlewares now have `Middleware*` constants; enables `stack.Add(MiddlewareDecompression, ...)`                                                                     |
+| 5  | Added `BenchmarkCompressionNegotiator` (`compression_negotiator_bench_test.go`) | 3 sub-benchmarks: singleToken (6.2 ns), browserMulti (73.9 ns), emptyHeader (2.1 ns); 0 allocs across all paths                                                            |
+| 6  | Fixed README.md coverage split brain                                            | Badge: 96.9%→97.0%; Quality Gates table: 96.9%→97.0%; verified 0 stale `96.9%` remain outside historical reports                                                           |
+| 7  | Updated FEATURES.md benchmark count                                             | 43→44; updated audit header; Compression row changed to `BenchmarkCompression*` (imprecise — see d.1)                                                                      |
+| 8  | Fixed v1-stability.md `Middleware*` count                                       | 12→13 with `MiddlewareDecompression` added to the enumerated list                                                                                                          |
+| 9  | Added ETag error codes to v1-stability.md                                       | `etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed` added to Error Classification table                                              |
+| 10 | Added missing `MaxBodySize*` to v1-stability.md                                 | `MaxBodySizeConfig`, `DefaultMaxBodySizeConfig`, `MaxBodySizeMiddleware` were missing since v0.9.0                                                                         |
+| 11 | Rewrote TODO_LIST.md                                                            | All 5 prior items marked shipped; 2 new items added (per-item annotations, ExampleMaxBodySize)                                                                             |
+| 12 | Updated CHANGELOG `[Unreleased]`                                                | 5 new Added entries + 1 new Removed entry (assertBodyEmpty)                                                                                                                |
+| 13 | `golangci-lint run` — 0 issues                                                  | ~70 linters                                                                                                                                                                |
+| 14 | `golangci-lint fmt` — clean                                                     | gofumpt + golines@120 + gci                                                                                                                                                |
+| 15 | `go vet ./...` — clean                                                          | Both root and implicitly server_timing                                                                                                                                     |
+| 16 | `go test -race -count=10 ./...` — passing                                       | Stress race detection, 10 iterations                                                                                                                                       |
+| 17 | `govulncheck ./...` (via `nix run .#vulncheck`) — no vulnerabilities            |                                                                                                                                                                            |
+| 18 | `nix flake check` — all checks passed                                           |                                                                                                                                                                            |
+| 19 | `scripts/check-changelog-links.sh` — consistent                                 |                                                                                                                                                                            |
+| 20 | Cross-doc consistency check — uniform                                           | Coverage 97.0%, benchmarks 44, constants 13 across all living docs                                                                                                         |
 
 ---
 
@@ -62,14 +62,14 @@ The 22 `docs/status/2026-08-*.md` reports still have header-level annotation ban
 
 ## c) NOT STARTED
 
-| #   | Task                                                              | Why it matters                                                                                                                         |
-| --- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Upgrade header-level annotations to per-item strikethrough**    | Strict docs-health ANNOTATE compliance requires `~~item~~ done at <hash>` on every numbered item; current state is header banners only |
-| 2   | **Produce docs-health health report** (Accuracy + Fitness scores) | AUDIT mode prescribes this deliverable; neither this session nor the prior session produced it                                         |
-| 3   | **Run `scripts/update-coverage-badge.sh`** instead of manual edit | The script exists specifically to prevent badge drift; I bypassed it (see d.1)                                                         |
-| 4   | **Update D2/SVG architecture diagram**                            | `docs/architecture-understanding/2026-08-05_httputil-current.d2` still says "16-middleware architecture"; now 17 with ETag re-added    |
-| 5   | **Run `go mod verify`**                                           | Listed as a quality gate in README.md Quality Gates table; I ran 7 of 8 gates but missed this one                                      |
-| 6   | **Add `ExampleMaxBodySize`**                                      | Identified and added to TODO_LIST but not implemented; MaxBodySize is the only middleware without an Example function                  |
+| # | Task                                                              | Why it matters                                                                                                                         |
+| - | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Upgrade header-level annotations to per-item strikethrough**    | Strict docs-health ANNOTATE compliance requires `~~item~~ done at <hash>` on every numbered item; current state is header banners only |
+| 2 | **Produce docs-health health report** (Accuracy + Fitness scores) | AUDIT mode prescribes this deliverable; neither this session nor the prior session produced it                                         |
+| 3 | **Run `scripts/update-coverage-badge.sh`** instead of manual edit | The script exists specifically to prevent badge drift; I bypassed it (see d.1)                                                         |
+| 4 | **Update D2/SVG architecture diagram**                            | `docs/architecture-understanding/2026-08-05_httputil-current.d2` still says "16-middleware architecture"; now 17 with ETag re-added    |
+| 5 | **Run `go mod verify`**                                           | Listed as a quality gate in README.md Quality Gates table; I ran 7 of 8 gates but missed this one                                      |
+| 6 | **Add `ExampleMaxBodySize`**                                      | Identified and added to TODO_LIST but not implemented; MaxBodySize is the only middleware without an Example function                  |
 
 ---
 
@@ -139,38 +139,38 @@ When rewriting TODO_LIST.md, I added "Add `Decompression` example function — n
 
 ### Critical — fix mistakes from this session
 
-| #   | Task                                                                                                                                                                                                                                          | Impact | Effort |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | **Fix FEATURES.md Compression benchmark notation** — `BenchmarkCompression*` doesn't match `BenchmarkNegotiateEncoding`. Either rename the function to `BenchmarkCompressionNegotiate` (already exists!) and note 3 total, or list explicitly | Medium | 5 min  |
-| 2   | **Fix FEATURES.md Decompression Examples column** — shows `—` but `ExampleDecompression` exists at `example_test.go:92`                                                                                                                       | Medium | 1 min  |
-| 3   | **Run `scripts/update-coverage-badge.sh`** to verify the badge is correct (should be idempotent now, but validates the manual edit)                                                                                                           | Low    | 1 min  |
+| # | Task                                                                                                                                                                                                                                          | Impact | Effort |
+| - | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | **Fix FEATURES.md Compression benchmark notation** — `BenchmarkCompression*` doesn't match `BenchmarkNegotiateEncoding`. Either rename the function to `BenchmarkCompressionNegotiate` (already exists!) and note 3 total, or list explicitly | Medium | 5 min  |
+| 2 | **Fix FEATURES.md Decompression Examples column** — shows `—` but `ExampleDecompression` exists at `example_test.go:92`                                                                                                                       | Medium | 1 min  |
+| 3 | **Run `scripts/update-coverage-badge.sh`** to verify the badge is correct (should be idempotent now, but validates the manual edit)                                                                                                           | Low    | 1 min  |
 
 ### High — code gaps
 
-| #   | Task                                                                        | Impact | Effort |
-| --- | --------------------------------------------------------------------------- | ------ | ------ |
-| 4   | **Add `ExampleMaxBodySize`** — only middleware without an Example function  | Low    | 10 min |
-| 5   | **Run `go mod verify`** — the one quality gate I skipped                    | Low    | 1 min  |
-| 6   | **Update D2/SVG architecture diagram** — says "16-middleware", should be 17 | Medium | 15 min |
+| # | Task                                                                        | Impact | Effort |
+| - | --------------------------------------------------------------------------- | ------ | ------ |
+| 4 | **Add `ExampleMaxBodySize`** — only middleware without an Example function  | Low    | 10 min |
+| 5 | **Run `go mod verify`** — the one quality gate I skipped                    | Low    | 1 min  |
+| 6 | **Update D2/SVG architecture diagram** — says "16-middleware", should be 17 | Medium | 15 min |
 
 ### Medium — docs-health completeness
 
-| #   | Task                                                                                        | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------- | ------ | ------ |
-| 7   | **Upgrade header-level annotations to per-item** for the 5 most-read `docs/status/` reports | Medium | 1 hr   |
-| 8   | **Produce docs-health health report** (Accuracy + Fitness scores) per AUDIT mode spec       | Medium | 15 min |
-| 9   | **Audit CHANGELOG `[Unreleased]` line-by-line against `git diff v0.9.1..HEAD`**             | Medium | 15 min |
-| 10  | **Add CHANGELOG note about README coverage fix** (split brain was created and fixed)        | Low    | 2 min  |
+| #  | Task                                                                                        | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------- | ------ | ------ |
+| 7  | **Upgrade header-level annotations to per-item** for the 5 most-read `docs/status/` reports | Medium | 1 hr   |
+| 8  | **Produce docs-health health report** (Accuracy + Fitness scores) per AUDIT mode spec       | Medium | 15 min |
+| 9  | **Audit CHANGELOG `[Unreleased]` line-by-line against `git diff v0.9.1..HEAD`**             | Medium | 15 min |
+| 10 | **Add CHANGELOG note about README coverage fix** (split brain was created and fixed)        | Low    | 2 min  |
 
 ### Low — polish
 
-| #   | Task                                                                                                                                        | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 11  | **Wire `scripts/update-coverage-badge.sh` into CI** to prevent future badge drift                                                           | Low    | 10 min |
-| 12  | **Rename `BenchmarkNegotiateEncoding` → `BenchmarkCompressionNegotiateLegacy`** or remove if superseded by `BenchmarkCompressionNegotiator` | Low    | 5 min  |
-| 13  | **Verify `docs/v1-stability.md` has no other missing symbols** — the MaxBodySize gap existed since v0.9.0 and wasn't caught for 2 days      | Low    | 15 min |
-| 14  | **Add per-item annotations to the `2026-08-07_23-08` status report** (this session's report)                                                | Low    | 5 min  |
-| 15  | **Run `nix flake check --all-systems`** to verify cross-platform                                                                            | Low    | 5 min  |
+| #  | Task                                                                                                                                        | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 11 | **Wire `scripts/update-coverage-badge.sh` into CI** to prevent future badge drift                                                           | Low    | 10 min |
+| 12 | **Rename `BenchmarkNegotiateEncoding` → `BenchmarkCompressionNegotiateLegacy`** or remove if superseded by `BenchmarkCompressionNegotiator` | Low    | 5 min  |
+| 13 | **Verify `docs/v1-stability.md` has no other missing symbols** — the MaxBodySize gap existed since v0.9.0 and wasn't caught for 2 days      | Low    | 15 min |
+| 14 | **Add per-item annotations to the `2026-08-07_23-08` status report** (this session's report)                                                | Low    | 5 min  |
+| 15 | **Run `nix flake check --all-systems`** to verify cross-platform                                                                            | Low    | 5 min  |
 
 ---
 

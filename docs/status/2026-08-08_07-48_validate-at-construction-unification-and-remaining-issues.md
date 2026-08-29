@@ -1,7 +1,7 @@
 # Status Report: Validate-at-Construction Unification & Remaining Issues
 
-**Date:** 2026-08-08 07:48  
-**Session:** 4 (continuation of nonce middleware hardening series)  
+**Date:** 2026-08-08 07:48\
+**Session:** 4 (continuation of nonce middleware hardening series)\
 **Prior reports:** `2026-08-08_06-54_nonce-middleware-post-hardening-audit.md`
 
 ---

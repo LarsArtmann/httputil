@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>BRUTAL SELF-REVIEW</span>
+      <span>2026-08-29</span>
+      <span>httputil &middot; github.com/larsartmann/httputil</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#questions">The 11 Questions</a>
+          <a href="#findings">Findings</a>
+          <a href="#issues">Issue Cards</a>
+          <a href="#evidence">Evidence Audit</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#plan">Improvement Plan</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Brutal Self-Review</div>
+          <h1>Annotation Legacy &amp; Docs Harvest Review</h1>
+          <p class="hero-subtitle">
+            Honest self-critique of the 2026-08-29 annotation-upgrade session, the
+            harvested backlog, and the current codebase state. Every claim verified
+            against git and the working tree on 2026-08-29.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#questions">The 11 Questions</a></li>
+            <li><a href="#findings">Findings</a></li>
+            <li><a href="#issues">Issue Cards</a></li>
+            <li><a href="#evidence">Evidence Audit</a></li>
+            <li><a href="#strengths">Strengths</a></li>
+            <li><a href="#plan">Improvement Plan</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">11/11</div>
+            <div class="stat-label">Questions Answered</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Findings Fixed Now</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Accepted Split Brain</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">75/75</div>
+            <div class="stat-label">Marker Hashes Valid</div>
+          </div>
+        </div>
+
+        <h2 id="questions"><span class="num">01</span>The 11 Questions, Answered Honestly</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Question</th><th>Answer</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>What did you forget?</td>
+            <td>TODO_LIST went 22 days stale (updated 2026-08-07) while ~20 sessions accumulated open items in timestamped reports. Nothing routed them forward. Fixed today by the HARVEST rebuild.</td></tr>
+            <tr><td>2</td><td>What is stupid that we do anyway?</td>
+            <td>Writing "Open as of" appendix lines from memory during annotation passes. One of 20 such lines (07-45 f20, indexPath race) was simply false &mdash; the race does not exist; <code>go test -race -count=3</code> is clean. Appendices written same-day still drift from code.</td></tr>
+            <tr><td>3</td><td>What could you have done better?</td>
+            <td>The previous session hand-rolled a regex transform that corrupted 4 table rows before the skill scripts were used. The lesson (copy <code>strike_row()</code>, never hand-roll) is documented but was learned by breaking something first.</td></tr>
+            <tr><td>4</td><td>What could you still improve?</td>
+            <td>Marker evidence policy: ~200 markers cite verification-kind (<code>v</code>) instead of commit hashes. Hash-only is the durable standard; the upgrade is plan task T14.</td></tr>
+            <tr><td>5</td><td>Did you lie to you?</td>
+            <td>Not in markers &mdash; all 75 cited hashes exist and deep-sampled claims match commit content. But the corpus contains one historical lie pattern: <em>full-code-review once claimed done without ever running</em>. That is the integrity failure to guard against, and it is why this skill run is happening now.</td></tr>
+            <tr><td>6</td><td>How can we be less stupid?</td>
+            <td>Run the review skills on a cadence, not when remembered. brutal-self-review was deferred 10+ sessions. It is now the top TODO_LIST item and executed today.</td></tr>
+            <tr><td>7</td><td>Ghost systems?</td>
+            <td>None found. Every exported symbol maps to tests, docs, or a documented deprecation path (deprecated <code>RateLimit()</code> has a migration guide and a v1.0 removal plan &mdash; scheduled, not ghosted).</td></tr>
+            <tr><td>8</td><td>Scope creep trap?</td>
+            <td>The ecosystem ideation backlog (brotli/zstd, Prometheus, Redis, samber/do, HTMX) is deliberately parked in ROADMAP, not TODO_LIST. The compression extraction is the one big rock &mdash; it has its own plan file and stays gated on go-datastar's need.</td></tr>
+            <tr><td>9</td><td>Did we remove something useful?</td>
+            <td>No deletions this session. The TODO_LIST rebuild removed the completed "upgrade historical annotations" item &mdash; that is the skill rule (done items live in CHANGELOG), not data loss.</td></tr>
+            <tr><td>10</td><td>Split brains?</td>
+            <td>One accepted: rate-limiter <code>context.Context</code> appears in FEATURES "WORTH CONSIDERING", ROADMAP v1.0, and TODO_LIST. Each cross-links to the next, so the triage is unambiguous. Two real ones fixed: stale AGENTS.md file count (34&rarr;35) and the false f20 race claim.</td></tr>
+            <tr><td>11</td><td>Tests?</td>
+            <td><code>-race</code> full suite plus httpspec <code>-count=3</code> clean at review time. Gaps are documented honestly in FEATURES.md (defensive paths with reasons). Plan tasks T12/T13/T15/T17 add the missing cross-middleware and integration batches.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="findings"><span class="num">02</span>Findings</h2>
+
+        <div class="card card-problem">
+          <h4>F1 &mdash; Stale appendix claim asserted a bug that does not exist</h4>
+          <p>The 07-45 appendix claimed <code>cfg.indexPath</code> mutation was "still present". It is not: options are applied before spec construction and the config is read-only afterwards. Verified with <code>go test -race -count=3 ./httpspec/...</code>. Same-day annotation can still lie.</p>
+        </div>
+        <div class="card card-solution">
+          <h4>Fixed in place</h4>
+          <p>Corrected the appendix line to record the verification (date, command, verdict). Lesson: an "open item" line is a claim and needs the same evidence standard as a marker.</p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>F2 &mdash; Living backlog rotted for 22 days</h4>
+          <p>Open work lived in 23 timestamped reports; TODO_LIST last updated 2026-08-07. This is the corpus's own #1 documented failure mode, repeated verbatim in eight prior reports.</p>
+        </div>
+        <div class="card card-solution">
+          <h4>Fixed: HARVEST rebuild</h4>
+          <p>TODO_LIST.md rebuilt 2026-08-29 from the 20 open-item appendix lines: deduped, routed (TODO/ROADMAP/Won't), every item carrying report citations and the plan-task mapping.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>F3 &mdash; Environment blocker silently ate the quality gate</h4>
+          <p><code>/mnt/buildcache</code> is unwritable here, so <code>go test</code>, <code>go vet</code>, and <code>golangci-lint</code> all failed at cache init &mdash; looking like infra breakage rather than a fixable env problem. The prior session documented the blocker but did not solve it.</p>
+        </div>
+        <div class="card card-solution">
+          <h4>Fixed: cache overrides documented</h4>
+          <p><code>GOCACHE</code>, <code>GOLANGCI_LINT_CACHE</code>, and <code>GOMODCACHE</code> overrides unblock all three tools; the export block is now in AGENTS.md Commands. Lint gate re-verified: 0 issues.</p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>F5 &mdash; The test suite has been red since 2026-08-16 and nobody ran it</h4>
+          <p>Commit <code>d466d2d</code> ("style: reformat &hellip; No behavior changes") swapped <code>json.Encoder.Encode</code> for <code>json.MarshalWrite</code> in health.go. Encode appends a trailing newline; MarshalWrite does not. Six health-endpoint tests failed from that day on &mdash; but every session's <code>go test</code> died at the <code>/mnt/buildcache</code> cache-init error first, so the red suite stayed invisible for 13 days. A style commit broke the documented 16-byte probe contract.</p>
+        </div>
+        <div class="card card-solution">
+          <h4>Fixed: contract restored, suite green</h4>
+          <p>health.go now writes the payload via MarshalWrite plus an explicit newline through one <code>writeHealthBody</code> helper (the v2 migration stays; the documented 16-byte body returns). <code>go test -race ./...</code> green; <code>golangci-lint run</code>: 0 issues. The exact-byte test now guards a truthful contract again.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>F4 &mdash; AGENTS.md prose drift</h4>
+          <p>"34 non-test files" was stale &mdash; the tree has 35. Table rows were complete; the prose count was not. Small, but AGENTS.md is the file every session trusts first.</p>
+        </div>
+
+        <h2 id="issues"><span class="num">03</span>Issue Cards</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>Review skills deferred 10+ sessions; one once faked as done</h3>
+          <div class="where">TODO_LIST.md High Priority &middot; 20-09 status report f1</div>
+          <p>
+            brutal-self-review (this document) and full-code-review are the two known-unknown
+            surfacers. The second has never run. Deferral is how the "claimed done but not run"
+            failure happened once before.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            brutal-self-review: done today (this report). full-code-review: top of TODO_LIST,
+            scheduled before v1.0.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>v-kind markers lack durable evidence</h3>
+          <div class="where">docs/status/2026-08-*.md &middot; ~200 markers</div>
+          <p>
+            Verification-kind markers say "verified" without a hash. They survive review today
+            but rot like the f20 claim did: unverifiable assertions about a moving tree.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Plan T14: upgrade the ~200 highest-traffic v-markers to hash citations.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice to have</span>
+          <h3>Accepted split brain: ctx rate-limiter in three docs</h3>
+          <div class="where">FEATURES.md &middot; ROADMAP.md &middot; TODO_LIST.md</div>
+          <p>
+            The item appears three times with cross-links and consistent scope (v1.0 gate).
+            Consolidation would save one grep; cost is churn during the v1.0 push. Accepted,
+            revisit at T19 execution.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice to have</span>
+          <h3>exhaustruct deprecation warning in lint output</h3>
+          <div class="where">.golangci.yml</div>
+          <p>
+            golangci-lint v2.13+ deprecates <code>exhaustruct</code> in favor of
+            <code>exhaustruct_v5</code>. Warning-only today; migration is a config rename
+            plus rule-behavior diff.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Fold into a lint-config maintenance pass after v1.0 (no functional impact now).
+          </div>
+        </div>
+
+        <h2 id="evidence"><span class="num">04</span>Evidence Audit (this review's own claims)</h2>
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Method</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Marker hash validity</td><td>Extract all 75 unique hashes from <code>done at</code> markers; <code>git cat-file -t</code> each</td><td><span class="badge badge-fixed">75/75 valid</span></td></tr>
+            <tr><td>Marker claim accuracy</td><td>Deep-sample 10 substantive markers; grep cited commit diffs for the claimed change</td><td><span class="badge badge-fixed">10/10 match</span></td></tr>
+            <tr><td>Marker shape integrity</td><td>Count struck table rows before/after formatter; require balance</td><td><span class="badge badge-fixed">261 = 261</span></td></tr>
+            <tr><td>indexPath race claim</td><td><code>go test -race -count=3 ./httpspec/...</code> + code read of option application order</td><td><span class="badge badge-fixed">No race; claim corrected</span></td></tr>
+            <tr><td>AGENTS.md file table</td><td>Diff table rows vs <code>ls *.go | grep -v _test</code></td><td><span class="badge badge-fixed">Complete; count fixed 34&rarr;35</span></td></tr>
+            <tr><td>Full test suite</td><td><code>go test -race ./...</code> with cache overrides</td><td><span class="badge badge-fixed">Green after F5 fix (was red 13 days)</span></td></tr>
+            <tr><td>Lint gate</td><td><code>golangci-lint run</code> (full config, ~70 linters)</td><td><span class="badge badge-fixed">0 issues (full run)</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="strengths">Strengths</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Marker evidence held up under adversarial sampling</strong>
+              <span>75/75 hashes resolve; deep-sampled claims match commit content. The 1,144-marker corpus is real work, not decoration.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Honest coverage documentation</strong>
+              <span>FEATURES.md documents every sub-100% function with the reason it stays uncovered. No rounding up.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>The failure modes are named</strong>
+              <span>The corpus repeatedly identifies its own #1 failure (open items rotting in reports) &mdash; and today's session finally closed it with the HARVEST rebuild.</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="plan"><span class="num">05</span>Improvement Plan (executed via docs/planning/2026-08-29_20-24)</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Protect the new work (T2)</h4>
+            <p>Formatter run over the 23 annotated files with diff inspection &mdash; done this session; 261 struck rows preserved exactly.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Surface unknowns (T3 &mdash; this review)</h4>
+            <p>Findings F1&ndash;F4 fixed immediately; the deferred items (full-code-review, T14 hash upgrades) are filed in TODO_LIST with citations.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Grind the tail (T4&ndash;T30)</h4>
+            <p>July&ndash;May annotation pass, httpspec builders, cross-middleware tests, fuzz/benchmark batches, v1.0 execution (TokenBucketLimiter removal, ctx rate limiter), final docs-health audit.</p>
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-08-29 &middot; All claims verified against source code where noted
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

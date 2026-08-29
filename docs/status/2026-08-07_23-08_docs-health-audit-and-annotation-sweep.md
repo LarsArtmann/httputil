@@ -25,23 +25,23 @@
 
 ## a) FULLY DONE (verified this session)
 
-| #   | Task                                                       | Evidence                                                                                                                                                                                                 |
-| --- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Read all 22 `2026-08-*` markdown reports in full           | Every file viewed completely including offset reads                                                                                                                                                      |
-| 2   | Loaded `docs-health` skill SKILL.md before any action      | Read in full; followed AUDIT mode                                                                                                                                                                        |
-| 3   | Verified actual code state against doc claims              | `go test -race -coverprofile` → 97.0% / 99.3%; `etag_test.go` has 7 adapter tests (not compliance tests); `go.mod` has 5 deps; benchmarks=43, examples=24, fuzz=19                                       |
-| 4   | Rewrote CHANGELOG `[Unreleased]` — removed 3 ghost entries | CHANGELOG lines 12-13 (7 compliance + 2 edge-case tests that don't exist) and line 43 (5 compliance tests) all removed. Added TLSConfig, TTL/Status validation, decompression bench/fuzz, hijack context |
-| 5   | Rebuilt TODO_LIST.md                                       | All 5 prior items verified done → removed. 5 new open items + 3 new Won't Implement added                                                                                                                |
-| 6   | Updated FEATURES.md                                        | Coverage 96.9→97.0%, benchmarks 41→43, examples 23→24, Decompression/ETag table rows updated, FuzzDecompression in description, 2 done WORTH CONSIDERING items removed, split brain fixed                |
-| 7   | Updated ROADMAP.md                                         | Coverage corrected, `[Unreleased]` summary added, post-v1.0 idempotency, retry non-goal, AllowN split brain resolved                                                                                     |
-| 8   | Annotated all 22 `2026-08-*` reports                       | Each has a header annotation banner resolving forward-looking items to done/open/ROADMAP/obsolete                                                                                                        |
-| 9   | Annotated 1 planning doc                                   | Pareto plan marked complete (M1-M22 shipped, M23 open)                                                                                                                                                   |
-| 10  | Cross-file consistency checks passed                       | Coverage consistent in FEATURES/ROADMAP/CHANGELOG; AllowN consistent; no `[x]` done items in TODO_LIST; no split brains                                                                                  |
-| 11  | `golangci-lint run` — 0 issues                             | ~70 linters, clean                                                                                                                                                                                       |
-| 12  | `go vet ./...` — clean                                     | Both root and server_timing                                                                                                                                                                              |
-| 13  | `scripts/check-changelog-links.sh` — PASS                  | Links consistent                                                                                                                                                                                         |
-| 14  | `go test -race ./...` — PASS                               | 97.0% httputil / 99.3% httpspec                                                                                                                                                                          |
-| 15  | `server_timing` sub-module tests — PASS                    | Race-clean                                                                                                                                                                                               |
+| #  | Task                                                       | Evidence                                                                                                                                                                                                 |
+| -- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Read all 22 `2026-08-*` markdown reports in full           | Every file viewed completely including offset reads                                                                                                                                                      |
+| 2  | Loaded `docs-health` skill SKILL.md before any action      | Read in full; followed AUDIT mode                                                                                                                                                                        |
+| 3  | Verified actual code state against doc claims              | `go test -race -coverprofile` → 97.0% / 99.3%; `etag_test.go` has 7 adapter tests (not compliance tests); `go.mod` has 5 deps; benchmarks=43, examples=24, fuzz=19                                       |
+| 4  | Rewrote CHANGELOG `[Unreleased]` — removed 3 ghost entries | CHANGELOG lines 12-13 (7 compliance + 2 edge-case tests that don't exist) and line 43 (5 compliance tests) all removed. Added TLSConfig, TTL/Status validation, decompression bench/fuzz, hijack context |
+| 5  | Rebuilt TODO_LIST.md                                       | All 5 prior items verified done → removed. 5 new open items + 3 new Won't Implement added                                                                                                                |
+| 6  | Updated FEATURES.md                                        | Coverage 96.9→97.0%, benchmarks 41→43, examples 23→24, Decompression/ETag table rows updated, FuzzDecompression in description, 2 done WORTH CONSIDERING items removed, split brain fixed                |
+| 7  | Updated ROADMAP.md                                         | Coverage corrected, `[Unreleased]` summary added, post-v1.0 idempotency, retry non-goal, AllowN split brain resolved                                                                                     |
+| 8  | Annotated all 22 `2026-08-*` reports                       | Each has a header annotation banner resolving forward-looking items to done/open/ROADMAP/obsolete                                                                                                        |
+| 9  | Annotated 1 planning doc                                   | Pareto plan marked complete (M1-M22 shipped, M23 open)                                                                                                                                                   |
+| 10 | Cross-file consistency checks passed                       | Coverage consistent in FEATURES/ROADMAP/CHANGELOG; AllowN consistent; no `[x]` done items in TODO_LIST; no split brains                                                                                  |
+| 11 | `golangci-lint run` — 0 issues                             | ~70 linters, clean                                                                                                                                                                                       |
+| 12 | `go vet ./...` — clean                                     | Both root and server_timing                                                                                                                                                                              |
+| 13 | `scripts/check-changelog-links.sh` — PASS                  | Links consistent                                                                                                                                                                                         |
+| 14 | `go test -race ./...` — PASS                               | 97.0% httputil / 99.3% httpspec                                                                                                                                                                          |
+| 15 | `server_timing` sub-module tests — PASS                    | Race-clean                                                                                                                                                                                               |
 
 ---
 
@@ -68,18 +68,18 @@ The docs-health AUDIT mode says: "Report using the health report format — two 
 
 ## c) NOT STARTED
 
-| #   | Task                                                                            | Why it matters                                                                                               |
-| --- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 1   | **Update README.md coverage** (badge + Quality Gates table)                     | Split brain: docs say 97.0%, README says 96.9%                                                               |
-| 2   | **Run `golangci-lint fmt`**                                                     | Prior sessions ran both `run` AND `fmt`; I only ran `run`                                                    |
-| 3   | **Run `govulncheck ./...`**                                                     | Part of the standard verification set since 2026-08-05                                                       |
-| 4   | **Run `nix flake check`**                                                       | Part of the standard verification set                                                                        |
-| 5   | **Run `go test -race -count=10 ./...`**                                         | Stress test — full suite, not just count=1                                                                   |
-| 6   | **Load docs-health skill references**                                           | harvest-guide.md, build-guide.md, verify-checklist.md, health-report-format.md — SKILL.md says to load these |
-| 7   | **Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`** | Wrote entries from commit messages; didn't line-by-line verify against the actual diff                       |
-| 8   | **Verify all benchmark names in FEATURES.md table**                             | Counted via grep but didn't verify every specific name matches `func Benchmark*` declarations                |
-| 9   | **Run `scripts/update-coverage-badge.sh`**                                      | Would fix README.md coverage automatically                                                                   |
-| 10  | **Produce docs-health health report** (Accuracy + Fitness scores)               | AUDIT mode requires it                                                                                       |
+| #  | Task                                                                            | Why it matters                                                                                               |
+| -- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1  | **Update README.md coverage** (badge + Quality Gates table)                     | Split brain: docs say 97.0%, README says 96.9%                                                               |
+| 2  | **Run `golangci-lint fmt`**                                                     | Prior sessions ran both `run` AND `fmt`; I only ran `run`                                                    |
+| 3  | **Run `govulncheck ./...`**                                                     | Part of the standard verification set since 2026-08-05                                                       |
+| 4  | **Run `nix flake check`**                                                       | Part of the standard verification set                                                                        |
+| 5  | **Run `go test -race -count=10 ./...`**                                         | Stress test — full suite, not just count=1                                                                   |
+| 6  | **Load docs-health skill references**                                           | harvest-guide.md, build-guide.md, verify-checklist.md, health-report-format.md — SKILL.md says to load these |
+| 7  | **Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`** | Wrote entries from commit messages; didn't line-by-line verify against the actual diff                       |
+| 8  | **Verify all benchmark names in FEATURES.md table**                             | Counted via grep but didn't verify every specific name matches `func Benchmark*` declarations                |
+| 9  | **Run `scripts/update-coverage-badge.sh`**                                      | Would fix README.md coverage automatically                                                                   |
+| 10 | **Produce docs-health health report** (Accuracy + Fitness scores)               | AUDIT mode requires it                                                                                       |
 
 ---
 
@@ -139,58 +139,58 @@ I counted `grep "^func Benchmark" *_test.go | wc -l` = 43 and wrote "43 benchmar
 
 ### Critical — fix the README split brain I created
 
-| #   | Task                                                                      | Impact   | Effort |
-| --- | ------------------------------------------------------------------------- | -------- | ------ |
-| 1   | **Update README.md coverage badge** from 96.9% to 97.0%                   | Critical | 1 min  |
-| 2   | **Update README.md Quality Gates table** coverage row                     | Critical | 1 min  |
-| 3   | **Or: run `scripts/update-coverage-badge.sh`** to fix badge automatically | Critical | 1 min  |
+| # | Task                                                                      | Impact   | Effort |
+| - | ------------------------------------------------------------------------- | -------- | ------ |
+| 1 | **Update README.md coverage badge** from 96.9% to 97.0%                   | Critical | 1 min  |
+| 2 | **Update README.md Quality Gates table** coverage row                     | Critical | 1 min  |
+| 3 | **Or: run `scripts/update-coverage-badge.sh`** to fix badge automatically | Critical | 1 min  |
 
 ### High — verification gaps
 
-| #   | Task                                                                            | Impact | Effort |
-| --- | ------------------------------------------------------------------------------- | ------ | ------ |
-| 4   | **Run `golangci-lint fmt`** and confirm clean                                   | High   | 1 min  |
-| 5   | **Run `govulncheck ./...`** and record result                                   | High   | 2 min  |
-| 6   | **Run `nix flake check`** and record result                                     | High   | 5 min  |
-| 7   | **Run `go test -race -count=10 ./...`** stress test                             | High   | 3 min  |
-| 8   | **Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`** | Medium | 10 min |
+| # | Task                                                                            | Impact | Effort |
+| - | ------------------------------------------------------------------------------- | ------ | ------ |
+| 4 | **Run `golangci-lint fmt`** and confirm clean                                   | High   | 1 min  |
+| 5 | **Run `govulncheck ./...`** and record result                                   | High   | 2 min  |
+| 6 | **Run `nix flake check`** and record result                                     | High   | 5 min  |
+| 7 | **Run `go test -race -count=10 ./...`** stress test                             | High   | 3 min  |
+| 8 | **Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`** | Medium | 10 min |
 
 ### High — code fixes identified but not executed
 
-| #   | Task                                                                                                   | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 9   | **Fix `stack_integration_test.go`** — add ETag to `buildFullStack`, fix "16 middlewares" comment to 17 | High   | 15 min |
-| 10  | **Remove `assertBodyEmpty`** dead code from `testutil_test.go:182`                                     | Medium | 2 min  |
-| 11  | **Add `MiddlewareDecompression` constant** to `stack.go`                                               | Medium | 5 min  |
-| 12  | **Add ETag positioning guidance to README** middleware ordering section                                | Medium | 10 min |
+| #  | Task                                                                                                   | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
+| 9  | **Fix `stack_integration_test.go`** — add ETag to `buildFullStack`, fix "16 middlewares" comment to 17 | High   | 15 min |
+| 10 | **Remove `assertBodyEmpty`** dead code from `testutil_test.go:182`                                     | Medium | 2 min  |
+| 11 | **Add `MiddlewareDecompression` constant** to `stack.go`                                               | Medium | 5 min  |
+| 12 | **Add ETag positioning guidance to README** middleware ordering section                                | Medium | 10 min |
 
 ### Medium — docs-health completeness
 
-| #   | Task                                                                                       | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| 13  | **Load `references/verify-checklist.md`** and run the per-doc verification checklist       | Medium | 15 min |
-| 14  | **Produce the docs-health health report** with Accuracy + Fitness scores                   | Medium | 15 min |
-| 15  | **Load `references/health-report-format.md`** and follow the format                        | Medium | 5 min  |
-| 16  | **Verify all benchmark names in FEATURES.md table** against `func Benchmark*` declarations | Low    | 10 min |
-| 17  | **Upgrade header-level annotations to per-item** for the 5 most-read reports               | Low    | 1 hr   |
+| #  | Task                                                                                       | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------ | ------ | ------ |
+| 13 | **Load `references/verify-checklist.md`** and run the per-doc verification checklist       | Medium | 15 min |
+| 14 | **Produce the docs-health health report** with Accuracy + Fitness scores                   | Medium | 15 min |
+| 15 | **Load `references/health-report-format.md`** and follow the format                        | Medium | 5 min  |
+| 16 | **Verify all benchmark names in FEATURES.md table** against `func Benchmark*` declarations | Low    | 10 min |
+| 17 | **Upgrade header-level annotations to per-item** for the 5 most-read reports               | Low    | 1 hr   |
 
 ### Medium — README gaps
 
-| #   | Task                                                                      | Impact | Effort |
-| --- | ------------------------------------------------------------------------- | ------ | ------ |
-| 18  | **Add ETag to README API table** if not already present                   | Medium | 5 min  |
-| 19  | **Add Decompression to README API table** if not already present          | Medium | 5 min  |
-| 20  | **Verify README middleware ordering section** mentions all 17 middlewares | Medium | 10 min |
+| #  | Task                                                                      | Impact | Effort |
+| -- | ------------------------------------------------------------------------- | ------ | ------ |
+| 18 | **Add ETag to README API table** if not already present                   | Medium | 5 min  |
+| 19 | **Add Decompression to README API table** if not already present          | Medium | 5 min  |
+| 20 | **Verify README middleware ordering section** mentions all 17 middlewares | Medium | 10 min |
 
 ### Low — polish
 
-| #   | Task                                                                                       | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| 21  | **Run `scripts/update-coverage-badge.sh`** in CI to auto-fix badge drift                   | Low    | 5 min  |
-| 22  | **Add `BenchmarkCompressionNegotiator`** — the one remaining benchmark gap                 | Low    | 15 min |
-| 23  | **Verify `docs/DOMAIN_LANGUAGE.md`** has go-etag conditional-request vocabulary            | Low    | 5 min  |
-| 24  | **Check all internal markdown links resolve** across living docs                           | Low    | 10 min |
-| 25  | **Verify `docs/v1-stability.md`** ETag entries are complete (ETag factory, MiddlewareETag) | Low    | 5 min  |
+| #  | Task                                                                                       | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------ | ------ | ------ |
+| 21 | **Run `scripts/update-coverage-badge.sh`** in CI to auto-fix badge drift                   | Low    | 5 min  |
+| 22 | **Add `BenchmarkCompressionNegotiator`** — the one remaining benchmark gap                 | Low    | 15 min |
+| 23 | **Verify `docs/DOMAIN_LANGUAGE.md`** has go-etag conditional-request vocabulary            | Low    | 5 min  |
+| 24 | **Check all internal markdown links resolve** across living docs                           | Low    | 10 min |
+| 25 | **Verify `docs/v1-stability.md`** ETag entries are complete (ETag factory, MiddlewareETag) | Low    | 5 min  |
 
 ---
 

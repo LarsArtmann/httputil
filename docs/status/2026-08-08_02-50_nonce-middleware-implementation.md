@@ -38,23 +38,23 @@ Nothing — the implementation is either done or not started, no half-measures.
 
 ### Integration Gaps (Every Other Middleware Has These)
 
-| #   | Missing Item                                        | Impact                                                                                                               | Existing Pattern                                                                                                                           |
-| --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| ~~1~~ | ~~**`MiddlewareNonce` constant in `stack.go`**~~ done at `8896fa6` | ~~Resolved at `stack.go:25` — `MiddlewareNonce = "nonce"` added.~~ | Every middleware has a `Middleware*` constant (lines 11-25). ETag and Decompression both got theirs on the same session they were created. |
-| ~~2~~ | ~~**`buildFullStack` in `stack_integration_test.go`**~~ done at `a8171cc` | ~~Resolved — Nonce added to `buildFullStack`, count bumped to 18, `verifyGETHeaders` checks CSP header presence.~~   | Every middleware is added here. Count was already bumped 16→17 for ETag. |
-| ~~3~~ | ~~**CHANGELOG.md `[Unreleased]` entry**~~ done at `1c64a07` | ~~Resolved — detailed entry added with all features listed.~~ | Decompression, ETag, TLSConfig, etc. all have detailed entries. |
-| ~~4~~ | ~~**`ExampleNonce` in `example_test.go`**~~ done at `a8171cc` | ~~Resolved — `ExampleNonce` added with `// Output:` directive.~~ | Every middleware has an `Example*` function with `// Output:` directive (25 examples total). |
-| ~~5~~ | ~~**FEATURES.md update**~~ done at `f8607ff` | ~~Resolved — nonce row added, suite count updated to 18, header refreshed.~~ | Decompression and ETag both have entries. |
-| ~~6~~ | ~~**README.md update**~~ done at `1c64a07` | ~~Resolved — CSP Nonce section with code examples, ProductionCSPWithNonce, NonceAttr, ordering + caching guidance.~~ | Every middleware is documented here. |
-| ~~7~~ | ~~**DOMAIN_LANGUAGE.md update**~~ done at `f43da0a` | ~~Resolved — CSP Nonce bounded context, entity, value objects, 8 commands added.~~ | Decompression got a full bounded context (entity, value objects, commands, events, rules). |
+| #     | Missing Item                                                              | Impact                                                                                                               | Existing Pattern                                                                                                                           |
+| ----- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| ~~1~~ | ~~**`MiddlewareNonce` constant in `stack.go`**~~ done at `8896fa6`        | ~~Resolved at `stack.go:25` — `MiddlewareNonce = "nonce"` added.~~                                                   | Every middleware has a `Middleware*` constant (lines 11-25). ETag and Decompression both got theirs on the same session they were created. |
+| ~~2~~ | ~~**`buildFullStack` in `stack_integration_test.go`**~~ done at `a8171cc` | ~~Resolved — Nonce added to `buildFullStack`, count bumped to 18, `verifyGETHeaders` checks CSP header presence.~~   | Every middleware is added here. Count was already bumped 16→17 for ETag.                                                                   |
+| ~~3~~ | ~~**CHANGELOG.md `[Unreleased]` entry**~~ done at `1c64a07`               | ~~Resolved — detailed entry added with all features listed.~~                                                        | Decompression, ETag, TLSConfig, etc. all have detailed entries.                                                                            |
+| ~~4~~ | ~~**`ExampleNonce` in `example_test.go`**~~ done at `a8171cc`             | ~~Resolved — `ExampleNonce` added with `// Output:` directive.~~                                                     | Every middleware has an `Example*` function with `// Output:` directive (25 examples total).                                               |
+| ~~5~~ | ~~**FEATURES.md update**~~ done at `f8607ff`                              | ~~Resolved — nonce row added, suite count updated to 18, header refreshed.~~                                         | Decompression and ETag both have entries.                                                                                                  |
+| ~~6~~ | ~~**README.md update**~~ done at `1c64a07`                                | ~~Resolved — CSP Nonce section with code examples, ProductionCSPWithNonce, NonceAttr, ordering + caching guidance.~~ | Every middleware is documented here.                                                                                                       |
+| ~~7~~ | ~~**DOMAIN_LANGUAGE.md update**~~ done at `f43da0a`                       | ~~Resolved — CSP Nonce bounded context, entity, value objects, 8 commands added.~~                                   | Decompression got a full bounded context (entity, value objects, commands, events, rules).                                                 |
 
 ### Testing Gaps
 
-| #   | Missing Item                                | Impact                                                                                                                   |
-| --- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| ~~8~~ | ~~**Fuzz test for `RecommendedCSPWithNonce`**~~ done at `a8171cc` | ~~Resolved — `FuzzNonce` in `nonce_fuzz_test.go`, 610K execs, 0 failures, covers both CSP builders for CRLF injection.~~ |
-| ~~9~~ | ~~**`generateNonce` isolated benchmark**~~ done at `a8171cc` | ~~Resolved — `BenchmarkGenerateNonce` added to `nonce_test.go`.~~ |
-| ~~10~~ | ~~**CSP header injection test**~~ done at `a8171cc` | ~~Resolved — covered by `FuzzNonce` which verifies base64 validity + CRLF resistance across all sizes 1-1024.~~ |
+| #      | Missing Item                                                      | Impact                                                                                                                   |
+| ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| ~~8~~  | ~~**Fuzz test for `RecommendedCSPWithNonce`**~~ done at `a8171cc` | ~~Resolved — `FuzzNonce` in `nonce_fuzz_test.go`, 610K execs, 0 failures, covers both CSP builders for CRLF injection.~~ |
+| ~~9~~  | ~~**`generateNonce` isolated benchmark**~~ done at `a8171cc`      | ~~Resolved — `BenchmarkGenerateNonce` added to `nonce_test.go`.~~                                                        |
+| ~~10~~ | ~~**CSP header injection test**~~ done at `a8171cc`               | ~~Resolved — covered by `FuzzNonce` which verifies base64 validity + CRLF resistance across all sizes 1-1024.~~          |
 
 ---
 

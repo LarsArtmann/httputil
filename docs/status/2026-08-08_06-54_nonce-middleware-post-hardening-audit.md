@@ -140,71 +140,71 @@ The only self-critique: **I didn't write a test for the new `Validate()` error-l
 
 ### Critical (coverage gap from this session)
 
-| #   | Task                                                                                                                                                                                                 | Effort | Impact |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | **Add test for `Nonce()` with invalid config** — construct `Nonce(NonceConfig{Size: 8})`, verify it doesn't panic and still serves requests with default-size nonces. Closes the 92.3% coverage gap. | 5 min  | Medium |
-| 2   | **Fix `update-coverage-badge.sh` sed pattern** — the replacement creates triple-nested brackets. The `new_badge` variable format doesn't match the sed regex escaping.                               | 10 min | Medium |
+| # | Task                                                                                                                                                                                                 | Effort | Impact |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | **Add test for `Nonce()` with invalid config** — construct `Nonce(NonceConfig{Size: 8})`, verify it doesn't panic and still serves requests with default-size nonces. Closes the 92.3% coverage gap. | 5 min  | Medium |
+| 2 | **Fix `update-coverage-badge.sh` sed pattern** — the replacement creates triple-nested brackets. The `new_badge` variable format doesn't match the sed regex escaping.                               | 10 min | Medium |
 
 ### Hardening
 
-| #   | Task                                                                                                                 | Effort | Impact |
-| --- | -------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 3   | **Add nonce httpspec spec** — verify CSP header presence + `'nonce-` format on handlers using nonce middleware       | 20 min | Medium |
-| 4   | **Add `NonceConfig.Generator func() string`** — injectable generator for testing, makes panic path testable          | 15 min | Medium |
-| 5   | **Add nonce + CSRF composition test** — verify both nonce and CSRF token available in handler context simultaneously | 10 min | Medium |
-| 6   | **Add `TestNonce_WithCompression` composition test** — verify CSP header survives compression middleware             | 10 min | Low    |
-| 7   | **Add `TestNonce_WithETag` composition test** — document that nonce changes per request so ETag body hash changes    | 10 min | Low    |
-| 8   | **Add property test for nonce entropy** — statistical uniformity across 10K nonces                                   | 30 min | Low    |
-| 9   | **Run `art-dupl --type-aware`** — verify no new duplication from test additions                                      | 5 min  | Low    |
-| 10  | **Run `govulncheck`** — verify no new vulnerabilities                                                                | 2 min  | Low    |
+| #  | Task                                                                                                                 | Effort | Impact |
+| -- | -------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 3  | **Add nonce httpspec spec** — verify CSP header presence + `'nonce-` format on handlers using nonce middleware       | 20 min | Medium |
+| 4  | **Add `NonceConfig.Generator func() string`** — injectable generator for testing, makes panic path testable          | 15 min | Medium |
+| 5  | **Add nonce + CSRF composition test** — verify both nonce and CSRF token available in handler context simultaneously | 10 min | Medium |
+| 6  | **Add `TestNonce_WithCompression` composition test** — verify CSP header survives compression middleware             | 10 min | Low    |
+| 7  | **Add `TestNonce_WithETag` composition test** — document that nonce changes per request so ETag body hash changes    | 10 min | Low    |
+| 8  | **Add property test for nonce entropy** — statistical uniformity across 10K nonces                                   | 30 min | Low    |
+| 9  | **Run `art-dupl --type-aware`** — verify no new duplication from test additions                                      | 5 min  | Low    |
+| 10 | **Run `govulncheck`** — verify no new vulnerabilities                                                                | 2 min  | Low    |
 
 ### Architecture Improvements
 
-| #   | Task                                                                                                                                   | Effort | Impact |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 11  | **CSP conflict detection** — warn when both `SecurityHeaders.ContentSecurityPolicy` and `Nonce.CSPBuilder` are set with wrong ordering | 30 min | High   |
-| 12  | **Resolve `Validate()` inconsistency across all middleware** — either call it everywhere or document why some do and some don't        | 1 hr   | Medium |
-| 13  | **Evaluate shared `crypto/rand` buffer** — amortize syscall across nonce + request-ID generation                                       | 30 min | Low    |
-| 14  | **Consider `NonceConfig.NoStore bool`** — automatic `Cache-Control: no-store` when nonce CSP is set                                    | 15 min | Medium |
-| 15  | **Consider `NonceReportOnly` variant** — CSP-Report-Only header for gradual rollout                                                    | 20 min | Medium |
-| 16  | **Consider `NonceMiddlewareWhen(condition)`** — conditional nonce injection matching `ServerTimingMiddlewareWhen`                      | 20 min | Low    |
+| #  | Task                                                                                                                                   | Effort | Impact |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 11 | **CSP conflict detection** — warn when both `SecurityHeaders.ContentSecurityPolicy` and `Nonce.CSPBuilder` are set with wrong ordering | 30 min | High   |
+| 12 | **Resolve `Validate()` inconsistency across all middleware** — either call it everywhere or document why some do and some don't        | 1 hr   | Medium |
+| 13 | **Evaluate shared `crypto/rand` buffer** — amortize syscall across nonce + request-ID generation                                       | 30 min | Low    |
+| 14 | **Consider `NonceConfig.NoStore bool`** — automatic `Cache-Control: no-store` when nonce CSP is set                                    | 15 min | Medium |
+| 15 | **Consider `NonceReportOnly` variant** — CSP-Report-Only header for gradual rollout                                                    | 20 min | Medium |
+| 16 | **Consider `NonceMiddlewareWhen(condition)`** — conditional nonce injection matching `ServerTimingMiddlewareWhen`                      | 20 min | Low    |
 
 ### Documentation
 
-| #   | Task                                                                                                                                                                 | Effort | Impact |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 17  | **Add caching warning to nonce.go doc comment** — already in README, but the GoDoc-only users won't see it. (Actually: already added in this session at line 32-33.) | Done   | —      |
-| 18  | **Add nonce + templ + HTMX integration guide** — show end-to-end nonce usage with Go templates                                                                       | 30 min | Medium |
-| 19  | **Document nonce + CDN interaction** — CDN caching of nonce-bearing pages is a footgun                                                                               | 15 min | Medium |
-| 20  | **Write migration guide** — for users coming from `unrolled/secure` CSP nonce                                                                                        | 30 min | Low    |
+| #  | Task                                                                                                                                                                 | Effort | Impact |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 17 | **Add caching warning to nonce.go doc comment** — already in README, but the GoDoc-only users won't see it. (Actually: already added in this session at line 32-33.) | Done   | —      |
+| 18 | **Add nonce + templ + HTMX integration guide** — show end-to-end nonce usage with Go templates                                                                       | 30 min | Medium |
+| 19 | **Document nonce + CDN interaction** — CDN caching of nonce-bearing pages is a footgun                                                                               | 15 min | Medium |
+| 20 | **Write migration guide** — for users coming from `unrolled/secure` CSP nonce                                                                                        | 30 min | Low    |
 
 ### Testing Expansion
 
-| #   | Task                                                                                                                                                  | Effort | Impact |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 21  | **Add `FuzzNonceCSPBuilder`** — fuzz the CSP builder functions with arbitrary nonce strings (not just valid base64)                                   | 10 min | Low    |
-| 22  | **Add `TestNonce_MultipleInstances`** — verify multiple `Nonce()` instances in one stack produce different nonces                                     | 5 min  | Low    |
-| 23  | **Add test for nonce in error responses** — should 500/403 carry a CSP nonce? Currently they do (middleware runs before handler). Document with test. | 10 min | Low    |
-| 24  | **Add `go doc` output verification** — ensure `go doc Nonce` renders correctly with examples                                                          | 5 min  | Low    |
+| #  | Task                                                                                                                                                  | Effort | Impact |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 21 | **Add `FuzzNonceCSPBuilder`** — fuzz the CSP builder functions with arbitrary nonce strings (not just valid base64)                                   | 10 min | Low    |
+| 22 | **Add `TestNonce_MultipleInstances`** — verify multiple `Nonce()` instances in one stack produce different nonces                                     | 5 min  | Low    |
+| 23 | **Add test for nonce in error responses** — should 500/403 carry a CSP nonce? Currently they do (middleware runs before handler). Document with test. | 10 min | Low    |
+| 24 | **Add `go doc` output verification** — ensure `go doc Nonce` renders correctly with examples                                                          | 5 min  | Low    |
 
 ### Polish
 
-| #   | Task                                                                                                                                                                                          | Effort | Impact |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 25  | **Optimize `NonceAttr` — remove `html.EscapeString`** — base64 URL-safe encoding doesn't need it. Or add a comment explaining the defense-in-depth cost is negligible (benchmark exists now). | 5 min  | Low    |
-| 26  | **Consider `NonceAttrScript` and `NonceAttrStyle`** — convenience helpers returning `<script nonce="...">` and `<style nonce="...">`                                                          | 10 min | Low    |
-| 27  | **Add `StrictCSP` preset** — Mozilla's recommended strict CSP template                                                                                                                        | 30 min | Medium |
-| 28  | **Consider `NonceConfig.ReportURI`** — set `report-uri` / `report-to` for CSP violation reporting                                                                                             | 20 min | Medium |
-| 29  | **Consider `NonceMetrics`** — track nonce generation count in metrics middleware                                                                                                              | 20 min | Low    |
-| 30  | **Add nonce to ROADMAP.md** if it tracks shipped features                                                                                                                                     | 2 min  | Low    |
+| #  | Task                                                                                                                                                                                          | Effort | Impact |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 25 | **Optimize `NonceAttr` — remove `html.EscapeString`** — base64 URL-safe encoding doesn't need it. Or add a comment explaining the defense-in-depth cost is negligible (benchmark exists now). | 5 min  | Low    |
+| 26 | **Consider `NonceAttrScript` and `NonceAttrStyle`** — convenience helpers returning `<script nonce="...">` and `<style nonce="...">`                                                          | 10 min | Low    |
+| 27 | **Add `StrictCSP` preset** — Mozilla's recommended strict CSP template                                                                                                                        | 30 min | Medium |
+| 28 | **Consider `NonceConfig.ReportURI`** — set `report-uri` / `report-to` for CSP violation reporting                                                                                             | 20 min | Medium |
+| 29 | **Consider `NonceMetrics`** — track nonce generation count in metrics middleware                                                                                                              | 20 min | Low    |
+| 30 | **Add nonce to ROADMAP.md** if it tracks shipped features                                                                                                                                     | 2 min  | Low    |
 
 ### Future / Lower Priority
 
-| #   | Task                                                                                                                        | Effort | Impact |
-| --- | --------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 31  | **Add `Nonce-SHA256` support** — CSP Level 3 hash-based allowlisting                                                        | 1 hr   | Low    |
-| 32  | **Evaluate `Content-Security-Policy-Report-Only` middleware** — staged enforcement                                          | 20 min | Medium |
-| 33  | **Tag v0.11.0** — nonce hardening (Validate-at-construction, new tests, doc fixes) is a meaningful improvement over v0.10.0 | 5 min  | Medium |
+| #  | Task                                                                                                                        | Effort | Impact |
+| -- | --------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 31 | **Add `Nonce-SHA256` support** — CSP Level 3 hash-based allowlisting                                                        | 1 hr   | Low    |
+| 32 | **Evaluate `Content-Security-Policy-Report-Only` middleware** — staged enforcement                                          | 20 min | Medium |
+| 33 | **Tag v0.11.0** — nonce hardening (Validate-at-construction, new tests, doc fixes) is a meaningful improvement over v0.10.0 | 5 min  | Medium |
 
 ---
 
