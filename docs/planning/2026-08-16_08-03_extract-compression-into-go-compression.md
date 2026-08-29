@@ -15,11 +15,11 @@
 
 ### Repositories touched
 
-| Repo | Role | Change |
-| --- | --- | --- |
-| `../go-compression` (new) | Standalone module | Receives all response-compression code, error model, tests; gains optional brotli/zstd codecs; full infra (LICENSE, CI, lint, remote, tag) |
-| `httputil` (this repo) | Former owner | Deletes 16 moved files, keeps thin **deprecated** adapter (etag.go pattern), registers error-classification superset, updates depguard + docs |
-| `../go-datastar` | Consumer | README row flip + "Compressing SSE" docs; `datastartest` gains an optional integration test (**root go.mod stays dep-free**) |
+| Repo                      | Role              | Change                                                                                                                                        |
+| ------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `../go-compression` (new) | Standalone module | Receives all response-compression code, error model, tests; gains optional brotli/zstd codecs; full infra (LICENSE, CI, lint, remote, tag)    |
+| `httputil` (this repo)    | Former owner      | Deletes 16 moved files, keeps thin **deprecated** adapter (etag.go pattern), registers error-classification superset, updates depguard + docs |
+| `../go-datastar`          | Consumer          | README row flip + "Compressing SSE" docs; `datastartest` gains an optional integration test (**root go.mod stays dep-free**)                  |
 
 ## 2. Decisions (encoded, not open)
 
@@ -42,25 +42,25 @@
 
 ### Moves to go-compression (adapted: package rename, import fixes)
 
-| httputil file | LOC | Destination |
-| --- | --- | --- |
-| `compression.go` | 235 | `compression.go` (config + factories + middleware) |
-| `compression_negotiator.go` | 234 | `negotiator.go` |
-| `compression_qvalue.go` | 149 | `qvalue.go` |
-| `compress_writer.go` | 298 | `writer.go` |
-| `compress_writer_compress.go` | 64 | `writer_compress.go` |
-| `compress_pool.go` | 41 | `pool.go` |
-| `compress_content_type.go` | 34 | `content_type.go` |
-| `wrapper.go` | 85 | `response_wrapper.go` (root's `capabilities_test.go` gets a local test double) |
-| `compression_test.go` | 566 | tests (split as needed) |
-| `compress_writer_test.go` | 445 | tests (split as needed) |
-| `compression_negotiator_test.go` | 256 | tests |
-| `compression_qvalue_test.go` | 153 | tests |
-| `compression_factory_test.go` | 80 | tests |
-| `compression_behavior_test.go` | 59 | tests |
-| `compression_bench_test.go` | 53 | benchmarks |
-| `compression_negotiator_bench_test.go` | 42 | benchmarks |
-| `compress_fuzz_test.go` | 42 | fuzz |
+| httputil file                          | LOC | Destination                                                                    |
+| -------------------------------------- | --- | ------------------------------------------------------------------------------ |
+| `compression.go`                       | 235 | `compression.go` (config + factories + middleware)                             |
+| `compression_negotiator.go`            | 234 | `negotiator.go`                                                                |
+| `compression_qvalue.go`                | 149 | `qvalue.go`                                                                    |
+| `compress_writer.go`                   | 298 | `writer.go`                                                                    |
+| `compress_writer_compress.go`          | 64  | `writer_compress.go`                                                           |
+| `compress_pool.go`                     | 41  | `pool.go`                                                                      |
+| `compress_content_type.go`             | 34  | `content_type.go`                                                              |
+| `wrapper.go`                           | 85  | `response_wrapper.go` (root's `capabilities_test.go` gets a local test double) |
+| `compression_test.go`                  | 566 | tests (split as needed)                                                        |
+| `compress_writer_test.go`              | 445 | tests (split as needed)                                                        |
+| `compression_negotiator_test.go`       | 256 | tests                                                                          |
+| `compression_qvalue_test.go`           | 153 | tests                                                                          |
+| `compression_factory_test.go`          | 80  | tests                                                                          |
+| `compression_behavior_test.go`         | 59  | tests                                                                          |
+| `compression_bench_test.go`            | 53  | benchmarks                                                                     |
+| `compression_negotiator_bench_test.go` | 42  | benchmarks                                                                     |
+| `compress_fuzz_test.go`                | 42  | fuzz                                                                           |
 
 ### Root symbols the moved code uses (must be inlined/owned by go-compression)
 
@@ -88,35 +88,35 @@ Benchmarks ported + compared, pkg.go.dev verification, badges, TODO_LIST/FEATURE
 
 Sorted by importance (phase order = execution order; within phase by impact/effort ratio).
 
-| ID | Task | Impact | Effort | Tier |
-| --- | --- | --- | --- | --- |
-| M1 | Baseline: clean tree, `go test -race ./...`, lint, compression benchmarks recorded | H (safety) | 30m | 1% |
-| M2 | Repo skeleton: go.mod, LICENSE, .gitignore, .editorconfig, dprint.json, git init | H (unblocks all) | 45m | 1% |
-| M3 | Error model: `compression.*` + copied `http.*` codes, sentinels, templates, completeness test | H | 90m | 1% |
-| M4 | Move writer machinery: wrapper, writer, writer_compress, pool; fix symbols/imports | H | 100m | 1% |
-| M5 | Move negotiation: negotiator, qvalue, content_type | H | 60m | 1% |
-| M6 | Public surface: config + Validate, factories, `New()`, `Middleware` alias, doc.go | H | 60m | 1% |
-| M7 | Adapt test suite part 1: compression_test.go, compress_writer_test.go (+ testutil) | H | 100m | 1% |
-| M8 | Adapt test suite part 2: negotiator, qvalue, factory, behavior, fuzz; `-race -count=10` green | H | 90m | 1% |
-| M9 | Standalone surgery: inline validateConfig/capabilities, zero httputil imports, build alone | H (proves extraction) | 60m | 1% |
-| M10 | Port `.golangci.yml`, scope depguard for codec subpackages, lint+fmt to 0 issues | H (quality gate) | 60m | 4% |
-| M11 | CI: build, test-race, golangci-lint, govulncheck, erraudit; flake.nix + check | H | 60m | 4% |
-| M12 | README (what/why/install/quick start/config/SSE) + testable examples + doc.go polish | M-H | 90m | 4% |
-| M13 | AGENTS.md + CHANGELOG.md; deliberate initial commits; `gh repo create` + push | H (etag debt) | 60m | 4% |
-| M14 | Tag v0.1.0 (annotated); verify `go get` resolves from proxy in scratch module | H (unblocks httputil) | 45m | 4% |
-| M15 | httputil: `go get` tag, delete 16 files, write deprecated adapter, capabilities_test double, `go build` cascade fix | H | 90m | 4% |
-| M16 | httputil error registry: superset registration, errorTemplates split, code-list + domain tests green | H | 100m | 4% |
-| M17 | httputil depguard entry + AGENTS/FEATURES/CHANGELOG/README updates | M-H | 90m | 4% |
-| M18 | httputil full verification: race×10, lint, erraudit gates, art-dupl, server_timing, httpspec | H (gate) | 60m | 4% |
-| M19 | SSE guarantee: flush-per-event test, latency bound, `text/event-stream` regression test, README SSE section | H (the actual point) | 90m | 20% |
-| M20 | Optional codecs: `compression/zstd` + `compression/brotli` factories with pooling; core stays zero-dep | H (SDK parity) | 100m | 20% |
-| M21 | Codec tests: priority negotiation br>zstd>gzip>deflate, roundtrips, pool-reuse assertions, q-value matrix | H | 60m | 20% |
-| M22 | go-datastar README: flip comparison row, rewrite "official wins" bullet, "Compressing SSE" section + snippet | H (customer value) | 60m | 20% |
-| M23 | datastartest: test-only dep, SSE-through-compression integration test, root go.mod verified untouched, example curl check | M-H | 90m | 20% |
-| M24 | go-datastar FEATURES/CHANGELOG/AGENTS + commit/push | M | 45m | 20% |
-| M25 | Port benchmarks, run vs httputil baseline, record numbers in repo | M | 60m | 100% |
-| M26 | pkg.go.dev verify, badges, TODO_LIST harvest, final commits/pushes (all repos) | M | 60m | 100% |
-| M27 | Retro: annotate etag-extraction status reports, log go-etag flake debt, write session status report | M | 30m | 100% |
+| ID  | Task                                                                                                                      | Impact                | Effort | Tier |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------ | ---- |
+| M1  | Baseline: clean tree, `go test -race ./...`, lint, compression benchmarks recorded                                        | H (safety)            | 30m    | 1%   |
+| M2  | Repo skeleton: go.mod, LICENSE, .gitignore, .editorconfig, dprint.json, git init                                          | H (unblocks all)      | 45m    | 1%   |
+| M3  | Error model: `compression.*` + copied `http.*` codes, sentinels, templates, completeness test                             | H                     | 90m    | 1%   |
+| M4  | Move writer machinery: wrapper, writer, writer_compress, pool; fix symbols/imports                                        | H                     | 100m   | 1%   |
+| M5  | Move negotiation: negotiator, qvalue, content_type                                                                        | H                     | 60m    | 1%   |
+| M6  | Public surface: config + Validate, factories, `New()`, `Middleware` alias, doc.go                                         | H                     | 60m    | 1%   |
+| M7  | Adapt test suite part 1: compression_test.go, compress_writer_test.go (+ testutil)                                        | H                     | 100m   | 1%   |
+| M8  | Adapt test suite part 2: negotiator, qvalue, factory, behavior, fuzz; `-race -count=10` green                             | H                     | 90m    | 1%   |
+| M9  | Standalone surgery: inline validateConfig/capabilities, zero httputil imports, build alone                                | H (proves extraction) | 60m    | 1%   |
+| M10 | Port `.golangci.yml`, scope depguard for codec subpackages, lint+fmt to 0 issues                                          | H (quality gate)      | 60m    | 4%   |
+| M11 | CI: build, test-race, golangci-lint, govulncheck, erraudit; flake.nix + check                                             | H                     | 60m    | 4%   |
+| M12 | README (what/why/install/quick start/config/SSE) + testable examples + doc.go polish                                      | M-H                   | 90m    | 4%   |
+| M13 | AGENTS.md + CHANGELOG.md; deliberate initial commits; `gh repo create` + push                                             | H (etag debt)         | 60m    | 4%   |
+| M14 | Tag v0.1.0 (annotated); verify `go get` resolves from proxy in scratch module                                             | H (unblocks httputil) | 45m    | 4%   |
+| M15 | httputil: `go get` tag, delete 16 files, write deprecated adapter, capabilities_test double, `go build` cascade fix       | H                     | 90m    | 4%   |
+| M16 | httputil error registry: superset registration, errorTemplates split, code-list + domain tests green                      | H                     | 100m   | 4%   |
+| M17 | httputil depguard entry + AGENTS/FEATURES/CHANGELOG/README updates                                                        | M-H                   | 90m    | 4%   |
+| M18 | httputil full verification: race×10, lint, erraudit gates, art-dupl, server_timing, httpspec                              | H (gate)              | 60m    | 4%   |
+| M19 | SSE guarantee: flush-per-event test, latency bound, `text/event-stream` regression test, README SSE section               | H (the actual point)  | 90m    | 20%  |
+| M20 | Optional codecs: `compression/zstd` + `compression/brotli` factories with pooling; core stays zero-dep                    | H (SDK parity)        | 100m   | 20%  |
+| M21 | Codec tests: priority negotiation br>zstd>gzip>deflate, roundtrips, pool-reuse assertions, q-value matrix                 | H                     | 60m    | 20%  |
+| M22 | go-datastar README: flip comparison row, rewrite "official wins" bullet, "Compressing SSE" section + snippet              | H (customer value)    | 60m    | 20%  |
+| M23 | datastartest: test-only dep, SSE-through-compression integration test, root go.mod verified untouched, example curl check | M-H                   | 90m    | 20%  |
+| M24 | go-datastar FEATURES/CHANGELOG/AGENTS + commit/push                                                                       | M                     | 45m    | 20%  |
+| M25 | Port benchmarks, run vs httputil baseline, record numbers in repo                                                         | M                     | 60m    | 100% |
+| M26 | pkg.go.dev verify, badges, TODO_LIST harvest, final commits/pushes (all repos)                                            | M                     | 60m    | 100% |
+| M27 | Retro: annotate etag-extraction status reports, log go-etag flake debt, write session status report                       | M                     | 30m    | 100% |
 
 **Total: 27 tasks, ~27.5 h.**
 
@@ -124,248 +124,248 @@ Sorted by importance (phase order = execution order; within phase by impact/effo
 
 Phase 0 — Baseline
 
-| ID | Task | ≤ | Impact | Depends on |
-| --- | --- | --- | --- | --- |
-| F0.1 | Verify clean tree; run `go build ./...` + `go test -race ./...` baseline green | 12m | H | — |
-| F0.2 | Run `golangci-lint run` (0 issues) + `go test -bench` compression; record baseline numbers | 12m | H | F0.1 |
+| ID   | Task                                                                                       | ≤   | Impact | Depends on |
+| ---- | ------------------------------------------------------------------------------------------ | --- | ------ | ---------- |
+| F0.1 | Verify clean tree; run `go build ./...` + `go test -race ./...` baseline green             | 12m | H      | —          |
+| F0.2 | Run `golangci-lint run` (0 issues) + `go test -bench` compression; record baseline numbers | 12m | H      | F0.1       |
 
 Phase 1 — go-compression skeleton (M2)
 
-| ID | Task | ≤ | Impact | Depends on |
-| --- | --- | --- | --- | --- |
-| F1.1 | `mkdir ../go-compression && git init` | 5m | H | F0.* |
-| F1.2 | Write `go.mod` (module path, go 1.26) | 5m | H | F1.1 |
-| F1.3 | Write `LICENSE` (MIT, Lars Artmann, year) | 5m | H | F1.1 |
-| F1.4 | Write `.gitignore` + `.editorconfig` (copy from go-etag) | 5m | M | F1.1 |
-| F1.5 | Copy `dprint.json` from go-etag | 5m | M | F1.1 |
-| F1.6 | Deliberate initial commit (detailed message) | 5m | M | F1.2–F1.5 |
+| ID   | Task                                                     | ≤  | Impact | Depends on |
+| ---- | -------------------------------------------------------- | -- | ------ | ---------- |
+| F1.1 | `mkdir ../go-compression && git init`                    | 5m | H      | F0.*       |
+| F1.2 | Write `go.mod` (module path, go 1.26)                    | 5m | H      | F1.1       |
+| F1.3 | Write `LICENSE` (MIT, Lars Artmann, year)                | 5m | H      | F1.1       |
+| F1.4 | Write `.gitignore` + `.editorconfig` (copy from go-etag) | 5m | M      | F1.1       |
+| F1.5 | Copy `dprint.json` from go-etag                          | 5m | M      | F1.1       |
+| F1.6 | Deliberate initial commit (detailed message)             | 5m | M      | F1.2–F1.5  |
 
 Phase 2 — Error model (M3)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F2.1 | Create `errors.go`: `compression.*` code consts + string-identical `http.write/hijack` code copies | 12m | H | F1.6 |
-| F2.2 | Sentinel vars via go-error-family constructors; `RegisterErrorClassifications()` | 12m | H | F2.1 |
-| F2.3 | `errorTemplates` map (what/why/fix/wayOut, `{key}` placeholders) | 12m | H | F2.1 |
-| F2.4 | Template-completeness test mirroring `errors_templates_test.go` | 12m | H | F2.3 |
+| ID   | Task                                                                                               | ≤   | Impact | depends on |
+| ---- | -------------------------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F2.1 | Create `errors.go`: `compression.*` code consts + string-identical `http.write/hijack` code copies | 12m | H      | F1.6       |
+| F2.2 | Sentinel vars via go-error-family constructors; `RegisterErrorClassifications()`                   | 12m | H      | F2.1       |
+| F2.3 | `errorTemplates` map (what/why/fix/wayOut, `{key}` placeholders)                                   | 12m | H      | F2.1       |
+| F2.4 | Template-completeness test mirroring `errors_templates_test.go`                                    | 12m | H      | F2.3       |
 
 Phase 3 — Writer machinery (M4)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F3.1 | Move `wrapper.go` → `response_wrapper.go` (package rename) | 12m | H | F2.4 |
-| F3.2 | Move `compress_writer.go` → `writer.go` | 12m | H | F3.1 |
-| F3.3 | Move `compress_writer_compress.go` → `writer_compress.go` | 12m | H | F3.2 |
-| F3.4 | Move `compress_pool.go` → `pool.go` | 12m | H | F3.2 |
-| F3.5 | Fix imports/aliases; `go build ./...` green | 12m | H | F3.3, F3.4 |
+| ID   | Task                                                       | ≤   | Impact | depends on |
+| ---- | ---------------------------------------------------------- | --- | ------ | ---------- |
+| F3.1 | Move `wrapper.go` → `response_wrapper.go` (package rename) | 12m | H      | F2.4       |
+| F3.2 | Move `compress_writer.go` → `writer.go`                    | 12m | H      | F3.1       |
+| F3.3 | Move `compress_writer_compress.go` → `writer_compress.go`  | 12m | H      | F3.2       |
+| F3.4 | Move `compress_pool.go` → `pool.go`                        | 12m | H      | F3.2       |
+| F3.5 | Fix imports/aliases; `go build ./...` green                | 12m | H      | F3.3, F3.4 |
 
 Phase 4 — Negotiation (M5)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F4.1 | Move `compression_negotiator.go` → `negotiator.go` | 12m | H | F3.5 |
-| F4.2 | Move `compression_qvalue.go` → `qvalue.go` | 12m | H | F3.5 |
-| F4.3 | Move `compress_content_type.go` → `content_type.go` | 12m | H | F3.5 |
-| F4.4 | `go vet` + build green | 10m | H | F4.1–F4.3 |
+| ID   | Task                                                | ≤   | Impact | depends on |
+| ---- | --------------------------------------------------- | --- | ------ | ---------- |
+| F4.1 | Move `compression_negotiator.go` → `negotiator.go`  | 12m | H      | F3.5       |
+| F4.2 | Move `compression_qvalue.go` → `qvalue.go`          | 12m | H      | F3.5       |
+| F4.3 | Move `compress_content_type.go` → `content_type.go` | 12m | H      | F3.5       |
+| F4.4 | `go vet` + build green                              | 10m | H      | F4.1–F4.3  |
 
 Phase 5 — Public surface (M6)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F5.1 | Move `compression.go`: `CompressionConfig`, `Validate()`, defaults | 12m | H | F4.4 |
-| F5.2 | Add `Middleware` alias + `New()` constructor naming decision | 12m | H | F5.1 |
-| F5.3 | Move `GzipWriterFactory`/`DeflateWriterFactory` + `DefaultWriterFactories*` | 12m | H | F5.1 |
-| F5.4 | Write `doc.go` package documentation | 12m | M | F5.2 |
+| ID   | Task                                                                        | ≤   | Impact | depends on |
+| ---- | --------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F5.1 | Move `compression.go`: `CompressionConfig`, `Validate()`, defaults          | 12m | H      | F4.4       |
+| F5.2 | Add `Middleware` alias + `New()` constructor naming decision                | 12m | H      | F5.1       |
+| F5.3 | Move `GzipWriterFactory`/`DeflateWriterFactory` + `DefaultWriterFactories*` | 12m | H      | F5.1       |
+| F5.4 | Write `doc.go` package documentation                                        | 12m | M      | F5.2       |
 
 Phase 6 — Tests part 1 (M7)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F6.1 | Move + adapt `compression_test.go` (part 1) | 12m | H | F5.3 |
-| F6.2 | Move + adapt `compression_test.go` (part 2, split if >12m chunks) | 12m | H | F6.1 |
-| F6.3 | Move + adapt `compress_writer_test.go` (part 1) | 12m | H | F5.3 |
-| F6.4 | Move + adapt `compress_writer_test.go` (part 2) | 12m | H | F6.3 |
-| F6.5 | Create `testutil_test.go` — ONLY helpers actually called (etag lesson #47) | 12m | M | F6.1–F6.4 |
+| ID   | Task                                                                       | ≤   | Impact | depends on |
+| ---- | -------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F6.1 | Move + adapt `compression_test.go` (part 1)                                | 12m | H      | F5.3       |
+| F6.2 | Move + adapt `compression_test.go` (part 2, split if >12m chunks)          | 12m | H      | F6.1       |
+| F6.3 | Move + adapt `compress_writer_test.go` (part 1)                            | 12m | H      | F5.3       |
+| F6.4 | Move + adapt `compress_writer_test.go` (part 2)                            | 12m | H      | F6.3       |
+| F6.5 | Create `testutil_test.go` — ONLY helpers actually called (etag lesson #47) | 12m | M      | F6.1–F6.4  |
 
 Phase 7 — Tests part 2 (M8)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F7.1 | Move + adapt `compression_negotiator_test.go` | 12m | H | F6.5 |
-| F7.2 | Move + adapt `compression_qvalue_test.go` | 12m | H | F6.5 |
-| F7.3 | Move + adapt `compression_factory_test.go` | 12m | H | F6.5 |
-| F7.4 | Move + adapt `compression_behavior_test.go` | 12m | H | F6.5 |
-| F7.5 | Move + adapt `compress_fuzz_test.go` (+ short fuzz run) | 12m | H | F6.5 |
-| F7.6 | `go test -race -count=10 ./...` green in new module | 12m | H | F7.1–F7.5 |
+| ID   | Task                                                    | ≤   | Impact | depends on |
+| ---- | ------------------------------------------------------- | --- | ------ | ---------- |
+| F7.1 | Move + adapt `compression_negotiator_test.go`           | 12m | H      | F6.5       |
+| F7.2 | Move + adapt `compression_qvalue_test.go`               | 12m | H      | F6.5       |
+| F7.3 | Move + adapt `compression_factory_test.go`              | 12m | H      | F6.5       |
+| F7.4 | Move + adapt `compression_behavior_test.go`             | 12m | H      | F6.5       |
+| F7.5 | Move + adapt `compress_fuzz_test.go` (+ short fuzz run) | 12m | H      | F6.5       |
+| F7.6 | `go test -race -count=10 ./...` green in new module     | 12m | H      | F7.1–F7.5  |
 
 Phase 8 — Standalone surgery (M9)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F8.1 | Inline local `validateConfig` (slog behavior preserved) | 12m | H | F7.6 |
-| F8.2 | Audit + inline `DetectCapabilities` usage if referenced | 12m | H | F7.6 |
-| F8.3 | `rg httputil` → zero hits; build in isolated GOPATH (no workspace) | 12m | H | F8.1, F8.2 |
+| ID   | Task                                                               | ≤   | Impact | depends on |
+| ---- | ------------------------------------------------------------------ | --- | ------ | ---------- |
+| F8.1 | Inline local `validateConfig` (slog behavior preserved)            | 12m | H      | F7.6       |
+| F8.2 | Audit + inline `DetectCapabilities` usage if referenced            | 12m | H      | F7.6       |
+| F8.3 | `rg httputil` → zero hits; build in isolated GOPATH (no workspace) | 12m | H      | F8.1, F8.2 |
 
 Phase 9 — Lint config (M10)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F9.1 | Copy `.golangci.yml` from httputil | 12m | H | F8.3 |
-| F9.2 | Depguard: allow `$gostd`, module, go-error-family, `klauspost/compress`, `andybalholm/brotli` | 12m | H | F9.1 |
-| F9.3 | `golangci-lint run` → 0 issues; `golangci-lint fmt` clean | 12m | H | F9.2 |
+| ID   | Task                                                                                          | ≤   | Impact | depends on |
+| ---- | --------------------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F9.1 | Copy `.golangci.yml` from httputil                                                            | 12m | H      | F8.3       |
+| F9.2 | Depguard: allow `$gostd`, module, go-error-family, `klauspost/compress`, `andybalholm/brotli` | 12m | H      | F9.1       |
+| F9.3 | `golangci-lint run` → 0 issues; `golangci-lint fmt` clean                                     | 12m | H      | F9.2       |
 
 Phase 10 — CI + Nix (M11)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F10.1 | `.github/workflows/ci.yml`: build + `test -race` matrix | 12m | H | F9.3 |
-| F10.2 | Add golangci-lint + govulncheck + erraudit jobs | 12m | H | F10.1 |
-| F10.3 | Write `flake.nix` (mirror go-datastar); `nix flake check` | 12m | M | F9.3 |
+| ID    | Task                                                      | ≤   | Impact | depends on |
+| ----- | --------------------------------------------------------- | --- | ------ | ---------- |
+| F10.1 | `.github/workflows/ci.yml`: build + `test -race` matrix   | 12m | H      | F9.3       |
+| F10.2 | Add golangci-lint + govulncheck + erraudit jobs           | 12m | H      | F10.1      |
+| F10.3 | Write `flake.nix` (mirror go-datastar); `nix flake check` | 12m | M      | F9.3       |
 
 Phase 11 — Docs (M12)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F11.1 | README: what/why, install, quick start | 12m | M-H | F9.3 |
-| F11.2 | README: config table + SSE-safety section skeleton | 12m | M-H | F11.1 |
-| F11.3 | `example_test.go` with ≥3 testable `// Output:` examples | 12m | M | F5.4 |
-| F11.4 | `doc.go` polish aligned with README | 12m | M | F11.3 |
+| ID    | Task                                                     | ≤   | Impact | depends on |
+| ----- | -------------------------------------------------------- | --- | ------ | ---------- |
+| F11.1 | README: what/why, install, quick start                   | 12m | M-H    | F9.3       |
+| F11.2 | README: config table + SSE-safety section skeleton       | 12m | M-H    | F11.1      |
+| F11.3 | `example_test.go` with ≥3 testable `// Output:` examples | 12m | M      | F5.4       |
+| F11.4 | `doc.go` polish aligned with README                      | 12m | M      | F11.3      |
 
 Phase 12 — Repo + remote (M13)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F12.1 | AGENTS.md: hard constraints (lint rules, commands, decisions 1–7 from this plan) | 12m | H | F11.4 |
-| F12.2 | CHANGELOG.md (Keep a Changelog, `[Unreleased]` → v0.1.0) | 5m | M | F12.1 |
-| F12.3 | Deliberate feature commit(s) with detailed messages | 12m | H | F12.2 |
-| F12.4 | `gh repo create LarsArtmann/go-compression --public --source . --push` | 12m | H | F12.3 |
+| ID    | Task                                                                             | ≤   | Impact | depends on |
+| ----- | -------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F12.1 | AGENTS.md: hard constraints (lint rules, commands, decisions 1–7 from this plan) | 12m | H      | F11.4      |
+| F12.2 | CHANGELOG.md (Keep a Changelog, `[Unreleased]` → v0.1.0)                         | 5m  | M      | F12.1      |
+| F12.3 | Deliberate feature commit(s) with detailed messages                              | 12m | H      | F12.2      |
+| F12.4 | `gh repo create LarsArtmann/go-compression --public --source . --push`           | 12m | H      | F12.3      |
 
 Phase 13 — Tag (M14)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F14.1 | Annotated tag `v0.1.0` + push tag | 5m | H | F12.4 |
-| F14.2 | Scratch module: `go get github.com/larsartmann/go-compression@v0.1.0` resolves from proxy | 12m | H | F14.1 |
-| F14.3 | Confirm proxy listing (proxy.golang.org/@v listing) | 12m | M | F14.2 |
+| ID    | Task                                                                                      | ≤   | Impact | depends on |
+| ----- | ----------------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F14.1 | Annotated tag `v0.1.0` + push tag                                                         | 5m  | H      | F12.4      |
+| F14.2 | Scratch module: `go get github.com/larsartmann/go-compression@v0.1.0` resolves from proxy | 12m | H      | F14.1      |
+| F14.3 | Confirm proxy listing (proxy.golang.org/@v listing)                                       | 12m | M      | F14.2      |
 
 Phase 14 — httputil migration (M15)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F15.1 | `go get go-compression@v0.1.0` in httputil; `go mod tidy` | 5m | H | F14.2 |
-| F15.2 | Write deprecated adapter `compression.go` (mirror `etag.go`) | 12m | H | F15.1 |
-| F15.3 | `git rm` the 7 moved non-test files | 12m | H | F15.2 |
-| F15.4 | Remove/relocate the 9 moved test files; keep adapter smoke tests | 12m | H | F15.3 |
-| F15.5 | `capabilities_test.go`: replace `responseWrapper` with local double | 12m | H | F15.3 |
-| F15.6 | **`go build ./...` immediately**; fix cascade (AGENTS.md rule) | 12m | H | F15.2–F15.5 |
+| ID    | Task                                                                | ≤   | Impact | depends on  |
+| ----- | ------------------------------------------------------------------- | --- | ------ | ----------- |
+| F15.1 | `go get go-compression@v0.1.0` in httputil; `go mod tidy`           | 5m  | H      | F14.2       |
+| F15.2 | Write deprecated adapter `compression.go` (mirror `etag.go`)        | 12m | H      | F15.1       |
+| F15.3 | `git rm` the 7 moved non-test files                                 | 12m | H      | F15.2       |
+| F15.4 | Remove/relocate the 9 moved test files; keep adapter smoke tests    | 12m | H      | F15.3       |
+| F15.5 | `capabilities_test.go`: replace `responseWrapper` with local double | 12m | H      | F15.3       |
+| F15.6 | **`go build ./...` immediately**; fix cascade (AGENTS.md rule)      | 12m | H      | F15.2–F15.5 |
 
 Phase 15 — httputil errors (M16)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F16.1 | `RegisterErrorClassifications()`: call go-compression's register (superset, etag pattern) | 12m | H | F15.6 |
-| F16.2 | Remove moved entries from `errorTemplates`; keep code constants for compat | 12m | H | F16.1 |
-| F16.3 | Update `allHTTputilErrorCodes` list | 12m | H | F16.2 |
-| F16.4 | `errors_templates_test` + domain tests green | 12m | H | F16.3 |
+| ID    | Task                                                                                      | ≤   | Impact | depends on |
+| ----- | ----------------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F16.1 | `RegisterErrorClassifications()`: call go-compression's register (superset, etag pattern) | 12m | H      | F15.6      |
+| F16.2 | Remove moved entries from `errorTemplates`; keep code constants for compat                | 12m | H      | F16.1      |
+| F16.3 | Update `allHTTputilErrorCodes` list                                                       | 12m | H      | F16.2      |
+| F16.4 | `errors_templates_test` + domain tests green                                              | 12m | H      | F16.3      |
 
 Phase 16 — httputil docs/lint (M17)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F17.1 | `.golangci.yml` depguard: add `github.com/larsartmann/go-compression` | 12m | H | F16.4 |
-| F17.2 | AGENTS.md: rewrite file table, deps section, non-obvious behaviors | 12m | H | F17.1 |
-| F17.3 | FEATURES.md: compression → "delegated to go-compression" + adapter row | 12m | M | F17.2 |
-| F17.4 | CHANGELOG `[Unreleased]`: detailed extraction entry | 12m | M | F17.3 |
-| F17.5 | README.md compression mentions updated | 12m | M | F17.4 |
+| ID    | Task                                                                   | ≤   | Impact | depends on |
+| ----- | ---------------------------------------------------------------------- | --- | ------ | ---------- |
+| F17.1 | `.golangci.yml` depguard: add `github.com/larsartmann/go-compression`  | 12m | H      | F16.4      |
+| F17.2 | AGENTS.md: rewrite file table, deps section, non-obvious behaviors     | 12m | H      | F17.1      |
+| F17.3 | FEATURES.md: compression → "delegated to go-compression" + adapter row | 12m | M      | F17.2      |
+| F17.4 | CHANGELOG `[Unreleased]`: detailed extraction entry                    | 12m | M      | F17.3      |
+| F17.5 | README.md compression mentions updated                                 | 12m | M      | F17.4      |
 
 Phase 17 — httputil verification (M18)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F18.1 | `go test -race -count=10 ./...` green | 12m | H | F17.5 |
-| F18.2 | `golangci-lint run` → 0 issues | 12m | H | F18.1 |
-| F18.3 | erraudit gates (legacy_as + stdlib_constructor) exit 0 | 12m | H | F18.1 |
-| F18.4 | `art-dupl --type-aware` zero harmful clones | 12m | M | F18.1 |
-| F18.5 | `server_timing` + `httpspec` suites green; deliberate commit + push | 12m | H | F18.2–F18.4 |
+| ID    | Task                                                                | ≤   | Impact | depends on  |
+| ----- | ------------------------------------------------------------------- | --- | ------ | ----------- |
+| F18.1 | `go test -race -count=10 ./...` green                               | 12m | H      | F17.5       |
+| F18.2 | `golangci-lint run` → 0 issues                                      | 12m | H      | F18.1       |
+| F18.3 | erraudit gates (legacy_as + stdlib_constructor) exit 0              | 12m | H      | F18.1       |
+| F18.4 | `art-dupl --type-aware` zero harmful clones                         | 12m | M      | F18.1       |
+| F18.5 | `server_timing` + `httpspec` suites green; deliberate commit + push | 12m | H      | F18.2–F18.4 |
 
 Phase 18 — SSE guarantee (M19)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F19.1 | Test: `text/event-stream` handler + Flush per event → events arrive one-by-one through gzip | 12m | H | F18.5 |
-| F19.2 | Test: first-event latency bound (<50ms locally) — no MinSize buffering stall | 12m | H | F19.1 |
-| F19.3 | Regression: `text/event-stream` never in `DefaultIncompressibleTypes()` | 12m | H | F19.1 |
-| F19.4 | README SSE section: guarantee + honest browser-support note (gzip universal on EventSource; br/zstd fetch-stream dependent) | 12m | M-H | F19.2 |
+| ID    | Task                                                                                                                        | ≤   | Impact | depends on |
+| ----- | --------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F19.1 | Test: `text/event-stream` handler + Flush per event → events arrive one-by-one through gzip                                 | 12m | H      | F18.5      |
+| F19.2 | Test: first-event latency bound (<50ms locally) — no MinSize buffering stall                                                | 12m | H      | F19.1      |
+| F19.3 | Regression: `text/event-stream` never in `DefaultIncompressibleTypes()`                                                     | 12m | H      | F19.1      |
+| F19.4 | README SSE section: guarantee + honest browser-support note (gzip universal on EventSource; br/zstd fetch-stream dependent) | 12m | M-H    | F19.2      |
 
 Phase 19 — Optional codecs (M20)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F20.1 | `compression/zstd`: factory via `klauspost/compress/zstd` + `Reset` pooling | 12m | H | F18.5 |
-| F20.2 | `compression/brotli`: factory via `andybalholm/brotli` | 12m | H | F18.5 |
-| F20.3 | `go mod tidy`; verify core package still imports zero codec deps | 12m | H | F20.1, F20.2 |
-| F20.4 | Lint + depguard scoping green for subpackages | 12m | M | F20.3 |
+| ID    | Task                                                                        | ≤   | Impact | depends on   |
+| ----- | --------------------------------------------------------------------------- | --- | ------ | ------------ |
+| F20.1 | `compression/zstd`: factory via `klauspost/compress/zstd` + `Reset` pooling | 12m | H      | F18.5        |
+| F20.2 | `compression/brotli`: factory via `andybalholm/brotli`                      | 12m | H      | F18.5        |
+| F20.3 | `go mod tidy`; verify core package still imports zero codec deps            | 12m | H      | F20.1, F20.2 |
+| F20.4 | Lint + depguard scoping green for subpackages                               | 12m | M      | F20.3        |
 
 Phase 20 — Codec tests (M21)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F21.1 | Negotiation priority test: `br > zstd > gzip > deflate` matrix | 12m | H | F20.3 |
-| F21.2 | Roundtrip tests per codec (write → read → equal) | 12m | H | F20.3 |
-| F21.3 | Pool-reuse assertions (Reset called; no re-alloc) | 12m | M | F21.2 |
-| F21.4 | q-value matrix incl. br/zstd incl. malformed | 12m | M | F21.1 |
+| ID    | Task                                                           | ≤   | Impact | depends on |
+| ----- | -------------------------------------------------------------- | --- | ------ | ---------- |
+| F21.1 | Negotiation priority test: `br > zstd > gzip > deflate` matrix | 12m | H      | F20.3      |
+| F21.2 | Roundtrip tests per codec (write → read → equal)               | 12m | H      | F20.3      |
+| F21.3 | Pool-reuse assertions (Reset called; no re-alloc)              | 12m | M      | F21.2      |
+| F21.4 | q-value matrix incl. br/zstd incl. malformed                   | 12m | M      | F21.1      |
 
 Phase 21 — go-datastar README (M22)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F22.1 | Flip comparison row: "Yes — drop-in via go-compression (SSE-safe)" | 12m | H | F19.4 |
-| F22.2 | Rewrite "Where the official SDK wins" compression bullet | 12m | H | F22.1 |
-| F22.3 | Add "Compressing SSE responses" section + composition snippet | 12m | H | F22.2 |
-| F22.4 | Update "When to choose which" section | 12m | M | F22.3 |
+| ID    | Task                                                               | ≤   | Impact | depends on |
+| ----- | ------------------------------------------------------------------ | --- | ------ | ---------- |
+| F22.1 | Flip comparison row: "Yes — drop-in via go-compression (SSE-safe)" | 12m | H      | F19.4      |
+| F22.2 | Rewrite "Where the official SDK wins" compression bullet           | 12m | H      | F22.1      |
+| F22.3 | Add "Compressing SSE responses" section + composition snippet      | 12m | H      | F22.2      |
+| F22.4 | Update "When to choose which" section                              | 12m | M      | F22.3      |
 
 Phase 22 — datastartest integration (M23)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F23.1 | Add go-compression as test-only dep in `datastartest` module | 12m | M-H | F22.4 |
-| F23.2 | Integration test: datastar SSE stream through `compression.New()`, events parsed gzip-decompressed | 12m | H | F23.1 |
-| F23.3 | Verify root go.mod untouched + `module_boundary_test` green | 12m | H | F23.2 |
-| F23.4 | Manual: run example app, `curl --compressed -N` sees streaming events | 12m | M | F23.3 |
+| ID    | Task                                                                                               | ≤   | Impact | depends on |
+| ----- | -------------------------------------------------------------------------------------------------- | --- | ------ | ---------- |
+| F23.1 | Add go-compression as test-only dep in `datastartest` module                                       | 12m | M-H    | F22.4      |
+| F23.2 | Integration test: datastar SSE stream through `compression.New()`, events parsed gzip-decompressed | 12m | H      | F23.1      |
+| F23.3 | Verify root go.mod untouched + `module_boundary_test` green                                        | 12m | H      | F23.2      |
+| F23.4 | Manual: run example app, `curl --compressed -N` sees streaming events                              | 12m | M      | F23.3      |
 
 Phase 23 — go-datastar docs (M24)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F24.1 | FEATURES.md compression row | 12m | M | F23.4 |
-| F24.2 | CHANGELOG entry | 12m | M | F24.1 |
-| F24.3 | AGENTS.md note (integration path, root stays dep-free) | 12m | M | F24.2 |
-| F24.4 | Deliberate commit + push go-datastar | 12m | M | F24.3 |
+| ID    | Task                                                   | ≤   | Impact | depends on |
+| ----- | ------------------------------------------------------ | --- | ------ | ---------- |
+| F24.1 | FEATURES.md compression row                            | 12m | M      | F23.4      |
+| F24.2 | CHANGELOG entry                                        | 12m | M      | F24.1      |
+| F24.3 | AGENTS.md note (integration path, root stays dep-free) | 12m | M      | F24.2      |
+| F24.4 | Deliberate commit + push go-datastar                   | 12m | M      | F24.3      |
 
 Phase 24 — Benchmarks (M25)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F25.1 | Port `compression_bench_test.go` | 12m | M | F21.4 |
-| F25.2 | Port negotiator benchmark | 12m | M | F25.1 |
-| F25.3 | Run vs F0.2 baseline; record deltas in `docs/` | 12m | M | F25.2 |
+| ID    | Task                                           | ≤   | Impact | depends on |
+| ----- | ---------------------------------------------- | --- | ------ | ---------- |
+| F25.1 | Port `compression_bench_test.go`               | 12m | M      | F21.4      |
+| F25.2 | Port negotiator benchmark                      | 12m | M      | F25.1      |
+| F25.3 | Run vs F0.2 baseline; record deltas in `docs/` | 12m | M      | F25.2      |
 
 Phase 25 — Final (M26)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F26.1 | Verify pkg.go.dev page renders go-compression docs | 12m | M | F21.4 |
-| F26.2 | README badges (GoRef, CI, ReportCard, MIT) | 12m | M | F26.1 |
-| F26.3 | Harvest remaining plan items into TODO_LIST.md (all repos) | 12m | M | F26.2 |
-| F26.4 | Final deliberate commits + push: go-compression, httputil, go-datastar | 12m | H | F26.3 |
+| ID    | Task                                                                   | ≤   | Impact | depends on |
+| ----- | ---------------------------------------------------------------------- | --- | ------ | ---------- |
+| F26.1 | Verify pkg.go.dev page renders go-compression docs                     | 12m | M      | F21.4      |
+| F26.2 | README badges (GoRef, CI, ReportCard, MIT)                             | 12m | M      | F26.1      |
+| F26.3 | Harvest remaining plan items into TODO_LIST.md (all repos)             | 12m | M      | F26.2      |
+| F26.4 | Final deliberate commits + push: go-compression, httputil, go-datastar | 12m | H      | F26.3      |
 
 Phase 26 — Retro (M27)
 
-| ID | Task | ≤ | Impact | depends on |
-| --- | --- | --- | --- | --- |
-| F27.1 | Annotate etag-extraction status reports with outcome links | 12m | M | F26.4 |
-| F27.2 | Add "go-etag flake.nix debt" TODO to go-etag backlog | 12m | L | F27.1 |
-| F27.3 | Write `docs/status/` session report for this extraction | 12m | M | F27.2 |
+| ID    | Task                                                       | ≤   | Impact | depends on |
+| ----- | ---------------------------------------------------------- | --- | ------ | ---------- |
+| F27.1 | Annotate etag-extraction status reports with outcome links | 12m | M      | F26.4      |
+| F27.2 | Add "go-etag flake.nix debt" TODO to go-etag backlog       | 12m | L      | F27.1      |
+| F27.3 | Write `docs/status/` session report for this extraction    | 12m | M      | F27.2      |
 
 **Total: 110 fine tasks across 27 medium tasks.**
 
@@ -421,11 +421,11 @@ flowchart TD
 
 ## 9. Risks
 
-| Risk | Mitigation |
-| --- | --- |
+| Risk                                                                  | Mitigation                                                                                |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Auto-commit daemon mangles history mid-extraction (etag lesson 41/45) | Deliberate `git commit --no-verify` at every phase boundary; check `git log` before/after |
-| Behavior drift during move | Byte-for-byte move rule; baseline benchmarks (F0.2) compared at F25.3 |
-| `go build` cascade in httputil surprises | F15.6 runs build immediately after deletion (AGENTS.md cross-cutting rule) |
-| SSE compression silently buffered by MinSize | F19.2 latency-bound test catches it |
-| Brotli/Zstd on EventSource not universally supported | Honest README note; gzip remains default (F19.4) |
-| go-datastar purity advocates object to any dep | Root untouched; test-only dep confined to datastartest module (decision 5) |
+| Behavior drift during move                                            | Byte-for-byte move rule; baseline benchmarks (F0.2) compared at F25.3                     |
+| `go build` cascade in httputil surprises                              | F15.6 runs build immediately after deletion (AGENTS.md cross-cutting rule)                |
+| SSE compression silently buffered by MinSize                          | F19.2 latency-bound test catches it                                                       |
+| Brotli/Zstd on EventSource not universally supported                  | Honest README note; gzip remains default (F19.4)                                          |
+| go-datastar purity advocates object to any dep                        | Root untouched; test-only dep confined to datastartest module (decision 5)                |
