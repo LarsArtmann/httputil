@@ -277,6 +277,8 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ExpectHeader`             | Frozen   |                                   |
 | `ExpectHeaderAbsent`       | Frozen   |                                   |
 | `ExpectBodyContains`       | Frozen   |                                   |
+| `ExpectJSON`               | Additive | Added post-v0.10.0                |
+| `ExpectHTML`               | Additive | Added post-v0.10.0                |
 | `SpecName*` constants (18) | Frozen   | String values are part of the API |
 
 ### Standard Specs (Additive)

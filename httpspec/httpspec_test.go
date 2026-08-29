@@ -899,3 +899,99 @@ func TestMustRequestPanicsOnInvalidMethod(t *testing.T) {
 	// A method containing a space is rejected by http.NewRequestWithContext.
 	mustRequest("INVALID METHOD", "http://example.com")
 }
+
+func TestExpectJSONValidBody(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("application/json", `{"status":"up"}`)
+
+	result := ExpectJSON(http.MethodGet, "/x", "application/json")(handler)
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectJSONAnyJSONContentType(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("application/vnd.api+json", `[1,2,3]`)
+
+	result := ExpectJSON(http.MethodGet, "/x", "")(handler)
+
+	if !result.OK {
+		t.Errorf("expected suffixed JSON content type to pass: %s", result.Message)
+	}
+}
+
+func TestExpectJSONInvalidBody(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("application/json", `{"status":up}`)
+
+	result := ExpectJSON(http.MethodGet, "/x", "")(handler)
+
+	if result.OK {
+		t.Error("expected fail for invalid JSON body")
+	}
+}
+
+func TestExpectJSONWrongContentType(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("text/plain", `{}`)
+
+	result := ExpectJSON(http.MethodGet, "/x", "application/json")(handler)
+
+	if result.OK {
+		t.Error("expected fail for non-JSON content type")
+	}
+}
+
+func TestExpectJSONExactContentTypeMismatch(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("application/vnd.api+json", `{}`)
+
+	result := ExpectJSON(http.MethodGet, "/x", "application/json")(handler)
+
+	if result.OK {
+		t.Error("expected fail when exact content type does not match")
+	}
+}
+
+func TestExpectHTMLValidBody(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("text/html; charset=utf-8", "<!DOCTYPE html><html></html>")
+
+	result := ExpectHTML(http.MethodGet, "/x", "text/html; charset=utf-8")(handler)
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectHTMLXHTMLContentType(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("application/xhtml+xml", "<html></html>")
+
+	result := ExpectHTML(http.MethodGet, "/x", "")(handler)
+
+	if !result.OK {
+		t.Errorf("expected xhtml content type to pass: %s", result.Message)
+	}
+}
+
+func TestExpectHTMLWrongContentType(t *testing.T) {
+	t.Parallel()
+
+	handler := newTypedBodyHandler("application/json", "<html></html>")
+
+	result := ExpectHTML(http.MethodGet, "/x", "text/html")(handler)
+
+	if result.OK {
+		t.Error("expected fail for non-HTML content type")
+	}
+}

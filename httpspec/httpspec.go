@@ -2,7 +2,9 @@ package httpspec
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"mime"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -261,6 +263,74 @@ func runSpecs(t *testing.T, handler http.Handler, parallel bool, opts ...Option)
 			}
 		})
 	}
+}
+
+// ExpectJSON returns a [Check] that verifies the response body is valid JSON
+// with the expected Content-Type. When contentType is empty, any
+// JSON-compatible type ("application/json" plus structured-syntax suffixes
+// like "+json") passes; when set, the header must equal it exactly.
+func ExpectJSON(method, path, contentType string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		got := rec.Header().Get("Content-Type")
+
+		if !isJSONContentType(got) || (contentType != "" && got != contentType) {
+			return Fail(
+				"%s %s response is not JSON: Content-Type %q, want %q",
+				method, path, got, contentType,
+			)
+		}
+
+		if !json.Valid(rec.Body.Bytes()) {
+			return Fail("%s %s response body is not valid JSON", method, path)
+		}
+
+		return Pass()
+	}
+}
+
+// ExpectHTML returns a [Check] that verifies the response body is HTML with
+// the expected Content-Type. When contentType is empty, any HTML-compatible
+// type ("text/html" plus XHTML variants) passes; when set, the header must
+// equal it exactly.
+func ExpectHTML(method, path, contentType string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		got := rec.Header().Get("Content-Type")
+
+		if !isHTMLContentType(got) || (contentType != "" && got != contentType) {
+			return Fail(
+				"%s %s response is not HTML: Content-Type %q, want %q",
+				method, path, got, contentType,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+func isJSONContentType(value string) bool {
+	mediaType, _, err := mime.ParseMediaType(value)
+	if err != nil {
+		return false
+	}
+
+	mediaType = strings.ToLower(mediaType)
+
+	return mediaType == "application/json" || strings.HasSuffix(mediaType, "+json")
+}
+
+func isHTMLContentType(value string) bool {
+	mediaType, _, err := mime.ParseMediaType(value)
+	if err != nil {
+		return false
+	}
+
+	mediaType = strings.ToLower(mediaType)
+
+	return mediaType == "text/html" || mediaType == "application/xhtml+xml"
 }
 
 func mustRequest(method, target string) *http.Request {
