@@ -2,11 +2,20 @@ package httputil
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"errors"
+	"fmt"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -494,4 +503,160 @@ func TestNewServerWiresTLSConfig(t *testing.T) {
 	if srv.httpServer.TLSConfig != tlsCfg {
 		t.Error("NewServer() did not wire TLSConfig to the underlying http.Server")
 	}
+}
+
+func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	freePort := reserveFreePort(t)
+	certPEM, keyPEM := newSelfSignedCert(t)
+	certPath, keyPath := filepath.Join(t.TempDir(), "cert.pem"), filepath.Join(t.TempDir(), "key.pem")
+	if err := os.WriteFile(certPath, certPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(keyPath, keyPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	block, _ := pem.Decode(certPEM)
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	caPool := x509.NewCertPool()
+	caPool.AddCert(cert)
+
+	tlsCfg := &tls.Config{
+		MinVersion:         tls.VersionTLS13,
+		RootCAs:            caPool,
+		ClientAuth:         tls.NoClientCert,
+		InsecureSkipVerify: false,
+		ServerName:         "localhost",
+	}
+
+	srv, err := NewServer(ServerConfig{
+		Addr:              fmt.Sprintf("127.0.0.1:%d", freePort),
+		ReadTimeout:       time.Second,
+		ReadHeaderTimeout: time.Second,
+		WriteTimeout:      time.Second,
+		IdleTimeout:       time.Second,
+		ShutdownTimeout:   time.Second,
+		TLSConfig:         tlsCfg.Clone(), // the server mutates its config (h2 ALPN); give it a private copy
+	}, handler)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	errChan := srv.StartTLS(certPath, keyPath)
+
+	select {
+	case e := <-errChan:
+		t.Fatalf("StartTLS error: %v", e)
+	default:
+	}
+	waitForTLS(t, srv, tlsCfg)
+
+	clientTLS := tlsCfg.Clone()
+	clientTLS.NextProtos = []string{"http/1.1"}
+
+	client := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLS, ForceAttemptHTTP2: false}}
+	resp, err := client.Get("https://" + srv.Addr() + "/")
+	if err != nil {
+		t.Fatalf("HTTPS request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if resp.TLS == nil || resp.TLS.Version < tls.VersionTLS12 {
+		t.Errorf("connection should use TLS 1.2+, got %v", resp.TLS)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		t.Errorf("shutdown failed: %v", err)
+	}
+
+	select {
+	case err := <-errChan:
+		t.Errorf("unexpected server error: %v", err)
+	default:
+	}
+}
+
+func newSelfSignedCert(t *testing.T) ([]byte, []byte) {
+	t.Helper()
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template := x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "localhost"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
+		DNSNames:              []string{"localhost"},
+	}
+
+	der, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+
+	return certPEM, keyPEM
+}
+
+func waitForTLS(t *testing.T, srv *Server, cfg *tls.Config) {
+	t.Helper()
+
+	deadline := time.Now().Add(3 * time.Second)
+
+	for time.Now().Before(deadline) {
+		conn, err := tls.DialWithDialer(
+			&net.Dialer{Timeout: 100 * time.Millisecond},
+			"tcp",
+			srv.Addr(),
+			cfg,
+		)
+		if err == nil {
+			_ = conn.Close()
+
+			return
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	t.Fatal("TLS server did not become ready within 3s")
+}
+
+func reserveFreePort(t *testing.T) int {
+	t.Helper()
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+
+	return l.Addr().(*net.TCPAddr).Port
 }

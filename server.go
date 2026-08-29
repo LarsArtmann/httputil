@@ -195,6 +195,27 @@ func (srv *Server) Start() <-chan error {
 	return errChan
 }
 
+// StartTLS begins listening on the configured address for HTTPS in a
+// goroutine, using the certificate and key files at the given paths. The
+// server's TLSConfig (validated to enforce TLS 1.2+ when set) applies to the
+// listener. It returns a channel that receives any non-shutdown error from
+// ListenAndServeTLS.
+//
+// With in-memory certificates, pass empty paths and set
+// TLSConfig.GetCertificate (or Certificates) on the ServerConfig instead.
+func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
+	errChan := make(chan error, 1)
+
+	go func() {
+		err := srv.httpServer.ListenAndServeTLS(certFile, keyFile)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
+		}
+	}()
+
+	return errChan
+}
+
 // Shutdown gracefully shuts down the server. If the provided context has no
 // deadline and the server was configured with a ShutdownTimeout, a timeout
 // context is derived automatically to prevent indefinite hangs.

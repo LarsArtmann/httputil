@@ -133,6 +133,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - `DefaultServerConfig()` — production defaults (`:8080`, 10s/5s/30s/60s timeouts).
 - `NewServer()` wraps `http.Server` with lifecycle helpers.
 - `Start()` is non-blocking and returns a `<-chan error` for listen errors.
+- `StartTLS(certFile, keyFile)` serves HTTPS with the validated `TLSConfig` (TLS 1.2+ enforced); in-memory certs work via `GetCertificate` with empty paths.
 - `Shutdown()` performs graceful shutdown respecting a context deadline.
 - `Addr()` returns the configured listen address.
 

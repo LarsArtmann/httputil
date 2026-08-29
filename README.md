@@ -314,6 +314,8 @@ if err != nil {
 errChan := srv.Start()
 
 // Wait for shutdown signal, then call srv.Shutdown(ctx).
+
+// HTTPS: srv.StartTLS("cert.pem", "key.pem") applies cfg.TLSConfig (TLS 1.2+ enforced).
 ```
 
 Default timeouts match production recommendations:

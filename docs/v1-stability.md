@@ -88,6 +88,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `Server`          | Frozen | Struct; constructor + methods locked                |
 | `NewServer`       | Frozen | `func(ServerConfig, http.Handler) (*Server, error)` |
 | `Server.Start`    | Frozen | `func() <-chan error`                               |
+| `Server.StartTLS` | Additive | Added post-v0.10.0: HTTPS serving via `ListenAndServeTLS` |
 | `Server.Shutdown` | Frozen | `func(context.Context) error`                       |
 | `Server.Addr`     | Frozen | `func() string`                                     |
 

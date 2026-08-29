@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"fmt"
 	"io"
@@ -241,5 +242,196 @@ func TestChain_KeyedRateLimitEvictionUnderChurn(t *testing.T) {
 		}
 
 		time.Sleep(2 * time.Millisecond)
+	}
+}
+
+func TestChain_DecompressionThenMaxBodySizeLimitsDecompressed(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	_, _ = zw.Write(make([]byte, 4096))
+	_ = zw.Close()
+
+	cfg := DefaultDecompressionConfig()
+	cfg.MaxDecompressionSize = 1024
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n, err := io.Copy(io.Discard, r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusExpectationFailed)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_ = r.Body.Close()
+		_ = n
+	})
+
+	wrapped := Chain(inner, Decompression(cfg), MaxBodySizeMiddleware(MaxBodySizeConfig{MaxBytes: 2048}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(buf.Bytes()))
+	req.Header.Set("Content-Encoding", "gzip")
+	wrapped.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusExpectationFailed {
+		t.Errorf(
+			"status = %d, want %d (bomb protection must abort the decompressed read)",
+			rec.Code,
+			http.StatusExpectationFailed,
+		)
+	}
+}
+
+func TestChain_DecompressionThenCompressionRoundTrips(t *testing.T) {
+	t.Parallel()
+
+	payload := "round trip body"
+
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	_, _ = zw.Write([]byte(payload))
+	_ = zw.Close()
+
+	var got strings.Builder
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.Copy(&got, r.Body)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := Chain(
+		inner,
+		Compression(CompressionConfig{WriterFactories: DefaultWriterFactories()}),
+		Decompression(DefaultDecompressionConfig()),
+	)
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(buf.Bytes()))
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Accept-Encoding", "identity")
+	wrapped.ServeHTTP(rec, req)
+
+	if got.String() != payload {
+		t.Errorf("round-tripped body = %q, want %q", got.String(), payload)
+	}
+}
+
+func TestChain_NonceCSPSurvivesDefaultSecurityHeaders(t *testing.T) {
+	t.Parallel()
+
+	nonceCfg := DefaultNonceConfig()
+	nonceCfg.CSPBuilder = RecommendedCSPWithNonce
+	static := SecurityHeaders(DefaultSecurityHeadersConfig())
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if NonceFromRequest(r) == "" {
+			t.Error("nonce should be present in the request context")
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := Chain(inner, Nonce(nonceCfg), static)
+
+	rec := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	got := rec.Header().Get("Content-Security-Policy")
+	if got == "" || !strings.Contains(got, "'nonce-") {
+		t.Errorf("nonce CSP should survive the default SecurityHeaders (which sets no CSP), got %q", got)
+	}
+}
+
+func TestChain_NonceBeforeSecurityHeadersKeepsNonceCSP(t *testing.T) {
+	t.Parallel()
+
+	nonceCfg := DefaultNonceConfig()
+	nonceCfg.CSPBuilder = RecommendedCSPWithNonce
+	static := SecurityHeaders(DefaultSecurityHeadersConfig())
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := Chain(inner, Nonce(nonceCfg), static)
+
+	rec := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	got := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(got, "'nonce-") {
+		t.Errorf("nonce-bearing CSP should win when Nonce is inner, got %q", got)
+	}
+}
+
+func TestChain_NonceInnerOverwritesOuter(t *testing.T) {
+	t.Parallel()
+
+	outerMW := Nonce(DefaultNonceConfig())
+	innerMW := Nonce(DefaultNonceConfig())
+
+	var outerNonce, seenNonce string
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seenNonce = NonceFromRequest(r)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	capture := outerMW(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		outerNonce = NonceFromRequest(r)
+		innerMW(inner).ServeHTTP(w, r)
+	}))
+
+	capture.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if outerNonce == "" || seenNonce == "" {
+		t.Fatal("both nonce instances should populate the context")
+	}
+
+	if seenNonce == outerNonce {
+		t.Error("the inner Nonce instance must overwrite the outer one, not reuse it")
+	}
+}
+
+func TestChain_NonceDiffersAcrossRequests(t *testing.T) {
+	t.Parallel()
+
+	mw := Nonce(DefaultNonceConfig())
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(NonceFromRequest(r)))
+	})
+
+	wrapped := mw(inner)
+
+	first := httptest.NewRecorder()
+	wrapped.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	second := httptest.NewRecorder()
+	wrapped.ServeHTTP(second, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if first.Body.String() == "" {
+		t.Fatal("nonce should be written to the response body")
+	}
+
+	if first.Body.String() == second.Body.String() {
+		t.Error("nonces must differ across requests")
+	}
+}
+
+func TestChain_NonceWithRecoveryStillSetsNonce(t *testing.T) {
+	t.Parallel()
+
+	nonceCfg := DefaultNonceConfig()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("boom")
+	})
+
+	wrapped := Chain(inner, Nonce(nonceCfg), Recovery(slog.Default()))
+
+	rec := httptest.NewRecorder()
+	wrapped.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
 	}
 }
