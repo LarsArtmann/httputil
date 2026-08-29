@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 // BenchmarkGenerateTimeOrderedID measures the amortized cost of the time-
@@ -90,7 +91,8 @@ func BenchmarkServerConfigValidateWithTLS(b *testing.B) {
 // overhead with a hot key (cache-hit path through the limiter pool).
 func BenchmarkKeyedRateLimiterMiddleware(b *testing.B) {
 	cfg := DefaultKeyedRateLimiterConfig()
-	cfg.Limit = 10_000_000 // effectively unlimited: this measures middleware overhead, not rejection
+	cfg.Limit = 1_000_000_000 // effectively unlimited: this measures middleware overhead, not rejection
+	cfg.Window = time.Minute
 	cfg.KeyExtractor = KeyExtractorFromRemoteAddr()
 
 	mw := KeyedRateLimiterMiddleware(cfg)
