@@ -14,12 +14,12 @@ Consequence 2 is by design (immediate rejection is the contract; `OnRejected`/`R
 
 ## Options considered
 
-| Option | Shape | Verdict |
-| --- | --- | --- |
-| A. Cancel-aware `Allow(ctx)` on a new interface | `type ContextKeyedRateLimiter interface { Allow(ctx, key) (ok bool, retryAfter time.Duration) }` | Reject: two parallel interfaces for one concept; the split brain the docs-health model warns about. |
-| B. Refund tokens on request cancellation | wrap `OnAllowed` with a `context.AfterFunc` that refunds | Reject: refunds break the security property (a flood of aborted requests still gets its tokens back immediately — free retry budget for scanners). |
-| C. Keep `Allow(key)`; document that tokens are consumed at admission | status quo + doc | Viable fallback. |
-| D. Add cancellation only where waiting exists (`Wait(ctx, key)`) | additive method, never wired into the middleware by default | **Recommended**, post-v1.0 additive evolution path. |
+| Option                                                               | Shape                                                                                            | Verdict                                                                                                                                            |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A. Cancel-aware `Allow(ctx)` on a new interface                      | `type ContextKeyedRateLimiter interface { Allow(ctx, key) (ok bool, retryAfter time.Duration) }` | Reject: two parallel interfaces for one concept; the split brain the docs-health model warns about.                                                |
+| B. Refund tokens on request cancellation                             | wrap `OnAllowed` with a `context.AfterFunc` that refunds                                         | Reject: refunds break the security property (a flood of aborted requests still gets its tokens back immediately — free retry budget for scanners). |
+| C. Keep `Allow(key)`; document that tokens are consumed at admission | status quo + doc                                                                                 | Viable fallback.                                                                                                                                   |
+| D. Add cancellation only where waiting exists (`Wait(ctx, key)`)     | additive method, never wired into the middleware by default                                      | **Recommended**, post-v1.0 additive evolution path.                                                                                                |
 
 ## Recommendation
 

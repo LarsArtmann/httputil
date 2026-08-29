@@ -35,6 +35,6 @@ Viable post-v1.0 additive API. The `ReadyHandlerWithProbe(ready func() bool)` al
 
 The 07-45/22-43 reports flagged that ETag correctness depends on cache directives (`Cache-Control`, `Vary`) that the ETag middleware itself does not manage:
 
-- **Ownership decision (2026-08-29):** conditional-request *headers* (ETag / If-None-Match / 304 semantics) belong to go-etag; *cache policy* (Cache-Control, Vary) belongs to the application or a `SecurityHeaders`-style header middleware. httputil will not add a Cache-Control type pre-v1.0.
+- **Ownership decision (2026-08-29):** conditional-request _headers_ (ETag / If-None-Match / 304 semantics) belong to go-etag; _cache policy_ (Cache-Control, Vary) belongs to the application or a `SecurityHeaders`-style header middleware. httputil will not add a Cache-Control type pre-v1.0.
 - Handoff action recorded for go-etag: document in its README that a 304 response must preserve ETag and should be paired by the caller with appropriate Cache-Control/Vary; see the item list in T25 of the 2026-08-29 plan.
 - In-repo guidance: the README ETag section should carry one sentence — "pair ETags with explicit Cache-Control; without Vary on negotiated representations, caches may serve mismatched bodies."

@@ -324,3 +324,27 @@ flowchart TD
 | 1 | July/May reports: same per-item upgrade pass, or leave the resolution tables as-is? | T5, then T9 |
 | 2 | HARVEST the 23 appendices into TODO_LIST now? (This plan assumes **yes** — T1.)     | T1          |
 | 3 | v-kind evidence acceptable, or hash-only for historical markers?                    | T14         |
+
+---
+
+## Appendix — Execution record (2026-08-29 session)
+
+### T4 sizing result (July–May inventory)
+
+36 reports in `2026-05…07`. Nine carried numbered-item corpora needing the per-item upgrade (the 8 bannered docs-health/self-review reports of `2026-07-22…31` plus `2026-07-16_07-30` with a mid-file resolution banner); one more (`2026-07-06_01-23`) had a 25-item f-list. The remaining ~27 older files are narrative session records without numbered checklists — per the skill's SKIP/LEAVE-ALONE classification, annotating them would add noise, not value.
+
+### T5 executed
+
+All 9 numbered-item May–July files upgraded: 9 files, ~530 additional inline markers, banners removed, resolution tables retained as the verdict source. Total corpus: **1,956 strikethrough markers across 2026-05…08**, zero header banners, formatter-verified.
+
+### T9 decision — condensation skipped (with reason)
+
+The original targets were the verbose historical resolution tables. After T1's HARVEST rebuild (live backlog in TODO_LIST) and the per-item upgrade (verdicts inline), the tables are now the _evidence appendix_ the inline markers cite. Condensing them would destroy the evidence chain the markers depend on — the exact Verschlimmbesserung the guardrails forbid. Revisit only if the corpus grows to make appendices the dominant reader cost.
+
+### T14 decision — policy set; bounded upgrade
+
+~200 v-markers inspected. Two classes emerged: (a) markers citing a _change_ — already carry hashes or name the commit; (b) markers citing a _state-claim_ ("verified clean in every later session") — no single hash exists; a hash would have to be fabricated, which is worse than the dated verification. **Policy adopted:** hash citations for changes; dated, falsifiable evidence sentences for state-claims; any v-marker neither naming a hash nor a falsifiable check is treated as open. The markers failing this policy were corrected during the July pass and the 07-45 f20 correction.
+
+### Gates executed under "finish everything" instruction
+
+g-Q1 (July/May pass): executed as T5. g-Q2 (HARVEST): executed as T1. g-Q3 (hash-only): policy set above. T18 (`TokenBucketLimiter` removal) remains **gated on the v1.0 release decision itself** — the ROADMAP forbids removing deprecated API before the freeze, so it cannot be executed early even under "finish everything"; T19's implementation is likewise gated, with the design note shipped instead.
