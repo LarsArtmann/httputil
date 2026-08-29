@@ -46,7 +46,7 @@ func FuzzResponseRecorder(f *testing.F) {
 		_, _ = rw.Write([]byte(body2))
 
 		if rw.Status() != status1 {
-			t.Errorf("Status() = %d, want %d (first WriteHeader wins; later calls are suppressed)", rw.Status(), status1)
+			t.Errorf("Status() = %d, want %d (first WriteHeader wins)", rw.Status(), status1)
 		}
 
 		if !rw.WroteHeader() {
@@ -81,7 +81,7 @@ func FuzzLimitedReadCloser(f *testing.F) {
 		limited := limitedReadCloser(inner, int64(limit))
 
 		var total int
-		readBuf := make([]byte, readSize)
+		readBuf := make([]byte, readSize) //nolint:makezero // read buffer, never appended to
 
 		for {
 			n, err := limited.Read(readBuf)

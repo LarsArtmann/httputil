@@ -995,3 +995,95 @@ func TestExpectHTMLWrongContentType(t *testing.T) {
 		t.Error("expected fail for non-HTML content type")
 	}
 }
+
+func TestNoDuplicateHeaderCaseVariants(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header()["X-Thing"] = []string{"a"}
+		w.Header()["x-thing"] = []string{"b"}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := noDuplicateHeadersCheck("/")(handler)
+
+	if result.OK {
+		t.Error("expected fail for the same header set under two casings")
+	}
+}
+
+func TestExpectVaryContainsMatchesField(t *testing.T) {
+	t.Parallel()
+
+	handler := newStatusOnlyHandler(http.StatusOK)
+
+	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Vary", "Origin, Accept-Encoding")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := ExpectVaryContains(http.MethodGet, "/", "Origin")(handler)
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectVaryContainsWildcardPasses(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Vary", "*")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := ExpectVaryContains(http.MethodGet, "/", "Origin")(handler)
+
+	if !result.OK {
+		t.Errorf("Vary: * should pass any field check, got: %s", result.Message)
+	}
+}
+
+func TestExpectVaryContainsFailsWhenAbsent(t *testing.T) {
+	t.Parallel()
+
+	handler := newStatusOnlyHandler(http.StatusOK)
+
+	result := ExpectVaryContains(http.MethodGet, "/", "Origin")(handler)
+
+	if result.OK {
+		t.Error("expected fail when Vary lacks the field")
+	}
+}
+
+func TestExpectNotModifiedWithETagPassesOn304(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-None-Match") == `"v1"` {
+			w.WriteHeader(http.StatusNotModified)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := ExpectNotModifiedWithETag(http.MethodGet, "/", `"v1"`)(handler)
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectNotModifiedWithETagFailsOn200(t *testing.T) {
+	t.Parallel()
+
+	handler := newStatusOnlyHandler(http.StatusOK)
+
+	result := ExpectNotModifiedWithETag(http.MethodGet, "/", `"v1"`)(handler)
+
+	if result.OK {
+		t.Error("expected fail when handler ignores If-None-Match")
+	}
+}

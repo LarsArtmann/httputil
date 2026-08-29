@@ -350,3 +350,57 @@ func serve(handler http.Handler, req *http.Request) *httptest.ResponseRecorder {
 
 	return rec
 }
+
+// ExpectVaryContains returns a [Check] that verifies the Vary header on the
+// given request contains the named field. Use it to pin cache-correctness
+// contracts such as Vary: Origin on responses that reflect a request origin,
+// or Vary: Accept-Encoding on compressed responses. A response carrying
+// Vary: * passes, since it varies on everything by definition.
+func ExpectVaryContains(method, path, field string) Check {
+	return func(handler http.Handler) Result {
+		rec := serve(handler, mustRequest(method, path))
+
+		vary := rec.Header().Values("Vary")
+
+		for _, value := range vary {
+			if strings.TrimSpace(value) == "*" {
+				return Pass()
+			}
+		}
+
+		for _, value := range vary {
+			for part := range strings.SplitSeq(value, ",") {
+				if strings.EqualFold(strings.TrimSpace(part), field) {
+					return Pass()
+				}
+			}
+		}
+
+		return Fail(
+			"%s %s Vary should include %q, got %v",
+			method, path, field, vary,
+		)
+	}
+}
+
+// ExpectNotModifiedWithETag returns a [Check] that verifies conditional
+// request handling: repeating the request with If-None-Match set to the
+// given entity tag should return 304 Not Modified. Opt in via
+// WithExtraSpecs for handlers that serve ETag-validated resources.
+func ExpectNotModifiedWithETag(method, path, etag string) Check {
+	return func(handler http.Handler) Result {
+		req := mustRequest(method, path)
+		req.Header.Set("If-None-Match", etag)
+
+		rec := serve(handler, req)
+
+		if rec.Code != http.StatusNotModified {
+			return Fail(
+				"%s %s with If-None-Match: %s returned status %d, want 304",
+				method, path, etag, rec.Code,
+			)
+		}
+
+		return Pass()
+	}
+}

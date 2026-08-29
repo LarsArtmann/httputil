@@ -179,7 +179,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 - 7 pre-built extra specs available via `WithExtraSpecs`: `CORSSpecs()` (4 specs: allow-origin, allow-credentials, Vary: Origin, wildcard-no-credentials) and `RateLimitSpecs()` (3 specs: Retry-After on reject, X-RateLimit-* headers on reject, hint headers on allow). Total: 25 specs when all are included.
 - Specs cover routing (index reachability, unknown paths, long URLs), method handling (HEAD, OPTIONS, TRACE, POST, CONNECT), response headers (Content-Type, Location on redirects, no duplicate headers, Accept header handling), and security (no leaked internals, no version fingerprints, no X-Powered-By, X-Content-Type-Options: nosniff).
 - Extensible via `SkipSpec`, `WithExtraSpecs`, `WithIndexPath`.
-- Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`, `ExpectJSON` (validates body parses as JSON + JSON Content-Type), `ExpectHTML` (HTML Content-Type incl. XHTML).
+- Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`, `ExpectJSON` (validates body parses as JSON + JSON Content-Type), `ExpectHTML` (HTML Content-Type incl. XHTML), `ExpectVaryContains` (cache-correctness, `Vary: *` aware), `ExpectNotModifiedWithETag` (opt-in 304 contract via `WithExtraSpecs`).
 - Pure stdlib, no third-party dependencies.
 
 ---

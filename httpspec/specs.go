@@ -2,6 +2,7 @@ package httpspec
 
 import (
 	"net/http"
+	"net/textproto"
 	"slices"
 	"strings"
 )
@@ -404,6 +405,8 @@ func noDuplicateHeadersCheck(indexPath string) Check {
 	return func(handler http.Handler) Result {
 		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
 
+		seenCanonical := make(map[string]string)
+
 		for key, values := range rec.Header() {
 			if len(values) > 1 {
 				return Fail(
@@ -413,6 +416,19 @@ func noDuplicateHeadersCheck(indexPath string) Check {
 					len(values),
 				)
 			}
+
+			canonical := textproto.CanonicalMIMEHeaderKey(key)
+
+			if original, exists := seenCanonical[canonical]; exists {
+				return Fail(
+					"GET %s response sets the same header under two casings (%q and %q); clients that read canonical keys may miss one",
+					indexPath,
+					original,
+					key,
+				)
+			}
+
+			seenCanonical[canonical] = key
 		}
 
 		return Pass()

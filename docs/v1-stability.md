@@ -280,6 +280,8 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ExpectBodyContains`       | Frozen   |                                   |
 | `ExpectJSON`               | Additive | Added post-v0.10.0                |
 | `ExpectHTML`               | Additive | Added post-v0.10.0                |
+| `ExpectVaryContains`       | Additive | Added post-v0.10.0                |
+| `ExpectNotModifiedWithETag` | Additive | Added post-v0.10.0               |
 | `SpecName*` constants (18) | Frozen   | String values are part of the API |
 
 ### Standard Specs (Additive)
