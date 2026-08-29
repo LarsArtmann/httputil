@@ -10,15 +10,15 @@
 
 `file-and-image-renamer` imports `httputil v0.10.0` and uses it for `Recovery`, `SecurityHeaders`, `RequestID`, `Logging`, `Chain`, and the `Middleware` type. It then **reinvents the entire nonce/CSP system from scratch** in `pkg/healthd/nonce.go` — duplicating every function httputil already provides:
 
-| httputil (already exists) | Consumer reinvented | Notes |
-|---|---|---|
-| `httputil.Nonce(cfg)` (nonce.go:131) | `healthd.Nonce` (nonce.go:66) | Same logic, fewer features |
-| `httputil.ProductionCSPWithNonce(nonce)` (nonce.go:90) | `healthd.cspHeader(nonce)` (nonce.go:51) | Near-identical output |
-| `httputil.nonceKey` + `WithNonce()` (nonce.go:126,155) | `healthd.nonceCtxKey` (nonce.go:14) | Identical pattern |
-| `httputil.generateNonce(size)` (nonce.go:113) | `healthd.generateNonce()` (nonce.go:19) | Consumer uses 16 bytes (minimum); httputil uses 20 (recommended) |
-| `httputil.NonceFromContext()` (nonce.go:161) | `healthd.NonceFromContext()` (nonce.go:79) | Identical |
-| Fuzz tested (nonce_fuzz_test.go) | No fuzzing | CRLF injection not tested |
-| Ordering tests (Nonce must be innermost) | No ordering tests | |
+| httputil (already exists)                              | Consumer reinvented                        | Notes                                                            |
+| ------------------------------------------------------ | ------------------------------------------ | ---------------------------------------------------------------- |
+| `httputil.Nonce(cfg)` (nonce.go:131)                   | `healthd.Nonce` (nonce.go:66)              | Same logic, fewer features                                       |
+| `httputil.ProductionCSPWithNonce(nonce)` (nonce.go:90) | `healthd.cspHeader(nonce)` (nonce.go:51)   | Near-identical output                                            |
+| `httputil.nonceKey` + `WithNonce()` (nonce.go:126,155) | `healthd.nonceCtxKey` (nonce.go:14)        | Identical pattern                                                |
+| `httputil.generateNonce(size)` (nonce.go:113)          | `healthd.generateNonce()` (nonce.go:19)    | Consumer uses 16 bytes (minimum); httputil uses 20 (recommended) |
+| `httputil.NonceFromContext()` (nonce.go:161)           | `healthd.NonceFromContext()` (nonce.go:79) | Identical                                                        |
+| Fuzz tested (nonce_fuzz_test.go)                       | No fuzzing                                 | CRLF injection not tested                                        |
+| Ordering tests (Nonce must be innermost)               | No ordering tests                          |                                                                  |
 
 The reinvented `dashboardCSPMiddleware` then **appended** a nonce to the end of the CSP string with `csp += " 'nonce-...'"`, which landed it in `frame-ancestors 'none'` (the last directive) instead of `script-src`. This caused 5 CSP console errors and silently disabled clickjacking protection on the `/health` route.
 
@@ -64,6 +64,7 @@ This would make it a compile-time (or at least test-time) error to put a nonce i
 ### 3. Consider exposing a CSP validation helper
 
 A function like `ValidateCSP(policy string) error` could catch common mistakes:
+
 - `'none'` alongside other sources in any directive
 - Nonces/sources in directives that don't support them (`frame-ancestors`, `report-uri`)
 - Missing semicolons between directives
@@ -86,9 +87,9 @@ The consumer imported `httputil.Middleware` (the type) for their hand-rolled `No
 
 ## Recommendation
 
-Priority | Improvement | Effort
----|---|---
-High | Add documentation example: "per-route CSP override with fixed nonce" | 15 min
-Medium | Add `RouteCSP(path string, builder func(string) string) Middleware` | 30 min
-Medium | Add structured `CSP` type with `WithNonce()` / `Render()` | 1-2 hours
-Low | Add `ValidateCSP(policy string) error` helper | 30 min
+| Priority | Improvement                                                          | Effort    |
+| -------- | -------------------------------------------------------------------- | --------- |
+| High     | Add documentation example: "per-route CSP override with fixed nonce" | 15 min    |
+| Medium   | Add `RouteCSP(path string, builder func(string) string) Middleware`  | 30 min    |
+| Medium   | Add structured `CSP` type with `WithNonce()` / `Render()`            | 1-2 hours |
+| Low      | Add `ValidateCSP(policy string) error` helper                        | 30 min    |

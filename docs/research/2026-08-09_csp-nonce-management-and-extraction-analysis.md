@@ -9,12 +9,12 @@
 
 The `Nonce()` middleware in `nonce.go:131` implements a **per-request** nonce lifecycle:
 
-| Stage | What happens | API |
-|---|---|---|
-| **Generate** | `crypto/rand` produces 20 random bytes (160 bits), base64-URL-encoded | `generateNonce(size)` |
-| **Set header** | `CSPBuilder func(nonce string) string` renders the CSP string and sets `Content-Security-Policy` | `RecommendedCSPWithNonce` / `ProductionCSPWithNonce` |
-| **Store** | Nonce injected into `context.Context` | `WithNonce(ctx, nonce)` |
-| **Retrieve** | Handlers/templates read it back | `NonceFromRequest(r)`, `NonceAttr(r)` -> `nonce="<value>"` |
+| Stage          | What happens                                                                                     | API                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| **Generate**   | `crypto/rand` produces 20 random bytes (160 bits), base64-URL-encoded                            | `generateNonce(size)`                                      |
+| **Set header** | `CSPBuilder func(nonce string) string` renders the CSP string and sets `Content-Security-Policy` | `RecommendedCSPWithNonce` / `ProductionCSPWithNonce`       |
+| **Store**      | Nonce injected into `context.Context`                                                            | `WithNonce(ctx, nonce)`                                    |
+| **Retrieve**   | Handlers/templates read it back                                                                  | `NonceFromRequest(r)`, `NonceAttr(r)` -> `nonce="<value>"` |
 
 Every request gets a **fresh, unique nonce**. The browser matches the nonce in the CSP `script-src`/`style-src` directives against `nonce="..."` attributes on inline `<script>`/`<style>` tags -- mismatched inline content is blocked, eliminating the need for `'unsafe-inline'`.
 
@@ -52,13 +52,13 @@ Yes -- `nonce.go` is fully self-contained (stdlib-only, 192 lines). The only cou
 
 ### Should? No.
 
-| Factor | Assessment |
-|---|---|
-| **Flat-package decision** | AGENTS.md confirms (2026-08-05, user-approved): for a `func(http.Handler) http.Handler` library, one import path (`httputil.Nonce()`) beats fragmented namespaces. Extraction contradicts this. |
-| **Code volume** | 192 lines -- a whole repo/module for that is overhead-heavy with no payoff. |
-| **Pattern consistency** | Nonce follows the identical middleware signature as CORS, Compression, SecurityHeaders, etc. It belongs with its siblings. |
-| **CSP cohesion** | `security.go` already owns `RecommendedCSP` + `SecurityHeaders`; nonce is the per-request extension of that. Splitting them across repos fragments the CSP story. |
-| **Extensibility already exists** | `CSPBuilder func(nonce string) string` is already a plug point -- you can inject any policy without extraction. |
+| Factor                           | Assessment                                                                                                                                                                                      |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Flat-package decision**        | AGENTS.md confirms (2026-08-05, user-approved): for a `func(http.Handler) http.Handler` library, one import path (`httputil.Nonce()`) beats fragmented namespaces. Extraction contradicts this. |
+| **Code volume**                  | 192 lines -- a whole repo/module for that is overhead-heavy with no payoff.                                                                                                                     |
+| **Pattern consistency**          | Nonce follows the identical middleware signature as CORS, Compression, SecurityHeaders, etc. It belongs with its siblings.                                                                      |
+| **CSP cohesion**                 | `security.go` already owns `RecommendedCSP` + `SecurityHeaders`; nonce is the per-request extension of that. Splitting them across repos fragments the CSP story.                               |
+| **Extensibility already exists** | `CSPBuilder func(nonce string) string` is already a plug point -- you can inject any policy without extraction.                                                                                 |
 
 ### The Actual Disease
 

@@ -7,17 +7,17 @@
 
 ## 1. What did I forget?
 
-| #   | What was forgotten                                                                          | Severity | Status                                                            |
-| --- | ------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| 1   | **FEATURES.md not updated** with httpspec on first pass                                     | Medium   | Fixed this session                                                |
-| 2   | **TODO_LIST.md not updated** with httpspec                                                  | Medium   | Fixed this session                                                |
-| 3   | **CHANGELOG.md no entry** for httpspec                                                      | High     | Fixed this session                                                |
-| 4   | **README.md no mention** of httpspec subpackage                                             | High     | Fixed this session                                                |
-| 5   | **AGENTS.md lint section** said "0 warnings" but had 3 makezero warnings                    | Medium   | Fixed: warnings suppressed, AGENTS.md updated                     |
-| 6   | **Only 7 specs** initially — way too few for "standard tests every HTTP server should pass" | High     | Fixed: expanded to 13 specs                                       |
-| 7   | **No helper builders** beyond ExpectStatus on first pass                                    | Medium   | Fixed: added ExpectHeader, ExpectHeaderAbsent, ExpectBodyContains |
-| 8   | **makezero nolint comments broke** when formatter wrapped lines                             | High     | Fixed: moved to line-above format                                 |
-| 9   | **Did not push** after previous commits                                                     | Low      | Will push at end of this session                                  |
+| # | What was forgotten                                                                          | Severity | Status                                                            |
+| - | ------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
+| 1 | **FEATURES.md not updated** with httpspec on first pass                                     | Medium   | Fixed this session                                                |
+| 2 | **TODO_LIST.md not updated** with httpspec                                                  | Medium   | Fixed this session                                                |
+| 3 | **CHANGELOG.md no entry** for httpspec                                                      | High     | Fixed this session                                                |
+| 4 | **README.md no mention** of httpspec subpackage                                             | High     | Fixed this session                                                |
+| 5 | **AGENTS.md lint section** said "0 warnings" but had 3 makezero warnings                    | Medium   | Fixed: warnings suppressed, AGENTS.md updated                     |
+| 6 | **Only 7 specs** initially — way too few for "standard tests every HTTP server should pass" | High     | Fixed: expanded to 13 specs                                       |
+| 7 | **No helper builders** beyond ExpectStatus on first pass                                    | Medium   | Fixed: added ExpectHeader, ExpectHeaderAbsent, ExpectBodyContains |
+| 8 | **makezero nolint comments broke** when formatter wrapped lines                             | High     | Fixed: moved to line-above format                                 |
+| 9 | **Did not push** after previous commits                                                     | Low      | Will push at end of this session                                  |
 
 ---
 
@@ -43,14 +43,14 @@ The `makezero` linter with `always: true` is arguably too aggressive for a libra
 
 ## 4. What could I still improve?
 
-| #   | Improvement                                                                                         | Impact |
-| --- | --------------------------------------------------------------------------------------------------- | ------ |
-| 1   | Add more specs: X-Content-Type-Options presence, duplicate header detection, very long URL handling | Medium |
-| 2   | Add `ExpectNotStatus` builder for "should not return X" specs                                       | Low    |
-| 3   | Add `httpspec.RunConcurrent` variant for handlers with shared state                                 | Low    |
-| 4   | Add benchmarks for the spec suite overhead                                                          | Low    |
-| 5   | Consider a `Spec` interface instead of struct for complex specs with setup/teardown                 | Low    |
-| 6   | The `hasVersionLeak` function uses rune arithmetic — could use `strings.ContainsAny` for clarity    | Low    |
+| # | Improvement                                                                                         | Impact |
+| - | --------------------------------------------------------------------------------------------------- | ------ |
+| 1 | Add more specs: X-Content-Type-Options presence, duplicate header detection, very long URL handling | Medium |
+| 2 | Add `ExpectNotStatus` builder for "should not return X" specs                                       | Low    |
+| 3 | Add `httpspec.RunConcurrent` variant for handlers with shared state                                 | Low    |
+| 4 | Add benchmarks for the spec suite overhead                                                          | Low    |
+| 5 | Consider a `Spec` interface instead of struct for complex specs with setup/teardown                 | Low    |
+| 6 | The `hasVersionLeak` function uses rune arithmetic — could use `strings.ContainsAny` for clarity    | Low    |
 
 ---
 
@@ -120,18 +120,18 @@ One minor split brain found and fixed: AGENTS.md claimed "0 active warnings" whi
 
 Sorted by impact / effort ratio (highest first):
 
-| #   | Task                                     | Impact | Effort |
-| --- | ---------------------------------------- | ------ | ------ |
-| 1   | Tag v0.4.0 release                       | High   | 5 min  |
-| 2   | Add `ExpectNotStatus` builder            | Medium | 10 min |
-| 3   | Add X-Content-Type-Options spec          | Medium | 15 min |
-| 4   | Add duplicate header detection spec      | Medium | 15 min |
-| 5   | Add `httpspec` example_test.go           | Medium | 15 min |
-| 6   | Make content-type filtering configurable | Medium | 30 min |
-| 7   | Add `MiddlewareStack` type               | Medium | 45 min |
-| 8   | Add CONNECT method handling spec         | Low    | 15 min |
-| 9   | Add content negotiation spec             | Low    | 30 min |
-| 10  | Add benchmarks for spec suite            | Low    | 30 min |
+| #  | Task                                     | Impact | Effort |
+| -- | ---------------------------------------- | ------ | ------ |
+| 1  | Tag v0.4.0 release                       | High   | 5 min  |
+| 2  | Add `ExpectNotStatus` builder            | Medium | 10 min |
+| 3  | Add X-Content-Type-Options spec          | Medium | 15 min |
+| 4  | Add duplicate header detection spec      | Medium | 15 min |
+| 5  | Add `httpspec` example_test.go           | Medium | 15 min |
+| 6  | Make content-type filtering configurable | Medium | 30 min |
+| 7  | Add `MiddlewareStack` type               | Medium | 45 min |
+| 8  | Add CONNECT method handling spec         | Low    | 15 min |
+| 9  | Add content negotiation spec             | Low    | 30 min |
+| 10 | Add benchmarks for spec suite            | Low    | 30 min |
 
 ---
 
