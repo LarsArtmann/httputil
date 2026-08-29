@@ -1,0 +1,46 @@
+# Shared (unexported) infrastructure coupling in the root httputil package.
+# Render: nix develop -c d2 --layout elk docs/architecture-understanding/2026-08-29_internal-coupling.d2 docs/architecture-understanding/2026-08-29_internal-coupling.svg
+direction: right
+
+middleware: Middleware factories {
+  cors: CORS
+  security: SecurityHeaders
+  nonce: Nonce
+  requestid: RequestID
+  recovery: Recovery
+  timeout: Timeout
+  logging: Logging
+  maxbody: MaxBodySize
+  ratelimit: KeyedRateLimiter
+  metrics: Metrics
+  compression: Compression
+  decompression: Decompression
+  csrf: CSRFMiddleware
+  etag: ETag (deprecated adapter)
+}
+
+shared: Unexported shared infrastructure {
+  validateConfig: validateConfig\n(recorder.go) — validate-and-log at construction
+  responseWrapper: responseWrapper\n(wrapper.go) — shared writer wrapper
+  writeCommittedBody: writeCommittedBody\n(recorder.go) — honest-silence body writes
+  headers: headers.go\nshared header-name consts
+  hex: hex.go\nlowercase hex table
+  errorModel: Code / Domain\n(code.go + errors.go)\ngo-error-family classification
+  capabilities: DetectCapabilities\n(capabilities.go)
+}
+
+middleware -> validateConfig: every constructor
+middleware.compression -> responseWrapper
+middleware.etag -> responseWrapper
+middleware.recovery -> writeCommittedBody
+middleware.csrf -> writeCommittedBody
+middleware.ratelimit -> writeCommittedBody
+middleware -> headers: header names
+middleware.requestid -> hex
+middleware -> errorModel: sentinels + codes
+middleware.decompression -> errorModel: corruption/rejection codes
+middleware.compression -> errorModel: transient write codes
+external_goetag: go-etag module
+external_nosurf: justinas/nosurf
+middleware.etag -> external_goetag
+middleware.csrf -> external_nosurf

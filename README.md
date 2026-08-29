@@ -651,6 +651,14 @@ handler := Chain(mux,
 )
 ```
 
+**Ordering at a glance** (outermost first):
+
+```mermaid
+flowchart LR
+    A[Logging] --> B[Recovery] --> C[Timeout] --> D[RequestID] --> E[SecurityHeaders]
+    E --> F[Nonce] --> G[CORS] --> H[Decompression] --> I[MaxBodySize] --> J[Compression] --> K[ETag] --> M[Mux]
+```
+
 **Decompression** should be placed outer so downstream middleware (e.g., `MaxBodySize`) sees the decompressed body size:
 
 ```go

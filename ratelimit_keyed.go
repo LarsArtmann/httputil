@@ -91,6 +91,11 @@ type KeyedRateLimiterConfig struct {
 	// OnAllowed is called when a request passes rate limiting.
 	OnAllowed func(r *http.Request)
 	// OnRejected is called when a request is rejected due to rate limiting.
+	// Contract: invoked synchronously on the request goroutine BEFORE the
+	// rejection response is written, so it must not block (it is on the hot
+	// path) and must not write to the ResponseWriter — RejectionHandler (or
+	// the built-in 429 writer) exclusively owns the response. Observers that
+	// need the response should hook RejectionHandler instead.
 	OnRejected func(r *http.Request, retryAfter string)
 	// RejectionHandler writes the response for rejected requests.
 	// Default: writes 429 Too Many Requests with Retry-After header.

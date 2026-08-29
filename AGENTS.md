@@ -253,6 +253,10 @@ Context is attached where relevant (e.g., `status` on write errors).
 
 ## Testing Conventions
 
+### Coverage Methodology
+
+Coverage is measured per module with `go test -race -coverprofile` (race detector on — the race build exercises different paths than the plain build); the two module percentages are reported separately (httputil vs httpspec), never averaged. Sub-100% functions are not chased to 100%: each remaining gap is individually documented in FEATURES.md with the reason it stays uncovered (kernel-level fault injection, unit-only-reachable internal paths, nosurf-internal branches). A gap without a documented reason is a bug in the docs, not a pass.
+
 - **Same package** (`package httputil`, not `package httputil_test`) — tests can access unexported symbols
 - **Plain `testing`** — no assertion libraries
 - **No table-driven tests** — each case is a standalone `func Test*(t *testing.T)`
