@@ -570,7 +570,7 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HTTPS request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
@@ -656,7 +656,12 @@ func reserveFreePort(t *testing.T) int {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer l.Close()
+	defer func() { _ = l.Close() }()
 
-	return l.Addr().(*net.TCPAddr).Port
+	addr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		t.Fatalf("unexpected listener address type: %T", l.Addr())
+	}
+
+	return addr.Port
 }

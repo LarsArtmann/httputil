@@ -259,6 +259,7 @@ func TestChain_DecompressionThenMaxBodySizeLimitsDecompressed(t *testing.T) {
 		n, err := io.Copy(io.Discard, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusExpectationFailed)
+
 			return
 		}
 		w.WriteHeader(http.StatusOK)
