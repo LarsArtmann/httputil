@@ -52,6 +52,16 @@ Forbidden: `if err := foo(); err != nil`. Use a separate assignment followed by 
 
 Header keys must match Go's canonical MIME header form (`textproto.CanonicalMIMEHeaderKey`). Use `X-Api-Key`, not `X-API-Key` — all letters after the first hyphen segment are lowercased.
 
+**Get-vs-Set asymmetry (the footgun behind this linter):** `Header.Get/Set/Add/Del` canonicalize their argument silently, so `Get("x-api-key")` finds what `Set("X-Api-Key")` wrote — a non-canonical *literal* is functionally harmless through the methods and only trips the linter. The real bug appears with direct map access: `w.Header()["X-API-Key"]` bypasses canonicalization entirely, so mixing map-style access with method-style access can create two distinct entries for what looks like one header. Rules of thumb:
+
+```go
+w.Header().Set("X-Api-Key", k)        // linter-checked, canonicalized: fine
+v := w.Header().Get("x-api-key")      // canonicalizes the lookup: works, but keep literals canonical
+w.Header()["X-API-Key"] = []string{k} // WRONG: bypasses canonicalization; splits the entry
+```
+
+Literals in this repo are all canonical (verified 2026-08-29); no `//nolint:canonicalheader` directives remain.
+
 ### `testableexamples` — Examples Need Output
 
 Every `Example*` function must include a `// Output:` comment directive. Untestable examples fail the lint.

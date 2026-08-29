@@ -57,10 +57,12 @@
               pkgs.gotools
               pkgs.govulncheck
               pkgs.trash-cli
+              pkgs.d2
             ];
 
             shellHook = ''
               echo "httputil dev shell — $(go version)"
+              echo "  diagrams: d2 $(d2 --version 2>/dev/null || echo '?') — layout engine: elk (docs/architecture-understanding/*.d2)"
             '';
           };
 

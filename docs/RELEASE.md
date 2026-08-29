@@ -149,3 +149,17 @@ If a prior tag on origin is broken for consumers, note it in the GitHub Release 
 > **Note:** vX.Y.Z-1 contained a build-breaking issue. Upgrade to vX.Y.Z.
 
 Do not delete or re-create historical tags — they are immutable history.
+
+## Architecture Diagram Regeneration
+
+The D2 diagrams in `docs/architecture-understanding/` are rendered with the
+`d2` binary pinned in `flake.nix` (devShell package, version follows the
+locked nixpkgs input — currently d2 v0.7.1 with the elk layout engine).
+Regenerate after editing a `.d2` source:
+
+```bash
+nix develop -c d2 --layout elk docs/architecture-understanding/<file>.d2 docs/architecture-understanding/<file>.svg
+```
+
+Do not render with an ad-hoc d2 install — different versions produce
+different SVG layouts, which makes historical diffs noisy.
