@@ -1,7 +1,5 @@
 # Status Report: WebSocket Test Removal & Coverage-Gap Discovery
 
-> **Annotation (2026-08-07 docs-health):** Section F item f.1 (CHANGELOG coverage claim correction) — the `[Unreleased]` section was rewritten; the overstated "remains covered" claim is no longer present. Item f.2 (restore real-connection Hijack test) — **deferred** (design decision: is the property worth testing via a lighter test?). Items f.3 (websocket comment scope) — **resolved**: comments kept (they document Hijacker intent). Item f.10 (AGENTS.md known-gap note) — the honest-silence pattern is now documented in AGENTS.md. Questions Q1–Q3: comments kept; property deferred; `Removed` entries should state coverage delta (adopted as convention).
-
 > **Scope:** Session-scoped. This report covers ONLY what happened in the 2026-08-07 ~06:00 session ("Remove all websocket suckk") and what I noticed during it. It is not a full-project audit.
 
 **Session window:** 2026-08-07 ~05:55 → 06:12
@@ -30,20 +28,20 @@ A terse, frustrated instruction. "suckk" (misspelled, trailing consonant) signal
 
 | #   | What                                                                                                                                         | Evidence                                                                          | Files touched                      |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------- |
-| 1   | Deleted `websocket_upgrade_test.go` (211 lines: test + `readUpgradeHeaders` helper + `wsExample*` constants + `errMalformedHeader` sentinel) | `git rm` → commit `485cc82`                                                       | `websocket_upgrade_test.go` (gone) |
-| 2   | Removed the file-table row from `AGENTS.md`                                                                                                  | `AGENTS.md:136` row deleted                                                       | `AGENTS.md`                        |
-| 3   | Added `Removed` section to CHANGELOG `[Unreleased]`                                                                                          | `CHANGELOG.md:28-32`                                                              | `CHANGELOG.md`                     |
-| 4   | Verified no dangling references to deleted symbols (`readUpgradeHeaders`, `errMalformedHeader`, `wsExample*`)                                | `grep` returned 0 matches outside the deleted file                                | —                                  |
-| 5   | Confirmed `go build ./...` passes                                                                                                            | build clean                                                                       | —                                  |
-| 6   | Confirmed `go test -race ./...` passes                                                                                                       | `ok github.com/larsartmann/httputil 1.243s` + `ok …/httpspec 1.017s`              | —                                  |
-| 7   | Confirmed `golangci-lint run` — 0 issues across ~70 linters                                                                                  | lint clean, including `err113` (no inline `errors.New`), `depguard` (no new deps) | —                                  |
-| 8   | Verified `FEATURES.md`, `TODO_LIST.md`, `ROADMAP.md` contain zero "websocket" mentions                                                       | `grep` — no files found                                                           | —                                  |
+| ~~1~~   | ~~Deleted `websocket_upgrade_test.go` (211 lines: test + `readUpgradeHeaders` helper + `wsExample*` constants + `errMalformedHeader` sentinel)~~ done at `485cc82` | ~~`git rm` → commit `485cc82`~~ | ~~`websocket_upgrade_test.go` (gone)~~ |
+| ~~2~~   | ~~Removed the file-table row from `AGENTS.md`~~ done at `485cc82` | ~~`AGENTS.md:136` row deleted~~ | ~~`AGENTS.md`~~ |
+| ~~3~~   | ~~Added `Removed` section to CHANGELOG `[Unreleased]`~~ done at `485cc82` | ~~`CHANGELOG.md:28-32`~~ | ~~`CHANGELOG.md`~~ |
+| ~~4~~   | ~~Verified no dangling references to deleted symbols (`readUpgradeHeaders`, `errMalformedHeader`, `wsExample*`)~~ done at `485cc82` | ~~`grep` returned 0 matches outside the deleted file~~ | ~~—~~ |
+| ~~5~~   | ~~Confirmed `go build ./...` passes~~ done at `485cc82` | ~~build clean~~ | ~~—~~ |
+| ~~6~~   | ~~Confirmed `go test -race ./...` passes~~ done at `485cc82` | ~~`ok github.com/larsartmann/httputil 1.243s` + `ok …/httpspec 1.017s`~~ | ~~—~~ |
+| ~~7~~   | ~~Confirmed `golangci-lint run` — 0 issues across ~70 linters~~ done at `485cc82` | ~~lint clean, including `err113` (no inline `errors.New`), `depguard` (no new deps)~~ | ~~—~~ |
+| ~~8~~   | ~~Verified `FEATURES.md`, `TODO_LIST.md`, `ROADMAP.md` contain zero "websocket" mentions~~ done at `485cc82` | ~~`grep` — no files found~~ | ~~—~~ |
 
 ---
 
 ## b) PARTIALLY DONE
 
-### b.1 — Websocket reference scrub is incomplete (by design, but unconfirmed with user)
+### b.1 — ~~Websocket reference scrub is incomplete (by design, but unconfirmed with user)~~ done (scope confirmed — the comments stay; see f.3)
 
 **What remains:** 4 source files contain "WebSocket" in comments:
 
@@ -57,7 +55,7 @@ A terse, frustrated instruction. "suckk" (misspelled, trailing consonant) signal
 
 **My stance:** these are _accurate_ — WebSocket is the canonical reason `http.Hijacker` exists. Deleting them would make the comments dishonest, not cleaner. But the user said "all websocket" — I may have under-delivered on intent. **Not changed; flagged for user decision.**
 
-### b.2 — CHANGELOG coverage claim is overstated (SEE SECTION d)
+### b.2 — ~~CHANGELOG coverage claim is overstated (SEE SECTION d)~~ done at `a5e9944` (the Unreleased section was rewritten; see f.1)
 
 The `Removed` entry I wrote claims:
 
@@ -71,8 +69,8 @@ The `Removed` entry I wrote claims:
 
 | #   | What                                                                                             | Why not                                                                                                                                 | Priority                       |
 | --- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| c.1 | Scrub historical `docs/status/` + `docs/planning/` websocket mentions (~30 refs across 12 files) | Point-in-time snapshots — per AGENTS.md, historical reports are immutable. Annotating every one is out of scope for "remove websocket." | Low (likely: leave as history) |
-| c.2 | Remove the `[0.6.0]` CHANGELOG websocket line                                                    | **Frozen** — CHANGELOG freeze policy prohibits editing released sections. Corrections belong in `[Unreleased]`.                         | Do not do (policy)             |
+| ~~c.1~~ | ~~Scrub historical `docs/status/` + `docs/planning/` websocket mentions (~30 refs across 12 files)~~ **Won't implement — leave as history — point-in-time snapshots stay untouched by policy.** | ~~Point-in-time snapshots — per AGENTS.md, historical reports are immutable. Annotating every one is out of scope for "remove websocket."~~ | ~~Low (likely: leave as history)~~ |
+| ~~c.2~~ | ~~Remove the `[0.6.0]` CHANGELOG websocket line~~ **Won't implement — frozen — the CHANGELOG freeze policy prohibits editing released sections.** | ~~**Frozen** — CHANGELOG freeze policy prohibits editing released sections. Corrections belong in `[Unreleased]`.~~ | ~~Do not do (policy)~~ |
 | c.3 | Decision on whether to restore a _real-connection_ Hijack test                                   | The deleted test was the only real-TCP upgrade validation. Replacing it is a feature decision.                                          | See Question 2                 |
 
 ---
@@ -135,22 +133,24 @@ Sorted by impact. Impact = how much the item reduces risk or unlocks work.
 
 | #    | Task                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Impact   | Effort | Category      |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
-| f.1  | **Correct the CHANGELOG `[Unreleased]` Removed entry** — replace the overstated "remains covered" sentence with an honest split: "interface delegation still covered by `TestChain_CompressionETag_HijackPassthrough`; real-TCP upgrade byte-integrity and header-injection-prevention assertions are no longer tested."                                                                                                                                                  | Critical | S      | Documentation |
+| ~~f.1~~  | ~~**Correct the CHANGELOG `[Unreleased]` Removed entry** — replace the overstated "remains covered" sentence with an honest split: "interface delegation still covered by `TestChain_CompressionETag_HijackPassthrough`; real-TCP upgrade byte-integrity and header-injection-prevention assertions are no longer tested."~~ done at `a5e9944` | ~~Critical~~ | ~~S~~ | ~~Documentation~~ |
 | f.2  | **Decide: restore a real-connection Hijack upgrade test?** The deleted test was the only one proving Content-Encoding/ETag are not injected into a 101 Switching Protocols response and that post-hijack bytes flow uncorrupted. This is a real correctness property of the middleware, not dead weight. If the removal was about the _test style_ (heavy, real-TCP) rather than the _property_, a lighter `httptest.NewServer` + header-only assertion could replace it. | High     | M      | Testing       |
-| f.3  | **Confirm the websocket comment-scrub scope with the user** — are the 5 "WebSocket" comments in `capabilities.go` / `server_timing.go` / `server_timing_test.go` in-scope or out-of-scope? My default (keep, they document Hijacker intent) stands unless overridden.                                                                                                                                                                                                     | High     | S      | Decision      |
+| ~~f.3~~  | ~~**Confirm the websocket comment-scrub scope with the user** — are the 5 "WebSocket" comments in `capabilities.go` / `server_timing.go` / `server_timing_test.go` in-scope or out-of-scope? My default (keep, they document Hijacker intent) stands unless overridden.~~ done (resolved — the comments stay; they document why Hijacker delegation exists) | ~~High~~ | ~~S~~ | ~~Decision~~ |
 | f.4  | **Add a `TestCompressionETag_UpgradeResponse_ExcludesContentEncoding` test** (lighter than the deleted one): spin `httptest.NewServer`, send an `Upgrade: websocket` request, assert the response has no `Content-Encoding` / `ETag` header and status is 101. No post-hijack byte echo (that was the fragile part). Covers the highest-value assertion the deletion lost.                                                                                                | High     | M      | Testing       |
-| f.5  | **Audit CHANGELOG `[Unreleased]` for other unverified coverage claims** — I may not be the first session to write "covered by TestX" without reading it. A 10-minute `grep` of `covered by` / `remains covered` against test function bodies would surface any siblings.                                                                                                                                                                                                  | Medium   | S      | Quality       |
+| ~~f.5~~  | ~~**Audit CHANGELOG `[Unreleased]` for other unverified coverage claims** — I may not be the first session to write "covered by TestX" without reading it. A 10-minute `grep` of `covered by` / `remains covered` against test function bodies would surface any siblings.~~ done (done — the 08-07 22:43 session audited every Unreleased entry and removed the ghosts (a5e9944)) | ~~Medium~~ | ~~S~~ | ~~Quality~~ |
 | f.6  | **Consider a lint rule / convention: test names must match what they assert.** `TestChain_CompressionETag_HijackPassthrough` implies passthrough of bytes, but only asserts interface delegation. Either rename to `…_PreservesHijacker` or add the byte assertions. (Naming-is-architecture principle.)                                                                                                                                                                  | Medium   | S      | Quality       |
 | f.7  | **Restore `readUpgradeHeaders` to `testutil_test.go` if f.2/f.4 is undertaken** — avoids re-deriving the header-parsing helper and resolves the 2026-07-10 open item about its placement.                                                                                                                                                                                                                                                                                 | Low      | S      | Cleanup       |
-| f.8  | **Doc-health HARVEST pass** — route f.1–f.7 into `TODO_LIST.md` (actionable) vs `ROADMAP.md` (f.2 if deferred). This report's section (f) is the canonical input for HARVEST.                                                                                                                                                                                                                                                                                             | Medium   | S      | Documentation |
+| ~~f.8~~  | ~~**Doc-health HARVEST pass** — route f.1–f.7 into `TODO_LIST.md` (actionable) vs `ROADMAP.md` (f.2 if deferred). This report's section (f) is the canonical input for HARVEST.~~ done (done — later passes harvested and rebuilt TODO_LIST (08-08 sessions)) | ~~Medium~~ | ~~S~~ | ~~Documentation~~ |
 | f.9  | **Verify `server_timing_test.go:450` Hijacker-preservation test still has teeth** — mutation-test it (comment out the `delegatingWriter.Hijack` method, confirm the test fails). If it passes regardless, the assertion is dead.                                                                                                                                                                                                                                          | Medium   | S      | Testing       |
-| f.10 | **`AGENTS.md` "Non-Obvious Behaviors" section** — consider adding: "Compression does not inject `Content-Encoding` into responses where the handler calls `Hijack()` — but this property is currently not covered by an automated test (since the websocket upgrade test was removed)." Codifies the known gap so future sessions don't assume coverage.                                                                                                                  | Medium   | S      | Documentation |
+| ~~f.10~~ | ~~**`AGENTS.md` "Non-Obvious Behaviors" section** — consider adding: "Compression does not inject `Content-Encoding` into responses where the handler calls `Hijack()` — but this property is currently not covered by an automated test (since the websocket upgrade test was removed)." Codifies the known gap so future sessions don't assume coverage.~~ done (done — AGENTS.md documents the honest-silence pattern for post-header-commit writes) | ~~Medium~~ | ~~S~~ | ~~Documentation~~ |
 
 ---
 
 ## g) Questions I cannot answer myself
 
-### Q1 (scope): How far did you want the websocket purge to go?
+### Q1 (scope): ~~How far did you want the websocket purge to go?~~
+
+**Answered:** narrow-plus — test deleted, docs updated, intent-documenting comments kept (see f.3).
 
 I need your call on scope. I interpreted "remove all websocket suckk" as **delete the test file + update docs that reference it**, and deliberately left these:
 
@@ -160,11 +160,15 @@ I need your call on scope. I interpreted "remove all websocket suckk" as **delet
 
 **Which to also scrub?** (a) None — my default is correct. (b) The 5 source comments only. (c) Everything except frozen CHANGELOG. (d) Everything, even frozen (override the freeze policy).
 
-### Q2 (coverage): Was the deletion about the _property_ or the _test style_?
+### Q2 (coverage): ~~Was the deletion about the _property_ or the _test style_?~~
+
+**Answered:** deferred as a design decision — a lighter real-connection test remains open (see f.2).
 
 The deleted `TestCompressionETag_WebSocketUpgrade_Passthrough` verified a real correctness property (compression/ETag middleware must not corrupt a 101 Switching Protocols handshake or inject headers into an upgrade response) via a heavy real-TCP test (186 lines, `net.Dial`, manual HTTP/1.1 byte parsing). If the annoyance was the **test's weight/maintenance** (real TCP, fragile, the body-before-hijack variant that deadlocked), I recommend restoring a **lighter** version (`httptest.NewServer` + header assertions only — task f.4). If the annoyance is that the **property itself isn't worth testing**, then leave it deleted and I'll make the CHANGELOG honest per f.1. **Which?**
 
-### Q3 (convention): Should `Removed` CHANGELOG entries always state the coverage delta?
+### Q3 (convention): ~~Should `Removed` CHANGELOG entries always state the coverage delta?~~
+
+**Answered:** adopted as convention — `Removed` entries state the coverage delta.
 
 I propose a convention (e.3): every `Removed` entry that touches a test must explicitly state which behavior lost automated coverage, even if a partial replacement exists. This would have prevented the d.1 overstatement. **Adopt as a standing rule, or leave it to per-session judgment?**
 
@@ -186,3 +190,11 @@ I propose a convention (e.3): every `Removed` entry that touches a test must exp
 ---
 
 _Generated 2026-08-07 06:12. Scope: this session only. The d.1 finding is the headline — a coverage claim entered the CHANGELOG without the cited test being read. Recoverable under `[Unreleased]`; no frozen history was touched._
+
+---
+
+## Resolution (2026-08-07 docs-health pass; upgraded to per-item markers 2026-08-29)
+
+Every actionable item is resolved inline; unmarked items are still open by convention. The header banner was removed — its verdicts live on the items.
+
+Open as of 2026-08-29: c.3/f.2/f.7 (restore a real-connection Hijack test — deferred design decision, plus the helper restore contingent on it), f.4 (lighter upgrade-response test — not written), f.6 (test-name/assertion lint convention), f.9 (mutation-test the Hijacker-preservation test). Sections d)/e) are narrative session facts and process lessons, intentionally unmarked.
