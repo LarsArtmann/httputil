@@ -182,33 +182,33 @@ The project doesn't have a long-term vision document. `FEATURES.md` has a "PLANN
 
 ## F. TOP 25 THINGS TO DO NEXT
 
-| #   | Task                                                                           | Category    | Impact      | Effort   | Rationale                         |
-| --- | ------------------------------------------------------------------------------ | ----------- | ----------- | -------- | --------------------------------- |
-| 1   | Decide: retag v0.1.0 to include CORS fix, or ship v0.1.1                       | Decision    | 🔴 Critical | 0min     | v0.1.0 has a data race            |
-| 2   | Add `ResponseRecorder.Hijack()` success path test                              | Test        | 🟡 Medium   | 5min     | Only function below 50%           |
-| 3   | Add compression error branch tests (writePlain, writeCompressed, Close errors) | Test        | 🟡 Medium   | 15min    | Biggest coverage cluster          |
-| 4   | Add etag error branch tests (Write, Flush error paths)                         | Test        | 🟡 Medium   | 10min    | Second biggest cluster            |
-| 5   | Make content-type filtering configurable via `CompressionConfig`               | Feature     | 🟡 Medium   | 20min    | TODO_LIST near-term               |
-| 6   | Add `MiddlewareStack` type with ordering validation                            | Feature     | Low         | 30min    | TODO_LIST near-term               |
-| 7   | Add `ResponseWriter` capability interface                                      | Feature     | Low         | 20min    | TODO_LIST near-term               |
-| 8   | Add `ExampleChain` example function                                            | Doc         | Low         | 5min     | Shows Chain() in godoc            |
-| 9   | Pin govulncheck version in CI (not @latest)                                    | Infra       | Low         | 2min     | Reproducibility                   |
-| 10  | Add `SecurityHeadersConfig.Validate()` — validate FrameOptions enum            | Enhancement | Low         | 5min     | Currently no-op                   |
-| 11  | Add `responseWrapper.Write()` defensive fallback                               | Enhancement | Low         | 5min     | Safety net                        |
-| 12  | Add integration test for `Chain(Recovery, Timeout, Logging, CORS)`             | Test        | Low         | 10min    | Common production stack           |
-| 13  | Add `BenchmarkChain_FullStack` benchmark                                       | Test        | Low         | 5min     | Production-like perf data         |
-| 14  | Implement deflate support using `compress/flate`                               | Feature     | Low         | 30min+   | TODO_LIST medium-term             |
-| 15  | Add `Accept-Encoding` quality value parsing per RFC 7231                       | Feature     | Low         | 30min+   | TODO_LIST medium-term             |
-| 16  | Evaluate streaming ETag with rolling hash                                      | Research    | Low         | Research | TODO_LIST medium-term             |
-| 17  | Consider request/response metrics middleware                                   | Feature     | Low         | Research | TODO_LIST                         |
-| 18  | Consider rate-limiting middleware                                              | Feature     | Low         | Research | TODO_LIST                         |
-| 19  | Consider request body size limit middleware                                    | Feature     | Low         | Research | TODO_LIST                         |
-| 20  | Add a `ROADMAP.md` for long-term direction                                     | Doc         | Low         | 10min    | No vision doc exists              |
-| 21  | Add `ExampleResponseRecorder` showing status capture + logging                 | Doc         | Low         | 5min     | Common use case                   |
-| 22  | Add `FuzzSecurityHeaders` — fuzz test for header injection                     | Test        | Low         | 5min     | Security hardening                |
-| 23  | Consider `Strict-Transport-Security` validation in SecurityHeadersConfig       | Enhancement | Low         | 5min     | Prevent misconfiguration          |
-| 24  | Add `go test -race` to CI test step                                            | Infra       | Low         | 1min     | Already tested locally, not in CI |
-| 25  | Add `CHANGELOG.md` entry for race fix under `[Unreleased]`                     | Doc         | Low         | 2min     | Track ongoing changes             |
+| #  | Task                                                                           | Category    | Impact      | Effort   | Rationale                         |
+| -- | ------------------------------------------------------------------------------ | ----------- | ----------- | -------- | --------------------------------- |
+| 1  | Decide: retag v0.1.0 to include CORS fix, or ship v0.1.1                       | Decision    | 🔴 Critical | 0min     | v0.1.0 has a data race            |
+| 2  | Add `ResponseRecorder.Hijack()` success path test                              | Test        | 🟡 Medium   | 5min     | Only function below 50%           |
+| 3  | Add compression error branch tests (writePlain, writeCompressed, Close errors) | Test        | 🟡 Medium   | 15min    | Biggest coverage cluster          |
+| 4  | Add etag error branch tests (Write, Flush error paths)                         | Test        | 🟡 Medium   | 10min    | Second biggest cluster            |
+| 5  | Make content-type filtering configurable via `CompressionConfig`               | Feature     | 🟡 Medium   | 20min    | TODO_LIST near-term               |
+| 6  | Add `MiddlewareStack` type with ordering validation                            | Feature     | Low         | 30min    | TODO_LIST near-term               |
+| 7  | Add `ResponseWriter` capability interface                                      | Feature     | Low         | 20min    | TODO_LIST near-term               |
+| 8  | Add `ExampleChain` example function                                            | Doc         | Low         | 5min     | Shows Chain() in godoc            |
+| 9  | Pin govulncheck version in CI (not @latest)                                    | Infra       | Low         | 2min     | Reproducibility                   |
+| 10 | Add `SecurityHeadersConfig.Validate()` — validate FrameOptions enum            | Enhancement | Low         | 5min     | Currently no-op                   |
+| 11 | Add `responseWrapper.Write()` defensive fallback                               | Enhancement | Low         | 5min     | Safety net                        |
+| 12 | Add integration test for `Chain(Recovery, Timeout, Logging, CORS)`             | Test        | Low         | 10min    | Common production stack           |
+| 13 | Add `BenchmarkChain_FullStack` benchmark                                       | Test        | Low         | 5min     | Production-like perf data         |
+| 14 | Implement deflate support using `compress/flate`                               | Feature     | Low         | 30min+   | TODO_LIST medium-term             |
+| 15 | Add `Accept-Encoding` quality value parsing per RFC 7231                       | Feature     | Low         | 30min+   | TODO_LIST medium-term             |
+| 16 | Evaluate streaming ETag with rolling hash                                      | Research    | Low         | Research | TODO_LIST medium-term             |
+| 17 | Consider request/response metrics middleware                                   | Feature     | Low         | Research | TODO_LIST                         |
+| 18 | Consider rate-limiting middleware                                              | Feature     | Low         | Research | TODO_LIST                         |
+| 19 | Consider request body size limit middleware                                    | Feature     | Low         | Research | TODO_LIST                         |
+| 20 | Add a `ROADMAP.md` for long-term direction                                     | Doc         | Low         | 10min    | No vision doc exists              |
+| 21 | Add `ExampleResponseRecorder` showing status capture + logging                 | Doc         | Low         | 5min     | Common use case                   |
+| 22 | Add `FuzzSecurityHeaders` — fuzz test for header injection                     | Test        | Low         | 5min     | Security hardening                |
+| 23 | Consider `Strict-Transport-Security` validation in SecurityHeadersConfig       | Enhancement | Low         | 5min     | Prevent misconfiguration          |
+| 24 | Add `go test -race` to CI test step                                            | Infra       | Low         | 1min     | Already tested locally, not in CI |
+| 25 | Add `CHANGELOG.md` entry for race fix under `[Unreleased]`                     | Doc         | Low         | 2min     | Track ongoing changes             |
 
 ---
 

@@ -197,33 +197,33 @@ One design observation: the `ratelimit.go` `TokenBucketLimiter` has an unbounded
 
 Sorted by impact × 1/effort (highest value first):
 
-| #   | Task                                                                                                                                                                | Impact | Effort | Category   |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ---------- |
-| 1   | **Update AGENTS.md** — add 6 new files to table, fix spec count 13→18, document config validation                                                                   | High   | 10 min | Docs       |
-| 2   | **Add Validate() success-path tests** for RateLimitConfig + MetricsConfig                                                                                           | Med    | 5 min  | Tests      |
-| 3   | **Commit all work** — this is a large uncommitted changeset (12 new + 13 modified files)                                                                            | High   | 5 min  | Process    |
-| 4   | **Tag v0.4.0** — move `[Unreleased]` → `[0.4.0]`, tag, push                                                                                                         | High   | 5 min  | Release    |
-| 5   | **Add example_test.go functions** for MaxBodySize, RateLimit, Metrics                                                                                               | Med    | 10 min | Docs/Tests |
-| 6   | **Add benchmarks** for MaxBodySize, RateLimit, Metrics                                                                                                              | Low    | 10 min | Perf       |
-| 7   | **Add integration test** chaining Recovery+RateLimit+MaxBodySize+Metrics+handler                                                                                    | Med    | 10 min | Tests      |
-| 8   | **Add fuzz test for TokenBucketLimiter.Allow** — rate/burst edge cases                                                                                              | Low    | 10 min | Tests      |
-| 9   | **Document TokenBucketLimiter memory limitation** in AGENTS.md or doc comment                                                                                       | Med    | 3 min  | Docs       |
-| 10  | **Consider typed `MiddlewareName`** instead of bare string                                                                                                          | Med    | 15 min | Types      |
-| 11  | **Add MiddlewareStack ordering rules** — SecurityHeaders should be early, Timeout should be late                                                                    | Med    | 15 min | Design     |
-| 12  | **Add `Stack.AddFirst()` method** — for middleware that must be outermost (Recovery)                                                                                | Low    | 10 min | Feature    |
-| 13  | **TokenBucketLimiter eviction** — TTL-based bucket cleanup for production per-IP use                                                                                | High   | 30 min | Feature    |
-| 14  | **Add `WithRate(r)`, `WithBurst(b)` functional options** to TokenBucketLimiter                                                                                      | Low    | 10 min | API        |
-| 15  | **Add X-Frame-Options presence spec** to httpspec                                                                                                                   | Low    | 10 min | Feature    |
-| 16  | **Add Strict-Transport-Security presence spec** to httpspec                                                                                                         | Low    | 10 min | Feature    |
-| 17  | **Add Content-Security-Policy presence spec** to httpspec                                                                                                           | Low    | 10 min | Feature    |
-| 18  | **Add HTTPS redirect spec** to httpspec (verify redirect to HTTPS)                                                                                                  | Low    | 15 min | Feature    |
-| 19  | **Add `ExpectJSON` / `ExpectHTML` builders** — verify Content-Type is JSON or HTML                                                                                  | Low    | 10 min | Feature    |
-| 20  | **Add `MiddlewareStack.BuildWithValidation()`** — calls Validate() then Build()                                                                                     | Low    | 5 min  | Feature    |
-| 21  | **Add per-route RateLimit middleware** — `RateLimitFor(pattern, cfg)` using http.ServeMux patterns                                                                  | Med    | 20 min | Feature    |
-| 22  | **Add Prometheus MetricsRecorder implementation** — as a documented example, not a dependency                                                                       | Med    | 20 min | Feature    |
-| 23  | **Add `DetectCapabilities` to ResponseRecorder and compressWriter** — verify they correctly report capabilities through wrapping                                    | Low    | 10 min | Tests      |
-| 24  | **Document middleware ordering recommendations** in README — Recovery → RateLimit → MaxBodySize → CORS → SecurityHeaders → RequestID → Compression → ETag → handler | Med    | 10 min | Docs       |
-| 25  | **Add `go doc` generation CI step** — verify all exported symbols have doc comments                                                                                 | Low    | 10 min | CI         |
+| #  | Task                                                                                                                                                                | Impact | Effort | Category   |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1  | **Update AGENTS.md** — add 6 new files to table, fix spec count 13→18, document config validation                                                                   | High   | 10 min | Docs       |
+| 2  | **Add Validate() success-path tests** for RateLimitConfig + MetricsConfig                                                                                           | Med    | 5 min  | Tests      |
+| 3  | **Commit all work** — this is a large uncommitted changeset (12 new + 13 modified files)                                                                            | High   | 5 min  | Process    |
+| 4  | **Tag v0.4.0** — move `[Unreleased]` → `[0.4.0]`, tag, push                                                                                                         | High   | 5 min  | Release    |
+| 5  | **Add example_test.go functions** for MaxBodySize, RateLimit, Metrics                                                                                               | Med    | 10 min | Docs/Tests |
+| 6  | **Add benchmarks** for MaxBodySize, RateLimit, Metrics                                                                                                              | Low    | 10 min | Perf       |
+| 7  | **Add integration test** chaining Recovery+RateLimit+MaxBodySize+Metrics+handler                                                                                    | Med    | 10 min | Tests      |
+| 8  | **Add fuzz test for TokenBucketLimiter.Allow** — rate/burst edge cases                                                                                              | Low    | 10 min | Tests      |
+| 9  | **Document TokenBucketLimiter memory limitation** in AGENTS.md or doc comment                                                                                       | Med    | 3 min  | Docs       |
+| 10 | **Consider typed `MiddlewareName`** instead of bare string                                                                                                          | Med    | 15 min | Types      |
+| 11 | **Add MiddlewareStack ordering rules** — SecurityHeaders should be early, Timeout should be late                                                                    | Med    | 15 min | Design     |
+| 12 | **Add `Stack.AddFirst()` method** — for middleware that must be outermost (Recovery)                                                                                | Low    | 10 min | Feature    |
+| 13 | **TokenBucketLimiter eviction** — TTL-based bucket cleanup for production per-IP use                                                                                | High   | 30 min | Feature    |
+| 14 | **Add `WithRate(r)`, `WithBurst(b)` functional options** to TokenBucketLimiter                                                                                      | Low    | 10 min | API        |
+| 15 | **Add X-Frame-Options presence spec** to httpspec                                                                                                                   | Low    | 10 min | Feature    |
+| 16 | **Add Strict-Transport-Security presence spec** to httpspec                                                                                                         | Low    | 10 min | Feature    |
+| 17 | **Add Content-Security-Policy presence spec** to httpspec                                                                                                           | Low    | 10 min | Feature    |
+| 18 | **Add HTTPS redirect spec** to httpspec (verify redirect to HTTPS)                                                                                                  | Low    | 15 min | Feature    |
+| 19 | **Add `ExpectJSON` / `ExpectHTML` builders** — verify Content-Type is JSON or HTML                                                                                  | Low    | 10 min | Feature    |
+| 20 | **Add `MiddlewareStack.BuildWithValidation()`** — calls Validate() then Build()                                                                                     | Low    | 5 min  | Feature    |
+| 21 | **Add per-route RateLimit middleware** — `RateLimitFor(pattern, cfg)` using http.ServeMux patterns                                                                  | Med    | 20 min | Feature    |
+| 22 | **Add Prometheus MetricsRecorder implementation** — as a documented example, not a dependency                                                                       | Med    | 20 min | Feature    |
+| 23 | **Add `DetectCapabilities` to ResponseRecorder and compressWriter** — verify they correctly report capabilities through wrapping                                    | Low    | 10 min | Tests      |
+| 24 | **Document middleware ordering recommendations** in README — Recovery → RateLimit → MaxBodySize → CORS → SecurityHeaders → RequestID → Compression → ETag → handler | Med    | 10 min | Docs       |
+| 25 | **Add `go doc` generation CI step** — verify all exported symbols have doc comments                                                                                 | Low    | 10 min | CI         |
 
 ---
 

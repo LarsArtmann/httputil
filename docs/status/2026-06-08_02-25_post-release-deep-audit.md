@@ -156,34 +156,34 @@ New: func() any {
 
 ### E1. Critical Fixes
 
-| #   | Fix                                                                | Severity    | Effort |
-| --- | ------------------------------------------------------------------ | ----------- | ------ |
-| 1   | Fix CORS data race — move `allowOrigin` inside per-request closure | 🔴 Critical | 5min   |
-| 2   | Add concurrent CORS test to prove the fix                          | 🔴 Critical | 5min   |
-| 3   | Fix compression pool nil guard                                     | 🟠 High     | 3min   |
+| # | Fix                                                                | Severity    | Effort |
+| - | ------------------------------------------------------------------ | ----------- | ------ |
+| 1 | Fix CORS data race — move `allowOrigin` inside per-request closure | 🔴 Critical | 5min   |
+| 2 | Add concurrent CORS test to prove the fix                          | 🔴 Critical | 5min   |
+| 3 | Fix compression pool nil guard                                     | 🟠 High     | 3min   |
 
 ### E2. Doc Accuracy
 
-| #   | Fix                                                                    | Severity  | Effort |
-| --- | ---------------------------------------------------------------------- | --------- | ------ |
-| 4   | CHANGELOG.md — update to 110 tests, 89.1%, add 3 new Validate()        | 🟡 Medium | 3min   |
-| 5   | AGENTS.md — add `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed` | 🟡 Medium | 2min   |
+| # | Fix                                                                    | Severity  | Effort |
+| - | ---------------------------------------------------------------------- | --------- | ------ |
+| 4 | CHANGELOG.md — update to 110 tests, 89.1%, add 3 new Validate()        | 🟡 Medium | 3min   |
+| 5 | AGENTS.md — add `ErrCodeCompressWriteFailed`, `ErrCodeETagWriteFailed` | 🟡 Medium | 2min   |
 
 ### E3. Coverage Improvements
 
-| #   | Fix                                                  | Severity | Effort |
-| --- | ---------------------------------------------------- | -------- | ------ |
-| 6   | Test `RegisterErrorClassifications()` (0% → covered) | 🟢 Low   | 5min   |
-| 7   | Test `ResponseRecorder.Hijack()` success path        | 🟢 Low   | 5min   |
-| 8   | Remove unreachable `errPoolTypeMismatch` path        | 🟢 Low   | 5min   |
+| # | Fix                                                  | Severity | Effort |
+| - | ---------------------------------------------------- | -------- | ------ |
+| 6 | Test `RegisterErrorClassifications()` (0% → covered) | 🟢 Low   | 5min   |
+| 7 | Test `ResponseRecorder.Hijack()` success path        | 🟢 Low   | 5min   |
+| 8 | Remove unreachable `errPoolTypeMismatch` path        | 🟢 Low   | 5min   |
 
 ### E4. Architecture
 
-| #   | Consideration                                                              | Priority                                                |
-| --- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| 9   | `responseWrapper.Write()` — add defensive `writeHeaderToUnderlying()` call | Low — safe as-is because all consumers override Write() |
-| 10  | `SecurityHeadersConfig.Validate()` — add FrameOptions enum validation      | Low — no-op is fine for v0.1.0                          |
-| 11  | Add race condition test pattern to testutil_test.go                        | Medium — prevents future races                          |
+| #  | Consideration                                                              | Priority                                                |
+| -- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 9  | `responseWrapper.Write()` — add defensive `writeHeaderToUnderlying()` call | Low — safe as-is because all consumers override Write() |
+| 10 | `SecurityHeadersConfig.Validate()` — add FrameOptions enum validation      | Low — no-op is fine for v0.1.0                          |
+| 11 | Add race condition test pattern to testutil_test.go                        | Medium — prevents future races                          |
 
 ---
 
@@ -191,33 +191,33 @@ New: func() any {
 
 Sorted by **impact × urgency / effort**.
 
-| #   | Task                                                                | Category    | Impact      | Effort   | Rationale                                           |
-| --- | ------------------------------------------------------------------- | ----------- | ----------- | -------- | --------------------------------------------------- |
-| 1   | Fix CORS data race — move `allowOrigin` inside closure              | Bug         | 🔴 Critical | 5min     | Security vulnerability — wrong origin could be sent |
-| 2   | Add concurrent CORS test (multiple goroutines, different origins)   | Test        | 🔴 Critical | 5min     | Proves the fix works                                |
-| 3   | Fix compression pool nil guard — panic on gzip.NewWriterLevel error | Bug         | 🟠 High     | 3min     | Prevents nil pointer panic in edge case             |
-| 4   | Update CHANGELOG.md [0.1.0] — 110 tests, 89.1%, add 3 Validate()    | Doc         | 🟡 Medium   | 3min     | Tagged with wrong numbers                           |
-| 5   | Update AGENTS.md errors.go row — add 2 missing error codes          | Doc         | 🟡 Medium   | 2min     | Architecture reference incomplete                   |
-| 6   | Add test for `RegisterErrorClassifications()`                       | Test        | 🟢 Low      | 5min     | errors.go at 0% coverage                            |
-| 7   | Add `ResponseRecorder.Hijack()` success path test                   | Test        | 🟢 Low      | 5min     | 42.9% → higher                                      |
-| 8   | Remove unreachable `errPoolTypeMismatch` sentinel and branch        | Refactor    | 🟢 Low      | 5min     | Dead code creates coverage noise                    |
-| 9   | Add race-condition test helper to testutil_test.go                  | Infra       | 🟢 Low      | 5min     | Prevents future races like CORS                     |
-| 10  | Improve test coverage to 90%+                                       | Test        | 🟢 Low      | 30min    | Currently 89.1%                                     |
-| 11  | Make content-type filtering configurable via `CompressionConfig`    | Feature     | Low         | 20min    | TODO_LIST.md — v0.2.0                               |
-| 12  | Add `MiddlewareStack` type with ordering validation                 | Feature     | Low         | 30min    | TODO_LIST.md — v0.2.0                               |
-| 13  | Add `ResponseWriter` capability interface                           | Feature     | Low         | 20min    | TODO_LIST.md — v0.2.0                               |
-| 14  | Implement deflate support                                           | Feature     | Low         | 30min+   | TODO_LIST.md — v0.2.0                               |
-| 15  | Accept-Encoding quality value parsing                               | Feature     | Low         | 30min+   | TODO_LIST.md — v0.2.0                               |
-| 16  | Evaluate streaming ETag with rolling hash                           | Research    | Low         | Research | TODO_LIST.md — v0.2.0                               |
-| 17  | Consider rate-limiting middleware                                   | Feature     | Low         | Research | TODO_LIST.md — v0.2.0                               |
-| 18  | Consider request/response metrics middleware                        | Feature     | Low         | Research | TODO_LIST.md — v0.2.0                               |
-| 19  | Consider request body size limit middleware                         | Feature     | Low         | Research | TODO_LIST.md — v0.2.0                               |
-| 20  | Add `SecurityHeadersConfig.Validate()` — FrameOptions enum          | Enhancement | Low         | 5min     | Currently no-op                                     |
-| 21  | Add `responseWrapper.Write()` defensive fallback                    | Enhancement | Low         | 5min     | Safety net if consumers forget to override          |
-| 22  | Add integration test for `Chain(Recovery, Timeout, Logging)`        | Test        | Low         | 5min     | Common stack                                        |
-| 23  | Pin govulncheck version in CI (not @latest)                         | Infra       | Low         | 2min     | Reproducibility                                     |
-| 24  | Add `ExampleChain` example function                                 | Doc         | Low         | 3min     | Shows Chain() usage in godoc                        |
-| 25  | Consider adding a `ROADMAP.md`                                      | Doc         | Low         | 10min    | Long-term vision doc                                |
+| #  | Task                                                                | Category    | Impact      | Effort   | Rationale                                           |
+| -- | ------------------------------------------------------------------- | ----------- | ----------- | -------- | --------------------------------------------------- |
+| 1  | Fix CORS data race — move `allowOrigin` inside closure              | Bug         | 🔴 Critical | 5min     | Security vulnerability — wrong origin could be sent |
+| 2  | Add concurrent CORS test (multiple goroutines, different origins)   | Test        | 🔴 Critical | 5min     | Proves the fix works                                |
+| 3  | Fix compression pool nil guard — panic on gzip.NewWriterLevel error | Bug         | 🟠 High     | 3min     | Prevents nil pointer panic in edge case             |
+| 4  | Update CHANGELOG.md [0.1.0] — 110 tests, 89.1%, add 3 Validate()    | Doc         | 🟡 Medium   | 3min     | Tagged with wrong numbers                           |
+| 5  | Update AGENTS.md errors.go row — add 2 missing error codes          | Doc         | 🟡 Medium   | 2min     | Architecture reference incomplete                   |
+| 6  | Add test for `RegisterErrorClassifications()`                       | Test        | 🟢 Low      | 5min     | errors.go at 0% coverage                            |
+| 7  | Add `ResponseRecorder.Hijack()` success path test                   | Test        | 🟢 Low      | 5min     | 42.9% → higher                                      |
+| 8  | Remove unreachable `errPoolTypeMismatch` sentinel and branch        | Refactor    | 🟢 Low      | 5min     | Dead code creates coverage noise                    |
+| 9  | Add race-condition test helper to testutil_test.go                  | Infra       | 🟢 Low      | 5min     | Prevents future races like CORS                     |
+| 10 | Improve test coverage to 90%+                                       | Test        | 🟢 Low      | 30min    | Currently 89.1%                                     |
+| 11 | Make content-type filtering configurable via `CompressionConfig`    | Feature     | Low         | 20min    | TODO_LIST.md — v0.2.0                               |
+| 12 | Add `MiddlewareStack` type with ordering validation                 | Feature     | Low         | 30min    | TODO_LIST.md — v0.2.0                               |
+| 13 | Add `ResponseWriter` capability interface                           | Feature     | Low         | 20min    | TODO_LIST.md — v0.2.0                               |
+| 14 | Implement deflate support                                           | Feature     | Low         | 30min+   | TODO_LIST.md — v0.2.0                               |
+| 15 | Accept-Encoding quality value parsing                               | Feature     | Low         | 30min+   | TODO_LIST.md — v0.2.0                               |
+| 16 | Evaluate streaming ETag with rolling hash                           | Research    | Low         | Research | TODO_LIST.md — v0.2.0                               |
+| 17 | Consider rate-limiting middleware                                   | Feature     | Low         | Research | TODO_LIST.md — v0.2.0                               |
+| 18 | Consider request/response metrics middleware                        | Feature     | Low         | Research | TODO_LIST.md — v0.2.0                               |
+| 19 | Consider request body size limit middleware                         | Feature     | Low         | Research | TODO_LIST.md — v0.2.0                               |
+| 20 | Add `SecurityHeadersConfig.Validate()` — FrameOptions enum          | Enhancement | Low         | 5min     | Currently no-op                                     |
+| 21 | Add `responseWrapper.Write()` defensive fallback                    | Enhancement | Low         | 5min     | Safety net if consumers forget to override          |
+| 22 | Add integration test for `Chain(Recovery, Timeout, Logging)`        | Test        | Low         | 5min     | Common stack                                        |
+| 23 | Pin govulncheck version in CI (not @latest)                         | Infra       | Low         | 2min     | Reproducibility                                     |
+| 24 | Add `ExampleChain` example function                                 | Doc         | Low         | 3min     | Shows Chain() usage in godoc                        |
+| 25 | Consider adding a `ROADMAP.md`                                      | Doc         | Low         | 10min    | Long-term vision doc                                |
 
 ---
 

@@ -341,33 +341,33 @@ The LSP shows stale diagnostics from before the edits — these are gopls cache 
 
 ## f) Top #25 Things to Do Next
 
-| #   | Task                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------- | ------ | ------ |
-| 1   | Commit and push all session work                               | HIGH   | 5min   |
-| 2   | Tag v0.1.0 release                                             | HIGH   | 1min   |
-| 3   | Fix CORS `allowOrigin` data race (move inside handler closure) | HIGH   | 10min  |
-| 4   | Add `BytesWritten()` to ResponseRecorder                       | MEDIUM | 10min  |
-| 5   | Add body-capturing ResponseRecorder variant                    | MEDIUM | 30min  |
-| 6   | Add integration tests with real `net/http.Server`              | MEDIUM | 30min  |
-| 7   | Add CORS concurrent request test                               | MEDIUM | 15min  |
-| 8   | Add rate limiting middleware                                   | MEDIUM | 45min  |
-| 9   | Add compression middleware                                     | MEDIUM | 45min  |
-| 10  | Add HTTP error response helper (JSON error bodies)             | MEDIUM | 20min  |
-| 11  | Add CORS regex origin matching                                 | MEDIUM | 20min  |
-| 12  | Add CI badge to README                                         | LOW    | 5min   |
-| 13  | Add CODEOWNERS file                                            | LOW    | 5min   |
-| 14  | Add ResponseRecorder `Body()` method                           | LOW    | 15min  |
-| 15  | Add fuzz tests for `itoa`                                      | LOW    | 10min  |
-| 16  | Adopt Go 1.26+ range-over-int in `itoa`                        | LOW    | 10min  |
-| 17  | Add `Recovery()` custom error handler option                   | LOW    | 10min  |
-| 18  | Add `Logging()` with custom log format/template                | LOW    | 15min  |
-| 19  | Add request context helpers for request ID in middleware chain | LOW    | 5min   |
-| 20  | Explore `nix flake` migration (per project conventions)        | LOW    | HIGH   |
-| 21  | Add `Timeout()` with custom timeout response option            | LOW    | 10min  |
-| 22  | Add `SecurityHeaders()` tests for each individual header       | LOW    | 10min  |
-| 23  | Consider `httputil.` prefix for error codes (breaking)         | LOW    | 15min  |
-| 24  | Add `example/` directory with runnable Go programs             | LOW    | 20min  |
-| 25  | Add version constant (`Version = "0.1.0"`)                     | LOW    | 5min   |
+| #  | Task                                                           | Impact | Effort |
+| -- | -------------------------------------------------------------- | ------ | ------ |
+| 1  | Commit and push all session work                               | HIGH   | 5min   |
+| 2  | Tag v0.1.0 release                                             | HIGH   | 1min   |
+| 3  | Fix CORS `allowOrigin` data race (move inside handler closure) | HIGH   | 10min  |
+| 4  | Add `BytesWritten()` to ResponseRecorder                       | MEDIUM | 10min  |
+| 5  | Add body-capturing ResponseRecorder variant                    | MEDIUM | 30min  |
+| 6  | Add integration tests with real `net/http.Server`              | MEDIUM | 30min  |
+| 7  | Add CORS concurrent request test                               | MEDIUM | 15min  |
+| 8  | Add rate limiting middleware                                   | MEDIUM | 45min  |
+| 9  | Add compression middleware                                     | MEDIUM | 45min  |
+| 10 | Add HTTP error response helper (JSON error bodies)             | MEDIUM | 20min  |
+| 11 | Add CORS regex origin matching                                 | MEDIUM | 20min  |
+| 12 | Add CI badge to README                                         | LOW    | 5min   |
+| 13 | Add CODEOWNERS file                                            | LOW    | 5min   |
+| 14 | Add ResponseRecorder `Body()` method                           | LOW    | 15min  |
+| 15 | Add fuzz tests for `itoa`                                      | LOW    | 10min  |
+| 16 | Adopt Go 1.26+ range-over-int in `itoa`                        | LOW    | 10min  |
+| 17 | Add `Recovery()` custom error handler option                   | LOW    | 10min  |
+| 18 | Add `Logging()` with custom log format/template                | LOW    | 15min  |
+| 19 | Add request context helpers for request ID in middleware chain | LOW    | 5min   |
+| 20 | Explore `nix flake` migration (per project conventions)        | LOW    | HIGH   |
+| 21 | Add `Timeout()` with custom timeout response option            | LOW    | 10min  |
+| 22 | Add `SecurityHeaders()` tests for each individual header       | LOW    | 10min  |
+| 23 | Consider `httputil.` prefix for error codes (breaking)         | LOW    | 15min  |
+| 24 | Add `example/` directory with runnable Go programs             | LOW    | 20min  |
+| 25 | Add version constant (`Version = "0.1.0"`)                     | LOW    | 5min   |
 
 ---
 

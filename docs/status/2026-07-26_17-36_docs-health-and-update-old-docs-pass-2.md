@@ -222,98 +222,98 @@ Commit `b3920ee` ("feat(compress): enhance compression writer...") contains the 
 
 ### Critical — fix the lies/gaps I left
 
-| # | Task                                                                                                                                                                                                                                                                   | Impact                                                     | Effort |
-| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
-| ~~1~~ | ~~**Fix CONTRIBUTING.md lines 10–11** — add `GOEXPERIMENT=jsonv2` prefix to `golangci-lint run --fix` and `golangci-lint fmt`~~ done (v0.6.1) | ~~High — contributors following the doc hit a build failure~~ | ~~1 min~~ |
+| #     | Task                                                                                                                                                                                                                                                                                   | Impact                                                         | Effort     |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------- |
+| ~~1~~ | ~~**Fix CONTRIBUTING.md lines 10–11** — add `GOEXPERIMENT=jsonv2` prefix to `golangci-lint run --fix` and `golangci-lint fmt`~~ done (v0.6.1)                                                                                                                                          | ~~High — contributors following the doc hit a build failure~~  | ~~1 min~~  |
 | ~~2~~ | ~~**Actually READ the 6 HTML `2026-07-*` reports in full** — `full-code-review.html`, `code-quality-scan.html`, `naming-review.html`, `data-model-review.html`, `modularity.html` (full), `rate-limiter-library-switch.html`. Annotate any stale claims found in bodies.~~ done (done) | ~~High — I certified these "left alone" without reading them~~ | ~~30 min~~ |
-| ~~3~~ | ~~**Read the 2 D2 files in full** — check for stale node labels/edges beyond the `x/time` node already added~~ done (done) | ~~Medium — plain text, in scope for update-old-docs~~ | ~~5 min~~ |
-| ~~4~~ | ~~**Read `reviews/2026-07-02_03-02_brutal-self-review.md` in full** — verify its Resolution section is accurate~~ done (done) | ~~Medium — I never opened it~~ | ~~5 min~~ |
-| ~~5~~ | ~~**Read `research/2026-07-05_httputil-vs-huma.md` in full** — it says "v0.5.0"; judge whether the version/dep claims are load-bearing and need annotation~~ done (version claims verified) | ~~Medium — dismissed without reading~~ | ~~5 min~~ |
+| ~~3~~ | ~~**Read the 2 D2 files in full** — check for stale node labels/edges beyond the `x/time` node already added~~ done (done)                                                                                                                                                             | ~~Medium — plain text, in scope for update-old-docs~~          | ~~5 min~~  |
+| ~~4~~ | ~~**Read `reviews/2026-07-02_03-02_brutal-self-review.md` in full** — verify its Resolution section is accurate~~ done (done)                                                                                                                                                          | ~~Medium — I never opened it~~                                 | ~~5 min~~  |
+| ~~5~~ | ~~**Read `research/2026-07-05_httputil-vs-huma.md` in full** — it says "v0.5.0"; judge whether the version/dep claims are load-bearing and need annotation~~ done (version claims verified)                                                                                            | ~~Medium — dismissed without reading~~                         | ~~5 min~~  |
 
 ### High — resolve the jsonv2 root cause
 
-| #  | Task                                                                                                                                          | Impact                                        | Effort   |
-| -- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | -------- |
-| ~~6~~  | ~~**Decide: upgrade flake to Go 1.27+ or downgrade `health.go` to `encoding/json` v1**~~ done (v0.6.1 downgrade chosen) | ~~Critical — build broken for non-Nix consumers~~ | ~~decision~~ |
-| ~~7~~  | ~~**If downgrading: rewrite `health.go` to use `json.NewEncoder(w).Encode(...)` or `json.Marshal`** — removes GOEXPERIMENT requirement entirely~~ done (v0.6.1) | ~~High — simplest permanent fix~~ | ~~15 min~~ |
-| ~~8~~  | ~~**If upgrading: verify nixpkgs has `go_1_27`**~~ done (N/A: downgrade path chosen) | ~~High — feasibility gate~~ | ~~5 min~~ |
-| ~~9~~  | ~~**Remove GOEXPERIMENT from flake.nix once root cause is fixed** (7 insertion points)~~ done (v0.6.1) | ~~Medium — cleanup~~ | ~~5 min~~ |
-| ~~10~~ | ~~**Remove the `GOEXPERIMENT=jsonv2` prefixes from AGENTS.md / CONTRIBUTING.md once the root cause is fixed**~~ done (v0.6.1) | ~~Medium — doc simplification~~ | ~~5 min~~ |
+| #      | Task                                                                                                                                                            | Impact                                            | Effort       |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------ |
+| ~~6~~  | ~~**Decide: upgrade flake to Go 1.27+ or downgrade `health.go` to `encoding/json` v1**~~ done (v0.6.1 downgrade chosen)                                         | ~~Critical — build broken for non-Nix consumers~~ | ~~decision~~ |
+| ~~7~~  | ~~**If downgrading: rewrite `health.go` to use `json.NewEncoder(w).Encode(...)` or `json.Marshal`** — removes GOEXPERIMENT requirement entirely~~ done (v0.6.1) | ~~High — simplest permanent fix~~                 | ~~15 min~~   |
+| ~~8~~  | ~~**If upgrading: verify nixpkgs has `go_1_27`**~~ done (N/A: downgrade path chosen)                                                                            | ~~High — feasibility gate~~                       | ~~5 min~~    |
+| ~~9~~  | ~~**Remove GOEXPERIMENT from flake.nix once root cause is fixed** (7 insertion points)~~ done (v0.6.1)                                                          | ~~Medium — cleanup~~                              | ~~5 min~~    |
+| ~~10~~ | ~~**Remove the `GOEXPERIMENT=jsonv2` prefixes from AGENTS.md / CONTRIBUTING.md once the root cause is fixed**~~ done (v0.6.1)                                   | ~~Medium — doc simplification~~                   | ~~5 min~~    |
 
 ### High — verify the flake actually works
 
-| #  | Task                                                                      | Impact                                    | Effort |
-| -- | ------------------------------------------------------------------------- | ----------------------------------------- | ------ |
-| ~~11~~ | ~~**Run `nix run .#build`** — verify GOEXPERIMENT fix through the flake app~~ done (v0.6.1) | ~~High — untested since workaround landed~~ | ~~2 min~~ |
-| ~~12~~ | ~~**Run `nix run .#test`**~~ done (v0.6.1) | ~~High — same~~ | ~~2 min~~ |
-| ~~13~~ | ~~**Run `nix run .#lint`**~~ done (v0.6.1) | ~~High — same~~ | ~~2 min~~ |
-| ~~14~~ | ~~**Run full `nix flake check` (with build, not `--no-build`)**~~ done (v0.8.0) | ~~Medium — only evaluation verified to date~~ | ~~5 min~~ |
+| #      | Task                                                                                        | Impact                                        | Effort    |
+| ------ | ------------------------------------------------------------------------------------------- | --------------------------------------------- | --------- |
+| ~~11~~ | ~~**Run `nix run .#build`** — verify GOEXPERIMENT fix through the flake app~~ done (v0.6.1) | ~~High — untested since workaround landed~~   | ~~2 min~~ |
+| ~~12~~ | ~~**Run `nix run .#test`**~~ done (v0.6.1)                                                  | ~~High — same~~                               | ~~2 min~~ |
+| ~~13~~ | ~~**Run `nix run .#lint`**~~ done (v0.6.1)                                                  | ~~High — same~~                               | ~~2 min~~ |
+| ~~14~~ | ~~**Run full `nix flake check` (with build, not `--no-build`)**~~ done (v0.8.0)             | ~~Medium — only evaluation verified to date~~ | ~~5 min~~ |
 
 ### High — release discipline
 
-| #  | Task                                                                                                | Impact                                     | Effort   |
-| -- | --------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------- |
-| ~~15~~ | ~~**Decide v0.7.0 scope** — should it ship the jsonv2 fix, or wait?~~ done (v0.7.0 shipped) | ~~High — 13+ commits since v0.6.0 unreleased~~ | ~~decision~~ |
-| ~~16~~ | ~~**Review `go-error-family` v0.9.0 changelog** — confirm no breaking API changes affect this project~~ done (no breaking changes) | ~~Medium — undocumented bump~~ | ~~10 min~~ |
-| ~~17~~ | ~~**Run `govulncheck` locally before next tag**~~ done (v0.7.0 clean) | ~~Medium — preempt CI failure~~ | ~~2 min~~ |
+| #      | Task                                                                                                                               | Impact                                         | Effort       |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------ |
+| ~~15~~ | ~~**Decide v0.7.0 scope** — should it ship the jsonv2 fix, or wait?~~ done (v0.7.0 shipped)                                        | ~~High — 13+ commits since v0.6.0 unreleased~~ | ~~decision~~ |
+| ~~16~~ | ~~**Review `go-error-family` v0.9.0 changelog** — confirm no breaking API changes affect this project~~ done (no breaking changes) | ~~Medium — undocumented bump~~                 | ~~10 min~~   |
+| ~~17~~ | ~~**Run `govulncheck` locally before next tag**~~ done (v0.7.0 clean)                                                              | ~~Medium — preempt CI failure~~                | ~~2 min~~    |
 
 ### Medium — README completeness (long-standing gap)
 
-| #  | Task                                                                                            | Impact                                             | Effort |
-| -- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------ |
-| ~~18~~ | ~~**Add `ETagConfig` fields table to README**~~ done (v0.7.0) | ~~Medium — API completeness~~ | ~~10 min~~ |
-| ~~19~~ | ~~**Add `RateLimitConfig` fields table to README**~~ done (v0.7.0) | ~~Medium~~ | ~~10 min~~ |
-| ~~20~~ | ~~**Add `MetricsConfig` fields table to README**~~ done (v0.7.0) | ~~Medium~~ | ~~10 min~~ |
-| ~~21~~ | ~~**Add `SecurityHeadersConfig` fields table to README**~~ done (v0.7.0) | ~~Medium~~ | ~~10 min~~ |
-| ~~22~~ | ~~**Add `RequestIDConfig` fields table to README**~~ done (v0.7.0) | ~~Medium~~ | ~~10 min~~ |
-| ~~23~~ | ~~**Add `ServerConfig` fields table to README**~~ done (v0.7.0) | ~~Medium~~ | ~~10 min~~ |
+| #      | Task                                                                                                              | Impact                                                 | Effort     |
+| ------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------- |
+| ~~18~~ | ~~**Add `ETagConfig` fields table to README**~~ done (v0.7.0)                                                     | ~~Medium — API completeness~~                          | ~~10 min~~ |
+| ~~19~~ | ~~**Add `RateLimitConfig` fields table to README**~~ done (v0.7.0)                                                | ~~Medium~~                                             | ~~10 min~~ |
+| ~~20~~ | ~~**Add `MetricsConfig` fields table to README**~~ done (v0.7.0)                                                  | ~~Medium~~                                             | ~~10 min~~ |
+| ~~21~~ | ~~**Add `SecurityHeadersConfig` fields table to README**~~ done (v0.7.0)                                          | ~~Medium~~                                             | ~~10 min~~ |
+| ~~22~~ | ~~**Add `RequestIDConfig` fields table to README**~~ done (v0.7.0)                                                | ~~Medium~~                                             | ~~10 min~~ |
+| ~~23~~ | ~~**Add `ServerConfig` fields table to README**~~ done (v0.7.0)                                                   | ~~Medium~~                                             | ~~10 min~~ |
 | ~~24~~ | ~~**Full README audit** — verify every API signature, code example, config default against source~~ done (v0.8.0) | ~~Medium — flagged by 11-01 report, still unverified~~ | ~~30 min~~ |
 
 ### Medium — test coverage and quality
 
-| #  | Task                                                                                                  | Impact | Effort |
-| -- | ----------------------------------------------------------------------------------------------------- | ------ | ------ |
-| ~~25~~ | ~~**Add `TokenBucketLimiter` benchmark** — prove the `x/time/rate` switch was a net win~~ done (v0.7.0) | ~~Medium~~ | ~~30 min~~ |
+| #      | Task                                                                                                                                    | Impact     | Effort     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~25~~ | ~~**Add `TokenBucketLimiter` benchmark** — prove the `x/time/rate` switch was a net win~~ done (v0.7.0)                                 | ~~Medium~~ | ~~30 min~~ |
 | ~~26~~ | ~~**Add body-before-hijack WebSocket test variant** — exercise `beginPlainResponse()` buffer-drain path~~ done (accepted as limitation) | ~~Medium~~ | ~~45 min~~ |
-| ~~27~~ | ~~**Mutation-test the ETag path in WebSocket upgrade test**~~ done (v0.7.0) | ~~Low~~ | ~~15 min~~ |
-| ~~28~~ | ~~**Close compression error-branch coverage gap**~~ done (v0.7.1) | ~~Low~~ | ~~30 min~~ |
-| ~~29~~ | ~~**Close CORS wildcard edge-case coverage gap**~~ done (v0.7.1) | ~~Low~~ | ~~30 min~~ |
-| ~~30~~ | ~~**Close `ResponseRecorder` hijack failure path coverage gap**~~ done (v0.7.1) | ~~Low~~ | ~~20 min~~ |
-| ~~31~~ | ~~**Add fuzz test for `ParseUintQuery`**~~ done (v0.7.0) | ~~Low~~ | ~~15 min~~ |
-| ~~32~~ | ~~**Add `Example*` function for `ParseUintQuery`** (`testableexamples` requires `// Output:`)~~ done (v0.7.0) | ~~Low~~ | ~~10 min~~ |
-| ~~33~~ | ~~**Add `Example*` function for `ReadyHandlerWithProbe`**~~ done (v0.7.0) | ~~Low~~ | ~~10 min~~ |
-| ~~34~~ | ~~**Add `Example*` function for `DenyUnmatched`**~~ **Won't implement — DenyUnmatched default flip shipped instead.** | ~~Low~~ | ~~10 min~~ |
+| ~~27~~ | ~~**Mutation-test the ETag path in WebSocket upgrade test**~~ done (v0.7.0)                                                             | ~~Low~~    | ~~15 min~~ |
+| ~~28~~ | ~~**Close compression error-branch coverage gap**~~ done (v0.7.1)                                                                       | ~~Low~~    | ~~30 min~~ |
+| ~~29~~ | ~~**Close CORS wildcard edge-case coverage gap**~~ done (v0.7.1)                                                                        | ~~Low~~    | ~~30 min~~ |
+| ~~30~~ | ~~**Close `ResponseRecorder` hijack failure path coverage gap**~~ done (v0.7.1)                                                         | ~~Low~~    | ~~20 min~~ |
+| ~~31~~ | ~~**Add fuzz test for `ParseUintQuery`**~~ done (v0.7.0)                                                                                | ~~Low~~    | ~~15 min~~ |
+| ~~32~~ | ~~**Add `Example*` function for `ParseUintQuery`** (`testableexamples` requires `// Output:`)~~ done (v0.7.0)                           | ~~Low~~    | ~~10 min~~ |
+| ~~33~~ | ~~**Add `Example*` function for `ReadyHandlerWithProbe`**~~ done (v0.7.0)                                                               | ~~Low~~    | ~~10 min~~ |
+| ~~34~~ | ~~**Add `Example*` function for `DenyUnmatched`**~~ **Won't implement — DenyUnmatched default flip shipped instead.**                   | ~~Low~~    | ~~10 min~~ |
 
 ### Medium — v1.0 preparation (from ROADMAP)
 
-| #  | Task                                                                                | Impact                                   | Effort   |
-| -- | ----------------------------------------------------------------------------------- | ---------------------------------------- | -------- |
+| #      | Task                                                                                                           | Impact                                       | Effort       |
+| ------ | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------ |
 | ~~35~~ | ~~**Plan `RequestIDConfig.ForwardHeader` → `IncomingHeader` rename** (breaking, v1.0)~~ done (v0.7.0 planning) | ~~Medium — most dishonest name in codebase~~ | ~~decision~~ |
-| ~~36~~ | ~~**Plan `RequestIDConfig.HeaderName` → `ResponseHeader` rename** (breaking, v1.0)~~ done (v0.7.0 planning) | ~~Medium~~ | ~~decision~~ |
-| ~~37~~ | ~~**Evaluate flipping `DenyUnmatched` default to `true` for v1.0**~~ done (v0.7.0 default flipped) | ~~Medium — secure by default~~ | ~~decision~~ |
-| ~~38~~ | ~~**Define v1.0 stability commitment** — which APIs are frozen?~~ done (v0.7.0 docs/v1-stability.md created) | ~~Medium — strategic clarity~~ | ~~decision~~ |
-| ~~39~~ | ~~**Audit all `Validate()` methods for completeness**~~ done (audit done) | ~~Low~~ | ~~1 hr~~ |
+| ~~36~~ | ~~**Plan `RequestIDConfig.HeaderName` → `ResponseHeader` rename** (breaking, v1.0)~~ done (v0.7.0 planning)    | ~~Medium~~                                   | ~~decision~~ |
+| ~~37~~ | ~~**Evaluate flipping `DenyUnmatched` default to `true` for v1.0**~~ done (v0.7.0 default flipped)             | ~~Medium — secure by default~~               | ~~decision~~ |
+| ~~38~~ | ~~**Define v1.0 stability commitment** — which APIs are frozen?~~ done (v0.7.0 docs/v1-stability.md created)   | ~~Medium — strategic clarity~~               | ~~decision~~ |
+| ~~39~~ | ~~**Audit all `Validate()` methods for completeness**~~ done (audit done)                                      | ~~Low~~                                      | ~~1 hr~~     |
 
 ### Lower — extensibility examples (from ROADMAP)
 
-| #  | Task                                                                       | Impact | Effort   |
-| -- | -------------------------------------------------------------------------- | ------ | -------- |
-| ~~40~~ | ~~**Add brotli/zstd `WriterFactory` example** — plugin pattern, no core dep~~ done (v0.7.0 docs/integrations/brotli-zstd.md) | ~~Low~~ | ~~30 min~~ |
-| ~~41~~ | ~~**Add distributed (Redis-backed) `RateLimiter` example**~~ done (v0.7.0 docs/integrations/redis-ratelimiter.md) | ~~Low~~ | ~~1 hr~~ |
-| ~~42~~ | ~~**Add Prometheus-compatible `MetricsRecorder` example**~~ done (v0.7.0 docs/integrations/prometheus-metrics.md) | ~~Low~~ | ~~30 min~~ |
-| ~~43~~ | ~~**Add request body decompression middleware** — counterpart to Compression~~ **Won't implement — shipped in v0.9.0.** | ~~Low~~ | ~~2 hr~~ |
-| ~~44~~ | ~~**Add `Retry-After` header support to `RateLimit`**~~ done (done in v0.8.0 KeyedRateLimit) | ~~Low~~ | ~~20 min~~ |
-| ~~45~~ | ~~**Add `MustNewTokenBucketLimiter` convenience variant**~~ **Won't implement — deprecated API.** | ~~Low~~ | ~~15 min~~ |
-| ~~46~~ | ~~**Evaluate exposing `AllowN` on the `RateLimiter` interface**~~ **Won't implement — KeyedRateLimiter uses MaxKeys.** | ~~Low~~ | ~~decision~~ |
-| ~~47~~ | ~~**Consider `httpspec` spec for CORS headers**~~ **Won't implement — shipped in v0.9.0.** | ~~Low~~ | ~~30 min~~ |
-| ~~48~~ | ~~**Add `ServerConfig.TLSConfig` validation**~~ **Won't implement — deferred to v1.0.** | ~~Low~~ | ~~30 min~~ |
+| #      | Task                                                                                                                         | Impact  | Effort       |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------- | ------- | ------------ |
+| ~~40~~ | ~~**Add brotli/zstd `WriterFactory` example** — plugin pattern, no core dep~~ done (v0.7.0 docs/integrations/brotli-zstd.md) | ~~Low~~ | ~~30 min~~   |
+| ~~41~~ | ~~**Add distributed (Redis-backed) `RateLimiter` example**~~ done (v0.7.0 docs/integrations/redis-ratelimiter.md)            | ~~Low~~ | ~~1 hr~~     |
+| ~~42~~ | ~~**Add Prometheus-compatible `MetricsRecorder` example**~~ done (v0.7.0 docs/integrations/prometheus-metrics.md)            | ~~Low~~ | ~~30 min~~   |
+| ~~43~~ | ~~**Add request body decompression middleware** — counterpart to Compression~~ **Won't implement — shipped in v0.9.0.**      | ~~Low~~ | ~~2 hr~~     |
+| ~~44~~ | ~~**Add `Retry-After` header support to `RateLimit`**~~ done (done in v0.8.0 KeyedRateLimit)                                 | ~~Low~~ | ~~20 min~~   |
+| ~~45~~ | ~~**Add `MustNewTokenBucketLimiter` convenience variant**~~ **Won't implement — deprecated API.**                            | ~~Low~~ | ~~15 min~~   |
+| ~~46~~ | ~~**Evaluate exposing `AllowN` on the `RateLimiter` interface**~~ **Won't implement — KeyedRateLimiter uses MaxKeys.**       | ~~Low~~ | ~~decision~~ |
+| ~~47~~ | ~~**Consider `httpspec` spec for CORS headers**~~ **Won't implement — shipped in v0.9.0.**                                   | ~~Low~~ | ~~30 min~~   |
+| ~~48~~ | ~~**Add `ServerConfig.TLSConfig` validation**~~ **Won't implement — deferred to v1.0.**                                      | ~~Low~~ | ~~30 min~~   |
 
 ### Lower — process and tooling
 
-| #  | Task                                                                                           | Impact                  | Effort   |
-| -- | ---------------------------------------------------------------------------------------------- | ----------------------- | -------- |
+| #      | Task                                                                                                                                         | Impact                      | Effort       |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------ |
 | ~~49~~ | ~~**Reconfigure or remove the auto-commit hook for doc sessions** — it bundles unrelated changes~~ done (acknowledged; hook is user-trusted) | ~~Medium — commit hygiene~~ | ~~decision~~ |
-| ~~50~~ | ~~**Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`~~ **Won't implement — D2 is dev-only.** | ~~Low~~ | ~~5 min~~ |
+| ~~50~~ | ~~**Pin the D2 layout engine version** — SVGs depend on `d2 --layout=elk`~~ **Won't implement — D2 is dev-only.**                            | ~~Low~~                     | ~~5 min~~    |
 
 ---
 

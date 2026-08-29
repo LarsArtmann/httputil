@@ -225,33 +225,33 @@ None of these are "fucked up" in the sense of breaking the build. They are **str
 
 Sorted by **impact / effort ratio** (highest impact per unit of work first):
 
-| #   | Task                                          | Impact   | Effort | Category        |
-| --- | --------------------------------------------- | -------- | ------ | --------------- |
-| 1   | Add GitHub Actions CI (test + lint + bench)   | Critical | 20 min | Infrastructure  |
-| 2   | Create FEATURES.md                            | High     | 15 min | Documentation   |
-| 3   | Create TODO_LIST.md                           | High     | 15 min | Documentation   |
-| 4   | Add benchmarks for remaining middlewares      | Medium   | 30 min | Observability   |
-| 5   | Add example functions for missing middlewares | Medium   | 20 min | DX              |
-| 6   | Add fuzz tests for CORS and RequestID         | Medium   | 20 min | Quality         |
-| 7   | Add integration tests for common chains       | Medium   | 30 min | Correctness     |
-| 8   | Document brotli policy decision               | Medium   | 10 min | Documentation   |
-| 9   | Add WebSocket upgrade test                    | Low      | 15 min | Coverage        |
-| 10  | Add Content-Length preservation test          | Low      | 10 min | Correctness     |
-| 11  | Implement deflate support                     | Medium   | 30 min | Feature         |
-| 12  | Add Accept-Encoding quality parsing           | Low      | 20 min | Correctness     |
-| 13  | Make content-type filtering configurable      | Low      | 15 min | Configurability |
-| 14  | Add MiddlewareStack with ordering validation  | Medium   | 45 min | Architecture    |
-| 15  | Add ResponseWriter capability interface       | Low      | 30 min | Architecture    |
-| 16  | Add streaming ETag option                     | High     | 60 min | Performance     |
-| 17  | Evaluate brotli dependency relaxation         | Medium   | 30 min | Decision        |
-| 18  | Add request/response metrics middleware       | Medium   | 45 min | Feature         |
-| 19  | Add rate-limiting middleware                  | Medium   | 60 min | Feature         |
-| 20  | Add request body size limit middleware        | Low      | 20 min | Safety          |
-| 21  | Add HTTP/2 Server Push integration test       | Low      | 15 min | Coverage        |
-| 22  | Add `ExampleResponseRecorder`                 | Low      | 10 min | DX              |
-| 23  | Add `BenchmarkChain`                          | Low      | 10 min | Observability   |
-| 24  | Improve test coverage to 90%+                 | Medium   | 60 min | Quality         |
-| 25  | Add `go test -race` to CI                     | High     | 5 min  | Safety          |
+| #  | Task                                          | Impact   | Effort | Category        |
+| -- | --------------------------------------------- | -------- | ------ | --------------- |
+| 1  | Add GitHub Actions CI (test + lint + bench)   | Critical | 20 min | Infrastructure  |
+| 2  | Create FEATURES.md                            | High     | 15 min | Documentation   |
+| 3  | Create TODO_LIST.md                           | High     | 15 min | Documentation   |
+| 4  | Add benchmarks for remaining middlewares      | Medium   | 30 min | Observability   |
+| 5  | Add example functions for missing middlewares | Medium   | 20 min | DX              |
+| 6  | Add fuzz tests for CORS and RequestID         | Medium   | 20 min | Quality         |
+| 7  | Add integration tests for common chains       | Medium   | 30 min | Correctness     |
+| 8  | Document brotli policy decision               | Medium   | 10 min | Documentation   |
+| 9  | Add WebSocket upgrade test                    | Low      | 15 min | Coverage        |
+| 10 | Add Content-Length preservation test          | Low      | 10 min | Correctness     |
+| 11 | Implement deflate support                     | Medium   | 30 min | Feature         |
+| 12 | Add Accept-Encoding quality parsing           | Low      | 20 min | Correctness     |
+| 13 | Make content-type filtering configurable      | Low      | 15 min | Configurability |
+| 14 | Add MiddlewareStack with ordering validation  | Medium   | 45 min | Architecture    |
+| 15 | Add ResponseWriter capability interface       | Low      | 30 min | Architecture    |
+| 16 | Add streaming ETag option                     | High     | 60 min | Performance     |
+| 17 | Evaluate brotli dependency relaxation         | Medium   | 30 min | Decision        |
+| 18 | Add request/response metrics middleware       | Medium   | 45 min | Feature         |
+| 19 | Add rate-limiting middleware                  | Medium   | 60 min | Feature         |
+| 20 | Add request body size limit middleware        | Low      | 20 min | Safety          |
+| 21 | Add HTTP/2 Server Push integration test       | Low      | 15 min | Coverage        |
+| 22 | Add `ExampleResponseRecorder`                 | Low      | 10 min | DX              |
+| 23 | Add `BenchmarkChain`                          | Low      | 10 min | Observability   |
+| 24 | Improve test coverage to 90%+                 | Medium   | 60 min | Quality         |
+| 25 | Add `go test -race` to CI                     | High     | 5 min  | Safety          |
 
 ---
 

@@ -189,33 +189,33 @@ No broken tests, no lint failures, no regressions. The codebase is clean and all
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Task                                                             | Impact | Effort |
-| --- | -------- | ---------------------------------------------------------------- | ------ | ------ |
-| 1   | Critical | Commit uncommitted deduplication changes                         | High   | 1 min  |
-| 2   | Critical | Update CHANGELOG.md with Middleware type + deduplication         | High   | 10 min |
-| 3   | Critical | Update AGENTS.md architecture table and helpers list             | High   | 5 min  |
-| 4   | High     | Run `go test -cover` and verify ≥89% coverage                    | Medium | 2 min  |
-| 5   | High     | Create FEATURES.md with full feature inventory                   | High   | 20 min |
-| 6   | High     | Create TODO_LIST.md with actionable tasks                        | Medium | 15 min |
-| 7   | High     | Tag v0.2.0 release (Middleware type is a public API addition)    | High   | 5 min  |
-| 8   | Medium   | Evaluate Go 1.26 `iter` package for internal use                 | Medium | 30 min |
-| 9   | Medium   | Add integration test: full middleware stack with Chain           | Medium | 30 min |
-| 10  | Medium   | Verify GitHub Actions CI passes with current changes             | Medium | 5 min  |
-| 11  | Medium   | Create ROADMAP.md with long-term direction                       | Medium | 20 min |
-| 12  | Medium   | Add `Middleware` type documentation to README.md                 | Medium | 10 min |
-| 13  | Medium   | Benchmark `Middleware` type alias overhead                       | Low    | 15 min |
-| 14  | Medium   | Review all doc.go/package comments for accuracy                  | Low    | 10 min |
-| 15  | Low      | Add GoDoc badge and link to README.md                            | Low    | 5 min  |
-| 16  | Low      | Add `art-dupl` to CI pipeline for clone detection                | Low    | 15 min |
-| 17  | Low      | Fix pre-existing `mnd` violation (86400 in DefaultCORSConfig)    | Low    | 2 min  |
-| 18  | Low      | Evaluate functional options pattern for middleware config        | Low    | 30 min |
-| 19  | Low      | Add example_test.go for `Middleware` type usage                  | Low    | 10 min |
-| 20  | Low      | Review `util.go` itoa/join — can we use strconv now?             | Low    | 10 min |
-| 21  | Low      | Add `ResponseRecorder` context propagation                       | Medium | 30 min |
-| 22  | Low      | Consider `http.ResponseWriter` wrapper interface standardization | Low    | 45 min |
-| 23  | Low      | Add `RateLimit` middleware (token bucket)                        | Medium | 60 min |
-| 24  | Low      | Add `Compress` middleware (gzip/deflate)                         | Medium | 60 min |
-| 25  | Low      | Add `CircuitBreaker` middleware pattern                          | Medium | 90 min |
+| #  | Priority | Task                                                             | Impact | Effort |
+| -- | -------- | ---------------------------------------------------------------- | ------ | ------ |
+| 1  | Critical | Commit uncommitted deduplication changes                         | High   | 1 min  |
+| 2  | Critical | Update CHANGELOG.md with Middleware type + deduplication         | High   | 10 min |
+| 3  | Critical | Update AGENTS.md architecture table and helpers list             | High   | 5 min  |
+| 4  | High     | Run `go test -cover` and verify ≥89% coverage                    | Medium | 2 min  |
+| 5  | High     | Create FEATURES.md with full feature inventory                   | High   | 20 min |
+| 6  | High     | Create TODO_LIST.md with actionable tasks                        | Medium | 15 min |
+| 7  | High     | Tag v0.2.0 release (Middleware type is a public API addition)    | High   | 5 min  |
+| 8  | Medium   | Evaluate Go 1.26 `iter` package for internal use                 | Medium | 30 min |
+| 9  | Medium   | Add integration test: full middleware stack with Chain           | Medium | 30 min |
+| 10 | Medium   | Verify GitHub Actions CI passes with current changes             | Medium | 5 min  |
+| 11 | Medium   | Create ROADMAP.md with long-term direction                       | Medium | 20 min |
+| 12 | Medium   | Add `Middleware` type documentation to README.md                 | Medium | 10 min |
+| 13 | Medium   | Benchmark `Middleware` type alias overhead                       | Low    | 15 min |
+| 14 | Medium   | Review all doc.go/package comments for accuracy                  | Low    | 10 min |
+| 15 | Low      | Add GoDoc badge and link to README.md                            | Low    | 5 min  |
+| 16 | Low      | Add `art-dupl` to CI pipeline for clone detection                | Low    | 15 min |
+| 17 | Low      | Fix pre-existing `mnd` violation (86400 in DefaultCORSConfig)    | Low    | 2 min  |
+| 18 | Low      | Evaluate functional options pattern for middleware config        | Low    | 30 min |
+| 19 | Low      | Add example_test.go for `Middleware` type usage                  | Low    | 10 min |
+| 20 | Low      | Review `util.go` itoa/join — can we use strconv now?             | Low    | 10 min |
+| 21 | Low      | Add `ResponseRecorder` context propagation                       | Medium | 30 min |
+| 22 | Low      | Consider `http.ResponseWriter` wrapper interface standardization | Low    | 45 min |
+| 23 | Low      | Add `RateLimit` middleware (token bucket)                        | Medium | 60 min |
+| 24 | Low      | Add `Compress` middleware (gzip/deflate)                         | Medium | 60 min |
+| 25 | Low      | Add `CircuitBreaker` middleware pattern                          | Medium | 90 min |
 
 ---
 

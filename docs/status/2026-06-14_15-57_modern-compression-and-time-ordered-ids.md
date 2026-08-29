@@ -1,9 +1,9 @@
 # Comprehensive Project Status
 
-**Project:** `github.com/larsartmann/httputil`  
-**Branch:** `master`  
-**Date/Time:** 2026-06-14 15:57:45 CEST  
-**Go Version:** 1.26.3  
+**Project:** `github.com/larsartmann/httputil`\
+**Branch:** `master`\
+**Date/Time:** 2026-06-14 15:57:45 CEST\
+**Go Version:** 1.26.3\
 **Reporter:** Crush (AI Engineering Partner)
 
 ---

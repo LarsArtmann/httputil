@@ -193,33 +193,33 @@ The only "fucked up" item worth calling out is **pre-existing** and already docu
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                                                                             | Impact | Effort   | Category     |
-| --- | -------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
-| 1   | Fix `ResponseRecorder.Hijack` error-path test (42.9% → 90%+)                                                                     | High   | Low      | Coverage     |
-| 2   | Fix `compression.Flush` coverage (61.5% → 85%+)                                                                                  | High   | Medium   | Coverage     |
-| 3   | Fix `wrapper.go` Hijack/Push fallback tests (71.4% → 90%+)                                                                       | High   | Low      | Coverage     |
-| 4   | Make content-type filtering configurable via `CompressionConfig`                                                                 | High   | Medium   | Feature      |
-| 5   | Add `MiddlewareStack` type with ordering validation                                                                              | Medium | Medium   | Feature      |
-| 6   | Add `ResponseWriter` capability interface for Hijack/Push/Flush                                                                  | Medium | Medium   | Architecture |
-| 7   | Fix `compression.startCompressAndStream` coverage (66.7% → 85%+)                                                                 | Medium | Low      | Coverage     |
-| 8   | Fix `compression.writePlain`/`writeCompressed` coverage (75% → 90%+)                                                             | Medium | Low      | Coverage     |
-| 9   | Fix `etag.Flush` coverage (77.8% → 90%+)                                                                                         | Medium | Low      | Coverage     |
-| 10  | Fix `etag.Write` buffer-limit branch (80% → 90%+)                                                                                | Medium | Low      | Coverage     |
-| 11  | Fix `compression.isCompressibleContentType` edge cases (83.3% → 95%+)                                                            | Medium | Low      | Coverage     |
-| 12  | Push overall coverage from 91.2% → 95%                                                                                           | Medium | Medium   | Coverage     |
-| 13  | Implement deflate support in compression middleware                                                                              | High   | High     | Feature      |
-| 14  | Add `Accept-Encoding` quality value parsing (RFC 7231)                                                                           | High   | Medium   | Compliance   |
-| 15  | Evaluate streaming ETag with rolling hash                                                                                        | Medium | High     | Architecture |
-| 16  | Add response `Content-Length` test through full middleware stack                                                                 | Low    | Low      | Test         |
-| 17  | Add WebSocket upgrade test through Compression + ETag (if not covered)                                                           | Low    | Low      | Test         |
-| 18  | Fix pre-existing `mnd` violation (`86400` in `DefaultCORSConfig`)                                                                | Low    | Trivial  | Lint         |
-| 19  | Add request/response metrics middleware                                                                                          | Medium | High     | Feature      |
-| 20  | Add rate-limiting middleware                                                                                                     | Medium | High     | Feature      |
-| 21  | Add request body size limit middleware                                                                                           | Low    | Low      | Feature      |
-| 22  | Brotli support — decide on dependency policy                                                                                     | Medium | Decision | Policy       |
-| 23  | Add `WriterFactory` plugin interface for compression extensibility                                                               | Medium | Medium   | Architecture |
-| 24  | Verify `art-dupl` at threshold 40 stays clean as codebase grows                                                                  | Low    | Trivial  | Quality      |
-| 25  | Update `AGENTS.md` with new test helpers (`newFlushHandler`, `testCompressionSkipsContentType`, `testETagIfNoneMatchReturns304`) | Low    | Trivial  | Docs         |
+| #  | Task                                                                                                                             | Impact | Effort   | Category     |
+| -- | -------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
+| 1  | Fix `ResponseRecorder.Hijack` error-path test (42.9% → 90%+)                                                                     | High   | Low      | Coverage     |
+| 2  | Fix `compression.Flush` coverage (61.5% → 85%+)                                                                                  | High   | Medium   | Coverage     |
+| 3  | Fix `wrapper.go` Hijack/Push fallback tests (71.4% → 90%+)                                                                       | High   | Low      | Coverage     |
+| 4  | Make content-type filtering configurable via `CompressionConfig`                                                                 | High   | Medium   | Feature      |
+| 5  | Add `MiddlewareStack` type with ordering validation                                                                              | Medium | Medium   | Feature      |
+| 6  | Add `ResponseWriter` capability interface for Hijack/Push/Flush                                                                  | Medium | Medium   | Architecture |
+| 7  | Fix `compression.startCompressAndStream` coverage (66.7% → 85%+)                                                                 | Medium | Low      | Coverage     |
+| 8  | Fix `compression.writePlain`/`writeCompressed` coverage (75% → 90%+)                                                             | Medium | Low      | Coverage     |
+| 9  | Fix `etag.Flush` coverage (77.8% → 90%+)                                                                                         | Medium | Low      | Coverage     |
+| 10 | Fix `etag.Write` buffer-limit branch (80% → 90%+)                                                                                | Medium | Low      | Coverage     |
+| 11 | Fix `compression.isCompressibleContentType` edge cases (83.3% → 95%+)                                                            | Medium | Low      | Coverage     |
+| 12 | Push overall coverage from 91.2% → 95%                                                                                           | Medium | Medium   | Coverage     |
+| 13 | Implement deflate support in compression middleware                                                                              | High   | High     | Feature      |
+| 14 | Add `Accept-Encoding` quality value parsing (RFC 7231)                                                                           | High   | Medium   | Compliance   |
+| 15 | Evaluate streaming ETag with rolling hash                                                                                        | Medium | High     | Architecture |
+| 16 | Add response `Content-Length` test through full middleware stack                                                                 | Low    | Low      | Test         |
+| 17 | Add WebSocket upgrade test through Compression + ETag (if not covered)                                                           | Low    | Low      | Test         |
+| 18 | Fix pre-existing `mnd` violation (`86400` in `DefaultCORSConfig`)                                                                | Low    | Trivial  | Lint         |
+| 19 | Add request/response metrics middleware                                                                                          | Medium | High     | Feature      |
+| 20 | Add rate-limiting middleware                                                                                                     | Medium | High     | Feature      |
+| 21 | Add request body size limit middleware                                                                                           | Low    | Low      | Feature      |
+| 22 | Brotli support — decide on dependency policy                                                                                     | Medium | Decision | Policy       |
+| 23 | Add `WriterFactory` plugin interface for compression extensibility                                                               | Medium | Medium   | Architecture |
+| 24 | Verify `art-dupl` at threshold 40 stays clean as codebase grows                                                                  | Low    | Trivial  | Quality      |
+| 25 | Update `AGENTS.md` with new test helpers (`newFlushHandler`, `testCompressionSkipsContentType`, `testETagIfNoneMatchReturns304`) | Low    | Trivial  | Docs         |
 
 ---
 

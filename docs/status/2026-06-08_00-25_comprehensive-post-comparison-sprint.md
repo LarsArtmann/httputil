@@ -298,33 +298,33 @@ However, these are **architectural debts** that will cause pain as the project g
 
 Sorted by **impact / effort ratio** (highest impact per unit of work first):
 
-| #   | Task                                              | Impact | Effort | Category        |
-| --- | ------------------------------------------------- | ------ | ------ | --------------- |
-| 1   | Fix nix flake app `meta.description` warnings     | Low    | 5 min  | Infrastructure  |
-| 2   | Update AGENTS.md to current state                 | Medium | 10 min | Documentation   |
-| 3   | Replace `getGzipPool` map+mutex with slice+atomic | High   | 20 min | Performance     |
-| 4   | Zero-allocation `etagInList` parsing              | Medium | 15 min | Performance     |
-| 5   | Batch `generateRequestID` reads                   | High   | 15 min | Performance     |
-| 6   | Add `CompressionConfig.SkipContentTypes`          | Medium | 15 min | Configurability |
-| 7   | Add typed `StatusCode`                            | Medium | 20 min | Type Safety     |
-| 8   | Improve test coverage to 90%+                     | Medium | 30 min | Quality         |
-| 9   | Add `MiddlewareStack` with ordering validation    | High   | 45 min | Architecture    |
-| 10  | Add deflate support                               | Medium | 30 min | Feature         |
-| 11  | Add `Accept-Encoding` quality value parsing       | Low    | 20 min | Correctness     |
-| 12  | Add metrics middleware                            | Medium | 45 min | Feature         |
-| 13  | Add `ResponseWriter` capability interface         | Low    | 30 min | Architecture    |
-| 14  | Streaming ETag (rolling hash)                     | High   | 60 min | Performance     |
-| 15  | Rate-limiting middleware                          | Medium | 60 min | Feature         |
-| 16  | Request body size limit middleware                | Low    | 20 min | Safety          |
-| 17  | WebSocket upgrade test                            | Low    | 15 min | Coverage        |
-| 18  | Content-Length preservation test                  | Low    | 10 min | Correctness     |
-| 19  | HTTP/2 Server Push integration test               | Low    | 15 min | Coverage        |
-| 20  | Evaluate brotli plugin interface                  | Medium | 30 min | Decision        |
-| 21  | Add `ExampleResponseRecorder`                     | Low    | 10 min | DX              |
-| 22  | Add `BenchmarkChain`                              | Low    | 10 min | Observability   |
-| 23  | Improve benchmark suite with varying body sizes   | Low    | 20 min | Observability   |
-| 24  | Add `go test -race` to CI                         | High   | 5 min  | Safety          |
-| 25  | Add nix `build` check that works offline          | Medium | 20 min | Infrastructure  |
+| #  | Task                                              | Impact | Effort | Category        |
+| -- | ------------------------------------------------- | ------ | ------ | --------------- |
+| 1  | Fix nix flake app `meta.description` warnings     | Low    | 5 min  | Infrastructure  |
+| 2  | Update AGENTS.md to current state                 | Medium | 10 min | Documentation   |
+| 3  | Replace `getGzipPool` map+mutex with slice+atomic | High   | 20 min | Performance     |
+| 4  | Zero-allocation `etagInList` parsing              | Medium | 15 min | Performance     |
+| 5  | Batch `generateRequestID` reads                   | High   | 15 min | Performance     |
+| 6  | Add `CompressionConfig.SkipContentTypes`          | Medium | 15 min | Configurability |
+| 7  | Add typed `StatusCode`                            | Medium | 20 min | Type Safety     |
+| 8  | Improve test coverage to 90%+                     | Medium | 30 min | Quality         |
+| 9  | Add `MiddlewareStack` with ordering validation    | High   | 45 min | Architecture    |
+| 10 | Add deflate support                               | Medium | 30 min | Feature         |
+| 11 | Add `Accept-Encoding` quality value parsing       | Low    | 20 min | Correctness     |
+| 12 | Add metrics middleware                            | Medium | 45 min | Feature         |
+| 13 | Add `ResponseWriter` capability interface         | Low    | 30 min | Architecture    |
+| 14 | Streaming ETag (rolling hash)                     | High   | 60 min | Performance     |
+| 15 | Rate-limiting middleware                          | Medium | 60 min | Feature         |
+| 16 | Request body size limit middleware                | Low    | 20 min | Safety          |
+| 17 | WebSocket upgrade test                            | Low    | 15 min | Coverage        |
+| 18 | Content-Length preservation test                  | Low    | 10 min | Correctness     |
+| 19 | HTTP/2 Server Push integration test               | Low    | 15 min | Coverage        |
+| 20 | Evaluate brotli plugin interface                  | Medium | 30 min | Decision        |
+| 21 | Add `ExampleResponseRecorder`                     | Low    | 10 min | DX              |
+| 22 | Add `BenchmarkChain`                              | Low    | 10 min | Observability   |
+| 23 | Improve benchmark suite with varying body sizes   | Low    | 20 min | Observability   |
+| 24 | Add `go test -race` to CI                         | High   | 5 min  | Safety          |
+| 25 | Add nix `build` check that works offline          | Medium | 20 min | Infrastructure  |
 
 ---
 

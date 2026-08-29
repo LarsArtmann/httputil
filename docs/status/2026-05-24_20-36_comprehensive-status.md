@@ -274,33 +274,33 @@ The LSP shows stale diagnostics (duplicate `decimalBase`, wrong `NewRequestWithC
 
 ## f) Top #25 Things to Do Next
 
-| #   | Task                                                                      | Impact | Effort |
-| --- | ------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Push 2 unpushed commits to origin                                         | High   | 1 min  |
-| 2   | Tag v0.1.0 release                                                        | High   | 1 min  |
-| 3   | Add GitHub Actions CI (test + lint + coverage)                            | High   | 30 min |
-| 4   | Update README.md with error classification docs                           | High   | 20 min |
-| 5   | Register stdlib HTTP error sentinels in errors.go                         | High   | 15 min |
-| 6   | Expand CORS tests (credentials+allorigins, empty, passthrough, no-origin) | Medium | 30 min |
-| 7   | Add benchmark tests for itoa() and join()                                 | Medium | 20 min |
-| 8   | Create examples/ directory with basic usage                               | Medium | 30 min |
-| 9   | Add CORSConfig.Validate() method                                          | Medium | 20 min |
-| 10  | Update CHANGELOG.md                                                       | Medium | 10 min |
-| 11  | Add BodyCapturingResponseRecorder variant                                 | Medium | 45 min |
-| 12  | Add request context helpers (WithClientIP)                                | Medium | 15 min |
-| 13  | Add error message templates for httputil error codes                      | Medium | 20 min |
-| 14  | Add JSON error response helper                                            | Medium | 30 min |
-| 15  | Add security headers middleware                                           | Medium | 30 min |
-| 16  | Add request ID middleware                                                 | Medium | 30 min |
-| 17  | Add panic recovery middleware                                             | Medium | 30 min |
-| 18  | Add request timeout middleware                                            | Medium | 20 min |
-| 19  | Add compression middleware                                                | Low    | 60 min |
-| 20  | Add rate limiting middleware                                              | Low    | 60 min |
-| 21  | Add wildcard domain matching for CORS                                     | Low    | 20 min |
-| 22  | Add fuzz tests for ClientIP                                               | Low    | 30 min |
-| 23  | Add CONTRIBUTING.md                                                       | Low    | 15 min |
-| 24  | Clean up golangci.yml experimental build tags                             | Low    | 10 min |
-| 25  | Audit Go 1.26+ features for adoption (range-over-int, etc.)               | Low    | 20 min |
+| #  | Task                                                                      | Impact | Effort |
+| -- | ------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Push 2 unpushed commits to origin                                         | High   | 1 min  |
+| 2  | Tag v0.1.0 release                                                        | High   | 1 min  |
+| 3  | Add GitHub Actions CI (test + lint + coverage)                            | High   | 30 min |
+| 4  | Update README.md with error classification docs                           | High   | 20 min |
+| 5  | Register stdlib HTTP error sentinels in errors.go                         | High   | 15 min |
+| 6  | Expand CORS tests (credentials+allorigins, empty, passthrough, no-origin) | Medium | 30 min |
+| 7  | Add benchmark tests for itoa() and join()                                 | Medium | 20 min |
+| 8  | Create examples/ directory with basic usage                               | Medium | 30 min |
+| 9  | Add CORSConfig.Validate() method                                          | Medium | 20 min |
+| 10 | Update CHANGELOG.md                                                       | Medium | 10 min |
+| 11 | Add BodyCapturingResponseRecorder variant                                 | Medium | 45 min |
+| 12 | Add request context helpers (WithClientIP)                                | Medium | 15 min |
+| 13 | Add error message templates for httputil error codes                      | Medium | 20 min |
+| 14 | Add JSON error response helper                                            | Medium | 30 min |
+| 15 | Add security headers middleware                                           | Medium | 30 min |
+| 16 | Add request ID middleware                                                 | Medium | 30 min |
+| 17 | Add panic recovery middleware                                             | Medium | 30 min |
+| 18 | Add request timeout middleware                                            | Medium | 20 min |
+| 19 | Add compression middleware                                                | Low    | 60 min |
+| 20 | Add rate limiting middleware                                              | Low    | 60 min |
+| 21 | Add wildcard domain matching for CORS                                     | Low    | 20 min |
+| 22 | Add fuzz tests for ClientIP                                               | Low    | 30 min |
+| 23 | Add CONTRIBUTING.md                                                       | Low    | 15 min |
+| 24 | Clean up golangci.yml experimental build tags                             | Low    | 10 min |
+| 25 | Audit Go 1.26+ features for adoption (range-over-int, etc.)               | Low    | 20 min |
 
 ---
 

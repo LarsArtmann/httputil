@@ -1,7 +1,7 @@
 # Comprehensive Status Report
 
-**Date:** 2026-06-17 00:48  
-**Commit:** _work in progress_ (based on b88eaf5)  
+**Date:** 2026-06-17 00:48\
+**Commit:** _work in progress_ (based on b88eaf5)\
 **Trigger:** Follow-up execution on the 2026-06-16 post-`util.go`-removal audit; documentation sync, test-gap closure, performance wins, and a real production defect discovered in the compression writer pool.
 
 ---

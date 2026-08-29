@@ -209,33 +209,33 @@ The codebase is in excellent shape:
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                      | Impact   | Effort | Category        |
-| --- | --------------------------------------------------------- | -------- | ------ | --------------- |
-| 1   | Fill compression `Flush` coverage (61.5% → 90%+)          | Critical | 20 min | Quality         |
-| 2   | Fill `ResponseRecorder.Hijack` coverage (42.9% → 90%+)    | Critical | 15 min | Quality         |
-| 3   | Update flake.lock (stale nixpkgs)                         | Low      | 1 min  | Infrastructure  |
-| 4   | Replace `getGzipPool` map+mutex with slice+atomic         | High     | 20 min | Performance     |
-| 5   | Zero-allocation `etagInList`                              | Medium   | 15 min | Performance     |
-| 6   | Batch `generateRequestID` reads                           | High     | 15 min | Performance     |
-| 7   | Add `CompressionConfig.SkipContentTypes`                  | Medium   | 15 min | Configurability |
-| 8   | Fill `compressWriter.startCompressAndStream` coverage     | Medium   | 10 min | Quality         |
-| 9   | Fill `compressWriter.writePlain/writeCompressed` coverage | Medium   | 10 min | Quality         |
-| 10  | Fill `responseWrapper.Hijack/Push` error paths            | Medium   | 10 min | Quality         |
-| 11  | Fill `etagWriter.Write` streaming error branch            | Medium   | 5 min  | Quality         |
-| 12  | Fill `compressWriter.Close` error path                    | Medium   | 5 min  | Quality         |
-| 13  | Fill `getGzipPool` slow path coverage                     | Low      | 5 min  | Quality         |
-| 14  | Add `MiddlewareStack` with ordering validation            | High     | 45 min | Architecture    |
-| 15  | Add `ResponseWriter` capability interface                 | Medium   | 30 min | Architecture    |
-| 16  | Implement deflate support                                 | Medium   | 30 min | Feature         |
-| 17  | Add Accept-Encoding quality value parsing                 | Low      | 20 min | Correctness     |
-| 18  | Fill `etagWriter.Flush` after-flush path                  | Low      | 5 min  | Quality         |
-| 19  | Streaming ETag (rolling hash)                             | High     | 60 min | Performance     |
-| 20  | Rate-limiting middleware                                  | Medium   | 60 min | Feature         |
-| 21  | Request body size limit middleware                        | Low      | 20 min | Safety          |
-| 22  | Brotli plugin interface                                   | Medium   | 45 min | Extensibility   |
-| 23  | HTTP/2 Server Push integration test                       | Low      | 15 min | Coverage        |
-| 24  | WebSocket upgrade test through Compression + ETag         | Low      | 15 min | Coverage        |
-| 25  | Add nix build check that works offline                    | Medium   | 20 min | Infrastructure  |
+| #  | Task                                                      | Impact   | Effort | Category        |
+| -- | --------------------------------------------------------- | -------- | ------ | --------------- |
+| 1  | Fill compression `Flush` coverage (61.5% → 90%+)          | Critical | 20 min | Quality         |
+| 2  | Fill `ResponseRecorder.Hijack` coverage (42.9% → 90%+)    | Critical | 15 min | Quality         |
+| 3  | Update flake.lock (stale nixpkgs)                         | Low      | 1 min  | Infrastructure  |
+| 4  | Replace `getGzipPool` map+mutex with slice+atomic         | High     | 20 min | Performance     |
+| 5  | Zero-allocation `etagInList`                              | Medium   | 15 min | Performance     |
+| 6  | Batch `generateRequestID` reads                           | High     | 15 min | Performance     |
+| 7  | Add `CompressionConfig.SkipContentTypes`                  | Medium   | 15 min | Configurability |
+| 8  | Fill `compressWriter.startCompressAndStream` coverage     | Medium   | 10 min | Quality         |
+| 9  | Fill `compressWriter.writePlain/writeCompressed` coverage | Medium   | 10 min | Quality         |
+| 10 | Fill `responseWrapper.Hijack/Push` error paths            | Medium   | 10 min | Quality         |
+| 11 | Fill `etagWriter.Write` streaming error branch            | Medium   | 5 min  | Quality         |
+| 12 | Fill `compressWriter.Close` error path                    | Medium   | 5 min  | Quality         |
+| 13 | Fill `getGzipPool` slow path coverage                     | Low      | 5 min  | Quality         |
+| 14 | Add `MiddlewareStack` with ordering validation            | High     | 45 min | Architecture    |
+| 15 | Add `ResponseWriter` capability interface                 | Medium   | 30 min | Architecture    |
+| 16 | Implement deflate support                                 | Medium   | 30 min | Feature         |
+| 17 | Add Accept-Encoding quality value parsing                 | Low      | 20 min | Correctness     |
+| 18 | Fill `etagWriter.Flush` after-flush path                  | Low      | 5 min  | Quality         |
+| 19 | Streaming ETag (rolling hash)                             | High     | 60 min | Performance     |
+| 20 | Rate-limiting middleware                                  | Medium   | 60 min | Feature         |
+| 21 | Request body size limit middleware                        | Low      | 20 min | Safety          |
+| 22 | Brotli plugin interface                                   | Medium   | 45 min | Extensibility   |
+| 23 | HTTP/2 Server Push integration test                       | Low      | 15 min | Coverage        |
+| 24 | WebSocket upgrade test through Compression + ETag         | Low      | 15 min | Coverage        |
+| 25 | Add nix build check that works offline                    | Medium   | 20 min | Infrastructure  |
 
 ---
 

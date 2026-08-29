@@ -187,33 +187,33 @@ Pre-existing known issue: `mnd` (magic number) violation — `86400` in `Default
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                                    | Impact | Effort   | Category     |
-| --- | --------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
-| 1   | Fix `compression.Flush` coverage (61.5% → 85%+)                                         | High   | Medium   | Coverage     |
-| 2   | Replace `wroteHeader`+`headerWritten` bools with typed state enum                       | High   | Medium   | Architecture |
-| 3   | Replace `compressing`+`plain` bools with typed phase enum                               | High   | Medium   | Architecture |
-| 4   | Fix compression error-path coverage (writePlain/writeCompressed/startCompressAndStream) | Medium | Low      | Coverage     |
-| 5   | Fix `hijackDelegate` error-path test (85.7% → 95%+)                                     | Medium | Low      | Coverage     |
-| 6   | Fix `etag.Write` buffer-limit branch (80% → 95%+)                                       | Medium | Low      | Coverage     |
-| 7   | Fix `etag.Flush` flush-while-buffering branches (77.8% → 95%+)                          | Medium | Low      | Coverage     |
-| 8   | Fix `flushPlainAndStream` error branches (76.9% → 95%+)                                 | Medium | Low      | Coverage     |
-| 9   | Make content-type filtering configurable via `CompressionConfig`                        | High   | Medium   | Feature      |
-| 10  | Define `type Validator interface { Validate() error }` + internal validation            | Medium | Low      | Architecture |
-| 11  | Add `MiddlewareStack` type with ordering validation                                     | Medium | Medium   | Feature      |
-| 12  | Add `ResponseWriter` capability interface for Hijack/Flush                              | Medium | Medium   | Architecture |
-| 13  | Push overall coverage from 92.4% → 95%                                                  | Medium | Medium   | Coverage     |
-| 14  | Implement deflate support using `compress/flate`                                        | High   | High     | Feature      |
-| 15  | Add `Accept-Encoding` quality value parsing (RFC 7231)                                  | High   | Medium   | Compliance   |
-| 16  | Fix `mnd` violation (`86400` in `DefaultCORSConfig`)                                    | Low    | Trivial  | Lint         |
-| 17  | Evaluate streaming ETag with rolling hash                                               | Medium | High     | Architecture |
-| 18  | Add request/response metrics middleware                                                 | Medium | High     | Feature      |
-| 19  | Add rate-limiting middleware                                                            | Medium | High     | Feature      |
-| 20  | Add request body size limit middleware                                                  | Low    | Low      | Feature      |
-| 21  | Brotli support — decide on dependency policy                                            | Medium | Decision | Policy       |
-| 22  | Add `WriterFactory` plugin interface for compression                                    | Medium | Medium   | Architecture |
-| 23  | Fix `logging.go` coverage (90% → 95%+)                                                  | Low    | Low      | Coverage     |
-| 24  | Fix `security.go` skip-empty-header branches (92.3% → 95%+)                             | Low    | Low      | Coverage     |
-| 25  | Verify `art-dupl` at t30 stays clean as codebase grows                                  | Low    | Trivial  | Quality      |
+| #  | Task                                                                                    | Impact | Effort   | Category     |
+| -- | --------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
+| 1  | Fix `compression.Flush` coverage (61.5% → 85%+)                                         | High   | Medium   | Coverage     |
+| 2  | Replace `wroteHeader`+`headerWritten` bools with typed state enum                       | High   | Medium   | Architecture |
+| 3  | Replace `compressing`+`plain` bools with typed phase enum                               | High   | Medium   | Architecture |
+| 4  | Fix compression error-path coverage (writePlain/writeCompressed/startCompressAndStream) | Medium | Low      | Coverage     |
+| 5  | Fix `hijackDelegate` error-path test (85.7% → 95%+)                                     | Medium | Low      | Coverage     |
+| 6  | Fix `etag.Write` buffer-limit branch (80% → 95%+)                                       | Medium | Low      | Coverage     |
+| 7  | Fix `etag.Flush` flush-while-buffering branches (77.8% → 95%+)                          | Medium | Low      | Coverage     |
+| 8  | Fix `flushPlainAndStream` error branches (76.9% → 95%+)                                 | Medium | Low      | Coverage     |
+| 9  | Make content-type filtering configurable via `CompressionConfig`                        | High   | Medium   | Feature      |
+| 10 | Define `type Validator interface { Validate() error }` + internal validation            | Medium | Low      | Architecture |
+| 11 | Add `MiddlewareStack` type with ordering validation                                     | Medium | Medium   | Feature      |
+| 12 | Add `ResponseWriter` capability interface for Hijack/Flush                              | Medium | Medium   | Architecture |
+| 13 | Push overall coverage from 92.4% → 95%                                                  | Medium | Medium   | Coverage     |
+| 14 | Implement deflate support using `compress/flate`                                        | High   | High     | Feature      |
+| 15 | Add `Accept-Encoding` quality value parsing (RFC 7231)                                  | High   | Medium   | Compliance   |
+| 16 | Fix `mnd` violation (`86400` in `DefaultCORSConfig`)                                    | Low    | Trivial  | Lint         |
+| 17 | Evaluate streaming ETag with rolling hash                                               | Medium | High     | Architecture |
+| 18 | Add request/response metrics middleware                                                 | Medium | High     | Feature      |
+| 19 | Add rate-limiting middleware                                                            | Medium | High     | Feature      |
+| 20 | Add request body size limit middleware                                                  | Low    | Low      | Feature      |
+| 21 | Brotli support — decide on dependency policy                                            | Medium | Decision | Policy       |
+| 22 | Add `WriterFactory` plugin interface for compression                                    | Medium | Medium   | Architecture |
+| 23 | Fix `logging.go` coverage (90% → 95%+)                                                  | Low    | Low      | Coverage     |
+| 24 | Fix `security.go` skip-empty-header branches (92.3% → 95%+)                             | Low    | Low      | Coverage     |
+| 25 | Verify `art-dupl` at t30 stays clean as codebase grows                                  | Low    | Trivial  | Quality      |
 
 ---
 
