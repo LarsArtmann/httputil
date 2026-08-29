@@ -10,6 +10,7 @@ import (
 
 type countingCloseReader struct {
 	io.Reader
+
 	closed chan struct{}
 }
 
@@ -77,13 +78,13 @@ func FuzzLimitedReadCloser(f *testing.F) {
 		closed := make(chan struct{}, 1)
 		inner := &countingCloseReader{Reader: bytes.NewReader(payload), closed: closed}
 
-		lr := limitedReadCloser(inner, int64(limit))
+		limited := limitedReadCloser(inner, int64(limit))
 
 		var total int
-		buf := make([]byte, readSize)
+		readBuf := make([]byte, readSize)
 
 		for {
-			n, err := lr.Read(buf)
+			n, err := limited.Read(readBuf)
 			total += n
 
 			if total > limit {
@@ -103,6 +104,6 @@ func FuzzLimitedReadCloser(f *testing.F) {
 			t.Errorf("read %d bytes from a %d-byte payload", total, len(payload))
 		}
 
-		_ = lr.Close()
+		_ = limited.Close()
 	})
 }
