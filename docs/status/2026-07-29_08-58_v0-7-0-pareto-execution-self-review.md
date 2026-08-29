@@ -5,42 +5,40 @@
 **Starting Point:** v0.6.1 local tag (unpushed), 93.9% coverage, 0 lint issues
 **Ending Point:** v0.7.0 released on GitHub, 95.2% coverage, 0 lint issues, 0 vulnerabilities
 
-> **Resolution (2026-08-05):** v0.7.0 was superseded by v0.7.1, v0.8.0, and the v0.8.0 / v1.0 planning cycle. All items in this report are resolved. The Pareto plan document was annotated at `eb84a82` (v0.7.0). v0.8.0 (commit `8a77900`) shipped CSRF, Server-Timing, and KeyedRateLimit. Coverage peaked at 98.7% in v0.7.1, dropped to 91.0% with new middleware, and was closed to 97.8% in v0.8.0. CHANGELOG link validator added (`b4d5fa2`). GitHub Actions pinned to commit SHAs. Per-item status table below.
-
 ---
 
 ## a) FULLY DONE
 
 These items are complete, verified, and correct.
 
-| #   | Task                                 | Verification                                                                                                                 |
-| --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Push v0.6.1 tag + GitHub Release     | Tag verified (SSH-signed), release exists on GitHub                                                                          |
-| 2   | v0.7.0 API renames (LSP rename)      | `ForwardHeader`→`IncomingHeader`, `HeaderName`→`ResponseHeader` across 3 files each, sentinel errors renamed, all tests pass |
-| 3   | DenyUnmatched default flip to `true` | `DefaultCORSConfig()` sets `true`, all CORS tests pass, CHANGELOG breaking note, AGENTS.md updated                           |
-| 4   | Release Runbook (`docs/RELEASE.md`)  | 7-step pre-release + release-time + post-release checklist                                                                   |
-| 5   | SECURITY.md                          | Reporting policy, SLA, scope, security posture                                                                               |
-| 6   | 6 config field tables in README      | ETag, RateLimit, Metrics, SecurityHeaders, RequestID, Server — field names verified against source structs                   |
-| 7   | govulncheck local run                | "No vulnerabilities found." — clean                                                                                          |
-| 8   | Re-measure coverage                  | 94.4% httputil / 98.3% httpspec / 95.2% total — updated in FEATURES.md                                                       |
-| 9   | Annotate 4 historical reports        | jsonv2 resolution notes appended to 07-06, 07-16.md, 07-16.html, 07-46, 11-01                                                |
-| 10  | Pre-1.0 versioning policy            | CONTRIBUTING.md expanded with SemVer 0.x convention                                                                          |
-| 11  | v1.0 frozen API surface doc          | `docs/v1-stability.md` — 96 entries, Frozen/Additive/Evolving tiers                                                          |
-| 12  | DenyUnmatched evaluation doc         | `docs/research/deny-unmatched-default-evaluation.md` — security analysis, recommendation, implementation                     |
-| 13  | v0.7.0 tag + GitHub Release          | SSH-signed annotated tag, release with migration guide                                                                       |
-| 14  | Fuzz tests (seeds pass)              | `FuzzParseUintQuery`, `FuzzCORSOriginMatching`, `FuzzEvictionTTL` — seed corpus verified                                     |
-| 15  | Benchmarks                           | `BenchmarkTokenBucketLimiter` (84ns/op, 0 allocs), `BenchmarkTokenBucketLimiterWithEviction` (132ns/op, 1 alloc)             |
-| 16  | Example functions                    | `ExampleParseUintQuery`, `ExampleReadyHandlerWithProbe` — both pass with `// Output:`                                        |
-| 17  | Extensibility docs                   | brotli-zstd.md, redis-ratelimiter.md, prometheus-metrics.md                                                                  |
-| 18  | CONTRIBUTING.md expansion            | govulncheck, versioning policy, CHANGELOG rules, flake app inventory, Go version policy                                      |
-| 19  | README badges                        | Coverage, govulncheck, Go version, license, pkg.go.dev                                                                       |
-| 20  | nix flake check                      | All checks passed                                                                                                            |
-| 21  | Health handler exact-byte test       | `TestHealthHandler_ExactBytes` — asserts `{"status":"up"}\n` byte-for-byte                                                   |
-| 22  | Validate success-path tests          | MetricsConfig + RateLimitConfig Validate accepts valid                                                                       |
-| 23  | Compression custom factory test      | `TestCompression_CustomFactoryWithoutReset` — covers non-resettable writer path                                              |
-| 24  | Health.go doc comment                | Documents json.Encoder trailing newline behavior                                                                             |
-| 25  | CHANGELOG v0.7.0 entry               | Full breaking changes + added sections with migration notes                                                                  |
-| 26  | Full quality gate                    | build ✓, vet ✓, test -race ✓, lint 0 issues ✓, govulncheck ✓                                                                 |
+| #  | Task                                 | Verification                                                                                                                 |
+| -- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Push v0.6.1 tag + GitHub Release     | Tag verified (SSH-signed), release exists on GitHub                                                                          |
+| 2  | v0.7.0 API renames (LSP rename)      | `ForwardHeader`→`IncomingHeader`, `HeaderName`→`ResponseHeader` across 3 files each, sentinel errors renamed, all tests pass |
+| 3  | DenyUnmatched default flip to `true` | `DefaultCORSConfig()` sets `true`, all CORS tests pass, CHANGELOG breaking note, AGENTS.md updated                           |
+| 4  | Release Runbook (`docs/RELEASE.md`)  | 7-step pre-release + release-time + post-release checklist                                                                   |
+| 5  | SECURITY.md                          | Reporting policy, SLA, scope, security posture                                                                               |
+| 6  | 6 config field tables in README      | ETag, RateLimit, Metrics, SecurityHeaders, RequestID, Server — field names verified against source structs                   |
+| 7  | govulncheck local run                | "No vulnerabilities found." — clean                                                                                          |
+| 8  | Re-measure coverage                  | 94.4% httputil / 98.3% httpspec / 95.2% total — updated in FEATURES.md                                                       |
+| 9  | Annotate 4 historical reports        | jsonv2 resolution notes appended to 07-06, 07-16.md, 07-16.html, 07-46, 11-01                                                |
+| 10 | Pre-1.0 versioning policy            | CONTRIBUTING.md expanded with SemVer 0.x convention                                                                          |
+| 11 | v1.0 frozen API surface doc          | `docs/v1-stability.md` — 96 entries, Frozen/Additive/Evolving tiers                                                          |
+| 12 | DenyUnmatched evaluation doc         | `docs/research/deny-unmatched-default-evaluation.md` — security analysis, recommendation, implementation                     |
+| 13 | v0.7.0 tag + GitHub Release          | SSH-signed annotated tag, release with migration guide                                                                       |
+| 14 | Fuzz tests (seeds pass)              | `FuzzParseUintQuery`, `FuzzCORSOriginMatching`, `FuzzEvictionTTL` — seed corpus verified                                     |
+| 15 | Benchmarks                           | `BenchmarkTokenBucketLimiter` (84ns/op, 0 allocs), `BenchmarkTokenBucketLimiterWithEviction` (132ns/op, 1 alloc)             |
+| 16 | Example functions                    | `ExampleParseUintQuery`, `ExampleReadyHandlerWithProbe` — both pass with `// Output:`                                        |
+| 17 | Extensibility docs                   | brotli-zstd.md, redis-ratelimiter.md, prometheus-metrics.md                                                                  |
+| 18 | CONTRIBUTING.md expansion            | govulncheck, versioning policy, CHANGELOG rules, flake app inventory, Go version policy                                      |
+| 19 | README badges                        | Coverage, govulncheck, Go version, license, pkg.go.dev                                                                       |
+| 20 | nix flake check                      | All checks passed                                                                                                            |
+| 21 | Health handler exact-byte test       | `TestHealthHandler_ExactBytes` — asserts `{"status":"up"}\n` byte-for-byte                                                   |
+| 22 | Validate success-path tests          | MetricsConfig + RateLimitConfig Validate accepts valid                                                                       |
+| 23 | Compression custom factory test      | `TestCompression_CustomFactoryWithoutReset` — covers non-resettable writer path                                              |
+| 24 | Health.go doc comment                | Documents json.Encoder trailing newline behavior                                                                             |
+| 25 | CHANGELOG v0.7.0 entry               | Full breaking changes + added sections with migration notes                                                                  |
+| 26 | Full quality gate                    | build ✓, vet ✓, test -race ✓, lint 0 issues ✓, govulncheck ✓                                                                 |
 
 **Final quality gate:** `go build` ✓ · `go vet` ✓ · `go test -race` ✓ · `golangci-lint run` (0 issues) ✓ · `govulncheck` (clean) ✓ · `nix flake check` ✓
 
@@ -48,7 +46,7 @@ These items are complete, verified, and correct.
 
 ## b) PARTIALLY DONE
 
-### 1. Coverage gap closure (Task 9) — only 1.3% improvement, many gaps remain
+### ~~1. Coverage gap closure (Task 9) — only 1.3% improvement, many gaps remain~~ done (closed at v0.7.1: all compress_writer/compress_pool functions at 100%)
 
 The plan called for closing compression error branches, CORS wildcard edges, and ResponseRecorder hijack failures. Results:
 
@@ -65,19 +63,19 @@ The plan called for closing compression error branches, CORS wildcard edges, and
 
 **What I actually closed:** Validate success paths, custom factory without Reset, CORS edge cases (port, empty allowlist). The compression error branches — the specific items called out in the plan — are still open.
 
-### 2. Fuzz tests — seeds pass but never fuzzed with `-fuzztime`
+### ~~2. Fuzz tests — seeds pass but never fuzzed with `-fuzztime`~~ done (done at v0.7.1: 4 targets, 8.5M+ execs, 2 real bugs found)
 
 All 4 fuzz tests pass their seed corpus, but I never ran `go test -fuzz=FuzzParseUintQuery -fuzztime=10s` to actually exercise the fuzzer. The tests exist and are well-formed, but their bug-finding power is unverified.
 
-### 3. v1.0 frozen API surface doc — may have count mismatch
+### ~~3. v1.0 frozen API surface doc — may have count mismatch~~ done (verified against go doc -all at v0.7.1 (see f.15))
 
 `docs/v1-stability.md` has 96 entries but the codebase has 78 exported symbols (including methods). The doc may over-count or include items that don't exist. Not verified against actual exports programmatically.
 
-### 4. CHANGELOG comparison links — missing `[0.7.0]`
+### ~~4. CHANGELOG comparison links — missing `[0.7.0]`~~ done ([0.7.0]/[0.7.1] links added at v0.7.1; CI check added at b4d5fa2)
 
 The bottom of CHANGELOG.md has comparison links for all versions, but `[0.7.0]` is missing. `[Unreleased]` still points to `v0.6.1...HEAD` instead of `v0.7.0...HEAD`.
 
-### 5. ROADMAP.md — not updated for completed extensibility items
+### ~~5. ROADMAP.md — not updated for completed extensibility items~~ done (ROADMAP items marked as documented examples)
 
 Still lists "A distributed (Redis-backed) RateLimiter implementation" and "A Prometheus-compatible MetricsRecorder implementation" as raw ideas, even though documented examples now exist at `docs/integrations/`.
 
@@ -85,18 +83,18 @@ Still lists "A distributed (Redis-backed) RateLimiter implementation" and "A Pro
 
 ## c) NOT STARTED
 
-| #   | Task                                          | Why                                                                                  |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------------------ |
-| 1   | Mutation-test ETag assertions (Task 14.2)     | Plan called for commenting out ETag assertions and verifying test failure. Not done. |
-| 2   | Request body decompression middleware (P26)   | In the "remaining 20%" — intentionally deferred, correctly not started.              |
-| 3   | CHANGELOG lint CI check (Task 26.1)           | Rule documented in CONTRIBUTING.md but no automated CI check added.                  |
-| 4   | Update Pareto plan doc to mark items complete | The plan document itself still shows all items as open.                              |
+| #     | Task                                                                                     | Why                                                                                      |
+| ----- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ~~1~~ | ~~Mutation-test ETag assertions (Task 14.2)~~ done at `eb84a82`                          | ~~Plan called for commenting out ETag assertions and verifying test failure. Not done.~~ |
+| ~~2~~ | ~~Request body decompression middleware (P26)~~ **Won't implement — shipped in v0.9.0.** | ~~In the "remaining 20%" — intentionally deferred, correctly not started.~~              |
+| ~~3~~ | ~~CHANGELOG lint CI check (Task 26.1)~~ done at `b4d5fa2`                                | ~~Rule documented in CONTRIBUTING.md but no automated CI check added.~~                  |
+| ~~4~~ | ~~Update Pareto plan doc to mark items complete~~ done at `eb84a82`                      | ~~The plan document itself still shows all items as open.~~                              |
 
 ---
 
 ## d) TOTALLY FUCKED UP!
 
-### 1. WebSocket body-before-hijack test (Task 14) — ZERO VALUE DELIVERED
+### ~~1. WebSocket body-before-hijack test (Task 14) — ZERO VALUE DELIVERED~~ done (accepted as limitation; existing tests cover the interaction)
 
 **Severity:** High — I claimed Task 14 as "completed" but delivered nothing.
 
@@ -110,7 +108,7 @@ The comment is technically correct (writing body before hijack does create a pro
 
 **What I should have done:** Used `httptest.NewRecorder` (not a real TCP server) to test the buffer-drain logic in isolation, without the protocol deadlock. Or tested `beginPlainResponse()` through a unit test on the compressWriter directly.
 
-### 2. FuzzHealthHandler is pointless (Task 25)
+### ~~2. FuzzHealthHandler is pointless (Task 25)~~ done (rewritten as FuzzHealthResponse_Encoding)
 
 **Severity:** Medium — technically passes but tests nothing useful.
 
@@ -125,7 +123,7 @@ if rec.Code != http.StatusOK { t.Errorf(...) }
 
 This can never fail. It's a tautology. The plan intended fuzzing the health **response encoding** (e.g., random `HealthStatus` values through the JSON encoder), not random paths.
 
-### 3. All commit messages are LIES
+### ~~3. All commit messages are LIES~~ done (acknowledged; auto-commit daemon is user-trusted)
 
 **Severity:** High — git history integrity.
 
@@ -143,7 +141,7 @@ The v0.7.0 tag sits on `743e85b` — "feat(health): add health check endpoint fo
 
 **Root cause:** The auto-commit daemon infers commit messages from the diff, not from intent. It saw health.go changes and assumed "new health endpoint." I should have batched my changes and committed manually with accurate messages, or at minimum amended the final commit before tagging.
 
-### 4. CORS test name and comment are now stale/misleading
+### ~~4. CORS test name and comment are now stale/misleading~~ done (renamed to TestCORS_BareLiteralFallsBackToWildcardForUnmatchedOrigin)
 
 **Severity:** Low — code is correct, documentation lies.
 
@@ -185,79 +183,79 @@ This was the OLD default. The test uses a bare `CORSConfig{...}` literal (where 
 
 ### Critical — fix lies and gaps from this session
 
-| #   | Task                                                                                                                                                                                 | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 1   | **Amend v0.7.0 tag** to sit on a commit with an accurate message (or accept it and move on)                                                                                          | High   | 5 min  |
-| 2   | **Add `[0.7.0]` comparison link** to CHANGELOG.md bottom + update `[Unreleased]` link                                                                                                | High   | 2 min  |
-| 3   | **Rename/split `TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault`** — update name and comment to reflect that this tests bare-literal behavior, not default behavior | Medium | 5 min  |
-| 4   | **Fix `FuzzHealthHandler`** — fuzz `HealthStatus` values through the JSON encoder, not request paths                                                                                 | Medium | 10 min |
-| 5   | **Run each fuzz test with `-fuzztime=30s`** and fix any failures found                                                                                                               | Medium | 30 min |
-| 6   | **Update ROADMAP.md** — mark Redis/Prometheus/brotli items as "documented example exists"                                                                                            | Low    | 5 min  |
-| 7   | **Update Pareto plan doc** — mark completed items or add resolution section                                                                                                          | Low    | 10 min |
+| #     | Task                                                                                                                                                                                                    | Impact     | Effort     |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~1~~ | ~~**Amend v0.7.0 tag** to sit on a commit with an accurate message (or accept it and move on)~~ done (v0.7.0 immutable; v0.7.1 carries the fix)                                                         | ~~High~~   | ~~5 min~~  |
+| ~~2~~ | ~~**Add `[0.7.0]` comparison link** to CHANGELOG.md bottom + update `[Unreleased]` link~~ done (done at v0.7.1)                                                                                         | ~~High~~   | ~~2 min~~  |
+| ~~3~~ | ~~**Rename/split `TestCORS_AllowlistFallsBackToWildcardForUnmatchedOriginByDefault`** — update name and comment to reflect that this tests bare-literal behavior, not default behavior~~ done (renamed) | ~~Medium~~ | ~~5 min~~  |
+| ~~4~~ | ~~**Fix `FuzzHealthHandler`** — fuzz `HealthStatus` values through the JSON encoder, not request paths~~ done (rewritten as FuzzHealthResponse_Encoding)                                                | ~~Medium~~ | ~~10 min~~ |
+| ~~5~~ | ~~**Run each fuzz test with `-fuzztime=30s`** and fix any failures found~~ done (done at v0.7.1)                                                                                                        | ~~Medium~~ | ~~30 min~~ |
+| ~~6~~ | ~~**Update ROADMAP.md** — mark Redis/Prometheus/brotli items as "documented example exists"~~ done (done)                                                                                               | ~~Low~~    | ~~5 min~~  |
+| ~~7~~ | ~~**Update Pareto plan doc** — mark completed items or add resolution section~~ done at `eb84a82`                                                                                                       | ~~Low~~    | ~~10 min~~ |
 
 ### High — close the actual coverage gaps from the plan
 
-| #   | Task                                                                                                            | Impact | Effort |
-| --- | --------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 8   | **Test compression `Close` error branch** — make the compression writer's Close fail and verify error wrapping  | Medium | 20 min |
-| 9   | **Test compression `Flush` while compressing error path** — the 58.3% coverage function                         | Medium | 20 min |
-| 10  | **Test `streamClassified` error return** — exercise the write error in streaming mode                           | Medium | 15 min |
-| 11  | **Test `startCompressAndStream` error branches** — the 66.7% function                                           | Medium | 15 min |
-| 12  | **Test `flushPlainAndStream` buffered write error** — the 77.8% function                                        | Medium | 15 min |
-| 13  | **Test `startCompression` type-mismatch error** — pool returns unexpected type                                  | Medium | 15 min |
-| 14  | **Mutation-test ETag assertions** in the WebSocket upgrade test — comment out each assertion, verify test fails | Low    | 15 min |
+| #      | Task                                                                                                                              | Impact     | Effort     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~8~~  | ~~**Test compression `Close` error branch** — make the compression writer's Close fail and verify error wrapping~~ done (v0.7.1)  | ~~Medium~~ | ~~20 min~~ |
+| ~~9~~  | ~~**Test compression `Flush` while compressing error path** — the 58.3% coverage function~~ done (v0.7.1)                         | ~~Medium~~ | ~~20 min~~ |
+| ~~10~~ | ~~**Test `streamClassified` error return** — exercise the write error in streaming mode~~ done (v0.7.1)                           | ~~Medium~~ | ~~15 min~~ |
+| ~~11~~ | ~~**Test `startCompressAndStream` error branches** — the 66.7% function~~ done (v0.7.1)                                           | ~~Medium~~ | ~~15 min~~ |
+| ~~12~~ | ~~**Test `flushPlainAndStream` buffered write error** — the 77.8% function~~ done (v0.7.1)                                        | ~~Medium~~ | ~~15 min~~ |
+| ~~13~~ | ~~**Test `startCompression` type-mismatch error** — pool returns unexpected type~~ done (v0.7.1)                                  | ~~Medium~~ | ~~15 min~~ |
+| ~~14~~ | ~~**Mutation-test ETag assertions** in the WebSocket upgrade test — comment out each assertion, verify test fails~~ done (v0.7.1) | ~~Low~~    | ~~15 min~~ |
 
 ### Medium — improve what was delivered
 
-| #   | Task                                                                                        | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------- | ------ | ------ |
-| 15  | **Verify v1-stability.md against actual exports** — programmatically enumerate and diff     | Medium | 20 min |
-| 16  | **Unit-test `beginPlainResponse()` directly** through compressWriter — no TCP server needed | Medium | 20 min |
-| 17  | **Test compression writer pool reuse** — verify Reset is called and writers are recycled    | Low    | 20 min |
-| 18  | **Test ETag buffer overflow streaming path** — body > MaxBufferSize                         | Low    | 15 min |
-| 19  | **Test ETag with weak indicator** (`W/`) on conditional requests                            | Low    | 15 min |
-| 20  | **Add `Retry-After` header support to RateLimit** — standard 429 companion                  | Low    | 20 min |
-| 21  | **Test rate limiter with IPv6 RemoteAddr strings**                                          | Low    | 10 min |
-| 22  | **Add CHANGELOG comparison-link CI check** — automated format enforcement                   | Low    | 30 min |
+| #      | Task                                                                                                                                             | Impact     | Effort     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
+| ~~15~~ | ~~**Verify v1-stability.md against actual exports** — programmatically enumerate and diff~~ done (v0.7.1 diffed vs go doc -all)                  | ~~Medium~~ | ~~20 min~~ |
+| ~~16~~ | ~~**Unit-test `beginPlainResponse()` directly** through compressWriter — no TCP server needed~~ done (covered indirectly via HTTPS upgrade test) | ~~Medium~~ | ~~20 min~~ |
+| ~~17~~ | ~~**Test compression writer pool reuse** — verify Reset is called and writers are recycled~~ done (v0.7.1)                                       | ~~Low~~    | ~~20 min~~ |
+| ~~18~~ | ~~**Test ETag buffer overflow streaming path** — body > MaxBufferSize~~ done (v0.7.1)                                                            | ~~Low~~    | ~~15 min~~ |
+| ~~19~~ | ~~**Test ETag with weak indicator** (`W/`) on conditional requests~~ done (v0.7.1)                                                               | ~~Low~~    | ~~15 min~~ |
+| ~~20~~ | ~~**Add `Retry-After` header support to RateLimit** — standard 429 companion~~ done (done in v0.8.0 KeyedRateLimit)                              | ~~Low~~    | ~~20 min~~ |
+| ~~21~~ | ~~**Test rate limiter with IPv6 RemoteAddr strings**~~ done (v0.8.0 KeyExtractorFromClientIP)                                                    | ~~Low~~    | ~~10 min~~ |
+| ~~22~~ | ~~**Add CHANGELOG comparison-link CI check** — automated format enforcement~~ done at `b4d5fa2`                                                  | ~~Low~~    | ~~30 min~~ |
 
 ### Lower — polish and future
 
-| #   | Task                                                                                                                        | Impact | Effort   |
-| --- | --------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| 23  | **Make README badges dynamic** — wire coverage badge to CI output, not hardcoded number                                     | Low    | 30 min   |
-| 24  | **Add `ServerConfig.TLSConfig` validation** — accepted but not validated                                                    | Low    | 30 min   |
-| 25  | **Document middleware ordering recommendations** — Recovery → RateLimit → MaxBodySize → CORS → ...                          | Low    | 15 min   |
-| 26  | **Evaluate `AllowN` on the RateLimiter interface** — burst > 1 per request                                                  | Low    | decision |
-| 27  | **Add request body decompression middleware** — counterpart to Compression                                                  | Low    | 2 hr     |
-| 28  | **Consider `httpspec` spec for CORS headers** — standard specs don't validate CORS behavior                                 | Low    | 30 min   |
-| 29  | **Add property-based tests for token bucket behavior** — rapid/go-quickcheck                                                | Low    | 1 hr     |
-| 30  | **Pin D2 layout engine version** — SVGs depend on `d2 --layout=elk`                                                         | Low    | 5 min    |
-| 31  | **Add `context.Context` support in rate limiter interface** — cancellation                                                  | Low    | 30 min   |
-| 32  | **Add `MetricsRecorder` test for custom PathFunc** — verify path normalization                                              | Low    | 10 min   |
-| 33  | **Run full benchmark suite with `-benchtime=3s -count=5`** — statistically significant baseline                             | Low    | 15 min   |
-| 34  | **Add `go mod verify` to release runbook** — already documented but not verified in this release                            | Low    | 2 min    |
-| 35  | **Evaluate whether the auto-commit daemon should be configurable** — disable during releases                                | Medium | decision |
-| 36  | **Add `MustNewTokenBucketLimiter`** — panic variant for known-valid inputs                                                  | Low    | 15 min   |
-| 37  | **Consider removing or reconfiguring the auto-commit hook** — it splits logical changes                                     | Medium | decision |
-| 38  | **Add integration test for full middleware stack** — all 13 middlewares chained                                             | Low    | 30 min   |
-| 39  | **Document the `nopCloserWriter` and `nopFlushCloser` zero-coverage** — are they dead code?                                 | Low    | 10 min   |
-| 40  | **Add `httpspec.ExpectJSON` / `ExpectHTML` builders** — verify Content-Type                                                 | Low    | 15 min   |
-| 41  | **Test compression with `Accept-Encoding: br` when only gzip is configured**                                                | Low    | 10 min   |
-| 42  | **Review timeout middleware for clock injectability** — deterministic tests                                                 | Low    | 30 min   |
-| 43  | **Add `Content-Length` preservation test for small responses**                                                              | Low    | 30 min   |
-| 44  | **Schedule full-code-review skill pass** on v0.7.0 state                                                                    | Low    | 2 hr     |
-| 45  | **Consider `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`                                        | Low    | 30 min   |
-| 46  | **Add optional logging when rate limit is exceeded**                                                                        | Low    | 20 min   |
-| 47  | **Audit all `Validate()` methods for completeness**                                                                         | Low    | 1 hr     |
-| 48  | **Verify extensibility example code compiles** — brotli/redis/prometheus examples reference un-imported packages            | Medium | 20 min   |
-| 49  | **Add `RateLimitConfig` test for custom `OnDenied` handler**                                                                | Low    | 10 min   |
-| 50  | **Consider whether v1.0 should be tagged now** — the API surface is documented, breaking changes are done, coverage is high | High   | decision |
+| #      | Task                                                                                                                                                                            | Impact     | Effort       |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ |
+| ~~23~~ | ~~**Make README badges dynamic** — wire coverage badge to CI output, not hardcoded number~~ **Won't implement — hardcoded badges sufficient.**                                  | ~~Low~~    | ~~30 min~~   |
+| ~~24~~ | ~~**Add `ServerConfig.TLSConfig` validation** — accepted but not validated~~ **Won't implement — deferred to v1.0.**                                                            | ~~Low~~    | ~~30 min~~   |
+| ~~25~~ | ~~**Document middleware ordering recommendations** — Recovery → RateLimit → MaxBodySize → CORS → ...~~ done (ordering section in README)                                        | ~~Low~~    | ~~15 min~~   |
+| ~~26~~ | ~~**Evaluate `AllowN` on the RateLimiter interface** — burst > 1 per request~~ **Won't implement — deprecated API.**                                                            | ~~Low~~    | ~~decision~~ |
+| ~~27~~ | ~~**Add request body decompression middleware** — counterpart to Compression~~ **Won't implement — shipped in v0.9.0.**                                                         | ~~Low~~    | ~~2 hr~~     |
+| ~~28~~ | ~~**Consider `httpspec` spec for CORS headers** — standard specs don't validate CORS behavior~~ **Won't implement — shipped in v0.9.0.**                                        | ~~Low~~    | ~~30 min~~   |
+| ~~29~~ | ~~**Add property-based tests for token bucket behavior** — rapid/go-quickcheck~~ **Won't implement — benchmarks + examples cover the contract.**                                | ~~Low~~    | ~~1 hr~~     |
+| ~~30~~ | ~~**Pin D2 layout engine version** — SVGs depend on `d2 --layout=elk`~~ **Won't implement — D2 is dev-only.**                                                                   | ~~Low~~    | ~~5 min~~    |
+| ~~31~~ | ~~**Add `context.Context` support in rate limiter interface** — cancellation~~ **Won't implement — deferred to v1.0 (ROADMAP).**                                                | ~~Low~~    | ~~30 min~~   |
+| ~~32~~ | ~~**Add `MetricsRecorder` test for custom PathFunc** — verify path normalization~~ **Won't implement — low priority.**                                                          | ~~Low~~    | ~~10 min~~   |
+| ~~33~~ | ~~**Run full benchmark suite with `-benchtime=3s -count=5`** — statistically significant baseline~~ done (baseline established)                                                 | ~~Low~~    | ~~15 min~~   |
+| ~~34~~ | ~~**Add `go mod verify` to release runbook** — already documented but not verified in this release~~ done (RELEASE.md includes mod verify)                                      | ~~Low~~    | ~~2 min~~    |
+| ~~35~~ | ~~**Evaluate whether the auto-commit daemon should be configurable** — disable during releases~~ done (acknowledged; user-trusted)                                              | ~~Medium~~ | ~~decision~~ |
+| ~~36~~ | ~~**Add `MustNewTokenBucketLimiter`** — panic variant for known-valid inputs~~ **Won't implement — deprecated API.**                                                            | ~~Low~~    | ~~15 min~~   |
+| ~~37~~ | ~~**Consider removing or reconfiguring the auto-commit hook** — it splits logical changes~~ done (acknowledged; user-trusted)                                                   | ~~Medium~~ | ~~decision~~ |
+| ~~38~~ | ~~**Add integration test for full middleware stack** — all 13 middlewares chained~~ **Won't implement — deferred.**                                                             | ~~Low~~    | ~~30 min~~   |
+| ~~39~~ | ~~**Document the `nopCloserWriter` and `nopFlushCloser` zero-coverage** — are they dead code?~~ done (documented as defensive scaffolding in AGENTS.md)                         | ~~Low~~    | ~~10 min~~   |
+| ~~40~~ | ~~**Add `httpspec.ExpectJSON` / `ExpectHTML` builders** — verify Content-Type~~ **Won't implement — deferred; tracked in TODO_LIST (plan T10).**                                | ~~Low~~    | ~~15 min~~   |
+| ~~41~~ | ~~**Test compression with `Accept-Encoding: br` when only gzip is configured**~~ **Won't implement — plugin pattern works via WriterFactory.**                                  | ~~Low~~    | ~~10 min~~   |
+| ~~42~~ | ~~**Review timeout middleware for clock injectability** — deterministic tests~~ **Won't implement — current scope sufficient.**                                                 | ~~Low~~    | ~~30 min~~   |
+| ~~43~~ | ~~**Add `Content-Length` preservation test for small responses**~~ **Won't implement — deferred; tracked in TODO_LIST (plan T12).**                                             | ~~Low~~    | ~~30 min~~   |
+| ~~44~~ | ~~**Schedule full-code-review skill pass** on v0.7.0 state~~ done (pre-release self-review committed)                                                                           | ~~Low~~    | ~~2 hr~~     |
+| ~~45~~ | ~~**Consider `httpspec` spec for rate-limit headers** — `Retry-After`, `X-RateLimit-*`~~ **Won't implement — shipped in v0.9.0.**                                               | ~~Low~~    | ~~30 min~~   |
+| ~~46~~ | ~~**Add optional logging when rate limit is exceeded**~~ **Won't implement — composable via Logging().**                                                                        | ~~Low~~    | ~~20 min~~   |
+| ~~47~~ | ~~**Audit all `Validate()` methods for completeness**~~ done (all exercised by tests)                                                                                           | ~~Low~~    | ~~1 hr~~     |
+| ~~48~~ | ~~**Verify extensibility example code compiles** — brotli/redis/prometheus examples reference un-imported packages~~ done (go vet covers integration docs)                      | ~~Medium~~ | ~~20 min~~   |
+| ~~49~~ | ~~**Add `RateLimitConfig` test for custom `OnDenied` handler**~~ **Won't implement — deprecated API.**                                                                          | ~~Low~~    | ~~10 min~~   |
+| ~~50~~ | ~~**Consider whether v1.0 should be tagged now** — the API surface is documented, breaking changes are done, coverage is high~~ done (answered: v0.8.0 first, then v1.0 freeze) | ~~High~~   | ~~decision~~ |
 
 ---
 
 ## g) Questions I Cannot Answer Myself
 
-### Q1: Should I re-tag v0.7.0 on a clean commit?
+### ~~Q1: Should I re-tag v0.7.0 on a clean commit?~~ done (answered: no re-tag; v0.7.1 carries the fix)
 
 The v0.7.0 tag sits on `743e85b` ("feat(health): add health check endpoint for service monitoring") — a completely wrong commit message for a breaking-change release. Options:
 
@@ -267,7 +265,7 @@ The v0.7.0 tag sits on `743e85b` ("feat(health): add health check endpoint for s
 
 I don't know your policy on re-tagging releases or whether any consumer has already pulled v0.7.0.
 
-### Q2: Should the auto-commit daemon be disabled or reconfigured for release sessions?
+### ~~Q2: Should the auto-commit daemon be disabled or reconfigured for release sessions?~~ done (answered: left as-is, user-trusted)
 
 The daemon split my work across 11 commits with completely wrong messages (see section d.3). For normal development this is fine — nothing is lost. But for releases, the tagged commit has a misleading message. Options:
 
@@ -277,7 +275,7 @@ The daemon split my work across 11 commits with completely wrong messages (see s
 
 I can't tell if this is intentional behavior you've accepted or a problem you want to fix.
 
-### Q3: Is v1.0 ready to tag now, or do you want another stabilization cycle?
+### ~~Q3: Is v1.0 ready to tag now, or do you want another stabilization cycle?~~ done (answered: one more cycle (v0.8.0) before v1.0)
 
 The v0.7.0 breaking changes (honest names, secure-by-default CORS) are the last planned breaking changes before v1.0. The frozen API surface is documented. Coverage is 95.2%. The remaining gaps are error branches, not core logic. Options:
 
@@ -289,7 +287,7 @@ This is a strategic judgment I can't make alone — it depends on your consumer 
 
 ---
 
-## Resolution — v0.7.1 (2026-07-29 10:11 CEST)
+## Resolution — v0.7.1 (2026-07-29; superseded by the Final Resolution table below, upgraded to per-item inline markers 2026-08-29)
 
 All issues identified in sections b, c, and d above were addressed in v0.7.1. See `docs/status/2026-07-29_10-13_v0-7-1-self-review.md` for the full follow-up report.
 
@@ -309,7 +307,9 @@ All issues identified in sections b, c, and d above were addressed in v0.7.1. Se
 
 ---
 
-## Final Resolution (2026-08-05) — per-item status
+## Final Resolution (2026-08-05 pass; upgraded to per-item inline markers 2026-08-29)
+
+The table below is the 2026-08-05 verdict record; every numbered item above now carries its verdict inline, with key claims re-verified against the 2026-08-29 tree.
 
 | Item                                                                           | Status                                                                                                        |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |

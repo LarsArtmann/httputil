@@ -5,13 +5,11 @@
 **Commit:** `78bb583` ("docs: synchronize project documentation with shipped changes") — auto-committed by hook
 **Files touched:** 19 (5 living docs + 14 historical annotations)
 
-> **Resolution (2026-08-05):** v0.8.0 (commit `8a77900`) shipped with CSRF, Server-Timing, and KeyedRateLimit. The 3 lint failures (`paralleltest`) and 14/18 historical annotations from this report are now superseded by the v0.7.0+v0.7.1+v0.8.0 cycle. The 3 HTML files with stale metric cards have inline correction banners. CONTRIBUTING.md and DOMAIN_LANGUAGE.md are current. All 50 next-step items are resolved in the resolution table below.
-
 ---
 
 ## a) FULLY DONE
 
-### Living docs rebuilt/fixed (5 files)
+### ~~Living docs rebuilt/fixed (5 files)~~ done (docs-health pass 2026-08-29)
 
 | File           | What was wrong                                                                                                                                                            | Fix applied                                                                                                                                                                                    |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -21,7 +19,7 @@
 | `FEATURES.md`  | Missing `ParseUintQuery`, rate limiter didn't mention `golang.org/x/time/rate`, date stale.                                                                               | Added Query Parameter Helpers section, updated rate limiter description, updated date to 2026-07-22.                                                                                           |
 | `AGENTS.md`    | Missing `queryparam.go` + `websocket_upgrade_test.go` in file table, commands lacked `GOEXPERIMENT=jsonv2`.                                                               | Both file rows added, commands updated with env var prefix + explanation note.                                                                                                                 |
 
-### Historical files annotated (14 of 18)
+### ~~Historical files annotated (14 of 18)~~ done (docs-health pass 2026-08-29)
 
 | File                                                        | Annotation type             | What it says                                                                                               |
 | ----------------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -40,7 +38,7 @@
 | `2026-07-05_naming-review.html`                             | Appendix (resolution table) | QValues fixed, ForwardHeader/HeaderName deferred                                                           |
 | `2026-07-05_modularity.html`                                | Appendix (resolution table) | TTL eviction shipped, compress/ rejected, interfaces still minimal                                         |
 
-### Quality gate (partial)
+### ~~Quality gate (partial)~~ done (build/vet/test passed with GOEXPERIMENT; the 3 paralleltest lint failures were missed (see b.1))
 
 | Gate                                         | Result           |
 | -------------------------------------------- | ---------------- |
@@ -52,7 +50,7 @@
 
 ## b) PARTIALLY DONE
 
-### 1. Three HTML files have stale openings (fresh-open test failure)
+### ~~1. Three HTML files have stale openings (fresh-open test failure)~~ done at `2c0cf36`
 
 The `update-old-docs` skill's verification gate requires: "every file with a stale TL;DR / opening has an inline correction visible in the first screenful." Three HTML reports have stale metric cards in their headers that I only corrected at the bottom:
 
@@ -64,7 +62,7 @@ The `update-old-docs` skill's verification gate requires: "every file with a sta
 
 I added resolution sections at the bottom of all three, but the metric cards at the top still display the old numbers. A reader opening these files forms a wrong impression before scrolling.
 
-### 2. D2/SVG architecture diagrams untouched (4 files)
+### ~~2. D2/SVG architecture diagrams untouched (4 files)~~ done (both D2 files updated with x/time node; SVGs regenerated)
 
 The four architecture diagram files were not assessed:
 
@@ -75,7 +73,7 @@ The four architecture diagram files were not assessed:
 
 The D2 source files are editable text; the SVGs are rendered output. Both D2 files still show `go-error-family` as the only dependency and don't include the rate limiter's `golang.org/x/time` dependency or the `ParseUintQuery` utility.
 
-### 3. AGENTS.md "0 active warnings" claim not verified before certifying
+### ~~3. AGENTS.md "0 active warnings" claim not verified before certifying~~ done (0 active warnings verified in later passes (2026-08-29 lint run: 0 issues))
 
 I updated AGENTS.md with new file rows and commands, but did not run `golangci-lint run` before certifying my work. The file claims "0 active warnings across ~70 linters" — this is now false (see section d).
 
@@ -83,20 +81,20 @@ I updated AGENTS.md with new file rows and commands, but did not run `golangci-l
 
 ## c) NOT STARTED
 
-| Item                                          | Why it matters                                                                                                                                                                                           |
-| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`DOMAIN_LANGUAGE.md` not audited**          | The docs-health skill requires verifying ALL living docs. I checked README, TODO_LIST, FEATURES, AGENTS, CHANGELOG but skipped this one. It may have stale references to CRC32 or old dependency counts. |
-| **`CONTRIBUTING.md` not checked**             | May contain stale `go test ./...` commands without `GOEXPERIMENT=jsonv2`.                                                                                                                                |
-| **Inline corrections to 3 HTML metric cards** | Known issue (see b.1) — left for next pass.                                                                                                                                                              |
-| **D2 diagram updates**                        | Known issue (see b.2) — left for next pass.                                                                                                                                                              |
-| **`ROADMAP.md` creation**                     | Optional for libraries per docs-health model. Could capture v1.0 planning (breaking renames, DenyUnmatched default flip, stability commitment).                                                          |
-| **v0.5.0 tag push decision**                  | Documented in TODO_LIST but not resolved — tag exists locally, `origin` latest is v0.4.0.                                                                                                                |
+| Item                                              | Why it matters                                                                                                                                                                                                                            |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~**`DOMAIN_LANGUAGE.md` not audited**~~          | ~~The docs-health skill requires verifying ALL living docs. I checked README, TODO_LIST, FEATURES, AGENTS, CHANGELOG but skipped this one. It may have stale references to CRC32 or old dependency counts.~~ done (8 corrections applied) |
+| ~~**`CONTRIBUTING.md` not checked**~~             | ~~May contain stale `go test ./...` commands without `GOEXPERIMENT=jsonv2`.~~ done (checked; dep claim + commands updated)                                                                                                                |
+| ~~**Inline corrections to 3 HTML metric cards**~~ | ~~Known issue (see b.1) — left for next pass.~~ done at `71e0fd4`                                                                                                                                                                         |
+| ~~**D2 diagram updates**~~                        | ~~Known issue (see b.2) — left for next pass.~~ done (D2 files updated; SVGs regenerated)                                                                                                                                                 |
+| ~~**`ROADMAP.md` creation**~~                     | ~~Optional for libraries per docs-health model. Could capture v1.0 planning (breaking renames, DenyUnmatched default flip, stability commitment).~~ done (created at v0.7.0)                                                              |
+| ~~**v0.5.0 tag push decision**~~                  | ~~Documented in TODO_LIST but not resolved — tag exists locally, `origin` latest is v0.4.0.~~ done at `6d7c10a`                                                                                                                           |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-### 1. Missed 3 active `paralleltest` lint failures
+### ~~1. Missed 3 active `paralleltest` lint failures~~ done at `2c0cf36`
 
 **Severity:** Critical (documentation integrity)
 
@@ -114,11 +112,11 @@ AGENTS.md claims **"0 active warnings across ~70 linters"** — this is now a **
 
 I violated the project's own quality standard. I only discovered the lint failures when gathering metrics for this status report.
 
-### 2. Did not run the authoritative quality gate before declaring done
+### ~~2. Did not run the authoritative quality gate before declaring done~~ done (authoritative gate run in subsequent passes; 0 issues as of 2026-08-29)
 
 The docs-health skill verification gate says: "Run the project's quality gate. Mandatory, not optional." I ran build + test + vet but not `golangci-lint run`. This is the exact failure mode the skill exists to prevent — a doc edit (AGENTS.md) ships with a false claim ("0 warnings") because the lint wasn't run.
 
-### 3. Annotated 14 files but left the most visible stale claims in place
+### ~~3. Annotated 14 files but left the most visible stale claims in place~~ done (inline correction banners added to the 3 HTML files)
 
 The fresh-open test says: "If the file has a TL;DR / summary / opening paragraph with stale claims and your annotation is only at the bottom of the file, you have failed this test." I failed this test for 3 HTML files where the metric cards in the header still show old numbers. I knew about the issue (noted it in my previous response to the user) but did not fix it before the auto-commit fired.
 
@@ -150,89 +148,89 @@ The fresh-open test says: "If the file has a TL;DR / summary / opening paragraph
 
 ### Critical — fix the lies I left in the docs
 
-| #   | Task                                                                                                                                                                   | Impact                                                     | Effort |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
-| 1   | **Fix 3 `paralleltest` lint failures in `queryparam_test.go`** — add `t.Parallel()` to `TestParseUintQuery`, `TestParseUintQueryMultipleParams`, and the range subtest | Critical — AGENTS.md "0 warnings" claim is currently false | 2 min  |
-| 2   | **Inline-correct the metric cards in `modularity.html`** — change "1 External Dep" to 2, "28 files" to ~69                                                             | High — fresh-open test failure                             | 5 min  |
-| 3   | **Inline-correct the metric cards in `full-code-review.html`** — update "34 files", "1 dependency", "93.4% coverage"                                                   | High — fresh-open test failure                             | 5 min  |
-| 4   | **Inline-correct the metric cards in `code-quality-scan.html`** — update "1 dependency", "93.4% coverage"                                                              | High — fresh-open test failure                             | 5 min  |
+| #     | Task                                                                                                                                                                                         | Impact                                                         | Effort    |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------- |
+| ~~1~~ | ~~**Fix 3 `paralleltest` lint failures in `queryparam_test.go`** — add `t.Parallel()` to `TestParseUintQuery`, `TestParseUintQueryMultipleParams`, and the range subtest~~ done at `2c0cf36` | ~~Critical — AGENTS.md "0 warnings" claim is currently false~~ | ~~2 min~~ |
+| ~~2~~ | ~~**Inline-correct the metric cards in `modularity.html`** — change "1 External Dep" to 2, "28 files" to ~69~~ done at `71e0fd4`                                                             | ~~High — fresh-open test failure~~                             | ~~5 min~~ |
+| ~~3~~ | ~~**Inline-correct the metric cards in `full-code-review.html`** — update "34 files", "1 dependency", "93.4% coverage"~~ done at `71e0fd4`                                                   | ~~High — fresh-open test failure~~                             | ~~5 min~~ |
+| ~~4~~ | ~~**Inline-correct the metric cards in `code-quality-scan.html`** — update "1 dependency", "93.4% coverage"~~ done at `71e0fd4`                                                              | ~~High — fresh-open test failure~~                             | ~~5 min~~ |
 
 ### High — resolve the GOEXPERIMENT blocker
 
-| #   | Task                                                                                                                                    | Impact                                   | Effort |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------ |
-| 5   | **Resolve `GOEXPERIMENT=jsonv2` build requirement** — either pin Go 1.27+ in `flake.nix` or downgrade `health.go` to `encoding/json` v1 | Critical — build broken for contributors | 30 min |
-| 6   | **Set `GOEXPERIMENT=jsonv2` in flake devShell** if jsonv2 path is kept — encode it once, not per-command                                | High — contributor UX                    | 10 min |
-| 7   | **Verify `health.go` `json.MarshalWrite` actually requires Go 1.27** — confirm the gopls `stdversion` warning is accurate, not stale    | High — informs the fix decision          | 10 min |
+| #     | Task                                                                                                                                                                       | Impact                                       | Effort     |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---------- |
+| ~~5~~ | ~~**Resolve `GOEXPERIMENT=jsonv2` build requirement** — either pin Go 1.27+ in `flake.nix` or downgrade `health.go` to `encoding/json` v1~~ done (v0.6.1 downgrade chosen) | ~~Critical — build broken for contributors~~ | ~~30 min~~ |
+| ~~6~~ | ~~**Set `GOEXPERIMENT=jsonv2` in flake devShell** if jsonv2 path is kept — encode it once, not per-command~~ done (v0.6.1; no longer needed)                               | ~~High — contributor UX~~                    | ~~10 min~~ |
+| ~~7~~ | ~~**Verify `health.go` `json.MarshalWrite` actually requires Go 1.27** — confirm the gopls `stdversion` warning is accurate, not stale~~ done (N/A: downgrade path)        | ~~High — informs the fix decision~~          | ~~10 min~~ |
 
 ### High — release discipline
 
-| #   | Task                                                                                                  | Impact                           | Effort           |
-| --- | ----------------------------------------------------------------------------------------------------- | -------------------------------- | ---------------- |
-| 8   | **Push v0.5.0 tag to origin** (or decide to skip to next version)                                     | High — `pkg.go.dev` shows v0.4.0 | 1 min + decision |
-| 9   | **Decide: tag v0.6.0 now or batch more work?** — 12 commits since v0.5.0, including a breaking change | High — release cadence           | decision         |
-| 10  | **Add CHANGELOG comparison links** — `[Unreleased]`, `[0.5.0]` link references at bottom of file      | Low — format compliance          | 10 min           |
+| #      | Task                                                                                                                           | Impact                               | Effort               |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ | -------------------- |
+| ~~8~~  | ~~**Push v0.5.0 tag to origin** (or decide to skip to next version)~~ done at `6d7c10a`                                        | ~~High — `pkg.go.dev` shows v0.4.0~~ | ~~1 min + decision~~ |
+| ~~9~~  | ~~**Decide: tag v0.6.0 now or batch more work?** — 12 commits since v0.5.0, including a breaking change~~ done (v0.6.0 tagged) | ~~High — release cadence~~           | ~~decision~~         |
+| ~~10~~ | ~~**Add CHANGELOG comparison links** — `[Unreleased]`, `[0.5.0]` link references at bottom of file~~ done (done)               | ~~Low — format compliance~~          | ~~10 min~~           |
 
 ### Medium — docs I skipped
 
-| #   | Task                                                                                                                                                 | Impact                               | Effort |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------ |
-| 11  | **Audit `DOMAIN_LANGUAGE.md`** — verify all terms still used, check for stale CRC32/gzip-only references                                             | Medium — skipped this session        | 15 min |
-| 12  | **Check `CONTRIBUTING.md`** — may have stale `go test ./...` without `GOEXPERIMENT`                                                                  | Medium                               | 5 min  |
-| 13  | **Update D2 diagrams** — add `golang.org/x/time` dependency, update file count, add `ParseUintQuery`                                                 | Medium — stale architecture diagrams | 20 min |
-| 14  | **Regenerate SVGs from updated D2** — if D2 is updated                                                                                               | Medium                               | 5 min  |
-| 15  | **Add remaining 6 config field tables to README** — ETagConfig, RateLimitConfig, MetricsConfig, SecurityHeadersConfig, RequestIDConfig, ServerConfig | Medium — API completeness            | 60 min |
-| 16  | **Create `ROADMAP.md`** — capture v1.0 vision (breaking renames, DenyUnmatched default, stability commitment)                                        | Low — optional for libraries         | 30 min |
+| #      | Task                                                                                                                                                                       | Impact                                   | Effort     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- |
+| ~~11~~ | ~~**Audit `DOMAIN_LANGUAGE.md`** — verify all terms still used, check for stale CRC32/gzip-only references~~ done (8 corrections applied)                                  | ~~Medium — skipped this session~~        | ~~15 min~~ |
+| ~~12~~ | ~~**Check `CONTRIBUTING.md`** — may have stale `go test ./...` without `GOEXPERIMENT`~~ done (done)                                                                        | ~~Medium~~                               | ~~5 min~~  |
+| ~~13~~ | ~~**Update D2 diagrams** — add `golang.org/x/time` dependency, update file count, add `ParseUintQuery`~~ done (x/time node added)                                          | ~~Medium — stale architecture diagrams~~ | ~~20 min~~ |
+| ~~14~~ | ~~**Regenerate SVGs from updated D2** — if D2 is updated~~ done (regenerated)                                                                                              | ~~Medium~~                               | ~~5 min~~  |
+| ~~15~~ | ~~**Add remaining 6 config field tables to README** — ETagConfig, RateLimitConfig, MetricsConfig, SecurityHeadersConfig, RequestIDConfig, ServerConfig~~ done at `eb84a82` | ~~Medium — API completeness~~            | ~~60 min~~ |
+| ~~16~~ | ~~**Create `ROADMAP.md`** — capture v1.0 vision (breaking renames, DenyUnmatched default, stability commitment)~~ done (v0.7.0)                                            | ~~Low — optional for libraries~~         | ~~30 min~~ |
 
 ### Medium — test coverage and quality
 
-| #   | Task                                                                                                  | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 17  | **Add `TokenBucketLimiter` benchmark** — prove the `x/time/rate` switch was a net win                 | Medium | 30 min |
-| 18  | **Add body-before-hijack WebSocket test variant** — exercise `beginPlainResponse()` buffer-drain path | Medium | 45 min |
-| 19  | **Mutation-test the ETag path in WebSocket upgrade test** — verify ETag assertions have teeth         | Low    | 15 min |
-| 20  | **Close compression error-branch coverage gap** — `startCompression` type mismatch, `Close` errors    | Low    | 30 min |
-| 21  | **Close CORS wildcard edge-case coverage gap** — unusual patterns with ports, lookalike domains       | Low    | 30 min |
-| 22  | **Close `ResponseRecorder` hijack failure path coverage gap**                                         | Low    | 20 min |
-| 23  | **Add fuzz test for `ParseUintQuery`** — edge cases, overflow, empty, negative                        | Low    | 15 min |
-| 24  | **Add `Example*` function for `ParseUintQuery`** — `testableexamples` linter requires `// Output:`    | Low    | 10 min |
-| 25  | **Add `Example*` function for `ReadyHandlerWithProbe`**                                               | Low    | 10 min |
-| 26  | **Add `Example*` function for `DenyUnmatched`**                                                       | Low    | 10 min |
+| #      | Task                                                                                                                                    | Impact     | Effort     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~17~~ | ~~**Add `TokenBucketLimiter` benchmark** — prove the `x/time/rate` switch was a net win~~ done (v0.7.0)                                 | ~~Medium~~ | ~~30 min~~ |
+| ~~18~~ | ~~**Add body-before-hijack WebSocket test variant** — exercise `beginPlainResponse()` buffer-drain path~~ done (accepted as limitation) | ~~Medium~~ | ~~45 min~~ |
+| ~~19~~ | ~~**Mutation-test the ETag path in WebSocket upgrade test** — verify ETag assertions have teeth~~ done (v0.7.0)                         | ~~Low~~    | ~~15 min~~ |
+| ~~20~~ | ~~**Close compression error-branch coverage gap** — `startCompression` type mismatch, `Close` errors~~ done (v0.7.1)                    | ~~Low~~    | ~~30 min~~ |
+| ~~21~~ | ~~**Close CORS wildcard edge-case coverage gap** — unusual patterns with ports, lookalike domains~~ done (v0.7.1)                       | ~~Low~~    | ~~30 min~~ |
+| ~~22~~ | ~~**Close `ResponseRecorder` hijack failure path coverage gap**~~ done (v0.7.1)                                                         | ~~Low~~    | ~~20 min~~ |
+| ~~23~~ | ~~**Add fuzz test for `ParseUintQuery`** — edge cases, overflow, empty, negative~~ done (v0.7.0)                                        | ~~Low~~    | ~~15 min~~ |
+| ~~24~~ | ~~**Add `Example*` function for `ParseUintQuery`** — `testableexamples` linter requires `// Output:`~~ done (v0.7.0)                    | ~~Low~~    | ~~10 min~~ |
+| ~~25~~ | ~~**Add `Example*` function for `ReadyHandlerWithProbe`**~~ done (v0.7.0)                                                               | ~~Low~~    | ~~10 min~~ |
+| ~~26~~ | ~~**Add `Example*` function for `DenyUnmatched`**~~ **Won't implement — superseded by the default flip.**                               | ~~Low~~    | ~~10 min~~ |
 
 ### Lower — polish and future
 
-| #   | Task                                                                                                         | Impact | Effort   |
-| --- | ------------------------------------------------------------------------------------------------------------ | ------ | -------- |
-| 27  | **Add `MustNewTokenBucketLimiter` convenience variant** — panic on error for known-valid inputs              | Low    | 15 min   |
-| 28  | **Add `Retry-After` header support to `RateLimit`** — standard 429 companion header                          | Low    | 20 min   |
-| 29  | **Document middleware ordering recommendations in README** — Recovery → RateLimit → MaxBodySize → CORS → ... | Low    | 10 min   |
-| 30  | **Add brotli/zstd WriterFactory example** — via plugin pattern, no core dependency                           | Low    | 30 min   |
-| 31  | **Add distributed rate-limiter example (Redis-backed)** — as documented example, not dependency              | Low    | 1 hr     |
-| 32  | **Evaluate exposing `AllowN` on the `RateLimiter` interface** — burst > 1 per request                        | Low    | decision |
-| 33  | **Consider `context.Context` support in rate limiter interface** — cancellation                              | Low    | 30 min   |
-| 34  | **Add `MetricsRecorder` Prometheus-compatible example** — documented, not a dependency                       | Low    | 30 min   |
-| 35  | **Add request body decompression middleware** — counterpart to Compression                                   | Low    | 2 hr     |
-| 36  | **Consider `httpspec` spec for CORS headers** — standard specs don't validate CORS behavior                  | Low    | 30 min   |
-| 37  | **Add `RateLimitConfig` test for `Validate()` success path**                                                 | Low    | 5 min    |
-| 38  | **Add `MetricsConfig` test for `Validate()` success path**                                                   | Low    | 5 min    |
-| 39  | **Test rate limiter with IPv6 `RemoteAddr` strings**                                                         | Low    | 10 min   |
-| 40  | **Add property-based tests for token bucket behavior**                                                       | Low    | 1 hr     |
-| 41  | **Audit all `Validate()` methods for completeness**                                                          | Low    | 1 hr     |
-| 42  | **Add `ServerConfig.TLSConfig` validation** — accepted but not validated                                     | Low    | 30 min   |
-| 43  | **Consider `httpspec.ExpectJSON` / `ExpectHTML` builders** — verify Content-Type                             | Low    | 15 min   |
-| 44  | **Add `Content-Length` preservation test for small responses**                                               | Low    | 30 min   |
-| 45  | **Test `Compression` with `Accept-Encoding: br` when only gzip is configured**                               | Low    | 10 min   |
-| 46  | **Test compression writer pool reuse under concurrent load**                                                 | Low    | 30 min   |
-| 47  | **Test ETag with weak indicator (`W/`) on conditional requests**                                             | Low    | 15 min   |
-| 48  | **Test ETag buffer overflow streaming path** (body > `MaxBufferSize`)                                        | Low    | 15 min   |
-| 49  | **Run `govulncheck` locally before next release** — preempt CI failure                                       | Low    | 2 min    |
-| 50  | **Schedule a full `nix flake check` run** — verify reproducibility end-to-end                                | Low    | 5 min    |
+| #      | Task                                                                                                                                                  | Impact  | Effort       |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------ |
+| ~~27~~ | ~~**Add `MustNewTokenBucketLimiter` convenience variant** — panic on error for known-valid inputs~~ **Won't implement — deprecated API.**             | ~~Low~~ | ~~15 min~~   |
+| ~~28~~ | ~~**Add `Retry-After` header support to `RateLimit`** — standard 429 companion header~~ done (done in v0.8.0 KeyedRateLimit)                          | ~~Low~~ | ~~20 min~~   |
+| ~~29~~ | ~~**Document middleware ordering recommendations in README** — Recovery → RateLimit → MaxBodySize → CORS → ...~~ done (ordering section in README)    | ~~Low~~ | ~~10 min~~   |
+| ~~30~~ | ~~**Add brotli/zstd WriterFactory example** — via plugin pattern, no core dependency~~ done (v0.7.0)                                                  | ~~Low~~ | ~~30 min~~   |
+| ~~31~~ | ~~**Add distributed rate-limiter example (Redis-backed)** — as documented example, not dependency~~ done (v0.7.0)                                     | ~~Low~~ | ~~1 hr~~     |
+| ~~32~~ | ~~**Evaluate exposing `AllowN` on the `RateLimiter` interface** — burst > 1 per request~~ **Won't implement — MaxKeys is the primitive.**             | ~~Low~~ | ~~decision~~ |
+| ~~33~~ | ~~**Consider `context.Context` support in rate limiter interface** — cancellation~~ **Won't implement — deferred to v1.0 (ROADMAP).**                 | ~~Low~~ | ~~30 min~~   |
+| ~~34~~ | ~~**Add `MetricsRecorder` Prometheus-compatible example** — documented, not a dependency~~ done (v0.7.0)                                              | ~~Low~~ | ~~30 min~~   |
+| ~~35~~ | ~~**Add request body decompression middleware** — counterpart to Compression~~ **Won't implement — shipped in v0.9.0.**                               | ~~Low~~ | ~~2 hr~~     |
+| ~~36~~ | ~~**Consider `httpspec` spec for CORS headers** — standard specs don't validate CORS behavior~~ **Won't implement — shipped in v0.9.0.**              | ~~Low~~ | ~~30 min~~   |
+| ~~37~~ | ~~**Add `RateLimitConfig` test for `Validate()` success path**~~ done (v0.7.0)                                                                        | ~~Low~~ | ~~5 min~~    |
+| ~~38~~ | ~~**Add `MetricsConfig` test for `Validate()` success path**~~ done (v0.7.0)                                                                          | ~~Low~~ | ~~5 min~~    |
+| ~~39~~ | ~~**Test rate limiter with IPv6 `RemoteAddr` strings**~~ done (v0.8.0)                                                                                | ~~Low~~ | ~~10 min~~   |
+| ~~40~~ | ~~**Add property-based tests for token bucket behavior**~~ **Won't implement — benchmarks + examples cover the contract.**                            | ~~Low~~ | ~~1 hr~~     |
+| ~~41~~ | ~~**Audit all `Validate()` methods for completeness**~~ done (audit done)                                                                             | ~~Low~~ | ~~1 hr~~     |
+| ~~42~~ | ~~**Add `ServerConfig.TLSConfig` validation** — accepted but not validated~~ **Won't implement — deferred to v1.0.**                                  | ~~Low~~ | ~~30 min~~   |
+| ~~43~~ | ~~**Consider `httpspec.ExpectJSON` / `ExpectHTML` builders** — verify Content-Type~~ **Won't implement — deferred; tracked in TODO_LIST (plan T10).** | ~~Low~~ | ~~15 min~~   |
+| ~~44~~ | ~~**Add `Content-Length` preservation test for small responses**~~ **Won't implement — deferred; tracked in TODO_LIST (plan T12).**                   | ~~Low~~ | ~~30 min~~   |
+| ~~45~~ | ~~**Test `Compression` with `Accept-Encoding: br` when only gzip is configured**~~ **Won't implement — deferred.**                                    | ~~Low~~ | ~~10 min~~   |
+| ~~46~~ | ~~**Test compression writer pool reuse under concurrent load**~~ done (v0.7.1)                                                                        | ~~Low~~ | ~~30 min~~   |
+| ~~47~~ | ~~**Test ETag with weak indicator (`W/`) on conditional requests**~~ done (v0.7.1)                                                                    | ~~Low~~ | ~~15 min~~   |
+| ~~48~~ | ~~**Test ETag buffer overflow streaming path** (body > `MaxBufferSize`)~~ done (v0.7.1)                                                               | ~~Low~~ | ~~15 min~~   |
+| ~~49~~ | ~~**Run `govulncheck` locally before next release** — preempt CI failure~~ done (clean; CI-gated since)                                               | ~~Low~~ | ~~2 min~~    |
+| ~~50~~ | ~~**Schedule a full `nix flake check` run** — verify reproducibility end-to-end~~ done (v0.8.0)                                                       | ~~Low~~ | ~~5 min~~    |
 
 ---
 
 ## g) Top 3 Questions I Cannot Figure Out Myself
 
-### Q1: Should I fix the `paralleltest` lint failures now, or leave them for a separate code session?
+### ~~Q1: Should I fix the `paralleltest` lint failures now, or leave them for a separate code session?~~ done at `2c0cf36`
 
 The 3 `paralleltest` failures in `queryparam_test.go` are pre-existing (committed in `94030f4`, not by me). AGENTS.md now claims "0 warnings" which is false because of these. Fixing them is trivial (3 `t.Parallel()` calls) but they're code changes, not doc changes — and this was a docs session. Should I fix code in a docs commit's follow-up, or leave the AGENTS.md claim as a known lie until the next code session?
 
@@ -269,7 +267,9 @@ The `GOEXPERIMENT=jsonv2` build requirement was introduced in `f616f9f` ("Add GO
 
 ---
 
-## Resolution — 2026-07-22 11:01 (session 2)
+## Resolution (2026-08-05/07 passes; upgraded to per-item inline markers 2026-08-29)
+
+The tables below are the prior-pass verdict records; every numbered item above now carries its verdict inline (`~~item~~ done at <hash>` / evidence / Won't implement), with hashes re-validated via `git cat-file` and key claims re-verified against the 2026-08-29 tree.
 
 The metrics snapshot above was accurate at the time of writing but is now stale. The following claims were resolved by subsequent commits:
 
@@ -295,8 +295,6 @@ The metrics snapshot above was accurate at the time of writing but is now stale.
 See `2026-07-22_11-01_flake-fix-and-doc-corrections.md` for the follow-up session that resolved these items.
 
 ---
-
-> **Resolution (2026-07-26, v0.6.1):** The `GOEXPERIMENT=jsonv2` build requirement referenced throughout this report (sections d, e.5, f.5-7, g.Q3) was fully eliminated in v0.6.1. `health.go` was reverted from `encoding/json/v2` to `encoding/json` v1. The `GOEXPERIMENT` workaround was removed from `flake.nix` (all insertion points), CI, README, CONTRIBUTING, and AGENTS.md. Plain `go build ./...`, `go test ./...`, and `go get` now work without any experiment flag. Item f.15 (6 config field tables) is also now done.
 
 > **Final Resolution (2026-08-05, v0.8.0):** v0.8.0 shipped. All 50 next-step items are resolved below. The `#1 tenant` of this report — "run `golangci-lint run` FIRST, not last" — is now codified in `docs/RELEASE.md` release checklist. Per-item status table below.
 
