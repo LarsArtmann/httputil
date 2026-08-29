@@ -36,6 +36,9 @@ jobs:
       - name: CHANGELOG link check
         run: ./scripts/check-changelog-links.sh
 
+      - name: Module boundary check (GOWORK=off per module)
+        run: ./scripts/check-module-boundaries.sh
+
       - name: Test
         run: go test -race -count=1 ./...
 

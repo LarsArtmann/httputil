@@ -1015,9 +1015,7 @@ func TestNoDuplicateHeaderCaseVariants(t *testing.T) {
 func TestExpectVaryContainsMatchesField(t *testing.T) {
 	t.Parallel()
 
-	handler := newStatusOnlyHandler(http.StatusOK)
-
-	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Vary", "Origin, Accept-Encoding")
 		w.WriteHeader(http.StatusOK)
 	})

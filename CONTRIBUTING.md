@@ -72,6 +72,16 @@ When opening a PR:
 - Add tests for new functionality
 - Update documentation (README, CHANGELOG) as needed
 
+## Architecture Notes
+
+### Adapter pattern for external middleware
+
+Third-party functionality (go-etag, justinas/nosurf) enters httputil through a thin adapter with the `Middleware` signature; foreign types are not re-exported. See [docs/adr/0001-adapter-pattern-for-external-middleware.md](docs/adr/0001-adapter-pattern-for-external-middleware.md) before adding another integration, and record lasting decisions in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
+
+### Sub-modules
+
+`server_timing/` is an independent Go module (stdlib-only, zero external deps). Run its tests and lint from inside `server_timing/` — the root lint gate does not cover it.
+
 ## Release Process
 
 See [docs/RELEASE.md](docs/RELEASE.md) for the full release runbook.

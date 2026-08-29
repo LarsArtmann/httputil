@@ -96,3 +96,31 @@ func FuzzClientIP(f *testing.F) {
 		ClientIP(req)
 	})
 }
+
+// TestClientIP_TrustsSpoofableHeaders documents the non-obvious contract:
+// ClientIP trusts X-Forwarded-For and X-Real-IP blindly. A direct client can
+// forge these headers; only deploy behind a reverse proxy that strips or
+// overwrites them. This test is the executable form of the AGENTS.md warning.
+func TestClientIP_TrustsSpoofableHeaders(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "203.0.113.9:4444"
+	req.Header.Set("X-Forwarded-For", "6.6.6.6")
+
+	if got := ClientIP(req); got != "6.6.6.6" {
+		t.Errorf("ClientIP = %q, want the forged 6.6.6.6 (blind trust is the contract)", got)
+	}
+
+	req.Header.Set("X-Real-IP", "7.7.7.7")
+
+	if got := ClientIP(req); got != "6.6.6.6" {
+		t.Errorf("ClientIP = %q, want 6.6.6.6 (XFF wins over X-Real-IP)", got)
+	}
+
+	req.Header.Del("X-Forwarded-For")
+
+	if got := ClientIP(req); got != "7.7.7.7" {
+		t.Errorf("ClientIP = %q, want 7.7.7.7 (X-Real-IP wins over RemoteAddr)", got)
+	}
+}

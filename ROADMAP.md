@@ -27,12 +27,16 @@ v1.0 marks the "API is frozen" promise. After v1.0, breaking changes require a v
 Before v1.0:
 
 - **Remove the deprecated `TokenBucketLimiter` / `RateLimiter` interface** — superseded by `KeyedRateLimiter`. Migration guide: [`docs/migrating-to-keyed-rate-limiter.md`](docs/migrating-to-keyed-rate-limiter.md).
-- **Rate limiter interface refinement** — `AllowN` (burst > 1 per request) was evaluated and rejected (`KeyedRateLimiter` uses `MaxKeys`, not per-request burst). `context.Context` cancellation support on `KeyedRateLimiter` remains deferred to v1.0 because it could shape the final interface.
+- **Rate limiter interface refinement** — `AllowN` (burst > 1 per request) was evaluated and rejected (`KeyedRateLimiter` uses `MaxKeys`, not per-request burst). `context.Context` cancellation was evaluated in [docs/planning/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md](docs/planning/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md): v1.0 keeps the admission-only contract (tokens consumed at admission, no refund on abort); a `Wait(ctx, key)` primitive stays available as a post-v1.0 additive evolution.
 - **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module (`etag.New()` composes directly with httputil via the `Middleware` type alias). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
 - One stabilization cycle before the commitment.
 
 ## Post-v1.0 ideas
 
+- **Ecosystem extensions (plugin-shaped, documented examples rather than core deps)** — brotli/zstd `WriterFactory` implementations (`docs/integrations/brotli-zstd.md` is the pattern); a Prometheus `MetricsRecorder`; a Redis-backed keyed rate-limiter store; a samber/do composition-root guide (live: `docs/integrations/samber-do.md`); HTMX helper ideas (per-request `Vary`/nonce-aware fragment headers). Each fits an existing plugin interface; none belong in core.
+- **HSTS middleware** — `Strict-Transport-Security` with configurable max-age/includeSubDomains/preload. Deferred: HSTS is a policy decision that belongs to the deployer, but a validated config type would match the established `SecurityHeadersConfig` pattern.
+- **HTTPS-redirect helper** — a `RedirectToHTTPS` middleware behind `X-Forwarded-Proto` awareness. Deferred: proxy-dependent semantics (the header is spoofable without a trusted proxy, the same trust model as `ClientIP`).
+- **`MaxHeaderBytes` on ServerConfig** — Go's default 1 MiB is sane for this library's audience; a validated field would mirror `MaxBodySize`. Deferred until a real consumer need appears; note that `http.Server.MaxHeaderBytes` already exists and `NewServer` could pass it through with one line when needed.
 - **Idempotency-key middleware** — Stripe-style `Idempotency-Key` middleware is a legitimate httputil-shaped concern, but deferred to post-v1.0 to avoid scope creep against the API freeze. If pursued, define a native `IdempotencyStore` interface (Get/Save with TTL) rather than importing `go-idempotency` — its Store only dedupes keys (seen/not-seen), not the response body needed to replay a prior result. The `ResponseRecorder` captures status/headers/body but is not designed as a replay primitive; a separate cache type would be needed. See `docs/status/2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`.
 
 ## Dependency policy

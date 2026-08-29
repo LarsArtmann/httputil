@@ -290,6 +290,8 @@ Use `cfg.Validate()` to catch invalid configurations at startup (e.g., negative 
 
 ETag generation and `If-None-Match` handling via the [go-etag](https://github.com/larsartmann/go-etag) module. The middleware buffers GET/HEAD response bodies, computes an FNV-64a hash, and returns 304 Not Modified when the client's `If-None-Match` matches.
 
+> Pair ETags with explicit `Cache-Control`; without `Vary` on negotiated representations, caches may serve mismatched bodies. Cache policy belongs to the application (or a header middleware), conditional-request semantics to go-etag.
+
 ```go
 import "github.com/larsartmann/go-etag"
 

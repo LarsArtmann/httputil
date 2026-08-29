@@ -154,6 +154,10 @@ func (rl *KeyedRateLimiter) ActiveKeys() int {
 
 // Check tests whether the request is allowed under the rate limit.
 // Returns (true, "") if allowed, (false, retryAfter) if rejected.
+//
+// Tokens are consumed at admission: the decision is instantaneous and
+// request cancellation does not refund the consumed budget (see
+// docs/planning/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md).
 func (rl *KeyedRateLimiter) Check(r *http.Request) (bool, string) {
 	return rl.limiter.allow(r)
 }
