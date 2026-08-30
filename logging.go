@@ -23,14 +23,19 @@ func Logging(logger *slog.Logger) Middleware {
 				status = http.StatusOK
 			}
 
-			logger.Info(
-				"request",
+			attrs := []slog.Attr{
 				slog.String("method", req.Method),
 				slog.String("path", req.URL.Path),
 				slog.Int("status", status),
 				slog.Duration("duration", duration),
 				slog.String("client_ip", ClientIP(req)),
-			)
+			}
+
+			if requestID := RequestIDFromContext(req.Context()); requestID != "" {
+				attrs = append(attrs, slog.String("request_id", requestID))
+			}
+
+			logger.LogAttrs(req.Context(), slog.LevelInfo, "request", attrs...)
 		})
 	}
 }

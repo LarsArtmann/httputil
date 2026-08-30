@@ -401,6 +401,20 @@ func xContentTypeOptionsCheck(indexPath string) Check {
 	}
 }
 
+// listValuedHeaders are response headers for which RFC 7230 §3.2.2 makes
+// multiple field lines semantically IDENTICAL to one comma-joined line.
+// A middleware stack that legitimately contributes "Vary: Cookie" while
+// another adds "Vary: Accept-Encoding" (compression negotiation) is legal
+// HTTP, not a duplicate-header defect — so these are exempt from the
+// duplicate check. (Set-Cookie is also multi-line by design; every other
+// repeated header remains a failure.)
+var listValuedHeaders = map[string]struct{}{
+	"Vary":       {},
+	"Set-Cookie": {},
+	"Via":        {},
+	"Warning":    {},
+}
+
 func noDuplicateHeadersCheck(indexPath string) Check {
 	return func(handler http.Handler) Result {
 		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
@@ -408,7 +422,7 @@ func noDuplicateHeadersCheck(indexPath string) Check {
 		seenCanonical := make(map[string]string)
 
 		for key, values := range rec.Header() {
-			if len(values) > 1 {
+			if _, listValued := listValuedHeaders[key]; !listValued && len(values) > 1 {
 				return Fail(
 					"GET %s response has duplicate %q headers (%d values), which can confuse clients and proxies",
 					indexPath,

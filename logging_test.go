@@ -73,3 +73,43 @@ func BenchmarkLogging(b *testing.B) {
 		handler.ServeHTTP(rec, req)
 	}
 }
+
+// TestLogging_IncludesRequestID covers issue #2: when RequestID middleware
+// ran upstream of Logging, the request log must carry the request_id so a
+// log line can be correlated with the X-Request-ID response header.
+func TestLogging_IncludesRequestID(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(buf, nil))
+
+	handler := Chain(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+		RequestID(DefaultRequestIDConfig()),
+		Logging(logger),
+	)
+
+	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/test", ""))
+
+	out := buf.String()
+	if !strings.Contains(out, "request_id=") {
+		t.Errorf("log output missing request_id: %s", out)
+	}
+}
+
+// TestLogging_OmitsRequestIDWhenAbsent covers the inverse: without the
+// RequestID middleware, no empty request_id field may be emitted.
+func TestLogging_OmitsRequestIDWhenAbsent(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(buf, nil))
+
+	handler := Logging(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/test", ""))
+
+	if out := buf.String(); strings.Contains(out, "request_id") {
+		t.Errorf("log output should omit request_id when absent: %s", out)
+	}
+}

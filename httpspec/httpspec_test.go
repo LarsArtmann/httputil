@@ -720,7 +720,18 @@ func newNoSniffHandler() http.Handler {
 
 func newDuplicateHeaderHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header()["Set-Cookie"] = []string{"a=1", "b=2"}
+		w.Header()["Content-Type"] = []string{"text/html", "application/json"}
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+// newListValuedHeaderHandler emits two separate Vary field lines — legal per
+// RFC 7230 §3.2.2 (equivalent to one comma-joined line) and the exact shape
+// a CSRF-cookie middleware plus compression negotiation produce together.
+func newListValuedHeaderHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Add("Vary", "Cookie")
+		w.Header().Add("Vary", "Accept-Encoding")
 		w.WriteHeader(http.StatusOK)
 	})
 }
@@ -810,6 +821,17 @@ func TestNoDuplicateHeadersFailsWhenDuplicates(t *testing.T) {
 	result := noDuplicateHeadersCheck("/")(newDuplicateHeaderHandler())
 	if result.OK {
 		t.Error("expected failure when response has duplicate headers")
+	}
+}
+
+// List-valued headers (Vary, Set-Cookie, Via, Warning) may legally appear as
+// multiple field lines and must not fail the duplicate check.
+func TestNoDuplicateHeadersPassesForListValuedHeaders(t *testing.T) {
+	t.Parallel()
+
+	result := noDuplicateHeadersCheck("/")(newListValuedHeaderHandler())
+	if !result.OK {
+		t.Errorf("expected pass for legal multi-line Vary, got: %s", result.Message)
 	}
 }
 
