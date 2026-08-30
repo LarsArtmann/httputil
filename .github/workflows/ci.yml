@@ -14,6 +14,10 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     env:
+      # The root package imports encoding/json/v2 (2026-08-16 migration),
+      # which is experiment-gated: without this flag every go build/test fails
+      # with "build constraints exclude all Go files".
+      GOEXPERIMENT: jsonv2
       # setup-go's manifest lags new Go patches; pin the toolchain via Go
       # itself so govulncheck scans a stdlib with current security fixes.
       GOTOOLCHAIN: go1.26.6
@@ -79,6 +83,8 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    env:
+      GOEXPERIMENT: jsonv2
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 

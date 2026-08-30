@@ -401,6 +401,27 @@ func xContentTypeOptionsCheck(indexPath string) Check {
 	}
 }
 
+// listValuedHeaders are response headers that may legally appear as multiple
+// field lines. Three reasons, all legal HTTP rather than duplicate-header
+// defects: recipients may combine list-syntax fields into one comma-joined
+// line (RFC 9110 §5.2 — e.g. "Vary: Cookie" from CSRF-cookie middleware plus
+// "Vary: Accept-Encoding" from compression negotiation); multiple challenges
+// are explicitly blessed as separate lines (RFC 9110 §11.6.1); and Set-Cookie
+// can never be combined (RFC 9110 §5.6.1), so multiple lines are its only
+// legal form. Every other repeated header remains a failure. Keys use Go's
+// canonical MIME form ("Www-Authenticate", not the conventional spelling)
+// because http.Header iteration yields canonicalized names.
+//
+//nolint:gochecknoglobals // Immutable lookup table: list-valued headers never change at runtime.
+var listValuedHeaders = map[string]struct{}{
+	"Vary":               {},
+	"Set-Cookie":         {},
+	"Via":                {},
+	"Warning":            {},
+	"Www-Authenticate":   {},
+	"Proxy-Authenticate": {},
+}
+
 func noDuplicateHeadersCheck(indexPath string) Check {
 	return func(handler http.Handler) Result {
 		rec := serve(handler, mustRequest(http.MethodGet, indexPath))
@@ -408,7 +429,7 @@ func noDuplicateHeadersCheck(indexPath string) Check {
 		seenCanonical := make(map[string]string)
 
 		for key, values := range rec.Header() {
-			if len(values) > 1 {
+			if _, listValued := listValuedHeaders[key]; !listValued && len(values) > 1 {
 				return Fail(
 					"GET %s response has duplicate %q headers (%d values), which can confuse clients and proxies",
 					indexPath,

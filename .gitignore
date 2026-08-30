@@ -69,3 +69,9 @@ result-*
 .envrc
 .direnv/
 # <<< buildflow-managed (.gitignore) <<<
+
+# go.work is tracked on purpose: the CI module-boundary check verifies
+# workspace completeness, and the Go module proxy strips it from published
+# module zips, so downstream consumers never see it. Negated here (outside
+# the managed block) because the block above lists it as ignored.
+!go.work

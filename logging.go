@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -23,14 +24,23 @@ func Logging(logger *slog.Logger) Middleware {
 				status = http.StatusOK
 			}
 
-			logger.Info(
-				"request",
+			attrs := []slog.Attr{
 				slog.String("method", req.Method),
 				slog.String("path", req.URL.Path),
 				slog.Int("status", status),
 				slog.Duration("duration", duration),
 				slog.String("client_ip", ClientIP(req)),
-			)
+			}
+
+			if requestID := RequestIDFromContext(req.Context()); requestID != "" {
+				attrs = append(attrs, slog.String("request_id", requestID))
+			}
+
+			// WithoutCancel keeps context values (trace/span IDs) while detaching
+			// from request cancellation: Timeout() and client disconnects cancel
+			// the request context, and exactly those aborted-request logs must
+			// never be dropped by cancellation-aware slog handlers.
+			logger.LogAttrs(context.WithoutCancel(req.Context()), slog.LevelInfo, "request", attrs...)
 		})
 	}
 }
