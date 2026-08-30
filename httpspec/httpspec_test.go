@@ -725,13 +725,26 @@ func newDuplicateHeaderHandler() http.Handler {
 	})
 }
 
-// newListValuedHeaderHandler emits two separate Vary field lines — legal per
-// RFC 7230 §3.2.2 (equivalent to one comma-joined line) and the exact shape
-// a CSRF-cookie middleware plus compression negotiation produce together.
+// newListValuedHeaderHandler emits every list-valued header as two separate
+// field lines — legal per RFC 9110 §5.2 (combinable list syntax), §11.6.1
+// (multiple challenges), and §5.6.1 (Set-Cookie can never be combined) —
+// covering each key in listValuedHeaders so a typo there fails this test.
+// The conventional "WWW-Authenticate" spelling is written in Go's canonical
+// form because http.Header stores canonicalized keys.
 func newListValuedHeaderHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add("Vary", "Cookie")
 		w.Header().Add("Vary", "Accept-Encoding")
+		w.Header().Add("Set-Cookie", "a=1")
+		w.Header().Add("Set-Cookie", "b=2")
+		w.Header().Add("Via", "1.1 proxy-a")
+		w.Header().Add("Via", "1.1 proxy-b")
+		w.Header().Add("Warning", "199 - first")
+		w.Header().Add("Warning", "199 - second")
+		w.Header().Add("Www-Authenticate", `Basic realm="x"`)
+		w.Header().Add("Www-Authenticate", `Bearer realm="x"`)
+		w.Header().Add("Proxy-Authenticate", `Basic realm="x"`)
+		w.Header().Add("Proxy-Authenticate", `Bearer realm="x"`)
 		w.WriteHeader(http.StatusOK)
 	})
 }
@@ -824,14 +837,15 @@ func TestNoDuplicateHeadersFailsWhenDuplicates(t *testing.T) {
 	}
 }
 
-// List-valued headers (Vary, Set-Cookie, Via, Warning) may legally appear as
-// multiple field lines and must not fail the duplicate check.
+// List-valued headers (Vary, Set-Cookie, Via, Warning, Www-Authenticate,
+// Proxy-Authenticate) may legally appear as multiple field lines and must not
+// fail the duplicate check.
 func TestNoDuplicateHeadersPassesForListValuedHeaders(t *testing.T) {
 	t.Parallel()
 
 	result := noDuplicateHeadersCheck("/")(newListValuedHeaderHandler())
 	if !result.OK {
-		t.Errorf("expected pass for legal multi-line Vary, got: %s", result.Message)
+		t.Errorf("expected pass for legal multi-line list-valued headers, got: %s", result.Message)
 	}
 }
 

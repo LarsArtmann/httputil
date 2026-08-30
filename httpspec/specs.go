@@ -401,18 +401,25 @@ func xContentTypeOptionsCheck(indexPath string) Check {
 	}
 }
 
-// listValuedHeaders are response headers for which RFC 7230 §3.2.2 makes
-// multiple field lines semantically IDENTICAL to one comma-joined line.
-// A middleware stack that legitimately contributes "Vary: Cookie" while
-// another adds "Vary: Accept-Encoding" (compression negotiation) is legal
-// HTTP, not a duplicate-header defect — so these are exempt from the
-// duplicate check. (Set-Cookie is also multi-line by design; every other
-// repeated header remains a failure.)
+// listValuedHeaders are response headers that may legally appear as multiple
+// field lines. Three reasons, all legal HTTP rather than duplicate-header
+// defects: recipients may combine list-syntax fields into one comma-joined
+// line (RFC 9110 §5.2 — e.g. "Vary: Cookie" from CSRF-cookie middleware plus
+// "Vary: Accept-Encoding" from compression negotiation); multiple challenges
+// are explicitly blessed as separate lines (RFC 9110 §11.6.1); and Set-Cookie
+// can never be combined (RFC 9110 §5.6.1), so multiple lines are its only
+// legal form. Every other repeated header remains a failure. Keys use Go's
+// canonical MIME form ("Www-Authenticate", not the conventional spelling)
+// because http.Header iteration yields canonicalized names.
+//
+//nolint:gochecknoglobals // Immutable lookup table: list-valued headers never change at runtime.
 var listValuedHeaders = map[string]struct{}{
-	"Vary":       {},
-	"Set-Cookie": {},
-	"Via":        {},
-	"Warning":    {},
+	"Vary":               {},
+	"Set-Cookie":         {},
+	"Via":                {},
+	"Warning":            {},
+	"Www-Authenticate":   {},
+	"Proxy-Authenticate": {},
 }
 
 func noDuplicateHeadersCheck(indexPath string) Check {
