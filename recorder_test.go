@@ -155,11 +155,13 @@ func TestResponseRecorder_WriteAfterWriteHeader(t *testing.T) {
 }
 
 func BenchmarkResponseRecorder(b *testing.B) {
-	inner := httptest.NewRecorder()
-	recorder := NewResponseRecorder(inner)
 	body := []byte("hello world benchmark test data")
 
+	b.ReportAllocs()
+
 	for b.Loop() {
+		inner := httptest.NewRecorder()
+		recorder := NewResponseRecorder(inner)
 		_, _ = recorder.Write(body)
 	}
 }

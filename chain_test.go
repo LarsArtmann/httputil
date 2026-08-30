@@ -17,7 +17,11 @@ import (
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
-func TestChain_RecoveryLoggingCORS(t *testing.T) {
+// TestChain_CORSWithRecoveryAndLogging verifies that a CORS-preflight-relevant
+// request passes through a Recovery+Logging chain. The log and recovery
+// behaviors are asserted by their dedicated tests; this one pins the
+// pass-through composition.
+func TestChain_CORSWithRecoveryAndLogging(t *testing.T) {
 	t.Parallel()
 
 	logger := newTestLogger()

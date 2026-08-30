@@ -4,7 +4,7 @@
 > When an idea is refined into bounded work, it moves to [TODO_LIST.md](TODO_LIST.md).
 > Completed work is recorded in [CHANGELOG.md](CHANGELOG.md).
 
-_Updated: 2026-08-07._
+_Updated: 2026-08-30._
 
 ## Current Position
 
@@ -12,7 +12,7 @@ v0.9.0 (released 2026-08-05) ships request body decompression, hardened `Validat
 
 v0.9.1 (2026-08-06) is an RFC 7232 compliance patch for the ETag middleware.
 
-**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module; `httputil.ETag()` adapter deprecated in favor of `etag.New()` (composes directly via the `Middleware` type alias). `ServerConfig.TLSConfig` validation, decompression benchmarks/fuzz, and govulncheck in the devShell. 96.9% httputil / 98.8% httpspec coverage with ~70 linters at 0 issues.
+**In `[Unreleased]`:** Server-Timing extracted into a stdlib-only sub-module (`server_timing/`). ETag extracted to the independent `go-etag` module; `httputil.ETag()` adapter deprecated in favor of `etag.New()`. `Server.StartTLS` for HTTPS serving. A typed hierarchical error model (`Code`/`Domain`). The CORS origin-matching httpspec spec plus `ExpectJSON`/`ExpectHTML`/`ExpectVaryContains`/`ExpectNotModifiedWithETag` builders. A full-code-review pass (2026-08-30) fixed a critical compression exact-fill duplication bug, `Recovery`'s `ErrAbortHandler` handling, and hardened the test harnesses. 23 fuzz targets run nightly; 97.0% httputil / 98.8% httpspec coverage with ~70 linters at 0 issues.
 
 ## v0.9.0 — Feature additions
 
@@ -37,6 +37,8 @@ Before v1.0:
 - **HSTS middleware** — `Strict-Transport-Security` with configurable max-age/includeSubDomains/preload. Deferred: HSTS is a policy decision that belongs to the deployer, but a validated config type would match the established `SecurityHeadersConfig` pattern.
 - **HTTPS-redirect helper** — a `RedirectToHTTPS` middleware behind `X-Forwarded-Proto` awareness. Deferred: proxy-dependent semantics (the header is spoofable without a trusted proxy, the same trust model as `ClientIP`).
 - **`MaxHeaderBytes` on ServerConfig** — Go's default 1 MiB is sane for this library's audience; a validated field would mirror `MaxBodySize`. Deferred until a real consumer need appears; note that `http.Server.MaxHeaderBytes` already exists and `NewServer` could pass it through with one line when needed.
+- **Parked legacy brainstorm ideas (May–June 2026 sessions, never pursued)** — circuit-breaker middleware, request-header validation middleware, OpenTelemetry tracing integration, mutation testing, a fluent middleware-builder API, a JSON error-response helper, CORS regex origin matching, a `Version` constant, CODEOWNERS, a runnable `example/` directory, a body-capturing `ResponseRecorder` variant, `ResponseRecorder` context propagation, `http.ResponseWriter` wrapper-interface standardization, CORS origin map/trie + pre-joined config strings, per-request-string pre-computation audit, benchmark-regression CI gates, real-world-payload-size benchmarks, HTTP/2 integration tests, generating the AGENTS architecture table from code. None have consumer demand behind them; revisit individually only if one appears. Sources: the `2026-05-24`–`2026-06-17` status report f-lists.
+- **CSP nonce extensions (post-v1.0 candidate batch)** — ideas floated across the 2026-08-08 nonce audits and still unimplemented: a `StrictCSP` preset (Mozilla template), CSP Report-Only / `ReportURI` support for staged rollouts, hash-source (`Nonce-SHA256`) allowlisting, per-route nonce injection (`NonceMiddlewareWhen`), automatic `Cache-Control: no-store` pairing, and a nonce httpspec spec. Each is additive config surface; none block v1.0. Sources: `2026-08-08_03-20` f8/f12/f16, `2026-08-08_06-54` f3/f15/f16.
 - **Idempotency-key middleware** — Stripe-style `Idempotency-Key` middleware is a legitimate httputil-shaped concern, but deferred to post-v1.0 to avoid scope creep against the API freeze. If pursued, define a native `IdempotencyStore` interface (Get/Save with TTL) rather than importing `go-idempotency` — its Store only dedupes keys (seen/not-seen), not the response body needed to replay a prior result. The `ResponseRecorder` captures status/headers/body but is not designed as a replay primitive; a separate cache type would be needed. See `docs/status/2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`.
 
 ## Dependency policy
@@ -56,4 +58,9 @@ Things we are deliberately NOT pursuing and why:
 - **Removing `nopCloserWriter` / `nopFlushCloser`** — defensive scaffolding for the `WriterFactory` contract; kept for API safety.
 - **Removing `TokenBucketLimiter` before v1.0** — deprecated, but removal waits for the v1.0 stability freeze to avoid breaking consumers.
 - **Property-based tests for token bucket** — existing benchmarks and integration tests cover the contract; adding rapid/quickcheck would violate the dependency policy.
+- **`MustNewTokenBucketLimiter`** — would add code to a deprecated API.
+- **`AllowN` on the rate limiter interface** — evaluated and rejected: `KeyedRateLimiter` uses `MaxKeys` and per-key capacity, not per-request burst; `AllowN` is the wrong primitive.
+- **Exporting `delegatingWriter`** — internal ResponseWriter plumbing; not part of the public API.
+- **Wrapping post-header-commit body-write errors** — unreportable in Go's Handler model; the "honest silence" contract is documented in AGENTS.md.
+- **Re-exporting go-etag domain types from httputil** — the adapter exists for composition, not API duplication (see [docs/adr/0001](docs/adr/0001-adapter-pattern-for-external-middleware.md)).
 - **Retry middleware** — application-layer concern (retrying outbound calls with backoff). No natural integration point in a server-side `func(http.Handler) http.Handler` middleware chain; a "retry middleware" would semantically mean replaying inbound requests through the handler, which is unsafe for non-idempotent methods. See `docs/status/2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`.

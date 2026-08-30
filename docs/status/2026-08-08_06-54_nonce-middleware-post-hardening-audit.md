@@ -99,8 +99,8 @@ Adding `cfg.Validate()` to `Nonce()` introduced an error-logging branch (`slog.E
 7. **Property test for nonce entropy** — Statistical test verifying uniform distribution across 10K nonces. Low priority; `crypto/rand` is already well-vetted.
 8. **Nonce + compression composition test** — Verify CSP header survives compression middleware. Low priority; headers are not compressed.
 9. **Nonce + ETag interaction test** — Nonce changes per request, so ETag body hash changes. Not a conflict but worth documenting.
-10. **`art-dupl --type-aware` run** — Verify no new code duplication from the test additions. Not run this session.
-11. **`govulncheck`** — Not run this session (was last run at v0.10.0 tag).
+10. ~~**`art-dupl --type-aware` run** — Verify no new code duplication from the test additions. Not run this session.~~ done (art-dupl: 0 clone groups (AGENTS))
+11. ~~**`govulncheck`** — Not run this session (was last run at v0.10.0 tag).~~ done (govulncheck clean (CI + README badge))
 
 ---
 
@@ -142,8 +142,8 @@ The only self-critique: **I didn't write a test for the new `Validate()` error-l
 
 | # | Task                                                                                                                                                                                                 | Effort | Impact |
 | - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1 | **Add test for `Nonce()` with invalid config** — construct `Nonce(NonceConfig{Size: 8})`, verify it doesn't panic and still serves requests with default-size nonces. Closes the 92.3% coverage gap. | 5 min  | Medium |
-| 2 | **Fix `update-coverage-badge.sh` sed pattern** — the replacement creates triple-nested brackets. The `new_badge` variable format doesn't match the sed regex escaping.                               | 10 min | Medium |
+| ~~1~~ | ~~**Add test for `Nonce()` with invalid config** — construct `Nonce(NonceConfig{Size: 8})`, verify it doesn't panic and still serves requests with default-size nonces. Closes the 92.3% coverage gap.~~ done — v0.11.0: TestNonce_InvalidConfigLogsAndFallsBack, Nonce() at 100% | ~~5 min~~ | ~~Medium~~ |
+| ~~2~~ | ~~**Fix `update-coverage-badge.sh` sed pattern** — the replacement creates triple-nested brackets. The `new_badge` variable format doesn't match the sed regex escaping.~~ done — v0.11.0 Fixed: awk whole-line replacement | ~~10 min~~ | ~~Medium~~ |
 
 ### Hardening
 
@@ -155,15 +155,15 @@ The only self-critique: **I didn't write a test for the new `Validate()` error-l
 | 6  | **Add `TestNonce_WithCompression` composition test** — verify CSP header survives compression middleware             | 10 min | Low    |
 | 7  | **Add `TestNonce_WithETag` composition test** — document that nonce changes per request so ETag body hash changes    | 10 min | Low    |
 | 8  | **Add property test for nonce entropy** — statistical uniformity across 10K nonces                                   | 30 min | Low    |
-| 9  | **Run `art-dupl --type-aware`** — verify no new duplication from test additions                                      | 5 min  | Low    |
-| 10 | **Run `govulncheck`** — verify no new vulnerabilities                                                                | 2 min  | Low    |
+| ~~9~~  | ~~**Run `art-dupl --type-aware`** — verify no new duplication from test additions~~ done — art-dupl: 0 clone groups (AGENTS) | ~~5 min~~ | ~~Low~~ |
+| ~~10~~ | ~~**Run `govulncheck`** — verify no new vulnerabilities~~ done — govulncheck clean (CI + README badge) | ~~2 min~~ | ~~Low~~ |
 
 ### Architecture Improvements
 
 | #  | Task                                                                                                                                   | Effort | Impact |
 | -- | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 11 | **CSP conflict detection** — warn when both `SecurityHeaders.ContentSecurityPolicy` and `Nonce.CSPBuilder` are set with wrong ordering | 30 min | High   |
-| 12 | **Resolve `Validate()` inconsistency across all middleware** — either call it everywhere or document why some do and some don't        | 1 hr   | Medium |
+| ~~12~~ | ~~**Resolve `Validate()` inconsistency across all middleware** — either call it everywhere or document why some do and some don't~~ done — v0.11.0: validate-at-construction unified across all constructors | ~~1 hr~~ | ~~Medium~~ |
 | 13 | **Evaluate shared `crypto/rand` buffer** — amortize syscall across nonce + request-ID generation                                       | 30 min | Low    |
 | 14 | **Consider `NonceConfig.NoStore bool`** — automatic `Cache-Control: no-store` when nonce CSP is set                                    | 15 min | Medium |
 | 15 | **Consider `NonceReportOnly` variant** — CSP-Report-Only header for gradual rollout                                                    | 20 min | Medium |
@@ -183,20 +183,20 @@ The only self-critique: **I didn't write a test for the new `Validate()` error-l
 | #  | Task                                                                                                                                                  | Effort | Impact |
 | -- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 21 | **Add `FuzzNonceCSPBuilder`** — fuzz the CSP builder functions with arbitrary nonce strings (not just valid base64)                                   | 10 min | Low    |
-| 22 | **Add `TestNonce_MultipleInstances`** — verify multiple `Nonce()` instances in one stack produce different nonces                                     | 5 min  | Low    |
+| ~~22~~ | ~~**Add `TestNonce_MultipleInstances`** — verify multiple `Nonce()` instances in one stack produce different nonces~~ done — v0.11.0 context-isolation + 08-29 nested-Nonce overwrite tests | ~~5 min~~ | ~~Low~~ |
 | 23 | **Add test for nonce in error responses** — should 500/403 carry a CSP nonce? Currently they do (middleware runs before handler). Document with test. | 10 min | Low    |
-| 24 | **Add `go doc` output verification** — ensure `go doc Nonce` renders correctly with examples                                                          | 5 min  | Low    |
+| ~~24~~ | ~~**Add `go doc` output verification** — ensure `go doc Nonce` renders correctly with examples~~ done — T21: go doc renders (server_timing); nonce godoc verified in examples | ~~5 min~~ | ~~Low~~ |
 
 ### Polish
 
 | #  | Task                                                                                                                                                                                          | Effort | Impact |
 | -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 25 | **Optimize `NonceAttr` — remove `html.EscapeString`** — base64 URL-safe encoding doesn't need it. Or add a comment explaining the defense-in-depth cost is negligible (benchmark exists now). | 5 min  | Low    |
+| ~~25~~ | ~~**Optimize `NonceAttr` — remove `html.EscapeString`** — base64 URL-safe encoding doesn't need it. Or add a comment explaining the defense-in-depth cost is negligible (benchmark exists now).~~ done — benchmark exists proving the cost negligible (BenchmarkNonceAttr) | ~~5 min~~ | ~~Low~~ |
 | 26 | **Consider `NonceAttrScript` and `NonceAttrStyle`** — convenience helpers returning `<script nonce="...">` and `<style nonce="...">`                                                          | 10 min | Low    |
 | 27 | **Add `StrictCSP` preset** — Mozilla's recommended strict CSP template                                                                                                                        | 30 min | Medium |
 | 28 | **Consider `NonceConfig.ReportURI`** — set `report-uri` / `report-to` for CSP violation reporting                                                                                             | 20 min | Medium |
 | 29 | **Consider `NonceMetrics`** — track nonce generation count in metrics middleware                                                                                                              | 20 min | Low    |
-| 30 | **Add nonce to ROADMAP.md** if it tracks shipped features                                                                                                                                     | 2 min  | Low    |
+| ~~30~~ | ~~**Add nonce to ROADMAP.md** if it tracks shipped features~~ done — FEATURES/ROADMAP/CHANGELOG track nonce | ~~2 min~~ | ~~Low~~ |
 
 ### Future / Lower Priority
 
@@ -204,7 +204,7 @@ The only self-critique: **I didn't write a test for the new `Validate()` error-l
 | -- | --------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
 | 31 | **Add `Nonce-SHA256` support** — CSP Level 3 hash-based allowlisting                                                        | 1 hr   | Low    |
 | 32 | **Evaluate `Content-Security-Policy-Report-Only` middleware** — staged enforcement                                          | 20 min | Medium |
-| 33 | **Tag v0.11.0** — nonce hardening (Validate-at-construction, new tests, doc fixes) is a meaningful improvement over v0.10.0 | 5 min  | Medium |
+| ~~33~~ | ~~**Tag v0.11.0** — nonce hardening (Validate-at-construction, new tests, doc fixes) is a meaningful improvement over v0.10.0~~ done — v0.11.0 tagged 2026-08-09 | ~~5 min~~ | ~~Medium~~ |
 
 ---
 

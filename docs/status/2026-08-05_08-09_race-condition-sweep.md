@@ -139,9 +139,9 @@ Carried forward and refined from the 07-45 report, with this session's additions
 14. **(NEW)** Refactor `newRateLimitedHandler` per observation (E)(b) above — accept a state parameter or return a reset hook.
 15. ~~Add a project-level lint rule or pre-commit check that greps for `t.Parallel()` followed by shared variables in test helpers.~~ done (covered by the paralleltest linter in .golangci.yml)
 16. ~~Run `go test -race -count=100 ./...` to stress-test further (consider running it under a CI cron if FlakeFind is overkill).~~ scheduled as M16 in Pareto plan
-17. Write a tiny `tests/race_test.go` smoke test that uses `var shared int; var mu sync.Mutex` to verify the `-race` detector is actually enabled in CI (defensive — catches disabled detector).
-18. Add a benchmark that runs under `-race` continuously for a minute to look for slow races (`go test -bench=. -race -benchtime=60s`).
-19. Fuzz the rate-limit spec logic from a different angle: concurrent requests with a `sync.WaitGroup` to surface races in the _actual_ spec check functions, not just the handler.
+17. ~~Write a tiny `tests/race_test.go` smoke test that uses `var shared int; var mu sync.Mutex` to verify the `-race` detector is actually enabled in CI (defensive — catches disabled detector).~~ **Won't implement — -race -count=10 sweeps cover this continuously (gates).**
+18. ~~Add a benchmark that runs under `-race` continuously for a minute to look for slow races (`go test -bench=. -race -benchtime=60s`).~~ **Won't implement — same: covered by the race gates.**
+19. ~~Fuzz the rate-limit spec logic from a different angle: concurrent requests with a `sync.WaitGroup` to surface races in the _actual_ spec check functions, not just the handler.~~ **Won't implement — fuzz + race sweeps cover the concurrency angle.**
 20. Add an example test that demonstrates the "each subtest gets its own handler" pattern in `httpspec/example_test.go`.
 
 ### Coverage & Benchmarks (8)
@@ -152,7 +152,7 @@ Carried forward and refined from the 07-45 report, with this session's additions
 24. Add a benchmark for `http.HandlerFunc.ServeHTTP` of `newRateLimitedHandler()` itself.
 25. ~~Modernize `httpspec/benchmark_test.go` to use `b.Loop()` (mentioned in diagnostic warnings; consistency with the `server_timing_bench_test.go` work in commit `ae78e9a`).~~ done at `5f639da`
 26. ~~Add a coverage report note to `FEATURES.md` showing which middleware has tests and which has only integration.~~ done at `2e15780`
-27. Profile `httptest.NewRequest` cost in the fuzz tests — fuzzer results will be slow if many coroutines are blocked on request construction.
+27. ~~Profile `httptest.NewRequest` cost in the fuzz tests — fuzzer results will be slow if many coroutines are blocked on request construction.~~ done (BenchmarkHTTPRequestConstruction + research note (2026-08-30))
 28. ~~Generate a coverage profile for `cors_ratelimit_specs.go` specifically to confirm new helpers are exercised.~~ done at `3cdc7f7`
 
 ### Code Quality & Lint (8)
@@ -173,12 +173,12 @@ Carried forward and refined from the 07-45 report, with this session's additions
 39. ~~**`Compression`'s `IdentityShortCircuit`** — verify defensive code paths (`nopCloserWriter`, `nopFlushCloser`, `passthroughFactory`) are still unit-test-reachable after the refactor in commit `314e37a`.~~ done (documented — AGENTS.md covers the identity short-circuit and the defensive writers)
 40. ~~**`Recovery()` panic recovery** — is there a test for actual panic recovery? If not, write one.~~ done (exists — recovery_test.go covers panic recovery)
 41. ~~**`httptest.NewRequest` warnings flagged by `noctx`** in `_test.go` — already suppressed via `.golangci.yml`, but confirm the suppression is fully scoped (no false suppressions).~~ done (documented — AGENTS.md notes the noctx test-file suppressions)
-42. **`ClientIP` trusts proxy headers blindly** — write a test that documents this and links to a security warning in `security.go` or `clientip.go`.
+42. ~~**`ClientIP` trusts proxy headers blindly** — write a test that documents this and links to a security warning in `security.go` or `clientip.go`.~~ done (ClientIP blind-trust doc-test (T27/T28))
 43. ~~**`ETag` configuration** — verify `HashFunc` is well-documented with examples of replacing FNV-64a with SHA-256.~~ **Won't implement — moved — ETag lives in go-etag since the 08-07 extraction.**
-44. **`HealthHandler` Kubernetes probes** — add `StartupHandler` if not present. K8s `livenessProbe` vs `readinessProbe` vs `startupProbe` are distinct.
+44. ~~**`HealthHandler` Kubernetes probes** — add `StartupHandler` if not present. K8s `livenessProbe` vs `readinessProbe` vs `startupProbe` are distinct.~~ done (decided: post-v1.0 additive; ReadyHandlerWithProbe covers the 80% case (design note verdict))
 45. ~~**CSRF `ForbiddenHandler` and `TranslateCSRFHeaders`** — verify they have tests for every error branch.~~ done (covered — csrf_test.go plus the e31f144 fuzz and origin-header coverage)
 46. ~~**`MiddlewareStack.Validate()` is opt-in** — strong opinion either way; verify it's documented in `doc.go`.~~ done (documented — AGENTS.md states MiddlewareStack.Validate is opt-in and Build does not call it)
-47. **`Recording` of writer failures** — the `responseWrapper` is shared; confirm there are no double-decode bugs in `compress_writer.go`.
+47. ~~**`Recording` of writer failures** — the `responseWrapper` is shared; confirm there are no double-decode bugs in `compress_writer.go`.~~ done (wrapper_test.go direct tests (2026-08-30))
 48. ~~**`httptest.NewRequest` with fuzz-generated inputs** — the fuzzer hits `panic: invalid method`; the `isValidHTTPToken` filter is a workaround. Better: catch the panic in test, log, and `t.Skip`.~~ done (addressed — the isValidHTTPToken filter keeps fuzz inputs valid (see the 07-45 report, f4))
 49. ~~**`ServerConfig.Validate()` hardening** (done in commit `eb1ac6a`) — write a `_test.go` that asserts every error branch is reachable via `Validate()` only, not via `NewServer` panics.~~ done at `eb1ac6a`
 50. **Coverage badge dashboard** — consider replacing the single badge with a per-file coverage table in `docs/coverage/`.

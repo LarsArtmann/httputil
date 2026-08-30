@@ -1,6 +1,8 @@
 package httputil
 
 import (
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"io"
 	"net/http"
@@ -16,21 +18,15 @@ var errMockCompressWriteFailed = errors.New("mock compression write failed")
 
 var errMockCompressCloseFailed = errors.New("mock compression close failed")
 
-// testPassthroughFactory is a minimal WriterFactory used by compressWriter
-// unit tests where a real encoder is not exercised.
-var testPassthroughFactory = WriterFactory(func(dst io.Writer) (io.WriteCloser, error) {
-	return nopCloserWriter{dst}, nil
-})
-
-// newTestCompressWriter builds a compressWriter backed by testPassthroughFactory
+// newTestCompressWriter builds a compressWriter backed by passthroughFactory
 // and a fresh writer pool, for unit tests that manipulate writer state directly.
 func newTestCompressWriter() *compressWriter {
 	return newCompressWriter(
 		newRecorder(),
 		defaultCompressionMinSize,
 		encodingGzip,
-		testPassthroughFactory,
-		newWriterPool(testPassthroughFactory),
+		passthroughFactory,
+		newWriterPool(passthroughFactory),
 		nil,
 	)
 }
@@ -118,6 +114,100 @@ func TestCompressWriter_Close_ReturnsClassifiedError(t *testing.T) {
 	assertCompressClassified(t, err, errMockCompressCloseFailed)
 }
 
+// TestCompressWriter_CloseTwice_IsIdempotent verifies that calling Close
+// twice on a compressing writer does not panic and reports no error on the
+// second call: the first Close nils the writer and clears the compressing
+// flag, so the second Close takes the buffered no-op path.
+func TestCompressWriter_CloseTwice_IsIdempotent(t *testing.T) {
+	t.Parallel()
+
+	compressWriter := newTestCompressWriter()
+	compressWriter.compressing = true
+	compressWriter.writer = &failingCompressWriter{}
+
+	firstErr := compressWriter.Close()
+	if firstErr != nil {
+		t.Fatalf("first Close() error = %v, want nil", firstErr)
+	}
+
+	secondErr := compressWriter.Close()
+	if secondErr != nil {
+		t.Fatalf("second Close() error = %v, want nil", secondErr)
+	}
+}
+
+// TestCompressWriter_CloseErrorThenCloseAgain_StaysIdempotent verifies that
+// after a failing compression-writer Close, the state is still reset so a
+// second Close neither panics nor re-reports the failure.
+func TestCompressWriter_CloseErrorThenCloseAgain_StaysIdempotent(t *testing.T) {
+	t.Parallel()
+
+	compressWriter := newTestCompressWriter()
+	compressWriter.compressing = true
+	compressWriter.writer = &failingCompressWriter{failClose: true}
+
+	firstErr := compressWriter.Close()
+
+	assertCompressClassified(t, firstErr, errMockCompressCloseFailed)
+
+	secondErr := compressWriter.Close()
+	if secondErr != nil {
+		t.Fatalf("second Close() error = %v, want nil", secondErr)
+	}
+}
+
+// TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated pins the regression
+// found by FuzzCompression (2026-08-30): a Write that exactly fills the
+// buffer to minSize used to fall through with the payload unconsumed, so the
+// bytes were compressed and emitted twice. The decoded stream must equal the
+// written payload exactly.
+func TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated(t *testing.T) {
+	t.Parallel()
+
+	factory := GzipWriterFactory(gzip.DefaultCompression)
+	rec := newRecorder()
+	rec.Header().Set("Content-Type", "text/plain")
+
+	compressWriter := newCompressWriter(
+		rec,
+		8,
+		encodingGzip,
+		factory,
+		newWriterPool(factory),
+		nil,
+	)
+
+	payload := []byte("01234567") // exactly minSize bytes
+
+	if _, err := compressWriter.Write(payload); err != nil {
+		t.Fatalf("Write() error = %v, want nil", err)
+	}
+
+	if err := compressWriter.Close(); err != nil {
+		t.Fatalf("Close() error = %v, want nil", err)
+	}
+
+	zr, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("gzip.NewReader() error = %v, want nil", err)
+	}
+
+	decoded, err := io.ReadAll(zr)
+	if err != nil {
+		t.Fatalf("gzip decode error = %v, want nil", err)
+	}
+
+	if !bytes.Equal(decoded, payload) {
+		t.Errorf(
+			"decoded body = %q (%d bytes), want %q (%d bytes)",
+			decoded,
+			len(decoded),
+			payload,
+			len(payload),
+		)
+	}
+}
+
 // TestCompressWriter_StartCompression_PoolTypeMismatch verifies that a pooled
 // object of an unexpected type produces a classified error instead of a panic.
 // The pool's New always returns a non-writeCloseFlusher value, so Get() is
@@ -200,7 +290,7 @@ var erroringFactory = WriterFactory(func(io.Writer) (io.WriteCloser, error) {
 })
 
 // TestCompressWriter_PassthroughWriterRoundTrip drives startCompression through
-// the testPassthroughFactory (which yields nopCloserWriter), then exercises
+// the passthroughFactory (which yields nopCloserWriter), then exercises
 // Flush and Close on that writer. This covers nopCloserWriter.Flush,
 // nopCloserWriter.Close, and passthroughFactory — code reachable only via
 // direct compressWriter construction since the Compression middleware
@@ -256,8 +346,8 @@ func TestCompressWriter_FlushPlainBufferedWriteError(t *testing.T) {
 		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
 		defaultCompressionMinSize,
 		encodingGzip,
-		testPassthroughFactory,
-		newWriterPool(testPassthroughFactory),
+		passthroughFactory,
+		newWriterPool(passthroughFactory),
 		nil,
 	)
 	compressWriter.WriteHeader(http.StatusNotFound)
@@ -278,8 +368,8 @@ func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
 		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
 		defaultCompressionMinSize,
 		encodingGzip,
-		testPassthroughFactory,
-		newWriterPool(testPassthroughFactory),
+		passthroughFactory,
+		newWriterPool(passthroughFactory),
 		nil,
 	)
 	compressWriter.WriteHeader(http.StatusOK)
@@ -302,7 +392,7 @@ func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
 		defaultCompressionMinSize,
 		encodingGzip,
 		erroringFactory,
-		newWriterPool(testPassthroughFactory),
+		newWriterPool(passthroughFactory),
 		nil,
 	)
 	compressWriter.WriteHeader(http.StatusOK)
@@ -376,12 +466,29 @@ func TestCompressWriter_StartCompressAndStream_EmptyRemainder(t *testing.T) {
 func TestCompressWriter_FlushInPlainMode(t *testing.T) {
 	t.Parallel()
 
-	compressWriter := newTestCompressWriter()
+	rec := newRecorder()
+	compressWriter := newCompressWriter(
+		rec,
+		defaultCompressionMinSize,
+		encodingGzip,
+		passthroughFactory,
+		newWriterPool(passthroughFactory),
+		nil,
+	)
 	compressWriter.WriteHeader(http.StatusOK)
 
 	_, _ = compressWriter.Write([]byte("small"))
 	compressWriter.Flush()
+
+	if !compressWriter.plain {
+		t.Error("writer did not enter plain mode after buffered Flush")
+	}
+
 	compressWriter.Flush()
+
+	if got := rec.Body.String(); got != "small" {
+		t.Errorf("flushed body = %q, want %q", got, "small")
+	}
 }
 
 // TestCompressWriter_FlushPlainAndStream_EmptyRemainder covers the len(b)==0
@@ -407,15 +514,12 @@ func TestCompressWriter_FlushPlainAndStream_EmptyRemainder(t *testing.T) {
 }
 
 // TestNewWriterPool_PanicsOnFactoryError covers the panic branch in
-// newWriterPool when the factory fails to construct a writer.
+// newWriterPool when the factory fails to construct a writer. Reuses
+// erroringFactory rather than a duplicate local factory.
 func TestNewWriterPool_PanicsOnFactoryError(t *testing.T) {
 	t.Parallel()
 
-	badFactory := WriterFactory(func(io.Writer) (io.WriteCloser, error) {
-		return nil, errMockCompressWriteFailed
-	})
-
-	pool := newWriterPool(badFactory)
+	pool := newWriterPool(erroringFactory)
 
 	defer func() {
 		if r := recover(); r == nil {

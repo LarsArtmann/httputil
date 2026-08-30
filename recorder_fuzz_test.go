@@ -105,5 +105,17 @@ func FuzzLimitedReadCloser(f *testing.F) {
 		}
 
 		_ = limited.Close()
+
+		// The bomb-protection boundary close must fire at most once: the
+		// channel has capacity 1, so a second Close signal would be dropped
+		// by the non-blocking send and this assertion would not observe it.
+		select {
+		case <-closed:
+		default:
+			if total >= limit && len(payload) > limit {
+				// Only meaningful when the limit was actually tripped.
+				t.Errorf("boundary close did not fire for payload %d > limit %d", len(payload), limit)
+			}
+		}
 	})
 }

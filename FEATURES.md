@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-08-09 — validate-at-construction unified across all middleware. Coverage 96.9% (`httputil`), 98.8% (`httpspec`). All claims checked with `go test -race -coverprofile`._
+_Updated: 2026-08-30 — full-code-review executed (critical compression exact-fill duplication fix, `Recovery`/`ErrAbortHandler`, Close idempotency). Coverage 97.0% (`httputil`), 98.8% (`httpspec`) with race detection. All claims checked with `go test -race -coverprofile`._
 
 ---
 
@@ -28,7 +28,7 @@ _Updated: 2026-08-09 — validate-at-construction unified across all middleware.
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`    | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`  | —                   |
 | Decompression            | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | `ExampleDecompression`              | `BenchmarkDecompression*`     | `FuzzDecompression` |
-| ETag                     | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | —                             | —                   |
+| ETag _(deprecated)_      | `etag.go` (adapter)                  | `etag.ETagConfig` (from go-etag)                            | Yes   | `ExampleETag`                       | `BenchmarkETagAdapterOverhead` (zero-cost passthrough) | —                   |
 | CSP Nonce                | `nonce.go`                             | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders       | Yes   | `ExampleNonce`                      | `BenchmarkNonce*`             | `FuzzNonce`         |
 
 Plus `Chain()` in `recorder.go` for middleware composition.
@@ -162,9 +162,9 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **96.9% statement coverage** (`httputil`), **98.8%** (`httpspec`) — measured 2026-08-29 with race detection enabled.
-- 19 fuzz tests covering CORS (origin matching, wildcard patterns), Compression (compression writer state), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), Decompression (malformed compressed bodies), and CSRF (6 functions: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). CORS, query params, eviction, health, compression, decompression, and CSRF fuzz tests verified with `-fuzztime`.
-- 43 benchmarks and 25 example functions across both packages.
+- `go test -race ./...` passes across the full suite with **97.0% statement coverage** (`httputil`), **98.8%** (`httpspec`) — measured 2026-08-30 with race detection enabled.
+- 23 fuzz targets (21 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns), Compression (round-trip gunzip-and-compare invariant + writer state machine), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), and CSRF (6 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). All 23 targets run 5 minutes each in the nightly fuzz workflow.
+- 57 top-level benchmark functions (70 result rows counting `b.Run` sub-benchmarks) and 26 example functions across `httputil` + `httpspec` (`server_timing` has none).
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
@@ -176,7 +176,7 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 - `httpspec.Run(t, handler)` validates any `http.Handler` against 18 standard HTTP behavior specs.
 - `httpspec.RunSerial(t, handler)` variant for handlers with shared mutable state.
-- 7 pre-built extra specs available via `WithExtraSpecs`: `CORSSpecs()` (4 specs: allow-origin, allow-credentials, Vary: Origin, wildcard-no-credentials) and `RateLimitSpecs()` (3 specs: Retry-After on reject, X-RateLimit-* headers on reject, hint headers on allow). Total: 25 specs when all are included.
+- 8 pre-built extra specs available via `WithExtraSpecs`: `CORSSpecs()` (5 specs: allow-origin, allow-credentials, Vary: Origin, wildcard-no-credentials, origin-matches-request) and `RateLimitSpecs()` (3 specs: Retry-After on reject, X-RateLimit-* headers on reject, hint headers on allow). Total: 26 specs when all are included.
 - Specs cover routing (index reachability, unknown paths, long URLs), method handling (HEAD, OPTIONS, TRACE, POST, CONNECT), response headers (Content-Type, Location on redirects, no duplicate headers, Accept header handling), and security (no leaked internals, no version fingerprints, no X-Powered-By, X-Content-Type-Options: nosniff).
 - Extensible via `SkipSpec`, `WithExtraSpecs`, `WithIndexPath`.
 - Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`, `ExpectJSON` (validates body parses as JSON + JSON Content-Type), `ExpectHTML` (HTML Content-Type incl. XHTML), `ExpectVaryContains` (cache-correctness, `Vary: *` aware), `ExpectNotModifiedWithETag` (opt-in 304 contract via `WithExtraSpecs`).
@@ -188,40 +188,45 @@ Plus `Chain()` in `recorder.go` for middleware composition.
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-08-29 with `go test -race -coverprofile`: **96.9%** (`httputil`), **98.8%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-08-30 with `go test -race -coverprofile`: **97.0%** (`httputil`), **98.8%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
-**New middleware (CSRF, Server-Timing, KeyedRateLimit):**
+**Typed error model (`code.go`):**
 
-- `csrf.go:209 ConfigureNosurfHandler` — 81.8%. TrustedOrigins parse error branch (internal to nosurf).
-- `csrf.go:506 CSRFTokenHXHeaders` — 71.4%. `json.Marshal` error on `map[string]string` (practically unreachable).
-- `csrf.go:542 CSRFTestToken` — 92.9%. Internal nosurf error branches.
-- `csrf.go:577 ValidateCSRF` — 92.9%. Nosurf TrustedOrigins parse failure paths.
-- `compression.go:171 Compression` — 95.5%. Vary-header identity-append edge (reachable only via direct unit construction).
-- `compression_negotiator.go:148 scanAcceptEncoding` — 95.5%. q-value tie-break with identical values (low priority).
-- `ratelimit_keyed.go:165 buildKeyedRateLimiter` — 92.9%. Defensive config validation edge.
-- `ratelimit_keyed.go:282 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
-- `ratelimit_keyed.go:346 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
-- `security.go:92 SecurityHeaders` — 84.2%. Custom header application edge cases.
+- `code.go:45 Code.Conflict`, `code.go:65 Code.Orchestration`, `code.go:72 Code.WrapRejection` — 0%. Exported constructor methods kept for `Code` API completeness (every family has a constructor); not yet exercised by any test. Candidates for direct tests at the v1.0 hardening pass.
+
+**New middleware (CSRF, Server-Timing, KeyedRateLimit, Nonce, TLS):**
+
+- `csrf.go:230 ConfigureNosurfHandler` — 81.8%. TrustedOrigins parse error branch (internal to nosurf).
+- `csrf.go:525 CSRFTokenHXHeaders` — 71.4%. `json.Marshal` error on `map[string]string` (practically unreachable).
+- `csrf.go:561 CSRFTestToken` — 92.9%. Internal nosurf error branches.
+- `csrf.go:596 ValidateCSRF` — 92.9%. Nosurf TrustedOrigins parse failure paths.
+- `ratelimit_keyed.go:197 buildKeyedRateLimiter` — 93.1%. Defensive config validation edge.
+- `ratelimit_keyed.go:317 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
+- `ratelimit_keyed.go:381 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
+- `nonce.go:115 generateNonce` — 80.0%. `crypto/rand` error path (kernel-level fault injection).
+- `server.go:206 StartTLS` — 83.3%. Listen-failure error branch (requires port-conflict injection).
+- `compression_negotiator.go:142 scanAcceptEncoding` — 95.5%. q-value tie-break with identical values (low priority).
 
 **Decompression middleware:**
 
-- `decompression.go:62 Decompression` — 78.1%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate).
+- `decompression.go:79 Decompression` — 84.8%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
 
 **Pre-existing (error-injection / internal paths):**
 
 - `id_generator.go:100 drawRandomBytes` — 66.7%. `crypto/rand` error path (requires kernel-level fault injection).
 - `id_generator.go:139 refillRandomBuffer` — 87.5%. `crypto/rand` partial-read error path.
-- `httpspec.go:232 runSpecs` — 88.2%. Internal option error paths.
+- `httpspec/httpspec.go:234 runSpecs` — 88.2%. Internal option error paths.
+- `httpspec/httpspec.go:314 isJSONContentType` / `:325 isHTMLContentType` — 80.0% each. Structured-syntax-suffix branches (`+json`/`+xml`) exercised only via the suffix test matrix.
 
-**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
+**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths or error-injection-only branches. Closing them would require either (a) kernel-level fault injection for `crypto/rand`, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project. The three 0% `Code` constructors are API-completeness, not defensive paths — they get tests or a documented decision at the v1.0 hardening pass.
 
 ---
 
 ## PLANNED
 
-### Near-term
+### Near-term (v1.0 gate)
 
-- _(none — all near-term items shipped in v0.9.0/v0.9.1)_
+- **v1.0 release** — one stabilization cycle, then remove the deprecated `TokenBucketLimiter`/`RateLimit()` per the migration guide; confirm the rate-limiter admission contract; verify the nosurf `Sec-Fetch-Site` trust model. Tracked in [TODO_LIST.md](TODO_LIST.md) High Priority and [ROADMAP.md](ROADMAP.md) "v1.0".
 
 ---
 

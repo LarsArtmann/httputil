@@ -190,40 +190,40 @@ Sorted by impact / effort ratio (highest first).
 
 ### Documentation & Testing (Low Effort, High Impact)
 
-1. **Configurable content-type filtering via `CompressionConfig`** — Replace hardcoded deny-list with a configurable list; default to current set for backward compatibility.
-2. **Add `MiddlewareStack` type** — Validate ordering at construction (Recovery outermost, Compression before ETag, Logging after Recovery, etc.).
-3. **Add `ResponseWriter` capability interface** — Unify Hijack/Flush detection across wrappers; eliminate repeated type assertions.
-4. **Add compression `Flush()` plain-mode test** — Cover the remaining uncompressed flush path.
-5. **Add `ResponseRecorder.Flush()` no-op test with non-Flusher underlying writer** — Tiny gap, easy closure.
-6. **Add `compressWriter.startCompression` buffered-write failure test** — Pool writer returns an error while replaying the buffer.
-7. **Add boundary status tests for `shouldCompress()`** — 199/200, 299/300, etc.
-8. **Fuzz `negotiateEncoding`** — Adversarial Accept-Encoding strings.
-9. **Document brotli/zstd factory examples** — Show how to wire custom `WriterFactory` implementations without core deps.
+1. ~~**Configurable content-type filtering via `CompressionConfig`** — Replace hardcoded deny-list with a configurable list; default to current set for backward compatibility.~~ done (shipped (IncompressibleTypes))
+2. ~~**Add `MiddlewareStack` type** — Validate ordering at construction (Recovery outermost, Compression before ETag, Logging after Recovery, etc.).~~ done (shipped (stack.go))
+3. ~~**Add `ResponseWriter` capability interface** — Unify Hijack/Flush detection across wrappers; eliminate repeated type assertions.~~ done (shipped (DetectCapabilities, capabilities.go))
+4. ~~**Add compression `Flush()` plain-mode test** — Cover the remaining uncompressed flush path.~~ done (done (plain-mode flush tests))
+5. ~~**Add `ResponseRecorder.Flush()` no-op test with non-Flusher underlying writer** — Tiny gap, easy closure.~~ done (done (plain-mode flush tests))
+6. ~~**Add `compressWriter.startCompression` buffered-write failure test** — Pool writer returns an error while replaying the buffer.~~ done (done (error-branch tests))
+7. ~~**Add boundary status tests for `shouldCompress()`** — 199/200, 299/300, etc.~~ done (done (status-boundary tests in compression_test.go))
+8. ~~**Fuzz `negotiateEncoding`** — Adversarial Accept-Encoding strings.~~ done (ticketed as the negotiator fuzz TODO item (2026-08-30))
+9. ~~**Document brotli/zstd factory examples** — Show how to wire custom `WriterFactory` implementations without core deps.~~ done (shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md))
 
 ### Architecture & Middleware (Medium Effort, High Impact)
 
-10. **Add request body size limit middleware** — Simple, high value for API protection.
-11. **Add rate-limiting middleware** — Token bucket or sliding window; keep it dependency-free.
-12. **Add request/response metrics middleware** — Optional, via `expvar` or custom histograms.
-13. **Pre-compute more per-request strings** — `allowCredentials` is already pre-computed; audit other middlewares for similar wins.
-14. **Incremental ETag hashing evaluation** — Compute CRC32 during `Write` calls instead of on flush; measure complexity/benefit.
-15. **Streaming ETag option** — Rolling hash for responses > 1MB; requires 304-short-circuit design decision.
+10. ~~**Add request body size limit middleware** — Simple, high value for API protection.~~ done (shipped (maxbodysize.go))
+11. ~~**Add rate-limiting middleware** — Token bucket or sliding window; keep it dependency-free.~~ done (shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it))
+12. ~~**Add request/response metrics middleware** — Optional, via `expvar` or custom histograms.~~ done (shipped (metrics.go))
+13. ~~**Pre-compute more per-request strings** — `allowCredentials` is already pre-computed; audit other middlewares for similar wins.~~ done (parked in ROADMAP legacy-brainstorm line (2026-08-30))
+14. ~~**Incremental ETag hashing evaluation** — Compute CRC32 during `Write` calls instead of on flush; measure complexity/benefit.~~ done (Won't implement — ROADMAP Non-goals: buffering is mandatory)
+15. ~~**Streaming ETag option** — Rolling hash for responses > 1MB; requires 304-short-circuit design decision.~~ done (parked in ROADMAP legacy-brainstorm line (2026-08-30))
 
 ### Server & Lifecycle (Medium Effort)
 
-16. **Add `Server` graceful shutdown integration test** — Verify `Start()` + `Shutdown()` lifecycle with a real port.
-17. **Add `HealthHandler` configurable readiness checker** — Allow custom readiness function instead of always `"up"`.
-18. **Document recommended middleware ordering** — Already in README; expand with concrete examples and rationale.
+16. ~~**Add `Server` graceful shutdown integration test** — Verify `Start()` + `Shutdown()` lifecycle with a real port.~~ done (shipped (server lifecycle tests))
+17. ~~**Add `HealthHandler` configurable readiness checker** — Allow custom readiness function instead of always `"up"`.~~ done (shipped (ReadyHandlerWithProbe + RegisterHealth))
+18. ~~**Document recommended middleware ordering** — Already in README; expand with concrete examples and rationale.~~ done (done (ordering section + examples + mermaid))
 
 ### Quality & Tooling (Medium Effort)
 
-19. **Benchmark regression CI step** — Fail PRs on significant benchmark regressions.
-20. **Generate architecture table from code** — Single source of truth for `AGENTS.md`.
-21. **Prune/archive old status reports** — Keep last N + tagged milestones.
-22. **Add `govulncheck` to local dev shell** — Already in CI; make it a one-locally command.
-23. **Add integration test for `Chain(Compression, ETag, CORS)`** — Multi-middleware realistic stack.
+19. ~~**Benchmark regression CI step** — Fail PRs on significant benchmark regressions.~~ done (parked in ROADMAP legacy-brainstorm line (2026-08-30))
+20. ~~**Generate architecture table from code** — Single source of truth for `AGENTS.md`.~~ done (parked in ROADMAP legacy-brainstorm line (2026-08-30))
+21. ~~**Prune/archive old status reports** — Keep last N + tagged milestones.~~ done (executed by the 2026-08-30 docs-health pass)
+22. ~~**Add `govulncheck` to local dev shell** — Already in CI; make it a one-locally command.~~ done (done (nix run .#vulncheck))
+23. ~~**Add integration test for `Chain(Compression, ETag, CORS)`** — Multi-middleware realistic stack.~~ done (shipped (T12/T13 chain-test batch, f7c50dc))
 24. **Add timeout middleware test for already-canceled context** — Edge case in deadline enforcement.
-25. **Review all `defer` error ignores** — Several `_ = cw.Close()` patterns; document why errors are safe to ignore or surface them.
+25. ~~**Review all `defer` error ignores** — Several `_ = cw.Close()` patterns; document why errors are safe to ignore or surface them.~~ done (done (2026-08-30 error-swallow sweep))
 
 ---
 

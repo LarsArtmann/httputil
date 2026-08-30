@@ -300,30 +300,30 @@ Sorted by **impact / effort ratio** (highest impact per unit of work first):
 
 | #  | Task                                              | Impact | Effort | Category        |
 | -- | ------------------------------------------------- | ------ | ------ | --------------- |
-| 1  | Fix nix flake app `meta.description` warnings     | Low    | 5 min  | Infrastructure  |
+| ~~1~~  | ~~Fix nix flake app `meta.description` warnings~~ done — (flake.nix) | ~~Low~~ | ~~5 min~~ | ~~Infrastructure~~ |
 | 2  | Update AGENTS.md to current state                 | Medium | 10 min | Documentation   |
 | 3  | Replace `getGzipPool` map+mutex with slice+atomic | High   | 20 min | Performance     |
 | 4  | Zero-allocation `etagInList` parsing              | Medium | 15 min | Performance     |
 | 5  | Batch `generateRequestID` reads                   | High   | 15 min | Performance     |
-| 6  | Add `CompressionConfig.SkipContentTypes`          | Medium | 15 min | Configurability |
+| ~~6~~  | ~~Add `CompressionConfig.SkipContentTypes`~~ done — shipped as IncompressibleTypes | ~~Medium~~ | ~~15 min~~ | ~~Configurability~~ |
 | 7  | Add typed `StatusCode`                            | Medium | 20 min | Type Safety     |
-| 8  | Improve test coverage to 90%+                     | Medium | 30 min | Quality         |
-| 9  | Add `MiddlewareStack` with ordering validation    | High   | 45 min | Architecture    |
-| 10 | Add deflate support                               | Medium | 30 min | Feature         |
-| 11 | Add `Accept-Encoding` quality value parsing       | Low    | 20 min | Correctness     |
-| 12 | Add metrics middleware                            | Medium | 45 min | Feature         |
-| 13 | Add `ResponseWriter` capability interface         | Low    | 30 min | Architecture    |
-| 14 | Streaming ETag (rolling hash)                     | High   | 60 min | Performance     |
-| 15 | Rate-limiting middleware                          | Medium | 60 min | Feature         |
-| 16 | Request body size limit middleware                | Low    | 20 min | Safety          |
-| 17 | WebSocket upgrade test                            | Low    | 15 min | Coverage        |
-| 18 | Content-Length preservation test                  | Low    | 10 min | Correctness     |
-| 19 | HTTP/2 Server Push integration test               | Low    | 15 min | Coverage        |
-| 20 | Evaluate brotli plugin interface                  | Medium | 30 min | Decision        |
-| 21 | Add `ExampleResponseRecorder`                     | Low    | 10 min | DX              |
-| 22 | Add `BenchmarkChain`                              | Low    | 10 min | Observability   |
-| 23 | Improve benchmark suite with varying body sizes   | Low    | 20 min | Observability   |
-| 24 | Add `go test -race` to CI                         | High   | 5 min  | Safety          |
+| ~~8~~  | ~~Improve test coverage to 90%+~~ done — (97.0% today) | ~~Medium~~ | ~~30 min~~ | ~~Quality~~ |
+| ~~9~~  | ~~Add `MiddlewareStack` with ordering validation~~ done — shipped (stack.go) | ~~High~~ | ~~45 min~~ | ~~Architecture~~ |
+| ~~10~~ | ~~Add deflate support~~ done — shipped (DefaultWriterFactories) | ~~Medium~~ | ~~30 min~~ | ~~Feature~~ |
+| ~~11~~ | ~~Add `Accept-Encoding` quality value parsing~~ done — shipped (compression_qvalue.go + property tests) | ~~Low~~ | ~~20 min~~ | ~~Correctness~~ |
+| ~~12~~ | ~~Add metrics middleware~~ done — shipped (metrics.go) | ~~Medium~~ | ~~45 min~~ | ~~Feature~~ |
+| ~~13~~ | ~~Add `ResponseWriter` capability interface~~ done — shipped (DetectCapabilities, capabilities.go) | ~~Low~~ | ~~30 min~~ | ~~Architecture~~ |
+| ~~14~~ | ~~Streaming ETag (rolling hash)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~High~~ | ~~60 min~~ | ~~Performance~~ |
+| ~~15~~ | ~~Rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Medium~~ | ~~60 min~~ | ~~Feature~~ |
+| ~~16~~ | ~~Request body size limit middleware~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~20 min~~ | ~~Safety~~ |
+| ~~17~~ | ~~WebSocket upgrade test~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30 | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
+| ~~18~~ | ~~Content-Length preservation test~~ done — shipped (T12 test, f7c50dc) | ~~Low~~ | ~~10 min~~ | ~~Correctness~~ |
+| ~~19~~ | ~~HTTP/2 Server Push integration test~~ done — moot (http.Pusher code removed in v0.3.0) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
+| ~~20~~ | ~~Evaluate brotli plugin interface~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~30 min~~ | ~~Decision~~ |
+| ~~21~~ | ~~Add `ExampleResponseRecorder`~~ done — (ExampleNewResponseRecorder) | ~~Low~~ | ~~10 min~~ | ~~DX~~ |
+| ~~22~~ | ~~Add `BenchmarkChain`~~ done — (exists) | ~~Low~~ | ~~10 min~~ | ~~Observability~~ |
+| ~~23~~ | ~~Improve benchmark suite with varying body sizes~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~20 min~~ | ~~Observability~~ |
+| ~~24~~ | ~~Add `go test -race` to CI~~ done — (ci.yml runs -race) | ~~High~~ | ~~5 min~~ | ~~Safety~~ |
 | 25 | Add nix `build` check that works offline          | Medium | 20 min | Infrastructure  |
 
 ---
@@ -334,13 +334,13 @@ Sorted by **impact / effort ratio** (highest impact per unit of work first):
 
 Options:
 
-1. **Use `go mod vendor`** — run `go mod vendor` in the repo, commit `vendor/`, and set `vendorHash = null` (or compute a real hash). This makes the build fully offline. Downside: `vendor/` bloats the repo by ~100KB per dependency.
+1. ~~**Use `go mod vendor`** — run `go mod vendor` in the repo, commit `vendor/`, and set `vendorHash = null` (or compute a real hash). This makes the build fully offline. Downside: `vendor/` bloats the repo by ~100KB per dependency.~~ done (superseded — no vendoring; flake check + module-boundary script cover the build)
 
-2. **Use `buildGoModule` with a real `vendorHash`** — compute the vendor hash from `go.sum` and let Nix prefetch it. This is the standard pattern. Downside: requires running `nix-prefetch-url` or `nix-prefetch-git` manually when dependencies change.
+2. ~~**Use `buildGoModule` with a real `vendorHash`** — compute the vendor hash from `go.sum` and let Nix prefetch it. This is the standard pattern. Downside: requires running `nix-prefetch-url` or `nix-prefetch-git` manually when dependencies change.~~ done (superseded — no vendoring; flake check + module-boundary script cover the build)
 
-3. **Skip the build check for libraries** — libraries are never built as standalone binaries. The format check + CI build is sufficient. Downside: no nix-level guarantee that the code compiles.
+3. ~~**Skip the build check for libraries** — libraries are never built as standalone binaries. The format check + CI build is sufficient. Downside: no nix-level guarantee that the code compiles.~~ done (superseded — flake check covers it)
 
-4. **Use `nix build` on a test binary** — create a `main_test.go` or a `cmd/` entry that imports the library, then build that. This forces the compiler to type-check all exported APIs. Downside: adds noise to the repo.
+4. ~~**Use `nix build` on a test binary** — create a `main_test.go` or a `cmd/` entry that imports the library, then build that. This forces the compiler to type-check all exported APIs. Downside: adds noise to the repo.~~ done (superseded — no vendoring; flake check + module-boundary script cover the build)
 
 **My preference:** Option 1 — vendor dependencies. It's explicit, reproducible, and makes the nix build check work. The `vendor/` directory is a one-time ~100KB addition for `go-error-family`.
 

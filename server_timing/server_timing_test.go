@@ -447,26 +447,33 @@ func TestServerTimingMiddleware_PreservesFlusher(t *testing.T) {
 	}
 }
 
-// The wrapper must preserve Hijacker so WebSocket upgrades still work.
+// The wrapper must preserve Hijacker so WebSocket upgrades still work. The
+// hijack is actually performed (not just interface-asserted) so this test
+// fails if the wrapper stops delegating, not only if it stops exposing the
+// interface. Verified by mutation: stubbing delegatingWriter.Hijack to return
+// http.ErrNotSupported fails this test (2026-08-30).
 func TestServerTimingMiddleware_PreservesHijacker(t *testing.T) {
 	t.Parallel()
 
-	hijacked := false
+	inner := &testHijacker{ResponseWriter: httptest.NewRecorder()}
+
 	h := ServerTimingMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, ok := w.(http.Hijacker)
+		hj, ok := w.(http.Hijacker)
 		if !ok {
 			t.Fatal("http.Hijacker not available through wrapper")
 		}
 
-		hijacked = true
+		if _, _, err := hj.Hijack(); err != nil {
+			t.Fatalf("Hijack through wrapper failed: %v", err)
+		}
 
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+	h.ServeHTTP(inner, httptest.NewRequest(http.MethodGet, "/", nil))
 
-	if !hijacked {
-		t.Fatal("handler did not run")
+	if !inner.hijacked {
+		t.Fatal("underlying writer was not hijacked (delegation broken)")
 	}
 }
 

@@ -18,14 +18,20 @@ const (
 	headerXRateLimitLimit     = "X-RateLimit-Limit"
 	headerXRateLimitRemaining = "X-RateLimit-Remaining"
 	headerXRateLimitReset     = "X-RateLimit-Reset"
+
+	// corsSpecOrigin is the origin used by CORS checks. It is a subdomain of
+	// example.com so handlers configured with exact-origin allowlists, wildcard
+	// patterns (*.example.com), or reflection policies can all authorize it.
+	corsSpecOrigin = "https://api.example.com"
 )
 
 // CORS spec names identify each CORS behavior check for use with [SkipSpec].
 const (
-	SpecNameCORSAllowOrigin           = "cross-origin responses should include Access-Control-Allow-Origin"
-	SpecNameCORSAllowCredentials      = "Access-Control-Allow-Credentials should reflect credential policy"
-	SpecNameCORSVaryOrigin            = "responses should set Vary: Origin when origin is dynamic"
-	SpecNameCORSWildcardNoCredentials = "Access-Control-Allow-Origin: * must not be combined with credentials"
+	SpecNameCORSAllowOrigin            = "cross-origin responses should include Access-Control-Allow-Origin"
+	SpecNameCORSAllowCredentials       = "Access-Control-Allow-Credentials should reflect credential policy"
+	SpecNameCORSVaryOrigin             = "responses should set Vary: Origin when origin is dynamic"
+	SpecNameCORSWildcardNoCredentials  = "Access-Control-Allow-Origin: * must not be combined with credentials"
+	SpecNameCORSOriginMatchesRequested = "Access-Control-Allow-Origin should match the requested origin when dynamic"
 )
 
 // Rate-limit spec names identify each rate-limit behavior check for use with [SkipSpec].
@@ -64,6 +70,11 @@ func CORSSpecs() []Spec {
 			Name:     SpecNameCORSWildcardNoCredentials,
 			Category: CategorySecurity,
 			Check:    corsWildcardNoCredentialsCheck(),
+		},
+		{
+			Name:     SpecNameCORSOriginMatchesRequested,
+			Category: CategorySecurity,
+			Check:    corsOriginMatchesRequestedCheck(),
 		},
 	}
 }
@@ -197,6 +208,38 @@ func corsWildcardNoCredentialsCheck() Check {
 		}
 
 		return Pass()
+	}
+}
+
+// corsOriginMatchesRequestedCheck verifies that when a response authorizes a
+// specific (non-wildcard) origin, that origin is the one the client actually
+// requested. A handler that stamps a hardcoded origin onto every response —
+// or reflects a different origin than the one sent — authorizes origins the
+// server never intended to allow. Dynamic reflection (wildcard matching)
+// echoes the request origin; a static "*" or a denial (no header) also pass.
+func corsOriginMatchesRequestedCheck() Check {
+	return func(handler http.Handler) Result {
+		req := mustRequest(http.MethodGet, "/")
+		req.Header.Set("Origin", corsSpecOrigin)
+
+		rec := serve(handler, req)
+
+		acao := rec.Header().Get("Access-Control-Allow-Origin")
+
+		switch acao {
+		case "":
+			return Pass() // denied: authorizing nothing is always safe
+		case "*":
+			return Pass() // static wildcard: every origin is authorized equally
+		case corsSpecOrigin:
+			return Pass() // dynamically resolved to the requested origin
+		}
+
+		return Fail(
+			"request Origin %q got Access-Control-Allow-Origin %q: the response authorizes an origin "+
+				"the client did not request (hardcoded or misresolved origin)",
+			corsSpecOrigin, acao,
+		)
 	}
 }
 

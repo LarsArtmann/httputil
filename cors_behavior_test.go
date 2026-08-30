@@ -225,12 +225,20 @@ func FuzzCORSOriginMatching(f *testing.F) {
 
 		middleware(inner).ServeHTTP(rec, req)
 
-		// The fuzz test verifies no panic occurs and the response is well-formed.
-		// If the origin matches, the header echoes it; otherwise it is absent.
+		// With DenyUnmatched the response must either deny (absent header)
+		// or echo the requested origin; a wildcard leak would defeat the
+		// deny-unmatched contract pinned by TestCORS_DenyUnmatchedSuppressesHeader.
+		// A request with no Origin header is not a CORS request (browsers do
+		// not enforce Access-Control-Allow-Origin on it), so its value is
+		// unconstrained.
 		got := rec.Header().Get("Access-Control-Allow-Origin")
 
-		if got != "" && got != origin && got != "*" {
-			t.Errorf("unexpected Allow-Origin = %q for origin %q", got, origin)
+		if origin != "" && got != "" && got != origin {
+			t.Errorf(
+				"unexpected Allow-Origin = %q for origin %q under DenyUnmatched (empty or echo only)",
+				got,
+				origin,
+			)
 		}
 	})
 }

@@ -27,8 +27,15 @@ func TestLogging_RecordsRequest(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	if buf.Len() == 0 {
-		t.Error("expected log output")
+	out := buf.String()
+	if out == "" {
+		t.Fatal("expected log output, got none")
+	}
+
+	for _, want := range []string{"status=201", "method=GET", "path=/test"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("log output missing %q: %s", want, out)
+		}
 	}
 }
 

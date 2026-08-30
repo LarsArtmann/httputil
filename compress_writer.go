@@ -133,6 +133,11 @@ func (w *compressWriter) writeBuffered(b []byte) (int, error) {
 	if needed > 0 {
 		if len(b) <= needed {
 			w.buf = append(w.buf, b...)
+			// b is fully consumed into buf; without this, an exactly-filled
+			// buffer would fall through with b still holding the payload and
+			// the flush/stream step below would write those bytes a second
+			// time (duplicated response body).
+			b = nil
 
 			if len(w.buf) < w.minSize {
 				return total, nil
@@ -215,6 +220,11 @@ func (w *compressWriter) Close() error {
 	if w.compressing {
 		err := w.writer.Close()
 		if err != nil {
+			// Make Close idempotent even on the error path: a second call
+			// must not dereference the nilled writer (nil interface panics).
+			w.compressing = false
+			w.writer = nil
+
 			return w.compressWriteError(err, "compression writer close failed")
 		}
 
@@ -225,6 +235,7 @@ func (w *compressWriter) Close() error {
 			w.pool.Put(w.writer)
 		}
 
+		w.compressing = false
 		w.writer = nil
 
 		return nil
@@ -244,6 +255,9 @@ func (w *compressWriter) Close() error {
 
 func (w *compressWriter) Flush() {
 	if w.compressing {
+		// Post-handler flush: the response is in-flight, so a compression
+		// writer flush failure cannot be reported to anyone ("honest
+		// silence", same convention as writeCommittedBody).
 		_ = w.writer.Flush()
 
 		w.responseWrapper.Flush()

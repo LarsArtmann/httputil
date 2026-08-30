@@ -26,7 +26,7 @@ go test -race -coverprofile=coverage.out ./...
 go tool cover -func=coverage.out | tail -1
 ```
 
-Record the total percentage. If it dropped below 90%, investigate before releasing.
+Record the total percentage. If it dropped below 95%, investigate before releasing (the documented gate threshold is 95%).
 
 ### 4. govulncheck
 
@@ -52,6 +52,8 @@ go test -bench=. -benchmem -count=1 -run=^$ ./...
 ```
 
 Compare against the previous release. Investigate any regression exceeding 10%.
+
+Then refresh the recorded baseline in `docs/benchmarks.md` (3s × 5 protocol) so the doc reflects the release being cut. Note provenance for any row measured with a different harness or protocol than the rest.
 
 ## Release-Time Steps
 

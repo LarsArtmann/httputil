@@ -67,8 +67,12 @@ func FuzzDecompression(f *testing.F) {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
 
-		// Valid gzip bodies must produce 200; invalid gzip bodies must produce 400.
-		// All other encodings produce 200 (passthrough or successful deflate).
+		// The only acceptable outcomes are 200 (passthrough, successful
+		// decompression, or a handler that ignores mid-stream read errors) and
+		// 400 (gzip.NewReader rejects the body up front). Anything else is a
+		// defect. Note the handler ignores read errors, so mid-stream corruption
+		// legitimately ends in 200 — this target primarily guards against
+		// panics and unexpected status codes.
 		if rec.Code != http.StatusOK && rec.Code != http.StatusBadRequest {
 			t.Errorf(
 				"unexpected status %d for encoding %q, body len %d",

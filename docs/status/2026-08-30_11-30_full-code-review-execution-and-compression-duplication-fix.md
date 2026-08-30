@@ -1,0 +1,142 @@
+# Status: Full-Code-Review Execution, Compression Duplication Fix, Test-Harness Hardening
+
+_Date: 2026-08-30 11:30 · Base commit: `c1b2f31` · Working tree: 65 changed/new files, **nothing committed**_
+
+_Session scope: (1) verify the 2026-08-30 morning backlog pass was actually green; (2) execute the `full-code-review` skill — the last never-run TODO high-priority item — across all three modules; (3) fix everything small on the spot, ticket the rest; (4) harvest docs._
+
+---
+
+## Headline
+
+The review found **one critical production bug that line coverage, three prior audit passes, lint, race, and the existing fuzz suites had all missed**: the compression writer duplicated response bodies whenever a handler's `Write` chunking exactly filled the min-size buffer. A new round-trip fuzz invariant (`FuzzCompression` gunzips every negotiated-gzip response and compares bytes) found it within seconds of first execution. Fixed, regression-tested, seed corpus retained.
+
+All quality gates are green at the end of the session: build + vet, `go test -race -count=1` (root, httpspec, server_timing), `golangci-lint run` 0 issues in both modules, both erraudit gates exit 0, touched areas race-stressed at `-count=10`.
+
+---
+
+## a) FULLY DONE
+
+| Item | Evidence |
+| --- | --- |
+| Ground-truth gate re-verification of the morning's backlog pass | build/vet/test -race/lint/erraudit all green; the LSP `typecheck` error on `chain_hijack_test.go:222` confirmed stale-cache noise via the real toolchain |
+| Full-code-review **planning phase** | Pareto plan + D2 execution graph at `docs/planning/2026-08-30_08-00_full-code-review-execution-plan.html` (Bauhaus editorial, inline SVG) |
+| **T1–T11: every root + httpspec + server_timing source file reviewed line by line** | Findings below; `server.go`, `health.go`, `decompression.go`, `recorder.go`, `stack.go`, `capabilities.go`, `cors.go`, `clientip.go`, `context.go`, `requestid.go`, `id_generator.go`, `queryparam.go`, `hex.go`, `headers.go`, `metrics.go`, `logging.go`, `timeout.go`, `etag.go`, `httpspec` sources, `server_timing` sources: clean |
+| **CRITICAL fix: exact-fill response duplication** (`compress_writer.go` `writeBuffered`) | Consumed branch now clears the write argument; `TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated`; fuzz seed `testdata/fuzz/FuzzCompression/25062cc0b92cbf40` retained; 3.4M fuzz executions clean after fix |
+| **MAJOR fix: `Recovery` swallowed `http.ErrAbortHandler`** | Re-panics the sentinel (guarded assertion via `isErrAbortHandler` helper); `TestRecovery_RepanicsErrAbortHandler` |
+| **MAJOR fix: double `Close` on compressing writer panicked** (nil interface) | `Close` idempotent on success + error paths; two regression tests |
+| **MAJOR fix: two error templates still claimed "0 disables the limit"** (`errors.go:296` maxbodysize, `errors.go:350` decompression) | Probed stdlib (`MaxBytesReader(0)` rejects non-empty bodies); field docs on `MaxBodySizeConfig.MaxBytes` + `MaxBodySize` corrected; `TestMaxBodySize_ZeroLimitRejectsNonEmptyBody` execution-probe test added |
+| **MAJOR fix: three tests verified nothing** | `TestCompression_CustomFactory` now exercises a real custom encoding (identity was short-circuited before any factory lookup); `TestETag_WorksInMiddlewareStack` now serves a request and asserts the ETag header; `TestServerServesRequests` now issues a real HTTP GET against a running server on a concrete port |
+| `nameOffset` int-overflow in negotiator tie-break (≥9-byte custom names) | Replaced with lexicographic rank; behavior change limited to custom-encoding tie-break order |
+| `MaxKeys` refresh semantics documented (slow-path-only stamping, eviction approximate within one TTL) | `ratelimit_keyed.go` field doc |
+| **T12–T16 test-file batches: 25+ harness fixes applied** | Fresh recorders per iteration (health ×3, metrics ×3, recorder, httpspec `BenchmarkCheckServesRequest`); `b.ReportAllocs` added (compression, CORS, ClientIP, httpspec); `b.N % len(keys)` modulo bug → local counter (ratelimit bench); eviction bench now actually measures the slow path (1 ns TTL); dead/tautological assertions removed or strengthened (ratelimit sweep survivor, logging output, queryparam fuzz, CORS DenyUnmatched fuzz); `waitForServerStart` doc honesty; pipe-goroutine cleanup in `chain_hijack_test.go`; dead code removed (`validate_config_log_test.go` record struct, `testPassthroughFactory` duplicate, `badFactory` duplicate); misleading names fixed (`TestHijack_ReturnsError_WhenUnsupported`, `TestServerShutdownWithBackgroundContext`, `TestChain_CORSWithRecoveryAndLogging`, `TestCompression_InvalidConfigContinues`, `TestRegisterErrorClassifications_RegistersStdlibSentinels`); stale "18 middlewares" comments → 13 |
+| **New fuzz invariants** | `FuzzCompression` round-trip (3.4M execs clean); `FuzzDecompressionInvariants` rewritten to wrap the fuzzer-chosen plaintext and compare against an independent bounded reference decoder (395k execs clean); `FuzzLimitedReadCloser` now asserts the boundary close actually fired; `FuzzServerTimingMiddleware` guards invalid-method panics (the root csrf fuzz already had this guard — server_timing was missing it) |
+| Review **report** | `docs/reviews/2026-08-30_09-00_full-code-review.html` (stat cards, findings, ticketed table, strengths, coverage notes, gates) |
+| Docs harvest | `TODO_LIST.md` (review item checked off, 4 new tickets), `CHANGELOG.md` [Unreleased] (2 Added, 3 Fixed, 3 Changed entries) |
+| Lint cleanliness maintained through every change | `golangci-lint run` 0 issues both modules after the full sweep (fixed my own regressions: godox "bug." keyword, gosec G110 on the reference decoder, noinlineerr on the type assertion, varnamelen, intrange) |
+
+## b) PARTIALLY DONE
+
+1. **T13 batch line-by-line review** (csrf_test, nonce_test, security_test, requestid_test, id_generator_test, csrf_bench): the review agent failed twice on infrastructure (sourcegraph timeout), so I ran structural checks instead — 102/102 tests have `t.Parallel()`, zero `slog.SetDefault` mutations, zero sleeps, all benchmarks report allocs, fuzz files read in full (guards are solid). The four big unit-test files were **not** read line by line. Ticketed as a follow-up.
+2. **docs/benchmarks.md** — now stale for ~10 benches whose harnesses changed (recorder-per-iteration, ReportAllocs, eviction slow path). Numbers must be re-measured with the 3s×5 protocol; ticketed rather than patched ad hoc.
+3. ~~**FEATURES.md** — benchmark/example counts still correct (57/26), but the new fuzz invariants, new tests, and the duplication-bug fix are not reflected in FEATURES content.~~ done (FEATURES updated in the 2026-08-30 docs-health pass)
+4. ~~**AGENTS.md** — the execution-probe test pattern ("0 means X" claims get a pinning test) is now practiced but not codified; the benchmark-harness reset rule exists but the "reference-decode must be bounded" fuzz rule is not written down.~~ done (execution-probe + fuzz-harness rules codified in AGENTS.md)
+5. ~~**DECISION_LOG.md** — no rows added this session for: lexicographic tie-break replacement, `ErrAbortHandler` re-panic policy, fuzz-invariant-first approach, benchmark-harness reset rule application.~~ done (4 session rows added to docs/DECISION_LOG.md)
+6. ~~**Race discipline** — touched areas ran `-count=10`, but not the full suite per the AGENTS.md rule for sessions that modify parallel tests.~~ done (full -race -count=10 green across all three modules, 2026-08-30)
+
+## c) NOT STARTED (carried in TODO_LIST, untouched this session)
+
+- v1.0 release decision → cut v1.0 (incl. deprecated `TokenBucketLimiter`/`RateLimit()` removal per the migration guide and the rate-limiter admission-contract confirmation)
+- go-compression extraction (plan exists, trigger: go-datastar SSE-safe compression)
+- CI release workflow (tag → build → GitHub Release)
+- go-error-family upstream proposal (conditional-request classification; needs verify-before-filing)
+- architecture-review re-run (last pass predates ETag extraction, adapter, keyed limiter)
+- dprint availability for markdown formatter verification (known limitation, two sessions running)
+
+## d) TOTALLY FUCKED UP
+
+**Nothing shipped broken** — every change passed the full gate suite, and the tree is consistent. But three self-inflicted near-misses happened this session and are worth naming:
+
+1. **I introduced a pooling regression inside my own first fix**: the first `Close` idempotency edit nilled `w.writer` *before* the pool check, which would have silently disabled writer pooling entirely. Caught on re-read before any test ran, fixed immediately. The process caught it, but it never should have been written.
+2. **My rewritten fuzz target initially shipped with dead scaffolding** (an unused `inner` handler with a phantom header marker) — caught and removed in the next edit. Sloppy first draft.
+3. **My strengthened CORS fuzz invariant was wrong on first run** — it failed the seed for `origin == ""` (no Origin header means no CORS request, so `ACAO: *` is legitimate). Refined the invariant rather than the code; correct outcome, but I should have enumerated the no-Origin case before writing the assertion.
+
+Also honest: **the exact-fill duplication bug survived because I reviewed `writeBuffered` during T1 and missed it** — I analyzed the branch structure and called it correct. Only the fuzz invariant caught it. That is simultaneously the best and most humbling result of the session.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Fuzz-invariant-first over line coverage.** 96.9% coverage missed the duplication bug; 20 lines of round-trip fuzz found it in seconds. Every response-transforming component deserves a decode-and-compare invariant.
+2. **"0 means X" config claims need execution probes, not doc faith.** This is the second session in a row where a documented zero-value claim was false (README/decompression last session, error templates this session). The probe test pattern should be codified in AGENTS.md and applied on every new config field.
+3. **Finish what the plan promises.** The skill says "visit every file"; one batch got structural treatment instead. Either retry infrastructure differently (local retries, smaller batches) or scope the plan honestly.
+4. **Write tests against the harness's own failure modes**: my benchmark fixes (recorder growth, b.N modulo, no-ResetTimer) are exactly the bugs benchmarks accumulate silently. A checklist ("recorder fresh per iteration? allocs reported? state reset per iteration? key rotation real?") would have caught all of them without a reviewer.
+5. **Decision-log discipline at fix time, not harvest time.** Four decisions were made this session and none were logged when made.
+6. **Reference decoders in fuzz targets must be bounded** (gosec G110 caught it, but only because I ran lint — the default should be `io.LimitReader` always).
+7. **Agent-batch resilience**: two wasted round trips on network failures; a local-only fallback (direct reads) should be the default plan, not the recovery plan.
+8. **Docs freshness is now the biggest debt class**: benchmarks.md stale rows, FEATURES.md content lag, DECISION_LOG lag, AGENTS.md uncoded patterns — all small, all accumulated in one big session.
+
+## f) UP TO 50 THINGS TO GET DONE NEXT (ordered by impact)
+
+**v1.0 gate (blocks everything else)**
+1. ~~Commit the working tree (two sessions, 65 files) and upgrade the dated markers in the 4 historical status reports to hash markers.~~ done (dated markers upgraded + both 08-30 reports annotated in the 2026-08-30 docs-health pass; tree left to the auto-commit daemon)
+2. Verify the nosurf `Sec-Fetch-Site` trust model by reading upstream source (no encoding of assumptions).
+3. Decide and implement the CSRF boundary response to client-supplied `Sec-Fetch-Site` (strip/reject/document) based on 2.
+4. Remove deprecated `TokenBucketLimiter`/`RateLimit()` per `docs/migrating-to-keyed-rate-limiter.md`.
+5. Confirm the rate-limiter admission contract per the ctx-cancellation design note.
+6. Decide `CompressionConfig.Level=0` semantics (currently remapped to DefaultCompression while Validate accepts 0 as a valid flate level) — align Validate + constructor + docs.
+7. Cut v1.0 (go-release skill: CHANGELOG cut, tag, proxy verification).
+
+**Correctness/completeness debt from this session**
+8. Finish line-by-line review of the T13 batch (csrf/nonce/security/requestid/id_generator unit-test files).
+9. ~~Full `go test -race -count=10 ./...` (AGENTS.md rule after parallel-test changes).~~ done (full -race -count=10 green 2026-08-30)
+10. Refresh `docs/benchmarks.md` rows for the ~10 changed benches (3s×5 protocol).
+11. ~~Re-measure coverage (96.9%/98.8% baseline) after the new tests; update FEATURES/AGENTS numbers.~~ done (re-measured 2026-08-30: 97.0% / 98.8%; README badge + FEATURES updated)
+12. ~~Update FEATURES.md with the new fuzz invariants + tests + the duplication fix.~~ done (FEATURES fuzz inventory lists all 23 targets + the round-trip invariant)
+13. ~~Add DECISION_LOG rows: lexicographic tie-break, ErrAbortHandler re-panic, fuzz-invariant-first, bounded reference decoders.~~ done (DECISION_LOG.md rows added 2026-08-30)
+14. ~~Codify the execution-probe pattern in AGENTS.md ("0 means X" → pinning test).~~ done (AGENTS.md execution-probe rule codified)
+15. ~~Codify the fuzz-harness rules in AGENTS.md (bounded reference decode, request-construction guards, seed retention).~~ done (AGENTS.md fuzz-invariant-first + bounded-decoder rules codified)
+16. Decide the remaining table-driven tests: convert 6 files or amend the convention.
+17. `CSRFConfig.Validate` side-effect cleanup (pure Validate + separate parse) — post-v1.0 API change.
+18. Chain-level regression for exact-fill duplication through the full `Compression()` middleware (unit test exists).
+19. ~~Nightly fuzz workflow: verify it covers the two new invariants and add them if not.~~ done (nightly-fuzz.yml now runs all 23 targets incl. FuzzCompression (was 8))
+20. KeyedRateLimiter property test: heap/map consistency under churn above MaxKeys (pattern: the negotiator property test).
+21. KeyedRateLimiter benchmark with real MaxKeys-pressure churn (the comment currently points at a test, not a bench).
+22. CORS fuzz invariant for exact-origin allowlists (echo property beyond DenyUnmatched).
+23. Document `compressWriter.Hijack` buffered-bytes-dropped semantics in code.
+24. Decide `WrapConflict`/`WrapOrchestration` symmetry or document the asymmetry as intentional.
+25. Consider skipping pool Get for non-resettable factories (currently one wasted allocation per request).
+26. Decide on `Server.Addr()` exposing the resolved port (":0" pain bitten twice in tests).
+27. Sweep `errors.As` remnants (erraudit gate is green, but confirm zero `legacy_as` stays green post-v1.0 refactor).
+28. LSP hygiene: restart stale clients when diagnostics contradict the toolchain (two sessions of ghost warnings).
+29. dprint acquisition for markdown formatting verification.
+30. ~~Annotate this session's report + the morning's report with hash markers after commit.~~ done (resolved by the 2026-08-30 docs-health annotation pass)
+
+**Bigger rocks (pre-existing TODO_LIST)**
+31. Re-run the `architecture-review` skill (pre-ETag-extraction staleness).
+32. go-compression extraction per the existing Pareto plan.
+33. CI release workflow (tag → build → GitHub Release).
+34. go-error-family upstream proposal (run verify-before-filing first).
+35. ~~Roadmap.md refresh against post-review reality.~~ done (ROADMAP refreshed 2026-08-30)
+36. ~~README: mention the fuzz-invariant suite and the honest-silence model where they sell (short additions).~~ done (README Design: round-trip fuzz bullet added)
+37. httpspec: consider a built-in "no injection header reflection" spec if the Sec-Fetch-Site finding warrants it.
+38. ~~Verify module-boundary CI script still passes with the new test files (GOWORK=off consumer view).~~ done (check-module-boundaries.sh green 2026-08-30)
+39. Consider `b.ResetTimer` removal audit: any remaining benchmarks with pre-loop setup should use the b.Loop idiom consistently.
+40. Add a fuzz target for the negotiator (name/q parsing already property-tested; wire-format fuzz could complement).
+41. Check `go vet` (not just lint) in CI for both modules if a CI workflow lands (see 33).
+42. ~~Benchmark doc provenance note: mark which rows came from the pre-fix harness (the morning's decompression rows) so history stays honest.~~ done (provenance note present in docs/benchmarks.md header)
+43. Consider documenting gzip multistream behavior of the round-trip fuzz (decoded vs raw) in the fuzz comment.
+44. Add `TestChain_RecoveryErrAbortHandler_ThroughStack` (sentinel through Chain, not just Recovery alone).
+45. Review `.golangci.yml` exhaustruct deprecation (v2.13 replaced by exhaustruct_v5) — plan the linter swap before it breaks.
+46. Re-check golangci-lint upgrade path (config currently on v2.12.2 semantics).
+47. Add the two new fuzz invariants to FEATURES "testing" inventory.
+48. Consider a `make`-free task runner entry in flake.nix for the documented benchmark protocol (3s×5) so doc refreshes are one command.
+49. Post-v1.0: revisit `KeyExtractor` returning "" semantics (exempt vs shared-bucket) — the two configs read differently; confirm docs are unambiguous.
+50. Schedule the next full-code-review (the report is a snapshot; per skill, use docs-health ANNOTATE when bringing it current).
+
+## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
+
+1. **Commit strategy:** the tree holds two large sessions of work (morning backlog pass + this review, 65 files). One commit, or split into logical commits (backlog execution / review fixes / docs)? And do you want the historical status reports' dated markers upgraded to hash markers as part of it?
+2. **CSRF boundary decision:** if reading the nosurf source confirms it trusts client-supplied `Sec-Fetch-Site`, should httputil strip that header from incoming requests before nosurf sees it (breaking for anyone legitimately... sending it? browsers set it and servers can't trust it either way), or is documentation-only acceptable for v1.0?
+3. **Your v1.0 bar:** is "CSRF trust model verified + deprecated API removed + this review's fixes in" sufficient to cut v1.0, or do you require the architecture-review re-run and/or go-compression extraction first?
+
+---
+
+_All claims above verified against this session's runs; the only unverified forward-looking statement is the nosurf trust-model question, which is explicitly ticketed as "read the source first."_

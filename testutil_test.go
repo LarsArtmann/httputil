@@ -178,8 +178,10 @@ func assertBody(t *testing.T, rec *httptest.ResponseRecorder, want string) {
 }
 
 // waitForServerStart blocks until errChan receives an error or the timeout
-// elapses. It fails the test if an error is received and silently returns on
-// timeout, indicating the server started successfully.
+// elapses. It fails the test if an error is received. The timeout branch is a
+// heuristic "assumed started": the server may in principle still be binding,
+// so tests that need a reachable address should dial the concrete addr after
+// this returns rather than relying on the timeout alone.
 func waitForServerStart(t *testing.T, errChan <-chan error, timeout time.Duration) {
 	t.Helper()
 
@@ -187,7 +189,7 @@ func waitForServerStart(t *testing.T, errChan <-chan error, timeout time.Duratio
 	case err := <-errChan:
 		t.Fatalf("server failed to start: %v", err)
 	case <-time.After(timeout):
-		// Server started successfully.
+		// No startup error within the window; assume the listener is up.
 	}
 }
 

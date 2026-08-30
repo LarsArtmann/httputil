@@ -38,8 +38,9 @@ type DecompressionConfig struct {
 	Encodings []string
 
 	// MaxDecompressionSize limits the decompressed body size in bytes to
-	// prevent decompression bombs (zip bombs). Zero means no limit.
-	// Default: 16 MiB.
+	// prevent decompression bombs (zip bombs). Zero uses the 16 MiB default;
+	// there is no "unlimited" option. A negative value fails Validate
+	// (decompression.max_size_negative).
 	MaxDecompressionSize int64
 }
 

@@ -86,6 +86,9 @@ golangci-lint run          # Lint (~70 linters, 0 issues)
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
+nix fmt                    # treefmt (Go via golangci-lint formatters; run before the auto-commit daemon sees the tree)
+nix flake check            # Full flake gates (includes treefmt verification)
+
 # erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops)
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
 # Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors
@@ -108,7 +111,7 @@ An auto-git-commit daemon runs continuously and commits changes automatically. T
 
 ### Doc-Freshness Cadence
 
-Living docs (`TODO_LIST.md`, `FEATURES.md`, `ROADMAP.md`, `CHANGELOG.md`) should be verified via the `docs-health` skill before each version tag and at least monthly. Historical status reports (`docs/status/`) should be annotated (inline `~~item~~ done at <hash>` markers) when read — reading a stale report without annotating it is a missed obligation.
+Living docs (`TODO_LIST.md`, `FEATURES.md`, `ROADMAP.md`, `CHANGELOG.md`) should be verified via the `docs-health` skill before each version tag and at least monthly. Historical status reports (`docs/status/`) should be annotated (inline `~~item~~ done at <hash>` markers) when read — reading a stale report without annotating it is a missed obligation. Reports whose every actionable item (b/c/f/g sections) is resolved are moved to `<dir>/archived/` via `git mv` by the docs-health pass; `a)` FULLY DONE tables, `d)`/`e)` sections, and session-timeline lists are historical records and are never struck. Files referenced by living docs stay in place even when fully resolved (links must not break).
 
 ## Architecture
 
@@ -120,7 +123,7 @@ Once a version tag (e.g., `v0.8.0`) is created, the corresponding `[version]` se
 
 ### Why the Root Package Is Flat (Deliberate, Not Debt)
 
-The root `httputil` package has 35 non-test files in one directory. **Decision confirmed by the user (2026-08-05) based on ergonomics**: for a middleware library where everything shares one signature (`func(http.Handler) http.Handler`), a single import path (`httputil.CORS()`) beats fragmented sub-package namespaces (`httputil/cors.CORS()`). Public sub-packages are also structurally impossible: compression depends on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), creating circular imports if extracted. An `internal/` extraction is technically viable (root → internal is one direction, no cycles) but deferred until post-v1.0 or if root exceeds ~50 non-test files. See `docs/architecture-understanding/2026-08-05_06-56_package-structure-analysis.html` and `docs/modularization/2026-08-05_DECISION.html` for the full analysis.
+The root `httputil` package has 36 non-test files in one directory. **Decision confirmed by the user (2026-08-05) based on ergonomics**, re-affirmed 2026-08-30 after the go-etag and server_timing extractions (see `docs/architecture-understanding/2026-08-30_package-structure-analysis-refresh.md`): for a middleware library where everything shares one signature (`func(http.Handler) http.Handler`), a single import path (`httputil.CORS()`) beats fragmented sub-package namespaces (`httputil/cors.CORS()`). Public sub-packages are also structurally impossible: compression depends on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), creating circular imports if extracted. An `internal/` extraction is technically viable (root → internal is one direction, no cycles) but deferred until post-v1.0 or if root exceeds ~50 non-test files. See `docs/architecture-understanding/2026-08-05_06-56_package-structure-analysis.html` and `docs/modularization/2026-08-05_DECISION.html` for the full analysis.
 
 | File                          | Exports                                                                                                                                                                                                                              | Purpose                                                                                           |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
@@ -252,6 +255,19 @@ Context is attached where relevant (e.g., `status` on write errors).
 - **Post-header-commit writes discard errors by design ("honest silence")** — after `WriteHeader` is called, the HTTP response is in-flight and write failures cannot be surfaced to the client or caller. Error-response body writes go through the `writeCommittedBody(w, body)` helper in `recorder.go` (used by `Recovery()`, `CSRFMiddleware()`, `KeyedRateLimiterMiddleware()`, `RateLimit()`). Other intentional discards with inline comments: `compressWriter.Flush()` (post-handler body flush); `Compression()` defer Close (cleanup); `limitedReader.Read()` bomb-protection Close.
 
 ## Testing Conventions
+
+### Test Naming and Assertion Conventions
+
+Codified 2026-08-30 (source: `06-12:f.6` — "test names must match what they assert"):
+
+- **Name = claim.** A test name must describe exactly what is asserted, no more. `TestChain_CompressionETag_HijackPassthrough` implied byte passthrough but only asserted interface delegation — the name was a lie. If the name promises more than the body checks, add the assertions or rename.
+- **Shape:** `Test<Component>_<Behavior>` with an optional `_Condition` suffix (e.g. `TestResponseRecorder_Hijack_Unsupported`, `TestNegotiator_Property_SelectsHighestQAvailable`). Benchmarks: `Benchmark<Subject>`, with `b.Run` groups when one benchmark family varies by parameter (see `BenchmarkETagAdapterOverhead`, `BenchmarkDecompression`). Fuzz targets: `Fuzz<Subject>`.
+- **Helpers:** constructors `newXxx()`, assertions `assertXxx(t, ...)` starting with `t.Helper()`, doubles as unexported structs in `testutil_test.go`.
+- **Assertion messages:** `got = %v, want %v` style with the expression under test first; `t.Fatalf` when continuing is meaningless, `t.Errorf` otherwise.
+- **Mutation-check preservation tests:** any test whose name says "preserves"/"passthrough" must fail when the preserved behavior is mutated away, not merely when the symbol disappears. Interface-assertion-only tests get a companion delegation call (see `TestServerTimingMiddleware_PreservesHijacker`, mutation-verified 2026-08-30).
+- **Benchmark harnesses must reset mutated request state every iteration** (2026-08-30 rule, born from the Decompression incident): middleware that consumes the request body or deletes headers (`Decompression` removes `Content-Encoding`/`Content-Length`) leaves a reused `*http.Request` in a degraded state, so a benchmark that constructs the request once decompresses on iteration 1 and then times no-ops. Restore `req.Body` and the deleted headers inside `b.Loop`. Eyeball the implied bytes/second (`SetBytes` ÷ ns/op): anything above memory bandwidth (~50 GB/s) is a broken harness, not a fast benchmark.
+- **Every "0 means X" config claim gets an execution-probe test** (2026-08-30 rule): two consecutive sessions found documented zero-value semantics that were false (`MaxDecompressionSize: 0` "disables" — it selects the 16 MiB default; `MaxBytes: 0` "unlimited" — it rejects any non-empty body). When documenting a zero-value special case, pin it with a test that executes the behavior (`TestMaxBodySize_ZeroLimitRejectsNonEmptyBody` is the pattern).
+- **Fuzz invariants over line coverage for response-transforming code** (2026-08-30 rule): 96.9% line coverage missed the compression exact-fill duplication bug; a decode-and-compare round-trip invariant found it in seconds. Every component that transforms response bytes gets a gunzip-and-compare (or equivalent) invariant in its fuzz target. Reference decoders inside fuzz targets must be bounded (`io.LimitReader`) so corrupt input cannot OOM the runner.
 
 ### Coverage Methodology
 

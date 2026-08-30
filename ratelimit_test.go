@@ -333,9 +333,9 @@ func TestTokenBucketLimiterEvictsIdleBuckets(t *testing.T) {
 		t.Error("expected idle bucket to be evicted after TTL")
 	}
 
-	if _, ok := limiter.buckets["active"]; !ok {
-		t.Error("expected active bucket to still exist after sweep")
-	}
+	// Note: no survival assertion for "active" here — its last access is also
+	// past the TTL, so the sweep legitimately evicts it and the Allow above
+	// recreates the entry. Asserting on the recreated entry can never fail.
 }
 
 func TestTokenBucketLimiterNoEvictionByDefault(t *testing.T) {
@@ -401,8 +401,14 @@ func BenchmarkTokenBucketLimiter(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	i := 0
+
 	for b.Loop() {
-		limiter.Allow(keys[b.N%len(keys)])
+		// b.N is constant within a round, so b.N%len(keys) always indexes the
+		// same key after warmup; use a local counter to actually spread keys.
+		limiter.Allow(keys[i%len(keys)])
+
+		i++
 	}
 }
 

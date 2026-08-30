@@ -76,6 +76,8 @@ func BenchmarkClientIP(b *testing.B) {
 	req.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8")
 	req.RemoteAddr = "10.0.0.1:1234"
 
+	b.ReportAllocs()
+
 	for b.Loop() {
 		ClientIP(req)
 	}

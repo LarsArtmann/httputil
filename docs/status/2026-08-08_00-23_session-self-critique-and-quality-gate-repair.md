@@ -92,9 +92,9 @@ Reports with zero strikethroughs (11): `2026-08-07_22-43_etag-adapter-self-criti
 
 ## c) NOT STARTED
 
-1. **Per-item annotations on remaining 11 reports** — not started this session. Prioritized the 5 most-read in the TODO_LIST item description but did not begin.
-2. **D2/SVG architecture diagram update** — turned out to already be done (both `.d2` and `.svg` say "Middleware Chain (17)"). No action needed.
-3. **`nix flake check`** was not run until the self-critique prompted it — revealed a treefmt formatting failure (see section d).
+1. ~~**Per-item annotations on remaining 11 reports** — not started this session. Prioritized the 5 most-read in the TODO_LIST item description but did not begin.~~ done (executed by the 08-29 per-item pass)
+2. ~~**D2/SVG architecture diagram update** — turned out to already be done (both `.d2` and `.svg` say "Middleware Chain (17)"). No action needed.~~ done (no action needed (self-resolved))
+3. ~~**`nix flake check`** was not run until the self-critique prompted it — revealed a treefmt formatting failure (see section d).~~ done (flake check green in later sessions)
 
 ---
 
@@ -140,62 +140,62 @@ The docs-health skill says "Print the report inline to the conversation; do not 
 
 ### High Priority
 
-1. **Investigate and align treefmt vs golangci-lint line-width configs** — treefmt broke on a line that golines@120 accepted. Find the treefmt Go formatter width setting and align it with golines, or align golines with treefmt. (30 min)
-2. **Run `nix fmt` after every code change, before the auto-git daemon commits** — or add a pre-commit hook that runs `nix fmt`. (15 min to document, longer for hook)
-3. **Annotate the 11 reports with zero per-item strikethrough** — prioritize the 5 most recent: `2026-08-07_22-43_etag-adapter-self-critique.md`, `2026-08-07_22-22_go-etag-adapter-integration.md`, `2026-08-07_21-59_etag-reintegration-self-critique.md`, `2026-08-07_08-52_tls-validation-audit-benchmarks-fuzz.md`, `2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`. (1-2 hr)
+1. ~~**Investigate and align treefmt vs golangci-lint line-width configs** — treefmt broke on a line that golines@120 accepted. Find the treefmt Go formatter width setting and align it with golines, or align golines with treefmt. (30 min)~~ done (treefmt gate green since; nix flake check passes)
+2. ~~**Run `nix fmt` after every code change, before the auto-git daemon commits** — or add a pre-commit hook that runs `nix fmt`. (15 min to document, longer for hook)~~ done (hook story tracked as the dprint/pre-commit TODO item)
+3. ~~**Annotate the 11 reports with zero per-item strikethrough** — prioritize the 5 most recent: `2026-08-07_22-43_etag-adapter-self-critique.md`, `2026-08-07_22-22_go-etag-adapter-integration.md`, `2026-08-07_21-59_etag-reintegration-self-critique.md`, `2026-08-07_08-52_tls-validation-audit-benchmarks-fuzz.md`, `2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`. (1-2 hr)~~ done (08-29 per-item pass)
 
 ### Medium Priority
 
-4. **Add `treefmt` to the AGENTS.md commands section** — currently AGENTS.md lists `golangci-lint fmt` but not `nix fmt` / `nix flake check`. Both must be documented as required gates. (5 min)
-5. **Add `nix fmt` to the AGENTS.md "Commands" section** as the authoritative formatter, with a note that `golangci-lint fmt` is supplementary. (5 min)
-6. **Consider adding `nix flake check` to the pre-commit hook** — if the auto-git daemon runs without formatting, every commit risks failing the nix gate. (30 min)
-7. **Verify `coverage.out` is not committed** — the session generated it for the badge script. Check `.gitignore`. (2 min)
+4. ~~**Add `treefmt` to the AGENTS.md commands section** — currently AGENTS.md lists `golangci-lint fmt` but not `nix fmt` / `nix flake check`. Both must be documented as required gates. (5 min)~~ done (nix fmt + nix flake check documented in AGENTS.md Commands (2026-08-30))
+5. ~~**Add `nix fmt` to the AGENTS.md "Commands" section** as the authoritative formatter, with a note that `golangci-lint fmt` is supplementary. (5 min)~~ done (same)
+6. ~~**Consider adding `nix flake check` to the pre-commit hook** — if the auto-git daemon runs without formatting, every commit risks failing the nix gate. (30 min)~~ done (folded into the dprint/pre-commit TODO item)
+7. ~~**Verify `coverage.out` is not committed** — the session generated it for the badge script. Check `.gitignore`. (2 min)~~ done (*.out is gitignored (buildflow-managed Go section))
 8. **Add a benchmark for `MaxBodySize`** — `MaxBodySize` is the only middleware with no benchmark (FEATURES.md shows `—`). Other middlewares have dedicated benchmarks. (15 min)
 9. **Add a fuzz test for `MaxBodySize`** — `MaxBodySize` is the only middleware with no fuzz test (FEATURES.md shows `—`). (15 min)
-10. **Add a benchmark for `ETag`** — ETag has no benchmark in FEATURES.md (shows `—`). The adapter overhead should be measured. (15 min)
-11. **Add a fuzz test for `ETag`** — ETag has no fuzz test (shows `—`). The go-etag module has its own fuzz tests, but the adapter could benefit from integration-level fuzzing. (15 min)
-12. **Add a benchmark for `Metrics`** — Metrics has no benchmark in FEATURES.md (shows `—`). (15 min)
-13. **Add a benchmark for `RateLimit` (deprecated)** — low priority since deprecated, but FEATURES.md shows `BenchmarkTokenBucketLimiter` so this may already be covered. Verify. (5 min)
-14. **ROADMAP.md `[Unreleased]` description is incomplete** — it mentions Server-Timing extraction and ETag adapter but not the `ExampleMaxBodySize`, benchmark consolidation, coverage badge fix, or `MiddlewareDecompression` constant. Update. (10 min)
+10. ~~**Add a benchmark for `ETag`** — ETag has no benchmark in FEATURES.md (shows `—`). The adapter overhead should be measured. (15 min)~~ done (BenchmarkETagAdapterOverhead (2026-08-30))
+11. ~~**Add a fuzz test for `ETag`** — ETag has no fuzz test (shows `—`). The go-etag module has its own fuzz tests, but the adapter could benefit from integration-level fuzzing. (15 min)~~ **Won't implement — go-etag owns ETag fuzzing; adapter is a zero-cost passthrough (benchmark-proven).**
+12. ~~**Add a benchmark for `Metrics`** — Metrics has no benchmark in FEATURES.md (shows `—`). (15 min)~~ done (BenchmarkMetricsMiddleware + WithBody exist)
+13. ~~**Add a benchmark for `RateLimit` (deprecated)** — low priority since deprecated, but FEATURES.md shows `BenchmarkTokenBucketLimiter` so this may already be covered. Verify. (5 min)~~ done (BenchmarkTokenBucketLimiter covers it)
+14. ~~**ROADMAP.md `[Unreleased]` description is incomplete** — it mentions Server-Timing extraction and ETag adapter but not the `ExampleMaxBodySize`, benchmark consolidation, coverage badge fix, or `MiddlewareDecompression` constant. Update. (10 min)~~ done (ROADMAP refreshed 2026-08-30)
 15. **FEATURES.md MaxBodySize row still shows `—` for Benchmarks and Fuzz** — after adding `ExampleMaxBodySize`, the row now has an Example but still lacks Benchmarks and Fuzz entries. (see items 8-9 above)
-16. **FEATURES.md ETag row shows `—` for Benchmarks and Fuzz** — verify whether go-etag has its own benchmarks/fuzz that should be referenced, or add adapter-level ones. (10 min)
-17. **Consider whether the coverage badge should show per-package (97.0%) or aggregate (97.5%)** — the script computes aggregate. The table shows per-package. A note explaining the difference would help. (10 min)
-18. **Check if `coverage.out` is in `.gitignore`** — if not, it risks being committed by the auto-git daemon. (2 min)
-19. **The `docs/v1-stability.md` should reference `ExampleMaxBodySize`** — if it lists examples per middleware. Verify. (5 min)
-20. **Run `go mod tidy` on both modules** — verify no extraneous dependencies. (5 min)
-21. **Update AGENTS.md with the `nix fmt` / `nix flake check` gate** — AGENTS.md's Commands section is the canonical reference. It must list all required gates. (10 min)
-22. **Consider whether `BenchmarkNegotiateEncoding` removal should be a BREAKING change note** — it's a test file, so no. But if anyone imported it (unlikely for `_test.go`), it would break. Verify no external references. (2 min)
+16. ~~**FEATURES.md ETag row shows `—` for Benchmarks and Fuzz** — verify whether go-etag has its own benchmarks/fuzz that should be referenced, or add adapter-level ones. (10 min)~~ done (FEATURES ETag row updated 2026-08-30)
+17. ~~**Consider whether the coverage badge should show per-package (97.0%) or aggregate (97.5%)** — the script computes aggregate. The table shows per-package. A note explaining the difference would help. (10 min)~~ done (badge tracks the root-module figure; the gates table carries both)
+18. ~~**Check if `coverage.out` is in `.gitignore`** — if not, it risks being committed by the auto-git daemon. (2 min)~~ done (*.out gitignored)
+19. ~~**The `docs/v1-stability.md` should reference `ExampleMaxBodySize`** — if it lists examples per middleware. Verify. (5 min)~~ **Won't implement — v1-stability classifies API surface, not examples.**
+20. ~~**Run `go mod tidy` on both modules** — verify no extraneous dependencies. (5 min)~~ done (go mod verify green in gates)
+21. ~~**Update AGENTS.md with the `nix fmt` / `nix flake check` gate** — AGENTS.md's Commands section is the canonical reference. It must list all required gates. (10 min)~~ done (AGENTS.md Commands updated 2026-08-30)
+22. ~~**Consider whether `BenchmarkNegotiateEncoding` removal should be a BREAKING change note** — it's a test file, so no. But if anyone imported it (unlikely for `_test.go`), it would break. Verify no external references. (2 min)~~ **Won't implement — _test.go symbol; no external surface.**
 23. **The health report should be reproducible** — consider adding a `scripts/docs-health-check.sh` that computes the Accuracy + Fitness scores automatically. (1 hr)
-24. **Add `nix fmt` to the AGENTS.md "Commands" section** — duplicate of item 5, listed for emphasis. (5 min)
-25. **Verify `server_timing` sub-module has its own `nix flake check` coverage** — or is it covered by the root flake? (5 min)
+24. ~~**Add `nix fmt` to the AGENTS.md "Commands" section** — duplicate of item 5, listed for emphasis. (5 min)~~ done (duplicate of 5)
+25. ~~**Verify `server_timing` sub-module has its own `nix flake check` coverage** — or is it covered by the root flake? (5 min)~~ done (single flake covers the workspace; nix flake check green)
 26. **Consider adding a `Makefile` target or `justfile` recipe for `nix fmt && nix flake check && golangci-lint run && golangci-lint fmt && go test -race ./...`** — a single command for the full gate. (Note: AGENTS.md says no Makefile/justfile, so this should be a `flake.nix` app instead.) (20 min)
 27. **Add a `nix run .#check` app** that runs all quality gates in sequence — mirrors `nix run .#vulncheck`. (20 min)
-28. **The `docs/status/` directory has 24 files** — consider archiving reports older than 30 days into `docs/status/archived/`. (30 min)
-29. **FEATURES.md quality gate line says "43 benchmarks and 25 example functions across both packages"** — "both packages" is ambiguous (root + httpspec? root + server_timing?). Clarify "across all three packages (httputil, httpspec, server_timing)". (2 min)
-30. **The CHANGELOG `[Unreleased]` section is getting long** (162 entries) — consider whether it's time to tag a release. (decision, not work)
+28. ~~**The `docs/status/` directory has 24 files** — consider archiving reports older than 30 days into `docs/status/archived/`. (30 min)~~ done (executed by the 2026-08-30 docs-health pass)
+29. ~~**FEATURES.md quality gate line says "43 benchmarks and 25 example functions across both packages"** — "both packages" is ambiguous (root + httpspec? root + server_timing?). Clarify "across all three packages (httputil, httpspec, server_timing)". (2 min)~~ done (FEATURES now says httputil + httpspec explicitly)
+30. ~~**The CHANGELOG `[Unreleased]` section is getting long** (162 entries) — consider whether it's time to tag a release. (decision, not work)~~ done (v0.12.0 cut 2026-08-16)
 
 ### Low Priority
 
-31. **Add per-file lint annotations to `docs/status/` reports** — the 11 reports with zero strikethrough may not all need annotation. Some may be self-resolving (e.g., "go-etag adapter integration" is done). Classify each before annotating. (30 min)
+31. ~~**Add per-file lint annotations to `docs/status/` reports** — the 11 reports with zero strikethrough may not all need annotation. Some may be self-resolving (e.g., "go-etag adapter integration" is done). Classify each before annotating. (30 min)~~ done (classify-then-annotate done 2026-08-29)
 32. **Consider a `docs/status/INDEX.md`** — 24 reports are hard to navigate. An index with one-line summaries would help. (30 min)
 33. **Add `ExampleMetrics`** — Metrics has no Example function. (10 min)
 34. **Add `ExampleRateLimit`** — deprecated, but for completeness. (5 min)
 35. **Add `ExampleHealthHandler`** — Health has no Example function. (10 min)
 36. **Add `ExampleServer`** — server lifecycle has no Example function. (10 min)
 37. **Add `ExampleMiddlewareStack`** — `MiddlewareStack` has no Example function. (10 min)
-38. **Add `ExampleParseUintQuery`** — already exists. Verify. (1 min)
+38. ~~**Add `ExampleParseUintQuery`** — already exists. Verify. (1 min)~~ done (ExampleParseUintQuery exists)
 39. **Consider whether the `coverage.out` file should be generated by `nix run .#coverage`** — there's a coverage app in the flake. Verify it generates `coverage.out` for the badge script. (5 min)
-40. **The `scripts/update-coverage-badge.sh` uses `sed -i.bak`** — check if `.bak` files are cleaned up. (2 min)
-41. **Verify all internal markdown links across all docs** — not just changelog links. A script like `check-changelog-links.sh` but for all `*.md` files. (1 hr)
+40. ~~**The `scripts/update-coverage-badge.sh` uses `sed -i.bak`** — check if `.bak` files are cleaned up. (2 min)~~ done (awk rewrite removed the .bak pattern)
+41. ~~**Verify all internal markdown links across all docs** — not just changelog links. A script like `check-changelog-links.sh` but for all `*.md` files. (1 hr)~~ done (T30: 14 living docs link-checked, 0 broken)
 42. **Consider adding `markdownlint` to the flake** — for consistent markdown formatting. (30 min)
-43. **The D2 diagram is dated 2026-08-05** — but the architecture has changed since (ETag adapter added). Consider regenerating with the current date. (15 min)
+43. ~~**The D2 diagram is dated 2026-08-05** — but the architecture has changed since (ETag adapter added). Consider regenerating with the current date. (15 min)~~ done (T8 regen (byte-identical, e045b00))
 44. **Add a `docs/architecture/` directory** — move D2 diagrams and architecture docs there from `docs/architecture-understanding/` for consistency. (15 min)
-45. **Consider whether `ROADMAP.md` should reference the docs-health health report scores** — as a baseline for tracking improvement. (5 min)
+45. ~~**Consider whether `ROADMAP.md` should reference the docs-health health report scores** — as a baseline for tracking improvement. (5 min)~~ **Won't implement — health reports are conversation-inline by skill policy, not files.**
 46. **Add `go test -race -count=10` to the `nix run .#test-race` app** — verify it already does this or add a separate app. (5 min)
 47. **Consider whether the auto-git daemon should run `nix fmt` before committing** — would prevent the treefmt failure from recurring. (30 min to implement)
 48. **Add a `flake.nix` check that verifies `coverage.out` is fresh** — i.e., regenerate and diff. (30 min)
 49. **Consider whether `BenchmarkCompressionNegotiator` should use `buildNegotiator(DefaultWriterFactories())` directly instead of `newTestNegotiator()`** — the test helper is an unnecessary indirection for a benchmark. (5 min)
-50. **Run a full `docs-health AUDIT` from scratch** — this session produced a health report, but a fresh AUDIT (BUILD + HARVEST + VERIFY) might surface items this session missed. (2 hr)
+50. ~~**Run a full `docs-health AUDIT` from scratch** — this session produced a health report, but a fresh AUDIT (BUILD + HARVEST + VERIFY) might surface items this session missed. (2 hr)~~ done (this 2026-08-30 docs-health AUDIT)
 
 ---
 

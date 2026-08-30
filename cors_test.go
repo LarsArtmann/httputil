@@ -238,6 +238,8 @@ func BenchmarkCORS(b *testing.B) {
 	handler := middleware(inner)
 	req := newTestRequest(http.MethodGet, "/test", "http://example.com")
 
+	b.ReportAllocs()
+
 	for b.Loop() {
 		rec := newRecorder()
 		handler.ServeHTTP(rec, req)

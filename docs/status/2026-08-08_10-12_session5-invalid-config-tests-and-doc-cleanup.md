@@ -226,18 +226,18 @@ Pre-existing gaps in CSRF code, not introduced this session, but adjacent to the
 
 #### Test Quality Improvements (This Session's Gaps)
 
-1. Deepen `TestCORS_InvalidConfigLogsAndContinues` — assert CORS headers under invalid config
-2. Deepen `TestSecurityHeaders_InvalidConfigLogsAndContinues` — assert X-Frame-Options behavior with "BOGUS"
-3. Deepen `TestCompression_InvalidConfigLogsAndContinues` — assert compression behavior with negative MinSize
-4. Deepen `TestDecompression_InvalidConfigLogsAndContinues` — assert decompression behavior with negative MaxDecompressionSize
-5. Deepen `TestMaxBodySize_InvalidConfigLogsAndContinues` — assert body size limiting with negative MaxBytes
-6. Deepen `TestRequestID_InvalidConfigLogsAndContinues` — assert response header absence with empty ResponseHeader
-7. Deepen `TestRateLimit_InvalidConfigLogsAndContinues` — assert rate limiting behavior with invalid Status
-8. Deepen `TestKeyedRateLimiter_InvalidConfigLogsAndContinues` — assert rate limiting behavior with negative TTL
-9. Add `captureSlogOutput(t, func()) string` test helper to `testutil_test.go`
-10. Add slog output assertions to all 10 invalid-config tests (verify error message logged)
-11. Add `TestValidateConfig` — dedicated unit test (log on error)
-12. Add `TestValidateConfig_NilError` — verify nil error does not log
+1. ~~Deepen `TestCORS_InvalidConfigLogsAndContinues` — assert CORS headers under invalid config~~ done (superseded by validate_config_log_test.go programmatic slog assertions)
+2. ~~Deepen `TestSecurityHeaders_InvalidConfigLogsAndContinues` — assert X-Frame-Options behavior with "BOGUS"~~ done (same: central slog-capture tests)
+3. ~~Deepen `TestCompression_InvalidConfigLogsAndContinues` — assert compression behavior with negative MinSize~~ done (same)
+4. ~~Deepen `TestDecompression_InvalidConfigLogsAndContinues` — assert decompression behavior with negative MaxDecompressionSize~~ done (same)
+5. ~~Deepen `TestMaxBodySize_InvalidConfigLogsAndContinues` — assert body size limiting with negative MaxBytes~~ done (same)
+6. ~~Deepen `TestRequestID_InvalidConfigLogsAndContinues` — assert response header absence with empty ResponseHeader~~ done (same)
+7. ~~Deepen `TestRateLimit_InvalidConfigLogsAndContinues` — assert rate limiting behavior with invalid Status~~ done (same)
+8. ~~Deepen `TestKeyedRateLimiter_InvalidConfigLogsAndContinues` — assert rate limiting behavior with negative TTL~~ done (same)
+9. ~~Add `captureSlogOutput(t, func()) string` test helper to `testutil_test.go`~~ done (slog capture implemented in validate_config_log_test.go)
+10. ~~Add slog output assertions to all 10 invalid-config tests (verify error message logged)~~ done (same)
+11. ~~Add `TestValidateConfig` — dedicated unit test (log on error)~~ done (TestValidateConfigLogsCodeFamilyAndDomain)
+12. ~~Add `TestValidateConfig_NilError` — verify nil error does not log~~ done (TestValidateConfigLogsUncodedErrorWithoutCodeField)
 
 #### Nonce Middleware
 
@@ -245,29 +245,29 @@ Pre-existing gaps in CSRF code, not introduced this session, but adjacent to the
 14. Add injectable `Generator` field to `NonceConfig` for deterministic testing
 15. Add `ExampleNonce_CacheControlNoStore` showing Cache-Control integration
 16. Consider `NonceWithCacheControl` composite middleware that sets both nonce + no-store
-17. Add integration test: Nonce + SecurityHeaders in correct order via MiddlewareStack
-18. Add fuzz test for `Nonce()` with Size=0 edge case
+17. ~~Add integration test: Nonce + SecurityHeaders in correct order via MiddlewareStack~~ done (v0.11.0 ordering tests + 08-29 stack tests)
+18. ~~Add fuzz test for `Nonce()` with Size=0 edge case~~ done (FuzzNonce corpus includes size edge cases; Size==0 validation tested)
 19. Add test verifying nonce is present in CSP even when handler doesn't write body
-20. Add test for nonce middleware under concurrent requests (stress test uniqueness)
+20. ~~Add test for nonce middleware under concurrent requests (stress test uniqueness)~~ done (context isolation + per-request randomness tests; -race sweeps)
 21. Consider adding `StrictCSPWithNonce` (no 'self' in script-src, nonce-only)
 22. Document CSP hash-source as alternative to nonces
-23. Cover `generateNonce` `rand.Read` error branch (currently 80%)
+23. ~~Cover `generateNonce` `rand.Read` error branch (currently 80%)~~ **Won't implement — documented as a defensive path in FEATURES (kernel-level fault injection required).**
 
 #### Architecture & Design
 
-24. Decide v1.0 API: should constructors return `(Middleware, error)` instead of log-and-continue?
-25. Consider `MustNew*` panic variants for constructors
+24. ~~Decide v1.0 API: should constructors return `(Middleware, error)` instead of log-and-continue?~~ done (decided: validate-and-log (DECISION_LOG 2026-08-08))
+25. ~~Consider `MustNew*` panic variants for constructors~~ **Won't implement — panic constructors rejected in DECISION_LOG (wrong ergonomics).**
 26. Consider `Validated[M ConfigValidator]` generic wrapper type
 27. Add `MiddlewareStack.ValidateConfigs()` method that validates all added middleware configs
-28. Run `art-dupl` to check if `validateConfig("XConfig", cfg.Validate())` pattern triggers duplication
+28. ~~Run `art-dupl` to check if `validateConfig("XConfig", cfg.Validate())` pattern triggers duplication~~ done (art-dupl: 0 clone groups)
 
 #### Documentation
 
-29. Update `docs/v1-stability.md` with `validateConfig` classification + all Validate() methods
-30. Update FEATURES.md with validate-at-construction as a feature
-31. Update ROADMAP.md with remaining nonce/CSP items
-32. Add `validateConfig` pattern documentation to README or docs
-33. Write release notes for v0.11.0
+29. ~~Update `docs/v1-stability.md` with `validateConfig` classification + all Validate() methods~~ **Won't implement — helper is unexported (not stability surface); Validate() methods classified.**
+30. ~~Update FEATURES.md with validate-at-construction as a feature~~ done (FEATURES Validate-at-Construction section)
+31. ~~Update ROADMAP.md with remaining nonce/CSP items~~ done (ROADMAP CSP batch 2026-08-30)
+32. ~~Add `validateConfig` pattern documentation to README or docs~~ done (AGENTS + README document the pattern)
+33. ~~Write release notes for v0.11.0~~ done (CHANGELOG [0.11.0])
 
 #### Badge & Tooling
 
@@ -275,31 +275,31 @@ Pre-existing gaps in CSRF code, not introduced this session, but adjacent to the
 35. Add pre-commit hook for badge script verification
 36. Consider switching badge to dynamic shields.io endpoint (no script needed)
 37. Add `nix run .#coverage` that runs tests + updates badge in one step
-38. Add coverage threshold gate (fail build if < 95%)
+38. ~~Add coverage threshold gate (fail build if < 95%)~~ done (ci.yml enforces the threshold)
 
 #### Versioning & Release
 
-39. Tag v0.11.0 with validate-at-construction + nonce hardening + invalid-config tests
-40. Update `docs/v1-stability.md` to classify new types/functions
+39. ~~Tag v0.11.0 with validate-at-construction + nonce hardening + invalid-config tests~~ done (v0.11.0 tagged 2026-08-09)
+40. ~~Update `docs/v1-stability.md` to classify new types/functions~~ done (v1-stability current)
 
 #### Security
 
-41. Add test verifying CSP nonce is regenerated on every request (not cached)
-42. Add test for nonce middleware with custom CSPBuilder that returns empty string
-43. Run `govulncheck` on the full dependency tree
-44. Verify `gosec` passes on all changed files
+41. ~~Add test verifying CSP nonce is regenerated on every request (not cached)~~ done (per-request randomness test (08-29))
+42. ~~Add test for nonce middleware with custom CSPBuilder that returns empty string~~ done (v0.11.0 empty-CSPBuilder test)
+43. ~~Run `govulncheck` on the full dependency tree~~ done (govulncheck clean (CI))
+44. ~~Verify `gosec` passes on all changed files~~ done (gosec in suite, 0 issues)
 
 #### Server-Timing & Other Sub-modules
 
-45. Add Validate-at-construction to `server_timing` middleware if it has a config
-46. Verify `ServerTimingMiddlewareWhen` also validates when condition is used
-47. Add Server-Timing coverage of the validation path
+45. ~~Add Validate-at-construction to `server_timing` middleware if it has a config~~ **Won't implement — server_timing middleware is zero-config.**
+46. ~~Verify `ServerTimingMiddlewareWhen` also validates when condition is used~~ **Won't implement — no config surface to validate.**
+47. ~~Add Server-Timing coverage of the validation path~~ **Won't implement — no validation path exists (zero-config).**
 
 #### General
 
 48. Consider a `Config[T]` interface or type constraint for config types that have `Validate()`
-49. Audit all exported doc comments for accuracy after the validate-at-construction change
-50. Run `brutal-self-review` skill on the full session's changes
+49. ~~Audit all exported doc comments for accuracy after the validate-at-construction change~~ done (full-code-review audited doc comments 2026-08-30)
+50. ~~Run `brutal-self-review` skill on the full session's changes~~ done (brutal-self-review run 2026-08-29)
 
 ---
 

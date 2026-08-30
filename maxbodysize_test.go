@@ -70,6 +70,38 @@ func TestMaxBodySizeHandlesNilBody(t *testing.T) {
 	}
 }
 
+// TestMaxBodySize_ZeroLimitRejectsNonEmptyBody pins the stdlib semantics this
+// middleware inherits: MaxBytesReader with a limit of zero rejects any
+// non-empty body. Zero is NOT an unlimited option (probed against net/http,
+// 2026-08-30); handlers wanting no artificial ceiling must pass a large
+// positive limit.
+func TestMaxBodySize_ZeroLimitRejectsNonEmptyBody(t *testing.T) {
+	t.Parallel()
+
+	handler := MaxBodySize(0)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("anything"))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf(
+			"status = %d, want %d (zero limit must reject non-empty bodies)",
+			rec.Code,
+			http.StatusRequestEntityTooLarge,
+		)
+	}
+}
+
 func TestMaxBodySizeConfigValidateValid(t *testing.T) {
 	t.Parallel()
 
@@ -196,7 +228,8 @@ func TestMaxBodySizeReadBeyondLimitReturnsMaxBytesError(t *testing.T) {
 	var tooMany *http.MaxBytesError
 	handler := http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		_, err := io.ReadAll(r.Body)
-		if errors.As(err, &tooMany) {
+		tooMany, _ = errors.AsType[*http.MaxBytesError](err)
+		if tooMany != nil {
 			// expected
 			return
 		}

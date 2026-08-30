@@ -63,17 +63,17 @@ Nothing partially done — all started work items are fully complete.
 ## c) NOT STARTED
 
 1. **`ClientIP` input validation** — Currently trusts X-Forwarded-For/X-Real-IP blindly. Could validate IP format, reject obviously spoofed headers, support trusted proxy configuration
-2. **`ResponseRecorder` body capture** — Currently only captures status code. Could optionally capture response body for inspection/logging
-3. **`ResponseRecorder` response header snapshot** — Could expose a snapshot of response headers at time of write
-4. **`CORS` per-request origin matching** — Current `allowOrigin` closure captures are set before per-request; could be more dynamic
-5. **`join()` function** — Currently only joins with `", "`. Could accept a separator parameter
-6. **Benchmarks** — No `Benchmark*` tests exist yet for hot paths (`itoa`, `join`, `ClientIP`, CORS middleware)
-7. **Fuzz tests** — No `Fuzz*` tests for `ClientIP` (parsing untrusted headers) or `itoa`
-8. **Examples** — No `Example*` functions for GoDoc
-9. **CI/CD pipeline** — No GitHub Actions or equivalent automation
-10. **README refresh** — README exists but may not reflect the classified error changes
-11. **`clientip_test.go`** — Modified but uncommitted from before this session (pre-existing changes)
-12. **Pre-existing lint warnings (~22)** — `varnamelen`, `noctx` in tests — documented as "do not fix unless asked"
+2. ~~**`ResponseRecorder` body capture** — Currently only captures status code. Could optionally capture response body for inspection/logging~~ done (parked in ROADMAP legacy-brainstorm line (2026-08-30))
+3. ~~**`ResponseRecorder` response header snapshot** — Could expose a snapshot of response headers at time of write~~ done (shipped (HeaderSnapshot + tests))
+4. ~~**`CORS` per-request origin matching** — Current `allowOrigin` closure captures are set before per-request; could be more dynamic~~ done (shipped (wildcard matching + origin-matching httpspec spec))
+5. ~~**`join()` function** — Currently only joins with `", "`. Could accept a separator parameter~~ done (moot (util.go removed 2026-06-16))
+6. ~~**Benchmarks** — No `Benchmark*` tests exist yet for hot paths (`itoa`, `join`, `ClientIP`, CORS middleware)~~ done (moot (util.go removed 2026-06-16))
+7. ~~**Fuzz tests** — No `Fuzz*` tests for `ClientIP` (parsing untrusted headers) or `itoa`~~ done (moot (util.go removed 2026-06-16))
+8. ~~**Examples** — No `Example*` functions for GoDoc~~ done (done (26 example functions))
+9. ~~**CI/CD pipeline** — No GitHub Actions or equivalent automation~~ done (done (CI workflows))
+10. ~~**README refresh** — README exists but may not reflect the classified error changes~~ done (done (maintained))
+11. ~~**`clientip_test.go`** — Modified but uncommitted from before this session (pre-existing changes)~~ done (moot (committed long ago))
+12. ~~**Pre-existing lint warnings (~22)** — `varnamelen`, `noctx` in tests — documented as "do not fix unless asked"~~ done (done (0 active warnings; documented in AGENTS))
 
 ---
 
@@ -115,29 +115,29 @@ Nothing is broken. The session had one notable learning:
 | -- | ------------------------------------------------------------------------------- | ------ | ------ |
 | 1  | Commit all current changes (this session's work)                                | HIGH   | LOW    |
 | 2  | Review and commit/discard `clientip_test.go` pre-existing changes               | HIGH   | LOW    |
-| 3  | Add `Benchmark*` tests for `itoa`, `join`, `ClientIP`, `CORS` middleware        | HIGH   | MEDIUM |
+| ~~3~~  | ~~Add `Benchmark*` tests for `itoa`, `join`, `ClientIP`, `CORS` middleware~~ done — moot (util.go removed 2026-06-16) | ~~HIGH~~ | ~~MEDIUM~~ |
 | 4  | Add `Fuzz*` tests for `ClientIP` (untrusted header parsing)                     | HIGH   | MEDIUM |
 | 5  | Add `Example*` functions for `ClientIP`, `CORS`, `Chain`, `NewResponseRecorder` | MEDIUM | LOW    |
-| 6  | Set up GitHub Actions CI (`golangci-lint run` + `go test`)                      | HIGH   | MEDIUM |
+| ~~6~~  | ~~Set up GitHub Actions CI (`golangci-lint run` + `go test`)~~ done — (CI workflows) | ~~HIGH~~ | ~~MEDIUM~~ |
 | 7  | Add test coverage reporting to CI                                               | MEDIUM | MEDIUM |
 | 8  | Add `CHANGELOG.md` with current features                                        | MEDIUM | LOW    |
 | 9  | Refresh `README.md` to document classified errors and `go-error-family`         | MEDIUM | LOW    |
-| 10 | Add body capture option to `ResponseRecorder`                                   | MEDIUM | MEDIUM |
-| 11 | Add response header snapshot to `ResponseRecorder`                              | MEDIUM | LOW    |
-| 12 | Add `ClientIP` validation (IP format, trusted proxy config)                     | MEDIUM | HIGH   |
-| 13 | Export `defaultMaxAge` or restructure to eliminate `mnd` warning                | LOW    | LOW    |
+| ~~10~~ | ~~Add body capture option to `ResponseRecorder`~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~MEDIUM~~ | ~~MEDIUM~~ |
+| ~~11~~ | ~~Add response header snapshot to `ResponseRecorder`~~ done — shipped (HeaderSnapshot + tests) | ~~MEDIUM~~ | ~~LOW~~ |
+| ~~12~~ | ~~Add `ClientIP` validation (IP format, trusted proxy config)~~ done — Won't implement — blind-trust documented as the contract; validation belongs to the deployer's proxy | ~~MEDIUM~~ | ~~HIGH~~ |
+| ~~13~~ | ~~Export `defaultMaxAge` or restructure to eliminate `mnd` warning~~ done — (0 lint issues) | ~~LOW~~ | ~~LOW~~ |
 | 14 | Add `errors.go` doc comments on exported error codes                            | LOW    | LOW    |
-| 15 | Consider `httputil.` prefix for error codes instead of `http.`                  | LOW    | LOW    |
-| 16 | Add integration test with real `net/http.Server`                                | MEDIUM | MEDIUM |
+| ~~15~~ | ~~Consider `httputil.` prefix for error codes instead of `http.`~~ done — Won't implement — hierarchical domain codes shipped in v0.12.0 | ~~LOW~~ | ~~LOW~~ |
+| ~~16~~ | ~~Add integration test with real `net/http.Server`~~ done — (server_test.go real-server tests) | ~~MEDIUM~~ | ~~MEDIUM~~ |
 | 17 | Add `CORS` tests for concurrent requests with different origins                 | MEDIUM | MEDIUM |
-| 18 | Add `ResponseRecorder.Write` test for partial writes                            | LOW    | LOW    |
-| 19 | Document `itoa` buffer size sufficiency mathematically                          | LOW    | LOW    |
-| 20 | Add `Chain()` with zero middleware edge case test                               | LOW    | LOW    |
-| 21 | Add `Chain()` with nil handler panic test                                       | LOW    | LOW    |
+| ~~18~~ | ~~Add `ResponseRecorder.Write` test for partial writes~~ done — (recorder write tests) | ~~LOW~~ | ~~LOW~~ |
+| ~~19~~ | ~~Document `itoa` buffer size sufficiency mathematically~~ done — moot (util.go removed 2026-06-16) | ~~LOW~~ | ~~LOW~~ |
+| ~~20~~ | ~~Add `Chain()` with zero middleware edge case test~~ done — (Chain edge tests in recorder_test) | ~~LOW~~ | ~~LOW~~ |
+| ~~21~~ | ~~Add `Chain()` with nil handler panic test~~ done — (Chain edge tests in recorder_test) | ~~LOW~~ | ~~LOW~~ |
 | 22 | Consider adding `http.Flusher` interface assertion for `ResponseRecorder`       | LOW    | LOW    |
-| 23 | Add godoc link to `go-error-family` in `errors.go`                              | LOW    | LOW    |
-| 24 | Create `FEATURES.md` for discoverability                                        | LOW    | LOW    |
-| 25 | Explore `nix flake` migration (per project conventions)                         | LOW    | HIGH   |
+| ~~23~~ | ~~Add godoc link to `go-error-family` in `errors.go`~~ done | ~~LOW~~ | ~~LOW~~ |
+| ~~24~~ | ~~Create `FEATURES.md` for discoverability~~ done — (exists, verified 2026-08-30) | ~~LOW~~ | ~~LOW~~ |
+| ~~25~~ | ~~Explore `nix flake` migration (per project conventions)~~ done — (flake.nix) | ~~LOW~~ | ~~HIGH~~ |
 
 ---
 

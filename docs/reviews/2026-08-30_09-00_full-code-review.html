@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Code Review Report (2026-08-30)</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>httputil &middot; full code review &middot; report</span>
+      <span>2026-08-30</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#summary">Summary</a>
+          <a href="#fixed">Fixed On the Spot</a>
+          <a href="#ticketed">Ticketed</a>
+          <a href="#strengths">What Is Excellent</a>
+          <a href="#coverage">Coverage Notes</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">FULL CODE REVIEW &middot; 2026-08-30</div>
+          <h1>Every File, Read and Criticized</h1>
+          <p class="subtitle">
+            First execution of the <code>full-code-review</code> skill across
+            all three modules: 35 root source files, ~50 root test files, the
+            <code>httpspec</code> subpackage, and the <code>server_timing</code>
+            sub-module. It found one critical production bug that three prior
+            audit passes and 96.9% coverage had missed.
+          </p>
+          <div class="meta">
+            <span class="tag amber">~22.4k lines reviewed</span>
+            <span class="tag">1 critical fixed</span>
+            <span class="tag teal">0 lint issues after</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-bad">
+            <div class="score">1</div>
+            <div class="label">Critical bug fixed</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3</div>
+            <div class="label">Major issues fixed</div>
+          </div>
+          <div class="score-card">
+            <div class="score">25+</div>
+            <div class="label">Test-harness fixes</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">4</div>
+            <div class="label">New items ticketed</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            The review executed the Pareto plan at
+            <a href="../planning/2026-08-30_08-00_full-code-review-execution-plan.html">docs/planning/2026-08-30_08-00_full-code-review-execution-plan.html</a>:
+            source files reviewed directly by component tier, test files given a
+            delegated first pass (4 of 5 agent batches; one batch re-run by hand
+            after an infrastructure failure) with every finding re-verified in
+            the source before acting on it. Fix-on-spot was applied whenever a
+            change was small and testable; everything else went to
+            <code>TODO_LIST.md</code>.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The headline find.</strong> The compression writer duplicated
+            response bodies whenever a handler's <code>Write</code> chunking
+            exactly filled the min-size buffer: the consumed branch of
+            <code>writeBuffered</code> fell through with the payload still in
+            the write argument, and the flush/stream step wrote it a second
+            time. Not covered by 96.9% line coverage (the exact-fill boundary
+            was never hit by an assertion), not caught by three prior reviews,
+            not caught by lint, race, or fuzz suites &mdash; because no fuzz
+            target ever decompressed the response and compared it. The new
+            round-trip fuzz invariant found it in seconds, on the standard
+            <code>Accept-Encoding: gzip</code> path with an
+            exactly-<code>minSize</code>-byte body. This is the argument for
+            execution-probe invariants over line coverage.
+          </div>
+        </section>
+
+        <section id="fixed">
+          <h2><span class="num">01</span>Fixed On the Spot</h2>
+
+          <div class="issue issue-critical" id="issue-1">
+            <span class="severity severity-critical">CRITICAL</span>
+            <strong>compressWriter duplicated response bodies on exact buffer fill</strong>
+            <div class="where">compress_writer.go:127-151 (writeBuffered)</div>
+            <p>
+              A <code>Write</code> bringing the buffer to exactly
+              <code>minSize</code> copied the payload into the buffer but left
+              it in <code>b</code>; the subsequent compress-and-stream (or
+              plain-flush) wrote those bytes again. Any handler whose body
+              chunks hit the boundary exactly served corrupted responses.
+              Fixed by clearing the write argument in the consumed branch;
+              regression test <code>TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated</code>
+              and a permanent fuzz seed.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="issue-2">
+            <span class="severity severity-important">MAJOR</span>
+            <strong>Recovery swallowed http.ErrAbortHandler</strong>
+            <div class="where">recovery.go</div>
+            <p>
+              net/http's sentinel for "abort this response silently" was
+              caught, logged as a panic with a stack trace, and answered with a
+              500 written to the already-aborted connection. Recovery now
+              re-panics the sentinel unchanged (guarded type assertion so a
+              non-comparable panic value cannot crash the comparison).
+              Regression: <code>TestRecovery_RepanicsErrAbortHandler</code>.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="issue-3">
+            <span class="severity severity-important">MAJOR</span>
+            <strong>Double Close on a compressing writer panicked</strong>
+            <div class="where">compress_writer.go (Close)</div>
+            <p>
+              <code>Close</code> nilled the writer but left
+              <code>compressing</code> true, so a second Close dereferenced a
+              nil interface. Unreachable through the middleware today, but a
+              loaded gun for any future code path. Close is now idempotent on
+              both the success and error paths, with two regression tests.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="issue-4">
+            <span class="severity severity-important">MAJOR</span>
+            <strong>Error templates claimed "zero disables the limit" twice</strong>
+            <div class="where">errors.go:296, errors.go:350</div>
+            <p>
+              <code>maxbodysize.max_bytes_negative</code> said zero means
+              unlimited (false: a zero <code>MaxBytesReader</code> rejects any
+              non-empty body &mdash; verified by direct stdlib probe);
+              <code>decompression.max_size_negative</code> said zero means no
+              limit (false: zero selects the 16 MiB default). Same false-claim
+              class the 2026-08-30 README fix addressed; the templates had been
+              missed. Field docs now state the real semantics and a
+              <code>TestMaxBodySize_ZeroLimitRejectsNonEmptyBody</code>
+              execution-probe test pins them.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="issue-5">
+            <span class="severity severity-important">MAJOR</span>
+            <strong>Three tests verified nothing</strong>
+            <div class="where">compression_negotiator_test.go:154, etag_test.go:86, server_test.go:324</div>
+            <p>
+              <code>TestCompression_CustomFactory</code> negotiated
+              <code>identity</code>, which the middleware short-circuits before
+              any factory lookup &mdash; the plugin path was never executed
+              (now negotiates a real custom encoding and asserts the header);
+              <code>TestETag_WorksInMiddlewareStack</code> checked only stack
+              metadata without serving a request (now serves and asserts the
+              ETag header); <code>TestServerServesRequests</code> called the
+              handler directly instead of the running server (now binds a
+              concrete port and issues a real HTTP GET).
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="issue-6">
+            <span class="severity severity-nice">NICE</span>
+            <strong>Negotiator tie-break overflow</strong>
+            <div class="where">compression_negotiator.go (nameOffset)</div>
+            <p>
+              The base-256 byte-accumulation key for unknown encodings
+              overflowed <code>int</code> at nine name bytes, making the
+              documented deterministic order undefined for long custom encoding
+              names. Replaced with a lexicographic rank; behavior change is
+              limited to tie-break order among custom encodings.
+            </p>
+          </div>
+        </section>
+
+        <section id="ticketed">
+          <h2><span class="num">02</span>Ticketed (TODO_LIST.md)</h2>
+          <table class="compare">
+            <thead>
+              <tr><th>Item</th><th>Severity</th><th>Why not fixed now</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Verify the CSRF <code>Sec-Fetch-Site</code> trust model against justinas/nosurf before v1.0</td>
+                <td class="no">Important</td>
+                <td>Requires reading upstream source before any claim is encoded; potential follow-up is a behavior change on the security boundary</td>
+              </tr>
+              <tr>
+                <td>Convert the remaining legacy table-driven tests</td>
+                <td>Minor</td>
+                <td>Six pre-existing files; decide once whether to convert or amend the convention, then apply consistently</td>
+              </tr>
+              <tr>
+                <td>Refresh docs/benchmarks.md rows for the ~10 benches whose harnesses changed</td>
+                <td>Minor</td>
+                <td>Demands the full 3s&times;5 protocol; numbers must not be patched ad hoc</td>
+              </tr>
+              <tr>
+                <td><code>CSRFConfig.Validate</code> side-effect cleanup (pointer-receiver mutation + logging inside Validate)</td>
+                <td>Minor</td>
+                <td>API-shape change; post-v1.0 candidate</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The error model is a genuine differentiator.</strong>
+                Typed codes, per-component domains, classified families, a
+                template table with a completeness test, and structured
+                validation logging &mdash; coherent end to end, with zero
+                legacy debris in the new-code paths.
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Concurrency discipline held everywhere it was probed.</strong>
+                The per-key limiter's RLock fast path with double-checked write
+                path, heap-ref guards, the amortized crypto/rand buffer, and
+                the pool reset lifecycle all survived focused reading;
+                <code>-race -count=10</code> on the touched areas is clean.
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>server_timing is exemplary.</strong> Nil-receiver
+                no-ops, CRLF-safe escaping, commit-once header injection,
+                delegation that preserves Flush/Hijack/Push/Unwrap, and a
+                gating middleware with a true zero-overhead passthrough.
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The documented tradeoffs are honest.</strong> Flat root
+                package, validate-and-log constructors, honest-silence
+                discards, deprecated-but-kept rate limiter: each is written
+                down with rationale, which is exactly what made this review
+                fast where it could be and deep where it mattered.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="coverage">
+          <h2><span class="num">03</span>Coverage Notes</h2>
+          <p>
+            <strong>Reviewed directly (this session, line by line):</strong> all
+            35 root source files, both httpspec source groups used by
+            consumers (<code>httpspec.go</code>, <code>cors_ratelimit_specs.go</code>,
+            <code>specs.go</code>, <code>doc.go</code>), and the full
+            <code>server_timing</code> module.
+          </p>
+          <p>
+            <strong>Delegated first pass, findings verified locally:</strong>
+            the root test files in five batches. Four agent batches completed;
+            the csrf/nonce/security batch was reviewed via targeted structural
+            checks (100% <code>t.Parallel</code> coverage, zero global-state
+            mutation, zero sleeps, benchmarks all reporting allocs) plus full
+            reads of the fuzz files, after the review agent's network path
+            failed twice.
+          </p>
+          <p>
+            <strong>Known blind spots:</strong> the four large csrf/nonce
+            unit-test files were not read line by line this session (they are
+            pre-existing, race- and lint-clean, and structurally verified);
+            <code>docs/benchmarks.md</code> numbers for changed harnesses are
+            stale until the ticketed refresh runs.
+          </p>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">04</span>Appendix</h2>
+          <p>
+            <strong>Verification after all fixes:</strong> build + vet clean;
+            <code>go test -race -count=1</code> green in root, httpspec, and
+            server_timing; <code>golangci-lint run</code> 0 issues in both
+            modules; both erraudit gates exit 0; touched areas
+            race-stressed at <code>-count=10</code>; new fuzz invariants ran
+            3.4M (compression) and 395k (decompression) executions clean after
+            the fixes, with counterexample seeds retained.
+          </p>
+          <p>
+            <strong>Git note:</strong> the skill's default workflow commits
+            before and after; house rule (no commits without an explicit user
+            request) took precedence. Everything from the 2026-08-30 backlog
+            pass and this review sits uncommitted on <code>master</code> as of
+            this report.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-08-30 &middot; Full-code-review execution report
+            &middot; Every finding cited file:line and re-verified in source
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

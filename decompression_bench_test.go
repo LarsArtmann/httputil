@@ -58,67 +58,77 @@ func benchDecompressionPayload(b *testing.B, encoding string) []byte {
 	return buf.Bytes()
 }
 
-// BenchmarkDecompression_Gzip measures gzip request body decompression
-// throughput, including the limitedReader bomb-protection wrapper.
-func BenchmarkDecompression_Gzip(b *testing.B) {
-	compressed := benchDecompressionPayload(b, encodingGzip)
-
-	cfg := DefaultDecompressionConfig()
-	handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		_, _ = io.Copy(io.Discard, r.Body)
-	}))
-
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed))
-	req.Header.Set(headerContentEncoding, encodingGzip)
-
-	b.ReportAllocs()
-	b.SetBytes(benchDecompressionPayloadSize)
-
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
+// BenchmarkDecompression measures request-body decompression throughput as
+// b.Run sub-benchmarks (modernized from three top-level benchmarks, 08-52:f49):
+//
+//   - gzip/deflate: full decompression path, including the limitedReader
+//     bomb-protection wrapper.
+//   - passthrough: no Content-Encoding set; the middleware short-circuits,
+//     giving the per-request floor cost.
+//
+// Both the body reader and the Content-Encoding header are restored every
+// iteration: Decompression consumes the body and DELETES the header from the
+// request it serves, so a naively reused request silently degrades the
+// benchmark to the passthrough path after the first iteration (the three
+// top-level benchmarks this replaces had exactly that bug — their baseline
+// numbers measured ~1 decompression amortized over millions of no-ops).
+func BenchmarkDecompression(b *testing.B) {
+	compressed := map[string][]byte{
+		encodingGzip:    benchDecompressionPayload(b, encodingGzip),
+		encodingDeflate: benchDecompressionPayload(b, encodingDeflate),
 	}
-}
 
-// BenchmarkDecompression_Deflate measures deflate request body decompression
-// throughput, including the limitedReader bomb-protection wrapper.
-func BenchmarkDecompression_Deflate(b *testing.B) {
-	compressed := benchDecompressionPayload(b, encodingDeflate)
+	uncompressed := []byte("uncompressed request body")
 
-	cfg := DefaultDecompressionConfig()
-	handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		_, _ = io.Copy(io.Discard, r.Body)
-	}))
+	handler := Decompression(
+		DefaultDecompressionConfig(),
+	)(
+		http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			_, _ = io.Copy(io.Discard, r.Body)
+		}),
+	)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed))
-	req.Header.Set(headerContentEncoding, encodingDeflate)
+	b.Run("gzip", func(b *testing.B) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
 
-	b.ReportAllocs()
-	b.SetBytes(benchDecompressionPayloadSize)
+		b.ReportAllocs()
+		b.SetBytes(benchDecompressionPayloadSize)
 
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
-	}
-}
+		for b.Loop() {
+			req.Header.Set(headerContentEncoding, encodingGzip)
+			req.Body = io.NopCloser(bytes.NewReader(compressed[encodingGzip]))
 
-// BenchmarkDecompression_Passthrough measures the overhead when no
-// Content-Encoding is set — the middleware should short-circuit immediately.
-func BenchmarkDecompression_Passthrough(b *testing.B) {
-	body := []byte("uncompressed request body")
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+		}
+	})
 
-	cfg := DefaultDecompressionConfig()
-	handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		_, _ = io.Copy(io.Discard, r.Body)
-	}))
+	b.Run("deflate", func(b *testing.B) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
 
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+		b.ReportAllocs()
+		b.SetBytes(benchDecompressionPayloadSize)
 
-	b.ReportAllocs()
-	b.SetBytes(int64(len(body)))
+		for b.Loop() {
+			req.Header.Set(headerContentEncoding, encodingDeflate)
+			req.Body = io.NopCloser(bytes.NewReader(compressed[encodingDeflate]))
 
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
-	}
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+		}
+	})
+
+	b.Run("passthrough", func(b *testing.B) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+
+		b.ReportAllocs()
+		b.SetBytes(int64(len(uncompressed)))
+
+		for b.Loop() {
+			req.Body = io.NopCloser(bytes.NewReader(uncompressed))
+
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+		}
+	})
 }

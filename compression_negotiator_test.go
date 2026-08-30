@@ -150,7 +150,10 @@ func TestCompression_QValuePicksDeflate(t *testing.T) {
 	}
 }
 
-// TestCompression_CustomFactory verifies the WriterFactory plugin.
+// TestCompression_CustomFactory verifies the WriterFactory plugin: a custom
+// encoding must be negotiated and the factory actually invoked. (The earlier
+// version of this test negotiated identity, which the middleware
+// short-circuits before any factory lookup, exercising nothing.)
 func TestCompression_CustomFactory(t *testing.T) {
 	t.Parallel()
 
@@ -158,7 +161,9 @@ func TestCompression_CustomFactory(t *testing.T) {
 		MinSize: 1,
 		Level:   gzip.DefaultCompression,
 		WriterFactories: map[string]WriterFactory{
-			"identity": passthroughFactory,
+			"custom": func(dst io.Writer) (io.WriteCloser, error) {
+				return &simpleWriteCloser{dst: dst}, nil
+			},
 		},
 	}
 	handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -167,13 +172,12 @@ func TestCompression_CustomFactory(t *testing.T) {
 	}))
 
 	req := newTestRequest(http.MethodGet, "/", "")
-	req.Header.Set("Accept-Encoding", "identity")
+	req.Header.Set("Accept-Encoding", "custom")
 
 	rec := newRecorder()
 	handler.ServeHTTP(rec, req)
 
-	// No compression should occur.
-	assertHeader(t, rec, "Content-Encoding", "")
+	assertHeader(t, rec, "Content-Encoding", "custom")
 
 	if got := rec.Body.String(); got != "hello world" {
 		t.Errorf("body = %q, want %q", got, "hello world")

@@ -163,16 +163,16 @@ The validate-and-log pattern means invalid configs are silently absorbed in prod
 6. ~~Add `TestRequestID_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
 7. ~~Add `TestRateLimit_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
 8. ~~Add `TestKeyedRateLimiter_InvalidConfigLogsAndContinues`~~ → RESOLVED (session 5)
-9. Add `TestValidateConfig` — dedicated unit test for the helper
-10. Add `TestValidateConfig_NilError` — verify nil error does not log
+9. ~~Add `TestValidateConfig` — dedicated unit test for the helper~~ done (validate_config_log_test.go: TestValidateConfigLogsCodeFamilyAndDomain + LogsUncodedErrorWithoutCodeField)
+10. ~~Add `TestValidateConfig_NilError` — verify nil error does not log~~ done (nil-error path covered by the same tests)
 
 #### Documentation
 
 11. ~~Fix `maxbodysize.go:39-40` stale doc comment~~ → RESOLVED (session 5)
 12. ~~Check other constructors for similar stale "call Validate" comments~~ → RESOLVED (session 5) — found and fixed `ratelimit_keyed.go` too
-13. Update `docs/v1-stability.md` with `validateConfig` helper classification
-14. Add `validateConfig` to the API table in AGENTS.md (done for recorder.go row)
-15. Document the validate-and-log pattern in README or docs
+13. ~~Update `docs/v1-stability.md` with `validateConfig` helper classification~~ **Won't implement — validateConfig is unexported (not stability surface); Validate() methods are classified per-type in v1-stability.**
+14. ~~Add `validateConfig` to the API table in AGENTS.md (done for recorder.go row)~~ done (AGENTS.md recorder.go row lists validateConfig)
+15. ~~Document the validate-and-log pattern in README or docs~~ done (AGENTS.md Non-Obvious Behaviors + README error-handling section document the pattern)
 
 #### Nonce Middleware
 
@@ -180,13 +180,13 @@ The validate-and-log pattern means invalid configs are silently absorbed in prod
 17. Add injectable `Generator` field to `NonceConfig` for deterministic testing
 18. Add `ExampleNonce_CacheControlNoStore` showing Cache-Control integration
 19. Consider `NonceWithCacheControl` composite middleware that sets both nonce + no-store
-20. Add integration test: Nonce + SecurityHeaders in correct order via MiddlewareStack
+20. ~~Add integration test: Nonce + SecurityHeaders in correct order via MiddlewareStack~~ done (v0.11.0 ordering tests + 08-29 CSP-survives-SecurityHeaders test)
 
 #### Architecture & Design
 
-21. Decide v1.0 API: should constructors return `(Middleware, error)` instead of log-and-continue?
+21. ~~Decide v1.0 API: should constructors return `(Middleware, error)` instead of log-and-continue?~~ done (decided: validate-and-log, not validate-and-abort (DECISION_LOG 2026-08-08))
 22. Consider `Validated[M ConfigValidator]` generic wrapper type
-23. Extract `validateConfig` to internal package if more non-middleware code needs it
+23. ~~Extract `validateConfig` to internal package if more non-middleware code needs it~~ **Won't implement — internal/ extraction deferred by the flat-root decision (~50-file trigger).**
 24. Consider startup-time config validation in `MiddlewareStack.Build()` (batch validate all)
 25. Add `MiddlewareStack.ValidateConfigs()` method that validates all added middleware configs
 
@@ -196,15 +196,15 @@ The validate-and-log pattern means invalid configs are silently absorbed in prod
 27. Add pre-commit hook for badge script verification
 28. Consider switching badge to dynamic shields.io endpoint (no script needed)
 29. Add `make coverage` / `nix run .#coverage` that runs tests + updates badge in one step
-30. Add coverage threshold gate (fail build if < 95%)
+30. ~~Add coverage threshold gate (fail build if < 95%)~~ done (ci.yml enforces the 95% coverage threshold)
 
 #### Versioning & Release
 
-31. Tag v0.11.0 with validate-at-construction + nonce hardening changes
-32. Update FEATURES.md with validate-at-construction as a feature
-33. Update ROADMAP.md with remaining nonce/CSP items
-34. Write release notes for v0.11.0
-35. Update `docs/v1-stability.md` to classify `validateConfig` and all Validate() methods
+31. ~~Tag v0.11.0 with validate-at-construction + nonce hardening changes~~ done (v0.11.0 tagged 2026-08-09)
+32. ~~Update FEATURES.md with validate-at-construction as a feature~~ done (FEATURES Validate-at-Construction section)
+33. ~~Update ROADMAP.md with remaining nonce/CSP items~~ done (ROADMAP CSP-nonce-extensions batch added 2026-08-30)
+34. ~~Write release notes for v0.11.0~~ done (CHANGELOG [0.11.0])
+35. ~~Update `docs/v1-stability.md` to classify `validateConfig` and all Validate() methods~~ done (Validate() methods classified in v1-stability; helper unexported)
 
 #### Security
 
@@ -216,16 +216,16 @@ The validate-and-log pattern means invalid configs are silently absorbed in prod
 
 #### Code Quality
 
-41. Check if `art-dupl` finds the `validateConfig(name, cfg.Validate())` pattern as duplication
-42. Run `brutal-self-review` skill on the validateConfig changes
-43. Verify `gosec` passes on all changed files
-44. Run `govulncheck` on the full dependency tree
-45. Check if any constructor's Validate() has a different semantic than "reject invalid" (e.g., Size==0 meaning "use default")
+41. ~~Check if `art-dupl` finds the `validateConfig(name, cfg.Validate())` pattern as duplication~~ done (art-dupl: 0 clone groups (AGENTS))
+42. ~~Run `brutal-self-review` skill on the validateConfig changes~~ done (brutal-self-review run on the full tree 2026-08-29)
+43. ~~Verify `gosec` passes on all changed files~~ done (gosec in suite, 0 issues)
+44. ~~Run `govulncheck` on the full dependency tree~~ done (govulncheck clean (CI))
+45. ~~Check if any constructor's Validate() has a different semantic than "reject invalid" (e.g., Size==0 meaning "use default")~~ done (Size==0-uses-default semantics documented in AGENTS.md Non-Obvious Behaviors)
 
 #### Server-Timing & Other Sub-modules
 
-46. Add Validate-at-construction to `server_timing` middleware if it has a config
-47. Verify `ServerTimingMiddlewareWhen` also validates when condition is used
+46. ~~Add Validate-at-construction to `server_timing` middleware if it has a config~~ **Won't implement — server_timing middleware is zero-config; nothing to validate.**
+47. ~~Verify `ServerTimingMiddlewareWhen` also validates when condition is used~~ **Won't implement — same: no config surface to validate.**
 48. Add Server-Timing coverage of the validation path
 
 #### General

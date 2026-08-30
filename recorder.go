@@ -53,6 +53,8 @@ func validateConfig(configName string, err error) {
 	)
 	record.AddAttrs(attrs...)
 
+	// Logging must never break the request path; a Handle failure on this
+	// advisory record is unreportable and unactionable ("honest silence").
 	_ = slog.Default().Handler().Handle(context.Background(), record)
 }
 

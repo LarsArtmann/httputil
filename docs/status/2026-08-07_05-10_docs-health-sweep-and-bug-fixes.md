@@ -175,7 +175,7 @@
 ### D2 Diagram (P2)
 
 16. ~~**Update D2 diagram** — middleware count 16→17, add Decompression node. `docs/architecture-understanding/`. Effort: 20min.~~ done (done — updated by the 05:45/06:50 sessions)
-17. **Pin D2 layout engine version in flake.nix** — SVGs depend on `d2 --layout=elk`. Effort: 5min.
+17. ~~**Pin D2 layout engine version in flake.nix** — SVGs depend on `d2 --layout=elk`. Effort: 5min.~~ done (d2 pinned (T8, e045b00))
 
 ### Testing Hardening (P2)
 
@@ -186,15 +186,15 @@
 
 ### Documentation Polish (P2)
 
-22. **Document ETag + Compression recommended ordering** — ETag inner, Compression outer. `README.md`. Effort: 10min.
+22. ~~**Document ETag + Compression recommended ordering** — ETag inner, Compression outer. `README.md`. Effort: 10min.~~ done (README ordering guidance (v0.10.0))
 23. ~~**Add `nix run .#vulncheck` to RELEASE.md** — step 4. Effort: 10min.~~ done at `994d030`
-24. **Condense verbose historical-report annotation tables** — several repeat "Won't implement" 10+ times. Effort: 30min.
-25. **Verify all internal markdown links resolve** across living docs. Effort: 15min.
+24. ~~**Condense verbose historical-report annotation tables** — several repeat "Won't implement" 10+ times. Effort: 30min.~~ **Won't implement — T9 skip decision 2026-08-29: tables are the evidence chain.**
+25. ~~**Verify all internal markdown links resolve** across living docs. Effort: 15min.~~ done (T30: 0 broken links)
 
 ### Historical Report Annotation (P3)
 
 26. ~~**Upgrade 10-32 and 11-26 section-level markers to per-item strikethrough** — 90 items total. Effort: 1hr.~~ done (done — upgraded to per-item markers on 2026-08-29)
-27. **Cross-reference `DOMAIN_LANGUAGE.md` against `go doc -all` exports** — verify no exported symbols missing. Effort: 15min.
+27. ~~**Cross-reference `DOMAIN_LANGUAGE.md` against `go doc -all` exports** — verify no exported symbols missing. Effort: 15min.~~ done (T21 spot-verified)
 
 ### v1.0 Preparation (P3)
 
@@ -214,16 +214,16 @@
 
 36. ~~**Consider `ErrCodeETagComputeFailed`** — for hash computation failures (custom `HashFunc` could fail). `errors.go`, `etag.go`. Effort: 30min.~~ done (covered — the http.etag_hash_write_failed classification exists (now go-etag's))
 37. ~~**Review `etagWriter.isCacheableStatus()`** — `status == 0` means "no WriteHeader called yet". Is ETag generation correct for this case?~~ **Won't implement — moved — etagWriter review is go-etag responsibility.**
-38. **Run `brutal-self-review` skill properly** — deferred 4+ sessions. Effort: 30min.
-39. **Run `full-code-review` skill** — prior session admitted it was claimed-done but never run. Effort: 2hr.
-40. **Run full benchmark suite** with `-benchtime=3s -count=5` for baselines. Effort: 15min.
+38. ~~**Run `brutal-self-review` skill properly** — deferred 4+ sessions. Effort: 30min.~~ done (run 2026-08-29)
+39. ~~**Run `full-code-review` skill** — prior session admitted it was claimed-done but never run. Effort: 2hr.~~ done (run 2026-08-30)
+40. ~~**Run full benchmark suite** with `-benchtime=3s -count=5` for baselines. Effort: 15min.~~ done (T16 baseline (c1b2f31))
 41. ~~**Run `art-dupl` to verify no new duplication** — particularly after writeBufferedBody extraction. Effort: 5min.~~ done (done — 0 clone groups verified by the 06:50 session)
 
 ### Architecture (P3)
 
 42. ~~**Consider extracting entity-tag parsing into `entitytag` subpackage** — only if If-Match support is added.~~ **Won't implement — moved — entity-tag parsing lives in go-etag.**
 43. ~~**Evaluate whether Decompression should be in `MiddlewareStack` name constants** — `MiddlewareDecompression`. `stack.go`. Effort: 10min.~~ done (done — MiddlewareDecompression is in the stack constants (stack.go))
-44. **Consider `ExpectJSON` / `ExpectHTML` builders for httpspec** — response body assertion helpers. Effort: 30min.
+44. ~~**Consider `ExpectJSON` / `ExpectHTML` builders for httpspec** — response body assertion helpers. Effort: 30min.~~ done (T10 (284ea02))
 45. **The CI coverage threshold awk script is fragile** — consider a Go-based checker. `.github/workflows/ci.yml`. Effort: 30min.
 
 ### Ecosystem (P3)

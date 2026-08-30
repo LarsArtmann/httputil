@@ -110,17 +110,17 @@ constants, won't see it in examples, and won't find it in the README.
 9. ~~Add `FuzzNonce` fuzz test — verify CSP header is always valid for random byte inputs.~~ done at `a8171cc`
 10. ~~Add isolated `BenchmarkGenerateNonce` (crypto/rand + base64 only, no middleware overhead).~~ done at `a8171cc`
 11. ~~Add test: base64 boundary characters don't corrupt CSP header value.~~ done at `a8171cc`
-12. Add test: `Nonce()` chained after `SecurityHeaders` — verify CSP header is correct.
-13. Add test: `Nonce()` chained before `SecurityHeaders` — verify the conflict is detectable or documented.
+12. ~~Add test: `Nonce()` chained after `SecurityHeaders` — verify CSP header is correct.~~ done (v0.11.0 ordering tests)
+13. ~~Add test: `Nonce()` chained before `SecurityHeaders` — verify the conflict is detectable or documented.~~ done (v0.11.0 wrong-ordering CSP-loss documentation test)
 14. ~~Add test: `NonceConfig.Validate()` rejects `Size: 0` vs `Nonce()` accepting it (document the split behavior).~~ done at `040a41a`
-15. Add test: nonce survives through `Chain()` middleware composition.
-16. Consider a `Nonce` + `Recovery()` interaction test (nonce must be available even if downstream panics).
-17. Add test: multiple `Nonce()` instances in one stack produce different nonces per request.
+15. ~~Add test: nonce survives through `Chain()` middleware composition.~~ done (stack integration tests (v0.10.0/v0.11.0))
+16. ~~Consider a `Nonce` + `Recovery()` interaction test (nonce must be available even if downstream panics).~~ done (v0.11.0 Recovery composition test)
+17. ~~Add test: multiple `Nonce()` instances in one stack produce different nonces per request.~~ done (nested-Nonce overwrite + per-request randomness tests (08-29))
 
 ### Design & API
 
 18. ~~Decide CSP conflict resolution between `SecurityHeaders` and `Nonce` (document or merge).~~ done at `1c64a07`
-19. Consider `SecurityHeadersConfig.NonceAware bool` to auto-inject `'nonce-...'` from context.
+19. ~~Consider `SecurityHeadersConfig.NonceAware bool` to auto-inject `'nonce-...'` from context.~~ **Won't implement — ordering guidance documented (Nonce after SecurityHeaders); no new config surface pre-v1.0.**
 20. ~~Consider `ProductionCSPWithNonce(nonce)` with more directives (`img-src`, `connect-src`, `object-src 'none'`, `base-uri 'self'`).~~ done at `2c9fdb0`
 21. Consider `NonceConfig.Generator func() string` override for testability (like `RequestIDConfig.GenerateID`).
 22. Consider exposing `GenerateNonce(size int) string` as a public function for non-middleware use.
@@ -163,8 +163,8 @@ constants, won't see it in examples, and won't find it in the README.
 
 ### Polish
 
-47. Add `// nonce.go` to any file-level documentation index or cross-reference.
-48. Consider `NonceConfig` doc comment mentioning interaction with `SecurityHeaders`.
+47. ~~Add `// nonce.go` to any file-level documentation index or cross-reference.~~ done (AGENTS.md file table lists nonce.go)
+48. ~~Consider `NonceConfig` doc comment mentioning interaction with `SecurityHeaders`.~~ done (README ordering note + AGENTS Non-Obvious Behaviors)
 49. ~~Add `# CSP Nonce` section to README.md with before/after comparison.~~ done (done — the README CSP Nonce section landed (1c64a07))
 50. Consider a blog post or guide on "CSP nonce-based inline script policy with httputil."
 

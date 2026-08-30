@@ -36,11 +36,11 @@ func BenchmarkCheckServesRequest(b *testing.B) {
 	mux := newTypedHelloMux()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
 
-	b.ResetTimer()
+	b.ReportAllocs()
 
 	for b.Loop() {
+		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 	}
 }

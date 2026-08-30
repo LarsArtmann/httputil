@@ -81,9 +81,9 @@
 
 ## b) PARTIALLY DONE
 
-1. **`Decompression` function coverage is 78.1%, not higher** — The encoding-filter reject path is the `default:` switch case at `decompression.go:107-110`. This case is structurally unreachable when the allowed set only contains `gzip` and `deflate` — the `switch` on `strings.ToLower(encoding)` can only match those two cases or fall through to the early return at line 87-90 (which checks `!allowed[strings.ToLower(encoding)]` before reaching the switch). The `default:` is defensive code for a custom encoding set where a new encoding is added to `allowed` but not to the `switch`. I wrote the test to exercise the early-return path (which IS tested via `TestDecompressionRespectsEncodingFilter`), but the `default:` case itself cannot be reached without adding a third encoding to the switch. This is acceptable defensive code.
+1. ~~**`Decompression` function coverage is 78.1%, not higher** — The encoding-filter reject path is the `default:` switch case at `decompression.go:107-110`. This case is structurally unreachable when the allowed set only contains `gzip` and `deflate` — the `switch` on `strings.ToLower(encoding)` can only match those two cases or fall through to the early return at line 87-90 (which checks `!allowed[strings.ToLower(encoding)]` before reaching the switch). The `default:` is defensive code for a custom encoding set where a new encoding is added to `allowed` but not to the `switch`. I wrote the test to exercise the early-return path (which IS tested via `TestDecompressionRespectsEncodingFilter`), but the `default:` case itself cannot be reached without adding a third encoding to the switch. This is acceptable defensive code.~~ done (documented in the FEATURES sub-100% list (84.8% as of 2026-08-30))
 
-2. **Coverage number discrepancy** — `go test -coverprofile` reports 96.9% but `go tool cover -func` total reports 97.4%. The docs cite the `go test` number (96.9%) because that's what users see. The discrepancy arises from how the two tools aggregate per-package vs cross-package coverage. Not wrong, but worth noting.
+2. ~~**Coverage number discrepancy** — `go test -coverprofile` reports 96.9% but `go tool cover -func` total reports 97.4%. The docs cite the `go test` number (96.9%) because that's what users see. The discrepancy arises from how the two tools aggregate per-package vs cross-package coverage. Not wrong, but worth noting.~~ done (methodology documented in AGENTS.md Coverage Methodology)
 
 ---
 
@@ -147,27 +147,27 @@
 
 ### P1: Code Quality
 
-6. **Remove or comment the dead `default:` case** in `decompression.go:107`. Effort: 5min.
+6. ~~**Remove or comment the dead `default:` case** in `decompression.go:107`. Effort: 5min.~~ done (documented as the custom-Encodings contract (T20, 2026-08-29))
 7. ~~**Add `go-etag` integration test** — verify httputil + go-etag compose correctly via `Chain()`. Effort: 30min.~~ done at `242aac7`, `77a442c`
 8. ~~**Run full benchmark suite** — capture baselines after ETag removal. Effort: 15min.~~ done (done — benchmark baselines captured in later sessions)
 9. ~~**Fuzz test for decompression** — random compressed bodies, malformed data, edge-case sizes. Effort: 30min.~~ done (done — decompression_fuzz_test.go exists (08-07 sessions))
-10. **Fuzz test for `limitedReadCloser`** — random data sizes around the bomb limit boundary. Effort: 20min.
+10. ~~**Fuzz test for `limitedReadCloser`** — random data sizes around the bomb limit boundary. Effort: 20min.~~ done (FuzzLimitedReadCloser (5278f1d))
 
 ### P1: Documentation
 
 11. ~~**Read and annotate the 06-44 status reports** — understand what the daemon did during ETag/Server-Timing extraction. Effort: 15min.~~ done (done — the 06-44 reports were annotated by the 08-07 passes and upgraded 2026-08-29)
 12. ~~**Update AGENTS.md file table** — remove ETag row (if daemon hasn't already), verify all file entries match current source. Effort: 10min.~~ done (done — the AGENTS.md file table reflects the adapter and the extraction)
 13. ~~**Update FEATURES.md** — remove ETag from feature list if not already done. Verify all claims against current source. Effort: 15min.~~ done (done — FEATURES.md reflects the extraction (verified by later passes))
-14. **Cross-reference DOMAIN_LANGUAGE.md** — verify no stale ETag entity/event references remain. Effort: 10min.
-15. **Add coverage methodology note to AGENTS.md** — document that `go test` and `go tool cover -func` report different numbers and which is authoritative. Effort: 5min.
+14. ~~**Cross-reference DOMAIN_LANGUAGE.md** — verify no stale ETag entity/event references remain. Effort: 10min.~~ done (DOMAIN_LANGUAGE updated at extraction; T21 spot-verified)
+15. ~~**Add coverage methodology note to AGENTS.md** — document that `go test` and `go tool cover -func` report different numbers and which is authoritative. Effort: 5min.~~ done (AGENTS.md Coverage Methodology section)
 
 ### P2: Testing Hardening
 
-16. **Decompression + MaxBodySize interaction test** — verify body-size limit applies to decompressed size. Effort: 20min.
-17. **Decompression + Compression chain test** — compressed request body, compressed response. Effort: 20min.
-18. **CSRF + Server-Timing chain test** — verify Server-Timing header on CSRF-rejected responses. Effort: 15min.
-19. **KeyedRateLimit bomb-protection test** — verify `MaxKeys` eviction under rapid key creation. Effort: 20min.
-20. **Recovery + Logging chain test** — verify panic is logged AND recovered. Effort: 15min.
+16. ~~**Decompression + MaxBodySize interaction test** — verify body-size limit applies to decompressed size. Effort: 20min.~~ done (T12 (f7c50dc))
+17. ~~**Decompression + Compression chain test** — compressed request body, compressed response. Effort: 20min.~~ done (T12 (f7c50dc))
+18. ~~**CSRF + Server-Timing chain test** — verify Server-Timing header on CSRF-rejected responses. Effort: 15min.~~ done (T13 (f7c50dc))
+19. ~~**KeyedRateLimit bomb-protection test** — verify `MaxKeys` eviction under rapid key creation. Effort: 20min.~~ done (T13 eviction-under-churn test)
+20. ~~**Recovery + Logging chain test** — verify panic is logged AND recovered. Effort: 15min.~~ done (T13 Recovery x Logging test)
 21. ~~**Fuzz `parseETagList`** (now in go-etag module) — focused quote/comma/backslash/escape combinations. Effort: 30min.~~ **Won't implement — moved — parseETagList fuzzing is go-etag responsibility.**
 
 ### P2: Ecosystem Verification
@@ -180,8 +180,8 @@
 ### P2: Documentation Polish
 
 26. ~~**Add `nix run .#vulncheck` to RELEASE.md** — document the vulncheck app in the release runbook. Effort: 10min.~~ done at `994d030`
-27. **Verify all internal markdown links resolve** across living docs. Effort: 15min.
-28. **Pin D2 layout engine version** in flake.nix — SVGs depend on `d2 --layout=elk`. Effort: 5min.
+27. ~~**Verify all internal markdown links resolve** across living docs. Effort: 15min.~~ done (T30: 0 broken links)
+28. ~~**Pin D2 layout engine version** in flake.nix — SVGs depend on `d2 --layout=elk`. Effort: 5min.~~ done (d2 pinned (T8, e045b00))
 29. **Update RELEASE.md** with `go-etag` and `server_timing` module release steps. Effort: 15min.
 30. ~~**Review `docs/v1-stability.md`** — classify every exported symbol, verify none missing. Effort: 30min.~~ done (done — every exported symbol classified (maintained since b90616e))
 
@@ -195,11 +195,11 @@
 
 ### P3: Code Quality
 
-36. **Run `brutal-self-review` skill** — deferred 6+ sessions. Effort: 30min.
-37. **Run `full-code-review` skill** — never actually run. Effort: 2hr.
+36. ~~**Run `brutal-self-review` skill** — deferred 6+ sessions. Effort: 30min.~~ done (run 2026-08-29 (docs/reviews/2026-08-29_20-42))
+37. ~~**Run `full-code-review` skill** — never actually run. Effort: 2hr.~~ done (run 2026-08-30 (docs/reviews/2026-08-30_09-00))
 38. **Run `architecture-review` skill** — assess structural health after ETag + Server-Timing extraction. Effort: 30min.
-39. **Review all error-swallow sites for classification opportunities** — should any get `errorfamily.Wrap`? Effort: 30min.
-40. **Consider extracting `responseWrapper` into shared internal package** — if go-etag also needs it. Effort: 1hr.
+39. ~~**Review all error-swallow sites for classification opportunities** — should any get `errorfamily.Wrap`? Effort: 30min.~~ done (2026-08-30 sweep: 8 sites audited, 2 fixed, 6 documented)
+40. ~~**Consider extracting `responseWrapper` into shared internal package** — if go-etag also needs it. Effort: 1hr.~~ **Won't implement — flat-root decision defers internal/ extraction; go-etag ships its own wrapper.**
 
 ### P3: Historical Report Annotation
 
@@ -218,7 +218,7 @@
 
 ### P3: Architecture
 
-50. **Consider a `go.mod` workspace checker** — script that verifies all `replace` directives point to directories that exist and have valid `go.mod` files. Prevents the "aspirational CHANGELOG" problem. Effort: 30min.
+50. ~~**Consider a `go.mod` workspace checker** — script that verifies all `replace` directives point to directories that exist and have valid `go.mod` files. Prevents the "aspirational CHANGELOG" problem. Effort: 30min.~~ done (check-module-boundaries.sh verifies go.work completeness (T22/T23))
 
 ---
 

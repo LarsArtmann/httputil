@@ -192,17 +192,17 @@
 
 18. ~~**Fuzz test for `parseETagList`** — focused quote/comma/backslash/escape combinations. `etag_test.go`. Effort: 30min.~~ **Won't implement — moved — parseETagList fuzzing is go-etag responsibility.**
 19. ~~**Fuzz test for `stripWeakPrefix`** — ensure no panic on `W/`, `W`, empty, backslash-only. `etag_test.go`. Effort: 15min.~~ **Won't implement — moved — stripWeakPrefix fuzzing is go-etag responsibility.**
-20. **Fuzz test for `limitedReadCloser`** — random data sizes around the bomb limit boundary. `decompression_test.go`. Effort: 20min.
-21. **Run full benchmark suite** — `-benchtime=3s -count=5` for baselines after all changes. Effort: 15min.
+20. ~~**Fuzz test for `limitedReadCloser`** — random data sizes around the bomb limit boundary. `decompression_test.go`. Effort: 20min.~~ done (FuzzLimitedReadCloser (5278f1d))
+21. ~~**Run full benchmark suite** — `-benchtime=3s -count=5` for baselines after all changes. Effort: 15min.~~ done (T16 baseline (c1b2f31))
 22. ~~**Fuzz ETag + Compression together** — longer `fuzztime=30s` to surface deep parser bugs. Effort: 30min.~~ **Won't implement — moved — combined ETag fuzzing is go-etag responsibility.**
 
 ### Documentation Polish (P2)
 
 23. ~~**Add `nix run .#vulncheck` to RELEASE.md** — document the vulncheck app in the release runbook. Effort: 10min.~~ done at `994d030`
-24. **Verify all internal markdown links resolve** across living docs. Effort: 15min.
-25. **Pin D2 layout engine version** in flake.nix — SVGs depend on `d2 --layout=elk`. Effort: 5min.
-26. **Cross-reference DOMAIN_LANGUAGE.md against `go doc -all`** — verify no exported symbols are missing from the glossary. Effort: 15min.
-27. **Condense verbose historical-report annotations** — several reports repeat "Won't implement" 10+ times. Effort: 30min.
+24. ~~**Verify all internal markdown links resolve** across living docs. Effort: 15min.~~ done (T30: 0 broken links)
+25. ~~**Pin D2 layout engine version** in flake.nix — SVGs depend on `d2 --layout=elk`. Effort: 5min.~~ done (d2 pinned (T8))
+26. ~~**Cross-reference DOMAIN_LANGUAGE.md against `go doc -all`** — verify no exported symbols are missing from the glossary. Effort: 15min.~~ done (T21 spot-verified)
+27. ~~**Condense verbose historical-report annotations** — several reports repeat "Won't implement" 10+ times. Effort: 30min.~~ **Won't implement — T9 skip decision 2026-08-29.**
 
 ### Historical Report Annotation (P3)
 
@@ -221,8 +221,8 @@
 
 35. ~~**Consider `ErrCodeETagComputeFailed`** — for custom `HashFunc` failures. `errors.go`, `etag.go`. Effort: 30min.~~ done (covered — the http.etag_hash_write_failed classification exists (now go-etag's))
 36. ~~**Review `etagWriter.isCacheableStatus()`** — `status == 0` means "no WriteHeader called yet". Is ETag generation correct for this case? Effort: 15min.~~ **Won't implement — moved — etagWriter review is go-etag responsibility.**
-37. **Run `brutal-self-review` skill** — deferred 5+ sessions. Effort: 30min.
-38. **Run `full-code-review` skill** — never actually run. Effort: 2hr.
+37. ~~**Run `brutal-self-review` skill** — deferred 5+ sessions. Effort: 30min.~~ done (run 2026-08-29)
+38. ~~**Run `full-code-review` skill** — never actually run. Effort: 2hr.~~ done (run 2026-08-30)
 39. **Run `architecture-review` skill** — assess structural health after decompression addition. Effort: 30min.
 40. **CI coverage threshold awk script** — consider a Go-based checker. `.github/workflows/ci.yml`. Effort: 30min.
 
@@ -238,12 +238,12 @@
 45. ~~**Study Fiber's ETag middleware** — skip logic for SSE, non-200, empty body. Effort: 30min.~~ done (studied — the ecosystem table in the 23-33 report covers Fiber)
 46. ~~**Study `blizzy78/conditional-http`** — If-Match/If-Modified-Since patterns. Effort: 15min.~~ done (studied — the ecosystem table in the 23-33 report covers blizzy78/conditional-http)
 47. **Check go-error-family for conditional-request error classification** — should 304/412 have error codes? Effort: 15min.
-48. **Study nginx's decompression bomb protection** — compare limits and detection strategies. Effort: 15min.
+48. ~~**Study nginx's decompression bomb protection** — compare limits and detection strategies. Effort: 15min.~~ done (docs/research/2026-08-30_nginx-bomb-protection-study.md)
 
 ### Architecture (P3)
 
 49. ~~**Consider extracting entity-tag parsing into `entitytag` subpackage** — only if If-Match support is added.~~ **Won't implement — moved — entity-tag parsing lives in go-etag.**
-50. **Consider `ExpectJSON` / `ExpectHTML` builders for httpspec** — response body assertion helpers. Effort: 30min.
+50. ~~**Consider `ExpectJSON` / `ExpectHTML` builders for httpspec** — response body assertion helpers. Effort: 30min.~~ done (T10 (284ea02))
 
 ---
 

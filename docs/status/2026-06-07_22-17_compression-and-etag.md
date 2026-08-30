@@ -310,26 +310,26 @@ Sorted by **impact / effort ratio** (Pareto principle — highest impact per uni
 | 3  | Add ETag memory limit (skip ETag if body > 1MB)            | High   | 15 min | Safety          |
 | 4  | Add error classification for compression write errors      | High   | 20 min | Architecture    |
 | 5  | Add `sync.Pool` for gzip.Writer reuse                      | High   | 20 min | Performance     |
-| 6  | Add content-type filtering for compression                 | Medium | 15 min | Performance     |
+| ~~6~~  | ~~Add content-type filtering for compression~~ done — shipped (IncompressibleTypes) | ~~Medium~~ | ~~15 min~~ | ~~Performance~~ |
 | 7  | Add benchmarks for Compression and ETag                    | Medium | 15 min | Observability   |
-| 8  | Add example functions for godoc                            | Medium | 10 min | DX              |
+| ~~8~~  | ~~Add example functions for godoc~~ done | ~~Medium~~ | ~~10 min~~ | ~~DX~~ |
 | 9  | Add integration test for ETag + Compression chain          | Medium | 15 min | Correctness     |
-| 10 | Document recommended middleware ordering in README         | Medium | 5 min  | DX              |
-| 11 | Extract shared ResponseWriter wrapper helper               | Medium | 30 min | Architecture    |
-| 12 | Add deflate support                                        | Medium | 30 min | Feature         |
-| 13 | Support `Accept-Encoding` quality value parsing            | Low    | 20 min | Correctness     |
+| ~~10~~ | ~~Document recommended middleware ordering in README~~ done — (ordering section + mermaid) | ~~Medium~~ | ~~5 min~~ | ~~DX~~ |
+| ~~11~~ | ~~Extract shared ResponseWriter wrapper helper~~ done — shipped (wrapper.go responseWrapper) | ~~Medium~~ | ~~30 min~~ | ~~Architecture~~ |
+| ~~12~~ | ~~Add deflate support~~ done — shipped (DefaultWriterFactories) | ~~Medium~~ | ~~30 min~~ | ~~Feature~~ |
+| ~~13~~ | ~~Support `Accept-Encoding` quality value parsing~~ done — shipped (compression_qvalue.go + property tests) | ~~Low~~ | ~~20 min~~ | ~~Correctness~~ |
 | 14 | Add `Content-Length` preservation for small responses      | Low    | 15 min | Correctness     |
-| 15 | Add `ETagConfig` max buffer size field                     | Low    | 10 min | Configurability |
-| 16 | Add `CompressionConfig` content type allow/deny lists      | Low    | 15 min | Configurability |
-| 17 | Add weak ETag documentation clarifying "weak in name only" | Low    | 5 min  | DX              |
-| 18 | Add streaming ETag option (no buffering)                   | Medium | 45 min | Performance     |
-| 19 | Add brotli support (blocked: requires external dep)        | High   | 60 min | Feature         |
-| 20 | Consider `MiddlewareStack` type with ordering rules        | Low    | 60 min | Architecture    |
-| 21 | Fuzz test compression with random bodies                   | Medium | 20 min | Quality         |
-| 22 | Fuzz test ETag with random bodies and headers              | Medium | 20 min | Quality         |
-| 23 | Add HTTP/2 Push test for compression writer                | Low    | 15 min | Coverage        |
-| 24 | Add Hijack test for ETag writer                            | Low    | 15 min | Coverage        |
-| 25 | Profile allocation hot spots under benchmark load          | Medium | 30 min | Performance     |
+| ~~15~~ | ~~Add `ETagConfig` max buffer size field~~ done — shipped (go-etag ETagConfig buffer limit) | ~~Low~~ | ~~10 min~~ | ~~Configurability~~ |
+| ~~16~~ | ~~Add `CompressionConfig` content type allow/deny lists~~ done — shipped (IncompressibleTypes) | ~~Low~~ | ~~15 min~~ | ~~Configurability~~ |
+| ~~17~~ | ~~Add weak ETag documentation clarifying "weak in name only"~~ done — (go-etag docs + v0.9.1 weak comparison) | ~~Low~~ | ~~5 min~~ | ~~DX~~ |
+| ~~18~~ | ~~Add streaming ETag option (no buffering)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~Medium~~ | ~~45 min~~ | ~~Performance~~ |
+| ~~19~~ | ~~Add brotli support (blocked: requires external dep)~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~High~~ | ~~60 min~~ | ~~Feature~~ |
+| ~~20~~ | ~~Consider `MiddlewareStack` type with ordering rules~~ done — shipped (stack.go) | ~~Low~~ | ~~60 min~~ | ~~Architecture~~ |
+| ~~21~~ | ~~Fuzz test compression with random bodies~~ done — (FuzzCompression round-trip invariant) | ~~Medium~~ | ~~20 min~~ | ~~Quality~~ |
+| ~~22~~ | ~~Fuzz test ETag with random bodies and headers~~ done — (go-etag module fuzz suite) | ~~Medium~~ | ~~20 min~~ | ~~Quality~~ |
+| ~~23~~ | ~~Add HTTP/2 Push test for compression writer~~ done — moot (http.Pusher code removed in v0.3.0) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
+| ~~24~~ | ~~Add Hijack test for ETag writer~~ done — (chain_hijack_test + wrapper_test, 2026-08-30) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
+| ~~25~~ | ~~Profile allocation hot spots under benchmark load~~ done — (benchmarks + research notes) | ~~Medium~~ | ~~30 min~~ | ~~Performance~~ |
 
 ---
 
@@ -341,9 +341,9 @@ Brotli is table stakes for modern web compression (15–25% smaller than gzip). 
 
 Options:
 
-1. **Keep the constraint** and document that brotli is intentionally not supported. Users who need brotli should use a different middleware.
-2. **Relax the constraint** for a zero-dependency brotli implementation. `github.com/andybalholm/brotli` is pure Go with zero transitive deps — similar profile to our existing `go-error-family` dependency.
-3. **Provide a plugin/extension interface** where users inject their own compression writer factory, keeping the core stdlib-only.
+1. ~~**Keep the constraint** and document that brotli is intentionally not supported. Users who need brotli should use a different middleware.~~ done (chosen & documented: constraint kept; brotli via WriterFactory docs)
+2. ~~**Relax the constraint** for a zero-dependency brotli implementation. `github.com/andybalholm/brotli` is pure Go with zero transitive deps — similar profile to our existing `go-error-family` dependency.~~ done (Won't implement — dependency policy; WriterFactory plugin interface shipped instead)
+3. ~~**Provide a plugin/extension interface** where users inject their own compression writer factory, keeping the core stdlib-only.~~ done (shipped (WriterFactory plugin interface))
 
 **My recommendation:** Option 3 — add a `CompressionConfig.WriterFactory` field that accepts `func(io.Writer) io.WriteCloser`. The default uses stdlib gzip. Users who want brotli provide their own factory. This keeps the core dependency-free while allowing extensibility.
 

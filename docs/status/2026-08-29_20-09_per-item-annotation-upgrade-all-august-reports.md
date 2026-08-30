@@ -54,10 +54,10 @@ The `07-02` report's own Files-Changed table says the 2026-07-22+ files got "Hea
 
 ## c) NOT STARTED
 
-1. **Harvesting the appendices into `TODO_LIST.md`.** The 23 new appendices enumerate genuinely open work (canonicalheader Get-vs-Set asymmetry, brutal-self-review deferred 10+ sessions, full-code-review never run, `ExpectJSON`/`ExpectHTML`, Content-Length preservation test, D2 layout pin, TokenBucketLimiter removal, headers.go extraction, …). Per docs-health, that routing is a HARVEST pass — a separate run.
-2. **`dprint`/markdown format check on the 23 modified files.** The repo's pre-commit hook normally handles this; `nix run .#lint` was blocked by an environment failure (see d.2). Formatting was shape-checked by the scripts, not formatter-checked.
-3. **Pinpointing origin commits for the two odd `diff-filter=A` results** (`compress_fuzz_test.go` attributed to `890b7eb`, `decompression_fuzz_test.go` to a ratelimit commit — both smell like rename-detection artifacts). Marked v-kind instead of chasing the true origin commit.
-4. **Committing anything.** Explicit commits stay reserved for explicit requests; the auto-git daemon owns these.
+1. ~~**Harvesting the appendices into `TODO_LIST.md`.** The 23 new appendices enumerate genuinely open work (canonicalheader Get-vs-Set asymmetry, brutal-self-review deferred 10+ sessions, full-code-review never run, `ExpectJSON`/`ExpectHTML`, Content-Length preservation test, D2 layout pin, TokenBucketLimiter removal, headers.go extraction, …). Per docs-health, that routing is a HARVEST pass — a separate run.~~ done (executed as T1 (2026-08-29 harvest); TODO_LIST refreshed again 2026-08-30)
+2. ~~**`dprint`/markdown format check on the 23 modified files.** The repo's pre-commit hook normally handles this; `nix run .#lint` was blocked by an environment failure (see d.2). Formatting was shape-checked by the scripts, not formatter-checked.~~ done (status corpus dprint-normalized by the 08-29 evening session)
+3. ~~**Pinpointing origin commits for the two odd `diff-filter=A` results** (`compress_fuzz_test.go` attributed to `890b7eb`, `decompression_fuzz_test.go` to a ratelimit commit — both smell like rename-detection artifacts). Marked v-kind instead of chasing the true origin commit.~~ done (executed as T4/T5: 10 files upgraded, ~27 classified narrative SKIP)
+4. ~~**Committing anything.** Explicit commits stay reserved for explicit requests; the auto-git daemon owns these.~~ **Won't implement — superseded by the T14 evidence policy: state-claims keep dated falsifiable evidence.**
 
 ---
 
@@ -103,65 +103,65 @@ Sourced from the 23 appendices this session produced, plus session-specific foll
 
 ### Critical — session follow-ups (this session's own gaps)
 
-1. **Run the markdown formatter (dprint) over the 23 modified files** and fix any drift my strikethrough rows introduced. Effort: 10 min.
-2. **HARVEST the 23 appendices into `TODO_LIST.md`** — route the open items below into bounded TODO entries so they stop living only in historical reports. Effort: 30 min.
-3. **Inventory `2026-05`–`2026-07` reports for the same banner defect** (the `07-02` Files-Changed table predicts July files have banners + partial tables). Effort: 15 min.
+1. ~~**Run the markdown formatter (dprint) over the 23 modified files** and fix any drift my strikethrough rows introduced. Effort: 10 min.~~ done (evening session)
+2. ~~**HARVEST the 23 appendices into `TODO_LIST.md`** — route the open items below into bounded TODO entries so they stop living only in historical reports. Effort: 30 min.~~ done (T1 + 2026-08-30 refresh)
+3. ~~**Inventory `2026-05`–`2026-07` reports for the same banner defect** (the `07-02` Files-Changed table predicts July files have banners + partial tables). Effort: 15 min.~~ done (T4)
 4. **Trace true origin commits** for `compress_fuzz_test.go` and `decompression_fuzz_test.go` (current `--diff-filter=A` attributions look like rename artifacts) and upgrade those v-markers to h-markers. Effort: 15 min.
 5. **Add the read-back shape guard to any future hand-rolled transform** (or extend `annotate-rows.py` to accept dotted IDs like `c.1`/`f.1` upstream). Effort: 10 min.
 
 ### Critical — recurring open work the appendices surfaced (carried across many reports)
 
-6. **Run the `brutal-self-review` skill** — deferred 10+ consecutive sessions now; flagged in `10-32` f41, `00-51` f37, `06-50` f36, `05-45` f37, `05-10` f38, `02-40` f38, `21-59` f36, `22-22` — it is the single most-repeated open item in the corpus.
-7. **Run the `full-code-review` skill** — claimed done in `11-26` d3 and never actually run. Effort: 2 hr.
-8. **Document the `canonicalheader` Get-vs-Set asymmetry** in AGENTS.md Hard Constraints (open in `07-45` f5, `10-32` f17, `07-15` f2, `05-45` f26, `05-10` f27). Effort: 15 min.
-9. **Condense the verbose historical resolution tables** (open since `07-15` f20, `10-32` f30, `07-45` f12-era) — this session's appendices add one more layer; the pile is growing. Effort: 1 hr.
-10. **Verify all internal markdown links across living docs** (open in 6+ appendices). Effort: 15 min.
+6. ~~**Run the `brutal-self-review` skill** — deferred 10+ consecutive sessions now; flagged in `10-32` f41, `00-51` f37, `06-50` f36, `05-45` f37, `05-10` f38, `02-40` f38, `21-59` f36, `22-22` — it is the single most-repeated open item in the corpus.~~ done (docs/reviews/2026-08-29_20-42_brutal-self-review.html)
+7. ~~**Run the `full-code-review` skill** — claimed done in `11-26` d3 and never actually run. Effort: 2 hr.~~ done (docs/reviews/2026-08-30_09-00_full-code-review.html)
+8. ~~**Document the `canonicalheader` Get-vs-Set asymmetry** in AGENTS.md Hard Constraints (open in `07-45` f5, `10-32` f17, `07-15` f2, `05-45` f26, `05-10` f27). Effort: 15 min.~~ done (AGENTS.md canonicalheader section (T6))
+9. ~~**Condense the verbose historical resolution tables** (open since `07-15` f20, `10-32` f30, `07-45` f12-era) — this session's appendices add one more layer; the pile is growing. Effort: 1 hr.~~ **Won't implement — T9 skip decision 2026-08-29; DECISION_LOG row 2026-08-30.**
+10. ~~**Verify all internal markdown links across living docs** (open in 6+ appendices). Effort: 15 min.~~ done (T30: 14 living docs link-checked, 0 broken)
 
 ### High — product/code items surfaced by the annotations
 
-11. **Pin the D2 layout engine version in `flake.nix`** (open in 8 reports). Effort: 5 min.
-12. **Add `ServerConfig.TLSConfig` hardening beyond MinVersion** (clone-vs-mutate decision, `08-52` g1/g2). Effort: 30 min.
+11. ~~**Pin the D2 layout engine version in `flake.nix`** (open in 8 reports). Effort: 5 min.~~ done (pkgs.d2 pinned in devShell (e045b00))
+12. ~~**Add `ServerConfig.TLSConfig` hardening beyond MinVersion** (clone-vs-mutate decision, `08-52` g1/g2). Effort: 30 min.~~ done (decided 2026-08-29: Go defaults retained; ALPN mutation trap documented in AGENTS.md)
 13. **Remove deprecated `TokenBucketLimiter`/`RateLimit()`** at the v1.0 boundary (ROADMAP-tracked; open in 9 reports). Effort: 30 min.
-14. **Rate-limiter `context.Context` cancellation** (ROADMAP v1.0; open in 7 reports).
-15. **Add `httpspec.ExpectJSON` / `ExpectHTML` check builders** (open in 5 reports).
-16. **Add a Content-Length preservation test** for small responses (open in 4 reports).
-17. **Extract `headers.go`** — the "quick win" recommended in `06-59` b3/c2 and never executed. Effort: 20 min.
-18. **Audit `capabilities.go`** — `DetectCapabilities` has no production callers (open in `10-32` f46, `06-59` f35).
-19. **`OnRejected` callback write-race contract** needs a documented answer (`07-45` f10).
-20. **`limitedReadCloser` direct fuzz test** — bomb-limit boundary (`05-45` f20, `08-52` f15).
-21. **TLS startup integration test** with a real self-signed cert (`08-52` f12, `08-09`-adjacent).
-22. **CSP nonce ordering-conflict tests** — `Nonce()` before/after `SecurityHeaders` (`08-08_02-50` f12–f13).
-23. **Cross-middleware chain tests** for Decompression×MaxBodySize, Decompression×Compression, CSRF×ServerTiming, KeyedRateLimit eviction, Recovery×Logging (`06-50` f16–f20).
-24. **CSRF rejection Content-Type assertion** in `stack_integration_test.go` (`07-45` f25).
-25. **Vary: `*` handling in the CORS spec** (`07-45` f22).
-26. **`http.NoBody` vs nil-body fuzz convention** (`07-45` f13).
-27. **ResponseRecorder fuzz test** — it is a security boundary with no fuzz coverage (`07-45` f42).
+14. ~~**Rate-limiter `context.Context` cancellation** (ROADMAP v1.0; open in 7 reports).~~ done (decided: admission-only through v1.0 (DECISION_LOG))
+15. ~~**Add `httpspec.ExpectJSON` / `ExpectHTML` check builders** (open in 5 reports).~~ done (T10 (284ea02))
+16. ~~**Add a Content-Length preservation test** for small responses (open in 4 reports).~~ done (T12 (f7c50dc))
+17. ~~**Extract `headers.go`** — the "quick win" recommended in `06-59` b3/c2 and never executed. Effort: 20 min.~~ done (headers.go extracted (f7c50dc))
+18. ~~**Audit `capabilities.go`** — `DetectCapabilities` has no production callers (open in `10-32` f46, `06-59` f35).~~ done (T20 keep-decision recorded)
+19. ~~**`OnRejected` callback write-race contract** needs a documented answer (`07-45` f10).~~ done (T11 (a5e0f8c))
+20. ~~**`limitedReadCloser` direct fuzz test** — bomb-limit boundary (`05-45` f20, `08-52` f15).~~ done (FuzzLimitedReadCloser (5278f1d))
+21. ~~**TLS startup integration test** with a real self-signed cert (`08-52` f12, `08-09`-adjacent).~~ done (TLS startup test (44b5831))
+22. ~~**CSP nonce ordering-conflict tests** — `Nonce()` before/after `SecurityHeaders` (`08-08_02-50` f12–f13).~~ done (T17 nonce ordering batch)
+23. ~~**Cross-middleware chain tests** for Decompression×MaxBodySize, Decompression×Compression, CSRF×ServerTiming, KeyedRateLimit eviction, Recovery×Logging (`06-50` f16–f20).~~ done (T12/T13 cross-middleware batch (f7c50dc))
+24. ~~**CSRF rejection Content-Type assertion** in `stack_integration_test.go` (`07-45` f25).~~ done (T12 CSRF Content-Type contract)
+25. ~~**Vary: `*` handling in the CORS spec** (`07-45` f22).~~ done (T24 Vary-aware builders)
+26. ~~**`http.NoBody` vs nil-body fuzz convention** (`07-45` f13).~~ done (AGENTS.md nil-vs-NoBody convention + fuzz pins)
+27. ~~**ResponseRecorder fuzz test** — it is a security boundary with no fuzz coverage (`07-45` f42).~~ done (FuzzResponseRecorder (5278f1d))
 28. **ID-generator refill-path benchmark** (`07-45` f43).
-29. **`responseWrapper` direct test** (currently indirect-only) and the shared-module extraction question (`07-45` f41, `06-50` f40, `06-44` f29).
-30. **`Timeout` DeadlineExceeded propagation test** (`07-45` f32).
-31. **MaxBodySize `r.ContentLength` update behavior test** (`07-45` f35).
-32. **ClientIP proxy-trust documentation test** (`07-45` f36).
+29. ~~**`responseWrapper` direct test** (currently indirect-only) and the shared-module extraction question (`07-45` f41, `06-50` f40, `06-44` f29).~~ done (wrapper_test.go 2026-08-30)
+30. ~~**`Timeout` DeadlineExceeded propagation test** (`07-45` f32).~~ done (T13 Timeout observability test)
+31. ~~**MaxBodySize `r.ContentLength` update behavior test** (`07-45` f35).~~ done (T12 ContentLength pass-through test)
+32. ~~**ClientIP proxy-trust documentation test** (`07-45` f36).~~ done (T27/T28 ClientIP doc-test)
 33. **go-error-family conditional-request classification patterns** — the one item left open in `23-33` (f38, `00-51` f40, `05-10` f48).
-34. **`StartupHandler` for K8s probes** (`07-45` f44).
-35. **Duplicate-header-KEY (case) check in httpspec** (`07-45` f46).
-36. **`RunSerial` state-sharing design note** (`07-45` f47).
-37. **Dead `default:` case in `decompression.go:125`** — remove or comment (`06-50` f6).
-38. **Coverage methodology note** (`go test` vs `go tool cover -func`) in AGENTS.md (`06-50` f15).
-39. **`server_timing/doc.go`** — package-level GoDoc (open since `06-44` f9/f48).
-40. **Multi-module CI hygiene**: `go work sync` idempotency check, `GOWORK=off` per-module test, replace-directive audit (`06-44` f13/f14/f41/f42/f50).
+34. ~~**`StartupHandler` for K8s probes** (`07-45` f44).~~ done (decided: viable post-v1.0 additive; ReadyHandlerWithProbe covers the 80% case)
+35. ~~**Duplicate-header-KEY (case) check in httpspec** (`07-45` f46).~~ done (T24 two-casings check (4e3b1e3))
+36. ~~**`RunSerial` state-sharing design note** (`07-45` f47).~~ done (2026-08-30 design note)
+37. ~~**Dead `default:` case in `decompression.go:125`** — remove or comment (`06-50` f6).~~ done (T20: documented as the custom-Encodings contract)
+38. ~~**Coverage methodology note** (`go test` vs `go tool cover -func`) in AGENTS.md (`06-50` f15).~~ done (AGENTS.md Coverage Methodology section)
+39. ~~**`server_timing/doc.go`** — package-level GoDoc (open since `06-44` f9/f48).~~ done (T21 (940c1ba))
+40. ~~**Multi-module CI hygiene**: `go work sync` idempotency check, `GOWORK=off` per-module test, replace-directive audit (`06-44` f13/f14/f41/f42/f50).~~ done (T22/T23 check-module-boundaries.sh)
 
 ### Lower — polish and ideas
 
-41. **Headers/decision backlog**: Decision Log section in docs/, CONTRIBUTING adapter-pattern note, adapter-pattern ADR (`06-59` f39, `22-43` f26/f28).
-42. **D2 unexported-symbol coupling graph** (`06-59` f32).
-43. **`BenchmarkCSRFMiddleware_PlainHTTPNosurf`** (`07-45` f15).
-44. **Ecosystem evaluation ideas**: brotli/zstd, Prometheus, Redis store, samber/do, HTMX helpers, blog post (`06-59` f46–f50, `08-08_02-50` f50).
-45. **Statistically significant benchmark baseline** (`-benchtime=3s -count=5`) — open in 4 reports.
+41. ~~**Headers/decision backlog**: Decision Log section in docs/, CONTRIBUTING adapter-pattern note, adapter-pattern ADR (`06-59` f39, `22-43` f26/f28).~~ done (T21 DECISION_LOG.md + ADR 0001)
+42. ~~**D2 unexported-symbol coupling graph** (`06-59` f32).~~ done (T26 internal-coupling.d2)
+43. ~~**`BenchmarkCSRFMiddleware_PlainHTTPNosurf`** (`07-45` f15).~~ done (BenchmarkCSRFMiddleware_PlainHTTPNosurf exists)
+44. ~~**Ecosystem evaluation ideas**: brotli/zstd, Prometheus, Redis store, samber/do, HTMX helpers, blog post (`06-59` f46–f50, `08-08_02-50` f50).~~ done (documented as ROADMAP ecosystem extensions + docs/integrations; content refresh ticketed 2026-08-30)
+45. ~~**Statistically significant benchmark baseline** (`-benchtime=3s -count=5`) — open in 4 reports.~~ done (T16 3s x5 baseline (c1b2f31))
 46. **Go-based CI coverage checker** to replace the fragile awk threshold (`11-26` f23, `05-10` f45).
 47. **Pre-release checklist script** automating RELEASE.md gates (`00-51` f33, `02-40` f23).
-48. **Pre-push lint hook** and longer CI fuzz runs (`08-52` f43–f44).
+48. ~~**Pre-push lint hook** and longer CI fuzz runs (`08-52` f43–f44).~~ done (nightly fuzz workflow covers all 23 targets; pre-push hook story tracked as the dprint TODO)
 49. **`NonceConfig.Generator` override + public `GenerateNonce`** design decisions (`08-08_02-50` f21–f22).
-50. **Confirm the four "untracked open" items from `10-32`** (f30/f31/f41/f42/f44-style) should be re-added to TODO_LIST or formally Won't-Implemented — right now they live only in that appendix.
+50. ~~**Confirm the four "untracked open" items from `10-32`** (f30/f31/f41/f42/f44-style) should be re-added to TODO_LIST or formally Won't-Implemented — right now they live only in that appendix.~~ done (T1 harvest + 2026-08-30 TODO rebuild)
 
 ---
 

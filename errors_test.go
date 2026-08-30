@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -90,9 +91,13 @@ func TestWrite_VerboseFormat(t *testing.T) {
 	if verbose == "" {
 		t.Error("verbose format is empty")
 	}
+
+	if !strings.Contains(verbose, "write failed") {
+		t.Errorf("verbose format %q does not describe the failure", verbose)
+	}
 }
 
-func TestHijack_ReturnsNilError_OnSuccess(t *testing.T) {
+func TestHijack_ReturnsError_WhenUnsupported(t *testing.T) {
 	t.Parallel()
 
 	inner := httptest.NewRecorder()
@@ -211,7 +216,7 @@ func (f *failingWriter) Write(b []byte) (int, error) {
 	return 0, errWriteFailed
 }
 
-func TestRegisterErrorClassifications_RegistersTemplates(t *testing.T) {
+func TestRegisterErrorClassifications_RegistersStdlibSentinels(t *testing.T) {
 	t.Parallel()
 
 	RegisterErrorClassifications()

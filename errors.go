@@ -293,7 +293,7 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 	string(codeMaxBodySizeNegative): {
 		What:   "Request body size limit is negative",
 		Why:    "MaxBodySizeConfig.MaxBytes is {max_bytes}; a negative limit is always a bug.",
-		Fix:    "Set MaxBytes to zero (unlimited) or a positive byte count.",
+		Fix:    "Set MaxBytes to a positive byte count; zero imposes a zero-byte limit that rejects any non-empty body.",
 		WayOut: "DefaultMaxBodySizeConfig() ships a 1 MiB limit.",
 	},
 	string(codeRequestIDNilGenerateID): {
@@ -347,7 +347,7 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 	string(codeDecompressionSizeNegative): {
 		What:   "Decompression size limit is negative",
 		Why:    "DecompressionConfig.MaxDecompressionSize is {max_decompression_size}; a negative limit is meaningless.",
-		Fix:    "Set MaxDecompressionSize to zero (no limit, not recommended) or a positive byte count.",
+		Fix:    "Set MaxDecompressionSize to zero (use the 16 MiB default) or a positive byte count.",
 		WayOut: "DefaultDecompressionConfig() ships a 16 MiB bomb-protection limit.",
 	},
 

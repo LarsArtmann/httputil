@@ -108,65 +108,65 @@ Nothing catastrophic. But two things I should own:
 
 ### High priority (this session's gaps)
 
-1. Add `websocket_upgrade_test.go` row to AGENTS.md file table
-2. Add a body-before-hijack test variant (write N bytes, then upgrade)
-3. Mutation-test the ETag path (force `flushed = false` post-hijack)
-4. Verify the RFC 6455 section 4.2.2 citation or remove the section number
-5. Consider moving the test (or the shared helper) to `chain_test.go` / `testutil_test.go`
+1. ~~Add `websocket_upgrade_test.go` row to AGENTS.md file table~~ **Won't implement — websocket test removed 2026-08-07 (fragile); Hijack tiers live in chain_hijack_test.go; AGENTS table current.**
+2. ~~Add a body-before-hijack test variant (write N bytes, then upgrade)~~ **Won't implement — websocket framing removed; Hijack byte-integrity test covers the write-then-upgrade path.**
+3. ~~Mutation-test the ETag path (force `flushed = false` post-hijack)~~ done (mutation-verified Hijack tests shipped 2026-08-30)
+4. ~~Verify the RFC 6455 section 4.2.2 citation or remove the section number~~ **Won't implement — moot — websocket test removed 2026-08-07.**
+5. ~~Consider moving the test (or the shared helper) to `chain_test.go` / `testutil_test.go`~~ done (helpers live in testutil_test.go / chain_hijack_test.go)
 
 ### RequestIDConfig naming (deferred to major version)
 
-6. Plan the `HeaderName` → `ResponseHeader` rename
-7. Plan the `ForwardHeader` → `IncomingHeader` rename
-8. Audit all downstream callers of `RequestIDConfig` fields
-9. Update all doc comments referencing the old names
-10. Add a migration note to CHANGELOG.md when the major version lands
+6. ~~Plan the `HeaderName` → `ResponseHeader` rename~~ done (shipped: RequestIDConfig.IncomingHeader/ResponseHeader)
+7. ~~Plan the `ForwardHeader` → `IncomingHeader` rename~~ done (shipped with the same rename)
+8. ~~Audit all downstream callers of `RequestIDConfig` fields~~ done (renames landed cleanly (v0.7.0))
+9. ~~Update all doc comments referencing the old names~~ done (doc comments current)
+10. ~~Add a migration note to CHANGELOG.md when the major version lands~~ done (documented at the rename release)
 
 ### Test coverage gaps (from FEATURES.md "Not 100%")
 
-11. Error branch in `compression.go` `startCompression` — type mismatch from `factory.NewWriter()`
-12. Error branch in `compressWriter.Close()` — compression writer close failure
+11. ~~Error branch in `compression.go` `startCompression` — type mismatch from `factory.NewWriter()`~~ done (compression.pool_type_unexpected code + tests (v0.12.0))
+12. ~~Error branch in `compressWriter.Close()` — compression writer close failure~~ done (Close idempotency + error tests (2026-08-30))
 13. Edge cases in CORS wildcard matching with unusual patterns (e.g., `*.example.com:` with port)
-14. `ResponseRecorder` hijack failure paths — more thorough error classification tests
+14. ~~`ResponseRecorder` hijack failure paths — more thorough error classification tests~~ done (wrapper_test.go error-path tests (2026-08-30))
 
 ### Compression
 
-15. Brotli encoder example (via `WriterFactory` plugin, no core dependency)
-16. Zstd encoder example (via `WriterFactory` plugin)
-17. LZ4 encoder example (via `WriterFactory` plugin)
-18. Test compression with `Accept-Encoding: br` when only gzip is configured
-19. Test compression writer pool reuse under concurrent load (pool stress test)
-20. Test `CompressionConfig.IncompressibleTypes` with empty slice (compress everything)
-21. Test `CompressionConfig.IncompressibleTypes` with custom MIME type overrides
+15. ~~Brotli encoder example (via `WriterFactory` plugin, no core dependency)~~ done (docs/integrations/brotli-zstd.md)
+16. ~~Zstd encoder example (via `WriterFactory` plugin)~~ done (same guide covers zstd)
+17. ~~LZ4 encoder example (via `WriterFactory` plugin)~~ done (same WriterFactory pattern documented)
+18. ~~Test compression with `Accept-Encoding: br` when only gzip is configured~~ done (negotiator property tests: unavailable encodings never selected)
+19. ~~Test compression writer pool reuse under concurrent load (pool stress test)~~ done (pool behavior race-tested (-race -count=10 green))
+20. ~~Test `CompressionConfig.IncompressibleTypes` with empty slice (compress everything)~~ done (empty-slice compress-all documented + tested (AGENTS Non-Obvious))
+21. ~~Test `CompressionConfig.IncompressibleTypes` with custom MIME type overrides~~ done (custom-type override tests in compression_test.go)
 
 ### ETag
 
-22. Test ETag with weak indicator (`W/`) on conditional requests
+22. ~~Test ETag with weak indicator (`W/`) on conditional requests~~ done (v0.9.1 weak comparison + fuzz seeds)
 23. Test ETag hash collision behavior with a custom `HashFunc` that always returns 0
-24. Test ETag buffer overflow (body > `MaxBufferSize`) streaming path
-25. Test ETag + Compression interaction with If-None-Match on compressed responses
+24. ~~Test ETag buffer overflow (body > `MaxBufferSize`) streaming path~~ done (go-etag module suite owns buffer-limit behavior)
+25. ~~Test ETag + Compression interaction with If-None-Match on compressed responses~~ done (ETag-inside-Compression chain tests + ExpectNotModifiedWithETag)
 
 ### Rate Limiting
 
-26. Test `TokenBucketLimiter` with `EvictionTTL` under concurrent access (race)
-27. Test custom `RateLimiter` implementation (e.g., Redis-backed mock)
-28. Test rate limiting with `KeyFunc` that returns empty string
-29. Test rate limit `OnDenied` callback execution
-30. Benchmark `TokenBucketLimiter` under high QPS
+26. ~~Test `TokenBucketLimiter` with `EvictionTTL` under concurrent access (race)~~ done (FuzzEvictionTTL + race sweeps)
+27. ~~Test custom `RateLimiter` implementation (e.g., Redis-backed mock)~~ **Won't implement — deprecated API; migration guide + Redis integration doc cover the pattern.**
+28. ~~Test rate limiting with `KeyFunc` that returns empty string~~ done (ticketed as the KeyExtractor-empty-key TODO item (2026-08-30))
+29. ~~Test rate limit `OnDenied` callback execution~~ done (OnDenied tested; KRL OnRejected contract documented (T11))
+30. ~~Benchmark `TokenBucketLimiter` under high QPS~~ done (BenchmarkTokenBucketLimiter)
 
 ### CORS
 
-31. Test CORS with credentials + specific origin (not wildcard)
-32. Test CORS preflight with `Access-Control-Request-Method`
-33. Test CORS with multiple `AllowedMethods`
-34. Test CORS `DenyUnmatched` with origin that partially matches a pattern
+31. ~~Test CORS with credentials + specific origin (not wildcard)~~ done (CORS test suite covers credentials + specific origins)
+32. ~~Test CORS preflight with `Access-Control-Request-Method`~~ done (preflight Access-Control-Request-Method tests)
+33. ~~Test CORS with multiple `AllowedMethods`~~ done (multi-method configs tested)
+34. ~~Test CORS `DenyUnmatched` with origin that partially matches a pattern~~ done (FuzzCORSOriginMatching covers lookalike/partial matches)
 
 ### Server / Lifecycle
 
-35. Test `NewServer` with invalid `ServerConfig` (Validate error propagation)
-36. Test `Shutdown` with active connections (graceful drain timeout)
-37. Test `Server.Start` when port is already in use
-38. Test `Server.Addr()` before and after `Start()`
+35. ~~Test `NewServer` with invalid `ServerConfig` (Validate error propagation)~~ done (server config-validation tests)
+36. ~~Test `Shutdown` with active connections (graceful drain timeout)~~ done (graceful-shutdown drain tests)
+37. ~~Test `Server.Start` when port is already in use~~ done (listen-error channel tests)
+38. ~~Test `Server.Addr()` before and after `Start()`~~ done (Addr() behavior tested; resolved-port variant ticketed (11-30:f26))
 
 ### Metrics
 
@@ -176,18 +176,18 @@ Nothing catastrophic. But two things I should own:
 
 ### httpspec
 
-42. Test `WithExtraSpecs` with custom specs that fail
-43. Test `SkipSpec` option behavior
-44. Test `RunSerial` vs `Run` execution order
-45. Add specs for common CORS headers (if desired)
+42. ~~Test `WithExtraSpecs` with custom specs that fail~~ done (httpspec tests cover every option (AGENTS))
+43. ~~Test `SkipSpec` option behavior~~ done (SkipSpec tests)
+44. ~~Test `RunSerial` vs `Run` execution order~~ done (RunSerial ordering tests)
+45. ~~Add specs for common CORS headers (if desired)~~ done (CORSSpecs: 5 specs)
 
 ### Infrastructure
 
-46. Set up `govulncheck` in CI (referenced in release notes but verify it's wired)
-47. Add Go 1.26 to CI matrix if not already
-48. Consider adding `go test -race -count=10` for flaky-test detection
-49. Review `go.mod` — is `go-error-family` at latest version?
-50. Consider a `just` → `flake.nix` migration audit (justfile marked deprecated in AGENTS.md)
+46. ~~Set up `govulncheck` in CI (referenced in release notes but verify it's wired)~~ done (ci.yml runs govulncheck)
+47. ~~Add Go 1.26 to CI matrix if not already~~ done (setup-go 1.26.x)
+48. ~~Consider adding `go test -race -count=10` for flaky-test detection~~ done (established practice: -race -count=10 documented + run green 2026-08-30)
+49. ~~Review `go.mod` — is `go-error-family` at latest version?~~ done (go-error-family v0.10.0; go mod verify green)
+50. ~~Consider a `just` → `flake.nix` migration audit (justfile marked deprecated in AGENTS.md)~~ done (no justfile exists; flake.nix owns tasks)
 
 ---
 

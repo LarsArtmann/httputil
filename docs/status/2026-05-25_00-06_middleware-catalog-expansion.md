@@ -350,24 +350,24 @@ The LSP shows stale diagnostics from before the edits — these are gopls cache 
 | 5  | Add body-capturing ResponseRecorder variant                    | MEDIUM | 30min  |
 | 6  | Add integration tests with real `net/http.Server`              | MEDIUM | 30min  |
 | 7  | Add CORS concurrent request test                               | MEDIUM | 15min  |
-| 8  | Add rate limiting middleware                                   | MEDIUM | 45min  |
-| 9  | Add compression middleware                                     | MEDIUM | 45min  |
-| 10 | Add HTTP error response helper (JSON error bodies)             | MEDIUM | 20min  |
-| 11 | Add CORS regex origin matching                                 | MEDIUM | 20min  |
-| 12 | Add CI badge to README                                         | LOW    | 5min   |
-| 13 | Add CODEOWNERS file                                            | LOW    | 5min   |
-| 14 | Add ResponseRecorder `Body()` method                           | LOW    | 15min  |
-| 15 | Add fuzz tests for `itoa`                                      | LOW    | 10min  |
-| 16 | Adopt Go 1.26+ range-over-int in `itoa`                        | LOW    | 10min  |
-| 17 | Add `Recovery()` custom error handler option                   | LOW    | 10min  |
+| ~~8~~  | ~~Add rate limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~MEDIUM~~ | ~~45min~~ |
+| ~~9~~  | ~~Add compression middleware~~ done — shipped (compression.go) | ~~MEDIUM~~ | ~~45min~~ |
+| ~~10~~ | ~~Add HTTP error response helper (JSON error bodies)~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~MEDIUM~~ | ~~20min~~ |
+| ~~11~~ | ~~Add CORS regex origin matching~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~MEDIUM~~ | ~~20min~~ |
+| ~~12~~ | ~~Add CI badge to README~~ done — (README badges) | ~~LOW~~ | ~~5min~~ |
+| ~~13~~ | ~~Add CODEOWNERS file~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~LOW~~ | ~~5min~~ |
+| ~~14~~ | ~~Add ResponseRecorder `Body()` method~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~LOW~~ | ~~15min~~ |
+| ~~15~~ | ~~Add fuzz tests for `itoa`~~ done — moot (util.go removed 2026-06-16) | ~~LOW~~ | ~~10min~~ |
+| ~~16~~ | ~~Adopt Go 1.26+ range-over-int in `itoa`~~ done — (util.go removed 2026-06-16) | ~~LOW~~ | ~~10min~~ |
+| ~~17~~ | ~~Add `Recovery()` custom error handler option~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~LOW~~ | ~~10min~~ |
 | 18 | Add `Logging()` with custom log format/template                | LOW    | 15min  |
-| 19 | Add request context helpers for request ID in middleware chain | LOW    | 5min   |
-| 20 | Explore `nix flake` migration (per project conventions)        | LOW    | HIGH   |
+| ~~19~~ | ~~Add request context helpers for request ID in middleware chain~~ done — shipped (context.go) | ~~LOW~~ | ~~5min~~ |
+| ~~20~~ | ~~Explore `nix flake` migration (per project conventions)~~ done — (flake.nix) | ~~LOW~~ | ~~HIGH~~ |
 | 21 | Add `Timeout()` with custom timeout response option            | LOW    | 10min  |
 | 22 | Add `SecurityHeaders()` tests for each individual header       | LOW    | 10min  |
-| 23 | Consider `httputil.` prefix for error codes (breaking)         | LOW    | 15min  |
-| 24 | Add `example/` directory with runnable Go programs             | LOW    | 20min  |
-| 25 | Add version constant (`Version = "0.1.0"`)                     | LOW    | 5min   |
+| ~~23~~ | ~~Consider `httputil.` prefix for error codes (breaking)~~ done — Won't implement — hierarchical domain codes shipped in v0.12.0 | ~~LOW~~ | ~~15min~~ |
+| ~~24~~ | ~~Add `example/` directory with runnable Go programs~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~LOW~~ | ~~20min~~ |
+| ~~25~~ | ~~Add version constant (`Version = "0.1.0"`)~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~LOW~~ | ~~5min~~ |
 
 ---
 

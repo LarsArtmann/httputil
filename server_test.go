@@ -10,10 +10,10 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"net"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -276,7 +276,7 @@ func TestServerStartAndShutdown(t *testing.T) {
 	}
 }
 
-func TestServerShutdownUsesConfiguredTimeout(t *testing.T) {
+func TestServerShutdownWithBackgroundContext(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultServerConfig()
@@ -324,12 +324,23 @@ func TestServerStartError(t *testing.T) {
 func TestServerServesRequests(t *testing.T) {
 	t.Parallel()
 
+	// Bind a concrete port so the test can issue a real HTTP request through
+	// the running server (a :0 address never exposes the resolved port).
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("net.Listen: %v", err)
+	}
+
+	addr := listener.Addr().String()
+
+	if err := listener.Close(); err != nil {
+		t.Fatalf("listener.Close: %v", err)
+	}
+
 	cfg := DefaultServerConfig()
-	cfg.Addr = "127.0.0.1:0"
+	cfg.Addr = addr
 
-	handler := newWriteStatusHandler("hello")
-
-	srv, err := NewServer(cfg, handler)
+	srv, err := NewServer(cfg, newWriteStatusHandler("hello"))
 	if err != nil {
 		t.Fatalf("NewServer() error = %v", err)
 	}
@@ -338,12 +349,25 @@ func TestServerServesRequests(t *testing.T) {
 
 	waitForServerStart(t, errChan, 100*time.Millisecond)
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	handler.ServeHTTP(rec, req)
+	resp, err := http.Get("http://" + addr + "/")
+	if err != nil {
+		t.Fatalf("GET http://%s/: %v", addr, err)
+	}
 
-	assertStatus(t, rec, http.StatusOK)
-	assertBody(t, rec, "hello")
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if string(body) != "hello" {
+		t.Errorf("body = %q, want %q", string(body), "hello")
+	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

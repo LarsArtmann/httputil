@@ -40,7 +40,7 @@ httputil is a mature, production-ready Go HTTP middleware library at v0.3.0 with
 
 | # | Item                                   | What's Done                                                                                     | What's Missing                                                                                                                                                                |
 | - | -------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | **Test coverage**                      | 91.9% total (root: 91.3%, httpspec: 96.4%)                                                      | Not 100%. Gaps in compression error branches (`startCompression` type mismatch, `Close` errors), CORS wildcard edge cases, `ResponseRecorder` hijack failure paths            |
+| ~~1~~ | ~~**Test coverage**~~ done — (wrapper_test unsupported-Hijack tests) | ~~91.9% total (root: 91.3%, httpspec: 96.4%)~~ | ~~Not 100%. Gaps in compression error branches (`startCompression` type mismatch, `Close` errors), CORS wildcard edge cases, `ResponseRecorder` hijack failure paths~~ |
 | 2 | **Compression content-type filtering** | Hardcoded deny-list (`image/`, `video/`, `audio/`, `application/gzip`, etc.)                    | Not configurable via `CompressionConfig` — consumers can't add/remove entries                                                                                                 |
 | 3 | **Lint compliance**                    | `httpspec` subpackage: 0 issues. ~67 of 70 linters fully clean across root.                     | 3 pre-existing `makezero` warnings in root: `id_generator.go:85`, `id_generator_test.go:126`, `recorder.go:44` — all `make([]T, n)` calls that linter wants `make([]T, 0, n)` |
 | 4 | **Documentation freshness**            | AGENTS.md updated for httpspec this session                                                     | FEATURES.md and TODO_LIST.md not yet updated to mention `httpspec` subpackage                                                                                                 |
@@ -131,7 +131,7 @@ httputil is a mature, production-ready Go HTTP middleware library at v0.3.0 with
 | 16 | Improve compression error branch test coverage                                | Medium   | 30 min  | Testing     |
 | 17 | Add CORS wildcard edge case tests                                             | Low      | 20 min  | Testing     |
 | 18 | Add `httpspec.WithMaxBodySize` option to validate response sizes              | Low      | 20 min  | Feature     |
-| 19 | Write brotli/zstd WriterFactory examples in a separate docs/examples dir      | Low      | 30 min  | Docs        |
+| ~~19~~ | ~~Write brotli/zstd WriterFactory examples in a separate docs/examples dir~~ done — (example_test + brotli-zstd guide) | ~~Low~~ | ~~30 min~~ | ~~Docs~~ |
 | 20 | Evaluate streaming ETag with rolling hash                                     | Low      | 2 hours | Research    |
 | 21 | Consider rate-limiting middleware                                             | Low      | 2 hours | Feature     |
 | 22 | Consider request body size limit middleware                                   | Low      | 1 hour  | Feature     |

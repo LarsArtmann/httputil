@@ -22,15 +22,25 @@ type negotiator struct {
 // stable priority index. The negotiator's order field is the priority list
 // used for tiebreaking when two encodings have identical q-values.
 func buildNegotiator(factories map[string]WriterFactory) *negotiator {
+	// Unknown encodings sort after all built-ins, alphabetically, via a
+	// lexicographic rank computed once here (deterministic, no numeric
+	// overflow for long names).
+	unknowns := make([]string, 0, len(factories))
+
+	for name := range factories {
+		if !slices.Contains(preferredEncodingOrder, name) {
+			unknowns = append(unknowns, name)
+		}
+	}
+
+	slices.Sort(unknowns)
+
 	priorityOf := func(name string) int {
-		for i, preferred := range preferredEncodingOrder {
-			if preferred == name {
-				return i
-			}
+		if idx := slices.Index(preferredEncodingOrder, name); idx >= 0 {
+			return idx
 		}
 
-		// Unknown encoding: sort after all built-ins, alphabetically.
-		return len(preferredEncodingOrder) + nameOffset(name)
+		return len(preferredEncodingOrder) + slices.Index(unknowns, name)
 	}
 
 	order := make([]string, 0, len(factories))
@@ -72,22 +82,6 @@ func buildWriterPools(factories map[string]WriterFactory) map[string]*sync.Pool 
 // encoding is not registered.
 func (n *negotiator) poolFor(encoding string) *sync.Pool {
 	return n.pools[encoding]
-}
-
-// nameOffset returns a deterministic ordering key for an unknown encoding
-// name by interpreting its bytes as a base-256 number. This gives a stable,
-// reproducible tiebreak among custom encodings of equal length; it is not
-// true alphabetical order for names of differing lengths. The value is only
-// used for relative comparison, never directly.
-func nameOffset(name string) int {
-	const byteBase = 256
-
-	offset := 0
-	for i := range len(name) {
-		offset = offset*byteBase + int(name[i])
-	}
-
-	return offset
 }
 
 // preferredEncodingOrder is the canonical server-side preference when two

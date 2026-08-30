@@ -12,7 +12,7 @@ import (
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
-// TestStack_FullMiddlewareComposition chains all 18 middlewares in their
+// TestStack_FullMiddlewareComposition chains all 13 middlewares in their
 // recommended production order and verifies:
 //  1. A standard GET request flows through every layer without breakage.
 //  2. Each middleware's headers are present on the response (proves every
@@ -130,7 +130,7 @@ func addStackMiddleware(t *testing.T, stack *MiddlewareStack, name string, mw Mi
 	}
 }
 
-// buildFullStack adds all 18 built-in middleware to stack in the
+// buildFullStack adds all 13 built-in middleware to stack in the
 // production-recommended order. Order is documented in README.md.
 func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	t.Helper()

@@ -27,14 +27,14 @@ Eliminated the only non-test clone group in the codebase. `art-dupl --type-aware
 
 ## b) PARTIALLY DONE
 
-1. **"Single choke point" goal — only 75% achieved.** `compressWriteError` IS now the single wrapping site (good). But `writeClassified` only governs the **Write** paths. The buffer-drain write in `flushPlainAndStream` (line 176) and both `Close()` branches (lines 219, 239) call `compressWriteError` directly, bypassing `writeClassified`. This is defensible for `Close` (it's a Close, not a Write), but the **drain at line 176 is a `ResponseWriter.Write` that inconsistently skips the helper**. Not wrong, just not as uniform as the doc comment implies.
-2. **Benchmark rigor.** Allocs were conclusively identical. ns/op was inconclusive — the machine was thermally/load-noisy (baseline jumped 6.9k→14.5k across runs). `benchstat` was unavailable (`go install` network-blocked). The "no regression" claim rests on allocs + overlapping ranges, not a tight statistical delta.
+1. ~~**"Single choke point" goal — only 75% achieved.** `compressWriteError` IS now the single wrapping site (good). But `writeClassified` only governs the **Write** paths. The buffer-drain write in `flushPlainAndStream` (line 176) and both `Close()` branches (lines 219, 239) call `compressWriteError` directly, bypassing `writeClassified`. This is defensible for `Close` (it's a Close, not a Write), but the **drain at line 176 is a `ResponseWriter.Write` that inconsistently skips the helper**. Not wrong, just not as uniform as the doc comment implies.~~ done (fully consolidated: every fallible write routes through writeClassified/streamClassified + compressWriteError (AGENTS Accepted Duplication))
+2. ~~**Benchmark rigor.** Allocs were conclusively identical. ns/op was inconclusive — the machine was thermally/load-noisy (baseline jumped 6.9k→14.5k across runs). `benchstat` was unavailable (`go install` network-blocked). The "no regression" claim rests on allocs + overlapping ranges, not a tight statistical delta.~~ done (A/B methodology + 3s x 5 baseline documented in docs/benchmarks.md)
 
 ## c) NOT STARTED
 
-1. **Test coverage for the error paths I touched.** Existing tests (`assertCompressClassified`) cover the classified-error contract for `Write` (compressed) and `Close`. The buffer-drain failure path in `flushPlainAndStream` and the buffered-write failure in `Close` remain untested (pre-existing gap, flagged in older status reports). I did not add tests this session.
-2. **Unifying the `Close()` error paths.** Two direct `compressWriteError` calls in `Close` (lines 219, 239) could arguably share a helper, but the return shapes differ (`return err` vs `return w.compressWriteError(...)` with no early return). Left as-is.
-3. **Reviewing whether `streamClassified` is too thin.** It's a 4-line, 2-call-site wrapper. Possibly YAGNI. Did not reconsider after writing it.
+1. ~~**Test coverage for the error paths I touched.** Existing tests (`assertCompressClassified`) cover the classified-error contract for `Write` (compressed) and `Close`. The buffer-drain failure path in `flushPlainAndStream` and the buffered-write failure in `Close` remain untested (pre-existing gap, flagged in older status reports). I did not add tests this session.~~ done (compress_writer_test.go error-branch tests)
+2. ~~**Unifying the `Close()` error paths.** Two direct `compressWriteError` calls in `Close` (lines 219, 239) could arguably share a helper, but the return shapes differ (`return err` vs `return w.compressWriteError(...)` with no early return). Left as-is.~~ done (Close paths consolidated via state reset (2026-08-30))
+3. **Reviewing whether `streamClassified` is too thin.** It's a 4-line, 2-call-site wrapper. Possibly YAGNI. Did not reconsider after writing it.~~ done (kept — 2 call sites is the right size; still present)
 
 ## d) TOTALLY FUCKED UP
 
@@ -52,37 +52,37 @@ Nothing catastrophic. No data loss, no broken builds, no reverted commits, no fa
 
 ## f) WHAT TO GET DONE NEXT (prioritized)
 
-1. **Fix the `writeClassified` doc comment** — change "single error-handling choke point" to "Write-path choke point" OR route the line-176 drain through `writeClassified`/`streamClassified` so the comment becomes true. Prefer routing (makes it actually single).
-2. **Decide on `streamClassified`** — keep, inline, or rename. 2 call sites, 4 lines. If kept, its doc is accurate.
-3. **Add tests** for the two untested classified-error paths: `flushPlainAndStream` buffer-drain write failure and `Close` buffered-write failure. Use a failing `http.ResponseWriter` double.
-4. **Update CHANGELOG.md** with the dedup pass (compression error wrapping consolidated).
+1. ~~**Fix the `writeClassified` doc comment** — change "single error-handling choke point" to "Write-path choke point" OR route the line-176 drain through `writeClassified`/`streamClassified` so the comment becomes true. Prefer routing (makes it actually single).~~ done (doc comments current (0 lint issues))
+2. ~~**Decide on `streamClassified`** — keep, inline, or rename. 2 call sites, 4 lines. If kept, its doc is accurate.~~ done (kept)
+3. ~~**Add tests** for the two untested classified-error paths: `flushPlainAndStream` buffer-drain write failure and `Close` buffered-write failure. Use a failing `http.ResponseWriter` double.~~ done (FlushPlainBufferedWriteError + stream error tests)
+4. ~~**Update CHANGELOG.md** with the dedup pass (compression error wrapping consolidated).~~ done (documented in the v0.7.0 CHANGELOG)
 5. **Add `benchstat` to `flake.nix` devShell** so A/B benchmarking doesn't require network.
-6. **Re-run `art-dupl` with `--include-generated` and `--include-tests`** once to confirm the test-file structural clones (`mw1`/`mw2`, `newTypedBodyHandler`) are the ONLY accepted residual and that no non-test clone hides behind the default exclusion.
-7. **Lint the doc comments I added** — run `golangci-lint` again after fixing #1; `godox`/`godot`/`revive` may have opinions.
-8. **Consider a `compressWriteCloseError` helper** for the two `Close` sites if a third ever appears (rule of three — currently only two, so leave it).
+6. ~~**Re-run `art-dupl` with `--include-generated` and `--include-tests`** once to confirm the test-file structural clones (`mw1`/`mw2`, `newTypedBodyHandler`) are the ONLY accepted residual and that no non-test clone hides behind the default exclusion.~~ done (verified: 0 clone groups at every threshold (AGENTS))
+7. ~~**Lint the doc comments I added** — run `golangci-lint` again after fixing #1; `godox`/`godot`/`revive` may have opinions.~~ done (0 issues)
+8. ~~**Consider a `compressWriteCloseError` helper** for the two `Close` sites if a third ever appears (rule of three — currently only two, so leave it).~~ **Won't implement — Close paths consolidated via state reset instead; no third site appeared.**
 9. **Verify `writeClassified` inlining** — it is currently NOT inlined by the compiler (only `streamClassified` is). If the hot-path `Write` matters, check whether reducing its cost lets it cross the inline budget. Allocs say it doesn't matter today, but worth a `-m` check after any future change.
-10. **Sweep `/tmp` for `cw_*`, `old.txt`, `new.txt`** and remove (housekeeping).
-11. **Pre-existing `health.go` gopls warnings** — 3× `json.MarshalWrite requires go1.27 (file is go1.26)`. Not mine, not touched. Tracked in TODO_LIST. Leave unless asked.
-12. **Add a brief "Deduplication" subsection to AGENTS.md Architecture** noting `compressWriteError`/`writeClassified`/`streamClassified` as the compression error-handling spine (currently the file table doesn't mention them since they're unexported).
-13. **Re-confirm the AGENTS.md "0 clones at -t 25" claim** in CI/a fresh shell — I verified locally but the claim is now load-bearing documentation.
-14. **Grep the repo for any other `WrapTransient(...).WithContext(...)` chains** outside `compress_writer.go` that might benefit from the same consolidation pattern (e.g., `recorder.go`, `errors.go`).
+10. ~~**Sweep `/tmp` for `cw_*`, `old.txt`, `new.txt`** and remove (housekeeping).~~ **Won't implement — moot — /tmp housekeeping, not repo state.**
+11. ~~**Pre-existing `health.go` gopls warnings** — 3× `json.MarshalWrite requires go1.27 (file is go1.26)`. Not mine, not touched. Tracked in TODO_LIST. Leave unless asked.~~ done (json/v2 stabilized; writeHealthBody writes the newline explicitly (2026-08-29 fix))
+12. ~~**Add a brief "Deduplication" subsection to AGENTS.md Architecture** noting `compressWriteError`/`writeClassified`/`streamClassified` as the compression error-handling spine (currently the file table doesn't mention them since they're unexported).~~ done (AGENTS Accepted Code Duplication section)
+13. ~~**Re-confirm the AGENTS.md "0 clones at -t 25" claim** in CI/a fresh shell — I verified locally but the claim is now load-bearing documentation.~~ done (AGENTS verified claim)
+14. ~~**Grep the repo for any other `WrapTransient(...).WithContext(...)` chains** outside `compress_writer.go` that might benefit from the same consolidation pattern (e.g., `recorder.go`, `errors.go`).~~ done (2026-08-30 wrap/error sweep confirmed the choke points)
 15. **Consider whether `compressWriteError` belongs as a method** — it only uses `w.encoding`, so it could be a free function `compressWriteError(encoding string, err error, message string)`. Method form is fine for discoverability; flag for the next reviewer.
-16. **Document the benchmark A/B methodology** in AGENTS.md "Testing Conventions" so the next person knows allocs are the gate and ns/op is noisy on this host.
-17. **Check `wrapper.go`** — the session touched the compression error spine; a quick read of `responseWrapper.writeDefaultOK()` / `writeHeaderToUnderlying()` would confirm no related duplication lurks there.
-18. **Run `golangci-lint fmt`** explicitly after the doc-comment fix (#1) to ensure golines doesn't re-split anything unexpectedly (it reformatted `streamClassified` params mid-session).
-19. **Add `// Output:` example** for the compression error helpers if any `Example*` is added later (`testableexamples` linter requires it).
-20. **Verify the auto-commits `56ef52f`/`49be230`** are not sitting on top of unrelated WIP — `git log --stat -2` to confirm only `compress_writer.go` and `AGENTS.md` are in them.
-21. **`art-dupl --type-aware -t 1` curiosity run** — see what 1-statement "clones" exist; informational only (will be Go idioms), helps future threshold calibration.
+16. ~~**Document the benchmark A/B methodology** in AGENTS.md "Testing Conventions" so the next person knows allocs are the gate and ns/op is noisy on this host.~~ done (docs/benchmarks.md methodology + RELEASE.md step 6)
+17. ~~**Check `wrapper.go`** — the session touched the compression error spine; a quick read of `responseWrapper.writeDefaultOK()` / `writeHeaderToUnderlying()` would confirm no related duplication lurks there.~~ done (wrapper_test.go + full-code-review read it (2026-08-30))
+18. ~~**Run `golangci-lint fmt`** explicitly after the doc-comment fix (#1) to ensure golines doesn't re-split anything unexpectedly (it reformatted `streamClassified` params mid-session).~~ done (gate green)
+19. ~~**Add `// Output:` example** for the compression error helpers if any `Example*` is added later (`testableexamples` linter requires it).~~ done (26 examples; testableexamples enforced)
+20. ~~**Verify the auto-commits `56ef52f`/`49be230`** are not sitting on top of unrelated WIP — `git log --stat -2` to confirm only `compress_writer.go` and `AGENTS.md` are in them.~~ **Won't implement — history verified clean since.**
+21. ~~**`art-dupl --type-aware -t 1` curiosity run** — see what 1-statement "clones" exist; informational only (will be Go idioms), helps future threshold calibration.~~ **Won't implement — informational only — the documented claim is zero clones at -t 2..25.**
 22. **Consider a `lint-dupl` CI gate** in `flake.nix` that fails if non-test clones reappear above -t 5, locking in the zero state.
-23. **Read the two historical dedup status reports** (`docs/status/2026-06-10_22-43_zero-clones-deduplication.md`, `..._pusher-removal-and-deep-dedup.md`) to confirm my consolidation didn't regress a decision documented there.
-24. **Audit the `writeBuffered` / `shouldCompress` boundary** — not touched this session, but it's the other half of the compress state machine; worth a glance for sibling duplication.
+23. ~~**Read the two historical dedup status reports** (`docs/status/2026-06-10_22-43_zero-clones-deduplication.md`, `..._pusher-removal-and-deep-dedup.md`) to confirm my consolidation didn't regress a decision documented there.~~ done (read + annotated by the 2026-08-30 pass)
+24. ~~**Audit the `writeBuffered` / `shouldCompress` boundary** — not touched this session, but it's the other half of the compress state machine; worth a glance for sibling duplication.~~ done (full-code-review audited writeBuffered 2026-08-30 — the exact-fill bug was found and fixed there)
 25. **Rename `compressWriteError` → `classifyCompressWriteError`?** — current name reads as "a write error" rather than "classify this error AS a compress-write failure". Minor naming nit.
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 
-1. **Should I route the `flushPlainAndStream` buffer-drain (line 176) through `streamClassified`/`writeClassified`, or leave it direct and just fix the comment?** Routing makes the "single choke point" claim true and uses `total` (it currently returns `0` on drain failure — a behavior I'd have to decide whether to preserve or change to return `total`). This changes a return value on an error path, so it's a judgment call I don't want to make unilaterally.
-2. **Do you want the `CHANGELOG.md` updated for this dedup pass**, and if so under which version header? (The repo has a CHANGELOG but I don't know the current release line / whether unreleased changes accumulate under a fixed header.)
-3. **Is `benchstat` something you want pinned in `flake.nix`**, or do you benchmark elsewhere / accept that ns/op is unreliable on this host?
+1. ~~**Should I route the `flushPlainAndStream` buffer-drain (line 176) through `streamClassified`/`writeClassified`, or leave it direct and just fix the comment?** Routing makes the "single choke point" claim true and uses `total` (it currently returns `0` on drain failure — a behavior I'd have to decide whether to preserve or change to return `total`). This changes a return value on an error path, so it's a judgment call I don't want to make unilaterally.~~ done (decided: both stream paths route through streamClassified today)
+2. ~~**Do you want the `CHANGELOG.md` updated for this dedup pass**, and if so under which version header? (The repo has a CHANGELOG but I don't know the current release line / whether unreleased changes accumulate under a fixed header.)~~ done (recorded in the v0.7.0 CHANGELOG)
+3. ~~**Is `benchstat` something you want pinned in `flake.nix`**, or do you benchmark elsewhere / accept that ns/op is unreliable on this host?
 
 ---
 

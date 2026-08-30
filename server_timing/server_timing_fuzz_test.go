@@ -71,6 +71,14 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 			path = "/"
 		}
 
+		// httptest.NewRequest panics on methods that are not valid HTTP
+		// tokens (spaces, control characters); fuzz inputs frequently produce
+		// those. Filter them so the target exercises middleware behavior,
+		// not request-construction panics.
+		if !isFuzzableMethod(method) {
+			t.Skip("invalid HTTP method token")
+		}
+
 		r := httptest.NewRequest(method, path, nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
@@ -80,6 +88,24 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 			t.Errorf("Server-Timing header contains CRLF: %q", hdr)
 		}
 	})
+}
+
+// isFuzzableMethod reports whether s is a valid HTTP token safe to pass to
+// httptest.NewRequest, which panics on invalid methods.
+func isFuzzableMethod(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for i := range len(s) {
+		c := s[i]
+
+		if c <= ' ' || c >= 0x7F {
+			return false
+		}
+	}
+
+	return true
 }
 
 // TestServerTimingNilReceiver ensures nil-receiver pattern is a safe no-op.

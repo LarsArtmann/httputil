@@ -48,9 +48,9 @@ Completed 10 of 10 planned tasks. Build, vet, lint (0 issues), and race tests pa
 
 ## c) NOT STARTED
 
-1. **`stack_integration_test.go` not updated** — the `buildFullStack` helper and `TestStack_FullMiddlewareComposition` test do NOT include ETag. The test comment still says "chains all 16 middlewares". This is the canonical integration test for middleware composition and ETag is absent.
-2. **README middleware ordering section** — no ETag positioning guidance. ETag must be placed **inside** (after) Compression so it hashes the uncompressed body, not the compressed bytes. This ordering constraint is non-obvious and undocumented in the README.
-3. **`httpspec` ETag spec** — no standard spec validates ETag header behavior through `httpspec.Run()`.
+1. ~~**`stack_integration_test.go` not updated** — the `buildFullStack` helper and `TestStack_FullMiddlewareComposition` test do NOT include ETag. The test comment still says "chains all 16 middlewares". This is the canonical integration test for middleware composition and ETag is absent.~~ done (buildFullStack includes MiddlewareETag (v0.10.0))
+2. ~~**README middleware ordering section** — no ETag positioning guidance. ETag must be placed **inside** (after) Compression so it hashes the uncompressed body, not the compressed bytes. This ordering constraint is non-obvious and undocumented in the README.~~ done (README ordering guidance (v0.10.0))
+3. ~~**`httpspec` ETag spec** — no standard spec validates ETag header behavior through `httpspec.Run()`.~~ done (ExpectNotModifiedWithETag builder (T24))
 4. ~~**`nix flake check`** — the canonical build/quality gate for LarsArtmann projects was not run.~~ done (done — run by later sessions (the 05:45 session ran it clean))
 
 ---
@@ -117,7 +117,7 @@ See section (b). Saying "all green: build, vet, lint, race tests" while omitting
 2. ~~Rewrite CHANGELOG `[Unreleased]` line 43 — remove ghost "5 compliance tests" entry from the old etag fix section~~ done at `a5e9944`
 3. ~~Audit ALL CHANGELOG `[Unreleased]` entries for accuracy against current source files~~ done at `a5e9944`
 4. ~~Update `stack_integration_test.go` — add ETag to `buildFullStack` helper, fix "16 middlewares" comment to 17~~ done at `242aac7`
-5. Add ETag positioning guidance to README middleware ordering section (ETag inside Compression)
+5. ~~Add ETag positioning guidance to README middleware ordering section (ETag inside Compression)~~ done (README ordering guidance (v0.10.0))
 
 ### High priority (verification gaps)
 
@@ -133,7 +133,7 @@ See section (b). Saying "all green: build, vet, lint, race tests" while omitting
 
 13. ~~Add ETag compliance tests to `etag_test.go` OR document that compliance testing lives in go-etag~~ done (done — documented that compliance testing lives in go-etag's suite)
 14. ~~Add ETag to `TestStack_FullMiddlewareComposition` in `stack_integration_test.go`~~ done at `242aac7`
-15. Add `httpspec` standard spec for ETag header behavior (optional, additive)
+15. ~~Add `httpspec` standard spec for ETag header behavior (optional, additive)~~ done (ExpectNotModifiedWithETag (T24))
 16. ~~Add test verifying ETag is NOT generated for streaming responses (exceeding MaxBufferSize)~~ **Won't implement — moved — streaming/ETag behavior tests live in go-etag.**
 17. ~~Add test verifying `SkipIfPresent` behavior through the adapter~~ **Won't implement — moved — SkipIfPresent is a go-etag config decision.**
 18. ~~Add test verifying custom `HashFunc` through the adapter~~ **Won't implement — moved — custom HashFunc tests live in go-etag.**
@@ -145,16 +145,16 @@ See section (b). Saying "all green: build, vet, lint, race tests" while omitting
 
 22. ~~Update `FEATURES.md` — verify coverage % after adding tests~~ done (done — coverage re-measured by later passes (97.0 httputil / 99.3 httpspec))
 23. ~~Update `ROADMAP.md` — verify Conditional Requests scope is accurate~~ done (done — ROADMAP documents the conditional-requests scope)
-24. Add ETag to the middleware ordering table in `FEATURES.md` (if one exists)
+24. ~~Add ETag to the middleware ordering table in `FEATURES.md` (if one exists)~~ **Won't implement — FEATURES has no ordering table; README owns ordering guidance + mermaid diagram.**
 25. ~~Verify `README.md` ETag section code example compiles and runs~~ done (done — ExampleETag runs with an Output directive in the test suite)
-26. Add `CONTRIBUTING.md` note about adapter pattern for external middleware modules
+26. ~~Add `CONTRIBUTING.md` note about adapter pattern for external middleware modules~~ done (CONTRIBUTING architecture notes (T21))
 27. ~~Update `docs/v1-stability.md` — add ETag error codes to frozen API surface~~ done (done — v1-stability classifies the ETag factory and the MiddlewareETag constant)
-28. Document the adapter pattern (go-etag, nosurf) in an architecture decision record
+28. ~~Document the adapter pattern (go-etag, nosurf) in an architecture decision record~~ done (ADR 0001 (adapter pattern))
 
 ### Architecture / design
 
 29. Consider whether `MiddlewareStack.Validate()` should enforce ETag-inside-Compression ordering
-30. Consider whether `httpspec` should have an ETag spec category
+30. ~~Consider whether `httpspec` should have an ETag spec category~~ **Won't implement — check builders (ExpectNotModifiedWithETag) shipped instead of a spec category.**
 31. ~~Consider whether the adapter should expose `etag.DefaultETagConfig()` as `httputil.DefaultETagConfig()` for convenience (decided NO this session, but consumer feedback may differ)~~ done (decided against — no re-exports; documented in the TODO_LIST rejected list)
 32. ~~Consider type aliases for `etag.ETagConfig` to reduce import friction (decided NO this session)~~ done (decided against — the Middleware alias composes directly; documented in TODO_LIST)
 33. ~~Evaluate whether the error-registration superset pattern should be documented as a convention for future adapter modules~~ done (documented — AGENTS.md covers the error-classification registration pattern)
@@ -177,9 +177,9 @@ See section (b). Saying "all green: build, vet, lint, race tests" while omitting
 44. ~~Consider integration with `Cache-Control` headers~~ **Won't implement — moved — post-v1.0 ETag scope lives in go-etag.**
 45. ~~Consider `Vary` header interaction documentation (ETag + Accept-Encoding)~~ **Won't implement — moved — Vary documentation is go-etag responsibility.**
 46. ~~Consider stale-while-revalidate pattern documentation~~ **Won't implement — moved — post-v1.0 ETag scope lives in go-etag.**
-47. Add ETag to the `httpspec` standard spec suite as an optional check
+47. ~~Add ETag to the `httpspec` standard spec suite as an optional check~~ done (same as 15)
 48. ~~Document ETag + Compression interaction in a dedicated guide~~ **Won't implement — moved — go-etag documents the interaction.**
-49. Consider middleware ordering diagram in README (visual, not just code example)
+49. ~~Consider middleware ordering diagram in README (visual, not just code example)~~ done (mermaid ordering diagram (a5e0f8c))
 50. Evaluate whether the adapter pattern should be extracted into a generic `WrapExternal(name string, mw etag.Middleware) Middleware` helper
 
 ---

@@ -73,12 +73,12 @@ Audited all 11 config structs + `MiddlewareStack.Validate()`. Every config struc
 
 ### Less critical omissions:
 
-7. **No integration test for TLSConfig through actual server startup** — Tests validate the config and wiring but never start a real TLS server (would require cert generation). This is a coverage gap but arguably out of scope.
+7. ~~**No integration test for TLSConfig through actual server startup** — Tests validate the config and wiring but never start a real TLS server (would require cert generation). This is a coverage gap but arguably out of scope.~~ done (TLS startup integration test (44b5831))
 
-8. **Fuzz test invariants are weak** — The fuzz test only checks status codes (200 or 400). It could also verify:
-   - Content-Encoding and Content-Length headers are removed after successful decompression
-   - No panic on nil body
-   - Response body matches decompressed input for valid payloads
+8. ~~**Fuzz test invariants are weak** — The fuzz test only checks status codes (200 or 400). It could also verify:~~ done (FuzzDecompressionInvariants compares against a bounded reference decoder (2026-08-30))
+   ~~- Content-Encoding and Content-Length headers are removed after successful decompression~~
+   ~~- No panic on nil body~~
+   ~~- Response body matches decompressed input for valid payloads~~
 
 9. **Benchmark payload is text-only** — The benchmark uses repetitive English text which compresses very well. Real-world payloads (JSON, HTML, mixed binary) would show different ratios. Not a correctness issue but limits benchmark usefulness.
 
@@ -142,60 +142,60 @@ Audited all 11 config structs + `MiddlewareStack.Validate()`. Every config struc
 8. Consider validating `DecompressionConfig.Encodings` entries are recognized ("gzip", "deflate" only)
 9. Consider validating `CompressionConfig.IncompressibleTypes` entries are valid content-type prefixes
 10. Consider validating `CSRFConfig.MaxAge` not negative (currently zero-value defaults to 24h, but explicit negative would be confusing)
-11. Consider adding `ServerConfig.Validate()` call documentation — note that `NewServer` calls it automatically
+11. ~~Consider adding `ServerConfig.Validate()` call documentation — note that `NewServer` calls it automatically~~ done (v1-stability + README document NewServer validation)
 
 ### Testing improvements:
 
-12. Add integration test: TLS server startup with self-signed cert + `TLSConfig`
-13. Strengthen fuzz test: verify header removal after decompression
-14. Strengthen fuzz test: verify body roundtrip for valid compressed payloads
-15. Add fuzz test for `limitedReadCloser` directly (bomb protection edge cases)
+12. ~~Add integration test: TLS server startup with self-signed cert + `TLSConfig`~~ done (44b5831)
+13. ~~Strengthen fuzz test: verify header removal after decompression~~ done (FuzzDecompressionInvariants header-removal checks)
+14. ~~Strengthen fuzz test: verify body roundtrip for valid compressed payloads~~ done (round-trip invariants (FuzzCompression + FuzzDecompressionInvariants))
+15. ~~Add fuzz test for `limitedReadCloser` directly (bomb protection edge cases)~~ done (FuzzLimitedReadCloser (5278f1d))
 16. Add benchmark: decompression bomb protection (limit-hit path)
 17. Add benchmark: decompression with varying payload sizes (sub-benchmarks)
 18. Add benchmark: `KeyedRateLimiterConfig.Validate()` (existing benchmarks don't cover Validate)
 19. Add benchmark: `ServerConfig.Validate()` with TLSConfig set
-20. Add test: `NewServer` with `TLSConfig` containing `Certificates` — verify wired correctly
+20. ~~Add test: `NewServer` with `TLSConfig` containing `Certificates` — verify wired correctly~~ done (in-memory cert tests cover the wiring (44b5831))
 21. ~~Add test: `RateLimitConfig.Validate()` with valid non-default Status (e.g., 503)~~ done at `bd4345f`, `b6a50fb`
-22. Add test: `KeyedRateLimiterConfig.Validate()` with all fields populated (happy path)
+22. ~~Add test: `KeyedRateLimiterConfig.Validate()` with all fields populated (happy path)~~ done (covered by the classified-validator test batch (v0.12.0))
 
 ### Cleanup:
 
 23. ~~Remove unused `assertBodyEmpty` from `testutil_test.go:182` (pre-existing dead code)~~ done (done — removed (verified in the 22:43 follow-up; 0 references today))
-24. Audit for other unused test helpers across `*_test.go` files
+24. ~~Audit for other unused test helpers across `*_test.go` files~~ done (dead helpers removed by the 2026-08-30 full-code-review)
 25. ~~Run `art-dupl --type-aware` to verify no new duplication introduced by the benchmark/fuzz test files~~ done (done — 0 clone groups verified (06:50 session; AGENTS.md))
 
 ### Feature work (from ROADMAP/TODO_LIST):
 
 26. ~~Add `nix run .#vulncheck` to RELEASE.md (High Priority TODO item)~~ done at `994d030`
-27. Consider adding `ServerConfig.MaxHeaderBytes` field (currently hardcoded to 0)
-28. Consider adding `ServerConfig.MaxHeaderBytes` validation
-29. Add HTTPS redirect middleware (separate from TLSConfig)
-30. Add HSTS preload list validation
+27. ~~Consider adding `ServerConfig.MaxHeaderBytes` field (currently hardcoded to 0)~~ **Won't implement — DECISION_LOG 2026-08-29: no MaxHeaderBytes field.**
+28. ~~Consider adding `ServerConfig.MaxHeaderBytes` validation~~ **Won't implement — same decision.**
+29. ~~Add HTTPS redirect middleware (separate from TLSConfig)~~ **Won't implement — ROADMAP: HTTPS-redirect stays a plugin-shaped post-v1.0 idea (proxy-trust semantics).**
+30. ~~Add HSTS preload list validation~~ **Won't implement — ROADMAP: HSTS policy belongs to the deployer.**
 
 ### Monitoring/observability:
 
-31. Add benchmark for `Decompression` middleware overhead (middleware wrapper cost without actual decompression)
-32. Add allocation profiling for decompression hot path
-33. Consider adding `Server.StartTLS()` method (parallel to `Start()` but uses `ListenAndServeTLS`)
+31. ~~Add benchmark for `Decompression` middleware overhead (middleware wrapper cost without actual decompression)~~ done (passthrough bench (106 ns) measures the wrapper cost)
+32. ~~Add allocation profiling for decompression hot path~~ done (b.ReportAllocs across all decompression benches (2026-08-30))
+33. ~~Consider adding `Server.StartTLS()` method (parallel to `Start()` but uses `ListenAndServeTLS`)~~ done (Server.StartTLS shipped (44b5831))
 34. Document TLS certificate management strategy (static files vs `autocert`)
 
 ### Architecture:
 
-35. Consider whether `TLSConfig` should be cloned in `NewServer` to prevent caller mutation after server start
-36. Consider whether `ServerConfig` should have a `Validate()` call in documentation showing it's automatically called by `NewServer`
+35. ~~Consider whether `TLSConfig` should be cloned in `NewServer` to prevent caller mutation after server start~~ **Won't implement — documented as consumer guidance (AGENTS tls.Config mutation warning) rather than hidden cloning.**
+36. ~~Consider whether `ServerConfig` should have a `Validate()` call in documentation showing it's automatically called by `NewServer`~~ done (same as item 11)
 37. Review whether `DecompressionConfig.Encodings` validation should reject duplicates
-38. Consider whether `CompressionConfig.Level` validation should also check when `WriterFactories` is set (currently Level is validated even when ignored)
+38. ~~Consider whether `CompressionConfig.Level` validation should also check when `WriterFactories` is set (currently Level is validated even when ignored)~~ done (ticketed as the Level=0 semantics TODO item (2026-08-30))
 
 ### Security:
 
-39. Audit all error messages for information leakage (do any include user input in error responses?)
-40. Verify decompression bomb protection works with chunked transfer encoding
+39. ~~Audit all error messages for information leakage (do any include user input in error responses?)~~ done (httpspec no-leaked-internals spec + full-code-review audit)
+40. ~~Verify decompression bomb protection works with chunked transfer encoding~~ done (limit applies to inflated bytes regardless of wire framing (limitedReadCloser bounds reads))
 41. Consider adding rate limiting to the decompression middleware itself (CPU-bound DoS via compression)
-42. Review TLS cipher suite defaults for Go 1.26 — are the defaults still secure?
+42. ~~Review TLS cipher suite defaults for Go 1.26 — are the defaults still secure?~~ done (DECISION_LOG 2026-08-29: Go 1.26 defaults retained)
 
 ### Quality gates:
 
-43. Add `go test -fuzz=FuzzDecompression -fuzztime=5m` to CI (longer fuzz runs)
+43. ~~Add `go test -fuzz=FuzzDecompression -fuzztime=5m` to CI (longer fuzz runs)~~ done (nightly-fuzz.yml runs all 23 targets x 5 min)
 44. Add `golangci-lint run` to a pre-push git hook
 45. ~~Verify `govulncheck` passes with all new code~~ done (done — govulncheck runs in CI across the workspace)
 46. ~~Run `go test -race -count=20 ./...` to surface any timing-dependent races in new tests~~ done — stress runs in later sessions came back clean (the 05:10 session ran `-count=10`)
@@ -204,7 +204,7 @@ Audited all 11 config structs + `MiddlewareStack.Validate()`. Every config struc
 
 ### Polish:
 
-49. Refactor benchmarks to use `b.Run` sub-benchmarks for consistency with Go conventions
+49. ~~Refactor benchmarks to use `b.Run` sub-benchmarks for consistency with Go conventions~~ done 2026-08-30 — `BenchmarkDecompression/{gzip,deflate,passthrough}`; the refactor also exposed that the old harness re-used one request (middleware deletes `Content-Encoding`), so it measured a no-op path after the first iteration; harness fixed and baseline re-measured
 50. ~~Add `// Output:` example test for `Decompression` if not already present (AGENTS.md says there is one — verify it's current)~~ done (done — ExampleDecompression exists with an Output directive)
 
 ---
@@ -240,4 +240,4 @@ All 4 TODO items are done but still unchecked. Should I check them off + write C
 
 Every actionable numbered item is resolved inline; unmarked items are still open by convention. The header banner was removed — its verdicts live on the items. Section a) task headers carry their landing commits.
 
-Open as of 2026-08-29 (all low-priority "consider" ideas unless noted): f7–f11 (config-validation hardening ideas), f12–f20 (TLS integration test, fuzz-invariant strengthening, bomb-path and Validate benchmarks), f22 (KeyedRateLimiter happy-path test), f24 (unused-helper audit), f27–f43 (MaxHeaderBytes, HTTPS redirect, HSTS, StartTLS, TLS cert docs, decompression profiling/monitoring, security audits, fuzz-in-CI), f44 (pre-push lint hook), f49 (b.Run sub-benchmark refactor). Sections d)/e) are narrative, intentionally unmarked.
+Open as of 2026-08-29 (all low-priority "consider" ideas unless noted): f7–f11 (config-validation hardening ideas), f12–f20 (TLS integration test, fuzz-invariant strengthening, bomb-path and Validate benchmarks), f22 (KeyedRateLimiter happy-path test), f24 (unused-helper audit), f27–f43 (MaxHeaderBytes, HTTPS redirect, HSTS, StartTLS, TLS cert docs, decompression profiling/monitoring, security audits, fuzz-in-CI), f44 (pre-push lint hook), ~~f49 (b.Run sub-benchmark refactor)~~ (done 2026-08-30). Sections d)/e) are narrative, intentionally unmarked.

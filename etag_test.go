@@ -96,6 +96,17 @@ func TestETag_WorksInMiddlewareStack(t *testing.T) {
 	if stack.Names()[0] != MiddlewareETag {
 		t.Errorf("stack.Names()[0] = %q, want %q", stack.Names()[0], MiddlewareETag)
 	}
+
+	handler := stack.Build(newWriteStatusHandler("etag stack body"))
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))
+
+	assertStatus(t, rec, http.StatusOK)
+
+	if got := rec.Header().Get("ETag"); got == "" {
+		t.Error("ETag header empty when served through MiddlewareStack")
+	}
 }
 
 func TestETag_ChainedWithCompression(t *testing.T) {

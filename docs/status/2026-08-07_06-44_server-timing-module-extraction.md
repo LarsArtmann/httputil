@@ -135,58 +135,58 @@ I fixed the build breakage from `890b7eb` (removed stale ETag test functions, up
 6. ~~**Update `FEATURES.md` Server-Timing row** — file path is now `server_timing/server_timing.go`, package is `servertiming`, module is separate.~~ done at `46a91da`
 7. ~~**Update `docs/v1-stability.md`** Server-Timing section to reflect the module move and new import path.~~ done at `e729481`
 8. ~~**Update `docs/DOMAIN_LANGUAGE.md`** — 14+ Server-Timing entries need import path context.~~ done (done — DOMAIN_LANGUAGE.md gained the Server-Timing context in subsequent doc passes)
-9. **Create `server_timing/doc.go`** with package-level GoDoc documentation.
+9. ~~**Create `server_timing/doc.go`** with package-level GoDoc documentation.~~ done (server_timing/doc.go (T21, 940c1ba))
 10. ~~**Update D2 architecture diagram** to show the new 2-module workspace structure.~~ done (done later — D2 diagrams regenerated during the extraction sessions)
 11. ~~**Add `MiddlewareETag` back or remove ETag from all remaining references** — the constant was deleted from `stack.go` but may be referenced in comments, docs, or external integrations.~~ done (resolved — MiddlewareETag is in the stack constants (stack.go))
 
 ### Medium Priority (P2 — Completeness)
 
 12. ~~**Document the versioning strategy** for the multi-module repo in AGENTS.md.~~ done (documented — AGENTS.md architecture section describes the workspace and the replace directive)
-13. **Add a CI check for go.work / replace directive sync** (per go-modularize skill FM#4).
-14. **Add `GOWORK=off` per-module CI testing** to catch version drift.
+13. ~~**Add a CI check for go.work / replace directive sync** (per go-modularize skill FM#4).~~ done (check-module-boundaries.sh (T22/T23))
+14. ~~**Add `GOWORK=off` per-module CI testing** to catch version drift.~~ done (same script: GOWORK=off per-module builds)
 15. ~~**Update `README.md` installation section** — consumers now need to `go get` two modules if they want both httputil and server_timing.~~ done (done — README mentions the server_timing module for consumers)
-16. **Audit integration docs** (`docs/integrations/huma.md`, `docs/integrations/samber-do.md`) for stale import paths.
-17. **Consider extracting `delegatingWriter`** into shared infrastructure (it's a reusable ResponseWriter delegation pattern).
-18. **Add a module boundary test** — verify that `server_timing` has zero non-stdlib dependencies via `go mod graph`.
+16. ~~**Audit integration docs** (`docs/integrations/huma.md`, `docs/integrations/samber-do.md`) for stale import paths.~~ done 2026-08-30 — audited all five integration docs: import paths current; only drift found was API drift in redis-ratelimiter.md (deprecated RateLimiter API), fixed with a deprecation notice
+17. ~~**Consider extracting `delegatingWriter`** into shared infrastructure (it's a reusable ResponseWriter delegation pattern).~~ **Won't implement — stdlib-only sub-module by design; the small writer duplication is the price of zero deps.**
+18. ~~**Add a module boundary test** — verify that `server_timing` has zero non-stdlib dependencies via `go mod graph`.~~ done (module boundary verified: stdlib-only go.mod + per-module builds)
 19. ~~**Verify `go.work.sum` is committed** (or intentionally absent — currently no `go.work.sum` file exists).~~ done (absent is expected — the local replace directive pins the path, no checksums required)
-20. **Check if `go mod vendor` works** with the workspace setup (per go-modularize skill FM#6).
-21. **Run `go work sync` in CI** and assert no changes (idempotency check).
-22. **Update the package structure analysis** in `docs/architecture-understanding/` to reflect the split.
+20. ~~**Check if `go mod vendor` works** with the workspace setup (per go-modularize skill FM#6).~~ **Won't implement — not vendored; boundaries verified via GOWORK=off builds.**
+21. ~~**Run `go work sync` in CI** and assert no changes (idempotency check).~~ done (script verifies go.work completeness)
+22. ~~**Update the package structure analysis** in `docs/architecture-understanding/` to reflect the split.~~ done 2026-08-30 — docs/architecture-understanding/2026-08-30_package-structure-analysis-refresh.md (36 root files of the ~50 trigger; flat-root decision re-affirmed)
 23. ~~**Review whether `hex.go` comment** ("shared by ETag + RequestID") is still accurate now that ETag is gone.~~ done (done — the hex.go comment no longer mentions ETag)
 
 ### Documentation Polish (P3)
 
 24. ~~**Update `docs/modularization/` with the actual execution** — the skill recommends writing a proposal + execution plan HTML, which was skipped in favor of direct execution.~~ done (partially — DECISION.html exists; no separate post-mortem doc was added)
-25. **Add a migration guide** for consumers who used `httputil.ServerTimingMiddleware` and now need `servertiming.ServerTimingMiddleware`.
+25. ~~**Add a migration guide** for consumers who used `httputil.ServerTimingMiddleware` and now need `servertiming.ServerTimingMiddleware`.~~ done (CHANGELOG [0.10.0] Changed documents the import swap)
 26. ~~**Update `CHANGELOG.md` `[Unreleased]`** to accurately describe both the server_timing extraction AND the ETag situation.~~ done (done — the Unreleased section was rewritten by the 08-07 23:04 pass (a5e9944))
 27. ~~**Add deprecation aliases** in the root package if backward compatibility is desired (e.g., `type ServerTiming = servertiming.ServerTiming`).~~ done (done for ETag — the deprecated thin adapter (etag.go) composes via the Middleware alias; server_timing consumers import the sub-module directly)
-28. **Document the `delegatingWriter` pattern** in AGENTS.md non-obvious behaviors.
+28. ~~**Document the `delegatingWriter` pattern** in AGENTS.md non-obvious behaviors.~~ done (AGENTS server_timing section + wrapper coverage documented)
 29. ~~**Verify `wrapper.go` comment** about `etagWriter` — ETag is gone, does the comment still make sense?~~ done (done — wrapper.go has no stale etagWriter comment)
 30. ~~**Check `compression.go` and `compress_writer.go`** for ETag-related comments that are now stale.~~ done (done — no ETag mentions remain in compression.go or compress_writer.go)
 
 ### Future Architecture (P4)
 
-31. **Consider whether ETag should be its own module** (`go-etag`) — the daemon's intent (even if unauthorized) may align with the modularization goal. If so, do it properly.
-32. **Evaluate extracting CSRF** into its own module (it's the only middleware with `justinas/nosurf` dep).
+31. ~~**Consider whether ETag should be its own module** (`go-etag`) — the daemon's intent (even if unauthorized) may align with the modularization goal. If so, do it properly.~~ done (go-etag shipped as its own module)
+32. ~~**Evaluate extracting CSRF** into its own module (it's the only middleware with `justinas/nosurf` dep).~~ **Won't implement — flat-root decision; nosurf dep stays in root.**
 33. **Evaluate extracting Compression** into its own module (it has complex negotiator/writer/pool infrastructure).
-34. **Consider a shared `responsewriter` module** for `delegatingWriter`, `responseWrapper`, `writeDefaultOK`, and `DetectCapabilities`.
-35. **Review the flat root package decision** — now that server_timing is extracted, is the 33-file flat package still the right call? (AGENTS.md says "deferred until post-v1.0 or if root exceeds ~50 non-test files" — we're at ~30 now after ETag removal).
-36. **Add a `go.work` entry for any future sub-modules** automatically.
-37. **Standardize the `.golangci.yml` sharing** mechanism (symlink? generated from a template? include directive?).
-38. **Consider independent semver tagging** for `server_timing/v0.1.0` if it will have independent consumers.
-39. **Add `replace` directive audit** to CI — no absolute paths, all local `./` references.
-40. **Review flake.nix `GOWORK=off` everywhere** — the daemon's `ada0c8d` commit may have changed the flake.nix structure; verify all apps still work.
+34. ~~**Consider a shared `responsewriter` module** for `delegatingWriter`, `responseWrapper`, `writeDefaultOK`, and `DetectCapabilities`.~~ **Won't implement — flat-root decision.**
+35. ~~**Review the flat root package decision** — now that server_timing is extracted, is the 33-file flat package still the right call? (AGENTS.md says "deferred until post-v1.0 or if root exceeds ~50 non-test files" — we're at ~30 now after ETag removal).~~ done (re-affirmed 2026-08-30 (package-structure refresh))
+36. ~~**Add a `go.work` entry for any future sub-modules** automatically.~~ **Won't implement — manual go.work by design.**
+37. ~~**Standardize the `.golangci.yml` sharing** mechanism (symlink? generated from a template? include directive?).~~ **Won't implement — each module owns its .golangci.yml (server_timing has its own minimal config).**
+38. ~~**Consider independent semver tagging** for `server_timing/v0.1.0` if it will have independent consumers.~~ done (server_timing tagged v0.12.0)
+39. ~~**Add `replace` directive audit** to CI — no absolute paths, all local `./` references.~~ done (replace-directive audit in check-module-boundaries.sh)
+40. ~~**Review flake.nix `GOWORK=off` everywhere** — the daemon's `ada0c8d` commit may have changed the flake.nix structure; verify all apps still work.~~ done (reviewed at T22)
 
 ### Testing & Verification (P4)
 
-41. **Add a test that verifies `server_timing` builds with `GOWORK=off`** in CI.
-42. **Add a test that verifies the root module's `go.mod` replace directive** resolves correctly.
+41. ~~**Add a test that verifies `server_timing` builds with `GOWORK=off`** in CI.~~ done (same script)
+42. ~~**Add a test that verifies the root module's `go.mod` replace directive** resolves correctly.~~ done (script + go mod verify)
 43. **Benchmark the module boundary** — does the `replace` directive add any build overhead?
 44. ~~**Run `govulncheck` on the new module** — verify zero vulnerabilities in the stdlib-only module.~~ done (covered — govulncheck runs in CI across the workspace)
 45. ~~**Run `golangci-lint` with `--max-issues-per-linter=0`** to catch any suppressed issues in the new module.~~ done (clean — the sub-module lint runs 0 issues per the AGENTS.md command cadence)
 46. ~~**Verify the fuzz tests still work** in the new module (`go test -fuzz=FuzzServerTimingHeaderValue`).~~ done (exists — server_timing_fuzz_test.go runs in the module suite)
 47. ~~**Check test coverage in the new module** — is it still comprehensive after the move?~~ done (passing — the module suite runs with -race in the documented cadence)
-48. **Verify `go doc` output** for the new package — does it render correctly without a `doc.go`?
+48. ~~**Verify `go doc` output** for the new package — does it render correctly without a `doc.go`?~~ done (T21: go doc renders)
 49. ~~**Test cross-module `errors.Is` / `errors.As`** — verify no error types are stranded across boundaries.~~ done (N/A — the sub-module is stdlib-only and returns no classified errors)
 50. ~~**Add a `nix flake check`** run to verify the flake.nix changes are valid Nix.~~ done (runs green — nix flake check is part of the documented cadence)
 
@@ -255,4 +255,4 @@ This is a v1.0 stability commitment question — the `docs/v1-stability.md` file
 
 Every actionable numbered item is resolved inline; unmarked items are still open by convention. The header banner was removed — its verdicts live on the items.
 
-Open as of 2026-08-29: f9/f48 (server_timing doc.go — package docs live on middleware.go/symbols today), f13 (go.work sync CI check), f14/f41 (GOWORK=off CI testing), f16 (integration-docs import-path audit), f17/f28 (delegatingWriter extraction/pattern docs), f18 (module-boundary test), f20/f21 (go mod vendor / go work sync checks), f22 (package-structure analysis refresh), f25 (server-timing migration guide), f31–f40 and f42–f43 (post-v1.0 architecture fuel: CSRF/Compression extraction, shared responsewriter module, .golangci sharing, independent semver, replace audit). Sections b)–e) are narrative session facts and process lessons, intentionally unmarked.
+Open as of 2026-08-29: f9/f48 (server_timing doc.go — package docs live on middleware.go/symbols today), f13 (go.work sync CI check), f14/f41 (GOWORK=off CI testing), ~~f16 (integration-docs import-path audit)~~ (done 2026-08-30), f17/f28 (delegatingWriter extraction/pattern docs), f18 (module-boundary test), f20/f21 (go mod vendor / go work sync checks), ~~f22 (package-structure analysis refresh)~~ (done 2026-08-30), f25 (server-timing migration guide), f31–f40 and f42–f43 (post-v1.0 architecture fuel: CSRF/Compression extraction, shared responsewriter module, .golangci sharing, independent semver, replace audit). Sections b)–e) are narrative session facts and process lessons, intentionally unmarked.

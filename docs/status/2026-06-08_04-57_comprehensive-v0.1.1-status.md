@@ -132,24 +132,24 @@ No `go build` nix check because the sandbox can't download `go-error-family`. On
 
 ### Near-term (Configurable & Architectural)
 
-1. **`CompressionConfig.SkipContentTypes`** — custom deny-list for content types
-2. **`MiddlewareStack` type with ordering validation** — type-safe middleware composition
-3. **`ResponseWriter` capability interface** — unify Hijack/Push/Flush detection
+1. ~~**`CompressionConfig.SkipContentTypes`** — custom deny-list for content types~~ done (shipped as IncompressibleTypes)
+2. ~~**`MiddlewareStack` type with ordering validation** — type-safe middleware composition~~ done (shipped (stack.go))
+3. ~~**`ResponseWriter` capability interface** — unify Hijack/Push/Flush detection~~ done (shipped (DetectCapabilities, capabilities.go))
 
 ### Medium-term (Features)
 
-4. **Deflate support** — `compress/flate` writer, stdlib-only
-5. **Accept-Encoding quality value parsing** — RFC 7231 compliant negotiation
-6. **Streaming ETag** — rolling hash without buffering
+4. ~~**Deflate support** — `compress/flate` writer, stdlib-only~~ done (shipped (DefaultWriterFactories))
+5. ~~**Accept-Encoding quality value parsing** — RFC 7231 compliant negotiation~~ done (shipped (compression_qvalue.go + property tests))
+6. ~~**Streaming ETag** — rolling hash without buffering~~ done (Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory)
 
 ### Worth Considering
 
-7. **Request/response metrics middleware** — `expvar` or custom histograms
-8. **Rate-limiting middleware** — token bucket or sliding window
-9. **Request body size limit middleware** — OOM prevention
-10. **Brotli support** — plugin interface or dependency relaxation
-11. **HTTP/2 Server Push integration test**
-12. **WebSocket upgrade test through Compression + ETag**
+7. ~~**Request/response metrics middleware** — `expvar` or custom histograms~~ done (shipped (metrics.go))
+8. ~~**Rate-limiting middleware** — token bucket or sliding window~~ done (shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it))
+9. ~~**Request body size limit middleware** — OOM prevention~~ done (shipped (maxbodysize.go))
+10. ~~**Brotli support** — plugin interface or dependency relaxation~~ done (shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md))
+11. ~~**HTTP/2 Server Push integration test**~~ done (moot (http.Pusher code removed in v0.3.0))
+12. ~~**WebSocket upgrade test through Compression + ETag**~~ done (Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30)
 
 ---
 
@@ -217,24 +217,24 @@ The codebase is in excellent shape:
 | 4  | Replace `getGzipPool` map+mutex with slice+atomic         | High     | 20 min | Performance     |
 | 5  | Zero-allocation `etagInList`                              | Medium   | 15 min | Performance     |
 | 6  | Batch `generateRequestID` reads                           | High     | 15 min | Performance     |
-| 7  | Add `CompressionConfig.SkipContentTypes`                  | Medium   | 15 min | Configurability |
+| ~~7~~  | ~~Add `CompressionConfig.SkipContentTypes`~~ done — shipped as IncompressibleTypes | ~~Medium~~ | ~~15 min~~ | ~~Configurability~~ |
 | 8  | Fill `compressWriter.startCompressAndStream` coverage     | Medium   | 10 min | Quality         |
-| 9  | Fill `compressWriter.writePlain/writeCompressed` coverage | Medium   | 10 min | Quality         |
-| 10 | Fill `responseWrapper.Hijack/Push` error paths            | Medium   | 10 min | Quality         |
-| 11 | Fill `etagWriter.Write` streaming error branch            | Medium   | 5 min  | Quality         |
-| 12 | Fill `compressWriter.Close` error path                    | Medium   | 5 min  | Quality         |
-| 13 | Fill `getGzipPool` slow path coverage                     | Low      | 5 min  | Quality         |
-| 14 | Add `MiddlewareStack` with ordering validation            | High     | 45 min | Architecture    |
-| 15 | Add `ResponseWriter` capability interface                 | Medium   | 30 min | Architecture    |
-| 16 | Implement deflate support                                 | Medium   | 30 min | Feature         |
-| 17 | Add Accept-Encoding quality value parsing                 | Low      | 20 min | Correctness     |
-| 18 | Fill `etagWriter.Flush` after-flush path                  | Low      | 5 min  | Quality         |
-| 19 | Streaming ETag (rolling hash)                             | High     | 60 min | Performance     |
-| 20 | Rate-limiting middleware                                  | Medium   | 60 min | Feature         |
-| 21 | Request body size limit middleware                        | Low      | 20 min | Safety          |
-| 22 | Brotli plugin interface                                   | Medium   | 45 min | Extensibility   |
-| 23 | HTTP/2 Server Push integration test                       | Low      | 15 min | Coverage        |
-| 24 | WebSocket upgrade test through Compression + ETag         | Low      | 15 min | Coverage        |
+| ~~9~~  | ~~Fill `compressWriter.writePlain/writeCompressed` coverage~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~10 min~~ | ~~Quality~~ |
+| ~~10~~ | ~~Fill `responseWrapper.Hijack/Push` error paths~~ done — (wrapper_test.go error-path tests, 2026-08-30) | ~~Medium~~ | ~~10 min~~ | ~~Quality~~ |
+| ~~11~~ | ~~Fill `etagWriter.Write` streaming error branch~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~5 min~~ | ~~Quality~~ |
+| ~~12~~ | ~~Fill `compressWriter.Close` error path~~ done — (Close idempotency + error tests, 2026-08-30) | ~~Medium~~ | ~~5 min~~ | ~~Quality~~ |
+| ~~13~~ | ~~Fill `getGzipPool` slow path coverage~~ done — (pool coverage via newWriterPool tests) | ~~Low~~ | ~~5 min~~ | ~~Quality~~ |
+| ~~14~~ | ~~Add `MiddlewareStack` with ordering validation~~ done — shipped (stack.go) | ~~High~~ | ~~45 min~~ | ~~Architecture~~ |
+| ~~15~~ | ~~Add `ResponseWriter` capability interface~~ done — shipped (DetectCapabilities, capabilities.go) | ~~Medium~~ | ~~30 min~~ | ~~Architecture~~ |
+| ~~16~~ | ~~Implement deflate support~~ done — shipped (DefaultWriterFactories) | ~~Medium~~ | ~~30 min~~ | ~~Feature~~ |
+| ~~17~~ | ~~Add Accept-Encoding quality value parsing~~ done — shipped (compression_qvalue.go + property tests) | ~~Low~~ | ~~20 min~~ | ~~Correctness~~ |
+| ~~18~~ | ~~Fill `etagWriter.Flush` after-flush path~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Low~~ | ~~5 min~~ | ~~Quality~~ |
+| ~~19~~ | ~~Streaming ETag (rolling hash)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~High~~ | ~~60 min~~ | ~~Performance~~ |
+| ~~20~~ | ~~Rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Medium~~ | ~~60 min~~ | ~~Feature~~ |
+| ~~21~~ | ~~Request body size limit middleware~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~20 min~~ | ~~Safety~~ |
+| ~~22~~ | ~~Brotli plugin interface~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~45 min~~ | ~~Extensibility~~ |
+| ~~23~~ | ~~HTTP/2 Server Push integration test~~ done — moot (http.Pusher code removed in v0.3.0) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
+| ~~24~~ | ~~WebSocket upgrade test through Compression + ETag~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30 | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
 | 25 | Add nix build check that works offline                    | Medium   | 20 min | Infrastructure  |
 
 ---
@@ -255,9 +255,9 @@ Rate-limiting and metrics are **different beasts** — they require state (count
 
 **Options:**
 
-1. **Stay focused** — httputil is "stdlib patterns made composable." Rate-limiting and metrics belong in a separate package. Document the boundary clearly.
-2. **Expand scope** — add rate-limiting (using `golang.org/x/time/rate`) and metrics (using `expvar`). Accept that the library becomes opinionated.
-3. **Plugin interface** — add `MiddlewareStack` with hooks for pre/post processing, letting users inject their own rate-limiting/metrics without httputil owning the implementations.
+1. ~~**Stay focused** — httputil is "stdlib patterns made composable." Rate-limiting and metrics belong in a separate package. Document the boundary clearly.~~ done (not chosen — rate limiting & metrics shipped in scope (x/time allowed))
+2. ~~**Expand scope** — add rate-limiting (using `golang.org/x/time/rate`) and metrics (using `expvar`). Accept that the library becomes opinionated.~~ done (chosen: rate-limiting + metrics shipped (golang.org/x/time allowed))
+3. ~~**Plugin interface** — add `MiddlewareStack` with hooks for pre/post processing, letting users inject their own rate-limiting/metrics without httputil owning the implementations.~~ done (superseded — WriterFactory + MiddlewareStack shipped instead of generic hooks)
 
 **My recommendation:** Option 1. The library's strength is its focused scope. Rate-limiting and metrics are genuinely different domains. A separate `httplimit` or `httpmetrics` package would be more honest.
 

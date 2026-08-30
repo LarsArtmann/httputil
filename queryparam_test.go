@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"testing"
 )
 
@@ -92,9 +93,15 @@ func FuzzParseUintQuery(f *testing.F) {
 			return
 		}
 
-		// For any input, result must be a valid uint (no panic, no negative).
-		// ParseUintQuery either parses successfully or returns 0.
-		_ = got
+		// ParseUintQuery either parses successfully or returns 0. When it
+		// returns non-zero, the value must agree with an independent
+		// strconv.ParseUint of the same input (beyond the 32-bit cap).
+		if got != 0 {
+			ref, refErr := strconv.ParseUint(value, 10, 32)
+			if refErr == nil && got != uint(ref) {
+				t.Errorf("ParseUintQuery = %d, want %d for input %q", got, ref, value)
+			}
+		}
 	})
 }
 

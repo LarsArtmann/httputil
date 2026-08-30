@@ -3,21 +3,40 @@ package httpspec
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 )
 
-// newCORSAwareHandler returns a handler that sets the standard CORS headers
-// for a specific origin. Used to test CORS specs pass against a properly
-// configured handler.
+// newCORSAwareHandler returns a handler that authorizes the given exact origin
+// plus any *.example.com subdomain, reflecting the request origin in
+// Access-Control-Allow-Origin — the shape SpecNameCORSOriginMatchesRequested
+// requires of a dynamic-origin handler. Used to test CORS specs pass against a
+// properly configured handler.
 func newCORSAwareHandler(origin string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", origin)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requested := r.Header.Get("Origin")
+
+		switch {
+		case requested == origin, matchSpecWildcardOrigin(requested):
+			w.Header().Set("Access-Control-Allow-Origin", requested)
+		case requested == "":
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		default:
+			// Unmatched origin: deny by sending no Access-Control-Allow-Origin.
+		}
+
 		w.Header().Set("Vary", "Origin")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+}
+
+// matchSpecWildcardOrigin reports whether the origin matches the *.example.com
+// pattern the CORS-aware test handler authorizes.
+func matchSpecWildcardOrigin(origin string) bool {
+	return strings.HasSuffix(origin, ".example.com")
 }
 
 // newRateLimitedHandler returns a handler that rejects the first 2 requests
@@ -133,6 +152,85 @@ func TestCORSSpecs_FailWithoutVaryOnDynamicOrigin(t *testing.T) {
 	}
 
 	t.Fatal("SpecNameCORSVaryOrigin not found in CORSSpecs")
+}
+
+// findOriginMatchesRequestedSpec returns the origin-matching CORS spec.
+func findOriginMatchesRequestedSpec() (Spec, bool) {
+	for _, spec := range CORSSpecs() {
+		if spec.Name == SpecNameCORSOriginMatchesRequested {
+			return spec, true
+		}
+	}
+
+	return Spec{}, false
+}
+
+func TestCORSSpecs_PassWhenOriginReflected(t *testing.T) {
+	t.Parallel()
+
+	handler := newCORSAwareHandler(corsSpecOrigin)
+
+	spec, ok := findOriginMatchesRequestedSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
+	}
+
+	if result := spec.Check(handler); !result.OK {
+		t.Errorf("spec should pass when ACAO reflects the wildcard-matched request origin: %s", result.Message)
+	}
+}
+
+func TestCORSSpecs_PassWhenOriginWildcardStatic(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	spec, ok := findOriginMatchesRequestedSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
+	}
+
+	if result := spec.Check(handler); !result.OK {
+		t.Errorf("spec should pass for a static wildcard ACAO: %s", result.Message)
+	}
+}
+
+func TestCORSSpecs_PassWhenOriginDenied(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	spec, ok := findOriginMatchesRequestedSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
+	}
+
+	if result := spec.Check(handler); !result.OK {
+		t.Errorf("spec should pass when the origin is denied (no ACAO): %s", result.Message)
+	}
+}
+
+func TestCORSSpecs_FailWhenOriginHardcoded(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "https://other.example.net")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	spec, ok := findOriginMatchesRequestedSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
+	}
+
+	if result := spec.Check(handler); result.OK {
+		t.Error("spec should fail when a response authorizes an origin the client did not request")
+	}
 }
 
 func TestRateLimitSpecs_PassWith429AndRetryAfter(t *testing.T) {

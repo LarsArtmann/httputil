@@ -210,7 +210,7 @@ func TestCompressionConfig_Validate_InvalidLevel(t *testing.T) {
 	}
 }
 
-func testCompressionSkipsContentType(t *testing.T, contentType, wantErrMsg string) {
+func testCompressionSkipsContentType(t *testing.T, contentType, label string) {
 	t.Helper()
 
 	cfg := DefaultCompressionConfig()
@@ -228,7 +228,7 @@ func testCompressionSkipsContentType(t *testing.T, contentType, wantErrMsg strin
 	handler.ServeHTTP(rec, req)
 
 	if got := rec.Header().Get(headerContentEncoding); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty for %s", got, wantErrMsg)
+		t.Errorf("Content-Encoding = %q, want empty for %s", got, label)
 	}
 }
 
@@ -540,10 +540,12 @@ func TestCompression_FlushNonFlushableCustomWriter(t *testing.T) {
 	assertHeader(t, rec, headerContentEncoding, "custom")
 }
 
-// TestCompression_InvalidConfigLogsAndContinues verifies that an invalid
-// compression config (negative MinSize) is logged via slog but does not prevent
-// the middleware from constructing and serving requests.
-func TestCompression_InvalidConfigLogsAndContinues(t *testing.T) {
+// TestCompression_InvalidConfigContinues verifies that an invalid
+// compression config (negative MinSize) is logged by the constructor (via the
+// shared validateConfig helper) but does not prevent the middleware from
+// constructing and serving requests. The log emission itself is covered by
+// validate_config_log_test.go.
+func TestCompression_InvalidConfigContinues(t *testing.T) {
 	t.Parallel()
 
 	// MinSize < 0 is always a bug. The constructor fills WriterFactories from

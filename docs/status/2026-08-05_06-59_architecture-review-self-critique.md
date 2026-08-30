@@ -32,7 +32,7 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 
 1. **Go-modularize skill execution** — Loaded SKILL.md but **did NOT load `references/phases.md`** which the SKILL.md explicitly says to load: "Load ./references/phases.md for the detailed phase procedures." I skipped the 7-phase workflow, the failure mode catalog application, and the real-world-patterns reference. The decision is still correct (the signals are clear), but I didn't follow the skill's prescribed process.
 2. ~~**Roadmap harvesting** — The architecture-review skill says roadmap items should go into TODO_LIST.md / ROADMAP.md via docs-health HARVEST, otherwise "the roadmap rots in this timestamped file." I wrote 5 roadmap items in the HTML but added **zero** to TODO_LIST.md or ROADMAP.md. The items will rot.~~ done (harvested later — the items live in AGENTS.md and ROADMAP (see f4))
-3. **"Quick win" recommendation** — I recommended extracting `headerContentType` and `defaultRequestIDHeader` into a shared `headers.go`. I said "One quick win available now" — then didn't do it. Recommended but not executed.
+3. ~~**"Quick win" recommendation** — I recommended extracting `headerContentType` and `defaultRequestIDHeader` into a shared `headers.go`. I said "One quick win available now" — then didn't do it. Recommended but not executed.~~ done (headers.go shipped (T20, f7c50dc))
 4. ~~**D2 dependency diagram** — The previous review generated `.d2` and `.svg` files. The review methodology says "Draw it (D2, Mermaid) — visual patterns reveal problems text hides." I used ASCII dep-trees in the HTML instead. No new D2 diagram generated.~~ done (done later — D2 diagrams regenerated during the 08-07 extraction sessions)
 5. **go-modularize tooling commands** — The skill lists essential commands (`go mod graph`, `go list ./...`, etc.). I ran none of them. I relied on the agent's static analysis instead. The analysis was correct but I skipped the empirical verification step.
 
@@ -41,7 +41,7 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 ## c) NOT STARTED
 
 1. ~~**Harvesting roadmap items into TODO_LIST.md** — 5 items from the architecture review roadmap need to be added.~~ done (harvested — the architecture-roadmap items now live in AGENTS.md and ROADMAP (see f4))
-2. **Extracting `headers.go`** — The recommended quick win to hoist shared constants.
+2. ~~**Extracting `headers.go`** — The recommended quick win to hoist shared constants.~~ done (headers.go shipped (f7c50dc))
 3. ~~**Generating updated D2 diagrams** — The codebase structure changed since 2026-07-05 (5 new files). The existing diagrams are stale.~~ done (done later — D2 diagrams regenerated during the 08-07 extraction sessions)
 4. ~~**Running `golangci-lint run`** — I changed AGENTS.md (markdown only, no code impact) but didn't verify the project still passes its quality gate after the session.~~ done (verified clean in every later session)
 5. ~~**Validating HTML reports render correctly** — Wrote two HTML files but didn't open or validate them.~~ done (both HTML files present under docs/architecture-understanding/ and docs/modularization/)
@@ -76,7 +76,7 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 
 1. ~~**Wait for user to confirm/reject the flat-package recommendation before treating AGENTS.md entry as final** (P0)~~ done (confirmed by the user on 2026-08-05; AGENTS.md documents the confirmed decision)
 2. ~~**Load `go-modularize/references/phases.md`** and verify the decision against the full 7-phase process (P1)~~ done (superseded — the user confirmed the decision, making the phase re-walk moot)
-3. **Execute the `headers.go` extraction** — hoist `headerContentType` and `defaultRequestIDHeader` into a shared file (P1)
+3. ~~**Execute the `headers.go` extraction** — hoist `headerContentType` and `defaultRequestIDHeader` into a shared file (P1)~~ done (headers.go shipped (f7c50dc))
 4. ~~**Harvest the 5 roadmap items from the architecture review into TODO_LIST.md** (P1)~~ done (harvested — the internal/-extraction trigger, flat-package decision, and decision record live in AGENTS.md and ROADMAP)
 5. ~~**Run `golangci-lint run`** to confirm the project quality gate still passes (P1)~~ done (verified clean in every later session)
 6. ~~**Validate the two HTML reports render correctly** in a browser (P1)~~ done (both HTML files are present in the repo)
@@ -101,7 +101,7 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 19. ~~**Decide whether to extract `internal/compress/`** post-v1.0 — the only viable folder structure (P3)~~ done (decided — deferred post-v1.0 (AGENTS.md package-structure note))
 20. ~~**Document the flat-package decision in ROADMAP.md** under architectural decisions (P3)~~ done (documented — AGENTS.md carries the decision and rationale; DECISION.html is the formal record)
 21. ~~**Generate updated D2 diagrams** reflecting the current 33-file structure (P3)~~ done (done later — D2 diagrams regenerated during the 08-07 extraction sessions)
-22. **Revisit internal/ extraction if root exceeds ~50 non-test files** — trigger condition (P3/future)
+22. ~~**Revisit internal/ extraction if root exceeds ~50 non-test files** — trigger condition (P3/future)~~ done (trigger re-affirmed 2026-08-30: 36 of ~50 files)
 23. ~~**Record "never split into multiple go.mod" as an ADR** — architectural decision record (P3)~~ done (recorded — AGENTS.md package-structure note plus docs/modularization/2026-08-05_DECISION.html)
 
 ### From ROADMAP.md / FEATURES.md (v1.0 preparation)
@@ -113,48 +113,48 @@ But the execution had real gaps. I skipped a required skill reference file, didn
 28. ~~**Close remaining coverage gaps** — ~~14~~ **[STALE — actual: 18 sub-100% functions]** sub-100% functions, mostly unreachable defensive code (P3)~~ done (reachable gaps closed across later sessions; the remaining sub-100% functions are documented as defensive in FEATURES.md)
 29. ~~**Add `ServerConfig.TLSConfig` validation** — deferred to v1.0 (P3)~~ done at `e81a714`, `9a4d0de`
 30. ~~**Add request body decompression middleware** — ROADMAP v0.9.0 (P3/future)~~ done at `3ba8449`
-31. **Add `context.Context` support in rate limiter interface** — deferred to v1.0 (P3)
+31. ~~**Add `context.Context` support in rate limiter interface** — deferred to v1.0 (P3)~~ done (decided: admission-only through v1.0 (design note + DECISION_LOG))
 
 ### Structural / Quality Improvements Noticed
 
-32. **Generate a D2 dependency graph** of unexported symbol coupling — visualize the 27-symbol compression cluster (P3)
+32. ~~**Generate a D2 dependency graph** of unexported symbol coupling — visualize the 27-symbol compression cluster (P3)~~ done (internal-coupling.d2 (T26))
 33. ~~**Add a CONTRIBUTING.md section on the flat-package decision** — so contributors don't propose splits (P3)~~ done at `9093eba`
-34. **Consider a `doc.go` package diagram** showing the middleware composition order visually (P3)
-35. **Audit `capabilities.go`** — `DetectCapabilities` has no production callers, only test callers. Consider whether it should be used internally or documented as a utility (P3)
+34. ~~**Consider a `doc.go` package diagram** showing the middleware composition order visually (P3)~~ done (doc.go + README mermaid ordering diagram)
+35. ~~**Audit `capabilities.go`** — `DetectCapabilities` has no production callers, only test callers. Consider whether it should be used internally or documented as a utility (P3)~~ done (T20 keep-decision recorded)
 36. ~~**Review whether `passthroughFactory`, `nopCloserWriter`, `nopFlushCloser`** can be removed — AGENTS.md says they're defensive but only reachable via unit tests (P3)~~ **Won't implement — rejected — kept for API safety; documented in AGENTS.md and the TODO_LIST rejected list.**
 
 ### Documentation / Process
 
 37. ~~**Sync the AGENTS.md architecture table** — add CSRF, Server-Timing, KeyedRateLimiter entries if missing (P2)~~ done at `994d030`
 38. **Update the `2026-07-05_18-06_modularity.html`** with a link to the new 2026-08-05 review (P3)
-39. **Add a "Decision Log" section** to docs/ tracking architectural decisions chronologically (P3)
+39. ~~**Add a "Decision Log" section** to docs/ tracking architectural decisions chronologically (P3)~~ done (docs/DECISION_LOG.md (T21))
 40. ~~**Review `docs/v1-stability.md`** for completeness against the current feature set (P2)~~ done at `b90616e`
 41. ~~**Update CHANGELOG.md** with unreleased v0.8.0 changes if not already done (P2)~~ done (moot — v0.8.0 shipped; the entries live in the 0.8.0 CHANGELOG section)
 
 ### Testing Hardening
 
-42. **Add property-based test for compression negotiation** — q-value parsing edge cases (P3)
+42. ~~**Add property-based test for compression negotiation** — q-value parsing edge cases (P3)~~ done (compression_negotiator_property_test.go (2026-08-30))
 43. ~~**Add fuzz test for ETag conditional request handling** — If-Match, If-None-Match combinations (P3)~~ done (exists — FuzzETagConditional (later moved to go-etag with the extraction))
 44. ~~**Add websocket upgrade test for CSRF middleware** — CSRF + WebSocket interaction (P3)~~ **Won't implement — won't implement — the websocket upgrade test was removed on 08-07 (485cc82); CSRF+WS interaction dropped from scope.**
-45. **Add benchmark for full middleware chain** — measure overhead of all 16 middlewares combined (P3)
+45. ~~**Add benchmark for full middleware chain** — measure overhead of all 16 middlewares combined (P3)~~ done (BenchmarkChain exists)
 
 ### Future / Exploratory (from ROADMAP.md)
 
-46. **Evaluate brotli/zstd compression support** — via WriterFactory, no core dependency (P3/future)
-47. **Evaluate Prometheus metrics integration** — example/integration doc (P3/future)
-48. **Evaluate Redis-backed rate limiter** — example/integration doc (P3/future)
-49. **Evaluate samber/do integration** — example/integration doc (P3/future)
+46. ~~**Evaluate brotli/zstd compression support** — via WriterFactory, no core dependency (P3/future)~~ done (docs/integrations/brotli-zstd.md)
+47. ~~**Evaluate Prometheus metrics integration** — example/integration doc (P3/future)~~ done (docs/integrations/prometheus-metrics.md)
+48. ~~**Evaluate Redis-backed rate limiter** — example/integration doc (P3/future)~~ done (docs/integrations/redis-ratelimiter.md)
+49. ~~**Evaluate samber/do integration** — example/integration doc (P3/future)~~ done (docs/integrations/samber-do.md)
 50. **Consider HTMX-specific middleware helpers** — beyond CSRF token helpers (P3/future)
 
 ---
 
 ## g) Questions I Cannot Answer Myself
 
-1. **Do you agree with the flat-package recommendation, or do you want me to prototype the `internal/compress/` extraction so you can see it concretely before deciding?** — I wrote the recommendation into AGENTS.md prematurely. If you disagree, I need to revert that and try the alternative. The internal/ option is viable and I can build it if you want to see it.
+1. ~~**Do you agree with the flat-package recommendation, or do you want me to prototype the `internal/compress/` extraction so you can see it concretely before deciding?** — I wrote the recommendation into AGENTS.md prematurely. If you disagree, I need to revert that and try the alternative. The internal/ option is viable and I can build it if you want to see it.~~ done (user confirmed the flat package 2026-08-05 (AGENTS + DECISION_LOG))
 
-2. **Should I harvest the architecture review roadmap items into TODO_LIST.md now, or do you want to review the HTML reports first and curate which items are worth tracking?** — The skill says to harvest immediately, but you may want to reject some items before they enter the TODO list.
+2. ~~**Should I harvest the architecture review roadmap items into TODO_LIST.md now, or do you want to review the HTML reports first and curate which items are worth tracking?** — The skill says to harvest immediately, but you may want to reject some items before they enter the TODO list.~~ done (harvested repeatedly; TODO_LIST current)
 
-3. **Should I execute the `headers.go` quick win (hoisting `headerContentType` and `defaultRequestIDHeader`) in this session, or defer it to a dedicated commit?** — It's a 10-minute change but it touches compression.go, requestid.go, cors.go, and recovery.go. You may want it as an isolated, reviewable commit rather than bundled with documentation work.
+3. ~~**Should I execute the `headers.go` quick win (hoisting `headerContentType` and `defaultRequestIDHeader`) in this session, or defer it to a dedicated commit?** — It's a 10-minute change but it touches compression.go, requestid.go, cors.go, and recovery.go. You may want it as an isolated, reviewable commit rather than bundled with documentation work.~~ done (headers.go shipped (f7c50dc))
 
 ---
 

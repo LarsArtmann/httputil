@@ -1,0 +1,61 @@
+# Status Report: Low-Priority Backlog Execution — httpspec, Hijack Tiers, Benchmarks, and the Baseline That Lied
+
+**Date:** 2026-08-30 ~07:45 CEST
+**Session scope:** Execute all nine Low Priority TODO_LIST items (the 08-29 Wave 3 tail, items 20–32).
+**Starting state:** clean tree at `c1b2f31`; all gates green per the 08-29 evening report.
+**Ending state:** all quality gates green (build, vet, `-race` on all three modules, ~70 linters 0 issues both modules, erraudit `legacy_as` + `stdlib_constructor` exit 0); 9 TODO items closed; 3 living docs corrected where claims were false.
+
+---
+
+## a) FULLY DONE
+
+| #  | Item                                                                                                                                                                                                                         | Verification                                                       |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1  | **httpspec CORS origin-matching spec** (`SpecNameCORSOriginMatchesRequested`) — catches handlers that stamp a hardcoded, mismatched `Access-Control-Allow-Origin` onto responses; `*` and denials pass. 4 pass/fail tests; the new spec immediately flagged the existing test fixture as origin-incorrect, which was then fixed to a real wildcard-matching handler | `go test -race ./httpspec` green; `CORSSpecs()` now 5 specs (26 total) |
+| 2  | **`RunSerial` state-sharing design note** — decided: specs stay self-contained; sharing would turn `Check` into a function of runner state for a nanosecond-scale saving. `docs/planning/2026-08-30_runserial-state-sharing-design-note.md` | DECISION_LOG entry added                                            |
+| 3  | **`responseWrapper` direct tests** (`wrapper_test.go`, 9 tests) — first-WriteHeader-wins, `writeHeaderToUnderlying` commits exactly once (counting double), implicit-200, Hijack/Flush delegation                              | `-race` green; two initial wrong assumptions fixed by reading the impl |
+| 4  | **Negotiation property tests** — 2×2000 seeded headers vs an independent reference model (max-q, server-preference tiebreak, q=0 exclusion, unavailable exclusion) + order invariance under shuffling                          | `compression_negotiator_property_test.go`                          |
+| 5  | **ETag adapter overhead benchmark** — adapter vs `etag.New` identical within noise (≈450 ns, 1240 B, 14 allocs) proving the deprecated adapter is a zero-cost passthrough; no-middleware baseline included (≈113 ns)          | `BenchmarkETagAdapterOverhead`                                      |
+| 6  | **Hijack test tiers restored** (`chain_hijack_test.go`) — the Compression+ETag interface test (lost in `cc6439e`), the light upgrade-response test (101 + no `Content-Encoding`/`ETag` injection, lost in `485cc82`), and a NEW full real-connection bidirectional byte-echo test; stable `-race -count=10` | `net/http`-client pattern replaces the fragile manual byte parsing |
+| 7  | **server_timing Hijacker test mutation-verified and strengthened** — first mutation (stub `Hijack` body) exposed that the middleware-level test only asserted interface presence; it now performs the real hijack and fails under the same mutation (recorded in the test comment) | Mutation run 2×, restore verified, `server_timing -race` green      |
+| 8  | **Test naming/assertion convention codified** in AGENTS.md (name = claim; shape; helper prefixes; mutation-checked preservation tests) (`06-12:f.6`)                                                                          | AGENTS.md "Test Naming and Assertion Conventions"                   |
+| 9  | **`httptest.NewRequest` profiling** — ~760 ns / 5104 B / 9 allocs vs ~110 ns / 512 B / 3 allocs for `http.NewRequestWithContext`; benchmark + research note (`05-45:f27`, `00-51:f36`)                                        | `newrequest_bench_test.go`, `docs/research/2026-08-30_*.md`         |
+| 10 | **Error-swallow sweep** — 8 non-test discard sites audited; 6 already documented, 2 fixed (`recorder.go` slog `Handle`, `compress_writer.go` compressing-branch `Flush`) (`06-50:f39`)                                         | Comments added; build/lint green                                    |
+| 11 | **Integration-docs audit** — all import paths current; real drift was API drift: `redis-ratelimiter.md` teaches the deprecated `RateLimiter`/`RateLimit()` API with no deprecation pointer — notice added with migration-guide link and the explicit statement that `KeyedRateLimiter` has no pluggable backend yet (`06-44:f16`) | All five docs re-checked                                            |
+| 12 | **Package-structure refresh** — 36 root non-test files of the ~50 trigger; flat-root decision re-affirmed post go-etag/server_timing extractions (`06-44:f22`)                                                                 | `docs/architecture-understanding/2026-08-30_package-structure-analysis-refresh.md` |
+| 13 | **nginx bomb-protection study** — verified from nginx.org docs: no request-body gunzip exists; `client_max_body_size` bounds wire bytes; HPACK header limits are nginx's only post-decompression bound. `Decompression`'s inflated-byte limit does work the proxy does not (`05-45:f48`) | `docs/research/2026-08-30_nginx-bomb-protection-study.md`           |
+| 14 | **b.Run refactor** (`08-52:f49`) — three top-level decompression benchmarks became `BenchmarkDecompression/{gzip,deflate,passthrough}`; baseline table re-measured and the corrupted rows fixed                                                                               | `docs/benchmarks.md`                                                |
+| 15 | **Historical reports annotated** — 06-12 (c.3, f.2, f.4, f.6, f.7, f.9), 07-45 (f28, f47), 08-52 (f49), 06-44 (f16, f22) inline markers per the doc-freshness cadence                                                                                                                               | dated markers (no hash yet — nothing committed this session)        |
+
+## b) PARTIALLY DONE
+
+1. **dprint formatting** — `dprint` is not on PATH in this environment (the 08-29 report documented the same blocker); the new/edited markdown follows existing conventions but is not formatter-verified.
+2. ~~**erraudit type-aware advisories** — still the documented ~30 `errors.Is` sentinel matches; both exit-0 gates pass; nothing migrated beyond the single `errors.As` finding (in `maxbodysize_test.go`, a pre-existing violation the 08-29 session's "all gates green" missed or predates).~~ done (both erraudit exit-0 gates green 2026-08-30; the ~30 test errors.Is advisories are documented correct matches (AGENTS.md Commands))
+
+## c) NOT STARTED
+
+Nothing from the Low Priority list — all nine items closed. Remaining TODO_LIST High/Medium items (full-code-review skill, v1.0 decision, go-compression extraction, CI release workflow, go-error-family upstream, architecture-review re-run) untouched by design.
+
+## d) TOTALLY FUCKED UP
+
+1. **The published decompression benchmark baseline was measuring nothing** — and it took three rounds to notice. First run of the refactored benchmark reported 94 ns/op for "16 KiB gzip decompression" (impossible); I first blamed body exhaustion, fixed the body reader, re-ran: still ~117 ns/op. The real cause: **`Decompression` deletes `Content-Encoding` from the request it serves**, so any harness that reuses one `*http.Request` decompresses on iteration 1 and then times millions of passthrough no-ops. The 08-29 baseline table's Decompression rows (137.6 / 119055.41 / 160 — physically impossible together) were silently measuring the passthrough floor. Real numbers after fixing the harness: gzip ≈ 7.3 µs/op (2.3 GB/s), passthrough ≈ 106 ns/op. Lesson: a benchmark of middleware that MUTATES its inputs must reset the mutated state every iteration; and a "throughput" number that implies >100 GB/s is a bug report, not a result.
+2. **Two doc-vs-code contradictions shipped and survived multiple audits**: (a) README (2 sites) + source comment claimed `MaxDecompressionSize: 0` disables the limit — execution shows `0` selects the 16 MiB default (a 20 MiB body trips it). The docs discouraged reliance on a behavior that doesn't exist; worse, a reader following "set 0 to disable" gets 16 MiB anyway (safe direction, wrong docs). (b) The integration doc redis-ratelimiter.md taught a deprecated API without saying so. Both fixed; both were exactly the class of drift the docs-health VERIFY mode exists for — found here only because two TODO items (nginx study, import audit) forced a fresh read.
+3. **`Edit` tool race with the auto-formatter** — several edits failed with "file modified since read" because a background formatter touched files between my read and write. Cost a few round trips; the fix (view-then-edit immediately, or python rewrites with assertions) worked but the first python attempt had a bad assertion and burned another cycle.
+4. **My first multiedit on the CORS spec file deleted a function body** by writing old/new strings that overlapped. Caught immediately by build failure, repaired by hand. The lesson repeats: never let old_string span into text you intend to keep verbatim.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Add a harness rule to the benchmark section of AGENTS.md**: any middleware that mutates the request (`Decompression` deletes headers; others may consume the body) requires per-iteration state restoration, with a worked example pointing at the Decompression incident.
+2. **Sanity-check benchmark results against physics**: bytes/second implied by `SetBytes` should be eyeballed on every baseline run; anything above memory bandwidth (~50 GB/s) is a broken harness. This would have caught the baseline lie in August.
+3. **README/config-table claims about zero-values need an execution probe** before release (a 10-line test per "0 means X" claim would have caught the MaxDecompressionSize lie at authoring time).
+4. **The `MaxBytesError` erraudit finding survived a "all gates green" claim** (08-29 session). Either erraudit wasn't run that session or its failure was misread. Gate scripts should be a single script that fails loudly, not a checklist remembered per session.
+
+## f) Next
+
+The TODO_LIST Low Priority section is now empty; the remaining items are the strategic ones (full-code-review skill before v1.0, the v1.0 decision itself, go-compression extraction, CI release workflow, go-error-family upstream proposal, architecture-review re-run).
+
+---
+
+**Files changed this session:** new — `chain_hijack_test.go`, `wrapper_test.go`, `compression_negotiator_property_test.go`, `etag_bench_test.go`, `newrequest_bench_test.go`, 3 docs under `docs/research/`, 1 design note, 1 architecture refresh; modified — `httpspec/cors_ratelimit_specs{,_test}.go`, `recorder.go`, `compress_writer.go`, `decompression.go` (comment), `decompression_bench_test.go`, `maxbodysize_test.go`, `server_timing/server_timing_test.go`, `README.md`, `FEATURES.md`, `AGENTS.md`, `CHANGELOG.md`, `TODO_LIST.md`, `docs/benchmarks.md`, `docs/DECISION_LOG.md`, `docs/integrations/redis-ratelimiter.md`, 4 historical status reports annotated.
+
+**Session conclusion:** nine small items turned out to contain three real bugs (a benchmark that measured nothing since its creation, two false security-control claims in README, and a Hijack-preservation test without teeth). The backlog tail was worth executing for the finds, not the checkmarks.

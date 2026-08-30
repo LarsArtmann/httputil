@@ -86,6 +86,9 @@ type KeyedRateLimiterConfig struct {
 	TTL time.Duration
 	// MaxKeys caps the number of tracked rate-limit keys.
 	// When exceeded, the oldest entry (by last access time) is evicted.
+	// The access stamp is refreshed on the slow path only, so a continuously
+	// hot key refreshes at most once per TTL; eviction victim choice is
+	// therefore approximate within one TTL window.
 	// Zero means no cap (unbounded growth).
 	MaxKeys uint
 	// OnAllowed is called when a request passes rate limiting.

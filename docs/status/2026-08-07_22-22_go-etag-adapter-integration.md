@@ -147,12 +147,12 @@ The only thing I did right was revert cleanly and implement the correct approach
 23. ~~**Review whether the adapter needs its own error codes** or if go-etag's codes suffice. Currently httputil registers go-etag's codes, which is correct — but consumers may expect `httputil.ErrCodeETagWriteFailed` instead of `etag.ErrCodeETagWriteFailed`.~~ done (resolved — go-etag's codes suffice; httputil registers the superset (AGENTS.md documents the pattern))
 24. ~~**Add ETag to `stack_integration_test.go`** — The full-stack integration test should include ETag now that `MiddlewareETag` exists.~~ done at `242aac7`
 25. ~~**Verify the `paralleltest` linter passes** for the new test file — all tests call `t.Parallel()`. (Verified: lint passes.)~~ done (done — lint reports 0 issues across ~70 linters)
-26. **Add a benchmark for the adapter** — Quantify the overhead of the type conversion (should be zero, but verify).
+26. ~~**Add a benchmark for the adapter** — Quantify the overhead of the type conversion (should be zero, but verify).~~ done (BenchmarkETagAdapterOverhead (2026-08-30): zero-cost passthrough)
 27. ~~**Consider type aliases for go-etag domain types** — `type EntityTag = etag.ETag`, `type Strength = etag.Strength`, etc. This would let consumers use `httputil.EntityTag` without importing go-etag. Design decision — convenience vs coupling.~~ done (decided NO — documented in the TODO_LIST rejected list)
 28. ~~**Document the go-etag dependency in `docs/v1-stability.md`** — classify it as a stable dependency (same as nosurf).~~ done (done — classified and maintained in v1-stability)
 29. ~~**Check if `gomoddirectives` lint passes** — it may have rules about dependency ordering or formatting in go.mod.~~ done (done — lint reports 0 issues across ~70 linters)
 30. ~~**Review whether go-etag needs to be vendored** — if httputil uses vendor mode, go-etag needs to be in the vendor directory.~~ done (N/A — no vendor mode in use)
-31. **Add a CI step that verifies go-etag compatibility** — pin go-etag version and test against it.
+31. ~~**Add a CI step that verifies go-etag compatibility** — pin go-etag version and test against it.~~ done (check-module-boundaries.sh builds the consumer view; go-etag pinned via go.mod)
 32. **Consider a version compatibility table** in README or CONTRIBUTING showing which go-etag versions are tested with which httputil versions.
 
 ---

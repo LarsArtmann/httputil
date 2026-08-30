@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
-[![Coverage](https://img.shields.io/badge/coverage-96.9%25-green)](#)
+[![Coverage](https://img.shields.io/badge/coverage-97.0%25-green)](#)
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
@@ -272,7 +272,7 @@ Transparently decompresses request bodies based on the `Content-Encoding` header
 handler := httputil.Decompression(httputil.DefaultDecompressionConfig())(mux)
 ```
 
-**Bomb protection:** The decompressed body is limited to `MaxDecompressionSize` bytes (default: 16 MiB) to prevent decompression bomb attacks. When the limit is exceeded, reads return an error and the underlying reader is closed immediately. Set to `0` to disable the limit (not recommended).
+**Bomb protection:** The decompressed body is limited to `MaxDecompressionSize` bytes (default: 16 MiB) to prevent decompression bomb attacks. When the limit is exceeded, reads return an error and the underlying reader is closed immediately. `0` is not an off switch: it selects the same 16 MiB default, so bomb protection cannot be accidentally disabled.
 
 Restrict which encodings are accepted by setting `Encodings`:
 
@@ -469,6 +469,9 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultKeyedRateLimiterConfig`  | `func() KeyedRateLimiterConfig`                                       | Default per-key rate limit config                         |
 | `CSRFMiddleware`                 | `func(CSRFConfig) func(http.Handler) http.Handler`                    | CSRF protection middleware                                |
 | `CSRFResponseHeaderMiddleware`   | `func(http.Handler) http.Handler`                                     | Auto-set CSRF token in response header                    |
+| `Nonce`                          | `func(NonceConfig) func(http.Handler) http.Handler`                   | Per-request CSP nonce (context + optional CSP header)     |
+| `DefaultNonceConfig`             | `func() NonceConfig`                                                  | Default CSP nonce config (20 bytes)                       |
+| `NonceAttr`                      | `func(*http.Request) string`                                          | Ready-to-use `nonce="..."` HTML attribute                 |
 | `ValidateCSRF`                   | `func(*http.Request, CSRFConfig) (bool, *httptest.ResponseRecorder)`  | Standalone CSRF validation                                |
 | `ServerTimingMiddleware`         | `func() func(http.Handler) http.Handler`                              | W3C Server-Timing middleware (`server_timing` module)     |
 | `ServerTimingMiddlewareWhen`     | `func(func(*http.Request) bool) func(http.Handler) http.Handler`      | Conditional Server-Timing (`server_timing` module)        |
@@ -526,7 +529,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | Field                  | Type       | Default       | Description                                                                     |
 | ---------------------- | ---------- | ------------- | ------------------------------------------------------------------------------- |
 | `Encodings`            | `[]string` | gzip, deflate | Request body encodings to decompress; empty = both defaults                     |
-| `MaxDecompressionSize` | `int64`    | `16777216`    | Max decompressed body size in bytes to prevent zip bombs (16 MiB); 0 = no limit |
+| `MaxDecompressionSize` | `int64`    | `16777216`    | Max decompressed body size in bytes to prevent zip bombs (16 MiB); 0 selects the 16 MiB default (no unlimited option) |
 
 ### `RateLimitConfig` fields _(deprecated — use `KeyedRateLimiterConfig`)_
 
@@ -632,6 +635,7 @@ Conventions:
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
+- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. All 23 fuzz targets run nightly in CI.
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 
@@ -724,7 +728,7 @@ This project maintains strict quality standards enforced in CI:
 | ---------------- | ------------------------------------------ | ------------------------------------------------ |
 | Tests            | `go test -race -count=1 ./...`             | Passing                                          |
 | Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
-| Coverage         | `go test -coverprofile=coverage.out ./...` | 96.9% httputil / 98.8% httpspec (threshold: 95%) |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 97.0% httputil / 98.8% httpspec (threshold: 95%) |
 | Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
 | Vet              | `go vet ./...`                             | Clean                                            |
 | Vulnerabilities  | `govulncheck ./...`                        | None found                                       |

@@ -1,10 +1,10 @@
 # Benchmark Baseline
 
-**Measured:** 2026-08-29 · **Method:** `go test -run='^$' -bench . -benchtime=3s -count=5`, Go 1.26.7 linux/amd64 (32 threads) · **Statistical note:** `-count=5` gives a distribution per benchmark; compare against it with `benchstat`, not single runs. Numbers below show one representative run per benchmark (first of five) — full raw data in CI artifacts.
+**Measured:** 2026-08-29 (main table) · **Method:** `go test -run='^$' -bench . -benchtime=3s -count=5`, Go 1.26.7 linux/amd64 (32 threads) · **Statistical note:** `-count=5` gives a distribution per benchmark; compare against it with `benchstat`, not single runs. Numbers below show one representative run per benchmark (first of five) — full raw data in CI artifacts.
+
+**2026-08-30 additions/re-measurements (1s runs, same machine):** `BenchmarkDecompression/*` (renamed from `BenchmarkDecompression_Gzip/_Deflate/_Passthrough` in the b.Run refactor — and the old rows were invalid anyway: the harness reused one request whose `Content-Encoding` header the middleware deletes on first serve, so they measured ~1 decompression amortized over millions of passthrough no-ops), `BenchmarkETagAdapterOverhead/*` (new; adapter vs `etag.New` are identical within noise, proving the deprecated adapter is a zero-cost passthrough), `BenchmarkHTTPRequestConstruction/*` (new; see `docs/research/2026-08-30_httptest-newrequest-profiling.md`).
 
 **KeyedRateLimiterMiddleware** (re-measured after a config fix in its harness; burst economics made the original baseline run trip the limiter): ~191 ns/op, 208 B/op, 4 allocs/op.
-
-| BenchmarkGenerateTimeOrderedID | 87.28 ns/op | 32 B/op | 1 allocs/op |
 
 | Benchmark                                   | ns/op    | B/op      | allocs/op |
 | ------------------------------------------- | -------- | --------- | --------- |
@@ -30,10 +30,9 @@
 | BenchmarkCSRFMiddleware_POSTWithToken       | 1492     | 2328      | 22        |
 | BenchmarkCSRFMiddleware_POSTRejection       | 3607     | 2495      | 29        |
 | BenchmarkCSRFMiddleware_PostForm            | 5276     | 9519      | 57        |
-| BenchmarkCSRFTokenFromContext               | 21:35:32 | httputil: | Secure    |
-| BenchmarkDecompression_Gzip                 | 137.6    | 119055.41 | 160       |
-| BenchmarkDecompression_Deflate              | 110.8    | 147845.51 | 160       |
-| BenchmarkDecompression_Passthrough          | 92.53    | 270.19    | 160       |
+| BenchmarkDecompression/gzip                 | 7254     | 45809     | 14        |
+| BenchmarkDecompression/deflate              | 6038     | 45100     | 13        |
+| BenchmarkDecompression/passthrough          | 106.1    | 224       | 5         |
 | BenchmarkHealthHandler                      | 199.6    |           |           |
 | BenchmarkLiveHandler                        | 207.6    |           |           |
 | BenchmarkReadyHandler                       | 214.5    |           |           |
@@ -54,6 +53,12 @@
 | BenchmarkTokenBucketLimiter                 | 83.67    | 0         | 0         |
 | BenchmarkTokenBucketLimiterWithEviction     | 176.2    | 13        | 1         |
 | BenchmarkResponseRecorder                   | 38.56    |           |           |
+| BenchmarkETagAdapterOverhead/baselineNoMiddleware | 112.5 | 304    | 6         |
+| BenchmarkETagAdapterOverhead/directEtagNew  | 450.9    | 1240      | 14        |
+| BenchmarkETagAdapterOverhead/httputilAdapter | 448.4   | 1240      | 14        |
+| BenchmarkHTTPRequestConstruction/httptestNewRequest | 783.6 | 5104 | 9         |
+| BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext | 751.6 | 5104 | 9  |
+| BenchmarkHTTPRequestConstruction/httpNewRequestWithContext | 112.6 | 512 | 3        |
 | BenchmarkRecovery                           | 99.54    |           |           |
 | BenchmarkRequestID                          | 605.5    |           |           |
 | BenchmarkSecurityHeaders                    | 336.3    |           |           |

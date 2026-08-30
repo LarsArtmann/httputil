@@ -23,12 +23,6 @@ func captureValidateConfigLog(t *testing.T, fn func()) map[string]any {
 
 	fn()
 
-	var record struct {
-		Level string         `json:"level"`
-		Msg   string         `json:"msg"`
-		Attrs map[string]any `json:"-"`
-	}
-
 	lines := bytes.Split(bytes.TrimSpace(buf.Bytes()), []byte("\n"))
 	if len(lines) == 0 || len(lines[0]) == 0 {
 		t.Fatal("no log output captured")
@@ -40,8 +34,6 @@ func captureValidateConfigLog(t *testing.T, fn func()) map[string]any {
 	if err != nil {
 		t.Fatalf("decoding log output %q: %v", lines[0], err)
 	}
-
-	record.Attrs = decoded
 
 	return decoded
 }

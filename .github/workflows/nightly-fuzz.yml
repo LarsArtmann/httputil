@@ -40,5 +40,50 @@ jobs:
       - name: Fuzz nonce
         run: go test -run='^$' -fuzz FuzzNonce -fuzztime 300s .
 
+      - name: Fuzz compression round-trip
+        run: go test -run='^$' -fuzz FuzzCompression -fuzztime 300s .
+
+      - name: Fuzz compress writer state machine
+        run: go test -run='^$' -fuzz FuzzCompressWriterState -fuzztime 300s .
+
+      - name: Fuzz CORS header building
+        run: go test -run='^$' -fuzz FuzzCORS -fuzztime 300s .
+
+      - name: Fuzz CORS origin matching
+        run: go test -run='^$' -fuzz FuzzCORSOriginMatching -fuzztime 300s .
+
+      - name: Fuzz CORS wildcard patterns
+        run: go test -run='^$' -fuzz FuzzCORSWildcardPattern -fuzztime 300s .
+
+      - name: Fuzz client IP extraction
+        run: go test -run='^$' -fuzz FuzzClientIP -fuzztime 300s .
+
+      - name: Fuzz request ID handling
+        run: go test -run='^$' -fuzz FuzzRequestID -fuzztime 300s .
+
+      - name: Fuzz query param parsing
+        run: go test -run='^$' -fuzz FuzzParseUintQuery -fuzztime 300s .
+
+      - name: Fuzz eviction TTL
+        run: go test -run='^$' -fuzz FuzzEvictionTTL -fuzztime 300s .
+
+      - name: Fuzz health response encoding
+        run: go test -run='^$' -fuzz FuzzHealthResponse_Encoding -fuzztime 300s .
+
+      - name: Fuzz CSRF isTrustedProxy
+        run: go test -run='^$' -fuzz FuzzCSRFIsTrustedProxy -fuzztime 300s .
+
+      - name: Fuzz CSRF remote host and IP
+        run: go test -run='^$' -fuzz FuzzCSRFRemoteHostAndIP -fuzztime 300s .
+
+      - name: Fuzz CSRF TrustedOrigins parsing
+        run: go test -run='^$' -fuzz FuzzCSRFConfig_TrustedOrigins -fuzztime 300s .
+
+      - name: Fuzz CSRF TrustedProxiesCIDR parsing
+        run: go test -run='^$' -fuzz FuzzCSRFConfig_TrustedProxiesCIDR -fuzztime 300s .
+
+      - name: Fuzz Server-Timing header value
+        run: go test -run='^$' -fuzz FuzzServerTimingHeaderValue -fuzztime 300s ./server_timing
+
       - name: Fuzz Server-Timing CRLF injection
         run: go test -run='^$' -fuzz FuzzServerTimingMiddleware -fuzztime 300s ./server_timing

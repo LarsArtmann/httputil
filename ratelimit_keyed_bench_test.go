@@ -84,8 +84,10 @@ func BenchmarkKeyedRateLimiter_Reject(b *testing.B) {
 }
 
 // BenchmarkKeyedRateLimiter_HighCardinality measures throughput when keys
-// rotate rapidly (high cardinality, low reuse). Exercises the heap eviction
-// path under load.
+// rotate rapidly (high cardinality, low reuse). With 10k distinct keys and the
+// default TTL, inserts use the write path and later revisits hit the read-lock
+// fast path; sustained MaxKeys-pressure churn is covered by
+// TestKeyedRateLimiter_EvictsOldestWhenAtCapacity.
 func BenchmarkKeyedRateLimiter_HighCardinality(b *testing.B) {
 	cfg := KeyedRateLimiterConfig{
 		Limit:        100_000,
@@ -139,13 +141,14 @@ func BenchmarkKeyedRateLimiter_EmptyKey(b *testing.B) {
 }
 
 // BenchmarkKeyedRateLimiter_EvictionOverhead measures the cost of TTL-based
-// eviction. EvictionTTL is enabled and short, so each request triggers
-// a sweep of the entries.
+// eviction on the slow path. A TTL of one nanosecond guarantees every request
+// misses the read-lock fast path (the entry is always older than the TTL), so
+// each iteration pays the write-lock path including the evictStale sweep.
 func BenchmarkKeyedRateLimiter_EvictionOverhead(b *testing.B) {
 	cfg := KeyedRateLimiterConfig{
 		Limit:        100_000,
 		Window:       time.Minute,
-		TTL:          10 * time.Millisecond, // aggressive TTL
+		TTL:          time.Nanosecond, // always stale: forces the slow path
 		KeyExtractor: KeyExtractorFromRemoteAddr(),
 	}
 

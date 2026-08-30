@@ -67,7 +67,7 @@ Secondary, lesser misses:
 1. ~~**Add the ROADMAP note for idempotency** (the action I skipped). Post-v1.0 idea, native `IdempotencyStore` interface, not an import.~~ done at `a5e9944`
 2. ~~**Add "no retry middleware" and "idempotency deferred to post-v1.0" to ROADMAP Non-goals** so the rationale is durable.~~ done at `a5e9944`
 3. ~~**Verify `ResponseRecorder` replay semantics** (`recorder.go`) — can it serve as the response-cache half of an idempotency middleware, or is a separate cache type needed? Record the answer in the ROADMAP/ADR.~~ done (answered in ROADMAP — ResponseRecorder is not a replay primitive; a separate cache type is needed)
-4. **Skim `~/projects/go-etag`** to confirm whether the extracted-module pattern (how ETag was spun out) is the right template for a future idempotency extraction if it doesn't live in core.
+4. ~~**Skim `~/projects/go-etag`** to confirm whether the extracted-module pattern (how ETag was spun out) is the right template for a future idempotency extraction if it doesn't live in core.~~ done (go-etag is the canonical extracted-module example (v0.2.0))
 
 ### v1.0 freeze track (noticed in ROADMAP, session-relevant because dep decisions hinge on it)
 
@@ -78,8 +78,8 @@ Secondary, lesser misses:
 
 ### Smaller doc/maintenance items I noticed in passing
 
-9. **Update AGENTS.md sibling-ecosystem note** — link `go-retry`/`go-idempotency`/`go-etag`/`go-error-family` as the cross-project family.
-10. **ROADMAP "Updated" date** is 2026-08-07 (current) — good; keep it current as decisions land.
+9. ~~**Update AGENTS.md sibling-ecosystem note** — link `go-retry`/`go-idempotency`/`go-etag`/`go-error-family` as the cross-project family.~~ done (AGENTS allowed-dependencies section lists the sibling modules)
+10. ~~**ROADMAP "Updated" date** is 2026-08-07 (current) — good; keep it current as decisions land.~~ done (ROADMAP refreshed 2026-08-30)
 11. ~~**[ROADMAP fuel]** Design sketch: `IdempotencyKeyMiddleware` config struct mirroring the established `*Config` + `Validate()` + `Default*Config()` pattern.~~ done (filed as ROADMAP post-v1.0 idempotency idea)
 12. ~~**[ROADMAP fuel]** Define `IdempotencyStore` interface (native) — likely `Get(ctx, key)`, `Save(ctx, key, resp, ttl)`, with `MemoryStore` + Redis plugin docs in `docs/integrations/`.~~ done (filed as ROADMAP post-v1.0 idempotency idea)
 13. ~~**[ROADMAP fuel]** Add `httpspec` specs for an idempotency middleware (409 on duplicate, replayed status/headers match original, `Idempotency-Key` header handling).~~ done (filed as ROADMAP post-v1.0 idempotency idea)
