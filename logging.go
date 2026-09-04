@@ -40,7 +40,11 @@ func Logging(logger *slog.Logger) Middleware {
 			// from request cancellation: Timeout() and client disconnects cancel
 			// the request context, and exactly those aborted-request logs must
 			// never be dropped by cancellation-aware slog handlers.
-			logger.LogAttrs(context.WithoutCancel(req.Context()), slog.LevelInfo, "request", attrs...)
+			logger.LogAttrs(
+				context.WithoutCancel(req.Context()),
+				slog.LevelInfo,
+				"request",
+				attrs...)
 		})
 	}
 }

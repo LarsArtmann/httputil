@@ -209,33 +209,33 @@ The codebase is in excellent shape:
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #  | Task                                                      | Impact   | Effort | Category        |
-| -- | --------------------------------------------------------- | -------- | ------ | --------------- |
-| 1  | Fill compression `Flush` coverage (61.5% → 90%+)          | Critical | 20 min | Quality         |
-| 2  | Fill `ResponseRecorder.Hijack` coverage (42.9% → 90%+)    | Critical | 15 min | Quality         |
-| 3  | Update flake.lock (stale nixpkgs)                         | Low      | 1 min  | Infrastructure  |
-| 4  | Replace `getGzipPool` map+mutex with slice+atomic         | High     | 20 min | Performance     |
-| 5  | Zero-allocation `etagInList`                              | Medium   | 15 min | Performance     |
-| 6  | Batch `generateRequestID` reads                           | High     | 15 min | Performance     |
-| ~~7~~  | ~~Add `CompressionConfig.SkipContentTypes`~~ done — shipped as IncompressibleTypes | ~~Medium~~ | ~~15 min~~ | ~~Configurability~~ |
-| 8  | Fill `compressWriter.startCompressAndStream` coverage     | Medium   | 10 min | Quality         |
-| ~~9~~  | ~~Fill `compressWriter.writePlain/writeCompressed` coverage~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~10 min~~ | ~~Quality~~ |
-| ~~10~~ | ~~Fill `responseWrapper.Hijack/Push` error paths~~ done — (wrapper_test.go error-path tests, 2026-08-30) | ~~Medium~~ | ~~10 min~~ | ~~Quality~~ |
-| ~~11~~ | ~~Fill `etagWriter.Write` streaming error branch~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~5 min~~ | ~~Quality~~ |
-| ~~12~~ | ~~Fill `compressWriter.Close` error path~~ done — (Close idempotency + error tests, 2026-08-30) | ~~Medium~~ | ~~5 min~~ | ~~Quality~~ |
-| ~~13~~ | ~~Fill `getGzipPool` slow path coverage~~ done — (pool coverage via newWriterPool tests) | ~~Low~~ | ~~5 min~~ | ~~Quality~~ |
-| ~~14~~ | ~~Add `MiddlewareStack` with ordering validation~~ done — shipped (stack.go) | ~~High~~ | ~~45 min~~ | ~~Architecture~~ |
-| ~~15~~ | ~~Add `ResponseWriter` capability interface~~ done — shipped (DetectCapabilities, capabilities.go) | ~~Medium~~ | ~~30 min~~ | ~~Architecture~~ |
-| ~~16~~ | ~~Implement deflate support~~ done — shipped (DefaultWriterFactories) | ~~Medium~~ | ~~30 min~~ | ~~Feature~~ |
-| ~~17~~ | ~~Add Accept-Encoding quality value parsing~~ done — shipped (compression_qvalue.go + property tests) | ~~Low~~ | ~~20 min~~ | ~~Correctness~~ |
-| ~~18~~ | ~~Fill `etagWriter.Flush` after-flush path~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Low~~ | ~~5 min~~ | ~~Quality~~ |
-| ~~19~~ | ~~Streaming ETag (rolling hash)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~High~~ | ~~60 min~~ | ~~Performance~~ |
-| ~~20~~ | ~~Rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Medium~~ | ~~60 min~~ | ~~Feature~~ |
-| ~~21~~ | ~~Request body size limit middleware~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~20 min~~ | ~~Safety~~ |
-| ~~22~~ | ~~Brotli plugin interface~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~45 min~~ | ~~Extensibility~~ |
-| ~~23~~ | ~~HTTP/2 Server Push integration test~~ done — moot (http.Pusher code removed in v0.3.0) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
-| ~~24~~ | ~~WebSocket upgrade test through Compression + ETag~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30 | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
-| 25 | Add nix build check that works offline                    | Medium   | 20 min | Infrastructure  |
+| #      | Task                                                                                                                                           | Impact     | Effort     | Category            |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- | ------------------- |
+| 1      | Fill compression `Flush` coverage (61.5% → 90%+)                                                                                               | Critical   | 20 min     | Quality             |
+| 2      | Fill `ResponseRecorder.Hijack` coverage (42.9% → 90%+)                                                                                         | Critical   | 15 min     | Quality             |
+| 3      | Update flake.lock (stale nixpkgs)                                                                                                              | Low        | 1 min      | Infrastructure      |
+| 4      | Replace `getGzipPool` map+mutex with slice+atomic                                                                                              | High       | 20 min     | Performance         |
+| 5      | Zero-allocation `etagInList`                                                                                                                   | Medium     | 15 min     | Performance         |
+| 6      | Batch `generateRequestID` reads                                                                                                                | High       | 15 min     | Performance         |
+| ~~7~~  | ~~Add `CompressionConfig.SkipContentTypes`~~ done — shipped as IncompressibleTypes                                                             | ~~Medium~~ | ~~15 min~~ | ~~Configurability~~ |
+| 8      | Fill `compressWriter.startCompressAndStream` coverage                                                                                          | Medium     | 10 min     | Quality             |
+| ~~9~~  | ~~Fill `compressWriter.writePlain/writeCompressed` coverage~~ done — shipped (compress_writer_test.go error-branch tests)                      | ~~Medium~~ | ~~10 min~~ | ~~Quality~~         |
+| ~~10~~ | ~~Fill `responseWrapper.Hijack/Push` error paths~~ done — (wrapper_test.go error-path tests, 2026-08-30)                                       | ~~Medium~~ | ~~10 min~~ | ~~Quality~~         |
+| ~~11~~ | ~~Fill `etagWriter.Write` streaming error branch~~ done — shipped (compress_writer_test.go error-branch tests)                                 | ~~Medium~~ | ~~5 min~~  | ~~Quality~~         |
+| ~~12~~ | ~~Fill `compressWriter.Close` error path~~ done — (Close idempotency + error tests, 2026-08-30)                                                | ~~Medium~~ | ~~5 min~~  | ~~Quality~~         |
+| ~~13~~ | ~~Fill `getGzipPool` slow path coverage~~ done — (pool coverage via newWriterPool tests)                                                       | ~~Low~~    | ~~5 min~~  | ~~Quality~~         |
+| ~~14~~ | ~~Add `MiddlewareStack` with ordering validation~~ done — shipped (stack.go)                                                                   | ~~High~~   | ~~45 min~~ | ~~Architecture~~    |
+| ~~15~~ | ~~Add `ResponseWriter` capability interface~~ done — shipped (DetectCapabilities, capabilities.go)                                             | ~~Medium~~ | ~~30 min~~ | ~~Architecture~~    |
+| ~~16~~ | ~~Implement deflate support~~ done — shipped (DefaultWriterFactories)                                                                          | ~~Medium~~ | ~~30 min~~ | ~~Feature~~         |
+| ~~17~~ | ~~Add Accept-Encoding quality value parsing~~ done — shipped (compression_qvalue.go + property tests)                                          | ~~Low~~    | ~~20 min~~ | ~~Correctness~~     |
+| ~~18~~ | ~~Fill `etagWriter.Flush` after-flush path~~ done — shipped (compress_writer_test.go error-branch tests)                                       | ~~Low~~    | ~~5 min~~  | ~~Quality~~         |
+| ~~19~~ | ~~Streaming ETag (rolling hash)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory                     | ~~High~~   | ~~60 min~~ | ~~Performance~~     |
+| ~~20~~ | ~~Rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it)                                          | ~~Medium~~ | ~~60 min~~ | ~~Feature~~         |
+| ~~21~~ | ~~Request body size limit middleware~~ done — shipped (maxbodysize.go)                                                                         | ~~Low~~    | ~~20 min~~ | ~~Safety~~          |
+| ~~22~~ | ~~Brotli plugin interface~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md)                                     | ~~Medium~~ | ~~45 min~~ | ~~Extensibility~~   |
+| ~~23~~ | ~~HTTP/2 Server Push integration test~~ done — moot (http.Pusher code removed in v0.3.0)                                                       | ~~Low~~    | ~~15 min~~ | ~~Coverage~~        |
+| ~~24~~ | ~~WebSocket upgrade test through Compression + ETag~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30 | ~~Low~~    | ~~15 min~~ | ~~Coverage~~        |
+| 25     | Add nix build check that works offline                                                                                                         | Medium     | 20 min     | Infrastructure      |
 
 ---
 

@@ -34,7 +34,11 @@ func TestResponseWrapper_WriteHeader_FirstWins(t *testing.T) {
 	wrapper.WriteHeader(http.StatusBadGateway)
 
 	if wrapper.status != http.StatusCreated {
-		t.Errorf("wrapper.status = %d, want %d (first WriteHeader wins)", wrapper.status, http.StatusCreated)
+		t.Errorf(
+			"wrapper.status = %d, want %d (first WriteHeader wins)",
+			wrapper.status,
+			http.StatusCreated,
+		)
 	}
 
 	if underlying.writeHeaderCalls != 0 {
@@ -47,7 +51,11 @@ func TestResponseWrapper_WriteHeader_FirstWins(t *testing.T) {
 	wrapper.writeHeaderToUnderlying()
 
 	if got := underlying.Code; got != http.StatusCreated {
-		t.Errorf("underlying status = %d, want %d (first status committed)", got, http.StatusCreated)
+		t.Errorf(
+			"underlying status = %d, want %d (first status committed)",
+			got,
+			http.StatusCreated,
+		)
 	}
 }
 
@@ -67,7 +75,11 @@ func TestResponseWrapper_WriteDefaultOK_Commits200WhenNoStatus(t *testing.T) {
 	wrapper.writeHeaderToUnderlying()
 
 	if got := underlying.Code; got != http.StatusOK {
-		t.Errorf("underlying status = %d, want %d (implicit 200 on first Write)", got, http.StatusOK)
+		t.Errorf(
+			"underlying status = %d, want %d (implicit 200 on first Write)",
+			got,
+			http.StatusOK,
+		)
 	}
 }
 
@@ -99,7 +111,11 @@ func TestResponseWrapper_WriteHeaderToUnderlying_CommitsBufferedStatus(t *testin
 	wrapper.writeHeaderToUnderlying()
 
 	if got := underlying.Code; got != http.StatusTeapot {
-		t.Errorf("underlying status = %d, want %d (buffered status committed)", got, http.StatusTeapot)
+		t.Errorf(
+			"underlying status = %d, want %d (buffered status committed)",
+			got,
+			http.StatusTeapot,
+		)
 	}
 }
 

@@ -21,9 +21,11 @@
         --chart-cpu: #58a6ff;
         --chart-mem: #a371f7;
         --chart-alloc: #3fb950;
-        --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
+        --font-mono:
+          "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
         --font-sans:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica,
+          Arial, sans-serif;
       }
 
       @media (prefers-color-scheme: light) {
@@ -477,7 +479,10 @@
         font-family: var(--font-mono);
         margin: 0 auto 0.5rem;
         position: relative;
-        background: conic-gradient(var(--accent) var(--pct), var(--surface-2) var(--pct));
+        background: conic-gradient(
+          var(--accent) var(--pct),
+          var(--surface-2) var(--pct)
+        );
       }
 
       .score-ring::after {
@@ -536,8 +541,8 @@
     <header>
       <h1>httputil Performance Review</h1>
       <p class="subtitle">
-        Comprehensive performance analysis of the Go HTTP middleware library covering CPU, memory,
-        network, and architectural characteristics.
+        Comprehensive performance analysis of the Go HTTP middleware library
+        covering CPU, memory, network, and architectural characteristics.
       </p>
       <div class="meta">
         <span
@@ -612,20 +617,24 @@
         </div>
 
         <p>
-          The <code>httputil</code> library demonstrates excellent performance characteristics for a
-          Go HTTP middleware stack. The codebase contains
-          <strong>zero-allocation hot paths</strong>, intelligent resource pooling, and bounded
-          buffering strategies. The most expensive operation is gzip compression at ~30.6 us/op,
-          while the lightweight middleware (ResponseRecorder, ClientIP, Recovery, SecurityHeaders,
-          ETag, CORS, Timeout, RequestID) all execute in under 650 ns. The library is suitable for
-          high-throughput production services with proper tuning.
+          The <code>httputil</code> library demonstrates excellent performance
+          characteristics for a Go HTTP middleware stack. The codebase contains
+          <strong>zero-allocation hot paths</strong>, intelligent resource
+          pooling, and bounded buffering strategies. The most expensive
+          operation is gzip compression at ~30.6 us/op, while the lightweight
+          middleware (ResponseRecorder, ClientIP, Recovery, SecurityHeaders,
+          ETag, CORS, Timeout, RequestID) all execute in under 650 ns. The
+          library is suitable for high-throughput production services with
+          proper tuning.
         </p>
 
         <div class="card-grid">
           <div class="card positive">
             <div class="card-label">Fastest Middleware</div>
             <div class="card-value">29.5 ns</div>
-            <div class="card-detail">ResponseRecorder.Write — zero allocations</div>
+            <div class="card-detail">
+              ResponseRecorder.Write — zero allocations
+            </div>
           </div>
           <div class="card neutral">
             <div class="card-label">Slowest Middleware</div>
@@ -647,9 +656,10 @@
         <div class="callout success">
           <div class="callout-title">Key Strength</div>
           <p>
-            The library achieves zero-allocation response recording through stack-allocated tracking
-            fields and direct delegation to the underlying <code>http.ResponseWriter</code>. This is
-            the critical path for every request.
+            The library achieves zero-allocation response recording through
+            stack-allocated tracking fields and direct delegation to the
+            underlying <code>http.ResponseWriter</code>. This is the critical
+            path for every request.
           </p>
         </div>
       </section>
@@ -658,9 +668,10 @@
         <h2>CPU Performance</h2>
 
         <p>
-          All benchmarks run on an AMD Ryzen AI MAX+ 395 (32 threads). CPU performance is measured
-          in nanoseconds per operation (ns/op). Lower is better. The chart below is normalized to
-          the slowest benchmark for relative comparison.
+          All benchmarks run on an AMD Ryzen AI MAX+ 395 (32 threads). CPU
+          performance is measured in nanoseconds per operation (ns/op). Lower is
+          better. The chart below is normalized to the slowest benchmark for
+          relative comparison.
         </p>
 
         <h3>Latency Breakdown by Component</h3>
@@ -768,43 +779,48 @@
         <h4>Core Wrappers (Zero-Overhead Path)</h4>
         <p>
           <code>ResponseRecorder</code> adds only <strong>18.0 ns</strong> per
-          <code>Write</code> call with <strong>zero heap allocations</strong>. The wrapper stores
-          status and wroteHeader as plain struct fields (no pointers, no indirection). This is
-          exceptional — most ResponseWriter wrappers in the ecosystem allocate on every request.
+          <code>Write</code> call with <strong>zero heap allocations</strong>.
+          The wrapper stores status and wroteHeader as plain struct fields (no
+          pointers, no indirection). This is exceptional — most ResponseWriter
+          wrappers in the ecosystem allocate on every request.
         </p>
 
         <h4>Header-Only Middleware</h4>
         <p>
           <code>SecurityHeaders</code> (302 ns), <code>CORS</code> (538 ns), and
-          <code>ETag</code> (612 ns) form the "fast middleware" tier. All three execute in under one
-          microsecond. The primary CPU cost is string manipulation for header keys/values and map
-          operations on <code>http.Header</code>.
+          <code>ETag</code> (612 ns) form the "fast middleware" tier. All three
+          execute in under one microsecond. The primary CPU cost is string
+          manipulation for header keys/values and map operations on
+          <code>http.Header</code>.
         </p>
 
         <h4>Context-Aware Middleware</h4>
         <p>
-          <code>Timeout</code> (540 ns) and <code>RequestID</code> (584 ns) pay a small penalty for
-          <code>context.WithValue</code> (tree node allocation) and ID generation. The default
-          RequestID generator now produces a 16-byte time-ordered ID (Unix seconds + atomic counter
-          + random tail) with amortized <code>crypto/rand</code> syscalls (one syscall every ~256
-          IDs). It is lexicographically sortable, monotonic within a second, and unique across the
-          process.
+          <code>Timeout</code> (540 ns) and <code>RequestID</code> (584 ns) pay
+          a small penalty for <code>context.WithValue</code> (tree node
+          allocation) and ID generation. The default RequestID generator now
+          produces a 16-byte time-ordered ID (Unix seconds + atomic counter +
+          random tail) with amortized <code>crypto/rand</code> syscalls (one
+          syscall every ~256 IDs). It is lexicographically sortable, monotonic
+          within a second, and unique across the process.
         </p>
 
         <h4>I/O-Bound Middleware</h4>
         <p>
-          <code>Logging</code> (1.03 us) spends most of its time in <code>time.Now()</code> and
-          <code>slog</code> attribute serialization. <code>Compression</code> (30.6 us) is CPU-bound
-          by the gzip deflate algorithm. Both are inherently more expensive and should be expected
+          <code>Logging</code> (1.03 us) spends most of its time in
+          <code>time.Now()</code> and <code>slog</code> attribute serialization.
+          <code>Compression</code> (30.6 us) is CPU-bound by the gzip deflate
+          algorithm. Both are inherently more expensive and should be expected
           to top the latency chart.
         </p>
 
         <div class="callout info">
           <div class="callout-title">Relative Performance</div>
           <p>
-            A full middleware chain (SecurityHeaders + RequestID + Recovery + Logging + CORS)
-            processes a request in ~2.8 us. At 1 million RPS, this is 2.8 seconds of CPU time per
-            second of wall time on a single core — well within capacity for a 32-core machine.
+            A full middleware chain (SecurityHeaders + RequestID + Recovery +
+            Logging + CORS) processes a request in ~2.8 us. At 1 million RPS,
+            this is 2.8 seconds of CPU time per second of wall time on a single
+            core — well within capacity for a 32-core machine.
           </p>
         </div>
       </section>
@@ -973,9 +989,10 @@
         </div>
 
         <p class="card-detail" style="margin-top: -1rem">
-          * <code>Compression</code> is excluded from this chart: its reported 825 KB/op is a
-          benchmark artifact from <code>httptest.ResponseRecorder.Body</code> growth, not a
-          production allocation. See the callout below.
+          * <code>Compression</code> is excluded from this chart: its reported
+          825 KB/op is a benchmark artifact from
+          <code>httptest.ResponseRecorder.Body</code> growth, not a production
+          allocation. See the callout below.
         </p>
 
         <h3>Memory Architecture Analysis</h3>
@@ -1005,42 +1022,50 @@
 
         <h4>Per-Factory Writer Pools</h4>
         <p>
-          The compression layer uses a map of <code>sync.Pool</code> instances keyed by
-          <code>WriterFactory</code> function pointer. This avoids the expensive initialization of
-          <code>gzip.Writer</code>, <code>flate.Writer</code>, or any custom plugin writer on every
-          request. Writers that implement <code>Reset(io.Writer)</code> are recycled; others fall
-          back to fresh instances. The pool map is protected by an <code>RWMutex</code> with
-          read-heavy access pattern (double-checked locking). On the benchmark machine, this reduces
-          per-request writer setup from ~500+ us to effectively zero after warmup.
+          The compression layer uses a map of <code>sync.Pool</code> instances
+          keyed by <code>WriterFactory</code> function pointer. This avoids the
+          expensive initialization of <code>gzip.Writer</code>,
+          <code>flate.Writer</code>, or any custom plugin writer on every
+          request. Writers that implement <code>Reset(io.Writer)</code> are
+          recycled; others fall back to fresh instances. The pool map is
+          protected by an <code>RWMutex</code> with read-heavy access pattern
+          (double-checked locking). On the benchmark machine, this reduces
+          per-request writer setup from ~500+ us to effectively zero after
+          warmup.
         </p>
 
         <h4>ETag Buffering Strategy</h4>
         <p>
-          The ETag middleware buffers response bodies in memory to compute a CRC32 checksum. A
-          configurable <code>MaxBufferSize</code> (default 1 MB) prevents unbounded growth. When the
-          buffer exceeds this limit, the middleware flushes and streams the remainder without an
-          ETag. This is a safe tradeoff: small responses get caching benefits; large responses avoid
-          OOM.
+          The ETag middleware buffers response bodies in memory to compute a
+          CRC32 checksum. A configurable <code>MaxBufferSize</code> (default 1
+          MB) prevents unbounded growth. When the buffer exceeds this limit, the
+          middleware flushes and streams the remainder without an ETag. This is
+          a safe tradeoff: small responses get caching benefits; large responses
+          avoid OOM.
         </p>
 
         <div class="callout warning">
           <div class="callout-title">Memory Watchpoint</div>
           <p>
-            The <code>Chain</code> benchmark allocates 3,532 B/op because it exercises 5 middleware
-            layers each creating their own wrapper structs and context values. In production, GC
-            pressure from middleware chains is the dominant memory cost, not any single layer.
+            The <code>Chain</code> benchmark allocates 3,532 B/op because it
+            exercises 5 middleware layers each creating their own wrapper
+            structs and context values. In production, GC pressure from
+            middleware chains is the dominant memory cost, not any single layer.
           </p>
         </div>
 
         <div class="callout info">
           <div class="callout-title">Compression Benchmark Artifact</div>
           <p>
-            The <code>Compression</code> benchmark reports ~825 KB/op, but this is not a production
-            memory cost. The benchmark uses <code>httptest.ResponseRecorder</code>, whose internal
-            <code>Body</code> buffer grows to hold the compressed output across iterations. Each
-            iteration allocates a fresh recorder, so the memory profiler attributes the growing
-            buffer to the operation. In production the compressed bytes are written directly to the
-            network, and actual allocations are ~37 objects/op (gzip writer, buffers, headers).
+            The <code>Compression</code> benchmark reports ~825 KB/op, but this
+            is not a production memory cost. The benchmark uses
+            <code>httptest.ResponseRecorder</code>, whose internal
+            <code>Body</code> buffer grows to hold the compressed output across
+            iterations. Each iteration allocates a fresh recorder, so the memory
+            profiler attributes the growing buffer to the operation. In
+            production the compressed bytes are written directly to the network,
+            and actual allocations are ~37 objects/op (gzip writer, buffers,
+            headers).
           </p>
         </div>
       </section>
@@ -1106,31 +1131,38 @@
 
         <h3>Timeout Configuration</h3>
         <p>
-          The <code>Server</code> wrapper exposes all stdlib timeout knobs with production-ready
-          defaults:
+          The <code>Server</code> wrapper exposes all stdlib timeout knobs with
+          production-ready defaults:
         </p>
         <ul>
-          <li><strong>ReadTimeout</strong>: 10s — total request read deadline</li>
           <li>
-            <strong>ReadHeaderTimeout</strong>: 5s — header parsing deadline (slowloris protection)
+            <strong>ReadTimeout</strong>: 10s — total request read deadline
+          </li>
+          <li>
+            <strong>ReadHeaderTimeout</strong>: 5s — header parsing deadline
+            (slowloris protection)
           </li>
           <li><strong>WriteTimeout</strong>: 30s — response write deadline</li>
-          <li><strong>IdleTimeout</strong>: 60s — keep-alive connection idle time</li>
+          <li>
+            <strong>IdleTimeout</strong>: 60s — keep-alive connection idle time
+          </li>
         </ul>
         <p>
-          These values are conservative. High-throughput APIs may benefit from lower
-          ReadHeaderTimeout (1-2s) and higher IdleTimeout (120s) for connection reuse. The Timeout
-          middleware adds a per-request context deadline independent of server-level timeouts.
+          These values are conservative. High-throughput APIs may benefit from
+          lower ReadHeaderTimeout (1-2s) and higher IdleTimeout (120s) for
+          connection reuse. The Timeout middleware adds a per-request context
+          deadline independent of server-level timeouts.
         </p>
 
         <h3>TCP / HTTP2 Considerations</h3>
         <p>
-          The library wraps the standard library <code>http.Server</code> and inherits its
-          connection handling. No HTTP/2-specific optimizations are present (no
-          <code>TLSNextProto</code> custom configuration, no <code>Protocols</code> tuning). For
-          HTTP/2 services, consider setting <code>MaxHeaderBytes</code> explicitly (default is 1 MB)
-          and enabling <code>DisableGeneralOptionsHandler</code> if OPTIONS handling is managed by
-          CORS middleware.
+          The library wraps the standard library <code>http.Server</code> and
+          inherits its connection handling. No HTTP/2-specific optimizations are
+          present (no <code>TLSNextProto</code> custom configuration, no
+          <code>Protocols</code> tuning). For HTTP/2 services, consider setting
+          <code>MaxHeaderBytes</code> explicitly (default is 1 MB) and enabling
+          <code>DisableGeneralOptionsHandler</code> if OPTIONS handling is
+          managed by CORS middleware.
         </p>
       </section>
 
@@ -1138,9 +1170,10 @@
         <h2>Disk I/O Performance</h2>
 
         <p>
-          <code>httputil</code> performs <strong>zero direct disk I/O</strong>. All middleware
-          operates entirely in memory on the request/response path. This is by design: a middleware
-          library should not introduce I/O blocking on the hot path.
+          <code>httputil</code> performs <strong>zero direct disk I/O</strong>.
+          All middleware operates entirely in memory on the request/response
+          path. This is by design: a middleware library should not introduce I/O
+          blocking on the hot path.
         </p>
 
         <h3>Indirect Disk I/O Observations</h3>
@@ -1155,7 +1188,9 @@
           <tbody>
             <tr>
               <td><code>crypto/rand.Read</code> (RequestID)</td>
-              <td>Amortized <code>crypto/rand.Read</code> via process-wide buffer</td>
+              <td>
+                Amortized <code>crypto/rand.Read</code> via process-wide buffer
+              </td>
               <td>Non-blocking on Linux; one syscall every ~256 IDs</td>
             </tr>
             <tr>
@@ -1174,10 +1209,11 @@
         <div class="callout success">
           <div class="callout-title">Disk I/O Verdict</div>
           <p>
-            Excellent. The library introduces no disk I/O on the request path. Request ID generation
-            amortizes <code>crypto/rand.Read</code> across 256 IDs, so the random source is
-            consulted only once per ~256 requests. This resolves to a non-blocking pseudo-random
-            source on modern Linux kernels.
+            Excellent. The library introduces no disk I/O on the request path.
+            Request ID generation amortizes <code>crypto/rand.Read</code> across
+            256 IDs, so the random source is consulted only once per ~256
+            requests. This resolves to a non-blocking pseudo-random source on
+            modern Linux kernels.
           </p>
         </div>
       </section>
@@ -1272,8 +1308,8 @@
               <td class="mono num">37</td>
               <td class="mono num">825 KB*</td>
               <td>
-                gzip/deflate + per-factory pools. *Byte count is a benchmark artifact; see Memory
-                section.
+                gzip/deflate + per-factory pools. *Byte count is a benchmark
+                artifact; see Memory section.
               </td>
             </tr>
           </tbody>
@@ -1282,21 +1318,23 @@
         <h3>Key Observations</h3>
         <ul>
           <li>
-            <strong>Sub-microsecond tier</strong>: ResponseRecorder, ClientIP, Recovery,
-            SecurityHeaders, CORS, Timeout, RequestID, ETag — all execute in under 650 ns.
+            <strong>Sub-microsecond tier</strong>: ResponseRecorder, ClientIP,
+            Recovery, SecurityHeaders, CORS, Timeout, RequestID, ETag — all
+            execute in under 650 ns.
           </li>
           <li>
-            <strong>Microsecond tier</strong>: Logging, Chain, Compression — these involve I/O,
-            complex wrapping, or algorithmic work.
+            <strong>Microsecond tier</strong>: Logging, Chain, Compression —
+            these involve I/O, complex wrapping, or algorithmic work.
           </li>
           <li>
-            <strong>Composite efficiency</strong>: A 5-middleware chain (2.82 us) is less than the
-            sum of individual latencies (~4.8 us) because wrapper structs are reused and the inner
-            handler dominates.
+            <strong>Composite efficiency</strong>: A 5-middleware chain (2.82
+            us) is less than the sum of individual latencies (~4.8 us) because
+            wrapper structs are reused and the inner handler dominates.
           </li>
           <li>
-            <strong>Allocation efficiency</strong>: ResponseRecorder is the single zero-allocation
-            component. The remaining middlewares average ~9 allocs/op.
+            <strong>Allocation efficiency</strong>: ResponseRecorder is the
+            single zero-allocation component. The remaining middlewares average
+            ~9 allocs/op.
           </li>
         </ul>
       </section>
@@ -1304,10 +1342,13 @@
       <section id="optimizations">
         <h2>Identified Optimization Opportunities</h2>
 
-        <h3>1. CORS Origin Matching <span class="tag warning">O(n) Scan</span></h3>
+        <h3>
+          1. CORS Origin Matching <span class="tag warning">O(n) Scan</span>
+        </h3>
         <p>
-          <code>resolveOrigin</code> performs a linear scan over <code>AllowedOrigins</code> on
-          every request. For services with hundreds of allowed origins, this becomes measurable.
+          <code>resolveOrigin</code> performs a linear scan over
+          <code>AllowedOrigins</code> on every request. For services with
+          hundreds of allowed origins, this becomes measurable.
         </p>
         <pre><code>// Current: O(n) string comparison per request
 for _, allowed := range cfg.AllowedOrigins {
@@ -1316,98 +1357,128 @@ for _, allowed := range cfg.AllowedOrigins {
 }</code></pre>
         <p>
           <strong>Recommendation</strong>: Pre-compile origins into a
-          <code>map[string]bool</code> and wildcards into a suffix trie at config validation time.
-          Reduces per-request origin resolution to O(1) average case.
+          <code>map[string]bool</code> and wildcards into a suffix trie at
+          config validation time. Reduces per-request origin resolution to O(1)
+          average case.
         </p>
 
-        <h3>2. Content-Type Prefix Matching <span class="tag warning">Linear Scan</span></h3>
+        <h3>
+          2. Content-Type Prefix Matching
+          <span class="tag warning">Linear Scan</span>
+        </h3>
         <p>
-          <code>isCompressibleContentType</code> scans a fixed slice of 9 prefixes on every
-          compression decision. For high-throughput services, this repeated work is unnecessary.
+          <code>isCompressibleContentType</code> scans a fixed slice of 9
+          prefixes on every compression decision. For high-throughput services,
+          this repeated work is unnecessary.
         </p>
         <pre><code>// Current: 9 string prefix checks
 for _, prefix := range incompressiblePrefixes {
     if strings.HasPrefix(contentType, prefix) { ... }
 }</code></pre>
         <p>
-          <strong>Recommendation</strong>: Build a <code>map[string]bool</code> of exact matches and
-          a small trie for prefix matches during config initialization. The map is O(1); the trie
+          <strong>Recommendation</strong>: Build a
+          <code>map[string]bool</code> of exact matches and a small trie for
+          prefix matches during config initialization. The map is O(1); the trie
           reduces prefix checks to character-level early exit.
         </p>
 
-        <h3>3. RequestID Random Generation <span class="tag success">Implemented</span></h3>
+        <h3>
+          3. RequestID Random Generation
+          <span class="tag success">Implemented</span>
+        </h3>
         <p>
-          The default generator now produces a 16-byte time-ordered ID: 4 bytes Unix seconds, 4
-          bytes atomic counter, and 8 bytes from an amortized <code>crypto/rand</code> buffer. The
-          8-byte random tail is drawn from a process-wide buffer that refills 256 IDs at a time,
-          reducing syscalls by 256x. The result is 32 lowercase hex characters that are
+          The default generator now produces a 16-byte time-ordered ID: 4 bytes
+          Unix seconds, 4 bytes atomic counter, and 8 bytes from an amortized
+          <code>crypto/rand</code> buffer. The 8-byte random tail is drawn from
+          a process-wide buffer that refills 256 IDs at a time, reducing
+          syscalls by 256x. The result is 32 lowercase hex characters that are
           lexicographically sortable and monotonic within a second.
         </p>
         <p>
-          <strong>Status</strong>: Implemented in <code>id_generator.go</code>. RequestID latency
-          remains ~584 ns, but the generator no longer performs a syscall on every request and
-          provides chronological ordering.
-        </p>
-
-        <h3>4. ETag CRC32 on Large Bodies <span class="tag warning">CPU Cost</span></h3>
-        <p>
-          <code>crc32.ChecksumIEEE</code> is a hardware-accelerated CRC32 (SSE4.2 / ARM CRC32).
-          However, it still traverses the entire buffered body on flush. For 1 MB responses near the
-          buffer limit, this is ~1 MB of memory bandwidth per request.
-        </p>
-        <p>
-          <strong>Recommendation</strong>: Consider incremental hashing (e.g., xxhash64) computed
-          during <code>Write</code> calls so flush is O(1). This spreads hashing cost across writes
-          and eliminates the single large checksum computation.
-        </p>
-
-        <h3>5. join() Wrapper Function <span class="tag success">Removed</span></h3>
-        <p>
-          The <code>join()</code> function in <code>util.go</code> simply delegated to
-          <code>strings.Join</code> with a hardcoded separator. It added no value and was
-          benchmarked at 104 ns vs <code>strings.Join</code> at 63 ns.
-        </p>
-        <p>
-          <strong>Status</strong>: Removed. <code>util.go</code> has been deleted; callers now use
-          <code>strings.Join(ss, ", ")</code> directly.
-        </p>
-
-        <h3>6. itoa vs strconv.Itoa <span class="tag success">Removed</span></h3>
-        <p>
-          The custom <code>itoa</code> was hand-rolled to avoid importing <code>strconv</code>.
-          Benchmarks showed it appeared to outperform <code>strconv.Itoa</code>, but the apparent
-          win was a benchmark artifact: the custom <code>itoa</code> result was dead-code-elided by
-          the compiler (0 allocs), while <code>strconv.Itoa</code> was not (4 allocs). In real usage
-          where the result is consumed, <code>strconv.Itoa</code> is allocation-free.
-        </p>
-        <p>
-          <strong>Status</strong>: Removed. <code>util.go</code> has been deleted; callers now use
-          <code>strconv.Itoa</code> directly.
+          <strong>Status</strong>: Implemented in <code>id_generator.go</code>.
+          RequestID latency remains ~584 ns, but the generator no longer
+          performs a syscall on every request and provides chronological
+          ordering.
         </p>
 
         <h3>
-          7. HeaderSnapshot Shallow Copy <span class="tag info">Allocation Proportional</span>
+          4. ETag CRC32 on Large Bodies
+          <span class="tag warning">CPU Cost</span>
         </h3>
         <p>
-          <code>HeaderSnapshot</code> allocates a new <code>http.Header</code> map and copies every
-          value slice. Allocation is proportional to header count. For responses with 20 headers,
-          this is ~20 slice allocations.
+          <code>crc32.ChecksumIEEE</code> is a hardware-accelerated CRC32
+          (SSE4.2 / ARM CRC32). However, it still traverses the entire buffered
+          body on flush. For 1 MB responses near the buffer limit, this is ~1 MB
+          of memory bandwidth per request.
         </p>
         <p>
-          <strong>Recommendation</strong>: Document that <code>HeaderSnapshot</code> is intended for
-          testing and debugging, not hot paths. If used in production logging, consider sampling or
-          caching the snapshot.
+          <strong>Recommendation</strong>: Consider incremental hashing (e.g.,
+          xxhash64) computed during <code>Write</code> calls so flush is O(1).
+          This spreads hashing cost across writes and eliminates the single
+          large checksum computation.
         </p>
 
-        <h3>8. Compression Buffer Growth <span class="tag success">Implemented</span></h3>
+        <h3>
+          5. join() Wrapper Function <span class="tag success">Removed</span>
+        </h3>
         <p>
-          In <code>writeBuffered</code>, the internal <code>buf</code> grows via
-          <code>append</code> up to <code>minSize</code>. This can cause 2-3 reallocations as the
-          slice capacity doubles from 0 to 512 B.
+          The <code>join()</code> function in <code>util.go</code> simply
+          delegated to <code>strings.Join</code> with a hardcoded separator. It
+          added no value and was benchmarked at 104 ns vs
+          <code>strings.Join</code> at 63 ns.
         </p>
         <p>
-          <strong>Status</strong>: Implemented in <code>newCompressWriter</code>. The buffer is now
-          pre-allocated to <code>max(minSize, 512)</code> capacity, eliminating intermediate
+          <strong>Status</strong>: Removed. <code>util.go</code> has been
+          deleted; callers now use <code>strings.Join(ss, ", ")</code> directly.
+        </p>
+
+        <h3>
+          6. itoa vs strconv.Itoa <span class="tag success">Removed</span>
+        </h3>
+        <p>
+          The custom <code>itoa</code> was hand-rolled to avoid importing
+          <code>strconv</code>. Benchmarks showed it appeared to outperform
+          <code>strconv.Itoa</code>, but the apparent win was a benchmark
+          artifact: the custom <code>itoa</code> result was dead-code-elided by
+          the compiler (0 allocs), while <code>strconv.Itoa</code> was not (4
+          allocs). In real usage where the result is consumed,
+          <code>strconv.Itoa</code> is allocation-free.
+        </p>
+        <p>
+          <strong>Status</strong>: Removed. <code>util.go</code> has been
+          deleted; callers now use <code>strconv.Itoa</code> directly.
+        </p>
+
+        <h3>
+          7. HeaderSnapshot Shallow Copy
+          <span class="tag info">Allocation Proportional</span>
+        </h3>
+        <p>
+          <code>HeaderSnapshot</code> allocates a new
+          <code>http.Header</code> map and copies every value slice. Allocation
+          is proportional to header count. For responses with 20 headers, this
+          is ~20 slice allocations.
+        </p>
+        <p>
+          <strong>Recommendation</strong>: Document that
+          <code>HeaderSnapshot</code> is intended for testing and debugging, not
+          hot paths. If used in production logging, consider sampling or caching
+          the snapshot.
+        </p>
+
+        <h3>
+          8. Compression Buffer Growth
+          <span class="tag success">Implemented</span>
+        </h3>
+        <p>
+          In <code>writeBuffered</code>, the internal <code>buf</code> grows via
+          <code>append</code> up to <code>minSize</code>. This can cause 2-3
+          reallocations as the slice capacity doubles from 0 to 512 B.
+        </p>
+        <p>
+          <strong>Status</strong>: Implemented in
+          <code>newCompressWriter</code>. The buffer is now pre-allocated to
+          <code>max(minSize, 512)</code> capacity, eliminating intermediate
           allocations during buffering.
         </p>
 
@@ -1416,28 +1487,36 @@ for _, prefix := range incompressiblePrefixes {
           <span class="tag warning">Per-Request Parsing</span>
         </h3>
         <p>
-          The compression middleware now parses <code>Accept-Encoding</code> per request, including
-          RFC 7231 q-values. Factory priority is pre-sorted at config time, but every request still
-          scans the header and parses q-values. For services with high RPS and simple
+          The compression middleware now parses <code>Accept-Encoding</code> per
+          request, including RFC 7231 q-values. Factory priority is pre-sorted
+          at config time, but every request still scans the header and parses
+          q-values. For services with high RPS and simple
           <code>Accept-Encoding: gzip</code> clients, this is unnecessary work.
         </p>
         <p>
-          <strong>Recommendation</strong>: Add a fast path for the common single-encoding case
-          (e.g., exact header match for "gzip") before falling back to full negotiation. This could
-          shave ~100-200 ns per compressed request.
+          <strong>Recommendation</strong>: Add a fast path for the common
+          single-encoding case (e.g., exact header match for "gzip") before
+          falling back to full negotiation. This could shave ~100-200 ns per
+          compressed request.
         </p>
 
-        <h3>10. Compression Benchmark Memory Artifact <span class="tag info">Measurement</span></h3>
+        <h3>
+          10. Compression Benchmark Memory Artifact
+          <span class="tag info">Measurement</span>
+        </h3>
         <p>
-          The <code>BenchmarkCompression</code> result reports ~825 KB/op because
+          The <code>BenchmarkCompression</code> result reports ~825 KB/op
+          because
           <code>httptest.ResponseRecorder.Body</code>
-          grows as compressed output accumulates across iterations. This inflates the reported
-          memory profile and can be mistaken for a regression.
+          grows as compressed output accumulates across iterations. This
+          inflates the reported memory profile and can be mistaken for a
+          regression.
         </p>
         <p>
-          <strong>Recommendation</strong>: Consider a benchmark variant that writes to a fixed-size
-          recorder or discards output to isolate the middleware's true allocation profile. Document
-          the artifact clearly in performance reports.
+          <strong>Recommendation</strong>: Consider a benchmark variant that
+          writes to a fixed-size recorder or discards output to isolate the
+          middleware's true allocation profile. Document the artifact clearly in
+          performance reports.
         </p>
       </section>
 
@@ -1455,10 +1534,14 @@ for _, prefix := range incompressiblePrefixes {
           </thead>
           <tbody>
             <tr>
-              <td>Remove <code>join()</code> wrapper, inline <code>strings.Join</code></td>
+              <td>
+                Remove <code>join()</code> wrapper, inline
+                <code>strings.Join</code>
+              </td>
               <td><code>util.go</code>, callers</td>
               <td>
-                Done — <code>util.go</code> deleted, callers use <code>strings.Join</code> directly
+                Done — <code>util.go</code> deleted, callers use
+                <code>strings.Join</code> directly
               </td>
             </tr>
             <tr>
@@ -1469,7 +1552,9 @@ for _, prefix := range incompressiblePrefixes {
             <tr>
               <td>Pre-join CORS config slices at build time</td>
               <td><code>cors.go</code></td>
-              <td>Eliminates repeated <code>strings.Join</code> on every request</td>
+              <td>
+                Eliminates repeated <code>strings.Join</code> on every request
+              </td>
             </tr>
           </tbody>
         </table>
@@ -1485,17 +1570,24 @@ for _, prefix := range incompressiblePrefixes {
           </thead>
           <tbody>
             <tr>
-              <td>Build origin map + wildcard trie at CORS config validation</td>
+              <td>
+                Build origin map + wildcard trie at CORS config validation
+              </td>
               <td><code>cors.go</code></td>
               <td>O(n) to O(1) origin lookup for large allowlists</td>
             </tr>
             <tr>
-              <td>Make content-type filtering configurable via <code>CompressionConfig</code></td>
+              <td>
+                Make content-type filtering configurable via
+                <code>CompressionConfig</code>
+              </td>
               <td><code>compress_writer.go</code></td>
               <td>Lets users tune or extend the deny-list</td>
             </tr>
             <tr>
-              <td>Add fast path for single-encoding <code>Accept-Encoding</code></td>
+              <td>
+                Add fast path for single-encoding <code>Accept-Encoding</code>
+              </td>
               <td><code>compression.go</code></td>
               <td>~100-200 ns per compressed request</td>
             </tr>
@@ -1536,23 +1628,32 @@ for _, prefix := range incompressiblePrefixes {
             <h4>For High-Throughput APIs (&gt;10K RPS)</h4>
             <ul>
               <li>
-                Use <code>SecurityHeaders</code> + <code>Recovery</code> + <code>Timeout</code> only
+                Use <code>SecurityHeaders</code> + <code>Recovery</code> +
+                <code>Timeout</code> only
               </li>
               <li>Skip <code>Logging</code> or use an async handler</li>
               <li>Disable <code>Compression</code> if behind a CDN</li>
-              <li>Reduce <code>IdleTimeout</code> to 30s for faster connection turnover</li>
+              <li>
+                Reduce <code>IdleTimeout</code> to 30s for faster connection
+                turnover
+              </li>
             </ul>
           </div>
           <div>
             <h4>For Bandwidth-Constrained Edge</h4>
             <ul>
               <li>
-                Enable <code>Compression</code> at <code>gzip.BestSpeed</code> (level 1) or use
+                Enable <code>Compression</code> at
+                <code>gzip.BestSpeed</code> (level 1) or use
                 <code>deflate</code> for CPU-constrained workloads
               </li>
-              <li>Enable <code>ETag</code> with weak mode for dynamic content</li>
+              <li>
+                Enable <code>ETag</code> with weak mode for dynamic content
+              </li>
               <li>Use <code>CORS</code> with a small, fixed origin list</li>
-              <li>Increase <code>IdleTimeout</code> to 120s for keep-alive reuse</li>
+              <li>
+                Increase <code>IdleTimeout</code> to 120s for keep-alive reuse
+              </li>
             </ul>
           </div>
         </div>
@@ -1562,15 +1663,17 @@ for _, prefix := range incompressiblePrefixes {
         <h2>Methodology</h2>
         <p>
           This review was conducted by reading every source file in the
-          <code>httputil</code> package, analyzing algorithmic complexity, running the full
-          benchmark suite with memory profiling (<code>-benchmem</code>), and comparing against Go
-          standard library equivalents where applicable. Benchmarks were executed on a single
-          machine; absolute values will vary by hardware, but relative rankings and allocation
-          counts are portable.
+          <code>httputil</code> package, analyzing algorithmic complexity,
+          running the full benchmark suite with memory profiling
+          (<code>-benchmem</code>), and comparing against Go standard library
+          equivalents where applicable. Benchmarks were executed on a single
+          machine; absolute values will vary by hardware, but relative rankings
+          and allocation counts are portable.
         </p>
         <p>
-          The analysis covers 14 distinct middleware and utility components, 16 benchmark functions,
-          and approximately 1,600 lines of production Go code. All findings are reproducible via
+          The analysis covers 14 distinct middleware and utility components, 16
+          benchmark functions, and approximately 1,600 lines of production Go
+          code. All findings are reproducible via
           <code>go test -bench=. -benchmem ./...</code>.
         </p>
       </section>
@@ -1578,8 +1681,8 @@ for _, prefix := range incompressiblePrefixes {
 
     <footer>
       <p>
-        Generated from <code>github.com/larsartmann/httputil</code> &middot; Go 1.26.3 &middot;
-        Performance Review &middot; 2026-06-14
+        Generated from <code>github.com/larsartmann/httputil</code> &middot; Go
+        1.26.3 &middot; Performance Review &middot; 2026-06-14
       </p>
     </footer>
   </body>

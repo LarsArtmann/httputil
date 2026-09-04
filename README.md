@@ -526,9 +526,9 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `DecompressionConfig` fields
 
-| Field                  | Type       | Default       | Description                                                                     |
-| ---------------------- | ---------- | ------------- | ------------------------------------------------------------------------------- |
-| `Encodings`            | `[]string` | gzip, deflate | Request body encodings to decompress; empty = both defaults                     |
+| Field                  | Type       | Default       | Description                                                                                                           |
+| ---------------------- | ---------- | ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `Encodings`            | `[]string` | gzip, deflate | Request body encodings to decompress; empty = both defaults                                                           |
 | `MaxDecompressionSize` | `int64`    | `16777216`    | Max decompressed body size in bytes to prevent zip bombs (16 MiB); 0 selects the 16 MiB default (no unlimited option) |
 
 ### `RateLimitConfig` fields _(deprecated — use `KeyedRateLimiterConfig`)_

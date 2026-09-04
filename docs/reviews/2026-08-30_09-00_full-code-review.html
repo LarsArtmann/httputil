@@ -912,24 +912,26 @@
           <h2><span class="num">00</span>Summary</h2>
           <p>
             The review executed the Pareto plan at
-            <a href="../planning/2026-08-30_08-00_full-code-review-execution-plan.html">docs/planning/2026-08-30_08-00_full-code-review-execution-plan.html</a>:
-            source files reviewed directly by component tier, test files given a
-            delegated first pass (4 of 5 agent batches; one batch re-run by hand
-            after an infrastructure failure) with every finding re-verified in
-            the source before acting on it. Fix-on-spot was applied whenever a
-            change was small and testable; everything else went to
-            <code>TODO_LIST.md</code>.
+            <a
+              href="../planning/2026-08-30_08-00_full-code-review-execution-plan.html"
+              >docs/planning/2026-08-30_08-00_full-code-review-execution-plan.html</a
+            >: source files reviewed directly by component tier, test files
+            given a delegated first pass (4 of 5 agent batches; one batch re-run
+            by hand after an infrastructure failure) with every finding
+            re-verified in the source before acting on it. Fix-on-spot was
+            applied whenever a change was small and testable; everything else
+            went to <code>TODO_LIST.md</code>.
           </p>
           <div class="callout callout-amber">
-            <strong>The headline find.</strong> The compression writer duplicated
-            response bodies whenever a handler's <code>Write</code> chunking
-            exactly filled the min-size buffer: the consumed branch of
-            <code>writeBuffered</code> fell through with the payload still in
-            the write argument, and the flush/stream step wrote it a second
-            time. Not covered by 96.9% line coverage (the exact-fill boundary
-            was never hit by an assertion), not caught by three prior reviews,
-            not caught by lint, race, or fuzz suites &mdash; because no fuzz
-            target ever decompressed the response and compared it. The new
+            <strong>The headline find.</strong> The compression writer
+            duplicated response bodies whenever a handler's
+            <code>Write</code> chunking exactly filled the min-size buffer: the
+            consumed branch of <code>writeBuffered</code> fell through with the
+            payload still in the write argument, and the flush/stream step wrote
+            it a second time. Not covered by 96.9% line coverage (the exact-fill
+            boundary was never hit by an assertion), not caught by three prior
+            reviews, not caught by lint, race, or fuzz suites &mdash; because no
+            fuzz target ever decompressed the response and compared it. The new
             round-trip fuzz invariant found it in seconds, on the standard
             <code>Accept-Encoding: gzip</code> path with an
             exactly-<code>minSize</code>-byte body. This is the argument for
@@ -942,16 +944,20 @@
 
           <div class="issue issue-critical" id="issue-1">
             <span class="severity severity-critical">CRITICAL</span>
-            <strong>compressWriter duplicated response bodies on exact buffer fill</strong>
+            <strong
+              >compressWriter duplicated response bodies on exact buffer
+              fill</strong
+            >
             <div class="where">compress_writer.go:127-151 (writeBuffered)</div>
             <p>
               A <code>Write</code> bringing the buffer to exactly
               <code>minSize</code> copied the payload into the buffer but left
               it in <code>b</code>; the subsequent compress-and-stream (or
               plain-flush) wrote those bytes again. Any handler whose body
-              chunks hit the boundary exactly served corrupted responses.
-              Fixed by clearing the write argument in the consumed branch;
-              regression test <code>TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated</code>
+              chunks hit the boundary exactly served corrupted responses. Fixed
+              by clearing the write argument in the consumed branch; regression
+              test
+              <code>TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated</code>
               and a permanent fuzz seed.
             </p>
           </div>
@@ -961,12 +967,12 @@
             <strong>Recovery swallowed http.ErrAbortHandler</strong>
             <div class="where">recovery.go</div>
             <p>
-              net/http's sentinel for "abort this response silently" was
-              caught, logged as a panic with a stack trace, and answered with a
-              500 written to the already-aborted connection. Recovery now
-              re-panics the sentinel unchanged (guarded type assertion so a
-              non-comparable panic value cannot crash the comparison).
-              Regression: <code>TestRecovery_RepanicsErrAbortHandler</code>.
+              net/http's sentinel for "abort this response silently" was caught,
+              logged as a panic with a stack trace, and answered with a 500
+              written to the already-aborted connection. Recovery now re-panics
+              the sentinel unchanged (guarded type assertion so a non-comparable
+              panic value cannot crash the comparison). Regression:
+              <code>TestRecovery_RepanicsErrAbortHandler</code>.
             </p>
           </div>
 
@@ -985,7 +991,9 @@
 
           <div class="issue issue-important" id="issue-4">
             <span class="severity severity-important">MAJOR</span>
-            <strong>Error templates claimed "zero disables the limit" twice</strong>
+            <strong
+              >Error templates claimed "zero disables the limit" twice</strong
+            >
             <div class="where">errors.go:296, errors.go:350</div>
             <p>
               <code>maxbodysize.max_bytes_negative</code> said zero means
@@ -1003,12 +1011,15 @@
           <div class="issue issue-important" id="issue-5">
             <span class="severity severity-important">MAJOR</span>
             <strong>Three tests verified nothing</strong>
-            <div class="where">compression_negotiator_test.go:154, etag_test.go:86, server_test.go:324</div>
+            <div class="where">
+              compression_negotiator_test.go:154, etag_test.go:86,
+              server_test.go:324
+            </div>
             <p>
               <code>TestCompression_CustomFactory</code> negotiated
               <code>identity</code>, which the middleware short-circuits before
-              any factory lookup &mdash; the plugin path was never executed
-              (now negotiates a real custom encoding and asserts the header);
+              any factory lookup &mdash; the plugin path was never executed (now
+              negotiates a real custom encoding and asserts the header);
               <code>TestETag_WorksInMiddlewareStack</code> checked only stack
               metadata without serving a request (now serves and asserts the
               ETag header); <code>TestServerServesRequests</code> called the
@@ -1035,26 +1046,49 @@
           <h2><span class="num">02</span>Ticketed (TODO_LIST.md)</h2>
           <table class="compare">
             <thead>
-              <tr><th>Item</th><th>Severity</th><th>Why not fixed now</th></tr>
+              <tr>
+                <th>Item</th>
+                <th>Severity</th>
+                <th>Why not fixed now</th>
+              </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Verify the CSRF <code>Sec-Fetch-Site</code> trust model against justinas/nosurf before v1.0</td>
+                <td>
+                  Verify the CSRF <code>Sec-Fetch-Site</code> trust model
+                  against justinas/nosurf before v1.0
+                </td>
                 <td class="no">Important</td>
-                <td>Requires reading upstream source before any claim is encoded; potential follow-up is a behavior change on the security boundary</td>
+                <td>
+                  Requires reading upstream source before any claim is encoded;
+                  potential follow-up is a behavior change on the security
+                  boundary
+                </td>
               </tr>
               <tr>
                 <td>Convert the remaining legacy table-driven tests</td>
                 <td>Minor</td>
-                <td>Six pre-existing files; decide once whether to convert or amend the convention, then apply consistently</td>
+                <td>
+                  Six pre-existing files; decide once whether to convert or
+                  amend the convention, then apply consistently
+                </td>
               </tr>
               <tr>
-                <td>Refresh docs/benchmarks.md rows for the ~10 benches whose harnesses changed</td>
+                <td>
+                  Refresh docs/benchmarks.md rows for the ~10 benches whose
+                  harnesses changed
+                </td>
                 <td>Minor</td>
-                <td>Demands the full 3s&times;5 protocol; numbers must not be patched ad hoc</td>
+                <td>
+                  Demands the full 3s&times;5 protocol; numbers must not be
+                  patched ad hoc
+                </td>
               </tr>
               <tr>
-                <td><code>CSRFConfig.Validate</code> side-effect cleanup (pointer-receiver mutation + logging inside Validate)</td>
+                <td>
+                  <code>CSRFConfig.Validate</code> side-effect cleanup
+                  (pointer-receiver mutation + logging inside Validate)
+                </td>
                 <td>Minor</td>
                 <td>API-shape change; post-v1.0 candidate</td>
               </tr>
@@ -1071,17 +1105,19 @@
                 <strong>The error model is a genuine differentiator.</strong>
                 Typed codes, per-component domains, classified families, a
                 template table with a completeness test, and structured
-                validation logging &mdash; coherent end to end, with zero
-                legacy debris in the new-code paths.
+                validation logging &mdash; coherent end to end, with zero legacy
+                debris in the new-code paths.
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Concurrency discipline held everywhere it was probed.</strong>
+                <strong
+                  >Concurrency discipline held everywhere it was probed.</strong
+                >
                 The per-key limiter's RLock fast path with double-checked write
-                path, heap-ref guards, the amortized crypto/rand buffer, and
-                the pool reset lifecycle all survived focused reading;
+                path, heap-ref guards, the amortized crypto/rand buffer, and the
+                pool reset lifecycle all survived focused reading;
                 <code>-race -count=10</code> on the touched areas is clean.
               </div>
             </div>
@@ -1090,18 +1126,18 @@
               <div class="text">
                 <strong>server_timing is exemplary.</strong> Nil-receiver
                 no-ops, CRLF-safe escaping, commit-once header injection,
-                delegation that preserves Flush/Hijack/Push/Unwrap, and a
-                gating middleware with a true zero-overhead passthrough.
+                delegation that preserves Flush/Hijack/Push/Unwrap, and a gating
+                middleware with a true zero-overhead passthrough.
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>The documented tradeoffs are honest.</strong> Flat root
-                package, validate-and-log constructors, honest-silence
-                discards, deprecated-but-kept rate limiter: each is written
-                down with rationale, which is exactly what made this review
-                fast where it could be and deep where it mattered.
+                package, validate-and-log constructors, honest-silence discards,
+                deprecated-but-kept rate limiter: each is written down with
+                rationale, which is exactly what made this review fast where it
+                could be and deep where it mattered.
               </div>
             </div>
           </div>
@@ -1111,8 +1147,8 @@
           <h2><span class="num">03</span>Coverage Notes</h2>
           <p>
             <strong>Reviewed directly (this session, line by line):</strong> all
-            35 root source files, both httpspec source groups used by
-            consumers (<code>httpspec.go</code>, <code>cors_ratelimit_specs.go</code>,
+            35 root source files, both httpspec source groups used by consumers
+            (<code>httpspec.go</code>, <code>cors_ratelimit_specs.go</code>,
             <code>specs.go</code>, <code>doc.go</code>), and the full
             <code>server_timing</code> module.
           </p>
@@ -1140,10 +1176,10 @@
             <strong>Verification after all fixes:</strong> build + vet clean;
             <code>go test -race -count=1</code> green in root, httpspec, and
             server_timing; <code>golangci-lint run</code> 0 issues in both
-            modules; both erraudit gates exit 0; touched areas
-            race-stressed at <code>-count=10</code>; new fuzz invariants ran
-            3.4M (compression) and 395k (decompression) executions clean after
-            the fixes, with counterexample seeds retained.
+            modules; both erraudit gates exit 0; touched areas race-stressed at
+            <code>-count=10</code>; new fuzz invariants ran 3.4M (compression)
+            and 395k (decompression) executions clean after the fixes, with
+            counterexample seeds retained.
           </p>
           <p>
             <strong>Git note:</strong> the skill's default workflow commits
@@ -1163,7 +1199,7 @@
       </main>
     </div>
 
-<!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
     <script>
       (function () {
         if (!("IntersectionObserver" in window)) return;

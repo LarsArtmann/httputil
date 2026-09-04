@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -197,15 +197,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -216,15 +228,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue .where {
         font-family: var(--font-mono);
@@ -441,7 +465,8 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>Full Code Review</span><span>2026-07-05</span><span>httputil · every file visited</span>
+      <span>Full Code Review</span><span>2026-07-05</span
+      ><span>httputil · every file visited</span>
     </div>
     <div class="layout">
       <aside class="sidebar" data-nav>
@@ -460,9 +485,10 @@
           <div class="hero-badge">Full Code Review</div>
           <h1>Every File Visited · Architect-Standard</h1>
           <p class="hero-subtitle">
-            A complete pass over all 34 Go files (28 root + 6 httpspec). Type safety, architecture,
-            split brains, duplications, and honesty — with issues fixed on the spot where safe, and
-            recorded for decision where they touch public contracts.
+            A complete pass over all 34 Go files (28 root + 6 httpspec). Type
+            safety, architecture, split brains, duplications, and honesty — with
+            issues fixed on the spot where safe, and recorded for decision where
+            they touch public contracts.
           </p>
         </div>
 
@@ -502,51 +528,61 @@
             font-size: 0.9em;
           "
         >
-          <strong>Correction (2026-07-22):</strong> Coverage and file count are point-in-time as of
-          2026-07-05. The codebase has since grown to ~69 .go files. Coverage percentage may differ.
-          Dependencies increased from 1 to 2 (added <code>golang.org/x/time</code> v0.15.0).
+          <strong>Correction (2026-07-22):</strong> Coverage and file count are
+          point-in-time as of 2026-07-05. The codebase has since grown to ~69
+          .go files. Coverage percentage may differ. Dependencies increased from
+          1 to 2 (added <code>golang.org/x/time</code> v0.15.0).
         </p>
         <p>
-          Overall verdict: <strong>this is a high-quality, disciplined codebase.</strong> After the
-          fixes below, <code>golangci-lint run</code> (≈70 linters) reports 0 issues,
-          <code>go vet</code> is clean, and the full suite passes with race detection. The remaining
-          items are documented design decisions, not defects.
+          Overall verdict:
+          <strong>this is a high-quality, disciplined codebase.</strong> After
+          the fixes below, <code>golangci-lint run</code> (≈70 linters) reports
+          0 issues, <code>go vet</code> is clean, and the full suite passes with
+          race detection. The remaining items are documented design decisions,
+          not defects.
         </p>
 
         <h2 id="fixed"><span class="num">01</span>Fixed on the Spot</h2>
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Fixed · was the only lint failure</span>
+          <span class="severity severity-critical"
+            >Fixed · was the only lint failure</span
+          >
           <h3>gosec G705 + fragile nolint directives</h3>
           <div class="where">.golangci.yml · compress_writer.go · etag.go</div>
           <p>
-            The AGENTS.md "0 issues" claim was stale: gosec G705 fired on response-body writes. A
-            prior fix left a malformed comment (<code>// in an XSS context);</code>) that was a
-            plain comment, not a <code>//nolint</code>. Per-site directives were fragile (<code
-              >nolintlint</code
-            >
+            The AGENTS.md "0 issues" claim was stale: gosec G705 fired on
+            response-body writes. A prior fix left a malformed comment (<code
+              >// in an XSS context);</code
+            >) that was a plain comment, not a <code>//nolint</code>. Per-site
+            directives were fragile (<code>nolintlint</code>
             flagged them unused due to nondeterministic taint analysis).
-            <strong>Fix:</strong> excluded G705 globally (justified for a response-writing library)
-            and removed the 3 per-site directives.
+            <strong>Fix:</strong> excluded G705 globally (justified for a
+            response-writing library) and removed the 3 per-site directives.
           </p>
         </div>
         <div class="issue issue-important">
-          <span class="severity severity-important">Fixed · stale stdlib reimplementation</span>
+          <span class="severity severity-important"
+            >Fixed · stale stdlib reimplementation</span
+          >
           <h3>Local indexByte reimplemented strings.IndexByte/Cut</h3>
           <div class="where">compression_qvalue.go</div>
           <p>
-            A local <code>indexByte</code> had a lying comment ("to avoid the import" —
-            <code>strings</code> was already imported). Rewrote <code>parseEncodingEntry</code> with
-            <code>strings.Cut</code>: clearer, faster (assembly-backed), fewer lines.
+            A local <code>indexByte</code> had a lying comment ("to avoid the
+            import" — <code>strings</code> was already imported). Rewrote
+            <code>parseEncodingEntry</code> with <code>strings.Cut</code>:
+            clearer, faster (assembly-backed), fewer lines.
           </p>
         </div>
         <div class="issue issue-nice">
-          <span class="severity severity-nice">Fixed · redundant + unused imports</span>
+          <span class="severity severity-nice"
+            >Fixed · redundant + unused imports</span
+          >
           <h3>No-op error wraps + dangling fmt imports</h3>
           <div class="where">ratelimit.go · metrics.go</div>
           <p>
-            <code>fmt.Errorf("%w", sentinel)</code> wrapped without context. Returned sentinels
-            directly; removed the now-unused <code>"fmt"</code> imports.
-            <code>errors.Is</code> unaffected.
+            <code>fmt.Errorf("%w", sentinel)</code> wrapped without context.
+            Returned sentinels directly; removed the now-unused
+            <code>"fmt"</code> imports. <code>errors.Is</code> unaffected.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -554,13 +590,15 @@
           <h3>Inaccurate nameOffset &amp; ReadyHandler docs</h3>
           <div class="where">compression_negotiator.go:77 · health.go:40</div>
           <p>
-            <code>nameOffset</code> claimed "alphabetical" ordering (it's base-256 numeric).
-            <code>ReadyHandler</code> doc implied a non-existent override parameter. Both corrected
-            to tell the truth.
+            <code>nameOffset</code> claimed "alphabetical" ordering (it's
+            base-256 numeric). <code>ReadyHandler</code> doc implied a
+            non-existent override parameter. Both corrected to tell the truth.
           </p>
         </div>
 
-        <h2 id="open"><span class="num">02</span>Open for Decision (not auto-changed)</h2>
+        <h2 id="open">
+          <span class="num">02</span>Open for Decision (not auto-changed)
+        </h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -577,8 +615,14 @@
                 <td>1</td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>cors.go:142</td>
-                <td>Unmatched origin returns <code>"*"</code>, bypassing the allowlist</td>
-                <td>Documented intentional behavior; changing it breaks the contract</td>
+                <td>
+                  Unmatched origin returns <code>"*"</code>, bypassing the
+                  allowlist
+                </td>
+                <td>
+                  Documented intentional behavior; changing it breaks the
+                  contract
+                </td>
               </tr>
               <tr>
                 <td>2</td>
@@ -591,7 +635,9 @@
                 <td>3</td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>compression.go:62</td>
-                <td><code>Level</code> decoupled from <code>WriterFactories</code></td>
+                <td>
+                  <code>Level</code> decoupled from <code>WriterFactories</code>
+                </td>
                 <td>Semantic redesign of the config</td>
               </tr>
               <tr>
@@ -626,8 +672,8 @@
           </table>
         </div>
         <p>
-          All seven are captured in <code>TODO_LIST.md</code> with severity and a recommended
-          action.
+          All seven are captured in <code>TODO_LIST.md</code> with severity and
+          a recommended action.
         </p>
 
         <h2 id="files"><span class="num">03</span>Per-File Verdict</h2>
@@ -827,8 +873,9 @@
             <div class="text">
               <strong>Disciplined dependency boundary</strong
               ><span
-                >2 deps (<code>go-error-family</code> + <code>golang.org/x/time</code>),
-                machine-enforced by depguard — consumers get zero transitive bloat.</span
+                >2 deps (<code>go-error-family</code> +
+                <code>golang.org/x/time</code>), machine-enforced by depguard —
+                consumers get zero transitive bloat.</span
               >
             </div>
           </div>
@@ -836,7 +883,9 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Every config validates at startup</strong
-              ><span>Invalid configurations fail fast, never at request time.</span>
+              ><span
+                >Invalid configurations fail fast, never at request time.</span
+              >
             </div>
           </div>
           <div class="strength">
@@ -854,8 +903,8 @@
             <div class="text">
               <strong>Exhaustive, race-clean test suite</strong
               ><span
-                >93.4% coverage, <code>-race</code> green, per-middleware test files, shared
-                helpers.</span
+                >93.4% coverage, <code>-race</code> green, per-middleware test
+                files, shared helpers.</span
               >
             </div>
           </div>
@@ -864,8 +913,8 @@
             <div class="text">
               <strong>Performance-conscious without premature magic</strong
               ><span
-                >Writer pools, amortized crypto/rand, zero-alloc hex — all documented with
-                rationale.</span
+                >Writer pools, amortized crypto/rand, zero-alloc hex — all
+                documented with rationale.</span
               >
             </div>
           </div>
@@ -875,23 +924,28 @@
         <div class="card card-solution">
           <ul style="padding-left: 1.4rem; margin: 0">
             <li>
-              <code>docs/reviews/2026-07-05_18-06_code-quality-scan.html</code> —
-              build/lint/duplication
+              <code>docs/reviews/2026-07-05_18-06_code-quality-scan.html</code>
+              — build/lint/duplication
             </li>
             <li>
-              <code>docs/brainstorming/2026-07-05_data-model-review.html</code> — type-safety
-              redesign
+              <code>docs/brainstorming/2026-07-05_data-model-review.html</code>
+              — type-safety redesign
             </li>
             <li>
-              <code>docs/reviews/2026-07-05_18-06_naming-review.html</code> — identifier audit
+              <code>docs/reviews/2026-07-05_18-06_naming-review.html</code> —
+              identifier audit
             </li>
             <li>
-              <code>docs/architecture-understanding/2026-07-05_18-06_modularity.html</code> —
-              architecture
+              <code
+                >docs/architecture-understanding/2026-07-05_18-06_modularity.html</code
+              >
+              — architecture
             </li>
             <li>
-              <code>docs/architecture-understanding/2026-07-05_18-06_httputil-current.svg</code> +
-              <code>-improved.svg</code> — diagrams
+              <code
+                >docs/architecture-understanding/2026-07-05_18-06_httputil-current.svg</code
+              >
+              + <code>-improved.svg</code> — diagrams
             </li>
           </ul>
         </div>
@@ -912,27 +966,43 @@
             <tbody>
               <tr>
                 <td style="padding: 4px 8px">CORS allowlist bypass</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
-                <td style="padding: 4px 8px"><code>85c3d49</code> (DenyUnmatched)</td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  <code>85c3d49</code> (DenyUnmatched)
+                </td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">Dead QValues field</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>fa6b19a</code> (removed)</td>
               </tr>
               <tr>
-                <td style="padding: 4px 8px">Level decoupled from WriterFactories</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  Level decoupled from WriterFactories
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>fa6b19a</code> (wired)</td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">CRC32 ETag collision risk</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
-                <td style="padding: 4px 8px"><code>857cc61</code> (FNV-64a + HashFunc)</td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  <code>857cc61</code> (FNV-64a + HashFunc)
+                </td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">No rate/burst validation</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px">
                   <code>e197003</code> + rewritten with
                   <code>x/time/rate</code> (<code>4ce4fdf</code>)
@@ -940,25 +1010,30 @@
               </tr>
               <tr>
                 <td style="padding: 4px 8px">Duplicated hex lookup tables</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>2f2038b</code> (hex.go)</td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">ForwardHeader misleading name</td>
-                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-medium">Deferred</span>
+                </td>
                 <td style="padding: 4px 8px">v1.0 breaking rename</td>
               </tr>
             </tbody>
           </table>
           <p>
             Dependency count is now 2 (<code>go-error-family</code> v0.7.0 +
-            <code>golang.org/x/time</code> v0.15.0). File count is now ~69 .go files. Build requires
-            <code>GOEXPERIMENT=jsonv2</code>.
+            <code>golang.org/x/time</code> v0.15.0). File count is now ~69 .go
+            files. Build requires <code>GOEXPERIMENT=jsonv2</code>.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; 34 files visited · build/vet/lint/test all green after fixes
+          Generated 2026-07-05 &middot; 34 files visited · build/vet/lint/test
+          all green after fixes
         </footer>
       </main>
     </div>
@@ -979,7 +1054,10 @@
             e.forEach(function (en) {
               if (en.isIntersecting)
                 l.forEach(function (a) {
-                  a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id);
+                  a.classList.toggle(
+                    "active",
+                    a.getAttribute("href") === "#" + en.target.id,
+                  );
                 });
             });
           },

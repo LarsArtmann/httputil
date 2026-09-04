@@ -1,6 +1,6 @@
 module github.com/larsartmann/httputil
 
-go 1.26.5
+go 1.26.7
 
 require github.com/larsartmann/go-error-family v0.10.0
 

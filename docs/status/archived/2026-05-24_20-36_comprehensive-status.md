@@ -274,33 +274,33 @@ The LSP shows stale diagnostics (duplicate `decimalBase`, wrong `NewRequestWithC
 
 ## f) Top #25 Things to Do Next
 
-| #  | Task                                                                      | Impact | Effort |
-| -- | ------------------------------------------------------------------------- | ------ | ------ |
-| 1  | Push 2 unpushed commits to origin                                         | High   | 1 min  |
-| 2  | Tag v0.1.0 release                                                        | High   | 1 min  |
-| ~~3~~  | ~~Add GitHub Actions CI (test + lint + coverage)~~ done — (CI workflows) | ~~High~~ | ~~30 min~~ |
-| 4  | Update README.md with error classification docs                           | High   | 20 min |
-| 5  | Register stdlib HTTP error sentinels in errors.go                         | High   | 15 min |
-| 6  | Expand CORS tests (credentials+allorigins, empty, passthrough, no-origin) | Medium | 30 min |
-| ~~7~~  | ~~Add benchmark tests for itoa() and join()~~ done — moot (util.go removed 2026-06-16) | ~~Medium~~ | ~~20 min~~ |
-| 8  | Create examples/ directory with basic usage                               | Medium | 30 min |
-| 9  | Add CORSConfig.Validate() method                                          | Medium | 20 min |
-| ~~10~~ | ~~Update CHANGELOG.md~~ done — (maintained per release) | ~~Medium~~ | ~~10 min~~ |
+| #      | Task                                                                                                       | Impact     | Effort     |
+| ------ | ---------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| 1      | Push 2 unpushed commits to origin                                                                          | High       | 1 min      |
+| 2      | Tag v0.1.0 release                                                                                         | High       | 1 min      |
+| ~~3~~  | ~~Add GitHub Actions CI (test + lint + coverage)~~ done — (CI workflows)                                   | ~~High~~   | ~~30 min~~ |
+| 4      | Update README.md with error classification docs                                                            | High       | 20 min     |
+| 5      | Register stdlib HTTP error sentinels in errors.go                                                          | High       | 15 min     |
+| 6      | Expand CORS tests (credentials+allorigins, empty, passthrough, no-origin)                                  | Medium     | 30 min     |
+| ~~7~~  | ~~Add benchmark tests for itoa() and join()~~ done — moot (util.go removed 2026-06-16)                     | ~~Medium~~ | ~~20 min~~ |
+| 8      | Create examples/ directory with basic usage                                                                | Medium     | 30 min     |
+| 9      | Add CORSConfig.Validate() method                                                                           | Medium     | 20 min     |
+| ~~10~~ | ~~Update CHANGELOG.md~~ done — (maintained per release)                                                    | ~~Medium~~ | ~~10 min~~ |
 | ~~11~~ | ~~Add BodyCapturingResponseRecorder variant~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~Medium~~ | ~~45 min~~ |
-| ~~12~~ | ~~Add request context helpers (WithClientIP)~~ done — shipped (context.go) | ~~Medium~~ | ~~15 min~~ |
-| ~~13~~ | ~~Add error message templates for httputil error codes~~ done — shipped (errorTemplates, v0.12.0) | ~~Medium~~ | ~~20 min~~ |
-| ~~14~~ | ~~Add JSON error response helper~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~Medium~~ | ~~30 min~~ |
-| ~~15~~ | ~~Add security headers middleware~~ done — shipped (security.go) | ~~Medium~~ | ~~30 min~~ |
-| ~~16~~ | ~~Add request ID middleware~~ done — shipped (requestid.go) | ~~Medium~~ | ~~30 min~~ |
-| ~~17~~ | ~~Add panic recovery middleware~~ done — shipped (recovery.go) | ~~Medium~~ | ~~30 min~~ |
-| ~~18~~ | ~~Add request timeout middleware~~ done — shipped (timeout.go) | ~~Medium~~ | ~~20 min~~ |
-| ~~19~~ | ~~Add compression middleware~~ done — shipped (compression.go) | ~~Low~~ | ~~60 min~~ |
-| ~~20~~ | ~~Add rate limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Low~~ | ~~60 min~~ |
-| ~~21~~ | ~~Add wildcard domain matching for CORS~~ done — shipped (wildcard origin matching) | ~~Low~~ | ~~20 min~~ |
-| ~~22~~ | ~~Add fuzz tests for ClientIP~~ done — (FuzzClientIP; 23 fuzz targets) | ~~Low~~ | ~~30 min~~ |
-| ~~23~~ | ~~Add CONTRIBUTING.md~~ done — (exists) | ~~Low~~ | ~~15 min~~ |
-| ~~24~~ | ~~Clean up golangci.yml experimental build tags~~ done — (config clean, 0 issues) | ~~Low~~ | ~~10 min~~ |
-| ~~25~~ | ~~Audit Go 1.26+ features for adoption (range-over-int, etc.)~~ done — (util.go removed 2026-06-16) | ~~Low~~ | ~~20 min~~ |
+| ~~12~~ | ~~Add request context helpers (WithClientIP)~~ done — shipped (context.go)                                 | ~~Medium~~ | ~~15 min~~ |
+| ~~13~~ | ~~Add error message templates for httputil error codes~~ done — shipped (errorTemplates, v0.12.0)          | ~~Medium~~ | ~~20 min~~ |
+| ~~14~~ | ~~Add JSON error response helper~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30)            | ~~Medium~~ | ~~30 min~~ |
+| ~~15~~ | ~~Add security headers middleware~~ done — shipped (security.go)                                           | ~~Medium~~ | ~~30 min~~ |
+| ~~16~~ | ~~Add request ID middleware~~ done — shipped (requestid.go)                                                | ~~Medium~~ | ~~30 min~~ |
+| ~~17~~ | ~~Add panic recovery middleware~~ done — shipped (recovery.go)                                             | ~~Medium~~ | ~~30 min~~ |
+| ~~18~~ | ~~Add request timeout middleware~~ done — shipped (timeout.go)                                             | ~~Medium~~ | ~~20 min~~ |
+| ~~19~~ | ~~Add compression middleware~~ done — shipped (compression.go)                                             | ~~Low~~    | ~~60 min~~ |
+| ~~20~~ | ~~Add rate limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it)  | ~~Low~~    | ~~60 min~~ |
+| ~~21~~ | ~~Add wildcard domain matching for CORS~~ done — shipped (wildcard origin matching)                        | ~~Low~~    | ~~20 min~~ |
+| ~~22~~ | ~~Add fuzz tests for ClientIP~~ done — (FuzzClientIP; 23 fuzz targets)                                     | ~~Low~~    | ~~30 min~~ |
+| ~~23~~ | ~~Add CONTRIBUTING.md~~ done — (exists)                                                                    | ~~Low~~    | ~~15 min~~ |
+| ~~24~~ | ~~Clean up golangci.yml experimental build tags~~ done — (config clean, 0 issues)                          | ~~Low~~    | ~~10 min~~ |
+| ~~25~~ | ~~Audit Go 1.26+ features for adoption (range-over-int, etc.)~~ done — (util.go removed 2026-06-16)        | ~~Low~~    | ~~20 min~~ |
 
 ---
 

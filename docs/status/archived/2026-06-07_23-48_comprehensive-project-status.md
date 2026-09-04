@@ -225,33 +225,33 @@ None of these are "fucked up" in the sense of breaking the build. They are **str
 
 Sorted by **impact / effort ratio** (highest impact per unit of work first):
 
-| #  | Task                                          | Impact   | Effort | Category        |
-| -- | --------------------------------------------- | -------- | ------ | --------------- |
-| ~~1~~  | ~~Add GitHub Actions CI (test + lint + bench)~~ done — (CI workflows) | ~~Critical~~ | ~~20 min~~ | ~~Infrastructure~~ |
-| ~~2~~  | ~~Create FEATURES.md~~ done — (exists) | ~~High~~ | ~~15 min~~ | ~~Documentation~~ |
-| ~~3~~  | ~~Create TODO_LIST.md~~ done — (TODO_LIST rebuilt by docs-health passes) | ~~High~~ | ~~15 min~~ | ~~Documentation~~ |
-| 4  | Add benchmarks for remaining middlewares      | Medium   | 30 min | Observability   |
-| 5  | Add example functions for missing middlewares | Medium   | 20 min | DX              |
-| 6  | Add fuzz tests for CORS and RequestID         | Medium   | 20 min | Quality         |
-| 7  | Add integration tests for common chains       | Medium   | 30 min | Correctness     |
-| ~~8~~  | ~~Document brotli policy decision~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~10 min~~ | ~~Documentation~~ |
-| ~~9~~  | ~~Add WebSocket upgrade test~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30 | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
-| ~~10~~ | ~~Add Content-Length preservation test~~ done — shipped (T12 test, f7c50dc) | ~~Low~~ | ~~10 min~~ | ~~Correctness~~ |
-| ~~11~~ | ~~Implement deflate support~~ done — shipped (DefaultWriterFactories) | ~~Medium~~ | ~~30 min~~ | ~~Feature~~ |
-| ~~12~~ | ~~Add Accept-Encoding quality parsing~~ done — shipped (compression_qvalue.go + property tests) | ~~Low~~ | ~~20 min~~ | ~~Correctness~~ |
-| ~~13~~ | ~~Make content-type filtering configurable~~ done — shipped (IncompressibleTypes) | ~~Low~~ | ~~15 min~~ | ~~Configurability~~ |
-| ~~14~~ | ~~Add MiddlewareStack with ordering validation~~ done — shipped (stack.go) | ~~Medium~~ | ~~45 min~~ | ~~Architecture~~ |
-| ~~15~~ | ~~Add ResponseWriter capability interface~~ done — shipped (DetectCapabilities, capabilities.go) | ~~Low~~ | ~~30 min~~ | ~~Architecture~~ |
-| ~~16~~ | ~~Add streaming ETag option~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~High~~ | ~~60 min~~ | ~~Performance~~ |
-| ~~17~~ | ~~Evaluate brotli dependency relaxation~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~30 min~~ | ~~Decision~~ |
-| ~~18~~ | ~~Add request/response metrics middleware~~ done — shipped (metrics.go) | ~~Medium~~ | ~~45 min~~ | ~~Feature~~ |
-| ~~19~~ | ~~Add rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Medium~~ | ~~60 min~~ | ~~Feature~~ |
-| ~~20~~ | ~~Add request body size limit middleware~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~20 min~~ | ~~Safety~~ |
-| ~~21~~ | ~~Add HTTP/2 Server Push integration test~~ done — moot (http.Pusher code removed in v0.3.0) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
-| ~~22~~ | ~~Add `ExampleResponseRecorder`~~ done — (ExampleNewResponseRecorder) | ~~Low~~ | ~~10 min~~ | ~~DX~~ |
-| ~~23~~ | ~~Add `BenchmarkChain`~~ done — (exists) | ~~Low~~ | ~~10 min~~ | ~~Observability~~ |
-| ~~24~~ | ~~Improve test coverage to 90%+~~ done — (97.0% today) | ~~Medium~~ | ~~60 min~~ | ~~Quality~~ |
-| ~~25~~ | ~~Add `go test -race` to CI~~ done — (ci.yml runs -race) | ~~High~~ | ~~5 min~~ | ~~Safety~~ |
+| #      | Task                                                                                                                     | Impact       | Effort     | Category            |
+| ------ | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ---------- | ------------------- |
+| ~~1~~  | ~~Add GitHub Actions CI (test + lint + bench)~~ done — (CI workflows)                                                    | ~~Critical~~ | ~~20 min~~ | ~~Infrastructure~~  |
+| ~~2~~  | ~~Create FEATURES.md~~ done — (exists)                                                                                   | ~~High~~     | ~~15 min~~ | ~~Documentation~~   |
+| ~~3~~  | ~~Create TODO_LIST.md~~ done — (TODO_LIST rebuilt by docs-health passes)                                                 | ~~High~~     | ~~15 min~~ | ~~Documentation~~   |
+| 4      | Add benchmarks for remaining middlewares                                                                                 | Medium       | 30 min     | Observability       |
+| 5      | Add example functions for missing middlewares                                                                            | Medium       | 20 min     | DX                  |
+| 6      | Add fuzz tests for CORS and RequestID                                                                                    | Medium       | 20 min     | Quality             |
+| 7      | Add integration tests for common chains                                                                                  | Medium       | 30 min     | Correctness         |
+| ~~8~~  | ~~Document brotli policy decision~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md)       | ~~Medium~~   | ~~10 min~~ | ~~Documentation~~   |
+| ~~9~~  | ~~Add WebSocket upgrade test~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30  | ~~Low~~      | ~~15 min~~ | ~~Coverage~~        |
+| ~~10~~ | ~~Add Content-Length preservation test~~ done — shipped (T12 test, f7c50dc)                                              | ~~Low~~      | ~~10 min~~ | ~~Correctness~~     |
+| ~~11~~ | ~~Implement deflate support~~ done — shipped (DefaultWriterFactories)                                                    | ~~Medium~~   | ~~30 min~~ | ~~Feature~~         |
+| ~~12~~ | ~~Add Accept-Encoding quality parsing~~ done — shipped (compression_qvalue.go + property tests)                          | ~~Low~~      | ~~20 min~~ | ~~Correctness~~     |
+| ~~13~~ | ~~Make content-type filtering configurable~~ done — shipped (IncompressibleTypes)                                        | ~~Low~~      | ~~15 min~~ | ~~Configurability~~ |
+| ~~14~~ | ~~Add MiddlewareStack with ordering validation~~ done — shipped (stack.go)                                               | ~~Medium~~   | ~~45 min~~ | ~~Architecture~~    |
+| ~~15~~ | ~~Add ResponseWriter capability interface~~ done — shipped (DetectCapabilities, capabilities.go)                         | ~~Low~~      | ~~30 min~~ | ~~Architecture~~    |
+| ~~16~~ | ~~Add streaming ETag option~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory   | ~~High~~     | ~~60 min~~ | ~~Performance~~     |
+| ~~17~~ | ~~Evaluate brotli dependency relaxation~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~   | ~~30 min~~ | ~~Decision~~        |
+| ~~18~~ | ~~Add request/response metrics middleware~~ done — shipped (metrics.go)                                                  | ~~Medium~~   | ~~45 min~~ | ~~Feature~~         |
+| ~~19~~ | ~~Add rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it)                | ~~Medium~~   | ~~60 min~~ | ~~Feature~~         |
+| ~~20~~ | ~~Add request body size limit middleware~~ done — shipped (maxbodysize.go)                                               | ~~Low~~      | ~~20 min~~ | ~~Safety~~          |
+| ~~21~~ | ~~Add HTTP/2 Server Push integration test~~ done — moot (http.Pusher code removed in v0.3.0)                             | ~~Low~~      | ~~15 min~~ | ~~Coverage~~        |
+| ~~22~~ | ~~Add `ExampleResponseRecorder`~~ done — (ExampleNewResponseRecorder)                                                    | ~~Low~~      | ~~10 min~~ | ~~DX~~              |
+| ~~23~~ | ~~Add `BenchmarkChain`~~ done — (exists)                                                                                 | ~~Low~~      | ~~10 min~~ | ~~Observability~~   |
+| ~~24~~ | ~~Improve test coverage to 90%+~~ done — (97.0% today)                                                                   | ~~Medium~~   | ~~60 min~~ | ~~Quality~~         |
+| ~~25~~ | ~~Add `go test -race` to CI~~ done — (ci.yml runs -race)                                                                 | ~~High~~     | ~~5 min~~  | ~~Safety~~          |
 
 ---
 

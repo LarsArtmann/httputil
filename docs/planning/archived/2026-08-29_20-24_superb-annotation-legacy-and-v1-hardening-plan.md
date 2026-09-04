@@ -319,11 +319,11 @@ flowchart TD
 
 ## 6. Answers this plan waits on
 
-| # | Question (from the 20-09 status report, g-section)                                  | Unblocks    |
-| - | ----------------------------------------------------------------------------------- | ----------- |
-| ~~1~~ | ~~July/May reports: same per-item upgrade pass, or leave the resolution tables as-is?~~ done — answered: executed as T4/T5 (10 files upgraded; ~27 narrative SKIP) | ~~T5, then T9~~ |
-| ~~2~~ | ~~HARVEST the 23 appendices into TODO_LIST now? (This plan assumes **yes** — T1.)~~ done — answered: executed as T1; TODO_LIST rebuilt | ~~T1~~ |
-| ~~3~~ | ~~v-kind evidence acceptable, or hash-only for historical markers?~~ done — answered: policy = hash-for-changes, dated falsifiable evidence for state-claims (T14 appendix) | ~~T14~~ |
+| #     | Question (from the 20-09 status report, g-section)                                                                                                                          | Unblocks        |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| ~~1~~ | ~~July/May reports: same per-item upgrade pass, or leave the resolution tables as-is?~~ done — answered: executed as T4/T5 (10 files upgraded; ~27 narrative SKIP)          | ~~T5, then T9~~ |
+| ~~2~~ | ~~HARVEST the 23 appendices into TODO_LIST now? (This plan assumes **yes** — T1.)~~ done — answered: executed as T1; TODO_LIST rebuilt                                      | ~~T1~~          |
+| ~~3~~ | ~~v-kind evidence acceptable, or hash-only for historical markers?~~ done — answered: policy = hash-for-changes, dated falsifiable evidence for state-claims (T14 appendix) | ~~T14~~         |
 
 ---
 

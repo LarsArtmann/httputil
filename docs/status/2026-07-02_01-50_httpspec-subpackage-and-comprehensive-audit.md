@@ -38,13 +38,13 @@ httputil is a mature, production-ready Go HTTP middleware library at v0.3.0 with
 
 ## b) PARTIALLY DONE
 
-| # | Item                                   | What's Done                                                                                     | What's Missing                                                                                                                                                                |
-| - | -------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~1~~ | ~~**Test coverage**~~ done — (wrapper_test unsupported-Hijack tests) | ~~91.9% total (root: 91.3%, httpspec: 96.4%)~~ | ~~Not 100%. Gaps in compression error branches (`startCompression` type mismatch, `Close` errors), CORS wildcard edge cases, `ResponseRecorder` hijack failure paths~~ |
-| 2 | **Compression content-type filtering** | Hardcoded deny-list (`image/`, `video/`, `audio/`, `application/gzip`, etc.)                    | Not configurable via `CompressionConfig` — consumers can't add/remove entries                                                                                                 |
-| 3 | **Lint compliance**                    | `httpspec` subpackage: 0 issues. ~67 of 70 linters fully clean across root.                     | 3 pre-existing `makezero` warnings in root: `id_generator.go:85`, `id_generator_test.go:126`, `recorder.go:44` — all `make([]T, n)` calls that linter wants `make([]T, 0, n)` |
-| 4 | **Documentation freshness**            | AGENTS.md updated for httpspec this session                                                     | FEATURES.md and TODO_LIST.md not yet updated to mention `httpspec` subpackage                                                                                                 |
-| 5 | **Uncommitted working tree**           | `.gitignore` (buildflow-managed), `flake.lock` (nixpkgs bump), formatting fixes in 3 test files | These changes are sitting unstaged — need commit                                                                                                                              |
+| #     | Item                                                                 | What's Done                                                                                     | What's Missing                                                                                                                                                                |
+| ----- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~1~~ | ~~**Test coverage**~~ done — (wrapper_test unsupported-Hijack tests) | ~~91.9% total (root: 91.3%, httpspec: 96.4%)~~                                                  | ~~Not 100%. Gaps in compression error branches (`startCompression` type mismatch, `Close` errors), CORS wildcard edge cases, `ResponseRecorder` hijack failure paths~~        |
+| 2     | **Compression content-type filtering**                               | Hardcoded deny-list (`image/`, `video/`, `audio/`, `application/gzip`, etc.)                    | Not configurable via `CompressionConfig` — consumers can't add/remove entries                                                                                                 |
+| 3     | **Lint compliance**                                                  | `httpspec` subpackage: 0 issues. ~67 of 70 linters fully clean across root.                     | 3 pre-existing `makezero` warnings in root: `id_generator.go:85`, `id_generator_test.go:126`, `recorder.go:44` — all `make([]T, n)` calls that linter wants `make([]T, 0, n)` |
+| 4     | **Documentation freshness**                                          | AGENTS.md updated for httpspec this session                                                     | FEATURES.md and TODO_LIST.md not yet updated to mention `httpspec` subpackage                                                                                                 |
+| 5     | **Uncommitted working tree**                                         | `.gitignore` (buildflow-managed), `flake.lock` (nixpkgs bump), formatting fixes in 3 test files | These changes are sitting unstaged — need commit                                                                                                                              |
 
 ---
 
@@ -111,33 +111,33 @@ httputil is a mature, production-ready Go HTTP middleware library at v0.3.0 with
 
 ## f) Top 25 Things to Do Next
 
-| #  | Task                                                                          | Impact   | Effort  | Category    |
-| -- | ----------------------------------------------------------------------------- | -------- | ------- | ----------- |
-| 1  | Fix 3 `makezero` lint warnings (nolint or refactor)                           | Critical | 15 min  | Bug fix     |
-| 2  | Update AGENTS.md "Pre-Existing Lint Warnings" section (it says 0, actually 3) | Critical | 5 min   | Docs        |
-| 3  | Update FEATURES.md to include httpspec subpackage                             | High     | 15 min  | Docs        |
-| 4  | Update TODO_LIST.md to include httpspec and mark completed items              | High     | 15 min  | Docs        |
-| 5  | Add httpspec section to README.md                                             | High     | 20 min  | Docs        |
-| 6  | Commit uncommitted working tree (flake.lock, .gitignore, formatting)          | High     | 10 min  | Maintenance |
-| 7  | Add `ExpectHeader(method, path, header, value) Check` helper to httpspec      | High     | 15 min  | Feature     |
-| 8  | Add `ExpectBodyContains(method, path, substring) Check` helper                | Medium   | 15 min  | Feature     |
-| 9  | Add CHANGELOG entry for httpspec subpackage                                   | High     | 10 min  | Docs        |
-| 10 | Expand httpspec leak pattern coverage                                         | Medium   | 10 min  | Improvement |
-| 11 | Make content-type filtering configurable in CompressionConfig                 | Medium   | 30 min  | Feature     |
-| 12 | Add `MiddlewareStack` type with ordering validation                           | Medium   | 45 min  | Feature     |
-| 13 | Add `ResponseWriter` capability interface for Hijack/Flush                    | Medium   | 30 min  | Refactor    |
-| 14 | Tag v0.4.0 release (includes httpspec)                                        | Medium   | 10 min  | Release     |
-| 15 | Add httpspec example to doc.go or example_test.go                             | Medium   | 15 min  | Docs        |
-| 16 | Improve compression error branch test coverage                                | Medium   | 30 min  | Testing     |
-| 17 | Add CORS wildcard edge case tests                                             | Low      | 20 min  | Testing     |
-| 18 | Add `httpspec.WithMaxBodySize` option to validate response sizes              | Low      | 20 min  | Feature     |
-| ~~19~~ | ~~Write brotli/zstd WriterFactory examples in a separate docs/examples dir~~ done — (example_test + brotli-zstd guide) | ~~Low~~ | ~~30 min~~ | ~~Docs~~ |
-| 20 | Evaluate streaming ETag with rolling hash                                     | Low      | 2 hours | Research    |
-| 21 | Consider rate-limiting middleware                                             | Low      | 2 hours | Feature     |
-| 22 | Consider request body size limit middleware                                   | Low      | 1 hour  | Feature     |
-| 23 | Consider request/response metrics middleware                                  | Low      | 2 hours | Feature     |
-| 24 | Add `httpspec` integration test against real `httptest.Server`                | Low      | 30 min  | Testing     |
-| 25 | Update docs/status reports index (if one exists)                              | Low      | 5 min   | Docs        |
+| #      | Task                                                                                                                   | Impact   | Effort     | Category    |
+| ------ | ---------------------------------------------------------------------------------------------------------------------- | -------- | ---------- | ----------- |
+| 1      | Fix 3 `makezero` lint warnings (nolint or refactor)                                                                    | Critical | 15 min     | Bug fix     |
+| 2      | Update AGENTS.md "Pre-Existing Lint Warnings" section (it says 0, actually 3)                                          | Critical | 5 min      | Docs        |
+| 3      | Update FEATURES.md to include httpspec subpackage                                                                      | High     | 15 min     | Docs        |
+| 4      | Update TODO_LIST.md to include httpspec and mark completed items                                                       | High     | 15 min     | Docs        |
+| 5      | Add httpspec section to README.md                                                                                      | High     | 20 min     | Docs        |
+| 6      | Commit uncommitted working tree (flake.lock, .gitignore, formatting)                                                   | High     | 10 min     | Maintenance |
+| 7      | Add `ExpectHeader(method, path, header, value) Check` helper to httpspec                                               | High     | 15 min     | Feature     |
+| 8      | Add `ExpectBodyContains(method, path, substring) Check` helper                                                         | Medium   | 15 min     | Feature     |
+| 9      | Add CHANGELOG entry for httpspec subpackage                                                                            | High     | 10 min     | Docs        |
+| 10     | Expand httpspec leak pattern coverage                                                                                  | Medium   | 10 min     | Improvement |
+| 11     | Make content-type filtering configurable in CompressionConfig                                                          | Medium   | 30 min     | Feature     |
+| 12     | Add `MiddlewareStack` type with ordering validation                                                                    | Medium   | 45 min     | Feature     |
+| 13     | Add `ResponseWriter` capability interface for Hijack/Flush                                                             | Medium   | 30 min     | Refactor    |
+| 14     | Tag v0.4.0 release (includes httpspec)                                                                                 | Medium   | 10 min     | Release     |
+| 15     | Add httpspec example to doc.go or example_test.go                                                                      | Medium   | 15 min     | Docs        |
+| 16     | Improve compression error branch test coverage                                                                         | Medium   | 30 min     | Testing     |
+| 17     | Add CORS wildcard edge case tests                                                                                      | Low      | 20 min     | Testing     |
+| 18     | Add `httpspec.WithMaxBodySize` option to validate response sizes                                                       | Low      | 20 min     | Feature     |
+| ~~19~~ | ~~Write brotli/zstd WriterFactory examples in a separate docs/examples dir~~ done — (example_test + brotli-zstd guide) | ~~Low~~  | ~~30 min~~ | ~~Docs~~    |
+| 20     | Evaluate streaming ETag with rolling hash                                                                              | Low      | 2 hours    | Research    |
+| 21     | Consider rate-limiting middleware                                                                                      | Low      | 2 hours    | Feature     |
+| 22     | Consider request body size limit middleware                                                                            | Low      | 1 hour     | Feature     |
+| 23     | Consider request/response metrics middleware                                                                           | Low      | 2 hours    | Feature     |
+| 24     | Add `httpspec` integration test against real `httptest.Server`                                                         | Low      | 30 min     | Testing     |
+| 25     | Update docs/status reports index (if one exists)                                                                       | Low      | 5 min      | Docs        |
 
 ---
 

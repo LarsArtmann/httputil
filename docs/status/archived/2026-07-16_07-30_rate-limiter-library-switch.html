@@ -29,14 +29,14 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -240,15 +240,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -259,15 +271,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -445,11 +469,12 @@
           <div class="hero-badge">Session Snapshot</div>
           <h1>Rate Limiter Library Switch</h1>
           <p class="hero-subtitle">
-            Replaced the hand-rolled token bucket in <code>ratelimit.go</code> with
-            <code>golang.org/x/time/rate</code>. Tests and lint pass. Two structural problems
-            surfaced during the run: the repo is currently unbuildable without
-            <code>GOEXPERIMENT=jsonv2</code>, and <code>flake.lock</code> was modified outside this
-            session.
+            Replaced the hand-rolled token bucket in
+            <code>ratelimit.go</code> with <code>golang.org/x/time/rate</code>.
+            Tests and lint pass. Two structural problems surfaced during the
+            run: the repo is currently unbuildable without
+            <code>GOEXPERIMENT=jsonv2</code>, and <code>flake.lock</code> was
+            modified outside this session.
           </p>
         </section>
 
@@ -484,11 +509,15 @@
           <h2><span class="num">01</span> Fully Done</h2>
 
           <div class="card card-solution">
-            <h3>Switched <code>TokenBucketLimiter</code> to <code>golang.org/x/time/rate</code></h3>
+            <h3>
+              Switched <code>TokenBucketLimiter</code> to
+              <code>golang.org/x/time/rate</code>
+            </h3>
             <p>
-              Each key now owns a <code>*rate.Limiter</code>. Idle-bucket eviction and the
-              <code>now</code> clock injection for deterministic tests are preserved. The internal
-              bucket type is gone; token-refill math is now the library's responsibility.
+              Each key now owns a <code>*rate.Limiter</code>. Idle-bucket
+              eviction and the <code>now</code> clock injection for
+              deterministic tests are preserved. The internal bucket type is
+              gone; token-refill math is now the library's responsibility.
             </p>
           </div>
 
@@ -496,25 +525,29 @@
             <h3>Added dependency and updated policy</h3>
             <p>
               <code>go.mod</code> and <code>go.sum</code> now include
-              <code>golang.org/x/time v0.15.0</code>. <code>.golangci.yml</code> depguard was
-              updated to allow it. <code>AGENTS.md</code> documents the new allowed dependency.
+              <code>golang.org/x/time v0.15.0</code>.
+              <code>.golangci.yml</code> depguard was updated to allow it.
+              <code>AGENTS.md</code> documents the new allowed dependency.
             </p>
           </div>
 
           <div class="card card-solution">
             <h3>API alignment</h3>
             <p>
-              <code>NewTokenBucketLimiter(rate float64, burst int)</code> now matches
-              <code>rate.NewLimiter(r Limit, b int)</code>. Tokens are discrete, so
-              <code>burst</code> being an <code>int</code> is the correct type.
+              <code>NewTokenBucketLimiter(rate float64, burst int)</code> now
+              matches <code>rate.NewLimiter(r Limit, b int)</code>. Tokens are
+              discrete, so <code>burst</code> being an <code>int</code> is the
+              correct type.
             </p>
           </div>
 
           <div class="card card-solution">
             <h3>Tests and lint pass</h3>
             <p>
-              <code>GOEXPERIMENT=jsonv2 go test ./... -race -count=1</code> passes.
-              <code>GOEXPERIMENT=jsonv2 golangci-lint run ./...</code> reports 0 issues.
+              <code>GOEXPERIMENT=jsonv2 go test ./... -race -count=1</code>
+              passes.
+              <code>GOEXPERIMENT=jsonv2 golangci-lint run ./...</code> reports 0
+              issues.
             </p>
           </div>
         </section>
@@ -526,22 +559,25 @@
             <h3>Test environment is not self-documenting</h3>
             <p>
               The <code>AGENTS.md</code> Commands section still lists plain
-              <code>go test ./...</code> and <code>golangci-lint run</code>, but both now require
-              <code>GOEXPERIMENT=jsonv2</code> to work because <code>health.go</code> imports
-              <code>encoding/json/v2</code>. A new contributor following the documented commands
-              will hit a build failure immediately.
+              <code>go test ./...</code> and <code>golangci-lint run</code>, but
+              both now require <code>GOEXPERIMENT=jsonv2</code> to work because
+              <code>health.go</code> imports <code>encoding/json/v2</code>. A
+              new contributor following the documented commands will hit a build
+              failure immediately.
             </p>
             <div class="callout callout-warning">
-              <strong>Fix:</strong> update the Commands block in <code>AGENTS.md</code> to prefix
-              every Go command with <code>GOEXPERIMENT=jsonv2</code>.
+              <strong>Fix:</strong> update the Commands block in
+              <code>AGENTS.md</code> to prefix every Go command with
+              <code>GOEXPERIMENT=jsonv2</code>.
             </div>
           </div>
 
           <div class="card card-warning">
             <h3>Status report not committed</h3>
             <p>
-              The skill says to commit the report, but the user explicitly said to wait for
-              instructions after writing it. This report is therefore written but uncommitted.
+              The skill says to commit the report, but the user explicitly said
+              to wait for instructions after writing it. This report is
+              therefore written but uncommitted.
             </p>
           </div>
         </section>
@@ -553,13 +589,25 @@
             <h3>Items from this session that were not touched</h3>
             <ul>
               <li>Committing the rate-limiter changes.</li>
-              <li>Updating <code>CHANGELOG.md</code> with the breaking API change.</li>
-              <li>Updating <code>TODO_LIST.md</code> if there are open rate-limiter items.</li>
-              <li>Adding a benchmark comparing the old and new <code>TokenBucketLimiter</code>.</li>
               <li>
-                Adding a usage example or updating <code>README.md</code> for the new signature.
+                Updating <code>CHANGELOG.md</code> with the breaking API change.
               </li>
-              <li>Adding a distributed / Redis-backed <code>RateLimiter</code> example.</li>
+              <li>
+                Updating <code>TODO_LIST.md</code> if there are open
+                rate-limiter items.
+              </li>
+              <li>
+                Adding a benchmark comparing the old and new
+                <code>TokenBucketLimiter</code>.
+              </li>
+              <li>
+                Adding a usage example or updating <code>README.md</code> for
+                the new signature.
+              </li>
+              <li>
+                Adding a distributed / Redis-backed
+                <code>RateLimiter</code> example.
+              </li>
             </ul>
           </div>
         </section>
@@ -572,29 +620,35 @@
             <h3>Build is broken without <code>GOEXPERIMENT=jsonv2</code></h3>
             <div class="where">health.go — encoding/json/v2</div>
             <p>
-              Running <code>go test ./...</code> without <code>GOEXPERIMENT=jsonv2</code> fails
-              with:
+              Running <code>go test ./...</code> without
+              <code>GOEXPERIMENT=jsonv2</code> fails with:
             </p>
-            <pre>imports encoding/json/v2: build constraints exclude all Go files</pre>
+            <pre>
+imports encoding/json/v2: build constraints exclude all Go files</pre>
             <p>
-              The recent commit <code>f616f9f</code> added <code>GOEXPERIMENT=jsonv2</code>, but the
-              flake provides Go 1.26.4, which appears to lack the experiment files. This is a hard
+              The recent commit <code>f616f9f</code> added
+              <code>GOEXPERIMENT=jsonv2</code>, but the flake provides Go
+              1.26.4, which appears to lack the experiment files. This is a hard
               blocker for any contributor not in the exact nix environment.
             </p>
             <div class="callout callout-warning">
-              <strong>Fix:</strong> either pin Go 1.27+ in <code>flake.nix</code> (if jsonv2 is
-              available there) or downgrade <code>health.go</code> to <code>encoding/json</code> v1.
+              <strong>Fix:</strong> either pin Go 1.27+ in
+              <code>flake.nix</code> (if jsonv2 is available there) or downgrade
+              <code>health.go</code> to <code>encoding/json</code> v1.
             </div>
           </div>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical</span>
             <h3><code>health.go</code> uses Go 1.27-only API on Go 1.26</h3>
-            <div class="where">health.go:30,61,69 — gopls stdversion warnings</div>
+            <div class="where">
+              health.go:30,61,69 — gopls stdversion warnings
+            </div>
             <p>
-              <code>json.MarshalWrite</code> requires Go 1.27 or later, but the module declares
-              <code>go 1.26.4</code> and the flake installs <code>go_1_26</code>. This is a version
-              mismatch independent of the experiment flag.
+              <code>json.MarshalWrite</code> requires Go 1.27 or later, but the
+              module declares <code>go 1.26.4</code> and the flake installs
+              <code>go_1_26</code>. This is a version mismatch independent of
+              the experiment flag.
             </p>
           </div>
 
@@ -603,10 +657,11 @@
             <h3><code>flake.lock</code> was modified outside this session</h3>
             <div class="where">flake.lock</div>
             <p>
-              <code>git status</code> shows <code>flake.lock</code> as modified with a nixpkgs bump
-              from <code>0bb7ec54</code> to <code>18b9261c</code>. I did not run any nix command. It
-              may have been pre-existing or updated by the environment, but it is currently
-              uncommitted and unexplained.
+              <code>git status</code> shows <code>flake.lock</code> as modified
+              with a nixpkgs bump from <code>0bb7ec54</code> to
+              <code>18b9261c</code>. I did not run any nix command. It may have
+              been pre-existing or updated by the environment, but it is
+              currently uncommitted and unexplained.
             </p>
           </div>
         </section>
@@ -617,26 +672,30 @@
           <div class="issue issue-nice">
             <h3>1. Make build commands reproducible without magic env vars</h3>
             <p>
-              If <code>GOEXPERIMENT=jsonv2</code> is required, it should be encoded in the flake
-              devShell or in a <code>GOEXPERIMENT</code> wrapper, not rely on users remembering it.
+              If <code>GOEXPERIMENT=jsonv2</code> is required, it should be
+              encoded in the flake devShell or in a
+              <code>GOEXPERIMENT</code> wrapper, not rely on users remembering
+              it.
             </p>
           </div>
 
           <div class="issue issue-nice">
             <h3>2. Add deterministic benchmark for the rate limiter</h3>
             <p>
-              We now rely on an external library. A benchmark would prove the switch was a net win
-              and guard against regressions in future dependency updates.
+              We now rely on an external library. A benchmark would prove the
+              switch was a net win and guard against regressions in future
+              dependency updates.
             </p>
           </div>
 
           <div class="issue issue-nice">
             <h3>3. Expose richer rate-limit primitives</h3>
             <p>
-              <code>rate.Limiter</code> supports <code>AllowN</code>, <code>Reserve</code>, and
-              <code>Wait</code>. The current <code>RateLimiter</code> interface only allows one
-              token at a time. Consider extending the interface or adding a separate advanced
-              limiter for consumers who need burst > 1 per request.
+              <code>rate.Limiter</code> supports <code>AllowN</code>,
+              <code>Reserve</code>, and <code>Wait</code>. The current
+              <code>RateLimiter</code> interface only allows one token at a
+              time. Consider extending the interface or adding a separate
+              advanced limiter for consumers who need burst > 1 per request.
             </p>
           </div>
 
@@ -644,25 +703,35 @@
             <h3>4. Document the breaking API change</h3>
             <p>
               <code>NewTokenBucketLimiter</code>'s second parameter changed from
-              <code>float64</code> to <code>int</code>. This needs a CHANGELOG entry and possibly a
-              migration note in the README.
+              <code>float64</code> to <code>int</code>. This needs a CHANGELOG
+              entry and possibly a migration note in the README.
             </p>
           </div>
 
           <div class="issue issue-nice">
             <h3>5. Audit for other hand-rolled algorithms</h3>
             <p>
-              The project is now more open to stdlib-adjacent dependencies. Other middlewares may
-              have custom parsing or state machines that could be replaced by well-tested libraries
-              (e.g., q-value parsing, compression negotiation).
+              The project is now more open to stdlib-adjacent dependencies.
+              Other middlewares may have custom parsing or state machines that
+              could be replaced by well-tested libraries (e.g., q-value parsing,
+              compression negotiation).
             </p>
           </div>
         </section>
 
         <section id="next">
-          <h2><span class="num">06</span> Up to 50 Things We Should Get Done Next</h2>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem">
-            Sorted roughly by impact: unblock contributors first, then harden, then extend.
+          <h2>
+            <span class="num">06</span> Up to 50 Things We Should Get Done Next
+          </h2>
+          <p
+            style="
+              color: var(--text-muted);
+              font-size: 0.9rem;
+              margin-bottom: 1rem;
+            "
+          >
+            Sorted roughly by impact: unblock contributors first, then harden,
+            then extend.
           </p>
 
           <div class="table-wrap">
@@ -687,13 +756,19 @@
                 </tr>
                 <tr>
                   <td>2</td>
-                  <td>Document or automate <code>GOEXPERIMENT=jsonv2</code> requirement</td>
+                  <td>
+                    Document or automate
+                    <code>GOEXPERIMENT=jsonv2</code> requirement
+                  </td>
                   <td><span class="badge badge-critical">Critical</span></td>
                   <td><span class="badge badge-critical">Open</span></td>
                 </tr>
                 <tr>
                   <td>3</td>
-                  <td>Investigate and explain the uncommitted <code>flake.lock</code> diff</td>
+                  <td>
+                    Investigate and explain the uncommitted
+                    <code>flake.lock</code> diff
+                  </td>
                   <td><span class="badge badge-high">High</span></td>
                   <td><span class="badge badge-high">Open</span></td>
                 </tr>
@@ -705,7 +780,10 @@
                 </tr>
                 <tr>
                   <td>5</td>
-                  <td>Update <code>CHANGELOG.md</code> with the breaking signature change</td>
+                  <td>
+                    Update <code>CHANGELOG.md</code> with the breaking signature
+                    change
+                  </td>
                   <td><span class="badge badge-high">High</span></td>
                   <td><span class="badge badge-high">Open</span></td>
                 </tr>
@@ -723,14 +801,18 @@
                 </tr>
                 <tr>
                   <td>8</td>
-                  <td>Add usage example to <code>README.md</code> or package examples</td>
+                  <td>
+                    Add usage example to <code>README.md</code> or package
+                    examples
+                  </td>
                   <td><span class="badge badge-medium">Medium</span></td>
                   <td><span class="badge badge-medium">Open</span></td>
                 </tr>
                 <tr>
                   <td>9</td>
                   <td>
-                    Evaluate exposing <code>AllowN</code> on the <code>RateLimiter</code> interface
+                    Evaluate exposing <code>AllowN</code> on the
+                    <code>RateLimiter</code> interface
                   </td>
                   <td><span class="badge badge-medium">Medium</span></td>
                   <td><span class="badge badge-medium">Open</span></td>
@@ -752,32 +834,43 @@
                 </tr>
                 <tr>
                   <td>12</td>
-                  <td>Review and update <code>TODO_LIST.md</code> for rate-limiter items</td>
+                  <td>
+                    Review and update <code>TODO_LIST.md</code> for rate-limiter
+                    items
+                  </td>
                   <td><span class="badge badge-medium">Medium</span></td>
                   <td><span class="badge badge-medium">Open</span></td>
                 </tr>
                 <tr>
                   <td>13</td>
-                  <td>Run the full code-quality scan skill on the current state</td>
+                  <td>
+                    Run the full code-quality scan skill on the current state
+                  </td>
                   <td><span class="badge badge-medium">Medium</span></td>
                   <td><span class="badge badge-medium">Open</span></td>
                 </tr>
                 <tr>
                   <td>14</td>
-                  <td>Run architecture-review skill on middleware boundaries</td>
+                  <td>
+                    Run architecture-review skill on middleware boundaries
+                  </td>
                   <td><span class="badge badge-medium">Medium</span></td>
                   <td><span class="badge badge-medium">Open</span></td>
                 </tr>
                 <tr>
                   <td>15</td>
-                  <td>Audit other custom parsers for stdlib-equivalent replacements</td>
+                  <td>
+                    Audit other custom parsers for stdlib-equivalent
+                    replacements
+                  </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
                 </tr>
                 <tr>
                   <td>16</td>
                   <td>
-                    Add test for <code>Allow</code> behavior across many keys (memory pressure)
+                    Add test for <code>Allow</code> behavior across many keys
+                    (memory pressure)
                   </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
@@ -791,14 +884,17 @@
                 <tr>
                   <td>18</td>
                   <td>
-                    Evaluate whether <code>rate.Inf</code> should be exposed for unlimited paths
+                    Evaluate whether <code>rate.Inf</code> should be exposed for
+                    unlimited paths
                   </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
                 </tr>
                 <tr>
                   <td>19</td>
-                  <td>Ensure CI uses the same Go/nixpkgs versions as the flake</td>
+                  <td>
+                    Ensure CI uses the same Go/nixpkgs versions as the flake
+                  </td>
                   <td><span class="badge badge-medium">Medium</span></td>
                   <td><span class="badge badge-medium">Open</span></td>
                 </tr>
@@ -811,34 +907,44 @@
                 <tr>
                   <td>21</td>
                   <td>
-                    Add test for zero <code>EvictionTTL</code> (no eviction) with deterministic time
+                    Add test for zero <code>EvictionTTL</code> (no eviction)
+                    with deterministic time
                   </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
                 </tr>
                 <tr>
                   <td>22</td>
-                  <td>Verify the <code>golang.org/x/time</code> transitive dependency tree</td>
+                  <td>
+                    Verify the <code>golang.org/x/time</code> transitive
+                    dependency tree
+                  </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
                 </tr>
                 <tr>
                   <td>23</td>
                   <td>
-                    Update nix apps to set <code>GOEXPERIMENT=jsonv2</code> if it remains required
+                    Update nix apps to set <code>GOEXPERIMENT=jsonv2</code> if
+                    it remains required
                   </td>
                   <td><span class="badge badge-high">High</span></td>
                   <td><span class="badge badge-high">Open</span></td>
                 </tr>
                 <tr>
                   <td>24</td>
-                  <td>Consider vendoring or pinning the exact Go toolchain in the flake</td>
+                  <td>
+                    Consider vendoring or pinning the exact Go toolchain in the
+                    flake
+                  </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
                 </tr>
                 <tr>
                   <td>25</td>
-                  <td>Schedule a naming-review pass for the rate-limiter symbols</td>
+                  <td>
+                    Schedule a naming-review pass for the rate-limiter symbols
+                  </td>
                   <td><span class="badge badge-low">Low</span></td>
                   <td><span class="badge badge-low">Open</span></td>
                 </tr>
@@ -848,7 +954,10 @@
         </section>
 
         <section id="questions">
-          <h2><span class="num">07</span> Top 2 Questions I Cannot Figure Out Myself</h2>
+          <h2>
+            <span class="num">07</span> Top 2 Questions I Cannot Figure Out
+            Myself
+          </h2>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Question 1</span>
@@ -856,10 +965,11 @@
             <p>
               <code>git diff</code> shows nixpkgs was bumped from
               <code>0bb7ec54c8483066ec9d7720e780a5caa71f8612</code> to
-              <code>18b9261cb3294b6d2a06d03f96872827b8fe2698</code>. I did not run
-              <code>nix flake update</code> or any nix command. Was this done by another agent, by
-              the environment, or was it pre-existing from before the session snapshot? Should it be
-              committed, reverted, or left alone?
+              <code>18b9261cb3294b6d2a06d03f96872827b8fe2698</code>. I did not
+              run <code>nix flake update</code> or any nix command. Was this
+              done by another agent, by the environment, or was it pre-existing
+              from before the session snapshot? Should it be committed,
+              reverted, or left alone?
             </p>
           </div>
 
@@ -867,25 +977,30 @@
             <span class="severity severity-critical">Question 2</span>
             <h3>Should we upgrade Go or downgrade <code>health.go</code>?</h3>
             <p>
-              <code>health.go</code> uses <code>json.MarshalWrite</code> (Go 1.27+), but the flake
-              pins Go 1.26.4. The intended fix is unclear: is the project committed to jsonv2 and
-              should therefore move to Go 1.27+, or is the flake the source of truth and
-              <code>health.go</code> should be reverted to <code>encoding/json</code> v1?
+              <code>health.go</code> uses <code>json.MarshalWrite</code> (Go
+              1.27+), but the flake pins Go 1.26.4. The intended fix is unclear:
+              is the project committed to jsonv2 and should therefore move to Go
+              1.27+, or is the flake the source of truth and
+              <code>health.go</code> should be reverted to
+              <code>encoding/json</code> v1?
             </p>
           </div>
         </section>
 
         <div class="footer">
           <p>
-            Report generated from session on <strong>2026-07-16 07:30 CEST</strong>. Based on the
-            current working tree and the run of tests/lint performed during this session. Does not
-            include external research.
+            Report generated from session on
+            <strong>2026-07-16 07:30 CEST</strong>. Based on the current working
+            tree and the run of tests/lint performed during this session. Does
+            not include external research.
           </p>
           <p>
-            <strong>Update 2026-07-22:</strong> The rate-limiter switch was committed
-            (<code>4ce4fdf</code>) and <code>flake.lock</code> was committed (<code>32528ff</code>).
-            The two build issues (GOEXPERIMENT=jsonv2 requirement, Go 1.27 API on Go 1.26) remain
-            unresolved. CHANGELOG and TODO_LIST are still not updated for this change.
+            <strong>Update 2026-07-22:</strong> The rate-limiter switch was
+            committed (<code>4ce4fdf</code>) and <code>flake.lock</code> was
+            committed (<code>32528ff</code>). The two build issues
+            (GOEXPERIMENT=jsonv2 requirement, Go 1.27 API on Go 1.26) remain
+            unresolved. CHANGELOG and TODO_LIST are still not updated for this
+            change.
           </p>
           <p
             class="callout callout-success"
@@ -897,11 +1012,13 @@
               border-left: 4px solid #28a745;
             "
           >
-            <strong>Final Resolution (2026-07-26, v0.6.1):</strong> All build issues are now
-            <strong>fully resolved</strong>. <code>health.go</code> was reverted from
-            <code>encoding/json/v2</code> to <code>encoding/json</code> v1, eliminating the
-            <code>GOEXPERIMENT=jsonv2</code> requirement entirely. The workaround was removed from
-            <code>flake.nix</code>, CI, and all docs. Plain <code>go build ./...</code> and
+            <strong>Final Resolution (2026-07-26, v0.6.1):</strong> All build
+            issues are now <strong>fully resolved</strong>.
+            <code>health.go</code> was reverted from
+            <code>encoding/json/v2</code> to <code>encoding/json</code> v1,
+            eliminating the <code>GOEXPERIMENT=jsonv2</code> requirement
+            entirely. The workaround was removed from <code>flake.nix</code>,
+            CI, and all docs. Plain <code>go build ./...</code> and
             <code>go get</code> now work without any experiment flag.
           </p>
         </div>

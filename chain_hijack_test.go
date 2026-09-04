@@ -85,7 +85,7 @@ func TestChain_HijackUpgrade_ResponseType(t *testing.T) {
 			return
 		}
 
-		defer conn.Close() //nolint:errcheck // best-effort cleanup of the hijacked connection
+		defer conn.Close()
 		_ = conn.SetDeadline(time.Now().Add(hijackTestTimeout))
 
 		_, _ = bufRW.WriteString(upgradeHandshake)
@@ -119,7 +119,10 @@ func TestChain_HijackUpgrade_ResponseType(t *testing.T) {
 	}
 
 	if got := resp.Header.Get("Content-Encoding"); got != "" {
-		t.Errorf("Content-Encoding = %q, want empty (upgrade responses must not be compressed)", got)
+		t.Errorf(
+			"Content-Encoding = %q, want empty (upgrade responses must not be compressed)",
+			got,
+		)
 	}
 
 	if got := resp.Header.Get("ETag"); got != "" {
@@ -148,7 +151,7 @@ func TestChain_HijackUpgrade_BytesFlowThroughHijackedConn(t *testing.T) {
 			return
 		}
 
-		defer conn.Close() //nolint:errcheck // best-effort cleanup of the hijacked connection
+		defer conn.Close()
 		_ = conn.SetDeadline(time.Now().Add(hijackTestTimeout))
 
 		if _, err := bufRW.WriteString(upgradeHandshake); err != nil {
@@ -159,7 +162,10 @@ func TestChain_HijackUpgrade_BytesFlowThroughHijackedConn(t *testing.T) {
 			return
 		}
 
-		echo := make([]byte, len(hijackEchoPayload)) //nolint:makezero // filled via io.ReadFull below
+		echo := make(
+			[]byte,
+			len(hijackEchoPayload),
+		)
 
 		if _, err := io.ReadFull(bufRW, echo); err != nil {
 			return
@@ -180,7 +186,12 @@ func TestChain_HijackUpgrade_BytesFlowThroughHijackedConn(t *testing.T) {
 	// transport consumes the body (otherwise it blocks forever on Write).
 	t.Cleanup(func() { _ = bodyWriter.Close() })
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, srv.URL, bodyReader)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		srv.URL,
+		bodyReader,
+	)
 	if err != nil {
 		t.Fatalf("new request: %v", err)
 	}

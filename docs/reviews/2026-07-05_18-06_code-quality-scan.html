@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -197,15 +197,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -216,15 +228,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue .where {
         font-family: var(--font-mono);
@@ -482,9 +506,10 @@
           <div class="hero-badge">Code Quality Scan</div>
           <h1>Build · Lint · Duplication Baseline</h1>
           <p class="hero-subtitle">
-            A point-in-time scan of the httputil codebase: ~70 golangci-lint linters, go vet, go
-            build, the test suite (93.4% coverage at time of scan), and duplicate-code detection via
-            the enabled <code>dupl</code> linter.
+            A point-in-time scan of the httputil codebase: ~70 golangci-lint
+            linters, go vet, go build, the test suite (93.4% coverage at time of
+            scan), and duplicate-code detection via the enabled
+            <code>dupl</code> linter.
           </p>
         </div>
 
@@ -525,9 +550,10 @@
             font-size: 0.9em;
           "
         >
-          <strong>Correction (2026-07-22):</strong> Coverage (93.4%) is point-in-time as of
-          2026-07-05 and may differ now. Dependencies increased from 1 to 2 (added
-          <code>golang.org/x/time</code> v0.15.0 for rate limiting).
+          <strong>Correction (2026-07-22):</strong> Coverage (93.4%) is
+          point-in-time as of 2026-07-05 and may differ now. Dependencies
+          increased from 1 to 2 (added <code>golang.org/x/time</code> v0.15.0
+          for rate limiting).
         </p>
 
         <h2 id="gate"><span class="num">01</span>Quality Gate Results</h2>
@@ -580,10 +606,11 @@
           </table>
         </div>
         <p>
-          The AGENTS.md claim of "0 active warnings" was <strong>stale</strong>: a gosec G705
-          finding was active. It is now resolved (see Fixed). The authoritative gate is
-          <code>golangci-lint run</code>; <code>go vet</code> alone is insufficient (it misses ~69
-          of the enabled linters).
+          The AGENTS.md claim of "0 active warnings" was <strong>stale</strong>:
+          a gosec G705 finding was active. It is now resolved (see Fixed). The
+          authoritative gate is <code>golangci-lint run</code>;
+          <code>go vet</code> alone is insufficient (it misses ~69 of the
+          enabled linters).
         </p>
 
         <h2 id="fixed"><span class="num">02</span>Fixed on the Spot</h2>
@@ -591,22 +618,28 @@
         <div class="issue issue-critical">
           <span class="severity severity-critical">Critical · Fixed</span>
           <h3>gosec G705 firing on response-body writes</h3>
-          <div class="where">compress_writer.go:167 · etag.go:258 · .golangci.yml</div>
+          <div class="where">
+            compress_writer.go:167 · etag.go:258 · .golangci.yml
+          </div>
           <p>
-            The only lint failure: gosec G705 ("XSS via taint analysis") fired on
-            <code>ResponseWriter.Write(w.buf)</code>. A prior fix attempt left a malformed comment
-            fragment (<code>// in an XSS context);</code>) that was a plain comment, not a
-            <code>//nolint</code> directive. Per-site directives proved fragile —
-            <code>nolintlint</code> flagged them as "unused" because gosec taint analysis is
-            non-deterministic across cache states.
+            The only lint failure: gosec G705 ("XSS via taint analysis") fired
+            on
+            <code>ResponseWriter.Write(w.buf)</code>. A prior fix attempt left a
+            malformed comment fragment (<code>// in an XSS context);</code>)
+            that was a plain comment, not a <code>//nolint</code> directive.
+            Per-site directives proved fragile — <code>nolintlint</code> flagged
+            them as "unused" because gosec taint analysis is non-deterministic
+            across cache states.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix applied:</strong> Excluded G705 globally in <code>.golangci.yml</code> gosec
-            settings (justified: this is a response-<em>writing</em> library — every
-            <code>ResponseWriter.Write</code> is intentional output, never unsanitized HTML
-            rendering), and removed the 3 fragile per-site <code>//nolint:gosec</code> directives
-            from <code>compress_writer.go</code> and <code>etag.go</code>. Result: 0 issues,
-            robustly.
+            <strong>Fix applied:</strong> Excluded G705 globally in
+            <code>.golangci.yml</code> gosec settings (justified: this is a
+            response-<em>writing</em> library — every
+            <code>ResponseWriter.Write</code> is intentional output, never
+            unsanitized HTML rendering), and removed the 3 fragile per-site
+            <code>//nolint:gosec</code> directives from
+            <code>compress_writer.go</code> and <code>etag.go</code>. Result: 0
+            issues, robustly.
           </div>
         </div>
 
@@ -616,14 +649,16 @@
           <div class="where">compression_qvalue.go:157 (indexByte)</div>
           <p>
             A local <code>indexByte</code> function reimplemented
-            <code>strings.IndexByte</code> with a stale comment claiming "to avoid the import" — but
-            <code>strings</code> was already imported and used. The <code>modernize</code> linter
-            then flagged the call site for <code>strings.Cut</code>.
+            <code>strings.IndexByte</code> with a stale comment claiming "to
+            avoid the import" — but <code>strings</code> was already imported
+            and used. The <code>modernize</code> linter then flagged the call
+            site for <code>strings.Cut</code>.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix applied:</strong> Removed the local <code>indexByte</code>; rewrote
-            <code>parseEncodingEntry</code> to use <code>strings.Cut(entry, ";")</code>, which is
-            both clearer and faster (assembly-backed). Fewer lines, no lying comment.
+            <strong>Fix applied:</strong> Removed the local
+            <code>indexByte</code>; rewrote <code>parseEncodingEntry</code> to
+            use <code>strings.Cut(entry, ";")</code>, which is both clearer and
+            faster (assembly-backed). Fewer lines, no lying comment.
           </div>
         </div>
 
@@ -632,9 +667,10 @@
           <h3>Redundant error wraps + unused imports</h3>
           <div class="where">ratelimit.go:114 · metrics.go:42</div>
           <p>
-            <code>fmt.Errorf("%w", sentinel)</code> wraps a sentinel without adding context — a
-            no-op. Replaced with direct sentinel returns (<code>return errNilRateLimiter</code>),
-            then removed the now-unused <code>"fmt"</code> imports from both files.
+            <code>fmt.Errorf("%w", sentinel)</code> wraps a sentinel without
+            adding context — a no-op. Replaced with direct sentinel returns
+            (<code>return errNilRateLimiter</code>), then removed the now-unused
+            <code>"fmt"</code> imports from both files.
             <code>errors.Is</code> still works identically.
           </p>
         </div>
@@ -644,18 +680,22 @@
           <h3>Inaccurate / misleading comments</h3>
           <div class="where">compression_negotiator.go:77 · health.go:40</div>
           <p>
-            <code>nameOffset</code> claimed to order "alphabetically" — it interprets bytes as a
-            base-256 number (only equal-length names sort alphabetically). Comment corrected to
-            describe actual behavior. <code>ReadyHandler</code> doc said "Override with a custom
-            handler" but the API accepts none — corrected to tell the user to register their own
-            handler instead.
+            <code>nameOffset</code> claimed to order "alphabetically" — it
+            interprets bytes as a base-256 number (only equal-length names sort
+            alphabetically). Comment corrected to describe actual behavior.
+            <code>ReadyHandler</code> doc said "Override with a custom handler"
+            but the API accepts none — corrected to tell the user to register
+            their own handler instead.
           </p>
         </div>
 
-        <h2 id="open"><span class="num">03</span>Open Issues (documented, not auto-changed)</h2>
+        <h2 id="open">
+          <span class="num">03</span>Open Issues (documented, not auto-changed)
+        </h2>
         <p>
-          These are semantic or contract-level concerns. Changing them unilaterally would alter the
-          public API or documented behavior, so they are recorded here and in
+          These are semantic or contract-level concerns. Changing them
+          unilaterally would alter the public API or documented behavior, so
+          they are recorded here and in
           <code>TODO_LIST.md</code> for a deliberate decision.
         </p>
         <div class="table-wrap">
@@ -675,12 +715,13 @@
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>cors.go:142</td>
                 <td>
-                  <code>resolveOrigin</code> returns <code>"*"</code> for an unmatched origin even
-                  when <code>AllowAllOrigins=false</code>, bypassing the allowlist
+                  <code>resolveOrigin</code> returns <code>"*"</code> for an
+                  unmatched origin even when <code>AllowAllOrigins=false</code>,
+                  bypassing the allowlist
                 </td>
                 <td>
-                  Return empty / deny for non-matching origins (breaking, documented in
-                  DOMAIN_LANGUAGE as intentional)
+                  Return empty / deny for non-matching origins (breaking,
+                  documented in DOMAIN_LANGUAGE as intentional)
                 </td>
               </tr>
               <tr>
@@ -688,8 +729,8 @@
                 <td><span class="badge badge-high">High</span></td>
                 <td>compression.go:87</td>
                 <td>
-                  <code>CompressionConfig.QValues</code> is a dead field — declared &amp; documented
-                  but never read by the negotiator
+                  <code>CompressionConfig.QValues</code> is a dead field —
+                  declared &amp; documented but never read by the negotiator
                 </td>
                 <td>Wire it or remove it (removal is a breaking API change)</td>
               </tr>
@@ -698,23 +739,32 @@
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>compression.go:62</td>
                 <td>
-                  <code>Level</code> is decoupled from <code>WriterFactories</code> — changing
+                  <code>Level</code> is decoupled from
+                  <code>WriterFactories</code> — changing
                   <code>Level</code> alone has no effect
                 </td>
-                <td>Document the split clearly or derive factories from Level</td>
+                <td>
+                  Document the split clearly or derive factories from Level
+                </td>
               </tr>
               <tr>
                 <td>4</td>
                 <td><span class="badge badge-medium">Medium</span></td>
                 <td>etag.go:180</td>
-                <td>ETag uses CRC32 (checksum, not hash) — collision-prone, risk of false 304</td>
+                <td>
+                  ETag uses CRC32 (checksum, not hash) — collision-prone, risk
+                  of false 304
+                </td>
                 <td>Offer a stronger hash option; document the tradeoff</td>
               </tr>
               <tr>
                 <td>5</td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>ratelimit.go:46</td>
-                <td><code>NewTokenBucketLimiter</code> doesn't validate rate/burst are positive</td>
+                <td>
+                  <code>NewTokenBucketLimiter</code> doesn't validate rate/burst
+                  are positive
+                </td>
                 <td>Add validation or document</td>
               </tr>
               <tr>
@@ -729,9 +779,12 @@
                 <td><span class="badge badge-low">Low</span></td>
                 <td>requestid.go:17</td>
                 <td>
-                  <code>ForwardHeader</code> name is misleading (it's the incoming read header)
+                  <code>ForwardHeader</code> name is misleading (it's the
+                  incoming read header)
                 </td>
-                <td>Rename to <code>IncomingHeader</code> in a major version</td>
+                <td>
+                  Rename to <code>IncomingHeader</code> in a major version
+                </td>
               </tr>
             </tbody>
           </table>
@@ -741,21 +794,24 @@
         <div class="card card-solution">
           <h4>Tooling: <code>dupl</code> linter (already enabled)</h4>
           <p>
-            The <code>dupl</code> linter is part of the ~70 enabled linters and runs on every
-            <code>golangci-lint run</code>. It reports <strong>0 findings</strong> at the configured
-            threshold. The codebase already went through a documented "zero-clones deduplication"
-            effort (see <code>docs/status/</code>), and the shared <code>responseWrapper</code> in
-            <code>wrapper.go</code> eliminated ~80 lines of duplication between the compress and
-            ETag writers.
+            The <code>dupl</code> linter is part of the ~70 enabled linters and
+            runs on every <code>golangci-lint run</code>. It reports
+            <strong>0 findings</strong> at the configured threshold. The
+            codebase already went through a documented "zero-clones
+            deduplication" effort (see <code>docs/status/</code>), and the
+            shared <code>responseWrapper</code> in
+            <code>wrapper.go</code> eliminated ~80 lines of duplication between
+            the compress and ETag writers.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Residual semantic duplication (not flagged by dupl)</h4>
           <p>
-            <code>dupl</code> catches syntactic clones. Two semantic duplicates remain: (1) the hex
-            lookup tables in <code>etag.go</code> and <code>id_generator.go</code>, and (2) the
-            <code>Validate()</code> "required field is nil" pattern repeated across
-            <code>RateLimitConfig</code>, <code>MetricsConfig</code>, and
+            <code>dupl</code> catches syntactic clones. Two semantic duplicates
+            remain: (1) the hex lookup tables in <code>etag.go</code> and
+            <code>id_generator.go</code>, and (2) the
+            <code>Validate()</code> "required field is nil" pattern repeated
+            across <code>RateLimitConfig</code>, <code>MetricsConfig</code>, and
             <code>RequestIDConfig</code>. These are candidates for the
             <code>deduplicate-code</code> skill.
           </p>
@@ -768,8 +824,8 @@
             <div class="text">
               <strong>~70 linters, 0 issues (now genuinely)</strong
               ><span
-                >The lint gate is exceptionally strict and now passes cleanly after the gosec
-                fix.</span
+                >The lint gate is exceptionally strict and now passes cleanly
+                after the gosec fix.</span
               >
             </div>
           </div>
@@ -777,14 +833,20 @@
             <div class="check">+</div>
             <div class="text">
               <strong>93.4% coverage with race detection</strong
-              ><span>Tests pass with <code>-race</code>; gaps are documented in FEATURES.md.</span>
+              ><span
+                >Tests pass with <code>-race</code>; gaps are documented in
+                FEATURES.md.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Single same-author dependency</strong
-              ><span>Only <code>go-error-family</code>; depguard enforces the boundary.</span>
+              ><span
+                >Only <code>go-error-family</code>; depguard enforces the
+                boundary.</span
+              >
             </div>
           </div>
           <div class="strength">
@@ -792,7 +854,8 @@
             <div class="text">
               <strong>Shared wrapper eliminated clones</strong
               ><span
-                ><code>responseWrapper</code> is a clean composition root for the two writers.</span
+                ><code>responseWrapper</code> is a clean composition root for
+                the two writers.</span
               >
             </div>
           </div>
@@ -801,7 +864,8 @@
         <h2 id="resolution">Resolution (2026-07-22)</h2>
         <div class="card card-solution">
           <p style="margin-top: 0">
-            All 7 open issues documented here are resolved or deferred. 6 fixed, 1 deferred to v1.0.
+            All 7 open issues documented here are resolved or deferred. 6 fixed,
+            1 deferred to v1.0.
           </p>
           <table style="width: 100%; border-collapse: collapse">
             <thead>
@@ -814,50 +878,65 @@
             <tbody>
               <tr>
                 <td style="padding: 4px 8px">CORS allowlist bypass</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>85c3d49</code></td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">Dead QValues field</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>fa6b19a</code></td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">Level decoupled</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>fa6b19a</code></td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">CRC32 collision risk</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>857cc61</code></td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">No rate/burst validation</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>e197003</code></td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">Hex table duplication</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px"><code>2f2038b</code></td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">ForwardHeader name</td>
-                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-medium">Deferred</span>
+                </td>
                 <td style="padding: 4px 8px">v1.0</td>
               </tr>
             </tbody>
           </table>
           <p>
-            The "1 dependency" and "93.4% coverage" claims are point-in-time as of 2026-07-05. The
-            project now has 2 dependencies; coverage shifted as new code paths were added.
+            The "1 dependency" and "93.4% coverage" claims are point-in-time as
+            of 2026-07-05. The project now has 2 dependencies; coverage shifted
+            as new code paths were added.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; All findings verified against source via golangci-lint v2,
-          go vet, go test
+          Generated 2026-07-05 &middot; All findings verified against source via
+          golangci-lint v2, go vet, go test
         </footer>
       </main>
     </div>

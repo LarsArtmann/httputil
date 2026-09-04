@@ -216,7 +216,9 @@ func TestChain_CSRFWithServerTimingAddsHeaderOnRejection(t *testing.T) {
 	}
 
 	if got := rec.Header().Get(servertiming.HeaderServerTiming); got == "" {
-		t.Error("Server-Timing header should survive a CSRF rejection (outer middleware still sets it)")
+		t.Error(
+			"Server-Timing header should survive a CSRF rejection (outer middleware still sets it)",
+		)
 	}
 }
 
@@ -271,7 +273,11 @@ func TestChain_DecompressionThenMaxBodySizeLimitsDecompressed(t *testing.T) {
 		_ = n
 	})
 
-	wrapped := Chain(inner, Decompression(cfg), MaxBodySizeMiddleware(MaxBodySizeConfig{MaxBytes: 2048}))
+	wrapped := Chain(
+		inner,
+		Decompression(cfg),
+		MaxBodySizeMiddleware(MaxBodySizeConfig{MaxBytes: 2048}),
+	)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(buf.Bytes()))
@@ -342,7 +348,10 @@ func TestChain_NonceCSPSurvivesDefaultSecurityHeaders(t *testing.T) {
 
 	got := rec.Header().Get("Content-Security-Policy")
 	if got == "" || !strings.Contains(got, "'nonce-") {
-		t.Errorf("nonce CSP should survive the default SecurityHeaders (which sets no CSP), got %q", got)
+		t.Errorf(
+			"nonce CSP should survive the default SecurityHeaders (which sets no CSP), got %q",
+			got,
+		)
 	}
 }
 

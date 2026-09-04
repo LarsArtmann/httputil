@@ -114,7 +114,11 @@ func FuzzLimitedReadCloser(f *testing.F) {
 		default:
 			if total >= limit && len(payload) > limit {
 				// Only meaningful when the limit was actually tripped.
-				t.Errorf("boundary close did not fire for payload %d > limit %d", len(payload), limit)
+				t.Errorf(
+					"boundary close did not fire for payload %d > limit %d",
+					len(payload),
+					limit,
+				)
 			}
 		}
 	})

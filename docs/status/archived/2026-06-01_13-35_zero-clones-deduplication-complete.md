@@ -189,33 +189,33 @@ No broken tests, no lint failures, no regressions. The codebase is clean and all
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #  | Priority | Task                                                             | Impact | Effort |
-| -- | -------- | ---------------------------------------------------------------- | ------ | ------ |
-| 1  | Critical | Commit uncommitted deduplication changes                         | High   | 1 min  |
-| ~~2~~  | ~~Critical~~ done — (maintained per release) | ~~Update CHANGELOG.md with Middleware type + deduplication~~ | ~~High~~ | ~~10 min~~ |
-| 3  | Critical | Update AGENTS.md architecture table and helpers list             | High   | 5 min  |
-| 4  | High     | Run `go test -cover` and verify ≥89% coverage                    | Medium | 2 min  |
-| ~~5~~  | ~~High~~ done — (exists) | ~~Create FEATURES.md with full feature inventory~~ | ~~High~~ | ~~20 min~~ |
-| ~~6~~  | ~~High~~ done — (TODO_LIST rebuilt by docs-health passes) | ~~Create TODO_LIST.md with actionable tasks~~ | ~~Medium~~ | ~~15 min~~ |
-| 7  | High     | Tag v0.2.0 release (Middleware type is a public API addition)    | High   | 5 min  |
-| 8  | Medium   | Evaluate Go 1.26 `iter` package for internal use                 | Medium | 30 min |
-| ~~9~~  | ~~Medium~~ done — shipped (stack.go) | ~~Add integration test: full middleware stack with Chain~~ | ~~Medium~~ | ~~30 min~~ |
-| ~~10~~ | ~~Medium~~ done — (CI workflows) | ~~Verify GitHub Actions CI passes with current changes~~ | ~~Medium~~ | ~~5 min~~ |
-| ~~11~~ | ~~Medium~~ done — (exists) | ~~Create ROADMAP.md with long-term direction~~ | ~~Medium~~ | ~~20 min~~ |
-| ~~12~~ | ~~Medium~~ done — (README API table + Design) | ~~Add `Middleware` type documentation to README.md~~ | ~~Medium~~ | ~~10 min~~ |
-| ~~13~~ | ~~Medium~~ done — (BenchmarkChain) | ~~Benchmark `Middleware` type alias overhead~~ | ~~Low~~ | ~~15 min~~ |
-| ~~14~~ | ~~Medium~~ done — (full-code-review audited 2026-08-30) | ~~Review all doc.go/package comments for accuracy~~ | ~~Low~~ | ~~10 min~~ |
-| ~~15~~ | ~~Low~~ done — (README badges) | ~~Add GoDoc badge and link to README.md~~ | ~~Low~~ | ~~5 min~~ |
-| ~~16~~ | ~~Low~~ done — (0 clone groups) | ~~Add `art-dupl` to CI pipeline for clone detection~~ | ~~Low~~ | ~~15 min~~ |
-| ~~17~~ | ~~Low~~ done — (0 lint issues) | ~~Fix pre-existing `mnd` violation (86400 in DefaultCORSConfig)~~ | ~~Low~~ | ~~2 min~~ |
-| ~~18~~ | ~~Low~~ done — Won't implement — ROADMAP Non-goals | ~~Evaluate functional options pattern for middleware config~~ | ~~Low~~ | ~~30 min~~ |
-| ~~19~~ | ~~Low~~ done — (26 example functions) | ~~Add example_test.go for `Middleware` type usage~~ | ~~Low~~ | ~~10 min~~ |
-| ~~20~~ | ~~Low~~ done — (util.go removed 2026-06-16) | ~~Review `util.go` itoa/join — can we use strconv now?~~ | ~~Low~~ | ~~10 min~~ |
-| ~~21~~ | ~~Low~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~Add `ResponseRecorder` context propagation~~ | ~~Medium~~ | ~~30 min~~ |
-| ~~22~~ | ~~Low~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~Consider `http.ResponseWriter` wrapper interface standardization~~ | ~~Low~~ | ~~45 min~~ |
-| ~~23~~ | ~~Low~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Add `RateLimit` middleware (token bucket)~~ | ~~Medium~~ | ~~60 min~~ |
-| ~~24~~ | ~~Low~~ done — shipped (DefaultWriterFactories) | ~~Add `Compress` middleware (gzip/deflate)~~ | ~~Medium~~ | ~~60 min~~ |
-| ~~25~~ | ~~Low~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~Add `CircuitBreaker` middleware pattern~~ | ~~Medium~~ | ~~90 min~~ |
+| #      | Priority                                                                         | Task                                                                 | Impact     | Effort     |
+| ------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------- | ---------- |
+| 1      | Critical                                                                         | Commit uncommitted deduplication changes                             | High       | 1 min      |
+| ~~2~~  | ~~Critical~~ done — (maintained per release)                                     | ~~Update CHANGELOG.md with Middleware type + deduplication~~         | ~~High~~   | ~~10 min~~ |
+| 3      | Critical                                                                         | Update AGENTS.md architecture table and helpers list                 | High       | 5 min      |
+| 4      | High                                                                             | Run `go test -cover` and verify ≥89% coverage                        | Medium     | 2 min      |
+| ~~5~~  | ~~High~~ done — (exists)                                                         | ~~Create FEATURES.md with full feature inventory~~                   | ~~High~~   | ~~20 min~~ |
+| ~~6~~  | ~~High~~ done — (TODO_LIST rebuilt by docs-health passes)                        | ~~Create TODO_LIST.md with actionable tasks~~                        | ~~Medium~~ | ~~15 min~~ |
+| 7      | High                                                                             | Tag v0.2.0 release (Middleware type is a public API addition)        | High       | 5 min      |
+| 8      | Medium                                                                           | Evaluate Go 1.26 `iter` package for internal use                     | Medium     | 30 min     |
+| ~~9~~  | ~~Medium~~ done — shipped (stack.go)                                             | ~~Add integration test: full middleware stack with Chain~~           | ~~Medium~~ | ~~30 min~~ |
+| ~~10~~ | ~~Medium~~ done — (CI workflows)                                                 | ~~Verify GitHub Actions CI passes with current changes~~             | ~~Medium~~ | ~~5 min~~  |
+| ~~11~~ | ~~Medium~~ done — (exists)                                                       | ~~Create ROADMAP.md with long-term direction~~                       | ~~Medium~~ | ~~20 min~~ |
+| ~~12~~ | ~~Medium~~ done — (README API table + Design)                                    | ~~Add `Middleware` type documentation to README.md~~                 | ~~Medium~~ | ~~10 min~~ |
+| ~~13~~ | ~~Medium~~ done — (BenchmarkChain)                                               | ~~Benchmark `Middleware` type alias overhead~~                       | ~~Low~~    | ~~15 min~~ |
+| ~~14~~ | ~~Medium~~ done — (full-code-review audited 2026-08-30)                          | ~~Review all doc.go/package comments for accuracy~~                  | ~~Low~~    | ~~10 min~~ |
+| ~~15~~ | ~~Low~~ done — (README badges)                                                   | ~~Add GoDoc badge and link to README.md~~                            | ~~Low~~    | ~~5 min~~  |
+| ~~16~~ | ~~Low~~ done — (0 clone groups)                                                  | ~~Add `art-dupl` to CI pipeline for clone detection~~                | ~~Low~~    | ~~15 min~~ |
+| ~~17~~ | ~~Low~~ done — (0 lint issues)                                                   | ~~Fix pre-existing `mnd` violation (86400 in DefaultCORSConfig)~~    | ~~Low~~    | ~~2 min~~  |
+| ~~18~~ | ~~Low~~ done — Won't implement — ROADMAP Non-goals                               | ~~Evaluate functional options pattern for middleware config~~        | ~~Low~~    | ~~30 min~~ |
+| ~~19~~ | ~~Low~~ done — (26 example functions)                                            | ~~Add example_test.go for `Middleware` type usage~~                  | ~~Low~~    | ~~10 min~~ |
+| ~~20~~ | ~~Low~~ done — (util.go removed 2026-06-16)                                      | ~~Review `util.go` itoa/join — can we use strconv now?~~             | ~~Low~~    | ~~10 min~~ |
+| ~~21~~ | ~~Low~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30)             | ~~Add `ResponseRecorder` context propagation~~                       | ~~Medium~~ | ~~30 min~~ |
+| ~~22~~ | ~~Low~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30)             | ~~Consider `http.ResponseWriter` wrapper interface standardization~~ | ~~Low~~    | ~~45 min~~ |
+| ~~23~~ | ~~Low~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Add `RateLimit` middleware (token bucket)~~                        | ~~Medium~~ | ~~60 min~~ |
+| ~~24~~ | ~~Low~~ done — shipped (DefaultWriterFactories)                                  | ~~Add `Compress` middleware (gzip/deflate)~~                         | ~~Medium~~ | ~~60 min~~ |
+| ~~25~~ | ~~Low~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30)             | ~~Add `CircuitBreaker` middleware pattern~~                          | ~~Medium~~ | ~~90 min~~ |
 
 ---
 

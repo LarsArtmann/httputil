@@ -193,33 +193,33 @@ The only "fucked up" item worth calling out is **pre-existing** and already docu
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #  | Task                                                                                                                             | Impact | Effort   | Category     |
-| -- | -------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
-| 1  | Fix `ResponseRecorder.Hijack` error-path test (42.9% → 90%+)                                                                     | High   | Low      | Coverage     |
-| 2  | Fix `compression.Flush` coverage (61.5% → 85%+)                                                                                  | High   | Medium   | Coverage     |
-| 3  | Fix `wrapper.go` Hijack/Push fallback tests (71.4% → 90%+)                                                                       | High   | Low      | Coverage     |
-| ~~4~~  | ~~Make content-type filtering configurable via `CompressionConfig`~~ done — shipped (IncompressibleTypes) | ~~High~~ | ~~Medium~~ | ~~Feature~~ |
-| ~~5~~  | ~~Add `MiddlewareStack` type with ordering validation~~ done — shipped (stack.go) | ~~Medium~~ | ~~Medium~~ | ~~Feature~~ |
-| ~~6~~  | ~~Add `ResponseWriter` capability interface for Hijack/Push/Flush~~ done — shipped (DetectCapabilities, capabilities.go) | ~~Medium~~ | ~~Medium~~ | ~~Architecture~~ |
-| 7  | Fix `compression.startCompressAndStream` coverage (66.7% → 85%+)                                                                 | Medium | Low      | Coverage     |
-| ~~8~~  | ~~Fix `compression.writePlain`/`writeCompressed` coverage (75% → 90%+)~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~Low~~ | ~~Coverage~~ |
-| 9  | Fix `etag.Flush` coverage (77.8% → 90%+)                                                                                         | Medium | Low      | Coverage     |
-| ~~10~~ | ~~Fix `etag.Write` buffer-limit branch (80% → 90%+)~~ done — (go-etag owns the writer; its suite covers it) | ~~Medium~~ | ~~Low~~ | ~~Coverage~~ |
-| ~~11~~ | ~~Fix `compression.isCompressibleContentType` edge cases (83.3% → 95%+)~~ done — (coverage targets long surpassed: 97.0% today) | ~~Medium~~ | ~~Low~~ | ~~Coverage~~ |
-| ~~12~~ | ~~Push overall coverage from 91.2% → 95%~~ done — (coverage targets long surpassed: 97.0% today) | ~~Medium~~ | ~~Medium~~ | ~~Coverage~~ |
-| ~~13~~ | ~~Implement deflate support in compression middleware~~ done — shipped (DefaultWriterFactories) | ~~High~~ | ~~High~~ | ~~Feature~~ |
-| ~~14~~ | ~~Add `Accept-Encoding` quality value parsing (RFC 7231)~~ done — shipped (compression_qvalue.go + property tests) | ~~High~~ | ~~Medium~~ | ~~Compliance~~ |
-| ~~15~~ | ~~Evaluate streaming ETag with rolling hash~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~Medium~~ | ~~High~~ | ~~Architecture~~ |
-| ~~16~~ | ~~Add response `Content-Length` test through full middleware stack~~ done — shipped (stack.go) | ~~Low~~ | ~~Low~~ | ~~Test~~ |
-| ~~17~~ | ~~Add WebSocket upgrade test through Compression + ETag (if not covered)~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30 | ~~Low~~ | ~~Low~~ | ~~Test~~ |
-| ~~18~~ | ~~Fix pre-existing `mnd` violation (`86400` in `DefaultCORSConfig`)~~ done — (0 lint issues) | ~~Low~~ | ~~Trivial~~ | ~~Lint~~ |
-| ~~19~~ | ~~Add request/response metrics middleware~~ done — shipped (metrics.go) | ~~Medium~~ | ~~High~~ | ~~Feature~~ |
-| ~~20~~ | ~~Add rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Medium~~ | ~~High~~ | ~~Feature~~ |
-| ~~21~~ | ~~Add request body size limit middleware~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~Low~~ | ~~Feature~~ |
-| ~~22~~ | ~~Brotli support — decide on dependency policy~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~Decision~~ | ~~Policy~~ |
-| ~~23~~ | ~~Add `WriterFactory` plugin interface for compression extensibility~~ done — shipped (WriterFactory plugin interface) | ~~Medium~~ | ~~Medium~~ | ~~Architecture~~ |
-| ~~24~~ | ~~Verify `art-dupl` at threshold 40 stays clean as codebase grows~~ done — (0 clone groups) | ~~Low~~ | ~~Trivial~~ | ~~Quality~~ |
-| ~~25~~ | ~~Update `AGENTS.md` with new test helpers (`newFlushHandler`, `testCompressionSkipsContentType`, `testETagIfNoneMatchReturns304`)~~ done — (AGENTS testutil_test.go row) | ~~Low~~ | ~~Trivial~~ | ~~Docs~~ |
+| #      | Task                                                                                                                                                                      | Impact     | Effort       | Category         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ | ---------------- |
+| 1      | Fix `ResponseRecorder.Hijack` error-path test (42.9% → 90%+)                                                                                                              | High       | Low          | Coverage         |
+| 2      | Fix `compression.Flush` coverage (61.5% → 85%+)                                                                                                                           | High       | Medium       | Coverage         |
+| 3      | Fix `wrapper.go` Hijack/Push fallback tests (71.4% → 90%+)                                                                                                                | High       | Low          | Coverage         |
+| ~~4~~  | ~~Make content-type filtering configurable via `CompressionConfig`~~ done — shipped (IncompressibleTypes)                                                                 | ~~High~~   | ~~Medium~~   | ~~Feature~~      |
+| ~~5~~  | ~~Add `MiddlewareStack` type with ordering validation~~ done — shipped (stack.go)                                                                                         | ~~Medium~~ | ~~Medium~~   | ~~Feature~~      |
+| ~~6~~  | ~~Add `ResponseWriter` capability interface for Hijack/Push/Flush~~ done — shipped (DetectCapabilities, capabilities.go)                                                  | ~~Medium~~ | ~~Medium~~   | ~~Architecture~~ |
+| 7      | Fix `compression.startCompressAndStream` coverage (66.7% → 85%+)                                                                                                          | Medium     | Low          | Coverage         |
+| ~~8~~  | ~~Fix `compression.writePlain`/`writeCompressed` coverage (75% → 90%+)~~ done — shipped (compress_writer_test.go error-branch tests)                                      | ~~Medium~~ | ~~Low~~      | ~~Coverage~~     |
+| 9      | Fix `etag.Flush` coverage (77.8% → 90%+)                                                                                                                                  | Medium     | Low          | Coverage         |
+| ~~10~~ | ~~Fix `etag.Write` buffer-limit branch (80% → 90%+)~~ done — (go-etag owns the writer; its suite covers it)                                                               | ~~Medium~~ | ~~Low~~      | ~~Coverage~~     |
+| ~~11~~ | ~~Fix `compression.isCompressibleContentType` edge cases (83.3% → 95%+)~~ done — (coverage targets long surpassed: 97.0% today)                                           | ~~Medium~~ | ~~Low~~      | ~~Coverage~~     |
+| ~~12~~ | ~~Push overall coverage from 91.2% → 95%~~ done — (coverage targets long surpassed: 97.0% today)                                                                          | ~~Medium~~ | ~~Medium~~   | ~~Coverage~~     |
+| ~~13~~ | ~~Implement deflate support in compression middleware~~ done — shipped (DefaultWriterFactories)                                                                           | ~~High~~   | ~~High~~     | ~~Feature~~      |
+| ~~14~~ | ~~Add `Accept-Encoding` quality value parsing (RFC 7231)~~ done — shipped (compression_qvalue.go + property tests)                                                        | ~~High~~   | ~~Medium~~   | ~~Compliance~~   |
+| ~~15~~ | ~~Evaluate streaming ETag with rolling hash~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory                                    | ~~Medium~~ | ~~High~~     | ~~Architecture~~ |
+| ~~16~~ | ~~Add response `Content-Length` test through full middleware stack~~ done — shipped (stack.go)                                                                            | ~~Low~~    | ~~Low~~      | ~~Test~~         |
+| ~~17~~ | ~~Add WebSocket upgrade test through Compression + ETag (if not covered)~~ done — Won't implement — removed 2026-08-07 as fragile; Hijack tiers restored 2026-08-30       | ~~Low~~    | ~~Low~~      | ~~Test~~         |
+| ~~18~~ | ~~Fix pre-existing `mnd` violation (`86400` in `DefaultCORSConfig`)~~ done — (0 lint issues)                                                                              | ~~Low~~    | ~~Trivial~~  | ~~Lint~~         |
+| ~~19~~ | ~~Add request/response metrics middleware~~ done — shipped (metrics.go)                                                                                                   | ~~Medium~~ | ~~High~~     | ~~Feature~~      |
+| ~~20~~ | ~~Add rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it)                                                                 | ~~Medium~~ | ~~High~~     | ~~Feature~~      |
+| ~~21~~ | ~~Add request body size limit middleware~~ done — shipped (maxbodysize.go)                                                                                                | ~~Low~~    | ~~Low~~      | ~~Feature~~      |
+| ~~22~~ | ~~Brotli support — decide on dependency policy~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md)                                           | ~~Medium~~ | ~~Decision~~ | ~~Policy~~       |
+| ~~23~~ | ~~Add `WriterFactory` plugin interface for compression extensibility~~ done — shipped (WriterFactory plugin interface)                                                    | ~~Medium~~ | ~~Medium~~   | ~~Architecture~~ |
+| ~~24~~ | ~~Verify `art-dupl` at threshold 40 stays clean as codebase grows~~ done — (0 clone groups)                                                                               | ~~Low~~    | ~~Trivial~~  | ~~Quality~~      |
+| ~~25~~ | ~~Update `AGENTS.md` with new test helpers (`newFlushHandler`, `testCompressionSkipsContentType`, `testETagIfNoneMatchReturns304`)~~ done — (AGENTS testutil_test.go row) | ~~Low~~    | ~~Trivial~~  | ~~Docs~~         |
 
 ---
 

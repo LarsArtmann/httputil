@@ -856,9 +856,9 @@
           <div class="hero-badge">Brutal Self-Review</div>
           <h1>Annotation Legacy &amp; Docs Harvest Review</h1>
           <p class="hero-subtitle">
-            Honest self-critique of the 2026-08-29 annotation-upgrade session, the
-            harvested backlog, and the current codebase state. Every claim verified
-            against git and the working tree on 2026-08-29.
+            Honest self-critique of the 2026-08-29 annotation-upgrade session,
+            the harvested backlog, and the current codebase state. Every claim
+            verified against git and the working tree on 2026-08-29.
           </p>
         </div>
 
@@ -895,78 +895,229 @@
           </div>
         </div>
 
-        <h2 id="questions"><span class="num">01</span>The 11 Questions, Answered Honestly</h2>
+        <h2 id="questions">
+          <span class="num">01</span>The 11 Questions, Answered Honestly
+        </h2>
         <table>
           <thead>
-            <tr><th>#</th><th>Question</th><th>Answer</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Question</th>
+              <th>Answer</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td>What did you forget?</td>
-            <td>TODO_LIST went 22 days stale (updated 2026-08-07) while ~20 sessions accumulated open items in timestamped reports. Nothing routed them forward. Fixed today by the HARVEST rebuild.</td></tr>
-            <tr><td>2</td><td>What is stupid that we do anyway?</td>
-            <td>Writing "Open as of" appendix lines from memory during annotation passes. One of 20 such lines (07-45 f20, indexPath race) was simply false &mdash; the race does not exist; <code>go test -race -count=3</code> is clean. Appendices written same-day still drift from code.</td></tr>
-            <tr><td>3</td><td>What could you have done better?</td>
-            <td>The previous session hand-rolled a regex transform that corrupted 4 table rows before the skill scripts were used. The lesson (copy <code>strike_row()</code>, never hand-roll) is documented but was learned by breaking something first.</td></tr>
-            <tr><td>4</td><td>What could you still improve?</td>
-            <td>Marker evidence policy: ~200 markers cite verification-kind (<code>v</code>) instead of commit hashes. Hash-only is the durable standard; the upgrade is plan task T14.</td></tr>
-            <tr><td>5</td><td>Did you lie to you?</td>
-            <td>Not in markers &mdash; all 75 cited hashes exist and deep-sampled claims match commit content. But the corpus contains one historical lie pattern: <em>full-code-review once claimed done without ever running</em>. That is the integrity failure to guard against, and it is why this skill run is happening now.</td></tr>
-            <tr><td>6</td><td>How can we be less stupid?</td>
-            <td>Run the review skills on a cadence, not when remembered. brutal-self-review was deferred 10+ sessions. It is now the top TODO_LIST item and executed today.</td></tr>
-            <tr><td>7</td><td>Ghost systems?</td>
-            <td>None found. Every exported symbol maps to tests, docs, or a documented deprecation path (deprecated <code>RateLimit()</code> has a migration guide and a v1.0 removal plan &mdash; scheduled, not ghosted).</td></tr>
-            <tr><td>8</td><td>Scope creep trap?</td>
-            <td>The ecosystem ideation backlog (brotli/zstd, Prometheus, Redis, samber/do, HTMX) is deliberately parked in ROADMAP, not TODO_LIST. The compression extraction is the one big rock &mdash; it has its own plan file and stays gated on go-datastar's need.</td></tr>
-            <tr><td>9</td><td>Did we remove something useful?</td>
-            <td>No deletions this session. The TODO_LIST rebuild removed the completed "upgrade historical annotations" item &mdash; that is the skill rule (done items live in CHANGELOG), not data loss.</td></tr>
-            <tr><td>10</td><td>Split brains?</td>
-            <td>One accepted: rate-limiter <code>context.Context</code> appears in FEATURES "WORTH CONSIDERING", ROADMAP v1.0, and TODO_LIST. Each cross-links to the next, so the triage is unambiguous. Two real ones fixed: stale AGENTS.md file count (34&rarr;35) and the false f20 race claim.</td></tr>
-            <tr><td>11</td><td>Tests?</td>
-            <td><code>-race</code> full suite plus httpspec <code>-count=3</code> clean at review time. Gaps are documented honestly in FEATURES.md (defensive paths with reasons). Plan tasks T12/T13/T15/T17 add the missing cross-middleware and integration batches.</td></tr>
+            <tr>
+              <td>1</td>
+              <td>What did you forget?</td>
+              <td>
+                TODO_LIST went 22 days stale (updated 2026-08-07) while ~20
+                sessions accumulated open items in timestamped reports. Nothing
+                routed them forward. Fixed today by the HARVEST rebuild.
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>What is stupid that we do anyway?</td>
+              <td>
+                Writing "Open as of" appendix lines from memory during
+                annotation passes. One of 20 such lines (07-45 f20, indexPath
+                race) was simply false &mdash; the race does not exist;
+                <code>go test -race -count=3</code> is clean. Appendices written
+                same-day still drift from code.
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>What could you have done better?</td>
+              <td>
+                The previous session hand-rolled a regex transform that
+                corrupted 4 table rows before the skill scripts were used. The
+                lesson (copy <code>strike_row()</code>, never hand-roll) is
+                documented but was learned by breaking something first.
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>What could you still improve?</td>
+              <td>
+                Marker evidence policy: ~200 markers cite verification-kind
+                (<code>v</code>) instead of commit hashes. Hash-only is the
+                durable standard; the upgrade is plan task T14.
+              </td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Did you lie to you?</td>
+              <td>
+                Not in markers &mdash; all 75 cited hashes exist and
+                deep-sampled claims match commit content. But the corpus
+                contains one historical lie pattern:
+                <em>full-code-review once claimed done without ever running</em
+                >. That is the integrity failure to guard against, and it is why
+                this skill run is happening now.
+              </td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>How can we be less stupid?</td>
+              <td>
+                Run the review skills on a cadence, not when remembered.
+                brutal-self-review was deferred 10+ sessions. It is now the top
+                TODO_LIST item and executed today.
+              </td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Ghost systems?</td>
+              <td>
+                None found. Every exported symbol maps to tests, docs, or a
+                documented deprecation path (deprecated
+                <code>RateLimit()</code> has a migration guide and a v1.0
+                removal plan &mdash; scheduled, not ghosted).
+              </td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Scope creep trap?</td>
+              <td>
+                The ecosystem ideation backlog (brotli/zstd, Prometheus, Redis,
+                samber/do, HTMX) is deliberately parked in ROADMAP, not
+                TODO_LIST. The compression extraction is the one big rock
+                &mdash; it has its own plan file and stays gated on
+                go-datastar's need.
+              </td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>Did we remove something useful?</td>
+              <td>
+                No deletions this session. The TODO_LIST rebuild removed the
+                completed "upgrade historical annotations" item &mdash; that is
+                the skill rule (done items live in CHANGELOG), not data loss.
+              </td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Split brains?</td>
+              <td>
+                One accepted: rate-limiter <code>context.Context</code> appears
+                in FEATURES "WORTH CONSIDERING", ROADMAP v1.0, and TODO_LIST.
+                Each cross-links to the next, so the triage is unambiguous. Two
+                real ones fixed: stale AGENTS.md file count (34&rarr;35) and the
+                false f20 race claim.
+              </td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>Tests?</td>
+              <td>
+                <code>-race</code> full suite plus httpspec
+                <code>-count=3</code> clean at review time. Gaps are documented
+                honestly in FEATURES.md (defensive paths with reasons). Plan
+                tasks T12/T13/T15/T17 add the missing cross-middleware and
+                integration batches.
+              </td>
+            </tr>
           </tbody>
         </table>
 
         <h2 id="findings"><span class="num">02</span>Findings</h2>
 
         <div class="card card-problem">
-          <h4>F1 &mdash; Stale appendix claim asserted a bug that does not exist</h4>
-          <p>The 07-45 appendix claimed <code>cfg.indexPath</code> mutation was "still present". It is not: options are applied before spec construction and the config is read-only afterwards. Verified with <code>go test -race -count=3 ./httpspec/...</code>. Same-day annotation can still lie.</p>
+          <h4>
+            F1 &mdash; Stale appendix claim asserted a bug that does not exist
+          </h4>
+          <p>
+            The 07-45 appendix claimed <code>cfg.indexPath</code> mutation was
+            "still present". It is not: options are applied before spec
+            construction and the config is read-only afterwards. Verified with
+            <code>go test -race -count=3 ./httpspec/...</code>. Same-day
+            annotation can still lie.
+          </p>
         </div>
         <div class="card card-solution">
           <h4>Fixed in place</h4>
-          <p>Corrected the appendix line to record the verification (date, command, verdict). Lesson: an "open item" line is a claim and needs the same evidence standard as a marker.</p>
+          <p>
+            Corrected the appendix line to record the verification (date,
+            command, verdict). Lesson: an "open item" line is a claim and needs
+            the same evidence standard as a marker.
+          </p>
         </div>
 
         <div class="card card-problem">
           <h4>F2 &mdash; Living backlog rotted for 22 days</h4>
-          <p>Open work lived in 23 timestamped reports; TODO_LIST last updated 2026-08-07. This is the corpus's own #1 documented failure mode, repeated verbatim in eight prior reports.</p>
+          <p>
+            Open work lived in 23 timestamped reports; TODO_LIST last updated
+            2026-08-07. This is the corpus's own #1 documented failure mode,
+            repeated verbatim in eight prior reports.
+          </p>
         </div>
         <div class="card card-solution">
           <h4>Fixed: HARVEST rebuild</h4>
-          <p>TODO_LIST.md rebuilt 2026-08-29 from the 20 open-item appendix lines: deduped, routed (TODO/ROADMAP/Won't), every item carrying report citations and the plan-task mapping.</p>
+          <p>
+            TODO_LIST.md rebuilt 2026-08-29 from the 20 open-item appendix
+            lines: deduped, routed (TODO/ROADMAP/Won't), every item carrying
+            report citations and the plan-task mapping.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>F3 &mdash; Environment blocker silently ate the quality gate</h4>
-          <p><code>/mnt/buildcache</code> is unwritable here, so <code>go test</code>, <code>go vet</code>, and <code>golangci-lint</code> all failed at cache init &mdash; looking like infra breakage rather than a fixable env problem. The prior session documented the blocker but did not solve it.</p>
+          <p>
+            <code>/mnt/buildcache</code> is unwritable here, so
+            <code>go test</code>, <code>go vet</code>, and
+            <code>golangci-lint</code> all failed at cache init &mdash; looking
+            like infra breakage rather than a fixable env problem. The prior
+            session documented the blocker but did not solve it.
+          </p>
         </div>
         <div class="card card-solution">
           <h4>Fixed: cache overrides documented</h4>
-          <p><code>GOCACHE</code>, <code>GOLANGCI_LINT_CACHE</code>, and <code>GOMODCACHE</code> overrides unblock all three tools; the export block is now in AGENTS.md Commands. Lint gate re-verified: 0 issues.</p>
+          <p>
+            <code>GOCACHE</code>, <code>GOLANGCI_LINT_CACHE</code>, and
+            <code>GOMODCACHE</code> overrides unblock all three tools; the
+            export block is now in AGENTS.md Commands. Lint gate re-verified: 0
+            issues.
+          </p>
         </div>
 
         <div class="card card-problem">
-          <h4>F5 &mdash; The test suite has been red since 2026-08-16 and nobody ran it</h4>
-          <p>Commit <code>d466d2d</code> ("style: reformat &hellip; No behavior changes") swapped <code>json.Encoder.Encode</code> for <code>json.MarshalWrite</code> in health.go. Encode appends a trailing newline; MarshalWrite does not. Six health-endpoint tests failed from that day on &mdash; but every session's <code>go test</code> died at the <code>/mnt/buildcache</code> cache-init error first, so the red suite stayed invisible for 13 days. A style commit broke the documented 16-byte probe contract.</p>
+          <h4>
+            F5 &mdash; The test suite has been red since 2026-08-16 and nobody
+            ran it
+          </h4>
+          <p>
+            Commit <code>d466d2d</code> ("style: reformat &hellip; No behavior
+            changes") swapped <code>json.Encoder.Encode</code> for
+            <code>json.MarshalWrite</code> in health.go. Encode appends a
+            trailing newline; MarshalWrite does not. Six health-endpoint tests
+            failed from that day on &mdash; but every session's
+            <code>go test</code> died at the
+            <code>/mnt/buildcache</code> cache-init error first, so the red
+            suite stayed invisible for 13 days. A style commit broke the
+            documented 16-byte probe contract.
+          </p>
         </div>
         <div class="card card-solution">
           <h4>Fixed: contract restored, suite green</h4>
-          <p>health.go now writes the payload via MarshalWrite plus an explicit newline through one <code>writeHealthBody</code> helper (the v2 migration stays; the documented 16-byte body returns). <code>go test -race ./...</code> green; <code>golangci-lint run</code>: 0 issues. The exact-byte test now guards a truthful contract again.</p>
+          <p>
+            health.go now writes the payload via MarshalWrite plus an explicit
+            newline through one <code>writeHealthBody</code> helper (the v2
+            migration stays; the documented 16-byte body returns).
+            <code>go test -race ./...</code> green;
+            <code>golangci-lint run</code>: 0 issues. The exact-byte test now
+            guards a truthful contract again.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>F4 &mdash; AGENTS.md prose drift</h4>
-          <p>"34 non-test files" was stale &mdash; the tree has 35. Table rows were complete; the prose count was not. Small, but AGENTS.md is the file every session trusts first.</p>
+          <p>
+            "34 non-test files" was stale &mdash; the tree has 35. Table rows
+            were complete; the prose count was not. Small, but AGENTS.md is the
+            file every session trusts first.
+          </p>
         </div>
 
         <h2 id="issues"><span class="num">03</span>Issue Cards</h2>
@@ -974,41 +1125,49 @@
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
           <h3>Review skills deferred 10+ sessions; one once faked as done</h3>
-          <div class="where">TODO_LIST.md High Priority &middot; 20-09 status report f1</div>
+          <div class="where">
+            TODO_LIST.md High Priority &middot; 20-09 status report f1
+          </div>
           <p>
-            brutal-self-review (this document) and full-code-review are the two known-unknown
-            surfacers. The second has never run. Deferral is how the "claimed done but not run"
-            failure happened once before.
+            brutal-self-review (this document) and full-code-review are the two
+            known-unknown surfacers. The second has never run. Deferral is how
+            the "claimed done but not run" failure happened once before.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            brutal-self-review: done today (this report). full-code-review: top of TODO_LIST,
-            scheduled before v1.0.
+            brutal-self-review: done today (this report). full-code-review: top
+            of TODO_LIST, scheduled before v1.0.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
           <h3>v-kind markers lack durable evidence</h3>
-          <div class="where">docs/status/2026-08-*.md &middot; ~200 markers</div>
+          <div class="where">
+            docs/status/2026-08-*.md &middot; ~200 markers
+          </div>
           <p>
-            Verification-kind markers say "verified" without a hash. They survive review today
-            but rot like the f20 claim did: unverifiable assertions about a moving tree.
+            Verification-kind markers say "verified" without a hash. They
+            survive review today but rot like the f20 claim did: unverifiable
+            assertions about a moving tree.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Plan T14: upgrade the ~200 highest-traffic v-markers to hash citations.
+            Plan T14: upgrade the ~200 highest-traffic v-markers to hash
+            citations.
           </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice to have</span>
           <h3>Accepted split brain: ctx rate-limiter in three docs</h3>
-          <div class="where">FEATURES.md &middot; ROADMAP.md &middot; TODO_LIST.md</div>
+          <div class="where">
+            FEATURES.md &middot; ROADMAP.md &middot; TODO_LIST.md
+          </div>
           <p>
-            The item appears three times with cross-links and consistent scope (v1.0 gate).
-            Consolidation would save one grep; cost is churn during the v1.0 push. Accepted,
-            revisit at T19 execution.
+            The item appears three times with cross-links and consistent scope
+            (v1.0 gate). Consolidation would save one grep; cost is churn during
+            the v1.0 push. Accepted, revisit at T19 execution.
           </p>
         </div>
 
@@ -1018,28 +1177,86 @@
           <div class="where">.golangci.yml</div>
           <p>
             golangci-lint v2.13+ deprecates <code>exhaustruct</code> in favor of
-            <code>exhaustruct_v5</code>. Warning-only today; migration is a config rename
-            plus rule-behavior diff.
+            <code>exhaustruct_v5</code>. Warning-only today; migration is a
+            config rename plus rule-behavior diff.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Fold into a lint-config maintenance pass after v1.0 (no functional impact now).
+            Fold into a lint-config maintenance pass after v1.0 (no functional
+            impact now).
           </div>
         </div>
 
-        <h2 id="evidence"><span class="num">04</span>Evidence Audit (this review's own claims)</h2>
+        <h2 id="evidence">
+          <span class="num">04</span>Evidence Audit (this review's own claims)
+        </h2>
         <table>
           <thead>
-            <tr><th>Check</th><th>Method</th><th>Result</th></tr>
+            <tr>
+              <th>Check</th>
+              <th>Method</th>
+              <th>Result</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>Marker hash validity</td><td>Extract all 75 unique hashes from <code>done at</code> markers; <code>git cat-file -t</code> each</td><td><span class="badge badge-fixed">75/75 valid</span></td></tr>
-            <tr><td>Marker claim accuracy</td><td>Deep-sample 10 substantive markers; grep cited commit diffs for the claimed change</td><td><span class="badge badge-fixed">10/10 match</span></td></tr>
-            <tr><td>Marker shape integrity</td><td>Count struck table rows before/after formatter; require balance</td><td><span class="badge badge-fixed">261 = 261</span></td></tr>
-            <tr><td>indexPath race claim</td><td><code>go test -race -count=3 ./httpspec/...</code> + code read of option application order</td><td><span class="badge badge-fixed">No race; claim corrected</span></td></tr>
-            <tr><td>AGENTS.md file table</td><td>Diff table rows vs <code>ls *.go | grep -v _test</code></td><td><span class="badge badge-fixed">Complete; count fixed 34&rarr;35</span></td></tr>
-            <tr><td>Full test suite</td><td><code>go test -race ./...</code> with cache overrides</td><td><span class="badge badge-fixed">Green after F5 fix (was red 13 days)</span></td></tr>
-            <tr><td>Lint gate</td><td><code>golangci-lint run</code> (full config, ~70 linters)</td><td><span class="badge badge-fixed">0 issues (full run)</span></td></tr>
+            <tr>
+              <td>Marker hash validity</td>
+              <td>
+                Extract all 75 unique hashes from <code>done at</code> markers;
+                <code>git cat-file -t</code> each
+              </td>
+              <td><span class="badge badge-fixed">75/75 valid</span></td>
+            </tr>
+            <tr>
+              <td>Marker claim accuracy</td>
+              <td>
+                Deep-sample 10 substantive markers; grep cited commit diffs for
+                the claimed change
+              </td>
+              <td><span class="badge badge-fixed">10/10 match</span></td>
+            </tr>
+            <tr>
+              <td>Marker shape integrity</td>
+              <td>
+                Count struck table rows before/after formatter; require balance
+              </td>
+              <td><span class="badge badge-fixed">261 = 261</span></td>
+            </tr>
+            <tr>
+              <td>indexPath race claim</td>
+              <td>
+                <code>go test -race -count=3 ./httpspec/...</code> + code read
+                of option application order
+              </td>
+              <td>
+                <span class="badge badge-fixed">No race; claim corrected</span>
+              </td>
+            </tr>
+            <tr>
+              <td>AGENTS.md file table</td>
+              <td>Diff table rows vs <code>ls *.go | grep -v _test</code></td>
+              <td>
+                <span class="badge badge-fixed"
+                  >Complete; count fixed 34&rarr;35</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>Full test suite</td>
+              <td><code>go test -race ./...</code> with cache overrides</td>
+              <td>
+                <span class="badge badge-fixed"
+                  >Green after F5 fix (was red 13 days)</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>Lint gate</td>
+              <td><code>golangci-lint run</code> (full config, ~70 linters)</td>
+              <td>
+                <span class="badge badge-fixed">0 issues (full run)</span>
+              </td>
+            </tr>
           </tbody>
         </table>
 
@@ -1048,51 +1265,79 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Marker evidence held up under adversarial sampling</strong>
-              <span>75/75 hashes resolve; deep-sampled claims match commit content. The 1,144-marker corpus is real work, not decoration.</span>
+              <strong
+                >Marker evidence held up under adversarial sampling</strong
+              >
+              <span
+                >75/75 hashes resolve; deep-sampled claims match commit content.
+                The 1,144-marker corpus is real work, not decoration.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Honest coverage documentation</strong>
-              <span>FEATURES.md documents every sub-100% function with the reason it stays uncovered. No rounding up.</span>
+              <span
+                >FEATURES.md documents every sub-100% function with the reason
+                it stays uncovered. No rounding up.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>The failure modes are named</strong>
-              <span>The corpus repeatedly identifies its own #1 failure (open items rotting in reports) &mdash; and today's session finally closed it with the HARVEST rebuild.</span>
+              <span
+                >The corpus repeatedly identifies its own #1 failure (open items
+                rotting in reports) &mdash; and today's session finally closed
+                it with the HARVEST rebuild.</span
+              >
             </div>
           </div>
         </div>
 
-        <h2 id="plan"><span class="num">05</span>Improvement Plan (executed via docs/planning/2026-08-29_20-24)</h2>
+        <h2 id="plan">
+          <span class="num">05</span>Improvement Plan (executed via
+          docs/planning/2026-08-29_20-24)
+        </h2>
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
             <h4>Protect the new work (T2)</h4>
-            <p>Formatter run over the 23 annotated files with diff inspection &mdash; done this session; 261 struck rows preserved exactly.</p>
+            <p>
+              Formatter run over the 23 annotated files with diff inspection
+              &mdash; done this session; 261 struck rows preserved exactly.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
             <h4>Surface unknowns (T3 &mdash; this review)</h4>
-            <p>Findings F1&ndash;F4 fixed immediately; the deferred items (full-code-review, T14 hash upgrades) are filed in TODO_LIST with citations.</p>
+            <p>
+              Findings F1&ndash;F4 fixed immediately; the deferred items
+              (full-code-review, T14 hash upgrades) are filed in TODO_LIST with
+              citations.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">3</div>
           <div class="migration-content">
             <h4>Grind the tail (T4&ndash;T30)</h4>
-            <p>July&ndash;May annotation pass, httpspec builders, cross-middleware tests, fuzz/benchmark batches, v1.0 execution (TokenBucketLimiter removal, ctx rate limiter), final docs-health audit.</p>
+            <p>
+              July&ndash;May annotation pass, httpspec builders,
+              cross-middleware tests, fuzz/benchmark batches, v1.0 execution
+              (TokenBucketLimiter removal, ctx rate limiter), final docs-health
+              audit.
+            </p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-08-29 &middot; All claims verified against source code where noted
+          Generated 2026-08-29 &middot; All claims verified against source code
+          where noted
         </footer>
       </main>
     </div>

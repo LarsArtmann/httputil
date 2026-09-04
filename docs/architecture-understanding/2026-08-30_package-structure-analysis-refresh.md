@@ -4,12 +4,12 @@
 
 ## Current shape (verified 2026-08-30)
 
-| Unit                                        | Non-test files | External deps                                                        | Notes                                                              |
-| ------------------------------------------- | -------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Root `httputil` package (flat)              | **36**         | go-error-family, golang.org/x/time, justinas/nosurf, go-etag         | All middleware shares the `Middleware` type; one import path       |
-| `httpspec` subpackage                       | 4              | none (stdlib only)                                                   | Behavior-spec runner; leaf package                                 |
-| `server_timing` sub-module                  | 3              | none (stdlib only)                                                   | Separate go.mod, wired via go.work + replace                       |
-| go-etag (external repo)                     | —              | —                                                                    | Extracted 2026-08-07; consumed via the thin `etag.go` adapter      |
+| Unit                           | Non-test files | External deps                                                | Notes                                                         |
+| ------------------------------ | -------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| Root `httputil` package (flat) | **36**         | go-error-family, golang.org/x/time, justinas/nosurf, go-etag | All middleware shares the `Middleware` type; one import path  |
+| `httpspec` subpackage          | 4              | none (stdlib only)                                           | Behavior-spec runner; leaf package                            |
+| `server_timing` sub-module     | 3              | none (stdlib only)                                           | Separate go.mod, wired via go.work + replace                  |
+| go-etag (external repo)        | —              | —                                                            | Extracted 2026-08-07; consumed via the thin `etag.go` adapter |
 
 ## Why the flat root still holds
 

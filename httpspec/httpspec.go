@@ -311,24 +311,31 @@ func ExpectHTML(method, path, contentType string) Check {
 	}
 }
 
-func isJSONContentType(value string) bool {
+// parsedMediaType parses value's media type, lowercased for comparison. ok
+// is false when the header value cannot be parsed.
+func parsedMediaType(value string) (string, bool) {
 	mediaType, _, err := mime.ParseMediaType(value)
 	if err != nil {
-		return false
+		return "", false
 	}
 
-	mediaType = strings.ToLower(mediaType)
+	return strings.ToLower(mediaType), true
+}
+
+func isJSONContentType(value string) bool {
+	mediaType, ok := parsedMediaType(value)
+	if !ok {
+		return false
+	}
 
 	return mediaType == "application/json" || strings.HasSuffix(mediaType, "+json")
 }
 
 func isHTMLContentType(value string) bool {
-	mediaType, _, err := mime.ParseMediaType(value)
-	if err != nil {
+	mediaType, ok := parsedMediaType(value)
+	if !ok {
 		return false
 	}
-
-	mediaType = strings.ToLower(mediaType)
 
 	return mediaType == "text/html" || mediaType == "application/xhtml+xml"
 }

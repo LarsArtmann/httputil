@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -197,15 +197,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -216,15 +228,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue .where {
         font-family: var(--font-mono);
@@ -461,7 +485,8 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>Naming Review</span><span>2026-07-05</span><span>httputil · identifiers</span>
+      <span>Naming Review</span><span>2026-07-05</span
+      ><span>httputil · identifiers</span>
     </div>
     <div class="layout">
       <aside class="sidebar" data-nav>
@@ -479,9 +504,9 @@
           <div class="hero-badge">Naming Review</div>
           <h1>Identifier Quality Audit</h1>
           <p class="hero-subtitle">
-            Every exported type, function, field, and constant reviewed for honesty, clarity, domain
-            alignment, and Go convention. Verdict: the naming is unusually disciplined — one
-            material issue found.
+            Every exported type, function, field, and constant reviewed for
+            honesty, clarity, domain alignment, and Go convention. Verdict: the
+            naming is unusually disciplined — one material issue found.
           </p>
         </div>
 
@@ -505,29 +530,36 @@
           </div>
         </div>
         <p>
-          Automated checks first: <code>revive</code>/<code>golangci-lint</code> var-naming,
-          exported, and receiver-naming rules all pass (0 issues). No grep hits for
+          Automated checks first: <code>revive</code>/<code>golangci-lint</code>
+          var-naming, exported, and receiver-naming rules all pass (0 issues).
+          No grep hits for
           <code>Manager|Handler|Processor|Helper|Util</code> class names, no
-          <code>Impl</code> suffixes, no <code>Data|Info|Record|Item</code> vague nouns on types.
-          The findings below are the semantic issues linters cannot catch.
+          <code>Impl</code> suffixes, no
+          <code>Data|Info|Record|Item</code> vague nouns on types. The findings
+          below are the semantic issues linters cannot catch.
         </p>
 
         <h2 id="honesty"><span class="num">01</span>Honesty Issues</h2>
         <div class="issue issue-important">
           <span class="severity severity-important">High · Lying name</span>
           <h3>RequestIDConfig.ForwardHeader names the wrong direction</h3>
-          <div class="where">requestid.go:17 — field; used at :60 as the request READ header</div>
+          <div class="where">
+            requestid.go:17 — field; used at :60 as the request READ header
+          </div>
           <p>
-            <code>ForwardHeader</code> reads as "the header we forward <em>out</em>," but the code
-            uses it as the <strong>incoming</strong> header to read a propagated ID from
-            (<code>req.Header.Get(cfg.ForwardHeader)</code>). The outgoing response header is the
-            separate <code>HeaderName</code> field. A reader trusts "Forward" = outbound and is
-            misled. <code>HeaderName</code> is also vague — "which header?"
+            <code>ForwardHeader</code> reads as "the header we forward
+            <em>out</em>," but the code uses it as the
+            <strong>incoming</strong> header to read a propagated ID from
+            (<code>req.Header.Get(cfg.ForwardHeader)</code>). The outgoing
+            response header is the separate <code>HeaderName</code> field. A
+            reader trusts "Forward" = outbound and is misled.
+            <code>HeaderName</code> is also vague — "which header?"
           </p>
           <div class="callout callout-solution">
-            <strong>Better names (v1):</strong> <code>IncomingHeader</code> (the request header
-            read) and <code>OutgoingHeader</code> or <code>ResponseHeader</code> (the response
-            header written). Direction becomes self-evident.
+            <strong>Better names (v1):</strong> <code>IncomingHeader</code> (the
+            request header read) and <code>OutgoingHeader</code> or
+            <code>ResponseHeader</code> (the response header written). Direction
+            becomes self-evident.
           </div>
         </div>
 
@@ -536,10 +568,11 @@
           <h3>ReadyHandler doc implied an override that doesn't exist</h3>
           <div class="where">health.go:40 — comment</div>
           <p>
-            The doc said "Override with a custom handler that checks database connections" but
-            <code>ReadyHandler()</code> takes no arguments and always returns up.
-            <strong>Fixed:</strong> the comment now tells the user to register their own handler at
-            <code>/health/ready</code> instead.
+            The doc said "Override with a custom handler that checks database
+            connections" but
+            <code>ReadyHandler()</code> takes no arguments and always returns
+            up. <strong>Fixed:</strong> the comment now tells the user to
+            register their own handler at <code>/health/ready</code> instead.
           </p>
         </div>
 
@@ -575,8 +608,8 @@
                 <td><span class="badge badge-low">Low</span></td>
                 <td><code>LiveHandler</code></td>
                 <td>
-                  Returns <code>HealthHandler()</code> verbatim; "semantically distinct" but
-                  identical
+                  Returns <code>HealthHandler()</code> verbatim; "semantically
+                  distinct" but identical
                 </td>
                 <td>Acceptable for k8s semantics; document clearly</td>
               </tr>
@@ -584,40 +617,48 @@
                 <td>4</td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><code>QValues</code></td>
-                <td>Name implies active behavior; field is dead (see data-model review)</td>
+                <td>
+                  Name implies active behavior; field is dead (see data-model
+                  review)
+                </td>
                 <td>Remove or wire</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <h2 id="glossary"><span class="num">03</span>Glossary — no split-brain terminology</h2>
+        <h2 id="glossary">
+          <span class="num">03</span>Glossary — no split-brain terminology
+        </h2>
         <div class="card card-solution">
           <h4>One concept = one name (consistency win)</h4>
           <p>
-            The codebase uses a single, consistent vocabulary throughout. No synonym drift was
-            found:
+            The codebase uses a single, consistent vocabulary throughout. No
+            synonym drift was found:
           </p>
           <ul style="padding-left: 1.4rem; margin: 0.5rem 0 0">
             <li>
               <strong>Middleware</strong> — always <code>Middleware</code> /
-              <code>func(http.Handler) http.Handler</code>, never "interceptor", "filter",
-              "wrapper".
+              <code>func(http.Handler) http.Handler</code>, never "interceptor",
+              "filter", "wrapper".
             </li>
             <li>
-              <strong>Config</strong> — every options type ends in <code>Config</code>; every
-              constructor is <code>Default*Config()</code>.
+              <strong>Config</strong> — every options type ends in
+              <code>Config</code>; every constructor is
+              <code>Default*Config()</code>.
             </li>
             <li>
-              <strong>Validate</strong> — one method name for startup checks across all configs.
+              <strong>Validate</strong> — one method name for startup checks
+              across all configs.
             </li>
             <li>
-              <strong>Factory</strong> — <code>WriterFactory</code>, <code>GzipWriterFactory</code>,
+              <strong>Factory</strong> — <code>WriterFactory</code>,
+              <code>GzipWriterFactory</code>,
               <code>DeflateWriterFactory</code> — consistent factory naming.
             </li>
             <li>
-              <strong>Recorder / Wrapper / Writer</strong> — three distinct roles, three distinct
-              names, never conflated.
+              <strong>Recorder / Wrapper / Writer</strong> — three distinct
+              roles, three distinct names, never conflated.
             </li>
           </ul>
         </div>
@@ -628,7 +669,10 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Zero trash-can class names</strong
-              ><span>No Manager, Handler, Processor, Helper, or Util types anywhere.</span>
+              ><span
+                >No Manager, Handler, Processor, Helper, or Util types
+                anywhere.</span
+              >
             </div>
           </div>
           <div class="strength">
@@ -637,8 +681,8 @@
               <strong>Verbs reveal intent</strong
               ><span
                 ><code>resolveOrigin</code>, <code>matchWildcardOrigin</code>,
-                <code>negotiateEncoding</code>, <code>computeETag</code> — each name says what
-                happens.</span
+                <code>negotiateEncoding</code>, <code>computeETag</code> — each
+                name says what happens.</span
               >
             </div>
           </div>
@@ -647,8 +691,9 @@
             <div class="text">
               <strong>Domain-aligned error sentinels</strong
               ><span
-                ><code>errCredentialsWithAllOrigins</code>, <code>errRecoveryNotFirst</code> — the
-                name is the diagnosis.</span
+                ><code>errCredentialsWithAllOrigins</code>,
+                <code>errRecoveryNotFirst</code> — the name is the
+                diagnosis.</span
               >
             </div>
           </div>
@@ -657,8 +702,9 @@
             <div class="text">
               <strong>Honest failure names</strong
               ><span
-                ><code>ErrCodeHijackUnsupported</code> vs <code>ErrCodeHijackFailed</code> —
-                distinguish unsupported from transient failure.</span
+                ><code>ErrCodeHijackUnsupported</code> vs
+                <code>ErrCodeHijackFailed</code> — distinguish unsupported from
+                transient failure.</span
               >
             </div>
           </div>
@@ -667,8 +713,9 @@
             <div class="text">
               <strong>No abbreviations</strong
               ><span
-                >No <code>usr</code>, <code>cnt</code>, <code>mgr</code>; receiver names are full
-                words (<code>cfg</code> for config is the one accepted shortening).</span
+                >No <code>usr</code>, <code>cnt</code>, <code>mgr</code>;
+                receiver names are full words (<code>cfg</code> for config is
+                the one accepted shortening).</span
               >
             </div>
           </div>
@@ -677,7 +724,8 @@
         <h2 id="resolution">Resolution (2026-07-22)</h2>
         <div class="card card-solution">
           <p style="margin-top: 0">
-            The 1 material issue remains deferred; the <code>QValues</code> minor issue is resolved.
+            The 1 material issue remains deferred; the
+            <code>QValues</code> minor issue is resolved.
           </p>
           <table style="width: 100%; border-collapse: collapse">
             <thead>
@@ -689,23 +737,35 @@
             </thead>
             <tbody>
               <tr>
-                <td style="padding: 4px 8px"><code>RequestIDConfig.ForwardHeader</code></td>
-                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
                 <td style="padding: 4px 8px">
-                  Still the most dishonest name; rename to <code>IncomingHeader</code> planned for
-                  v1.0
+                  <code>RequestIDConfig.ForwardHeader</code>
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-medium">Deferred</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  Still the most dishonest name; rename to
+                  <code>IncomingHeader</code> planned for v1.0
                 </td>
               </tr>
               <tr>
-                <td style="padding: 4px 8px"><code>RequestIDConfig.HeaderName</code></td>
-                <td style="padding: 4px 8px"><span class="badge badge-medium">Deferred</span></td>
+                <td style="padding: 4px 8px">
+                  <code>RequestIDConfig.HeaderName</code>
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-medium">Deferred</span>
+                </td>
                 <td style="padding: 4px 8px">
                   Rename to <code>ResponseHeader</code> planned for v1.0
                 </td>
               </tr>
               <tr>
-                <td style="padding: 4px 8px"><code>CompressionConfig.QValues</code></td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <code>CompressionConfig.QValues</code>
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px">
                   Removed entirely (<code>fa6b19a</code>) — was dead code
                 </td>
@@ -715,8 +775,8 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; Reviewed via golangci-lint revive + manual semantic analysis
-          of all exports
+          Generated 2026-07-05 &middot; Reviewed via golangci-lint revive +
+          manual semantic analysis of all exports
         </footer>
       </main>
     </div>
@@ -737,7 +797,10 @@
             e.forEach(function (en) {
               if (en.isIntersecting)
                 l.forEach(function (a) {
-                  a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id);
+                  a.classList.toggle(
+                    "active",
+                    a.getAttribute("href") === "#" + en.target.id,
+                  );
                 });
             });
           },

@@ -909,29 +909,30 @@
           <h2><span class="num">00</span>Summary</h2>
           <p>
             The review visits every <code>*.go</code> file in the root
-            <code>httputil</code> package, the <code>httpspec</code>
-            subpackage, and the <code>server_timing</code> sub-module &mdash;
-            source and test files alike &mdash; using the architect checklist:
-            data flow, unrepresentable invalid states, type safety, composition,
-            naming, split brains, duplication, dead code, file size, and
-            integration correctness.
+            <code>httputil</code> package, the <code>httpspec</code> subpackage,
+            and the <code>server_timing</code> sub-module &mdash; source and
+            test files alike &mdash; using the architect checklist: data flow,
+            unrepresentable invalid states, type safety, composition, naming,
+            split brains, duplication, dead code, file size, and integration
+            correctness.
           </p>
           <p>
             Order is impact-first: the compression writer state machine and
             error model go first (highest defect density and widest blast
             radius), security middleware second, peripheral middleware and test
-            files last. Every batch is followed by the full gate suite
-            (<code>go test -race</code>, <code>golangci-lint run</code>,
-            <code>erraudit</code> gates) before moving on. Findings are fixed
-            on the spot when the fix is small and testable; anything larger is
-            harvested into <code>TODO_LIST.md</code>.
+            files last. Every batch is followed by the full gate suite (<code
+              >go test -race</code
+            >, <code>golangci-lint run</code>, <code>erraudit</code> gates)
+            before moving on. Findings are fixed on the spot when the fix is
+            small and testable; anything larger is harvested into
+            <code>TODO_LIST.md</code>.
           </p>
           <div class="callout callout-amber">
             <strong>Git policy note.</strong> The skill's default workflow says
             to commit pending work before starting. House rule overrides: no
-            commits without an explicit user request. The uncommitted
-            2026-08-30 backlog-execution changes stay in the working tree and
-            are reviewed as-is.
+            commits without an explicit user request. The uncommitted 2026-08-30
+            backlog-execution changes stay in the working tree and are reviewed
+            as-is.
           </div>
         </section>
 
@@ -947,54 +948,198 @@
           <h3>1% tier &mdash; 51% of value</h3>
           <table class="compare">
             <thead>
-              <tr><th>Task</th><th>Scope</th><th>Files</th><th>Why first</th></tr>
+              <tr>
+                <th>Task</th>
+                <th>Scope</th>
+                <th>Files</th>
+                <th>Why first</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>T1</td><td>Compression writer state machine</td><td>compress_writer.go, compress_writer_compress.go, compress_pool.go, wrapper.go</td><td class="no">Pooling + buffer reuse + commit semantics; subtlest code in the repo</td></tr>
-              <tr><td>T2</td><td>Error model contract</td><td>code.go, errors.go</td><td class="no">Every consumer touches it; templates table must stay complete</td></tr>
-              <tr><td>T3</td><td>Server lifecycle</td><td>server.go, health.go</td><td class="no">Production-critical; TLS mutation, shutdown paths</td></tr>
-              <tr><td>T4</td><td>Compression middleware + negotiation</td><td>compression.go, compression_negotiator.go, compression_qvalue.go, compress_content_type.go</td><td class="no">q-value parsing, pool wiring, negotiation priority</td></tr>
+              <tr>
+                <td>T1</td>
+                <td>Compression writer state machine</td>
+                <td>
+                  compress_writer.go, compress_writer_compress.go,
+                  compress_pool.go, wrapper.go
+                </td>
+                <td class="no">
+                  Pooling + buffer reuse + commit semantics; subtlest code in
+                  the repo
+                </td>
+              </tr>
+              <tr>
+                <td>T2</td>
+                <td>Error model contract</td>
+                <td>code.go, errors.go</td>
+                <td class="no">
+                  Every consumer touches it; templates table must stay complete
+                </td>
+              </tr>
+              <tr>
+                <td>T3</td>
+                <td>Server lifecycle</td>
+                <td>server.go, health.go</td>
+                <td class="no">
+                  Production-critical; TLS mutation, shutdown paths
+                </td>
+              </tr>
+              <tr>
+                <td>T4</td>
+                <td>Compression middleware + negotiation</td>
+                <td>
+                  compression.go, compression_negotiator.go,
+                  compression_qvalue.go, compress_content_type.go
+                </td>
+                <td class="no">
+                  q-value parsing, pool wiring, negotiation priority
+                </td>
+              </tr>
             </tbody>
           </table>
 
           <h3>4% tier &mdash; 64% cumulative</h3>
           <table class="compare">
             <thead>
-              <tr><th>Task</th><th>Scope</th><th>Files</th><th>Risk focus</th></tr>
+              <tr>
+                <th>Task</th>
+                <th>Scope</th>
+                <th>Files</th>
+                <th>Risk focus</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>T5</td><td>Security middleware</td><td>csrf.go, nonce.go, security.go</td><td class="no">Crypto, cookie handling, CSP</td></tr>
-              <tr><td>T6</td><td>Rate limiting</td><td>ratelimit.go, ratelimit_keyed.go</td><td class="no">Heap eviction, per-key mutexes</td></tr>
-              <tr><td>T7</td><td>Core infra</td><td>decompression.go, recorder.go, stack.go, capabilities.go</td><td class="no">Bomb protection, recorder contract</td></tr>
-              <tr><td>T8</td><td>Identity and routing helpers</td><td>cors.go, clientip.go, context.go, requestid.go, id_generator.go, queryparam.go, hex.go, headers.go</td><td class="no">Header canonicalization, ID generation</td></tr>
+              <tr>
+                <td>T5</td>
+                <td>Security middleware</td>
+                <td>csrf.go, nonce.go, security.go</td>
+                <td class="no">Crypto, cookie handling, CSP</td>
+              </tr>
+              <tr>
+                <td>T6</td>
+                <td>Rate limiting</td>
+                <td>ratelimit.go, ratelimit_keyed.go</td>
+                <td class="no">Heap eviction, per-key mutexes</td>
+              </tr>
+              <tr>
+                <td>T7</td>
+                <td>Core infra</td>
+                <td>
+                  decompression.go, recorder.go, stack.go, capabilities.go
+                </td>
+                <td class="no">Bomb protection, recorder contract</td>
+              </tr>
+              <tr>
+                <td>T8</td>
+                <td>Identity and routing helpers</td>
+                <td>
+                  cors.go, clientip.go, context.go, requestid.go,
+                  id_generator.go, queryparam.go, hex.go, headers.go
+                </td>
+                <td class="no">Header canonicalization, ID generation</td>
+              </tr>
             </tbody>
           </table>
 
           <h3>20% tier &mdash; 80% cumulative, then test files</h3>
           <table class="compare">
             <thead>
-              <tr><th>Task</th><th>Scope</th><th>Files</th><th>Notes</th></tr>
+              <tr>
+                <th>Task</th>
+                <th>Scope</th>
+                <th>Files</th>
+                <th>Notes</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>T9</td><td>Small middleware</td><td>metrics.go, logging.go, timeout.go, recovery.go, maxbodysize.go, etag.go, doc.go</td><td>Mostly stable; quick pass</td></tr>
-              <tr><td>T10</td><td>httpspec package</td><td>all 6 files</td><td>Spec runner correctness, parallelism</td></tr>
-              <tr><td>T11</td><td>server_timing sub-module</td><td>all 5 files</td><td>CRLF sanitization, context helpers</td></tr>
-              <tr><td>T12</td><td>Test batch 1</td><td>compression*, wrapper, chain_hijack, etag benches</td><td>Delegated first pass, verified locally</td></tr>
-              <tr><td>T13</td><td>Test batch 2</td><td>csrf*, nonce*, security, requestid, id_generator</td><td>Delegated first pass, verified locally</td></tr>
-              <tr><td>T14</td><td>Test batch 3</td><td>server*, chain, health*, metrics, timeout, recovery, logging, bench_batch</td><td>Delegated first pass, verified locally</td></tr>
-              <tr><td>T15</td><td>Test batch 4</td><td>ratelimit*, maxbodysize, decompression*, cors*, clientip, context, queryparam, stack*</td><td>Delegated first pass, verified locally</td></tr>
-              <tr><td>T16</td><td>Test batch 5</td><td>recorder*, errors*, code*, testutil, validate_config_log, fuzz files, httpspec/server_timing tests</td><td>Delegated first pass, verified locally</td></tr>
+              <tr>
+                <td>T9</td>
+                <td>Small middleware</td>
+                <td>
+                  metrics.go, logging.go, timeout.go, recovery.go,
+                  maxbodysize.go, etag.go, doc.go
+                </td>
+                <td>Mostly stable; quick pass</td>
+              </tr>
+              <tr>
+                <td>T10</td>
+                <td>httpspec package</td>
+                <td>all 6 files</td>
+                <td>Spec runner correctness, parallelism</td>
+              </tr>
+              <tr>
+                <td>T11</td>
+                <td>server_timing sub-module</td>
+                <td>all 5 files</td>
+                <td>CRLF sanitization, context helpers</td>
+              </tr>
+              <tr>
+                <td>T12</td>
+                <td>Test batch 1</td>
+                <td>compression*, wrapper, chain_hijack, etag benches</td>
+                <td>Delegated first pass, verified locally</td>
+              </tr>
+              <tr>
+                <td>T13</td>
+                <td>Test batch 2</td>
+                <td>csrf*, nonce*, security, requestid, id_generator</td>
+                <td>Delegated first pass, verified locally</td>
+              </tr>
+              <tr>
+                <td>T14</td>
+                <td>Test batch 3</td>
+                <td>
+                  server*, chain, health*, metrics, timeout, recovery, logging,
+                  bench_batch
+                </td>
+                <td>Delegated first pass, verified locally</td>
+              </tr>
+              <tr>
+                <td>T15</td>
+                <td>Test batch 4</td>
+                <td>
+                  ratelimit*, maxbodysize, decompression*, cors*, clientip,
+                  context, queryparam, stack*
+                </td>
+                <td>Delegated first pass, verified locally</td>
+              </tr>
+              <tr>
+                <td>T16</td>
+                <td>Test batch 5</td>
+                <td>
+                  recorder*, errors*, code*, testutil, validate_config_log, fuzz
+                  files, httpspec/server_timing tests
+                </td>
+                <td>Delegated first pass, verified locally</td>
+              </tr>
             </tbody>
           </table>
 
           <h3>Closeout</h3>
           <table class="compare">
             <thead>
-              <tr><th>Task</th><th>Scope</th><th>Output</th></tr>
+              <tr>
+                <th>Task</th>
+                <th>Scope</th>
+                <th>Output</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>T17</td><td>Consolidated gate sweep</td><td>test -race all modules, lint both modules, erraudit gates, vet</td></tr>
-              <tr><td>T18</td><td>Harvest + report</td><td>TODO_LIST.md updates; docs/reviews/2026-08-30_&lt;hh-mm&gt;_full-code-review.html</td></tr>
+              <tr>
+                <td>T17</td>
+                <td>Consolidated gate sweep</td>
+                <td>
+                  test -race all modules, lint both modules, erraudit gates, vet
+                </td>
+              </tr>
+              <tr>
+                <td>T18</td>
+                <td>Harvest + report</td>
+                <td>
+                  TODO_LIST.md updates;
+                  docs/reviews/2026-08-30_&lt;hh-mm&gt;_full-code-review.html
+                </td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -1006,107 +1151,519 @@
             batches T12&ndash;T16 run after all source files so test findings
             can reference final source state.
           </p>
-          <?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 897 1898"><svg class="d2-410235821 d2-svg" width="100%" height="auto" viewBox="-89 -89 897 1898"><rect x="-89.000000" y="-89.000000" width="897.000000" height="1898.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
-.d2-410235821 .text-bold {
-	font-family: "d2-410235821-font-bold";
-}
-@font-face {
-	font-family: d2-410235821-font-bold;
-	src: url("data:application/font-woff;base64,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");
-}]]></style><style type="text/css"><![CDATA[.shape {
-  shape-rendering: geometricPrecision;
-  stroke-linejoin: round;
-}
-.connection {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.blend {
-  mix-blend-mode: multiply;
-  opacity: 0.5;
-}
+          <?xml version="1.0" encoding="utf-8"?><svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.8.1-HEAD"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 897 1898"
+          >
+            <svg
+              class="d2-410235821 d2-svg"
+              width="100%"
+              height="auto"
+              viewBox="-89 -89 897 1898"
+            >
+              <rect
+                x="-89.000000"
+                y="-89.000000"
+                width="897.000000"
+                height="1898.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-410235821 .text-bold {
+                	font-family: "d2-410235821-font-bold";
+                }
+                @font-face {
+                	font-family: d2-410235821-font-bold;
+                	src: url("data:application/font-woff;base64,d09GRgABAAAAABO8AAoAAAAAHaQAAguFAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgXxHXrmNtYXAAAAFUAAAAxgAAARwGSQfNZ2x5ZgAAAhwAAAyJAAARRGkinstoZWFkAAAOqAAAADYAAAA2G38e1GhoZWEAAA7gAAAAJAAAACQKfwX8aG10eAAADwQAAADRAAAA9HReCW5sb2NhAAAP2AAAAHwAAAB8iN6NjG1heHAAABBUAAAAIAAAACAAVQD3bmFtZQAAEHQAAAMoAAAIKgjwVkFwb3N0AAATnAAAAB0AAAAg/9EAMgADAioCvAAFAAACigJYAAAASwKKAlgAAAFeADIBKQAAAgsHAwMEAwICBGAAAvcAAAADAAAAAAAAAABBREJPACAAIP//Au7/BgAAA9gBESAAAZ8AAAAAAfAClAAAACAAA3ichM5LLkMBHMXh7+pVr6L1frtoab1a7+jUSCKRiHljKCZiZk1YgIhYhBVYBNO/5EZMe8a/5DtIFCQoSZMyqjKpVKamYcu2HU2n2s5duHSt49a9xwjyqv5ftbSd5dWVjht3HiLiS8WQkoJUMb7jJz7iPd7iNT7jJZ7jKfe7L3HswKETTXuO1KzbUNew+fdgV0tP7vQq6tNvwGBuD9s3YlRZxZhxEyZNmTZj1px5CxYtWZZZsWpNlV8AAAD//wEAAP//P1snBQAAeJyEV2tsG1d2PveS4ljUWBIfwyEpPsQZzgxJSZTE4XAo6kFRoqiHRT2jh2PqEcFxHEmWtbYSKbGcFFjvps3KcDbypnKKJoGxQdNtUmTrFnDTukUXaLbGBijQJDVQbPPahZFu2qx2S2yDRiKLmZFk2Vtgf5ADDO7ce853vu8750IJDAHgOXwVdFAKFWAGCkA0+UycKAgsIYuyzNI6WUAmYgibC69/Xwjqg0F9qHrL+/TMDMpO46u7iyeyc3O/mWluLrzy1+8ULqPz7wAgCBfzuAFvQRVACcPzUjQWEyM2muB5ljEYKKtNjMRk2oCmRp4fHbs8kjzpG3DIbG1vzXhPIGkfGCH7v3dm8dqwyEzT7sh0x8llvyM3CxiyALgfb4BRi1SM2GyU1WBgBTESi0lRnmfZ7M2TLw4PXZmtc8VHw+HRuAtvpK8sL7/YvRrIDQwc50CJLwuAfok3oEzNl/JRIsVSPiqLtgpff/QRqsAb69+88NL6wdrP8QaUHl6bRX9U+Oqzz/DG+h+u7wLs55zGW+D9/3LeS1liJdFkMKAzx787NvHCRPep6qwjHuqfzZ2w8uTil8w39hKP+qZtnuW5k8tG4/Ja4QNfWIsDj+3HLFKiJJpYE2vKbn569eqneOPrr3dXUGVhez9m+ARvgE5da8pu4o3dlb1cPsMbUKK991HZTYTxxu62kipgNYdn8BZUPFA5FWUhokCsJYPGJ7917Ni3JrX/zoGBzs6BAXLk2vzC9wYHX5qfvzby7Mrc3NLS3NwK7NVtFG9AOdCH6kZYWIGlTKK2L5v9outcOildff3icH+itTXRjze4yYGeKbrw9RdfoNnGhgZeyY0t5rERb0FIjVCQbTZtA0EI498Cnaa12JG1/dnIQ+x4IFwn1oz5Wvjmx9Px5dCx6naBr2sKPdScSSyRDeFHPTzj9rrN/vL6TH1sMlobmnJUeV0ej4mxP9QVy8UBgQMAW/AGEEomrOSjWNN7N9D/3sCV6+u72xqOoWIefYB2wAEsAM0oMMpqSISgBkiZWIE1GGSFEqoe/i49dGkTs0Fvu1+qX0jMnFoz6r3dRxycZaDFS04kByYrfIKdesTtXzpX+LnoYs/RlgljjdtOq+elinlsw7fAusc+gSVYk0gRDxSPZQjKZkNdvk63njy/qXenmZbJ+paZST42Xhu0BkhftYRvvdnvdLd9o3/sqeRapv/bdT8xl6uc8hfz6BbaAeeD/L5Hb9pgQI6us6meJ9PhblcXWy0lkw32sCXBjZOtT4yMrrR66Bl3f6o9S1XMVldpWAnFPNrBt8AC1ftYqRsLCsEPUNov6K9zZ5tnosG4w7C5ZtQ7M9gumC01VjZWT37nqeEn2lz2/j/d7Wx0smtWx0/M5Z3dvV2A1dg/RTtgf0CdKgt9CoOU2HWiSm/k7T7X0bnY3D1Vr8eFO8ZMoxRr5KdfviHUMjGybWVkeCWZXEhbuNKY6Dvu9KBEUKrXPMAOgFbwbeWpcEN+gI+KdZge7ujwD3V6o5VVR51klef4cXTxTEmVNB4lDYslJT7ec77wTQAdMMU6TKAdqIdm6FOR4aWoAoRCJmk/BVqk2D0TZAS1Dgq9rAaD7pBaLXsKY3h1ya8T0/FuS1W13RlMTEu1vr8aJEqjk7Lba2aCQ7lH0ut9bkFwuwUhGGkXONHhI6ta33fGa1sC+qMBb1WkUm9O17QMBsiFMsba1Oc3Vtgs5uZOcTiMboeCQjAQCIYKm34HXanT2R0ut4ZNSim2ylHVv4h9IZjUKAlTapNwHYsM9266q10BO7715nFHzcJU4T3kiwUcdOGHUCyCDAD/jt/HPMQBgIAmeP5gbw++BaTma6IsKt5CUKkr+j9+7c//5tXlJL5VWPrH9wo//Yfup5X1xTwy41tQoTHOJJoOCPxP/c2bptISwmAmOfLEMczu3qHNCJ0pIbRzdG60Az71HFrUqntfJsTBM6VoONMopSy+vsahY5vuaq5B+atH2+3eupoA07ifXkPhh3uPfZzQzh5Oe2ccxmnNqK/OHgCFtpOeuvtw0viucud3+7gteTadPptMLqXTS8m6cLguXFe3p9XWldGRJ1pXs+2pfkWyms/0YBvaAQt4AOh70an04wWastyzGSVOd6/w8OmWmVh1i7NkkI+N14SsgZv4jUYn+wfnx9aSVY7B7yL/gcmouaMraAfM9+GrqUfLvKqfp1xG+1FHpavVirYnIo0lJc/q9cFI4RNAQBXz6FW0A4Ja13u9gdd6w8FmSmfwYMpqeL/xMb6DSXp9HnfY6WkOPD7WNOHtcEadTU18dWvwNMl7c44q2mKyWYykvynYNS7YJ602we4oL2Obwp1TGrdNxTxawitKdytheEliJVkW1UHhnjFCbjDdb3p6dZV1kw4jbZHJ+fHbZwyXLp3/cYgz6BcMpLZXSzGPvkLbSv3v46Zpzw7/dbh301Pt4m2ba2U6bx+5MIWihY+loNONegqVXVwtIEUHqIi24SiAqBNpm02BUpZF3Y0/udputBj1pRZj6vJ1tP0LLisIWe4Xhcp9/8LbaFvl9+HvDu3ACjyvhEEQV9dfbDAYDXriaKn8bLy0gtATpUT976++WUccJfREGVGLtu9yPTzfx95Vnz3c3ULlu2wmEMiw76rnKUXPo22lp4oW4dAxBH3vnPKtK6/UGm1G/RHzEWbrhWuvNJA0qS+1lgoIfzlE1VBUDTVU/NUIVUtRNbYRZV+y2IZ20bbC/ns8kOX7oCjHazZfhZMwH+ECRuLvr3aXmY36I6bSlstv0vHBHxn0y6jE73ain33IZDi2m/2wUNY2FtJ6FlfMoy/wc1C2py+NW5RV0ZY2h2pjrg0dOXXx4inl5wjQdMBhD9jtAfIH16+//vr16z84x01PTOQYJjcxMc0pcWcA0L/hC6qPKe1PisVkxSwzz69Ge5jF1VV09oTRZd3dWdW44gFAP8fPgUtZ34Y1We/NGKoqFZcVKW74YqYxyMj2ofq5dHJaas5F7S2233soe/HxuvpGwTkYESMnWqWzZ2O6knVlX1sxjz7Gz0HwQR2x0r557E8yVoMiduWs/86eYdPuTKA+7urrGm8P8Izs6audS8w9JYtyd2qBjASmXH7B7wraTtfzPs7jfJivOTHamLHpK7NtzaM1GrYWAPQVvgCligIsotLtFBpYJJ9kUbBgqde+XYL0pLM8Uvivz/+ytxcdecw77HHGqgpLW4+iZwqXl7eUHOhiHn2CLygd/74c1NgtPoolDlD6n4FFvsOdDjQm4rUuzt1hRqf/o8zHyyfiqXkyyk05uUhjQ6TcHEKp9dWK0EQ6czKqxhos5tF/qjwIACDGQOwfovvtWw9xYJXI4hCtxrjPV1/vaV3q6n2iM5nzZCtlF5tgdY5e98hCYgZxbuZYU2MsEir8c+o7Z1e3euu8k+YqbqKvmp15tGMmqta/FgDdxRdUnbdh2Sf5qHId8aqBybQUfobekTu5Sv38Gy+Prj/c+eSFFxSz0qmz6ecqZwSIHnSHexPF4ZLqHpwheEHlNSKSJxPJOq4hmmuemI/4wu3xR11C0O8OtZBcA9MSoFwJsnZQTPTZ9a6eSGwwNDMY7rbpHQPJyFAYPVPXwNX5OaG28KEQcHFuk0Vyh+oBA1PMo7sqnkEAi+Z7KnqWgwrGZLXX3NfR3mjwO0SLUWaqG1qTU56BypjL3+THjl53bCySmG1qU0BGfxEJqZgWyLBHg9LrD010dsyKqeeXn7zWq97h2hDAW0r/oYVYTGAY9pC4+z3xBMJ6zMZifCSa+9GANcXVBPhwX2pkDUCZT1qLefgl+hUWIAGA0mBQnoCgBm4jH2pU7mOyJFI1v7l9+rTmUyvo8+KPlfe05KNI9NON0VFA0FPMogD+WKkrrZWHVnGn30t2dSVzciQi33jso0uXPnqMf+TOwvydOUDQUMyiyr1vBNWFFMQoq2EjF49E4rlkV9cNfu7O/MKdR3j1W0BwtDiLYvhd9XyLqDt6e/b2a7pTOy8ruTiLeV073gIBmgGQAQRoQRfVqasZfQqa/zAwjb7EMeVOqt5tJa3p/cvbby++/fb0zdM3b56+udfX4QO0vX8fTW2i7UIloOJbuAlG8fvK96ZDQHPhMMeFw7gpxLIh5afsoWILbylr6UNrX+JFkedFkZSEgCQFBEnRpbOYRzPoRShTOjJ9vz8fMPpvM7lcpjuX63awrMPBsuTS3Nzi4tzc0kg8k4nFMhllxkTFsWIeKfdNHQCBRPRnaHas8BqJv7+bA4D/AwAA//8BAAD//3l0p2IAAAAAAQAAAAILha/60btfDzz1AAED6AAAAADYXaCEAAAAAN1mLzb+N/7ECG0D8QABAAMAAgAAAAAAAAABAAAD2P7vAAAImP43/jcIbQABAAAAAAAAAAAAAAAAAAAAPXicHMoxSgNREMbx/3wLQXHVEWOMKVLEFTF5LnYKZotpgoUPBAkknY13EAS9gYew1sbWC9h7FfsVtv/pizt+QAtqPZNVkVWS9UKtd7Kdk9Uj64Naj2QljpU40i5TNYT9UqnhVD0qWzLUgImuCetzqYqwMVGsCc0JzTob9kbYNwf2yp6umGuLsthgKLGjTUo5J3IWcsZyBnL25RzKOZOT5EzlTCxRW6KxW2b2R2krbmzFhd2zXawZdaZPQPvZuSdGPLTLfwAAAP//AQAA//8WaB0uAAAAAAAALAAsAFgAfACSAKYA1gDsAPgBCAE0AVoBmgGsAeQCFgJCAnQCqALOAzYDWANkA3wDmAPKA+wEGARIBGgEpATKBOwFCAVABWwFnAXIBeAGDAZKBm4GoAbgBvoHSAeIB6gHtAfAB8wH5ggACA4IIAg0CEAIVghsCJIIogABAAAAPQCQAAwAYwAHAAEAAAAAAAAAAAAAAAAABAADeJyclM9uG1UUxn9ObNMKwQJFVbqJ7oJFkejYVEnVNiuH1IpFFAePC0JCSBPP+I8ynhl5Jg7hCVjzFrxFVzwEz4FYo/l87NgF0SaKknx37vnznXO+c4Ed/mabSvUh8Ec9MVxhr35ueIsH9RPD27TrW4arPKn9abhGWJsbrvN5rWf4I95WfzP8gP3qT4YfslttG/6YZ9Udw59sO/4y/Cn7vF3gCrzgV8MVdskMb7HDj4a3eYTFrFR5RNNwjc/YM1xnD+gzoSBmQsIIx5AJI66YEZHjEzFjwpCIEEeHFjGFviYEQo7Rf34N8CmYESjimAJHjE9MQM7YIv4ir5RzZRzqNLO7FgVjAi7kcUlAgiNlREpCxKXiFBRkvKJBg5yB+GYU5HjkTIjxSJkxokGXNqf0GTMhx9FWpJKZT8qQgmsC5XdmUXZmQERCbqyuSAjF04lfJO8Opzi6ZLJdj3y6EeFLHN/Ju+SWyvYrPP26NWabeZdsAubqZ6yuxLq51gTHui3ztvhWuOAV7l792WTy/h6F+l8o8gVXmn+oSSVikuDcLi18Kch3j3Ec6dzBV0e+p0OfE7q8oa9zix49WpzRp8Nr+Xbp4fiaLmccy6MjvLhrSzFn/IDjGzqyKWNH1p/FxCJ+JjN15+I4Ux1TMvW8ZO6p1kgV3n3C5Q6lG+rI5TPQHpWWTvNLtGcBI1NFJoZT9XKpjdz6F5oipqqlnO3tfbkNc9u95RbfkGqHS7UuOJWTWzB631S9dzRzrR+PgJCUC1kMSJnSoOBGvM8JuCLGcazunWhLClornzLPjVQSMRWDDonizMj0NzDd+MZ9sKF7Z29JKP+S6eWqqvtkcerV7YzeqHvLO9+6HK1NoGFTTdfUNBDXxLQfaafW+fvyzfW6pTzliJSY8F8vwDM8muxzwCFjZRjoZm6vQ1MvRJOXHKr6SyJZDaXnyCIc4PGcAw54yfN3+rhk4oyLW3FZz93imCO6HH5QFQv7Lke8Xn37/6y/i2lTtTierk4v7j3FJ3dQ6xfas9v3sqeJlZOYW7TbrTgjYFpycbvrNbnHeP8AAAD//wEAAP//9LdPUXicYmBmAIP/5xiMGLAAAAAAAP//AQAA//8vAQIDAAAA");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
 
-		.d2-410235821 .fill-N1{fill:#0A0F25;}
-		.d2-410235821 .fill-N2{fill:#676C7E;}
-		.d2-410235821 .fill-N3{fill:#9499AB;}
-		.d2-410235821 .fill-N4{fill:#CFD2DD;}
-		.d2-410235821 .fill-N5{fill:#DEE1EB;}
-		.d2-410235821 .fill-N6{fill:#EEF1F8;}
-		.d2-410235821 .fill-N7{fill:#FFFFFF;}
-		.d2-410235821 .fill-B1{fill:#0D32B2;}
-		.d2-410235821 .fill-B2{fill:#0D32B2;}
-		.d2-410235821 .fill-B3{fill:#E3E9FD;}
-		.d2-410235821 .fill-B4{fill:#E3E9FD;}
-		.d2-410235821 .fill-B5{fill:#EDF0FD;}
-		.d2-410235821 .fill-B6{fill:#F7F8FE;}
-		.d2-410235821 .fill-AA2{fill:#4A6FF3;}
-		.d2-410235821 .fill-AA4{fill:#EDF0FD;}
-		.d2-410235821 .fill-AA5{fill:#F7F8FE;}
-		.d2-410235821 .fill-AB4{fill:#EDF0FD;}
-		.d2-410235821 .fill-AB5{fill:#F7F8FE;}
-		.d2-410235821 .stroke-N1{stroke:#0A0F25;}
-		.d2-410235821 .stroke-N2{stroke:#676C7E;}
-		.d2-410235821 .stroke-N3{stroke:#9499AB;}
-		.d2-410235821 .stroke-N4{stroke:#CFD2DD;}
-		.d2-410235821 .stroke-N5{stroke:#DEE1EB;}
-		.d2-410235821 .stroke-N6{stroke:#EEF1F8;}
-		.d2-410235821 .stroke-N7{stroke:#FFFFFF;}
-		.d2-410235821 .stroke-B1{stroke:#0D32B2;}
-		.d2-410235821 .stroke-B2{stroke:#0D32B2;}
-		.d2-410235821 .stroke-B3{stroke:#E3E9FD;}
-		.d2-410235821 .stroke-B4{stroke:#E3E9FD;}
-		.d2-410235821 .stroke-B5{stroke:#EDF0FD;}
-		.d2-410235821 .stroke-B6{stroke:#F7F8FE;}
-		.d2-410235821 .stroke-AA2{stroke:#4A6FF3;}
-		.d2-410235821 .stroke-AA4{stroke:#EDF0FD;}
-		.d2-410235821 .stroke-AA5{stroke:#F7F8FE;}
-		.d2-410235821 .stroke-AB4{stroke:#EDF0FD;}
-		.d2-410235821 .stroke-AB5{stroke:#F7F8FE;}
-		.d2-410235821 .background-color-N1{background-color:#0A0F25;}
-		.d2-410235821 .background-color-N2{background-color:#676C7E;}
-		.d2-410235821 .background-color-N3{background-color:#9499AB;}
-		.d2-410235821 .background-color-N4{background-color:#CFD2DD;}
-		.d2-410235821 .background-color-N5{background-color:#DEE1EB;}
-		.d2-410235821 .background-color-N6{background-color:#EEF1F8;}
-		.d2-410235821 .background-color-N7{background-color:#FFFFFF;}
-		.d2-410235821 .background-color-B1{background-color:#0D32B2;}
-		.d2-410235821 .background-color-B2{background-color:#0D32B2;}
-		.d2-410235821 .background-color-B3{background-color:#E3E9FD;}
-		.d2-410235821 .background-color-B4{background-color:#E3E9FD;}
-		.d2-410235821 .background-color-B5{background-color:#EDF0FD;}
-		.d2-410235821 .background-color-B6{background-color:#F7F8FE;}
-		.d2-410235821 .background-color-AA2{background-color:#4A6FF3;}
-		.d2-410235821 .background-color-AA4{background-color:#EDF0FD;}
-		.d2-410235821 .background-color-AA5{background-color:#F7F8FE;}
-		.d2-410235821 .background-color-AB4{background-color:#EDF0FD;}
-		.d2-410235821 .background-color-AB5{background-color:#F7F8FE;}
-		.d2-410235821 .color-N1{color:#0A0F25;}
-		.d2-410235821 .color-N2{color:#676C7E;}
-		.d2-410235821 .color-N3{color:#9499AB;}
-		.d2-410235821 .color-N4{color:#CFD2DD;}
-		.d2-410235821 .color-N5{color:#DEE1EB;}
-		.d2-410235821 .color-N6{color:#EEF1F8;}
-		.d2-410235821 .color-N7{color:#FFFFFF;}
-		.d2-410235821 .color-B1{color:#0D32B2;}
-		.d2-410235821 .color-B2{color:#0D32B2;}
-		.d2-410235821 .color-B3{color:#E3E9FD;}
-		.d2-410235821 .color-B4{color:#E3E9FD;}
-		.d2-410235821 .color-B5{color:#EDF0FD;}
-		.d2-410235821 .color-B6{color:#F7F8FE;}
-		.d2-410235821 .color-AA2{color:#4A6FF3;}
-		.d2-410235821 .color-AA4{color:#EDF0FD;}
-		.d2-410235821 .color-AA5{color:#F7F8FE;}
-		.d2-410235821 .color-AB4{color:#EDF0FD;}
-		.d2-410235821 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-410235821);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-410235821);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-410235821);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-410235821);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-410235821);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-410235821);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-410235821);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="c3RhcnQ="><g class="shape" ><ellipse rx="160.500000" ry="160.500000" cx="359.500000" cy="172.500000" stroke="#0D32B2" fill="#F7F8FE" class="shape stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="359.500000" y="178.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Full Code Review Execution</text></g><g class="dDE="><g class="shape" ><rect x="50.000000" y="403.000000" width="618.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="359.000000" y="441.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T1-T4: 1% Core (writer state machine, error model, server lifecycle, compression)</text></g><g class="dDU="><g class="shape" ><rect x="12.000000" y="678.000000" width="695.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="359.500000" y="716.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T5-T8: 4% Security and Infra (csrf/nonce/security, ratelimit, decompression, recorder/stack)</text></g><g class="dDk="><g class="shape" ><rect x="69.000000" y="953.000000" width="580.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="359.000000" y="991.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T9-T11: 20% Remaining source (small middleware, httpspec, server_timing)</text></g><g class="dDEy"><g class="shape" ><rect x="232.000000" y="1228.000000" width="255.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="359.500000" y="1266.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T12-T16: Test files (5 batches)</text></g><g class="ZzE="><g class="shape" ><path d="M 317 539 L 274 573 L 317 608 L 402 608 L 445 573 L 402 539 Z" stroke="#0D32B2" fill="#DEE1EB" class=" stroke-B1 fill-N5" style="stroke-width:2;" /></g><text x="359.500000" y="579.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Gate check 1</text></g><g class="ZzI="><g class="shape" ><path d="M 317 814 L 274 848 L 317 883 L 402 883 L 445 848 L 402 814 Z" stroke="#0D32B2" fill="#DEE1EB" class=" stroke-B1 fill-N5" style="stroke-width:2;" /></g><text x="359.500000" y="854.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Gate check 2</text></g><g class="ZzM="><g class="shape" ><path d="M 317 1089 L 274 1123 L 317 1158 L 402 1158 L 445 1123 L 402 1089 Z" stroke="#0D32B2" fill="#DEE1EB" class=" stroke-B1 fill-N5" style="stroke-width:2;" /></g><text x="359.500000" y="1129.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Gate check 3</text></g><g class="ZzQ="><g class="shape" ><path d="M 316 1364 L 273 1398 L 316 1433 L 403 1433 L 446 1398 L 403 1364 Z" stroke="#0D32B2" fill="#DEE1EB" class=" stroke-B1 fill-N5" style="stroke-width:2;" /></g><text x="359.500000" y="1404.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Gate check 4</text></g><g class="dDE3"><g class="shape" ><path d="M 204 1503 L 48 1537 L 204 1572 L 515 1572 L 671 1537 L 515 1503 Z" stroke="#0D32B2" fill="#DEE1EB" class=" stroke-B1 fill-N5" style="stroke-width:2;" /></g><text x="359.500000" y="1543.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T17: Consolidated gate sweep (test -race, lint, erraudit)</text></g><g class="dDE4"><g class="shape" ><rect x="174.000000" y="1642.000000" width="370.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="359.000000" y="1680.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T18: Harvest TODO_LIST + write review report</text></g><g class="KHN0YXJ0IC0mZ3Q7IHQxKVswXQ=="><marker id="mk-d2-410235821-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 359.971431 334.999796 L 359.057137 399.000408" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KHQxIC0mZ3Q7IGcxKVswXQ=="><path d="M 359.485715 470.999949 L 359.028571 535.000102" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KGcxIC0mZ3Q7IHQ1KVswXQ=="><path d="M 359.971431 609.999796 L 359.057137 674.000408" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KHQ1IC0mZ3Q7IGcyKVswXQ=="><path d="M 359.485715 745.999949 L 359.028571 810.000102" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KGcyIC0mZ3Q7IHQ5KVswXQ=="><path d="M 359.971431 884.999796 L 359.057137 949.000408" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KHQ5IC0mZ3Q7IGczKVswXQ=="><path d="M 359.485715 1020.999949 L 359.028571 1085.000102" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KGczIC0mZ3Q7IHQxMilbMF0="><path d="M 359.971431 1159.999796 L 359.057137 1224.000408" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KHQxMiAtJmd0OyBnNClbMF0="><path d="M 359.485715 1295.999949 L 359.028571 1360.000102" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KGc0IC0mZ3Q7IHQxNylbMF0="><path d="M 359.971431 1434.999796 L 359.057137 1499.000408" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><g class="KHQxNyAtJmd0OyB0MTgpWzBd"><path d="M 359.971431 1573.999796 L 359.057137 1638.000408" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-410235821-3488378134)" mask="url(#d2-410235821)" /></g><mask id="d2-410235821" maskUnits="userSpaceOnUse" x="-89" y="-89" width="897" height="1898">
-<rect x="-89" y="-89" width="897" height="1898" fill="white"></rect>
-
-</mask></svg></svg>
-
+                		.d2-410235821 .fill-N1{fill:#0A0F25;}
+                		.d2-410235821 .fill-N2{fill:#676C7E;}
+                		.d2-410235821 .fill-N3{fill:#9499AB;}
+                		.d2-410235821 .fill-N4{fill:#CFD2DD;}
+                		.d2-410235821 .fill-N5{fill:#DEE1EB;}
+                		.d2-410235821 .fill-N6{fill:#EEF1F8;}
+                		.d2-410235821 .fill-N7{fill:#FFFFFF;}
+                		.d2-410235821 .fill-B1{fill:#0D32B2;}
+                		.d2-410235821 .fill-B2{fill:#0D32B2;}
+                		.d2-410235821 .fill-B3{fill:#E3E9FD;}
+                		.d2-410235821 .fill-B4{fill:#E3E9FD;}
+                		.d2-410235821 .fill-B5{fill:#EDF0FD;}
+                		.d2-410235821 .fill-B6{fill:#F7F8FE;}
+                		.d2-410235821 .fill-AA2{fill:#4A6FF3;}
+                		.d2-410235821 .fill-AA4{fill:#EDF0FD;}
+                		.d2-410235821 .fill-AA5{fill:#F7F8FE;}
+                		.d2-410235821 .fill-AB4{fill:#EDF0FD;}
+                		.d2-410235821 .fill-AB5{fill:#F7F8FE;}
+                		.d2-410235821 .stroke-N1{stroke:#0A0F25;}
+                		.d2-410235821 .stroke-N2{stroke:#676C7E;}
+                		.d2-410235821 .stroke-N3{stroke:#9499AB;}
+                		.d2-410235821 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-410235821 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-410235821 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-410235821 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-410235821 .stroke-B1{stroke:#0D32B2;}
+                		.d2-410235821 .stroke-B2{stroke:#0D32B2;}
+                		.d2-410235821 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-410235821 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-410235821 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-410235821 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-410235821 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-410235821 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-410235821 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-410235821 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-410235821 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-410235821 .background-color-N1{background-color:#0A0F25;}
+                		.d2-410235821 .background-color-N2{background-color:#676C7E;}
+                		.d2-410235821 .background-color-N3{background-color:#9499AB;}
+                		.d2-410235821 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-410235821 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-410235821 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-410235821 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-410235821 .background-color-B1{background-color:#0D32B2;}
+                		.d2-410235821 .background-color-B2{background-color:#0D32B2;}
+                		.d2-410235821 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-410235821 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-410235821 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-410235821 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-410235821 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-410235821 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-410235821 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-410235821 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-410235821 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-410235821 .color-N1{color:#0A0F25;}
+                		.d2-410235821 .color-N2{color:#676C7E;}
+                		.d2-410235821 .color-N3{color:#9499AB;}
+                		.d2-410235821 .color-N4{color:#CFD2DD;}
+                		.d2-410235821 .color-N5{color:#DEE1EB;}
+                		.d2-410235821 .color-N6{color:#EEF1F8;}
+                		.d2-410235821 .color-N7{color:#FFFFFF;}
+                		.d2-410235821 .color-B1{color:#0D32B2;}
+                		.d2-410235821 .color-B2{color:#0D32B2;}
+                		.d2-410235821 .color-B3{color:#E3E9FD;}
+                		.d2-410235821 .color-B4{color:#E3E9FD;}
+                		.d2-410235821 .color-B5{color:#EDF0FD;}
+                		.d2-410235821 .color-B6{color:#F7F8FE;}
+                		.d2-410235821 .color-AA2{color:#4A6FF3;}
+                		.d2-410235821 .color-AA4{color:#EDF0FD;}
+                		.d2-410235821 .color-AA5{color:#F7F8FE;}
+                		.d2-410235821 .color-AB4{color:#EDF0FD;}
+                		.d2-410235821 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-410235821);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-410235821);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-410235821);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-410235821);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-410235821);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-410235821);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-410235821);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-410235821);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="c3RhcnQ=">
+                <g class="shape">
+                  <ellipse
+                    rx="160.500000"
+                    ry="160.500000"
+                    cx="359.500000"
+                    cy="172.500000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="shape stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="178.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Full Code Review Execution
+                </text>
+              </g>
+              <g class="dDE=">
+                <g class="shape">
+                  <rect
+                    x="50.000000"
+                    y="403.000000"
+                    width="618.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.000000"
+                  y="441.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T1-T4: 1% Core (writer state machine, error model, server
+                  lifecycle, compression)
+                </text>
+              </g>
+              <g class="dDU=">
+                <g class="shape">
+                  <rect
+                    x="12.000000"
+                    y="678.000000"
+                    width="695.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="716.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T5-T8: 4% Security and Infra (csrf/nonce/security, ratelimit,
+                  decompression, recorder/stack)
+                </text>
+              </g>
+              <g class="dDk=">
+                <g class="shape">
+                  <rect
+                    x="69.000000"
+                    y="953.000000"
+                    width="580.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.000000"
+                  y="991.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T9-T11: 20% Remaining source (small middleware, httpspec,
+                  server_timing)
+                </text>
+              </g>
+              <g class="dDEy">
+                <g class="shape">
+                  <rect
+                    x="232.000000"
+                    y="1228.000000"
+                    width="255.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="1266.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T12-T16: Test files (5 batches)
+                </text>
+              </g>
+              <g class="ZzE=">
+                <g class="shape">
+                  <path
+                    d="M 317 539 L 274 573 L 317 608 L 402 608 L 445 573 L 402 539 Z"
+                    stroke="#0D32B2"
+                    fill="#DEE1EB"
+                    class="stroke-B1 fill-N5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="579.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Gate check 1
+                </text>
+              </g>
+              <g class="ZzI=">
+                <g class="shape">
+                  <path
+                    d="M 317 814 L 274 848 L 317 883 L 402 883 L 445 848 L 402 814 Z"
+                    stroke="#0D32B2"
+                    fill="#DEE1EB"
+                    class="stroke-B1 fill-N5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="854.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Gate check 2
+                </text>
+              </g>
+              <g class="ZzM=">
+                <g class="shape">
+                  <path
+                    d="M 317 1089 L 274 1123 L 317 1158 L 402 1158 L 445 1123 L 402 1089 Z"
+                    stroke="#0D32B2"
+                    fill="#DEE1EB"
+                    class="stroke-B1 fill-N5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="1129.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Gate check 3
+                </text>
+              </g>
+              <g class="ZzQ=">
+                <g class="shape">
+                  <path
+                    d="M 316 1364 L 273 1398 L 316 1433 L 403 1433 L 446 1398 L 403 1364 Z"
+                    stroke="#0D32B2"
+                    fill="#DEE1EB"
+                    class="stroke-B1 fill-N5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="1404.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Gate check 4
+                </text>
+              </g>
+              <g class="dDE3">
+                <g class="shape">
+                  <path
+                    d="M 204 1503 L 48 1537 L 204 1572 L 515 1572 L 671 1537 L 515 1503 Z"
+                    stroke="#0D32B2"
+                    fill="#DEE1EB"
+                    class="stroke-B1 fill-N5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.500000"
+                  y="1543.000000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T17: Consolidated gate sweep (test -race, lint, erraudit)
+                </text>
+              </g>
+              <g class="dDE4">
+                <g class="shape">
+                  <rect
+                    x="174.000000"
+                    y="1642.000000"
+                    width="370.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="359.000000"
+                  y="1680.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  T18: Harvest TODO_LIST + write review report
+                </text>
+              </g>
+              <g class="KHN0YXJ0IC0mZ3Q7IHQxKVswXQ==">
+                <marker
+                  id="mk-d2-410235821-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 359.971431 334.999796 L 359.057137 399.000408"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KHQxIC0mZ3Q7IGcxKVswXQ==">
+                <path
+                  d="M 359.485715 470.999949 L 359.028571 535.000102"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KGcxIC0mZ3Q7IHQ1KVswXQ==">
+                <path
+                  d="M 359.971431 609.999796 L 359.057137 674.000408"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KHQ1IC0mZ3Q7IGcyKVswXQ==">
+                <path
+                  d="M 359.485715 745.999949 L 359.028571 810.000102"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KGcyIC0mZ3Q7IHQ5KVswXQ==">
+                <path
+                  d="M 359.971431 884.999796 L 359.057137 949.000408"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KHQ5IC0mZ3Q7IGczKVswXQ==">
+                <path
+                  d="M 359.485715 1020.999949 L 359.028571 1085.000102"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KGczIC0mZ3Q7IHQxMilbMF0=">
+                <path
+                  d="M 359.971431 1159.999796 L 359.057137 1224.000408"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KHQxMiAtJmd0OyBnNClbMF0=">
+                <path
+                  d="M 359.485715 1295.999949 L 359.028571 1360.000102"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KGc0IC0mZ3Q7IHQxNylbMF0=">
+                <path
+                  d="M 359.971431 1434.999796 L 359.057137 1499.000408"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <g class="KHQxNyAtJmd0OyB0MTgpWzBd">
+                <path
+                  d="M 359.971431 1573.999796 L 359.057137 1638.000408"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-410235821-3488378134)"
+                  mask="url(#d2-410235821)"
+                />
+              </g>
+              <mask
+                id="d2-410235821"
+                maskUnits="userSpaceOnUse"
+                x="-89"
+                y="-89"
+                width="897"
+                height="1898"
+              >
+                <rect
+                  x="-89"
+                  y="-89"
+                  width="897"
+                  height="1898"
+                  fill="white"
+                ></rect>
+              </mask>
+            </svg>
+          </svg>
         </section>
 
         <section id="verify">
           <h2><span class="num">03</span>Verification Gates</h2>
-          <p>Every batch and the final closeout must pass, from the repo root:</p>
+          <p>
+            Every batch and the final closeout must pass, from the repo root:
+          </p>
           <pre><code>export GOCACHE=$HOME/.cache/go-build-httputil GOLANGCI_LINT_CACHE=$HOME/.cache/golangci-lint-httputil
 go build ./... &amp;&amp; go vet ./...
 go test -race -count=1 ./...
@@ -1145,7 +1702,7 @@ GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-e
       </main>
     </div>
 
-<!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
     <script>
       (function () {
         if (!("IntersectionObserver" in window)) return;

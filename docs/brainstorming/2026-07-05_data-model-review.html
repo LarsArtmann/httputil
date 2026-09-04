@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -197,15 +197,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -216,15 +228,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue .where {
         font-family: var(--font-mono);
@@ -476,7 +500,8 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>Data Model Review</span><span>2026-07-05</span><span>httputil · types-first</span>
+      <span>Data Model Review</span><span>2026-07-05</span
+      ><span>httputil · types-first</span>
     </div>
     <div class="layout">
       <aside class="sidebar" data-nav>
@@ -494,8 +519,9 @@
           <div class="hero-badge">Data Model Review</div>
           <h1>Type Safety &amp; Domain Model Audit</h1>
           <p class="hero-subtitle">
-            A first-principles review of every type in httputil: config structs, middleware writers,
-            error codes, enums, and context values. Goal — make invalid states unrepresentable.
+            A first-principles review of every type in httputil: config structs,
+            middleware writers, error codes, enums, and context values. Goal —
+            make invalid states unrepresentable.
           </p>
         </div>
 
@@ -523,11 +549,12 @@
           </div>
         </div>
         <p>
-          The model is <strong>mostly strong</strong>: every config is an explicit struct with a
-          <code>Validate()</code> entry point, middleware is a clean
-          <code>func(http.Handler) http.Handler</code> alias, and classified errors use a consistent
-          <code>http.*</code> code namespace. The problems below are real but bounded — no anemic
-          god-objects, no stringly-typed state machines.
+          The model is <strong>mostly strong</strong>: every config is an
+          explicit struct with a <code>Validate()</code> entry point, middleware
+          is a clean <code>func(http.Handler) http.Handler</code> alias, and
+          classified errors use a consistent <code>http.*</code> code namespace.
+          The problems below are real but bounded — no anemic god-objects, no
+          stringly-typed state machines.
         </p>
 
         <h2 id="catalog"><span class="num">01</span>Problem Catalog</h2>
@@ -542,36 +569,44 @@
     <span class="tok-keyword">return</span> <span class="tok-string">"*"</span> <span class="tok-comment">// ← unmatched origin still gets "*"</span>
 }</code></pre>
           <p>
-            When <code>AllowAllOrigins</code> is false and a request origin matches no entry in
-            <code>AllowedOrigins</code>, the middleware responds with
-            <code>Access-Control-Allow-Origin: *</code>. For simple requests this lets
-            <em>any</em> origin read the response — the allowlist is decorative. This is
-            <strong>documented as intentional</strong> in <code>DOMAIN_LANGUAGE.md</code> ("If no
-            match → fall back to *"), but it is a security surprise: a consumer configuring an
-            allowlist reasonably expects non-matching origins to be denied.
+            When <code>AllowAllOrigins</code> is false and a request origin
+            matches no entry in <code>AllowedOrigins</code>, the middleware
+            responds with <code>Access-Control-Allow-Origin: *</code>. For
+            simple requests this lets <em>any</em> origin read the response —
+            the allowlist is decorative. This is
+            <strong>documented as intentional</strong> in
+            <code>DOMAIN_LANGUAGE.md</code> ("If no match → fall back to *"),
+            but it is a security surprise: a consumer configuring an allowlist
+            reasonably expects non-matching origins to be denied.
           </p>
           <div class="callout callout-warning">
-            <strong>Why not auto-fixed:</strong> Changing the fallback to "deny" (empty header) is a
-            behavior change to a documented contract and could break consumers who rely on the open
-            fallback. Flagged for a deliberate v1 decision.
+            <strong>Why not auto-fixed:</strong> Changing the fallback to "deny"
+            (empty header) is a behavior change to a documented contract and
+            could break consumers who rely on the open fallback. Flagged for a
+            deliberate v1 decision.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">High · Dead field</span>
           <h3>CompressionConfig.QValues is declared, documented, never read</h3>
-          <div class="where">compression.go:83-87 — read nowhere in negotiator</div>
+          <div class="where">
+            compression.go:83-87 — read nowhere in negotiator
+          </div>
           <p>
-            The field doc claims it "lets the server hint at preference for clients that omit a
-            quality value," but <code>buildNegotiator</code> and
-            <code>negotiateEncoding</code> never consult <code>cfg.QValues</code>. A consumer
-            setting it gets silently no effect. This is a <strong>lying type</strong> — the field's
+            The field doc claims it "lets the server hint at preference for
+            clients that omit a quality value," but
+            <code>buildNegotiator</code> and
+            <code>negotiateEncoding</code> never consult
+            <code>cfg.QValues</code>. A consumer setting it gets silently no
+            effect. This is a <strong>lying type</strong> — the field's
             existence implies behavior that does not happen.
           </p>
           <div class="callout callout-solution">
-            <strong>Options:</strong> (a) wire it into the negotiator as the server-side default
-            q-value, or (b) remove it (breaking). Wiring is preferred — the design intent is sound,
-            only the implementation is missing.
+            <strong>Options:</strong> (a) wire it into the negotiator as the
+            server-side default q-value, or (b) remove it (breaking). Wiring is
+            preferred — the design intent is sound, only the implementation is
+            missing.
           </div>
         </div>
 
@@ -581,17 +616,19 @@
           <div class="where">compression.go:62 — vs WriterFactories map</div>
           <p>
             <code>Level</code> is validated but never passed to the factories in
-            <code>Compression()</code>. The actual compression level comes from whatever level the
-            <code>WriterFactories</code> map was built with (<code>DefaultWriterFactories()</code>
-            hardcodes <code>gzip.DefaultCompression</code>). So a consumer who sets
-            <code>cfg.Level = gzip.BestCompression</code> <strong>gets no change</strong> unless
-            they also rebuild the factory map. Two places encode the same concept; they can
-            disagree.
+            <code>Compression()</code>. The actual compression level comes from
+            whatever level the <code>WriterFactories</code> map was built with
+            (<code>DefaultWriterFactories()</code> hardcodes
+            <code>gzip.DefaultCompression</code>). So a consumer who sets
+            <code>cfg.Level = gzip.BestCompression</code>
+            <strong>gets no change</strong> unless they also rebuild the factory
+            map. Two places encode the same concept; they can disagree.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix direction:</strong> Make <code>Level</code> the single source of truth and
-            have <code>DefaultWriterFactories</code> (or <code>Compression()</code>) honor it, or
-            remove <code>Level</code> and document factories as the only level control.
+            <strong>Fix direction:</strong> Make <code>Level</code> the single
+            source of truth and have <code>DefaultWriterFactories</code> (or
+            <code>Compression()</code>) honor it, or remove
+            <code>Level</code> and document factories as the only level control.
           </div>
         </div>
 
@@ -600,44 +637,53 @@
           <h3>ETag uses CRC32 — a checksum, not a collision-resistant hash</h3>
           <div class="where">etag.go:180 — crc32.ChecksumIEEE</div>
           <p>
-            CRC32 has a 32-bit output. Two different response bodies can share an ETag, yielding a
-            false <code>304 Not Modified</code> and serving stale content. For a general-purpose
-            library this is a real (if rare) correctness bug. The tradeoff (zero-alloc, fast) is
+            CRC32 has a 32-bit output. Two different response bodies can share
+            an ETag, yielding a false <code>304 Not Modified</code> and serving
+            stale content. For a general-purpose library this is a real (if
+            rare) correctness bug. The tradeoff (zero-alloc, fast) is
             reasonable, but the collision risk should be opt-out, not silent.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix direction:</strong> Add an <code>Algorithm</code> option (CRC32 default for
-            speed, xxhash/SHA for correctness) or document the collision semantics explicitly.
+            <strong>Fix direction:</strong> Add an <code>Algorithm</code> option
+            (CRC32 default for speed, xxhash/SHA for correctness) or document
+            the collision semantics explicitly.
           </div>
         </div>
 
         <h2 id="vision"><span class="num">02</span>The Vision</h2>
         <div class="card card-solution">
           <h4>What "right" looks like</h4>
-          <p>The model is already close. The improvements are surgical, not structural:</p>
+          <p>
+            The model is already close. The improvements are surgical, not
+            structural:
+          </p>
           <ul style="padding-left: 1.4rem; margin: 0.5rem 0 0">
             <li>
-              <strong>Branded error codes</strong> — promote the <code>http.*</code> code strings to
-              a named <code>type ErrCode string</code> so they can't be confused with arbitrary
-              strings at call sites.
+              <strong>Branded error codes</strong> — promote the
+              <code>http.*</code> code strings to a named
+              <code>type ErrCode string</code> so they can't be confused with
+              arbitrary strings at call sites.
             </li>
             <li>
-              <strong>One level knob</strong> — <code>Level</code> becomes the single source;
-              factories derive from it.
+              <strong>One level knob</strong> — <code>Level</code> becomes the
+              single source; factories derive from it.
             </li>
             <li>
-              <strong>Honest CORS</strong> — unmatched origin returns no allow-origin header (deny),
-              with an explicit <code>DenyUnmatched bool</code> escape hatch preserving the old
+              <strong>Honest CORS</strong> — unmatched origin returns no
+              allow-origin header (deny), with an explicit
+              <code>DenyUnmatched bool</code> escape hatch preserving the old
               behavior.
             </li>
             <li>
-              <strong>Pluggable ETag hash</strong> — <code>HashFunc func([]byte) uint64</code> on
-              the config.
+              <strong>Pluggable ETag hash</strong> —
+              <code>HashFunc func([]byte) uint64</code> on the config.
             </li>
           </ul>
         </div>
 
-        <h2 id="design"><span class="num">03</span>Design Decisions (what to preserve)</h2>
+        <h2 id="design">
+          <span class="num">03</span>Design Decisions (what to preserve)
+        </h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -651,18 +697,23 @@
               <tr>
                 <td>Config structs are values, not pointers</td>
                 <td>
-                  Configs are immutable after construction; pass-by-value prevents aliasing bugs
+                  Configs are immutable after construction; pass-by-value
+                  prevents aliasing bugs
                 </td>
                 <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
               <tr>
-                <td>Middleware = <code>func(http.Handler) http.Handler</code></td>
+                <td>
+                  Middleware = <code>func(http.Handler) http.Handler</code>
+                </td>
                 <td>Matches stdlib convention; composes with any framework</td>
                 <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
               <tr>
                 <td>Unexported context key types</td>
-                <td><code>requestIDKey struct{}</code> prevents key collisions</td>
+                <td>
+                  <code>requestIDKey struct{}</code> prevents key collisions
+                </td>
                 <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
               <tr>
@@ -672,7 +723,9 @@
               </tr>
               <tr>
                 <td>Embedded <code>responseWrapper</code> composition</td>
-                <td>Shares WriteHeader/Hijack/Flush logic without inheritance</td>
+                <td>
+                  Shares WriteHeader/Hijack/Flush logic without inheritance
+                </td>
                 <td><span class="badge badge-fixed">Yes</span></td>
               </tr>
             </tbody>
@@ -686,8 +739,8 @@
             <div class="text">
               <strong>No anemic god-objects</strong
               ><span
-                >Each config has a single, focused responsibility; fields are few and named for
-                their domain.</span
+                >Each config has a single, focused responsibility; fields are
+                few and named for their domain.</span
               >
             </div>
           </div>
@@ -696,8 +749,9 @@
             <div class="text">
               <strong>Validate() is a uniform contract</strong
               ><span
-                >Every config the middleware needs implements <code>Validate() error</code> —
-                invalid configs fail at startup, not at request time.</span
+                >Every config the middleware needs implements
+                <code>Validate() error</code> — invalid configs fail at startup,
+                not at request time.</span
               >
             </div>
           </div>
@@ -707,7 +761,8 @@
               <strong>Pluggable interfaces where they matter</strong
               ><span
                 ><code>RateLimiter</code>, <code>MetricsRecorder</code>,
-                <code>WriterFactory</code> open extension without core deps.</span
+                <code>WriterFactory</code> open extension without core
+                deps.</span
               >
             </div>
           </div>
@@ -716,8 +771,8 @@
             <div class="text">
               <strong>Errors are structured, not strings</strong
               ><span
-                >Codes + family + context via go-error-family; <code>errors.Is</code> and retry
-                decisions work.</span
+                >Codes + family + context via go-error-family;
+                <code>errors.Is</code> and retry decisions work.</span
               >
             </div>
           </div>
@@ -726,8 +781,8 @@
         <h2 id="resolution">Resolution (2026-07-22)</h2>
         <div class="card card-solution">
           <p style="margin-top: 0">
-            All 4 problems in the catalog are <strong>fixed</strong>. The vision section is
-            partially realized.
+            All 4 problems in the catalog are <strong>fixed</strong>. The vision
+            section is partially realized.
           </p>
           <table style="width: 100%; border-collapse: collapse">
             <thead>
@@ -740,28 +795,42 @@
             <tbody>
               <tr>
                 <td style="padding: 4px 8px">CORS allowlist bypassable</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
                 <td style="padding: 4px 8px">
                   <code>DenyUnmatched bool</code> field (<code>85c3d49</code>)
                 </td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">QValues dead field</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
-                <td style="padding: 4px 8px">Removed entirely (<code>fa6b19a</code>)</td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  Removed entirely (<code>fa6b19a</code>)
+                </td>
               </tr>
               <tr>
-                <td style="padding: 4px 8px">Level decoupled from WriterFactories</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
                 <td style="padding: 4px 8px">
-                  <code>DefaultWriterFactoriesForLevel</code> (<code>fa6b19a</code>)
+                  Level decoupled from WriterFactories
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  <code>DefaultWriterFactoriesForLevel</code>
+                  (<code>fa6b19a</code>)
                 </td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">CRC32 collision risk</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
                 <td style="padding: 4px 8px">
-                  <code>HashFunc</code> field + FNV-64a default (<code>857cc61</code>)
+                  <span class="badge badge-low">Fixed</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  <code>HashFunc</code> field + FNV-64a default
+                  (<code>857cc61</code>)
                 </td>
               </tr>
             </tbody>
@@ -769,8 +838,8 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; Reviewed all 11 config types, 4 interfaces, 5 Validate()
-          implementations
+          Generated 2026-07-05 &middot; Reviewed all 11 config types, 4
+          interfaces, 5 Validate() implementations
         </footer>
       </main>
     </div>
@@ -791,7 +860,10 @@
             e.forEach(function (en) {
               if (en.isIntersecting)
                 l.forEach(function (a) {
-                  a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id);
+                  a.classList.toggle(
+                    "active",
+                    a.getAttribute("href") === "#" + en.target.id,
+                  );
                 });
             });
           },

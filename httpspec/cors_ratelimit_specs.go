@@ -238,7 +238,8 @@ func corsOriginMatchesRequestedCheck() Check {
 		return Fail(
 			"request Origin %q got Access-Control-Allow-Origin %q: the response authorizes an origin "+
 				"the client did not request (hardcoded or misresolved origin)",
-			corsSpecOrigin, acao,
+			corsSpecOrigin,
+			acao,
 		)
 	}
 }

@@ -176,7 +176,10 @@ func TestCORSSpecs_PassWhenOriginReflected(t *testing.T) {
 	}
 
 	if result := spec.Check(handler); !result.OK {
-		t.Errorf("spec should pass when ACAO reflects the wildcard-matched request origin: %s", result.Message)
+		t.Errorf(
+			"spec should pass when ACAO reflects the wildcard-matched request origin: %s",
+			result.Message,
+		)
 	}
 }
 

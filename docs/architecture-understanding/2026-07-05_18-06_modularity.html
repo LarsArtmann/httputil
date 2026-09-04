@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -197,15 +197,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue {
         background: var(--surface-raised);
@@ -216,15 +228,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue .where {
         font-family: var(--font-mono);
@@ -523,7 +547,8 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>Architecture Review</span><span>2026-07-05</span><span>httputil · modularity</span>
+      <span>Architecture Review</span><span>2026-07-05</span
+      ><span>httputil · modularity</span>
     </div>
     <div class="layout">
       <aside class="sidebar" data-nav>
@@ -541,9 +566,9 @@
           <div class="hero-badge">Architecture Review</div>
           <h1>Scalability · Modularity · Composability</h1>
           <p class="hero-subtitle">
-            How well-structured is httputil as a reusable Go library? Assessment of package
-            boundaries, dependency direction, coupling hotspots, and service-orientation at
-            extension points.
+            How well-structured is httputil as a reusable Go library? Assessment
+            of package boundaries, dependency direction, coupling hotspots, and
+            service-orientation at extension points.
           </p>
         </div>
 
@@ -580,76 +605,92 @@
             font-size: 0.9em;
           "
         >
-          <strong>Correction (2026-07-22):</strong> External Deps is now <strong>2</strong> (added
-          <code>golang.org/x/time</code> v0.15.0 for rate limiting). Files (root pkg) is now
-          <strong>~69</strong> across both packages. The metric cards above reflect the state as of
+          <strong>Correction (2026-07-22):</strong> External Deps is now
+          <strong>2</strong> (added <code>golang.org/x/time</code> v0.15.0 for
+          rate limiting). Files (root pkg) is now <strong>~69</strong> across
+          both packages. The metric cards above reflect the state as of
           2026-07-05.
         </p>
 
-        <h2 id="structure"><span class="num">01</span>Structure &amp; Dependency Direction</h2>
+        <h2 id="structure">
+          <span class="num">01</span>Structure &amp; Dependency Direction
+        </h2>
         <div class="dep-tree">
           <span class="root">github.com/larsartmann/httputil</span> ├──
           <span class="ok">net/http (stdlib)</span> ├──
           <span class="ok">log/slog, crypto/rand, compress/* (stdlib)</span> └──
           <span class="ok"
-            >github.com/larsartmann/go-error-family (same author, 0 transitive deps)</span
+            >github.com/larsartmann/go-error-family (same author, 0 transitive
+            deps)</span
           >
 
           <span class="root">github.com/larsartmann/httputil/httpspec</span>
           └──
           <span class="ok"
-            >net/http, net/http/httptest, testing (stdlib only — NO dependency on parent
-            package)</span
+            >net/http, net/http/httptest, testing (stdlib only — NO dependency
+            on parent package)</span
           >
         </div>
         <p>
-          The dependency graph is a strict tree pointing only at stdlib and one same-author library.
-          <code>depguard</code> enforces this at lint time — no third-party imports can sneak in.
-          Critically, the <code>httpspec</code> subpackage depends only on stdlib; it validates
-          <em>any</em> <code>http.Handler</code>, so it is reusable far beyond this library.
+          The dependency graph is a strict tree pointing only at stdlib and one
+          same-author library.
+          <code>depguard</code> enforces this at lint time — no third-party
+          imports can sneak in. Critically, the <code>httpspec</code> subpackage
+          depends only on stdlib; it validates <em>any</em>
+          <code>http.Handler</code>, so it is reusable far beyond this library.
         </p>
 
         <h2 id="coupling"><span class="num">02</span>Coupling Assessment</h2>
         <div class="card card-solution">
           <h4>Composability score: Excellent</h4>
           <div class="diagram">
-            <span class="node node-core">Consumer Handler</span><span class="arrow">→</span>
-            <span class="node">Recovery</span><span class="arrow">→</span>
-            <span class="node">Logging</span><span class="arrow">→</span>
-            <span class="node">Timeout</span><span class="arrow">→</span>
+            <span class="node node-core">Consumer Handler</span
+            ><span class="arrow">→</span> <span class="node">Recovery</span
+            ><span class="arrow">→</span> <span class="node">Logging</span
+            ><span class="arrow">→</span> <span class="node">Timeout</span
+            ><span class="arrow">→</span>
             <span class="node node-good">Your Handler</span>
           </div>
           <p style="margin-top: 0.6rem">
-            Every middleware shares one signature — <code>func(http.Handler) http.Handler</code> —
-            so any of them composes with any other, in any order, with zero adapters.
-            <code>Chain()</code> and <code>MiddlewareStack</code> are thin orchestrators over this
-            universal interface. This is the highest-composability design available in Go HTTP.
+            Every middleware shares one signature —
+            <code>func(http.Handler) http.Handler</code> — so any of them
+            composes with any other, in any order, with zero adapters.
+            <code>Chain()</code> and <code>MiddlewareStack</code> are thin
+            orchestrators over this universal interface. This is the
+            highest-composability design available in Go HTTP.
           </p>
         </div>
         <div class="card card-warning">
           <h4>Single flat package — deliberate tradeoff, watch the size</h4>
           <p>
-            All 28 root files live in one <code>httputil</code> package. Benefit: one import
-            (<code>httputil.CORS</code>, <code>httputil.ETag</code>), no subpackage spelunking.
-            Cost: the package surface is large and will grow.
-            <strong>This is the correct tradeoff for a utility library</strong> — consumers want
-            flat ergonomics, not a deep package tree. But at 28 files it is approaching the point
-            where grouping (e.g. an internal <code>compress/</code> for the 7 compression files)
-            would aid navigation without breaking the public import path. Not urgent; track it.
+            All 28 root files live in one <code>httputil</code> package.
+            Benefit: one import (<code>httputil.CORS</code>,
+            <code>httputil.ETag</code>), no subpackage spelunking. Cost: the
+            package surface is large and will grow.
+            <strong>This is the correct tradeoff for a utility library</strong>
+            — consumers want flat ergonomics, not a deep package tree. But at 28
+            files it is approaching the point where grouping (e.g. an internal
+            <code>compress/</code> for the 7 compression files) would aid
+            navigation without breaking the public import path. Not urgent;
+            track it.
             <em
-              >(Update 2026-07-26: the <code>compress/</code> split was evaluated and rejected —
-              compression files depend on root symbols (<code>Middleware</code>,
-              <code>responseWrapper</code>, <code>ErrCode*</code>), so extracting them creates a
-              circular import. The flat layout is structural, not a debt item. Root package now has
-              62 files.)</em
+              >(Update 2026-07-26: the <code>compress/</code> split was
+              evaluated and rejected — compression files depend on root symbols
+              (<code>Middleware</code>, <code>responseWrapper</code>,
+              <code>ErrCode*</code>), so extracting them creates a circular
+              import. The flat layout is structural, not a debt item. Root
+              package now has 62 files.)</em
             >
           </p>
         </div>
 
-        <h2 id="roadmap"><span class="num">03</span>Service-Orientation Roadmap</h2>
+        <h2 id="roadmap">
+          <span class="num">03</span>Service-Orientation Roadmap
+        </h2>
         <p>
-          The library already practices service-orientation at its extension seams — three pluggable
-          interfaces let consumers inject their own implementations without forking:
+          The library already practices service-orientation at its extension
+          seams — three pluggable interfaces let consumers inject their own
+          implementations without forking:
         </p>
         <div class="table-wrap">
           <table>
@@ -684,8 +725,8 @@
           <div class="migration-content">
             <h4>Keep extension points interface-minimal</h4>
             <p>
-              Each has exactly one method — the ideal size. Resist adding convenience methods; let
-              adapters compose.
+              Each has exactly one method — the ideal size. Resist adding
+              convenience methods; let adapters compose.
             </p>
           </div>
         </div>
@@ -694,9 +735,10 @@
           <div class="migration-content">
             <h4>Address the unbounded-memory RateLimiter</h4>
             <p>
-              <code>TokenBucketLimiter</code> grows its key map without eviction. For production
-              per-IP limiting, document that a custom <code>RateLimiter</code> with eviction (or
-              TTL) is required — or add an optional TTL to the default.
+              <code>TokenBucketLimiter</code> grows its key map without
+              eviction. For production per-IP limiting, document that a custom
+              <code>RateLimiter</code> with eviction (or TTL) is required — or
+              add an optional TTL to the default.
             </p>
           </div>
         </div>
@@ -706,8 +748,8 @@
             <h4>Consider an internal split for compression</h4>
             <p>
               The 7 compression files are a cohesive subsystem; an internal
-              <code>compress</code> folder (unexported) would reduce root-package noise while
-              preserving the flat public API.
+              <code>compress</code> folder (unexported) would reduce
+              root-package noise while preserving the flat public API.
             </p>
           </div>
         </div>
@@ -719,8 +761,8 @@
             <div class="text">
               <strong>One universal middleware signature</strong
               ><span
-                >Everything is <code>func(http.Handler) http.Handler</code> — maximal composability,
-                zero adapters.</span
+                >Everything is <code>func(http.Handler) http.Handler</code> —
+                maximal composability, zero adapters.</span
               >
             </div>
           </div>
@@ -729,8 +771,8 @@
             <div class="text">
               <strong>httpspec is a pure stdlib consumer</strong
               ><span
-                >The spec package validates any handler — it is a reusable contract, not coupled to
-                httputil internals.</span
+                >The spec package validates any handler — it is a reusable
+                contract, not coupled to httputil internals.</span
               >
             </div>
           </div>
@@ -739,7 +781,8 @@
             <div class="text">
               <strong>Composition over inheritance via responseWrapper</strong
               ><span
-                >Two writers share behavior through embedding, not a base class hierarchy.</span
+                >Two writers share behavior through embedding, not a base class
+                hierarchy.</span
               >
             </div>
           </div>
@@ -748,8 +791,8 @@
             <div class="text">
               <strong>Dependency policy is machine-enforced</strong
               ><span
-                ><code>depguard</code> makes the zero-third-party-dep guarantee structural, not
-                aspirational.</span
+                ><code>depguard</code> makes the zero-third-party-dep guarantee
+                structural, not aspirational.</span
               >
             </div>
           </div>
@@ -758,8 +801,11 @@
             <div class="text">
               <strong>Server lifecycle is encapsulated</strong
               ><span
-                ><code>Server</code> hides <code>*http.Server</code>; consumers get
-                <code>Start()</code>/<code>Shutdown()</code>/<code>Addr()</code> only.</span
+                ><code>Server</code> hides <code>*http.Server</code>; consumers
+                get <code>Start()</code>/<code>Shutdown()</code>/<code
+                  >Addr()</code
+                >
+                only.</span
               >
             </div>
           </div>
@@ -768,7 +814,8 @@
         <h2 id="resolution">Resolution (2026-07-22)</h2>
         <div class="card card-solution">
           <p style="margin-top: 0">
-            Two of three roadmap items were acted on; the compress/ subfolder was rejected.
+            Two of three roadmap items were acted on; the compress/ subfolder
+            was rejected.
           </p>
           <table style="width: 100%; border-collapse: collapse">
             <thead>
@@ -780,37 +827,51 @@
             </thead>
             <tbody>
               <tr>
-                <td style="padding: 4px 8px">TokenBucketLimiter unbounded memory</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Fixed</span></td>
                 <td style="padding: 4px 8px">
-                  <code>EvictionTTL</code> field added (<code>a44b0b9</code>); limiter rewritten
-                  with <code>golang.org/x/time/rate</code> (<code>4ce4fdf</code>)
+                  TokenBucketLimiter unbounded memory
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Fixed</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  <code>EvictionTTL</code> field added (<code>a44b0b9</code>);
+                  limiter rewritten with
+                  <code>golang.org/x/time/rate</code> (<code>4ce4fdf</code>)
                 </td>
               </tr>
               <tr>
                 <td style="padding: 4px 8px">Internal compress/ subfolder</td>
-                <td style="padding: 4px 8px"><span class="badge badge-medium">Rejected</span></td>
                 <td style="padding: 4px 8px">
-                  Circular import: compression files depend on root symbols; root must re-export
-                  compression types
+                  <span class="badge badge-medium">Rejected</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  Circular import: compression files depend on root symbols;
+                  root must re-export compression types
                 </td>
               </tr>
               <tr>
-                <td style="padding: 4px 8px">Keep extension interfaces minimal</td>
-                <td style="padding: 4px 8px"><span class="badge badge-low">Preserved</span></td>
-                <td style="padding: 4px 8px">All 3 interfaces remain one-method</td>
+                <td style="padding: 4px 8px">
+                  Keep extension interfaces minimal
+                </td>
+                <td style="padding: 4px 8px">
+                  <span class="badge badge-low">Preserved</span>
+                </td>
+                <td style="padding: 4px 8px">
+                  All 3 interfaces remain one-method
+                </td>
               </tr>
             </tbody>
           </table>
           <p>
-            The "1 external dep" and "28 files (root pkg)" claims are point-in-time as of
-            2026-07-05. The project now has 2 dependencies and ~69 .go files.
+            The "1 external dep" and "28 files (root pkg)" claims are
+            point-in-time as of 2026-07-05. The project now has 2 dependencies
+            and ~69 .go files.
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-05 &middot; Reviewed package boundaries, import graph, interface design,
-          and coupling
+          Generated 2026-07-05 &middot; Reviewed package boundaries, import
+          graph, interface design, and coupling
         </footer>
       </main>
     </div>
@@ -831,7 +892,10 @@
             e.forEach(function (en) {
               if (en.isIntersecting)
                 l.forEach(function (a) {
-                  a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id);
+                  a.classList.toggle(
+                    "active",
+                    a.getAttribute("href") === "#" + en.target.id,
+                  );
                 });
             });
           },

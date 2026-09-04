@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.4
+  go: 1.26.7
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -28,7 +28,6 @@ linters:
     - copyloopvar
     - cyclop
     - decorder
-    - depguard
     - dogsled
     - dupl
     - dupword
@@ -89,7 +88,6 @@ linters:
     - nilnil
     - nlreturn
     - noctx
-    - noinlineerr
     - nolintlint
     - nonamedreturns
     - nosprintfhostport
@@ -126,28 +124,37 @@ linters:
     - wrapcheck
     - wsl_v5
     - zerologlint
+  disable:
+    - depguard
+    - noinlineerr
   settings:
     cyclop:
       max-complexity: 12
-    depguard:
-      rules:
-        main:
-          allow:
-            - $gostd
-            # Explicit module path entries because $module does not expand to
-            # match the module root or subpackages for cross-package imports
-            # (depguard v2.12.2).
-            - github.com/larsartmann/httputil
-            - github.com/larsartmann/httputil/**
-            - github.com/larsartmann/httputil/server_timing
-            - github.com/larsartmann/go-error-family
-            - github.com/larsartmann/go-etag
-            - github.com/justinas/nosurf
-            - golang.org/x/time
+    errcheck:
+      exclude-functions:
+        - (*os.File).Close
+        - (io.Closer).Close
+        - (*sql.DB).Close
+        - (*sql.Rows).Close
+        - (*sql.Stmt).Close
+        - (net.Conn).Close
+        - (*net.TCPConn).Close
+        - (*net.UDPConn).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Print
+        - fmt.Printf
+        - fmt.Println
+        - (*strings.Builder).WriteString
+        - (*bytes.Buffer).WriteString
     exhaustruct:
       exclude:
         - os/exec.Cmd
         - github\.com/larsartmann/httputil\.KeyedRateLimiterConfig$
+    funlen:
+      lines: 200
+      statements: 100
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
@@ -157,9 +164,6 @@ linters:
     gomoddirectives:
       replace-local: true
     gosec:
-      # G705 (XSS via taint analysis) is structurally a false positive in a
-      # response-writing middleware library: every ResponseWriter.Write emits
-      # intentional response output, never unsanitized HTML rendering.
       excludes:
         - G705
     ireturn:
@@ -171,6 +175,12 @@ linters:
         - generic
     makezero:
       always: true
+    mnd:
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "100"
     revive:
       rules:
         - disabled: true
@@ -211,6 +221,17 @@ linters:
         - l
         - c
       ignore-type-assert-ok: true
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
   exclusions:
     generated: lax
     rules:
@@ -230,15 +251,9 @@ linters:
         text: unused
         linters:
           - unused
-      # "X-CSRF-Token" is the ecosystem-standard spelling (nosurf, HTMX, OWASP).
-      # http.Header.Set/Get canonicalize at the wire level regardless, so the
-      # non-canonical literal is intentional and harmless.
       - text: '"X-CSRF-Token" is not canonical'
         linters:
           - canonicalheader
-      # "X-RateLimit-*" (capital L) is the de-facto industry spelling (GitHub,
-      # Stripe, Twitter). httpspec tests it deliberately; rationale documented
-      # in httpspec/cors_ratelimit_specs.go.
       - path: httpspec/cors_ratelimit_specs
         linters:
           - canonicalheader

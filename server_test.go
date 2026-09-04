@@ -538,7 +538,13 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 
 	freePort := reserveFreePort(t)
 	certPEM, keyPEM := newSelfSignedCert(t)
-	certPath, keyPath := filepath.Join(t.TempDir(), "cert.pem"), filepath.Join(t.TempDir(), "key.pem")
+	certPath, keyPath := filepath.Join(
+		t.TempDir(),
+		"cert.pem",
+	), filepath.Join(
+		t.TempDir(),
+		"key.pem",
+	)
 	if err := os.WriteFile(certPath, certPEM, 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -589,7 +595,9 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	clientTLS := tlsCfg.Clone()
 	clientTLS.NextProtos = []string{"http/1.1"}
 
-	client := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLS, ForceAttemptHTTP2: false}}
+	client := &http.Client{
+		Transport: &http.Transport{TLSClientConfig: clientTLS, ForceAttemptHTTP2: false},
+	}
 	resp, err := client.Get("https://" + srv.Addr() + "/")
 	if err != nil {
 		t.Fatalf("HTTPS request failed: %v", err)
@@ -644,7 +652,9 @@ func newSelfSignedCert(t *testing.T) ([]byte, []byte) {
 	}
 
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	keyPEM := pem.EncodeToMemory(
+		&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)},
+	)
 
 	return certPEM, keyPEM
 }

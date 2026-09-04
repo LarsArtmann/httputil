@@ -83,14 +83,14 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Server Lifecycle (Frozen at v1.0)
 
-| Symbol            | Tier   | Notes                                               |
-| ----------------- | ------ | --------------------------------------------------- |
-| `Server`          | Frozen | Struct; constructor + methods locked                |
-| `NewServer`       | Frozen | `func(ServerConfig, http.Handler) (*Server, error)` |
-| `Server.Start`    | Frozen | `func() <-chan error`                               |
+| Symbol            | Tier     | Notes                                                     |
+| ----------------- | -------- | --------------------------------------------------------- |
+| `Server`          | Frozen   | Struct; constructor + methods locked                      |
+| `NewServer`       | Frozen   | `func(ServerConfig, http.Handler) (*Server, error)`       |
+| `Server.Start`    | Frozen   | `func() <-chan error`                                     |
 | `Server.StartTLS` | Additive | Added post-v0.10.0: HTTPS serving via `ListenAndServeTLS` |
-| `Server.Shutdown` | Frozen | `func(context.Context) error`                       |
-| `Server.Addr`     | Frozen | `func() string`                                     |
+| `Server.Shutdown` | Frozen   | `func(context.Context) error`                             |
+| `Server.Addr`     | Frozen   | `func() string`                                           |
 
 ### Client IP (Frozen at v1.0)
 
@@ -259,30 +259,30 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Public API (Frozen at v1.0)
 
-| Symbol                     | Tier     | Notes                             |
-| -------------------------- | -------- | --------------------------------- |
-| `Run`                      | Frozen   |                                   |
-| `RunSerial`                | Frozen   |                                   |
-| `Spec`                     | Additive | New fields may be added           |
-| `Check`                    | Frozen   |                                   |
-| `Result`                   | Additive |                                   |
-| `Category`                 | Frozen   |                                   |
-| `Option`                   | Frozen   |                                   |
-| `WithIndexPath`            | Frozen   |                                   |
-| `SkipSpec`                 | Frozen   |                                   |
-| `WithExtraSpecs`           | Frozen   |                                   |
-| `Pass`                     | Frozen   |                                   |
-| `Fail`                     | Frozen   |                                   |
-| `ExpectStatus`             | Frozen   |                                   |
-| `ExpectNotStatus`          | Frozen   |                                   |
-| `ExpectHeader`             | Frozen   |                                   |
-| `ExpectHeaderAbsent`       | Frozen   |                                   |
-| `ExpectBodyContains`       | Frozen   |                                   |
-| `ExpectJSON`               | Additive | Added post-v0.10.0                |
-| `ExpectHTML`               | Additive | Added post-v0.10.0                |
-| `ExpectVaryContains`       | Additive | Added post-v0.10.0                |
-| `ExpectNotModifiedWithETag` | Additive | Added post-v0.10.0               |
-| `SpecName*` constants (18) | Frozen   | String values are part of the API |
+| Symbol                      | Tier     | Notes                             |
+| --------------------------- | -------- | --------------------------------- |
+| `Run`                       | Frozen   |                                   |
+| `RunSerial`                 | Frozen   |                                   |
+| `Spec`                      | Additive | New fields may be added           |
+| `Check`                     | Frozen   |                                   |
+| `Result`                    | Additive |                                   |
+| `Category`                  | Frozen   |                                   |
+| `Option`                    | Frozen   |                                   |
+| `WithIndexPath`             | Frozen   |                                   |
+| `SkipSpec`                  | Frozen   |                                   |
+| `WithExtraSpecs`            | Frozen   |                                   |
+| `Pass`                      | Frozen   |                                   |
+| `Fail`                      | Frozen   |                                   |
+| `ExpectStatus`              | Frozen   |                                   |
+| `ExpectNotStatus`           | Frozen   |                                   |
+| `ExpectHeader`              | Frozen   |                                   |
+| `ExpectHeaderAbsent`        | Frozen   |                                   |
+| `ExpectBodyContains`        | Frozen   |                                   |
+| `ExpectJSON`                | Additive | Added post-v0.10.0                |
+| `ExpectHTML`                | Additive | Added post-v0.10.0                |
+| `ExpectVaryContains`        | Additive | Added post-v0.10.0                |
+| `ExpectNotModifiedWithETag` | Additive | Added post-v0.10.0                |
+| `SpecName*` constants (18)  | Frozen   | String values are part of the API |
 
 ### Standard Specs (Additive)
 

@@ -68,18 +68,18 @@ The docs-health AUDIT mode says: "Report using the health report format — two 
 
 ## c) NOT STARTED
 
-| #  | Task                                                                            | Why it matters                                                                                               |
-| -- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 1  | **Update README.md coverage** (badge + Quality Gates table)                     | Split brain: docs say 97.0%, README says 96.9%                                                               |
-| 2  | **Run `golangci-lint fmt`**                                                     | Prior sessions ran both `run` AND `fmt`; I only ran `run`                                                    |
-| 3  | **Run `govulncheck ./...`**                                                     | Part of the standard verification set since 2026-08-05                                                       |
-| 4  | **Run `nix flake check`**                                                       | Part of the standard verification set                                                                        |
-| 5  | **Run `go test -race -count=10 ./...`**                                         | Stress test — full suite, not just count=1                                                                   |
-| 6  | **Load docs-health skill references**                                           | harvest-guide.md, build-guide.md, verify-checklist.md, health-report-format.md — SKILL.md says to load these |
-| 7  | **Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`** | Wrote entries from commit messages; didn't line-by-line verify against the actual diff                       |
-| 8  | **Verify all benchmark names in FEATURES.md table**                             | Counted via grep but didn't verify every specific name matches `func Benchmark*` declarations                |
-| 9  | **Run `scripts/update-coverage-badge.sh`**                                      | Would fix README.md coverage automatically                                                                   |
-| ~~10~~ | ~~**Produce docs-health health report** (Accuracy + Fitness scores)~~ done — health report produced by the 2026-08-30 docs-health pass | ~~AUDIT mode requires it~~ |
+| #      | Task                                                                                                                                   | Why it matters                                                                                               |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1      | **Update README.md coverage** (badge + Quality Gates table)                                                                            | Split brain: docs say 97.0%, README says 96.9%                                                               |
+| 2      | **Run `golangci-lint fmt`**                                                                                                            | Prior sessions ran both `run` AND `fmt`; I only ran `run`                                                    |
+| 3      | **Run `govulncheck ./...`**                                                                                                            | Part of the standard verification set since 2026-08-05                                                       |
+| 4      | **Run `nix flake check`**                                                                                                              | Part of the standard verification set                                                                        |
+| 5      | **Run `go test -race -count=10 ./...`**                                                                                                | Stress test — full suite, not just count=1                                                                   |
+| 6      | **Load docs-health skill references**                                                                                                  | harvest-guide.md, build-guide.md, verify-checklist.md, health-report-format.md — SKILL.md says to load these |
+| 7      | **Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`**                                                        | Wrote entries from commit messages; didn't line-by-line verify against the actual diff                       |
+| 8      | **Verify all benchmark names in FEATURES.md table**                                                                                    | Counted via grep but didn't verify every specific name matches `func Benchmark*` declarations                |
+| 9      | **Run `scripts/update-coverage-badge.sh`**                                                                                             | Would fix README.md coverage automatically                                                                   |
+| ~~10~~ | ~~**Produce docs-health health report** (Accuracy + Fitness scores)~~ done — health report produced by the 2026-08-30 docs-health pass | ~~AUDIT mode requires it~~                                                                                   |
 
 ---
 
@@ -139,58 +139,58 @@ I counted `grep "^func Benchmark" *_test.go | wc -l` = 43 and wrote "43 benchmar
 
 ### Critical — fix the README split brain I created
 
-| # | Task                                                                      | Impact   | Effort |
-| - | ------------------------------------------------------------------------- | -------- | ------ |
-| ~~1~~ | ~~**Update README.md coverage badge** from 96.9% to 97.0%~~ done — badge updated (reads 97.0% as of 2026-08-30) | ~~Critical~~ | ~~1 min~~ |
-| ~~2~~ | ~~**Update README.md Quality Gates table** coverage row~~ done — gates table updated 2026-08-30 | ~~Critical~~ | ~~1 min~~ |
+| #     | Task                                                                                                                 | Impact       | Effort    |
+| ----- | -------------------------------------------------------------------------------------------------------------------- | ------------ | --------- |
+| ~~1~~ | ~~**Update README.md coverage badge** from 96.9% to 97.0%~~ done — badge updated (reads 97.0% as of 2026-08-30)      | ~~Critical~~ | ~~1 min~~ |
+| ~~2~~ | ~~**Update README.md Quality Gates table** coverage row~~ done — gates table updated 2026-08-30                      | ~~Critical~~ | ~~1 min~~ |
 | ~~3~~ | ~~**Or: run `scripts/update-coverage-badge.sh`** to fix badge automatically~~ done — badge script + CI step cover it | ~~Critical~~ | ~~1 min~~ |
 
 ### High — verification gaps
 
-| # | Task                                                                            | Impact | Effort |
-| - | ------------------------------------------------------------------------------- | ------ | ------ |
-| ~~4~~ | ~~**Run `golangci-lint fmt`** and confirm clean~~ done — golangci-lint fmt clean in gates | ~~High~~ | ~~1 min~~ |
-| ~~5~~ | ~~**Run `govulncheck ./...`** and record result~~ done — govulncheck clean (CI) | ~~High~~ | ~~2 min~~ |
-| ~~6~~ | ~~**Run `nix flake check`** and record result~~ done — nix flake check green (T30) | ~~High~~ | ~~5 min~~ |
-| ~~7~~ | ~~**Run `go test -race -count=10 ./...`** stress test~~ done — full -race -count=10 green 2026-08-30 | ~~High~~ | ~~3 min~~ |
+| #     | Task                                                                                                                          | Impact     | Effort     |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~4~~ | ~~**Run `golangci-lint fmt`** and confirm clean~~ done — golangci-lint fmt clean in gates                                     | ~~High~~   | ~~1 min~~  |
+| ~~5~~ | ~~**Run `govulncheck ./...`** and record result~~ done — govulncheck clean (CI)                                               | ~~High~~   | ~~2 min~~  |
+| ~~6~~ | ~~**Run `nix flake check`** and record result~~ done — nix flake check green (T30)                                            | ~~High~~   | ~~5 min~~  |
+| ~~7~~ | ~~**Run `go test -race -count=10 ./...`** stress test~~ done — full -race -count=10 green 2026-08-30                          | ~~High~~   | ~~3 min~~  |
 | ~~8~~ | ~~**Cross-check CHANGELOG `[Unreleased]` against `git diff v0.9.1..HEAD --stat`**~~ done — CHANGELOG audited vs git log (T30) | ~~Medium~~ | ~~10 min~~ |
 
 ### High — code fixes identified but not executed
 
-| #  | Task                                                                                                   | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------------------ | ------ | ------ |
-| 9  | **Fix `stack_integration_test.go`** — add ETag to `buildFullStack`, fix "16 middlewares" comment to 17 | High   | 15 min |
-| ~~10~~ | ~~**Remove `assertBodyEmpty`** dead code from `testutil_test.go:182`~~ done — assertBodyEmpty removed in v0.10.0 | ~~Medium~~ | ~~2 min~~ |
-| ~~11~~ | ~~**Add `MiddlewareDecompression` constant** to `stack.go`~~ done — MiddlewareDecompression added in v0.10.0 | ~~Medium~~ | ~~5 min~~ |
+| #      | Task                                                                                                                  | Impact     | Effort     |
+| ------ | --------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| 9      | **Fix `stack_integration_test.go`** — add ETag to `buildFullStack`, fix "16 middlewares" comment to 17                | High       | 15 min     |
+| ~~10~~ | ~~**Remove `assertBodyEmpty`** dead code from `testutil_test.go:182`~~ done — assertBodyEmpty removed in v0.10.0      | ~~Medium~~ | ~~2 min~~  |
+| ~~11~~ | ~~**Add `MiddlewareDecompression` constant** to `stack.go`~~ done — MiddlewareDecompression added in v0.10.0          | ~~Medium~~ | ~~5 min~~  |
 | ~~12~~ | ~~**Add ETag positioning guidance to README** middleware ordering section~~ done — README ordering guidance (v0.10.0) | ~~Medium~~ | ~~10 min~~ |
 
 ### Medium — docs-health completeness
 
-| #  | Task                                                                                       | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| ~~13~~ | ~~**Load `references/verify-checklist.md`** and run the per-doc verification checklist~~ done — loaded by later docs-health passes | ~~Medium~~ | ~~15 min~~ |
-| ~~14~~ | ~~**Produce the docs-health health report** with Accuracy + Fitness scores~~ done — health report produced by the 2026-08-30 docs-health pass | ~~Medium~~ | ~~15 min~~ |
-| ~~15~~ | ~~**Load `references/health-report-format.md`** and follow the format~~ done — format followed | ~~Medium~~ | ~~5 min~~ |
-| ~~16~~ | ~~**Verify all benchmark names in FEATURES.md table** against `func Benchmark*` declarations~~ done — benchmark names verified against declarations 2026-08-30 | ~~Low~~ | ~~10 min~~ |
-| ~~17~~ | ~~**Upgrade header-level annotations to per-item** for the 5 most-read reports~~ done — per-item upgrade executed 2026-08-29 | ~~Low~~ | ~~1 hr~~ |
+| #      | Task                                                                                                                                                           | Impact     | Effort     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~13~~ | ~~**Load `references/verify-checklist.md`** and run the per-doc verification checklist~~ done — loaded by later docs-health passes                             | ~~Medium~~ | ~~15 min~~ |
+| ~~14~~ | ~~**Produce the docs-health health report** with Accuracy + Fitness scores~~ done — health report produced by the 2026-08-30 docs-health pass                  | ~~Medium~~ | ~~15 min~~ |
+| ~~15~~ | ~~**Load `references/health-report-format.md`** and follow the format~~ done — format followed                                                                 | ~~Medium~~ | ~~5 min~~  |
+| ~~16~~ | ~~**Verify all benchmark names in FEATURES.md table** against `func Benchmark*` declarations~~ done — benchmark names verified against declarations 2026-08-30 | ~~Low~~    | ~~10 min~~ |
+| ~~17~~ | ~~**Upgrade header-level annotations to per-item** for the 5 most-read reports~~ done — per-item upgrade executed 2026-08-29                                   | ~~Low~~    | ~~1 hr~~   |
 
 ### Medium — README gaps
 
-| #  | Task                                                                      | Impact | Effort |
-| -- | ------------------------------------------------------------------------- | ------ | ------ |
-| ~~18~~ | ~~**Add ETag to README API table** if not already present~~ done — ETag row present | ~~Medium~~ | ~~5 min~~ |
-| ~~19~~ | ~~**Add Decompression to README API table** if not already present~~ done — Decompression row present | ~~Medium~~ | ~~5 min~~ |
+| #      | Task                                                                                                                          | Impact     | Effort     |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~18~~ | ~~**Add ETag to README API table** if not already present~~ done — ETag row present                                           | ~~Medium~~ | ~~5 min~~  |
+| ~~19~~ | ~~**Add Decompression to README API table** if not already present~~ done — Decompression row present                         | ~~Medium~~ | ~~5 min~~  |
 | ~~20~~ | ~~**Verify README middleware ordering section** mentions all 17 middlewares~~ done — mermaid ordering diagram added (a5e0f8c) | ~~Medium~~ | ~~10 min~~ |
 
 ### Low — polish
 
-| #  | Task                                                                                       | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------ | ------ | ------ |
-| ~~21~~ | ~~**Run `scripts/update-coverage-badge.sh`** in CI to auto-fix badge drift~~ done — ci.yml updates the badge | ~~Low~~ | ~~5 min~~ |
-| ~~22~~ | ~~**Add `BenchmarkCompressionNegotiator`** — the one remaining benchmark gap~~ done — added in v0.10.0 | ~~Low~~ | ~~15 min~~ |
-| ~~23~~ | ~~**Verify `docs/DOMAIN_LANGUAGE.md`** has go-etag conditional-request vocabulary~~ done — DOMAIN_LANGUAGE updated at extraction | ~~Low~~ | ~~5 min~~ |
-| ~~24~~ | ~~**Check all internal markdown links resolve** across living docs~~ done — T30: 0 broken links | ~~Low~~ | ~~10 min~~ |
-| ~~25~~ | ~~**Verify `docs/v1-stability.md`** ETag entries are complete (ETag factory, MiddlewareETag)~~ done — v1-stability ETag entries complete | ~~Low~~ | ~~5 min~~ |
+| #      | Task                                                                                                                                     | Impact  | Effort     |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------- |
+| ~~21~~ | ~~**Run `scripts/update-coverage-badge.sh`** in CI to auto-fix badge drift~~ done — ci.yml updates the badge                             | ~~Low~~ | ~~5 min~~  |
+| ~~22~~ | ~~**Add `BenchmarkCompressionNegotiator`** — the one remaining benchmark gap~~ done — added in v0.10.0                                   | ~~Low~~ | ~~15 min~~ |
+| ~~23~~ | ~~**Verify `docs/DOMAIN_LANGUAGE.md`** has go-etag conditional-request vocabulary~~ done — DOMAIN_LANGUAGE updated at extraction         | ~~Low~~ | ~~5 min~~  |
+| ~~24~~ | ~~**Check all internal markdown links resolve** across living docs~~ done — T30: 0 broken links                                          | ~~Low~~ | ~~10 min~~ |
+| ~~25~~ | ~~**Verify `docs/v1-stability.md`** ETag entries are complete (ETag factory, MiddlewareETag)~~ done — v1-stability ETag entries complete | ~~Low~~ | ~~5 min~~  |
 
 ---
 

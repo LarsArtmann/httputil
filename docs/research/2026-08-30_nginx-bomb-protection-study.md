@@ -26,14 +26,14 @@ A reverse-proxied deployment gets **no bomb protection from nginx** for gzipped 
 
 ## Comparison table
 
-| Aspect                          | nginx (request body)                          | `httputil.Decompression`                          |
-| ------------------------------- | --------------------------------------------- | ------------------------------------------------- |
-| Decompresses request bodies?    | No (gunzip module is response-side only)      | Yes (gzip, deflate)                               |
-| Size limit enforced on          | Wire bytes (`client_max_body_size`, 413)      | Decompressed bytes (`MaxDecompressionSize`)       |
-| Bomb (small wire, huge inflated)| Passes the proxy sized check; backend exposed | Tripped at the inflated-byte limit; read aborted  |
-| Error surfaced                  | 413 to client before proxying                 | Classified error to the handler (`Rejection`)     |
-| Default                         | `client_max_body_size 1m` (wire)              | 16 MiB inflated (0 maps to default; no off-switch)|
-| Header decompression awareness  | Yes (HPACK limits applied post-decompression) | N/A (Go net/http owns HTTP/2 header limits)       |
+| Aspect                           | nginx (request body)                          | `httputil.Decompression`                           |
+| -------------------------------- | --------------------------------------------- | -------------------------------------------------- |
+| Decompresses request bodies?     | No (gunzip module is response-side only)      | Yes (gzip, deflate)                                |
+| Size limit enforced on           | Wire bytes (`client_max_body_size`, 413)      | Decompressed bytes (`MaxDecompressionSize`)        |
+| Bomb (small wire, huge inflated) | Passes the proxy sized check; backend exposed | Tripped at the inflated-byte limit; read aborted   |
+| Error surfaced                   | 413 to client before proxying                 | Classified error to the handler (`Rejection`)      |
+| Default                          | `client_max_body_size 1m` (wire)              | 16 MiB inflated (0 maps to default; no off-switch) |
+| Header decompression awareness   | Yes (HPACK limits applied post-decompression) | N/A (Go net/http owns HTTP/2 header limits)        |
 
 ## Practical guidance for the README/deployment docs
 

@@ -303,33 +303,33 @@ None of these are "fucked up" in the sense of breaking the build or causing pani
 
 Sorted by **impact / effort ratio** (Pareto principle — highest impact per unit of work first):
 
-| #  | Task                                                       | Impact | Effort | Category        |
-| -- | ---------------------------------------------------------- | ------ | ------ | --------------- |
-| 1  | Fix `If-None-Match` to parse comma-separated ETag lists    | High   | 5 min  | Correctness     |
-| 2  | Fix `isCacheableStatus` to accept all 2xx                  | High   | 2 min  | Correctness     |
-| 3  | Add ETag memory limit (skip ETag if body > 1MB)            | High   | 15 min | Safety          |
-| 4  | Add error classification for compression write errors      | High   | 20 min | Architecture    |
-| 5  | Add `sync.Pool` for gzip.Writer reuse                      | High   | 20 min | Performance     |
-| ~~6~~  | ~~Add content-type filtering for compression~~ done — shipped (IncompressibleTypes) | ~~Medium~~ | ~~15 min~~ | ~~Performance~~ |
-| 7  | Add benchmarks for Compression and ETag                    | Medium | 15 min | Observability   |
-| ~~8~~  | ~~Add example functions for godoc~~ done | ~~Medium~~ | ~~10 min~~ | ~~DX~~ |
-| 9  | Add integration test for ETag + Compression chain          | Medium | 15 min | Correctness     |
-| ~~10~~ | ~~Document recommended middleware ordering in README~~ done — (ordering section + mermaid) | ~~Medium~~ | ~~5 min~~ | ~~DX~~ |
-| ~~11~~ | ~~Extract shared ResponseWriter wrapper helper~~ done — shipped (wrapper.go responseWrapper) | ~~Medium~~ | ~~30 min~~ | ~~Architecture~~ |
-| ~~12~~ | ~~Add deflate support~~ done — shipped (DefaultWriterFactories) | ~~Medium~~ | ~~30 min~~ | ~~Feature~~ |
-| ~~13~~ | ~~Support `Accept-Encoding` quality value parsing~~ done — shipped (compression_qvalue.go + property tests) | ~~Low~~ | ~~20 min~~ | ~~Correctness~~ |
-| 14 | Add `Content-Length` preservation for small responses      | Low    | 15 min | Correctness     |
-| ~~15~~ | ~~Add `ETagConfig` max buffer size field~~ done — shipped (go-etag ETagConfig buffer limit) | ~~Low~~ | ~~10 min~~ | ~~Configurability~~ |
-| ~~16~~ | ~~Add `CompressionConfig` content type allow/deny lists~~ done — shipped (IncompressibleTypes) | ~~Low~~ | ~~15 min~~ | ~~Configurability~~ |
-| ~~17~~ | ~~Add weak ETag documentation clarifying "weak in name only"~~ done — (go-etag docs + v0.9.1 weak comparison) | ~~Low~~ | ~~5 min~~ | ~~DX~~ |
-| ~~18~~ | ~~Add streaming ETag option (no buffering)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~Medium~~ | ~~45 min~~ | ~~Performance~~ |
-| ~~19~~ | ~~Add brotli support (blocked: requires external dep)~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~High~~ | ~~60 min~~ | ~~Feature~~ |
-| ~~20~~ | ~~Consider `MiddlewareStack` type with ordering rules~~ done — shipped (stack.go) | ~~Low~~ | ~~60 min~~ | ~~Architecture~~ |
-| ~~21~~ | ~~Fuzz test compression with random bodies~~ done — (FuzzCompression round-trip invariant) | ~~Medium~~ | ~~20 min~~ | ~~Quality~~ |
-| ~~22~~ | ~~Fuzz test ETag with random bodies and headers~~ done — (go-etag module fuzz suite) | ~~Medium~~ | ~~20 min~~ | ~~Quality~~ |
-| ~~23~~ | ~~Add HTTP/2 Push test for compression writer~~ done — moot (http.Pusher code removed in v0.3.0) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
-| ~~24~~ | ~~Add Hijack test for ETag writer~~ done — (chain_hijack_test + wrapper_test, 2026-08-30) | ~~Low~~ | ~~15 min~~ | ~~Coverage~~ |
-| ~~25~~ | ~~Profile allocation hot spots under benchmark load~~ done — (benchmarks + research notes) | ~~Medium~~ | ~~30 min~~ | ~~Performance~~ |
+| #      | Task                                                                                                                                   | Impact     | Effort     | Category            |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- | ------------------- |
+| 1      | Fix `If-None-Match` to parse comma-separated ETag lists                                                                                | High       | 5 min      | Correctness         |
+| 2      | Fix `isCacheableStatus` to accept all 2xx                                                                                              | High       | 2 min      | Correctness         |
+| 3      | Add ETag memory limit (skip ETag if body > 1MB)                                                                                        | High       | 15 min     | Safety              |
+| 4      | Add error classification for compression write errors                                                                                  | High       | 20 min     | Architecture        |
+| 5      | Add `sync.Pool` for gzip.Writer reuse                                                                                                  | High       | 20 min     | Performance         |
+| ~~6~~  | ~~Add content-type filtering for compression~~ done — shipped (IncompressibleTypes)                                                    | ~~Medium~~ | ~~15 min~~ | ~~Performance~~     |
+| 7      | Add benchmarks for Compression and ETag                                                                                                | Medium     | 15 min     | Observability       |
+| ~~8~~  | ~~Add example functions for godoc~~ done                                                                                               | ~~Medium~~ | ~~10 min~~ | ~~DX~~              |
+| 9      | Add integration test for ETag + Compression chain                                                                                      | Medium     | 15 min     | Correctness         |
+| ~~10~~ | ~~Document recommended middleware ordering in README~~ done — (ordering section + mermaid)                                             | ~~Medium~~ | ~~5 min~~  | ~~DX~~              |
+| ~~11~~ | ~~Extract shared ResponseWriter wrapper helper~~ done — shipped (wrapper.go responseWrapper)                                           | ~~Medium~~ | ~~30 min~~ | ~~Architecture~~    |
+| ~~12~~ | ~~Add deflate support~~ done — shipped (DefaultWriterFactories)                                                                        | ~~Medium~~ | ~~30 min~~ | ~~Feature~~         |
+| ~~13~~ | ~~Support `Accept-Encoding` quality value parsing~~ done — shipped (compression_qvalue.go + property tests)                            | ~~Low~~    | ~~20 min~~ | ~~Correctness~~     |
+| 14     | Add `Content-Length` preservation for small responses                                                                                  | Low        | 15 min     | Correctness         |
+| ~~15~~ | ~~Add `ETagConfig` max buffer size field~~ done — shipped (go-etag ETagConfig buffer limit)                                            | ~~Low~~    | ~~10 min~~ | ~~Configurability~~ |
+| ~~16~~ | ~~Add `CompressionConfig` content type allow/deny lists~~ done — shipped (IncompressibleTypes)                                         | ~~Low~~    | ~~15 min~~ | ~~Configurability~~ |
+| ~~17~~ | ~~Add weak ETag documentation clarifying "weak in name only"~~ done — (go-etag docs + v0.9.1 weak comparison)                          | ~~Low~~    | ~~5 min~~  | ~~DX~~              |
+| ~~18~~ | ~~Add streaming ETag option (no buffering)~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory  | ~~Medium~~ | ~~45 min~~ | ~~Performance~~     |
+| ~~19~~ | ~~Add brotli support (blocked: requires external dep)~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~High~~   | ~~60 min~~ | ~~Feature~~         |
+| ~~20~~ | ~~Consider `MiddlewareStack` type with ordering rules~~ done — shipped (stack.go)                                                      | ~~Low~~    | ~~60 min~~ | ~~Architecture~~    |
+| ~~21~~ | ~~Fuzz test compression with random bodies~~ done — (FuzzCompression round-trip invariant)                                             | ~~Medium~~ | ~~20 min~~ | ~~Quality~~         |
+| ~~22~~ | ~~Fuzz test ETag with random bodies and headers~~ done — (go-etag module fuzz suite)                                                   | ~~Medium~~ | ~~20 min~~ | ~~Quality~~         |
+| ~~23~~ | ~~Add HTTP/2 Push test for compression writer~~ done — moot (http.Pusher code removed in v0.3.0)                                       | ~~Low~~    | ~~15 min~~ | ~~Coverage~~        |
+| ~~24~~ | ~~Add Hijack test for ETag writer~~ done — (chain_hijack_test + wrapper_test, 2026-08-30)                                              | ~~Low~~    | ~~15 min~~ | ~~Coverage~~        |
+| ~~25~~ | ~~Profile allocation hot spots under benchmark load~~ done — (benchmarks + research notes)                                             | ~~Medium~~ | ~~30 min~~ | ~~Performance~~     |
 
 ---
 

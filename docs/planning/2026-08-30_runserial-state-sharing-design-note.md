@@ -9,11 +9,11 @@
 
 ## Options considered
 
-| Option | Shape | Verdict |
-| ------ | ----- | ------- |
-| A. Shared response cache | specs declare "reads response #1"; runner caches requests per (method, path) | Reject: changes `Check` from a pure function of the handler into a function of runner state; specs become order- and cache-dependent; breaks `Check(handler) Result` composability that lets users run single specs ad hoc. |
-| B. Context object threaded through checks | `Check func(ctx, handler) Result` with typed getters | Reject: signature break for every existing check and consumer; buys a micro-optimization (one extra request per spec) that no user has ever measured as a cost. |
-| C. Keep isolation: each spec is a self-contained request | status quo | **Selected.** |
+| Option                                                   | Shape                                                                        | Verdict                                                                                                                                                                                                                     |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A. Shared response cache                                 | specs declare "reads response #1"; runner caches requests per (method, path) | Reject: changes `Check` from a pure function of the handler into a function of runner state; specs become order- and cache-dependent; breaks `Check(handler) Result` composability that lets users run single specs ad hoc. |
+| B. Context object threaded through checks                | `Check func(ctx, handler) Result` with typed getters                         | Reject: signature break for every existing check and consumer; buys a micro-optimization (one extra request per spec) that no user has ever measured as a cost.                                                             |
+| C. Keep isolation: each spec is a self-contained request | status quo                                                                   | **Selected.**                                                                                                                                                                                                               |
 
 ## Why isolation wins
 

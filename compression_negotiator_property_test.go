@@ -71,7 +71,10 @@ func generateNegotiationHeader(rng *rand.Rand) (string, []generatedEntry) {
 		}
 
 		parts = append(parts, raw)
-		entries = append(entries, generatedEntry{name: strings.ToLower(name), q: choice.q, raw: raw})
+		entries = append(
+			entries,
+			generatedEntry{name: strings.ToLower(name), q: choice.q, raw: raw},
+		)
 	}
 
 	return strings.Join(parts, ","), entries
@@ -80,7 +83,11 @@ func generateNegotiationHeader(rng *rand.Rand) (string, []generatedEntry) {
 // modelNegotiation is the reference selection: among entries the negotiator
 // has registered with q > 0, pick the maximum q; break ties by server
 // preference order. With no candidate, fall back to identity when registered.
-func modelNegotiation(order []string, factories map[string]bool, entries []generatedEntry) (string, float64, bool) {
+func modelNegotiation(
+	order []string,
+	factories map[string]bool,
+	entries []generatedEntry,
+) (string, float64, bool) {
 	bestIdx := -1
 	bestQ := -1.0
 	bestOrder := len(order) + 1
@@ -140,7 +147,14 @@ func TestNegotiator_Property_SelectsHighestQAvailable(t *testing.T) {
 		wantName, wantQ, wantOK := modelNegotiation(order, available, entries)
 
 		if gotOK != wantOK || gotName != wantName {
-			t.Fatalf("header %q: got (%q, %v), want (%q, %v)", header, gotName, gotOK, wantName, wantOK)
+			t.Fatalf(
+				"header %q: got (%q, %v), want (%q, %v)",
+				header,
+				gotName,
+				gotOK,
+				wantName,
+				wantOK,
+			)
 		}
 
 		if gotQ < wantQ-qEpsilon || gotQ > wantQ+qEpsilon {

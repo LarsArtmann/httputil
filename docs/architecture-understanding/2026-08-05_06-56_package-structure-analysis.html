@@ -30,14 +30,14 @@
         --warning: var(--color-yellow);
         --radius: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
@@ -519,9 +519,10 @@
           <div class="hero-badge">Architecture Review &middot; 2026-08-05</div>
           <h1>Package Structure Analysis</h1>
           <p class="hero-subtitle">
-            Should httputil add more folders? A deep dependency and cohesion analysis of the 33-file
-            flat root package, applying the architecture-review and go-modularize decision
-            frameworks. Answer: the flat structure is correct, with one viable internal/ option
+            Should httputil add more folders? A deep dependency and cohesion
+            analysis of the 33-file flat root package, applying the
+            architecture-review and go-modularize decision frameworks. Answer:
+            the flat structure is correct, with one viable internal/ option
             worth deferring until after v1.0.
           </p>
         </div>
@@ -559,63 +560,90 @@
             </div>
           </div>
           <p>
-            Growth since the previous review (2026-07-05): root package went from 28 to 33 non-test
-            files. The 5 new files are <strong>CSRF</strong> (603 lines),
-            <strong>Server-Timing</strong> (436 lines), and <strong>KeyedRateLimiter</strong> (369
-            lines) &mdash; all self-contained middleware with zero unexported cross-file
-            dependencies. The growth pattern is healthy: new middleware does not increase coupling.
+            Growth since the previous review (2026-07-05): root package went
+            from 28 to 33 non-test files. The 5 new files are
+            <strong>CSRF</strong> (603 lines),
+            <strong>Server-Timing</strong> (436 lines), and
+            <strong>KeyedRateLimiter</strong> (369 lines) &mdash; all
+            self-contained middleware with zero unexported cross-file
+            dependencies. The growth pattern is healthy: new middleware does not
+            increase coupling.
           </p>
         </section>
 
         <section id="structure">
-          <h2><span class="num">01</span>Structure &amp; Dependency Direction</h2>
+          <h2>
+            <span class="num">01</span>Structure &amp; Dependency Direction
+          </h2>
           <p>
-            The dependency graph is a strict tree pointing only at stdlib and tightly controlled
-            libraries:
+            The dependency graph is a strict tree pointing only at stdlib and
+            tightly controlled libraries:
           </p>
           <div class="dep-tree">
             <span class="root">github.com/larsartmann/httputil</span> ├──
-            <span class="ok">net/http, log/slog, compress/*, crypto/rand, etc. (stdlib)</span> ├──
             <span class="ok"
-              >github.com/larsartmann/go-error-family (same author, 0 transitive deps)</span
+              >net/http, log/slog, compress/*, crypto/rand, etc. (stdlib)</span
             >
-            ├── <span class="ok">golang.org/x/time/rate (canonical Go extension)</span> └──
-            <span class="ok">github.com/justinas/nosurf (CSRF, double-submit cookie)</span>
+            ├──
+            <span class="ok"
+              >github.com/larsartmann/go-error-family (same author, 0 transitive
+              deps)</span
+            >
+            ├──
+            <span class="ok"
+              >golang.org/x/time/rate (canonical Go extension)</span
+            >
+            └──
+            <span class="ok"
+              >github.com/justinas/nosurf (CSRF, double-submit cookie)</span
+            >
 
             <span class="root">github.com/larsartmann/httputil/httpspec</span>
             └──
             <span class="ok"
-              >net/http, net/http/httptest, testing (stdlib only &mdash; NO dep on parent)</span
+              >net/http, net/http/httptest, testing (stdlib only &mdash; NO dep
+              on parent)</span
             >
           </div>
           <div class="callout callout-solution">
             <strong>Perfect dependency direction (5/5)</strong>
-            depguard enforces the dependency policy at lint time. The httpspec subpackage is a pure
-            stdlib consumer &mdash; it validates any <code>http.Handler</code> independently, making
-            it reusable far beyond this library.
+            depguard enforces the dependency policy at lint time. The httpspec
+            subpackage is a pure stdlib consumer &mdash; it validates any
+            <code>http.Handler</code> independently, making it reusable far
+            beyond this library.
           </div>
         </section>
 
         <section id="coupling">
-          <h2><span class="num">02</span>Coupling Analysis: What Shares What</h2>
+          <h2>
+            <span class="num">02</span>Coupling Analysis: What Shares What
+          </h2>
           <p>
             The critical question for folder splitting:
-            <strong>which files share unexported symbols?</strong> In Go, files in the same package
-            share unexported types, functions, and constants freely. Splitting into sub-packages
-            forces these to be exported or duplicated. Here is the complete cross-file dependency
-            map:
+            <strong>which files share unexported symbols?</strong> In Go, files
+            in the same package share unexported types, functions, and constants
+            freely. Splitting into sub-packages forces these to be exported or
+            duplicated. Here is the complete cross-file dependency map:
           </p>
 
-          <h3>Compression cluster &mdash; 7 files, 27 shared unexported symbols</h3>
+          <h3>
+            Compression cluster &mdash; 7 files, 27 shared unexported symbols
+          </h3>
           <p>
             <code>compression.go</code>, <code>compress_writer.go</code>,
-            <code>compress_writer_compress.go</code>, <code>compress_pool.go</code>,
-            <code>compression_negotiator.go</code>, <code>compression_qvalue.go</code>,
-            <code>compress_content_type.go</code>. Every file depends on at least 2 others. This is
-            a deeply cohesive subsystem &mdash; it <emph>must</emph> stay together.
+            <code>compress_writer_compress.go</code>,
+            <code>compress_pool.go</code>,
+            <code>compression_negotiator.go</code>,
+            <code>compression_qvalue.go</code>,
+            <code>compress_content_type.go</code>. Every file depends on at
+            least 2 others. This is a deeply cohesive subsystem &mdash; it
+            <emph>must</emph> stay together.
           </p>
 
-          <h3>Shared infrastructure &mdash; 4 files consumed across subsystem boundaries</h3>
+          <h3>
+            Shared infrastructure &mdash; 4 files consumed across subsystem
+            boundaries
+          </h3>
           <table>
             <thead>
               <tr>
@@ -629,9 +657,12 @@
                 <td><code>wrapper.go</code></td>
                 <td>
                   <code>responseWrapper</code>, <code>newResponseWrapper</code>,
-                  <code>writeDefaultOK</code>, <code>writeHeaderToUnderlying</code>
+                  <code>writeDefaultOK</code>,
+                  <code>writeHeaderToUnderlying</code>
                 </td>
-                <td>compress_writer.go, compress_writer_compress.go, etag.go</td>
+                <td>
+                  compress_writer.go, compress_writer_compress.go, etag.go
+                </td>
               </tr>
               <tr>
                 <td><code>wrapper.go</code></td>
@@ -663,12 +694,15 @@
 
           <h3>13 files with zero unexported cross-file dependencies</h3>
           <p>
-            These middleware files are completely self-contained: <code>csrf.go</code>,
-            <code>security.go</code>, <code>timeout.go</code>, <code>maxbodysize.go</code>,
-            <code>health.go</code>, <code>server.go</code>, <code>server_timing.go</code>,
-            <code>ratelimit.go</code>, <code>ratelimit_keyed.go</code>, <code>clientip.go</code>,
-            <code>context.go</code>, <code>queryparam.go</code>, <code>capabilities.go</code>. Each
-            defines its own constants and uses only exported symbols from the root package (<code
+            These middleware files are completely self-contained:
+            <code>csrf.go</code>, <code>security.go</code>,
+            <code>timeout.go</code>, <code>maxbodysize.go</code>,
+            <code>health.go</code>, <code>server.go</code>,
+            <code>server_timing.go</code>, <code>ratelimit.go</code>,
+            <code>ratelimit_keyed.go</code>, <code>clientip.go</code>,
+            <code>context.go</code>, <code>queryparam.go</code>,
+            <code>capabilities.go</code>. Each defines its own constants and
+            uses only exported symbols from the root package (<code
               >Middleware</code
             >
             type, <code>Chain()</code>, <code>NewResponseRecorder()</code>).
@@ -676,97 +710,154 @@
 
           <div class="callout callout-warning">
             <strong>The coupling blocker</strong>
-            The previous review (2026-07-26) correctly identified that extracting compression into a
-            public sub-package creates a circular import: <code>compression.go</code> returns
-            <code>Middleware</code> (defined in root), and the compress writer uses
-            <code>responseWrapper</code> and <code>ErrCode*</code> (also in root). A public
-            sub-package would need to import root for these types &mdash; while root re-exports
-            compression types. That is a cycle.
+            The previous review (2026-07-26) correctly identified that
+            extracting compression into a public sub-package creates a circular
+            import: <code>compression.go</code> returns
+            <code>Middleware</code> (defined in root), and the compress writer
+            uses <code>responseWrapper</code> and <code>ErrCode*</code> (also in
+            root). A public sub-package would need to import root for these
+            types &mdash; while root re-exports compression types. That is a
+            cycle.
           </div>
         </section>
 
         <section id="folder-question">
-          <h2><span class="num">03</span>The Folder Question: Three Options Analyzed</h2>
+          <h2>
+            <span class="num">03</span>The Folder Question: Three Options
+            Analyzed
+          </h2>
           <p>
-            "Should more folders be added?" decomposes into three distinct structural options. Each
-            has radically different tradeoffs. The evidence &mdash; not aesthetic preference &mdash;
-            decides.
+            "Should more folders be added?" decomposes into three distinct
+            structural options. Each has radically different tradeoffs. The
+            evidence &mdash; not aesthetic preference &mdash; decides.
           </p>
 
           <div class="compare-grid">
             <div class="compare-col rejected">
               <h4>A. Public Sub-Packages</h4>
-              <p style="font-size: 0.85rem; color: var(--problem); margin-bottom: 0.5rem">
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--problem);
+                  margin-bottom: 0.5rem;
+                "
+              >
                 <strong>REJECTED</strong> &mdash; circular imports
               </p>
               <ul>
-                <li><code>httputil/compression/</code>, <code>httputil/cors/</code>, etc.</li>
                 <li>
-                  Compression depends on <code>Middleware</code>, <code>responseWrapper</code>,
-                  <code>ErrCode*</code> from root
+                  <code>httputil/compression/</code>,
+                  <code>httputil/cors/</code>, etc.
+                </li>
+                <li>
+                  Compression depends on <code>Middleware</code>,
+                  <code>responseWrapper</code>, <code>ErrCode*</code> from root
                 </li>
                 <li>Root must re-export compression types for consumers</li>
                 <li>= circular import, structurally impossible</li>
                 <li>
-                  Also breaks flat import ergonomics (<code>httputil.CORS()</code> &rarr;
-                  <code>httputil/cors.CORS()</code>)
+                  Also breaks flat import ergonomics (<code
+                    >httputil.CORS()</code
+                  >
+                  &rarr; <code>httputil/cors.CORS()</code>)
                 </li>
                 <li>Confirmed rejected 2026-07-26 &mdash; still valid</li>
               </ul>
             </div>
             <div class="compare-col recommended">
               <h4>B. Status Quo (Flat)</h4>
-              <p style="font-size: 0.85rem; color: var(--solution); margin-bottom: 0.5rem">
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--solution);
+                  margin-bottom: 0.5rem;
+                "
+              >
                 <strong>RECOMMENDED</strong> &mdash; Go-idiomatic
               </p>
               <ul>
                 <li>One import: <code>httputil.Compression()</code></li>
                 <li>Internal symbols stay unexported</li>
-                <li>Matches Go stdlib precedent (<code>net/http</code> = 50+ files flat)</li>
+                <li>
+                  Matches Go stdlib precedent (<code>net/http</code> = 50+ files
+                  flat)
+                </li>
                 <li>33 files is navigable &mdash; well-named, IDE-friendly</li>
                 <li>No breaking changes, no complexity added</li>
-                <li>New middleware adds zero coupling (proven by last 3 features)</li>
                 <li>
-                  <strong>Flat package chosen by user (2026-08-05) for ergonomics</strong> &mdash;
-                  one import path beats fragmented namespaces for a middleware library
+                  New middleware adds zero coupling (proven by last 3 features)
+                </li>
+                <li>
+                  <strong
+                    >Flat package chosen by user (2026-08-05) for
+                    ergonomics</strong
+                  >
+                  &mdash; one import path beats fragmented namespaces for a
+                  middleware library
                 </li>
               </ul>
             </div>
             <div class="compare-col viable">
               <h4>C. Internal Packages</h4>
-              <p style="font-size: 0.85rem; color: var(--warning); margin-bottom: 0.5rem">
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--warning);
+                  margin-bottom: 0.5rem;
+                "
+              >
                 <strong>VIABLE but defer</strong> &mdash; marginal payoff
               </p>
               <ul>
-                <li><code>httputil/internal/compress/</code> &mdash; 6 impl files</li>
-                <li><code>httputil/internal/responsewrap/</code> &mdash; wrapper.go</li>
-                <li><code>httputil/internal/errcodes/</code> &mdash; error constants</li>
-                <li>Public API stays flat: <code>httputil.Compression()</code> unchanged</li>
+                <li>
+                  <code>httputil/internal/compress/</code> &mdash; 6 impl files
+                </li>
+                <li>
+                  <code>httputil/internal/responsewrap/</code> &mdash;
+                  wrapper.go
+                </li>
+                <li>
+                  <code>httputil/internal/errcodes/</code> &mdash; error
+                  constants
+                </li>
+                <li>
+                  Public API stays flat:
+                  <code>httputil.Compression()</code> unchanged
+                </li>
                 <li>Root &rarr; internal is one direction: no cycles</li>
                 <li>Root goes from 33 &rarr; ~25 non-test files</li>
-                <li>Cost: ~15-20 files modified, types become internal-exported</li>
+                <li>
+                  Cost: ~15-20 files modified, types become internal-exported
+                </li>
                 <li>Benefit: 8 fewer root files, better encapsulation</li>
               </ul>
             </div>
           </div>
 
           <div class="callout callout-solution">
-            <strong>DECISION CONFIRMED &mdash; flat package (2026-08-05)</strong>
-            The user reviewed the three options and selected the flat structure based on
-            <strong>ergonomics</strong>: one import path (<code>httputil.CORS()</code>,
-            <code>httputil.Compression()</code>) beats fragmented sub-package namespaces
-            (<code>httputil/cors.CORS()</code>) for a middleware library where everything shares one
-            signature. The structural constraint (circular imports) makes public sub-packages
-            impossible anyway; the internal/ option remains technically viable for post-v1.0 if root
-            file count grows significantly.
+            <strong
+              >DECISION CONFIRMED &mdash; flat package (2026-08-05)</strong
+            >
+            The user reviewed the three options and selected the flat structure
+            based on
+            <strong>ergonomics</strong>: one import path
+            (<code>httputil.CORS()</code>, <code>httputil.Compression()</code>)
+            beats fragmented sub-package namespaces
+            (<code>httputil/cors.CORS()</code>) for a middleware library where
+            everything shares one signature. The structural constraint (circular
+            imports) makes public sub-packages impossible anyway; the internal/
+            option remains technically viable for post-v1.0 if root file count
+            grows significantly.
           </div>
         </section>
 
         <section id="options">
-          <h2><span class="num">04</span>Go-Modularize Decision: Multi-Module</h2>
+          <h2>
+            <span class="num">04</span>Go-Modularize Decision: Multi-Module
+          </h2>
           <p>
-            The go-modularize skill's "When NOT to Modularize" framework applied to multi-module
-            (separate <code>go.mod</code> files):
+            The go-modularize skill's "When NOT to Modularize" framework applied
+            to multi-module (separate <code>go.mod</code> files):
           </p>
           <table>
             <thead>
@@ -781,25 +872,34 @@
               <tr>
                 <td>Small project</td>
                 <td>High</td>
-                <td>33 files, 10k lines &mdash; not small, but single-domain</td>
+                <td>
+                  33 files, 10k lines &mdash; not small, but single-domain
+                </td>
                 <td><span class="badge badge-warn">Medium</span></td>
               </tr>
               <tr>
                 <td>No external consumers</td>
                 <td>Medium</td>
-                <td>Public library on GitHub &mdash; consumers want ONE import path</td>
+                <td>
+                  Public library on GitHub &mdash; consumers want ONE import
+                  path
+                </td>
                 <td><span class="badge badge-bad">High against</span></td>
               </tr>
               <tr>
                 <td>Prototype / spike</td>
                 <td>High</td>
-                <td>v0.8.0, approaching v1.0 stability &mdash; not a prototype</td>
+                <td>
+                  v0.8.0, approaching v1.0 stability &mdash; not a prototype
+                </td>
                 <td><span class="badge badge-good">No signal</span></td>
               </tr>
               <tr>
                 <td>All packages change together</td>
                 <td>High</td>
-                <td>Last 3 features each touched exactly 1 file + 1 test file</td>
+                <td>
+                  Last 3 features each touched exactly 1 file + 1 test file
+                </td>
                 <td><span class="badge badge-good">No signal</span></td>
               </tr>
             </tbody>
@@ -807,12 +907,13 @@
           <div class="card card-problem">
             <h3>Multi-module split: STRONGLY REJECTED</h3>
             <p>
-              A Go utility <strong>library</strong> must have a single <code>go.mod</code>. Multiple
-              modules force consumers to <code>go get</code> each sub-module separately, create
-              version drift risk, and provide zero composability payoff for a cohesive HTTP utility
-              library. The <code>Middleware</code> type alias is the unifying abstraction &mdash;
-              every middleware composes through it. Splitting modules would fragment this universal
-              interface.
+              A Go utility <strong>library</strong> must have a single
+              <code>go.mod</code>. Multiple modules force consumers to
+              <code>go get</code> each sub-module separately, create version
+              drift risk, and provide zero composability payoff for a cohesive
+              HTTP utility library. The <code>Middleware</code> type alias is
+              the unifying abstraction &mdash; every middleware composes through
+              it. Splitting modules would fragment this universal interface.
             </p>
           </div>
         </section>
@@ -824,8 +925,9 @@
               <div class="score">5/5</div>
               <div class="score-label">Composability</div>
               <div class="score-desc">
-                Universal <code>func(http.Handler) http.Handler</code> signature. Zero adapters
-                needed.
+                Universal
+                <code>func(http.Handler) http.Handler</code> signature. Zero
+                adapters needed.
               </div>
             </div>
             <div class="score-card score-good">
@@ -839,45 +941,49 @@
               <div class="score">4/5</div>
               <div class="score-label">Coupling</div>
               <div class="score-desc">
-                Interface-driven extension points. Minor unexported symbol sharing within flat
-                package.
+                Interface-driven extension points. Minor unexported symbol
+                sharing within flat package.
               </div>
             </div>
             <div class="score-card score-good">
               <div class="score">4/5</div>
               <div class="score-label">Cohesion</div>
               <div class="score-desc">
-                All code serves "HTTP utilities." Compression cluster is a focused subsystem.
+                All code serves "HTTP utilities." Compression cluster is a
+                focused subsystem.
               </div>
             </div>
             <div class="score-card score-warn">
               <div class="score">4/5</div>
               <div class="score-label">Modularity</div>
               <div class="score-desc">
-                API boundaries well-defined; internal file-level boundaries not compile-enforced (Go
-                convention).
+                API boundaries well-defined; internal file-level boundaries not
+                compile-enforced (Go convention).
               </div>
             </div>
             <div class="score-card score-good">
               <div class="score">4/5</div>
               <div class="score-label">Scalability</div>
               <div class="score-desc">
-                New middleware = 1 file, 0 coupling. Watch root file count past ~50.
+                New middleware = 1 file, 0 coupling. Watch root file count past
+                ~50.
               </div>
             </div>
             <div class="score-card score-warn">
               <div class="score">4/5</div>
               <div class="score-label">Service Orientation</div>
               <div class="score-desc">
-                3 one-method extension interfaces. Library, not a service &mdash; appropriate.
+                3 one-method extension interfaces. Library, not a service
+                &mdash; appropriate.
               </div>
             </div>
           </div>
           <div class="callout callout-solution">
             <strong>Overall: 4.3/5 &mdash; Good</strong>
-            No urgent restructuring needed. The lowest-scoring dimension (Modularity at 4/5) is
-            structural: Go flat packages do not enforce internal boundaries at compile time. This is
-            the Go-idiomatic tradeoff for a utility library, not a defect.
+            No urgent restructuring needed. The lowest-scoring dimension
+            (Modularity at 4/5) is structural: Go flat packages do not enforce
+            internal boundaries at compile time. This is the Go-idiomatic
+            tradeoff for a utility library, not a defect.
           </div>
         </section>
 
@@ -897,8 +1003,8 @@
               <tr>
                 <td>1</td>
                 <td>
-                  <strong>Keep the flat package through v1.0.</strong> No structural changes before
-                  the stability commitment.
+                  <strong>Keep the flat package through v1.0.</strong> No
+                  structural changes before the stability commitment.
                 </td>
                 <td><span class="badge badge-good">P3</span></td>
                 <td>S (none)</td>
@@ -907,8 +1013,11 @@
               <tr>
                 <td>2</td>
                 <td>
-                  <strong>Revisit internal/compress/ extraction post-v1.0</strong> if root exceeds
-                  ~50 non-test files. The only viable folder structure that avoids circular imports.
+                  <strong
+                    >Revisit internal/compress/ extraction post-v1.0</strong
+                  >
+                  if root exceeds ~50 non-test files. The only viable folder
+                  structure that avoids circular imports.
                 </td>
                 <td><span class="badge badge-warn">P2</span></td>
                 <td>M (15-20 files)</td>
@@ -919,9 +1028,10 @@
                 <td>
                   <strong>Extract the 2 leaking constants.</strong>
                   <code>headerContentType</code> (compression.go) and
-                  <code>defaultRequestIDHeader</code> (requestid.go) are unexported constants used
-                  by other files. Hoist to a shared <code>headers.go</code> to clarify they are
-                  shared infrastructure, not compression-specific.
+                  <code>defaultRequestIDHeader</code> (requestid.go) are
+                  unexported constants used by other files. Hoist to a shared
+                  <code>headers.go</code> to clarify they are shared
+                  infrastructure, not compression-specific.
                 </td>
                 <td><span class="badge badge-warn">P2</span></td>
                 <td>S</td>
@@ -930,9 +1040,10 @@
               <tr>
                 <td>4</td>
                 <td>
-                  <strong>Document the flat-package decision</strong> in AGENTS.md so future
-                  contributors and AI sessions understand the structure is deliberate, not
-                  accidental. Reference this review and the 2026-07-26 rejection.
+                  <strong>Document the flat-package decision</strong> in
+                  AGENTS.md so future contributors and AI sessions understand
+                  the structure is deliberate, not accidental. Reference this
+                  review and the 2026-07-26 rejection.
                 </td>
                 <td><span class="badge badge-good">P3</span></td>
                 <td>S</td>
@@ -941,8 +1052,9 @@
               <tr>
                 <td>5</td>
                 <td>
-                  <strong>Never split into multiple go.mod modules.</strong> A library needs one
-                  import path. Record this as an architectural decision.
+                  <strong>Never split into multiple go.mod modules.</strong> A
+                  library needs one import path. Record this as an architectural
+                  decision.
                 </td>
                 <td><span class="badge badge-good">P3</span></td>
                 <td>S (none)</td>
@@ -960,7 +1072,8 @@
               <div class="text">
                 <strong>Universal middleware signature</strong>
                 <span
-                  >Everything is <code>func(http.Handler) http.Handler</code> &mdash; maximal
+                  >Everything is
+                  <code>func(http.Handler) http.Handler</code> &mdash; maximal
                   composability, zero adapters, any order.</span
                 >
               </div>
@@ -970,9 +1083,9 @@
               <div class="text">
                 <strong>Healthy growth pattern</strong>
                 <span
-                  >The last 3 features (CSRF, Server-Timing, KeyedRateLimiter) each added exactly 1
-                  file with zero unexported cross-file deps. New middleware does not increase
-                  coupling.</span
+                  >The last 3 features (CSRF, Server-Timing, KeyedRateLimiter)
+                  each added exactly 1 file with zero unexported cross-file
+                  deps. New middleware does not increase coupling.</span
                 >
               </div>
             </div>
@@ -981,8 +1094,8 @@
               <div class="text">
                 <strong>httpspec is a pure stdlib consumer</strong>
                 <span
-                  >The spec package validates any handler &mdash; reusable contract, not coupled to
-                  httputil internals.</span
+                  >The spec package validates any handler &mdash; reusable
+                  contract, not coupled to httputil internals.</span
                 >
               </div>
             </div>
@@ -991,8 +1104,8 @@
               <div class="text">
                 <strong>Machine-enforced dependency policy</strong>
                 <span
-                  >depguard makes the zero-uncontrolled-deps guarantee structural, not aspirational.
-                  ~70 linters, 0 issues.</span
+                  >depguard makes the zero-uncontrolled-deps guarantee
+                  structural, not aspirational. ~70 linters, 0 issues.</span
                 >
               </div>
             </div>
@@ -1002,7 +1115,8 @@
                 <strong>Three one-method extension interfaces</strong>
                 <span
                   ><code>RateLimiter</code>, <code>MetricsRecorder</code>,
-                  <code>WriterFactory</code> &mdash; ideal size, no convenience bloat.</span
+                  <code>WriterFactory</code> &mdash; ideal size, no convenience
+                  bloat.</span
                 >
               </div>
             </div>
@@ -1011,8 +1125,8 @@
               <div class="text">
                 <strong>Zero code duplication</strong>
                 <span
-                  ><code>art-dupl --type-aware</code> reports 0 clone groups at every threshold from
-                  -t 2 to -t 25.</span
+                  ><code>art-dupl --type-aware</code> reports 0 clone groups at
+                  every threshold from -t 2 to -t 25.</span
                 >
               </div>
             </div>
@@ -1020,9 +1134,10 @@
         </section>
 
         <footer class="footer">
-          Generated 2026-08-05 &middot; Reviewed package boundaries, import graph, unexported symbol
-          coupling, cohesion groups, and folder structure options against v0.8.0 (77 Go files,
-          10,055 lines). Supersedes the 2026-07-05 modularity review for the folder question.
+          Generated 2026-08-05 &middot; Reviewed package boundaries, import
+          graph, unexported symbol coupling, cohesion groups, and folder
+          structure options against v0.8.0 (77 Go files, 10,055 lines).
+          Supersedes the 2026-07-05 modularity review for the folder question.
         </footer>
       </main>
     </div>

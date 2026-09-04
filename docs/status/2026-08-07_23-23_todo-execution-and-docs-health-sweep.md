@@ -62,14 +62,14 @@ The 22 `docs/status/2026-08-*.md` reports still have header-level annotation ban
 
 ## c) NOT STARTED
 
-| # | Task                                                              | Why it matters                                                                                                                         |
-| - | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | **Upgrade header-level annotations to per-item strikethrough**    | Strict docs-health ANNOTATE compliance requires `~~item~~ done at <hash>` on every numbered item; current state is header banners only |
-| ~~2~~ | ~~**Produce docs-health health report** (Accuracy + Fitness scores)~~ done — health report produced by the 2026-08-30 docs-health pass | ~~AUDIT mode prescribes this deliverable; neither this session nor the prior session produced it~~ |
-| ~~3~~ | ~~**Run `scripts/update-coverage-badge.sh`** instead of manual edit~~ done — ci.yml updates the badge | ~~The script exists specifically to prevent badge drift; I bypassed it (see d.1)~~ |
-| ~~4~~ | ~~**Update D2/SVG architecture diagram**~~ done — T8 regen | ~~`docs/architecture-understanding/2026-08-05_httputil-current.d2` still says "16-middleware architecture"; now 17 with ETag re-added~~ |
-| ~~5~~ | ~~**Run `go mod verify`**~~ done — go mod verify green in gates | ~~Listed as a quality gate in README.md Quality Gates table; I ran 7 of 8 gates but missed this one~~ |
-| ~~6~~ | ~~**Add `ExampleMaxBodySize`**~~ done — ExampleMaxBodySize added in v0.10.0 | ~~Identified and added to TODO_LIST but not implemented; MaxBodySize is the only middleware without an Example function~~ |
+| #     | Task                                                                                                                                   | Why it matters                                                                                                                          |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | **Upgrade header-level annotations to per-item strikethrough**                                                                         | Strict docs-health ANNOTATE compliance requires `~~item~~ done at <hash>` on every numbered item; current state is header banners only  |
+| ~~2~~ | ~~**Produce docs-health health report** (Accuracy + Fitness scores)~~ done — health report produced by the 2026-08-30 docs-health pass | ~~AUDIT mode prescribes this deliverable; neither this session nor the prior session produced it~~                                      |
+| ~~3~~ | ~~**Run `scripts/update-coverage-badge.sh`** instead of manual edit~~ done — ci.yml updates the badge                                  | ~~The script exists specifically to prevent badge drift; I bypassed it (see d.1)~~                                                      |
+| ~~4~~ | ~~**Update D2/SVG architecture diagram**~~ done — T8 regen                                                                             | ~~`docs/architecture-understanding/2026-08-05_httputil-current.d2` still says "16-middleware architecture"; now 17 with ETag re-added~~ |
+| ~~5~~ | ~~**Run `go mod verify`**~~ done — go mod verify green in gates                                                                        | ~~Listed as a quality gate in README.md Quality Gates table; I ran 7 of 8 gates but missed this one~~                                   |
+| ~~6~~ | ~~**Add `ExampleMaxBodySize`**~~ done — ExampleMaxBodySize added in v0.10.0                                                            | ~~Identified and added to TODO_LIST but not implemented; MaxBodySize is the only middleware without an Example function~~               |
 
 ---
 
@@ -139,38 +139,38 @@ When rewriting TODO_LIST.md, I added "Add `Decompression` example function — n
 
 ### Critical — fix mistakes from this session
 
-| # | Task                                                                                                                                                                                                                                          | Impact | Effort |
-| - | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| #     | Task                                                                                                                                                                                                                                                                                                              | Impact     | Effort    |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------- |
 | ~~1~~ | ~~**Fix FEATURES.md Compression benchmark notation** — `BenchmarkCompression*` doesn't match `BenchmarkNegotiateEncoding`. Either rename the function to `BenchmarkCompressionNegotiate` (already exists!) and note 3 total, or list explicitly~~ done — benchmark names verified against declarations 2026-08-30 | ~~Medium~~ | ~~5 min~~ |
-| ~~2~~ | ~~**Fix FEATURES.md Decompression Examples column** — shows `—` but `ExampleDecompression` exists at `example_test.go:92`~~ done — ExampleDecompression listed; row current | ~~Medium~~ | ~~1 min~~ |
-| ~~3~~ | ~~**Run `scripts/update-coverage-badge.sh`** to verify the badge is correct (should be idempotent now, but validates the manual edit)~~ done — awk rewrite is idempotent | ~~Low~~ | ~~1 min~~ |
+| ~~2~~ | ~~**Fix FEATURES.md Decompression Examples column** — shows `—` but `ExampleDecompression` exists at `example_test.go:92`~~ done — ExampleDecompression listed; row current                                                                                                                                       | ~~Medium~~ | ~~1 min~~ |
+| ~~3~~ | ~~**Run `scripts/update-coverage-badge.sh`** to verify the badge is correct (should be idempotent now, but validates the manual edit)~~ done — awk rewrite is idempotent                                                                                                                                          | ~~Low~~    | ~~1 min~~ |
 
 ### High — code gaps
 
-| # | Task                                                                        | Impact | Effort |
-| - | --------------------------------------------------------------------------- | ------ | ------ |
-| ~~4~~ | ~~**Add `ExampleMaxBodySize`** — only middleware without an Example function~~ done — added in v0.10.0 | ~~Low~~ | ~~10 min~~ |
-| ~~5~~ | ~~**Run `go mod verify`** — the one quality gate I skipped~~ done — green in gates | ~~Low~~ | ~~1 min~~ |
+| #     | Task                                                                                                      | Impact     | Effort     |
+| ----- | --------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| ~~4~~ | ~~**Add `ExampleMaxBodySize`** — only middleware without an Example function~~ done — added in v0.10.0    | ~~Low~~    | ~~10 min~~ |
+| ~~5~~ | ~~**Run `go mod verify`** — the one quality gate I skipped~~ done — green in gates                        | ~~Low~~    | ~~1 min~~  |
 | ~~6~~ | ~~**Update D2/SVG architecture diagram** — says "16-middleware", should be 17~~ done — T8 regen (e045b00) | ~~Medium~~ | ~~15 min~~ |
 
 ### Medium — docs-health completeness
 
-| #  | Task                                                                                        | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------- | ------ | ------ |
-| 7  | **Upgrade header-level annotations to per-item** for the 5 most-read `docs/status/` reports | Medium | 1 hr   |
-| 8  | **Produce docs-health health report** (Accuracy + Fitness scores) per AUDIT mode spec       | Medium | 15 min |
-| 9  | **Audit CHANGELOG `[Unreleased]` line-by-line against `git diff v0.9.1..HEAD`**             | Medium | 15 min |
+| #      | Task                                                                                                                                         | Impact  | Effort    |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------- |
+| 7      | **Upgrade header-level annotations to per-item** for the 5 most-read `docs/status/` reports                                                  | Medium  | 1 hr      |
+| 8      | **Produce docs-health health report** (Accuracy + Fitness scores) per AUDIT mode spec                                                        | Medium  | 15 min    |
+| 9      | **Audit CHANGELOG `[Unreleased]` line-by-line against `git diff v0.9.1..HEAD`**                                                              | Medium  | 15 min    |
 | ~~10~~ | ~~**Add CHANGELOG note about README coverage fix** (split brain was created and fixed)~~ done — v0.10.0 CHANGELOG documents badge validation | ~~Low~~ | ~~2 min~~ |
 
 ### Low — polish
 
-| #  | Task                                                                                                                                        | Impact | Effort |
-| -- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| ~~11~~ | ~~**Wire `scripts/update-coverage-badge.sh` into CI** to prevent future badge drift~~ done — ci.yml badge step | ~~Low~~ | ~~10 min~~ |
-| ~~12~~ | ~~**Rename `BenchmarkNegotiateEncoding` → `BenchmarkCompressionNegotiateLegacy`** or remove if superseded by `BenchmarkCompressionNegotiator`~~ done — removed in v0.10.0 (superseded by BenchmarkCompressionNegotiator) | ~~Low~~ | ~~5 min~~ |
-| ~~13~~ | ~~**Verify `docs/v1-stability.md` has no other missing symbols** — the MaxBodySize gap existed since v0.9.0 and wasn't caught for 2 days~~ done — MaxBodySizeConfig added to v1-stability (v0.10.0) | ~~Low~~ | ~~15 min~~ |
-| ~~14~~ | ~~**Add per-item annotations to the `2026-08-07_23-08` status report** (this session's report)~~ done — annotated by the 08-29 pass + this pass | ~~Low~~ | ~~5 min~~ |
-| 15 | **Run `nix flake check --all-systems`** to verify cross-platform                                                                            | Low    | 5 min  |
+| #      | Task                                                                                                                                                                                                                     | Impact  | Effort     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ---------- |
+| ~~11~~ | ~~**Wire `scripts/update-coverage-badge.sh` into CI** to prevent future badge drift~~ done — ci.yml badge step                                                                                                           | ~~Low~~ | ~~10 min~~ |
+| ~~12~~ | ~~**Rename `BenchmarkNegotiateEncoding` → `BenchmarkCompressionNegotiateLegacy`** or remove if superseded by `BenchmarkCompressionNegotiator`~~ done — removed in v0.10.0 (superseded by BenchmarkCompressionNegotiator) | ~~Low~~ | ~~5 min~~  |
+| ~~13~~ | ~~**Verify `docs/v1-stability.md` has no other missing symbols** — the MaxBodySize gap existed since v0.9.0 and wasn't caught for 2 days~~ done — MaxBodySizeConfig added to v1-stability (v0.10.0)                      | ~~Low~~ | ~~15 min~~ |
+| ~~14~~ | ~~**Add per-item annotations to the `2026-08-07_23-08` status report** (this session's report)~~ done — annotated by the 08-29 pass + this pass                                                                          | ~~Low~~ | ~~5 min~~  |
+| 15     | **Run `nix flake check --all-systems`** to verify cross-platform                                                                                                                                                         | Low     | 5 min      |
 
 ---
 

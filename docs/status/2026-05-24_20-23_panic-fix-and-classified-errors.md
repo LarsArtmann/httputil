@@ -111,33 +111,33 @@ Nothing is broken. The session had one notable learning:
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #  | Task                                                                            | Impact | Effort |
-| -- | ------------------------------------------------------------------------------- | ------ | ------ |
-| 1  | Commit all current changes (this session's work)                                | HIGH   | LOW    |
-| 2  | Review and commit/discard `clientip_test.go` pre-existing changes               | HIGH   | LOW    |
-| ~~3~~  | ~~Add `Benchmark*` tests for `itoa`, `join`, `ClientIP`, `CORS` middleware~~ done — moot (util.go removed 2026-06-16) | ~~HIGH~~ | ~~MEDIUM~~ |
-| 4  | Add `Fuzz*` tests for `ClientIP` (untrusted header parsing)                     | HIGH   | MEDIUM |
-| 5  | Add `Example*` functions for `ClientIP`, `CORS`, `Chain`, `NewResponseRecorder` | MEDIUM | LOW    |
-| ~~6~~  | ~~Set up GitHub Actions CI (`golangci-lint run` + `go test`)~~ done — (CI workflows) | ~~HIGH~~ | ~~MEDIUM~~ |
-| 7  | Add test coverage reporting to CI                                               | MEDIUM | MEDIUM |
-| 8  | Add `CHANGELOG.md` with current features                                        | MEDIUM | LOW    |
-| 9  | Refresh `README.md` to document classified errors and `go-error-family`         | MEDIUM | LOW    |
-| ~~10~~ | ~~Add body capture option to `ResponseRecorder`~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30) | ~~MEDIUM~~ | ~~MEDIUM~~ |
-| ~~11~~ | ~~Add response header snapshot to `ResponseRecorder`~~ done — shipped (HeaderSnapshot + tests) | ~~MEDIUM~~ | ~~LOW~~ |
-| ~~12~~ | ~~Add `ClientIP` validation (IP format, trusted proxy config)~~ done — Won't implement — blind-trust documented as the contract; validation belongs to the deployer's proxy | ~~MEDIUM~~ | ~~HIGH~~ |
-| ~~13~~ | ~~Export `defaultMaxAge` or restructure to eliminate `mnd` warning~~ done — (0 lint issues) | ~~LOW~~ | ~~LOW~~ |
-| 14 | Add `errors.go` doc comments on exported error codes                            | LOW    | LOW    |
-| ~~15~~ | ~~Consider `httputil.` prefix for error codes instead of `http.`~~ done — Won't implement — hierarchical domain codes shipped in v0.12.0 | ~~LOW~~ | ~~LOW~~ |
-| ~~16~~ | ~~Add integration test with real `net/http.Server`~~ done — (server_test.go real-server tests) | ~~MEDIUM~~ | ~~MEDIUM~~ |
-| 17 | Add `CORS` tests for concurrent requests with different origins                 | MEDIUM | MEDIUM |
-| ~~18~~ | ~~Add `ResponseRecorder.Write` test for partial writes~~ done — (recorder write tests) | ~~LOW~~ | ~~LOW~~ |
-| ~~19~~ | ~~Document `itoa` buffer size sufficiency mathematically~~ done — moot (util.go removed 2026-06-16) | ~~LOW~~ | ~~LOW~~ |
-| ~~20~~ | ~~Add `Chain()` with zero middleware edge case test~~ done — (Chain edge tests in recorder_test) | ~~LOW~~ | ~~LOW~~ |
-| ~~21~~ | ~~Add `Chain()` with nil handler panic test~~ done — (Chain edge tests in recorder_test) | ~~LOW~~ | ~~LOW~~ |
-| 22 | Consider adding `http.Flusher` interface assertion for `ResponseRecorder`       | LOW    | LOW    |
-| ~~23~~ | ~~Add godoc link to `go-error-family` in `errors.go`~~ done | ~~LOW~~ | ~~LOW~~ |
-| ~~24~~ | ~~Create `FEATURES.md` for discoverability~~ done — (exists, verified 2026-08-30) | ~~LOW~~ | ~~LOW~~ |
-| ~~25~~ | ~~Explore `nix flake` migration (per project conventions)~~ done — (flake.nix) | ~~LOW~~ | ~~HIGH~~ |
+| #      | Task                                                                                                                                                                        | Impact     | Effort     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| 1      | Commit all current changes (this session's work)                                                                                                                            | HIGH       | LOW        |
+| 2      | Review and commit/discard `clientip_test.go` pre-existing changes                                                                                                           | HIGH       | LOW        |
+| ~~3~~  | ~~Add `Benchmark*` tests for `itoa`, `join`, `ClientIP`, `CORS` middleware~~ done — moot (util.go removed 2026-06-16)                                                       | ~~HIGH~~   | ~~MEDIUM~~ |
+| 4      | Add `Fuzz*` tests for `ClientIP` (untrusted header parsing)                                                                                                                 | HIGH       | MEDIUM     |
+| 5      | Add `Example*` functions for `ClientIP`, `CORS`, `Chain`, `NewResponseRecorder`                                                                                             | MEDIUM     | LOW        |
+| ~~6~~  | ~~Set up GitHub Actions CI (`golangci-lint run` + `go test`)~~ done — (CI workflows)                                                                                        | ~~HIGH~~   | ~~MEDIUM~~ |
+| 7      | Add test coverage reporting to CI                                                                                                                                           | MEDIUM     | MEDIUM     |
+| 8      | Add `CHANGELOG.md` with current features                                                                                                                                    | MEDIUM     | LOW        |
+| 9      | Refresh `README.md` to document classified errors and `go-error-family`                                                                                                     | MEDIUM     | LOW        |
+| ~~10~~ | ~~Add body capture option to `ResponseRecorder`~~ done — parked in ROADMAP legacy-brainstorm line (2026-08-30)                                                              | ~~MEDIUM~~ | ~~MEDIUM~~ |
+| ~~11~~ | ~~Add response header snapshot to `ResponseRecorder`~~ done — shipped (HeaderSnapshot + tests)                                                                              | ~~MEDIUM~~ | ~~LOW~~    |
+| ~~12~~ | ~~Add `ClientIP` validation (IP format, trusted proxy config)~~ done — Won't implement — blind-trust documented as the contract; validation belongs to the deployer's proxy | ~~MEDIUM~~ | ~~HIGH~~   |
+| ~~13~~ | ~~Export `defaultMaxAge` or restructure to eliminate `mnd` warning~~ done — (0 lint issues)                                                                                 | ~~LOW~~    | ~~LOW~~    |
+| 14     | Add `errors.go` doc comments on exported error codes                                                                                                                        | LOW        | LOW        |
+| ~~15~~ | ~~Consider `httputil.` prefix for error codes instead of `http.`~~ done — Won't implement — hierarchical domain codes shipped in v0.12.0                                    | ~~LOW~~    | ~~LOW~~    |
+| ~~16~~ | ~~Add integration test with real `net/http.Server`~~ done — (server_test.go real-server tests)                                                                              | ~~MEDIUM~~ | ~~MEDIUM~~ |
+| 17     | Add `CORS` tests for concurrent requests with different origins                                                                                                             | MEDIUM     | MEDIUM     |
+| ~~18~~ | ~~Add `ResponseRecorder.Write` test for partial writes~~ done — (recorder write tests)                                                                                      | ~~LOW~~    | ~~LOW~~    |
+| ~~19~~ | ~~Document `itoa` buffer size sufficiency mathematically~~ done — moot (util.go removed 2026-06-16)                                                                         | ~~LOW~~    | ~~LOW~~    |
+| ~~20~~ | ~~Add `Chain()` with zero middleware edge case test~~ done — (Chain edge tests in recorder_test)                                                                            | ~~LOW~~    | ~~LOW~~    |
+| ~~21~~ | ~~Add `Chain()` with nil handler panic test~~ done — (Chain edge tests in recorder_test)                                                                                    | ~~LOW~~    | ~~LOW~~    |
+| 22     | Consider adding `http.Flusher` interface assertion for `ResponseRecorder`                                                                                                   | LOW        | LOW        |
+| ~~23~~ | ~~Add godoc link to `go-error-family` in `errors.go`~~ done                                                                                                                 | ~~LOW~~    | ~~LOW~~    |
+| ~~24~~ | ~~Create `FEATURES.md` for discoverability~~ done — (exists, verified 2026-08-30)                                                                                           | ~~LOW~~    | ~~LOW~~    |
+| ~~25~~ | ~~Explore `nix flake` migration (per project conventions)~~ done — (flake.nix)                                                                                              | ~~LOW~~    | ~~HIGH~~   |
 
 ---
 

@@ -187,33 +187,33 @@ Pre-existing known issue: `mnd` (magic number) violation — `86400` in `Default
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #  | Task                                                                                    | Impact | Effort   | Category     |
-| -- | --------------------------------------------------------------------------------------- | ------ | -------- | ------------ |
-| 1  | Fix `compression.Flush` coverage (61.5% → 85%+)                                         | High   | Medium   | Coverage     |
-| 2  | Replace `wroteHeader`+`headerWritten` bools with typed state enum                       | High   | Medium   | Architecture |
-| 3  | Replace `compressing`+`plain` bools with typed phase enum                               | High   | Medium   | Architecture |
-| ~~4~~  | ~~Fix compression error-path coverage (writePlain/writeCompressed/startCompressAndStream)~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~Low~~ | ~~Coverage~~ |
-| 5  | Fix `hijackDelegate` error-path test (85.7% → 95%+)                                     | Medium | Low      | Coverage     |
-| ~~6~~  | ~~Fix `etag.Write` buffer-limit branch (80% → 95%+)~~ done — (go-etag owns the writer; its suite covers it) | ~~Medium~~ | ~~Low~~ | ~~Coverage~~ |
-| 7  | Fix `etag.Flush` flush-while-buffering branches (77.8% → 95%+)                          | Medium | Low      | Coverage     |
-| ~~8~~  | ~~Fix `flushPlainAndStream` error branches (76.9% → 95%+)~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~Low~~ | ~~Coverage~~ |
-| ~~9~~  | ~~Make content-type filtering configurable via `CompressionConfig`~~ done — shipped (IncompressibleTypes) | ~~High~~ | ~~Medium~~ | ~~Feature~~ |
-| ~~10~~ | ~~Define `type Validator interface { Validate() error }` + internal validation~~ done — (validateConfig pattern; every config validates) | ~~Medium~~ | ~~Low~~ | ~~Architecture~~ |
-| ~~11~~ | ~~Add `MiddlewareStack` type with ordering validation~~ done — shipped (stack.go) | ~~Medium~~ | ~~Medium~~ | ~~Feature~~ |
-| ~~12~~ | ~~Add `ResponseWriter` capability interface for Hijack/Flush~~ done — shipped (DetectCapabilities, capabilities.go) | ~~Medium~~ | ~~Medium~~ | ~~Architecture~~ |
-| ~~13~~ | ~~Push overall coverage from 92.4% → 95%~~ done — (coverage targets long surpassed: 97.0% today) | ~~Medium~~ | ~~Medium~~ | ~~Coverage~~ |
-| ~~14~~ | ~~Implement deflate support using `compress/flate`~~ done — shipped (DefaultWriterFactories) | ~~High~~ | ~~High~~ | ~~Feature~~ |
-| ~~15~~ | ~~Add `Accept-Encoding` quality value parsing (RFC 7231)~~ done — shipped (compression_qvalue.go + property tests) | ~~High~~ | ~~Medium~~ | ~~Compliance~~ |
-| ~~16~~ | ~~Fix `mnd` violation (`86400` in `DefaultCORSConfig`)~~ done — (0 lint issues) | ~~Low~~ | ~~Trivial~~ | ~~Lint~~ |
-| ~~17~~ | ~~Evaluate streaming ETag with rolling hash~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory | ~~Medium~~ | ~~High~~ | ~~Architecture~~ |
-| ~~18~~ | ~~Add request/response metrics middleware~~ done — shipped (metrics.go) | ~~Medium~~ | ~~High~~ | ~~Feature~~ |
-| ~~19~~ | ~~Add rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it) | ~~Medium~~ | ~~High~~ | ~~Feature~~ |
-| ~~20~~ | ~~Add request body size limit middleware~~ done — shipped (maxbodysize.go) | ~~Low~~ | ~~Low~~ | ~~Feature~~ |
-| ~~21~~ | ~~Brotli support — decide on dependency policy~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md) | ~~Medium~~ | ~~Decision~~ | ~~Policy~~ |
-| ~~22~~ | ~~Add `WriterFactory` plugin interface for compression~~ done — shipped (WriterFactory plugin interface) | ~~Medium~~ | ~~Medium~~ | ~~Architecture~~ |
-| ~~23~~ | ~~Fix `logging.go` coverage (90% → 95%+)~~ done — (targets long surpassed; 97.0% overall) | ~~Low~~ | ~~Low~~ | ~~Coverage~~ |
-| ~~24~~ | ~~Fix `security.go` skip-empty-header branches (92.3% → 95%+)~~ done — (targets long surpassed; 97.0% overall) | ~~Low~~ | ~~Low~~ | ~~Coverage~~ |
-| ~~25~~ | ~~Verify `art-dupl` at t30 stays clean as codebase grows~~ done — (0 clone groups) | ~~Low~~ | ~~Trivial~~ | ~~Quality~~ |
+| #      | Task                                                                                                                                                    | Impact     | Effort       | Category         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ | ---------------- |
+| 1      | Fix `compression.Flush` coverage (61.5% → 85%+)                                                                                                         | High       | Medium       | Coverage         |
+| 2      | Replace `wroteHeader`+`headerWritten` bools with typed state enum                                                                                       | High       | Medium       | Architecture     |
+| 3      | Replace `compressing`+`plain` bools with typed phase enum                                                                                               | High       | Medium       | Architecture     |
+| ~~4~~  | ~~Fix compression error-path coverage (writePlain/writeCompressed/startCompressAndStream)~~ done — shipped (compress_writer_test.go error-branch tests) | ~~Medium~~ | ~~Low~~      | ~~Coverage~~     |
+| 5      | Fix `hijackDelegate` error-path test (85.7% → 95%+)                                                                                                     | Medium     | Low          | Coverage         |
+| ~~6~~  | ~~Fix `etag.Write` buffer-limit branch (80% → 95%+)~~ done — (go-etag owns the writer; its suite covers it)                                             | ~~Medium~~ | ~~Low~~      | ~~Coverage~~     |
+| 7      | Fix `etag.Flush` flush-while-buffering branches (77.8% → 95%+)                                                                                          | Medium     | Low          | Coverage         |
+| ~~8~~  | ~~Fix `flushPlainAndStream` error branches (76.9% → 95%+)~~ done — shipped (compress_writer_test.go error-branch tests)                                 | ~~Medium~~ | ~~Low~~      | ~~Coverage~~     |
+| ~~9~~  | ~~Make content-type filtering configurable via `CompressionConfig`~~ done — shipped (IncompressibleTypes)                                               | ~~High~~   | ~~Medium~~   | ~~Feature~~      |
+| ~~10~~ | ~~Define `type Validator interface { Validate() error }` + internal validation~~ done — (validateConfig pattern; every config validates)                | ~~Medium~~ | ~~Low~~      | ~~Architecture~~ |
+| ~~11~~ | ~~Add `MiddlewareStack` type with ordering validation~~ done — shipped (stack.go)                                                                       | ~~Medium~~ | ~~Medium~~   | ~~Feature~~      |
+| ~~12~~ | ~~Add `ResponseWriter` capability interface for Hijack/Flush~~ done — shipped (DetectCapabilities, capabilities.go)                                     | ~~Medium~~ | ~~Medium~~   | ~~Architecture~~ |
+| ~~13~~ | ~~Push overall coverage from 92.4% → 95%~~ done — (coverage targets long surpassed: 97.0% today)                                                        | ~~Medium~~ | ~~Medium~~   | ~~Coverage~~     |
+| ~~14~~ | ~~Implement deflate support using `compress/flate`~~ done — shipped (DefaultWriterFactories)                                                            | ~~High~~   | ~~High~~     | ~~Feature~~      |
+| ~~15~~ | ~~Add `Accept-Encoding` quality value parsing (RFC 7231)~~ done — shipped (compression_qvalue.go + property tests)                                      | ~~High~~   | ~~Medium~~   | ~~Compliance~~   |
+| ~~16~~ | ~~Fix `mnd` violation (`86400` in `DefaultCORSConfig`)~~ done — (0 lint issues)                                                                         | ~~Low~~    | ~~Trivial~~  | ~~Lint~~         |
+| ~~17~~ | ~~Evaluate streaming ETag with rolling hash~~ done — Won't implement — ROADMAP Non-goals: headers precede body, buffering is mandatory                  | ~~Medium~~ | ~~High~~     | ~~Architecture~~ |
+| ~~18~~ | ~~Add request/response metrics middleware~~ done — shipped (metrics.go)                                                                                 | ~~Medium~~ | ~~High~~     | ~~Feature~~      |
+| ~~19~~ | ~~Add rate-limiting middleware~~ done — shipped (ratelimit.go, deprecated; KeyedRateLimiter succeeded it)                                               | ~~Medium~~ | ~~High~~     | ~~Feature~~      |
+| ~~20~~ | ~~Add request body size limit middleware~~ done — shipped (maxbodysize.go)                                                                              | ~~Low~~    | ~~Low~~      | ~~Feature~~      |
+| ~~21~~ | ~~Brotli support — decide on dependency policy~~ done — shipped as WriterFactory plugin docs (docs/integrations/brotli-zstd.md)                         | ~~Medium~~ | ~~Decision~~ | ~~Policy~~       |
+| ~~22~~ | ~~Add `WriterFactory` plugin interface for compression~~ done — shipped (WriterFactory plugin interface)                                                | ~~Medium~~ | ~~Medium~~   | ~~Architecture~~ |
+| ~~23~~ | ~~Fix `logging.go` coverage (90% → 95%+)~~ done — (targets long surpassed; 97.0% overall)                                                               | ~~Low~~    | ~~Low~~      | ~~Coverage~~     |
+| ~~24~~ | ~~Fix `security.go` skip-empty-header branches (92.3% → 95%+)~~ done — (targets long surpassed; 97.0% overall)                                          | ~~Low~~    | ~~Low~~      | ~~Coverage~~     |
+| ~~25~~ | ~~Verify `art-dupl` at t30 stays clean as codebase grows~~ done — (0 clone groups)                                                                      | ~~Low~~    | ~~Trivial~~  | ~~Quality~~      |
 
 ---
 
