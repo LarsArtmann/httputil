@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -448,4 +449,36 @@ func TestChain_NonceWithRecoveryStillSetsNonce(t *testing.T) {
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
 	}
+}
+
+// TestChain_RecoveryErrAbortHandler_ThroughStack pins that the net/http
+// ErrAbortHandler sentinel survives the full Chain, not just a bare Recovery
+// wrapper: the sentinel must be re-panicked through the middleware stack so
+// the server's silent connection-abort handling applies.
+func TestChain_RecoveryErrAbortHandler_ThroughStack(t *testing.T) {
+	t.Parallel()
+
+	aborting := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		panic(http.ErrAbortHandler)
+	})
+
+	handler := Chain(
+		aborting,
+		Nonce(DefaultNonceConfig()),
+		Recovery(newTestLogger()),
+	)
+
+	defer func() {
+		recovered := recover()
+		if recovered == nil {
+			t.Fatal("Chain swallowed http.ErrAbortHandler, want it re-panicked")
+		}
+
+		err, ok := recovered.(error)
+		if !ok || !errors.Is(err, http.ErrAbortHandler) {
+			t.Fatalf("recovered %v, want http.ErrAbortHandler", recovered)
+		}
+	}()
+
+	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/", ""))
 }

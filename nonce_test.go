@@ -104,10 +104,14 @@ func TestNonce_UniquePerRequest(t *testing.T) {
 		handler.ServeHTTP(rec, req)
 	}
 
-	for i := 1; i < len(nonces); i++ {
-		if nonces[i] == nonces[0] {
-			t.Errorf("nonce[%d] == nonce[0] (%q), want unique nonces", i, nonces[0])
+	seen := make(map[string]bool, len(nonces))
+
+	for _, nonce := range nonces {
+		if seen[nonce] {
+			t.Errorf("duplicate nonce %q across %d requests, want unique nonces", nonce, len(nonces))
 		}
+
+		seen[nonce] = true
 	}
 }
 

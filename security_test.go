@@ -215,7 +215,7 @@ func TestSecurityHeaders_CustomHeadersEmptyMap(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	for k := range rec.Header() {
-		if k == "X-Custom" || k == "X-Another" {
+		if k == "X-Custom-Header" || k == "X-Another" {
 			t.Errorf("unexpected custom header %q set", k)
 		}
 	}

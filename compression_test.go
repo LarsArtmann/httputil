@@ -624,3 +624,48 @@ func TestCompressionConfig_Validate_ZeroLevelIsValid(t *testing.T) {
 		t.Fatalf(`Validate error = %v, want nil (Level == 0 means "unset, default compression")`, err)
 	}
 }
+
+// TestCompression_ExactMinSizeWrite_IsNotDuplicated pins the exact-fill
+// duplication regression through the full middleware: a handler Write that
+// exactly reaches MinSize must produce a decoded stream equal to the payload
+// (the compressor consumes the buffered bytes instead of re-emitting them).
+func TestCompression_ExactMinSizeWrite_IsNotDuplicated(t *testing.T) {
+	t.Parallel()
+
+	payload := bytes.Repeat([]byte("x"), defaultCompressionMinSize)
+
+	handler := Compression(DefaultCompressionConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set(headerContentType, "text/plain")
+		_, _ = w.Write(payload)
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
+
+	zr, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("gzip.NewReader error = %v", err)
+	}
+
+	defer func() { _ = zr.Close() }()
+
+	decoded, err := io.ReadAll(zr)
+	if err != nil {
+		t.Fatalf("gzip decode error = %v", err)
+	}
+
+	if !bytes.Equal(decoded, payload) {
+		t.Errorf(
+			"decoded body = %d bytes, want %d (exact-fill must not duplicate payload)",
+			len(decoded),
+			len(payload),
+		)
+	}
+}

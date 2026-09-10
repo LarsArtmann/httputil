@@ -190,6 +190,12 @@ func (w *compressWriter) flushPlainAndStream(b []byte, total int) (int, error) {
 	return w.streamClassified(w.ResponseWriter, b, total, "failed to write plain response")
 }
 
+// Hijack switches the connection to plain passthrough before delegating to the
+// underlying writer. Any bytes already buffered in w (below minSize, not yet
+// flushed) are DROPPED: after a hijack the buffered response is never written,
+// and the protocol upgrade owns the connection. Callers that intend to keep
+// the buffered body must write enough data to trigger compression start or
+// flush before hijacking.
 func (w *compressWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	w.beginPlainResponse()
 

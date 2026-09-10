@@ -1,0 +1,133 @@
+# Status Report — Composability Session (2026-09-10 03:41 CEST)
+
+**Scope:** this session only — the "how can we make httputil more composable" run (analysis → execution → verification → docs → harvest). Concurrent-session activity is reported where it collided or was observed; it is not my work and I did not touch it.
+**Branch state at writing:** `master`, working tree clean except `AGENTS.md` (modified by the concurrent session, not by me).
+**My deliverable commits (auto-daemon, hash-mapped via `git show --stat`):** `f5b71ef` (compose API + tests), `4ea1818` (lint-gate fixes), `04f7902` + `fd96738` (review report half 1/2 + docs wiring).
+
+---
+
+## a) FULLY DONE
+
+| # | Item | Evidence |
+|---|------|----------|
+| 1 | **Composability architecture review** — 7-dimension rubric scores (avg 3.9/5), evidence-cited findings, before/after, 4-step roadmap, 2 formal declines (flat-root split, logger injection) | `docs/architecture-understanding/2026-09-10_03-19_composability.html` (commits `04f7902`, `fd96738`) |
+| 2 | **R1: `Compose(mws ...Middleware) Middleware`** — reusable middleware bundles, first = outermost (mirrors `Chain`), empty = identity | compose.go:9, commit `f5b71ef` |
+| 3 | **R2: `(*MiddlewareStack).Middleware()`** — stack as a single nestable middleware; `Build` deduplicated to delegate to it | stack.go:100, commit `f5b71ef` |
+| 4 | **R3: `MiddlewareFunc` defined type + `Then(handler)`** — value-level chaining; panics on nil handler at wiring time | compose.go:25, commit `f5b71ef` |
+| 5 | **9 new tests** — declaration-order, identity, single-wrap, bundle-nesting, Then wrap/nil-panic, stack first-outermost, empty-stack passthrough, `Middleware()`≡`Build` equivalence, live-view-after-Add | compose_test.go, commit `f5b71ef` + label fix `4ea1818` |
+| 6 | **Lint gate restored 13 → 0 issues** — `DefaultCSRFHeaderName` canonicalized `"X-CSRF-Token"` → `"X-Csrf-Token"` (nosurf v1.2.0 verified to compare via canonicalizing `Header.Get`), 3 doc comments aligned, `logging_test.go` literal fixed, `chain_hijack_test.go` makezero nolint-with-reason, unparam fixed via label diversity | commits `4ea1818`; `golangci-lint run` = "0 issues" verified after |
+| 7 | **Full verification battery green at session completion** — `go build`, `go vet`, `go test -race ./...`, `go test -race -count=10` (new tests), both erraudit gates (`legacy_as`, `stdlib_constructor --enforce-go-error-family`) exit 0, `golangci-lint fmt` clean | session transcript, all re-runnable |
+| 8 | **Living docs wired** — CHANGELOG `[Unreleased]` Added (composition API) + new Changed section (CSRF constant); FEATURES.md composition line; AGENTS.md `compose.go` table row, `stack.go` row updated, Middleware-pattern paragraph extended | commit `fd96738` |
+| 9 | **TODO_LIST harvest** — removed the now-satisfied "architecture-review re-run" item; added `MiddlewareStack.MustAdd` + "Document the Compose bundle pattern"; refreshed timestamp | TODO_LIST.md (daemon-committed) |
+| 10 | **Format compliance** — user-confirmed flat-root decision NOT re-litigated; review cites the 2026-08-30 refresh and its revisit triggers (now 37/50 non-test files) | review HTML, Findings #4 |
+
+## b) PARTIALLY DONE
+
+| # | Item | Done | Open | Effort |
+|---|------|------|------|--------|
+| 1 | "Make httputil more composable" mission | Core gap (middleware→middleware) closed; rubric composability self-assessed 4→5 | R4 nonce seam + MustAdd + pattern docs remain (all tracked) | M |
+| 2 | Composition API documentation | Code docs, CHANGELOG, FEATURES, AGENTS | README + `docs/integrations/` pattern doc (harvested as TODO items) | S |
+| 3 | Composition API test depth | 9 unit tests, race-hardened | No `Example*` funcs (project's testable-examples culture), no `BenchmarkCompose` | S |
+| 4 | Session lint-gate status | Verified **0 issues at 03:35** | 3 findings appeared after, in files the **concurrent session** is editing (`httpspec/httpspec_test.go:768-769` canonicalheader ×2, `csrf_test.go:774` golines ×1) — not mine to fix; full-gate-green claim is therefore time-stamped, not current | S (owner: concurrent session / next pass) |
+| 5 | CSRF constant value change consumer-safety | Verified functionally identical (Get/Set canonicalization; nosurf source read); CHANGELOG Changed entry written | Consumers doing raw string matching on the old spelling would silently never match — flagged in CHANGELOG, no deprecation shim exists (none is possible for a const) | decision: user |
+
+## c) NOT STARTED
+
+| # | Item | Why | Wanted? |
+|---|------|-----|---------|
+| 1 | R4: `NonceConfig.Generator` override + public `GenerateNonce` | Decision-gated ("implement or formally decline") in TODO_LIST since ≥3 audits; I chose not to half-do a decision-gated item | Yes — it is the last non-injectable seam |
+| 2 | Nonce × Compression/CORS/ServerTiming/CSRF composition-test cluster | Same item as above; never run by any session | Yes |
+| 3 | `MiddlewareStack.MustAdd` | Harvested this session; no code | Yes (P3) |
+| 4 | `ExampleCompose` / `ExampleMiddlewareFunc_Then` / `ExampleMiddlewareStack` | Noticed as gap only at docs-wiring time; harvested (item 8 in §f), not tracked before today | Yes |
+| 5 | `BenchmarkCompose` / `BenchmarkMiddlewareStack_Middleware` | Same — noticed, listed in §f | Yes |
+| 6 | compose.go in the internal-coupling D2 graph | Graph predates the file; regeneration not attempted | Nice-to-have |
+| 7 | `nix fmt` + `nix flake check` full pass | Only `golangci-lint fmt` ran; flake gates unverified this session | Yes, cheap |
+| 8 | Benchmark-suite re-baseline | compose.go adds no hot-path code, but project protocol is 3s×5 after changes | Nice-to-have |
+
+## d) TOTALLY FUCKED UP
+
+Radical honesty, scoped to what this session observed:
+
+1. **Lint-config commits bypass the quality gate.** Pre-session commit `4bb191c` ("rework lint config") shipped with **13 lint findings**, silently breaking the repo's documented "0 active warnings" invariant. Nothing caught it — meaning `golangci-lint run` is not enforced on config-changing commits (CI gap or skipped hook). I repaired the findings; the process hole is still open. Severity: high (invariant decay). Mitigation: CI gate on `.golangci.yml` changes (§f item 24).
+2. **Two concurrent sessions edited the same living docs within the same hour.** The other session's commits (`3569022`, `6706afe`, `779d4cd`, `ef34b5c`, `dd2bb5c`, `2e29c12`) interleave with mine; `AGENTS.md` is dirty from their in-flight work right now. One of my multiedits failed outright (AGENTS table row) and a naive `golangci-lint run <files>` subset returned 40 bogus typecheck errors. No data was lost, but there is **no coordination protocol** — next collision could be a semantic conflict in CHANGELOG/TODO_LIST that neither session notices.
+3. **gopls vs go.mod contradiction is unresolved noise.** 5 standing diagnostics claim `json.Marshal` "requires go1.27" while `go.mod` pins `go 1.26.7` (and the module imports `encoding/json/v2` behind `GOEXPERIMENT=jsonv2`). Either the pin is wrong or gopls is misconfigured; every session pays re-interpretation cost. Tracked TODO item, still open.
+4. **Auto-daemon commit messages destroy evidence chains.** "chore: auto-commit N changed file(s) (heuristic)" forced me to reverse-engineer my own deliverables via `git show --stat` for this report's citations. The conventional-commit-lint TODO exists; it remains undone and the pain is compounding.
+
+Nothing I shipped is broken: no failing test, no red gate attributable to this session's files.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Gate the gate.** Add CI enforcement that `.golangci.yml`-touching commits run `golangci-lint run` clean. The 13-finding regression is proof the invariant decays without it.
+2. **Concurrent-session protocol.** One line in AGENTS.md: before editing shared living docs (AGENTS/CHANGELOG/TODO_LIST/FEATURES), re-run `git status` + `git diff` and re-read the section — another session may have moved it minutes ago. Would have saved one failed edit and one misattributed lint run this session.
+3. **Ship examples + benchmarks with new public API, same commit.** The project's own conventions (testableexamples, 50-bench baseline) say so; I shipped API and harvested the follow-ups instead. Next time: write `Example*` + `Benchmark*` before calling the API done.
+4. **Anticipate `unparam` on shared test helpers.** My 9 tests all passed `"handler"` to `newAppendingHandler` → linter finding. Check which linters see test-helper call sites before writing many similar call sites.
+5. **Don't trust rendered table output for edits.** The View tool's line-number separator visually merged with pipe-table rows (`159||`), causing an exact-match edit failure. For markdown tables, verify raw bytes (`sed -n 'Np' | cat -A`) before editing.
+6. **Never lint a file subset.** `golangci-lint run file.go` typechecks incompletely (40 phantom issues). Full-package runs only — worth an AGENTS.md line next to the existing "trust the run you just did" lesson.
+7. **Decision-gated TODOs need an owner or an execution date.** The nonce Generator item has circulated through ≥3 audit reports. Either schedule it or formally decline it — §g asks which.
+
+## f) 50 things to get done next
+
+*Brainstorm ranked by impact. "(tracked)" = already in TODO_LIST/ROADMAP — HARVEST should dedupe, not duplicate. Effort: S <30min, M 30min-2h, L >2h.*
+
+| # | Task | Impact | Effort | Category |
+|---|------|--------|--------|----------|
+| 1 | Fix `httpspec/httpspec_test.go:768-769` `"Www-Authenticate"` → `"WWW-Authenticate"` (canonicalheader; concurrent session's in-flight code) | High | S | Quality |
+| 2 | Fix `csrf_test.go:774` golines formatting (same owner) | High | S | Quality |
+| 3 | Full gate re-run (build, vet, `test -race`, lint, erraudit) once the concurrent session lands | High | S | Quality |
+| 4 | Decide + implement or formally decline `NonceConfig.Generator` + `GenerateNonce` (tracked) | High | M | Feature |
+| 5 | Nonce × Compression/CORS/ServerTiming/CSRF composition tests (tracked, pairs with #4) | High | M | Quality |
+| 6 | README composition section: secure-stack bundle idiom, stack nesting, `Then` (tracked) | High | S | Documentation |
+| 7 | CI: enforce clean `golangci-lint run` on `.golangci.yml` changes (closes §d-1 root cause) | High | S | Quality |
+| 8 | v1.0 cut decision + stabilization checklist (tracked) | High | M | Feature |
+| 9 | Verify CSRF `Sec-Fetch-Site` trust model against nosurf source (tracked) | High | M | Quality |
+| 10 | `MiddlewareStack.MustAdd` (tracked, harvested this session) | Medium | S | Feature |
+| 11 | `ExampleCompose`, `ExampleMiddlewareFunc_Then`, `ExampleMiddlewareStack` (also closes pre-existing ExampleMiddlewareStack gap) | Medium | S | Documentation |
+| 12 | `BenchmarkCompose` + `BenchmarkMiddlewareStack_Middleware` (pin near-zero wrapping overhead) | Medium | S | Quality |
+| 13 | CHANGELOG entries for the concurrent session's uncommitted-scope work (csrf.go +191, errors.go new codes, compression.go, new httpspec spec) if it didn't write them | Medium | S | Documentation |
+| 14 | Spot-check concurrent session's new error codes against `errorTemplates` + `allHTTputilErrorCodes` completeness test | Medium | S | Quality |
+| 15 | Verify compose.go is 100% covered; record per-file coverage note in FEATURES | Medium | S | Quality |
+| 16 | `nix fmt` + `nix flake check` on current tree (unverified this session) | Medium | S | Quality |
+| 17 | Re-baseline `docs/benchmarks.md` (3s×5) after this + concurrent changes | Medium | M | Quality |
+| 18 | Resolve `go 1.26.7` vs gopls "requires go1.27" stdversion warnings (tracked version-pinning item) | Medium | S | Cleanup |
+| 19 | Migrate `exhaustruct` → `exhaustruct_v5` before v2 removal (tracked; warning visible every lint run) | Medium | S | Cleanup |
+| 20 | Decide `CompressionConfig.Level = 0` semantics alignment (tracked) | Medium | S | Quality |
+| 21 | Confirm concurrent session's table-driven-test conversions (`779d4cd` touched exactly the tracked files) and close that TODO item | Medium | S | Cleanup |
+| 22 | Conventional-commit lint in CI (tracked; §d-4 pain) | Low | S | Cleanup |
+| 23 | Document `Then` nil-panic contract + `Middleware()` live-view semantics in README | Low | S | Documentation |
+| 24 | Add compose.go to `2026-08-29_internal-coupling.d2` + regenerate SVG | Low | S | Documentation |
+| 25 | Note the canonicalheader-tracks-constants lesson in AGENTS.md (canonicalize values; don't nolint) | Medium | S | Documentation |
+| 26 | Tag + release next version carrying the composition API (go-release skill; CHANGELOG ready) | Medium | M | Feature |
+| 27 | `docs/integrations/compose-patterns.md` (bundles + nesting + httpspec `WithExtraSpecs` synergy) | Low | S | Documentation |
+| 28 | CSRF docs sweep: note canonical spelling/case-insensitivity wherever `X-CSRF-Token` appears in README/integrations | Low | S | Documentation |
+| 29 | Slim AGENTS.md below 30KB docs-health budget (grew again this session) (tracked) | Low | M | Documentation |
+| 30 | dprint into flake devShell — markdown of my new report + docs edits is unverified (tracked) | Low | S | Cleanup |
+| 31 | Concurrent-session protocol line in AGENTS.md (§e-2) | Medium | S | Documentation |
+| 32 | Never-lint-a-subset lesson line in AGENTS.md (§e-6) | Low | S | Documentation |
+| 33 | Decide `MiddlewareFunc.Append(...)` method (gorilla parity) or decline | Low | S | Feature |
+| 34 | `BenchmarkChain` vs `BenchmarkCompose` equivalence bench | Low | S | Quality |
+| 35 | Verify re-anchored TODO_LIST relative links resolve (`docs/architecture-understanding/...`) | Low | S | Documentation |
+| 36 | Check pkg.go.dev rendering of compose.go after next tag | Low | S | Documentation |
+| 37 | Re-count non-test files and refresh the "37" claim after concurrent session's additions (50-file revisit trigger watch) | Low | S | Documentation |
+| 38 | TokenBucketLimiter removal at v1.0 (tracked plan T18) | Medium | M | Cleanup |
+| 39 | Config-validation hardening batch (tracked) | Medium | M | Quality |
+| 40 | KeyedRateLimiter property test + MaxKeys churn bench (tracked) | Low | M | Quality |
+| 41 | Chain-level exact-fill duplication regression test (tracked) | Low | S | Quality |
+| 42 | MaxBodySize bench + fuzz target (tracked: only middleware with neither) | Low | M | Quality |
+| 43 | Nightly fuzz crash issue-template step (tracked) | Low | S | Quality |
+| 44 | govulncheck for `server_timing` in CI (tracked) | Low | S | Quality |
+| 45 | CI release workflow (tracked) | Low | M | Feature |
+| 46 | go-error-family upstream conditional-request classification proposal (tracked; verify-before-filing first) | Low | M | Feature |
+| 47 | go-compression extraction when go-datastar trigger fires (tracked) | Low | L | Feature |
+| 48 | Finish T13 line-by-line test review (tracked) | Low | M | Quality |
+| 49 | Post-release: re-run package-structure analysis (50-file / v1.0 triggers) | Low | S | Documentation |
+| 50 | Schedule next `full-code-review` before v1.0 (tracked) | Medium | L | Quality |
+
+## g) Questions I cannot answer myself
+
+1. **Concurrent session:** another session is actively landing httpspec/compression/CSRF work and has `AGENTS.md` dirty right now. Should I stay out of its files until it finishes (and who fixes the 3 lint findings it leaves — that session, or me on your word)?
+2. **CSRF header constant:** keep the canonicalized `"X-Csrf-Token"` value (linter-clean, functionally identical) or revert to the conventional `"X-CSRF-Token"` spelling with a targeted nolint, if you know consumers that string-match the old value?
+3. **Nonce decision gate:** the `NonceConfig.Generator` / `GenerateNonce` item has circulated through ≥3 audits without a decision — implement it next session, or formally decline it so TODO_LIST stops carrying it?
+
+---
+
+*Point-in-time snapshot. Section (f) items marked "(tracked)" already live in TODO_LIST.md/ROADMAP.md; unmarked session-born items (#8, #11-17 partially, #23-29, #31-37) are HARVEST candidates for the next docs-health pass.*
