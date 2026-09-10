@@ -116,16 +116,14 @@ func (c NonceConfig) Validate() error {
 }
 
 // generateNonce generates a cryptographically random nonce of the given byte
-// size and returns it base64-encoded (URL-safe, no padding). Panics only if
-// crypto/rand fails, which should never happen on a healthy system.
+// size and returns it base64-encoded (URL-safe, no padding). crypto/rand
+// cannot fail (documented); entropy failure crashes inside crypto/rand, so
+// this function never panics.
 func generateNonce(size int) string {
 	//nolint:makezero // pre-allocated for crypto/rand to fill, not append
 	buf := make([]byte, size)
 
-	_, err := rand.Read(buf)
-	if err != nil {
-		panic("httputil: crypto/rand.Read failed: " + err.Error())
-	}
+	_, _ = rand.Read(buf)
 
 	return base64.RawURLEncoding.EncodeToString(buf)
 }

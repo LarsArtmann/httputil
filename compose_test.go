@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -143,19 +144,23 @@ func TestMiddlewareFunc_Then_WrapsHandler(t *testing.T) {
 	assertSliceEqual(t, order, want)
 }
 
-func TestMiddlewareFunc_Then_NilHandlerPanics(t *testing.T) {
+func TestMiddlewareFunc_Then_NilHandlerServesInternalServerError(t *testing.T) {
 	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Errorf("recover() = nil, want panic for nil handler")
-		}
-	}()
 
 	var mw MiddlewareFunc
 
-	mw.Then(nil)
+	handler := mw.Then(nil)
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Errorf("Then(nil) status = %d, want %d", rec.Code, http.StatusInternalServerError)
+	}
+
+	if body := rec.Body.String(); !strings.Contains(body, "nil handler") {
+		t.Errorf("Then(nil) body = %q, want it to name the wiring mistake", body)
+	}
 }
 
 func TestMiddlewareStack_Middleware_FirstAddedIsOutermost(t *testing.T) {

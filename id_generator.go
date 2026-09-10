@@ -126,10 +126,9 @@ func drawRandomBytes(dst []byte) {
 	if len(dst) != idRandBytes {
 		// Fall back to a direct read for unusual sizes. Should never
 		// happen in our use case, but guards against future changes.
-		_, err := rand.Read(dst)
-		if err != nil {
-			panic("httputil: crypto/rand.Read failed: " + err.Error())
-		}
+		// rand.Read cannot fail (documented); entropy failure crashes
+		// inside crypto/rand instead.
+		_, _ = rand.Read(dst)
 
 		return
 	}
@@ -181,10 +180,9 @@ func refillRandomBuffer(gen uint64) {
 
 	fresh := &randomGeneration{gen: gen, buf: [randBufferLen]byte{}}
 
-	_, err := rand.Read(fresh.buf[:])
-	if err != nil {
-		panic("httputil: crypto/rand.Read failed: " + err.Error())
-	}
+	// rand.Read cannot fail (documented); entropy failure crashes inside
+	// crypto/rand instead.
+	_, _ = rand.Read(fresh.buf[:])
 
 	randomState.Store(fresh)
 }

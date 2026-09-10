@@ -19,12 +19,15 @@ func Compose(middlewares ...Middleware) Middleware {
 // middleware functions as MiddlewareFunc to chain them fluently.
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// Then applies the middleware to next, returning the wrapped handler. It
-// panics when next is nil so wiring mistakes surface at composition time
-// instead of as a request-time panic.
+// Then applies the middleware to next, returning the wrapped handler. A nil
+// next wires a fallback handler that serves 500 for every request, so wiring
+// mistakes surface as a diagnosable response instead of a panic — the
+// library never panics by design.
 func (mw MiddlewareFunc) Then(next http.Handler) http.Handler {
 	if next == nil {
-		panic("httputil: MiddlewareFunc.Then called with a nil handler")
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "httputil: nil handler wired into MiddlewareFunc.Then", http.StatusInternalServerError)
+		})
 	}
 
 	return mw(next)
