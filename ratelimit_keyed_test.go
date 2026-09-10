@@ -593,9 +593,10 @@ func TestPerKeyLimiter_Property_CapacityEvictionPreservesInvariants(t *testing.T
 
 	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
 
+	//nolint:gosec // Fixed-seed property test; weak randomness is intentional.
 	rng := rand.New(
 		rand.NewPCG(42, 2026),
-	) //nolint:gosec // Fixed-seed property test; weak randomness is intentional.
+	)
 
 	for i := range operations {
 		_ = p.limiter(fmt.Sprintf("key-%d", rng.IntN(keyPoolSize)))

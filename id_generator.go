@@ -81,7 +81,7 @@ func generateTimeOrderedID() string {
 	// time component differentiates wrap-around IDs). Monotonic, so
 	// even back-to-back calls in the same nanosecond get distinct values.
 	c := lastCounter.Add(1)
-	binary.BigEndian.PutUint32(raw[idTimeBytes : idTimeBytes+idCtrBytes], c)
+	binary.BigEndian.PutUint32(raw[idTimeBytes:idTimeBytes+idCtrBytes], c)
 
 	// [8..16) Random tail from the amortized generation buffer.
 	drawRandomBytes(raw[idTimeBytes+idCtrBytes : idRawBytes])

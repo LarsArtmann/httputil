@@ -181,17 +181,17 @@ func TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails(t *testing.T) 
 	seenTails := make(map[string]struct{}, goroutines*perGoroutine)
 
 	for _, batch := range batches {
-		for _, id := range batch {
-			if _, duplicate := seenIDs[id]; duplicate {
-				t.Fatalf("duplicate ID %s under concurrent generation", id)
+		for _, generated := range batch {
+			if _, duplicate := seenIDs[generated]; duplicate {
+				t.Fatalf("duplicate ID %s under concurrent generation", generated)
 			}
 
-			seenIDs[id] = struct{}{}
+			seenIDs[generated] = struct{}{}
 
-			tail := id[idTimeBytes*hexEncodedBytes+idCtrBytes*hexEncodedBytes:]
+			tail := generated[idTimeBytes*hexEncodedBytes+idCtrBytes*hexEncodedBytes:]
 
 			if _, duplicate := seenTails[tail]; duplicate {
-				t.Fatalf("duplicate random tail %s (id %s) under concurrent generation", tail, id)
+				t.Fatalf("duplicate random tail %s (id %s) under concurrent generation", tail, generated)
 			}
 
 			seenTails[tail] = struct{}{}
