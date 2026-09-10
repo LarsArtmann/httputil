@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"time"
 
@@ -34,6 +35,15 @@ const (
 
 const contentTypePlain = "text/plain; charset=utf-8"
 
+// Header names and values used for origin attestation and validation.
+const (
+	headerOrigin          = "Origin"
+	headerReferer         = "Referer"
+	headerSecFetchSite    = "Sec-Fetch-Site"
+	attestationSameOrigin = "same-origin"
+	originNull            = "null"
+)
+
 // ErrorHandler handles CSRF validation failures.
 type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
@@ -58,6 +68,16 @@ var ErrCSRFConfig = errorfamily.NewInfrastructure(
 	"invalid CSRF configuration",
 )
 
+// ErrCSRFAttestationConflict is returned when a client-supplied
+// "Sec-Fetch-Site: same-origin" attestation is contradicted by an Origin
+// header from a different, untrusted origin. Browsers never produce this
+// combination — they attest cross-origin requests as cross-site — so a
+// contradiction means the attestation was forged.
+var ErrCSRFAttestationConflict = errorfamily.NewRejection(
+	string(codeCSRFAttestationConflict),
+	"Sec-Fetch-Site attestation contradicts the Origin header",
+)
+
 // Legacy underscore-spelled codes for the exported CSRF sentinels, kept for
 // backward compatibility; new codes use the domain.dot format.
 const (
@@ -73,6 +93,11 @@ const (
 	codeCSRFUnsafeProxy      = Code("csrf_unsafe_proxy")
 	codeCSRFInvalidCIDR      = Code("csrf_invalid_cidr")
 )
+
+// codeCSRFAttestationConflict classifies requests whose same-origin Fetch
+// Metadata attestation is contradicted by their Origin header (Rejection:
+// forged client input, never retried).
+const codeCSRFAttestationConflict = Code("csrf.origin_attestation_conflict")
 
 // CSRFConfig configures CSRF protection.
 //
@@ -261,16 +286,6 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 		}
 	}
 
-	failureHandler := cfg.ErrorHandler
-	if failureHandler == nil {
-		failureHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-			w.Header().Set("Content-Type", contentTypePlain)
-			w.WriteHeader(http.StatusForbidden)
-
-			writeCommittedBody(w, []byte(err.Error()))
-		}
-	}
-
 	handler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reason := nosurf.Reason(r)
 		if reason != nil {
@@ -282,8 +297,23 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 			)
 		}
 
-		failureHandler(w, r, ErrCSRFInvalid)
+		handleCSRFRejection(cfg, w, r, ErrCSRFInvalid)
 	}))
+}
+
+// handleCSRFRejection dispatches a CSRF failure to the configured
+// ErrorHandler, falling back to a 403 plain-text response.
+func handleCSRFRejection(cfg CSRFConfig, w http.ResponseWriter, r *http.Request, err error) {
+	if cfg.ErrorHandler != nil {
+		cfg.ErrorHandler(w, r, err)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", contentTypePlain)
+	w.WriteHeader(http.StatusForbidden)
+
+	writeCommittedBody(w, []byte(err.Error()))
 }
 
 // ---------------------------------------------------------------------------
@@ -354,10 +384,30 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 // request includes a matching token in either:
 //   - The X-Csrf-Token header (HTMX default)
 //   - A form field named "csrf_token"
+//
+// # Origin attestation trust model
+//
+// nosurf (verified at v1.2.0) skips Origin/Referer validation entirely when a
+// request carries a literal "Sec-Fetch-Site: same-origin" header. Browsers set
+// Sec-Fetch-Site truthfully and JavaScript cannot forge it (forbidden header
+// name), so the attestation is reliable against the classic cross-site
+// attacker; any non-browser client, however, can send it manually. Two
+// deliberate consequences:
+//
+//   - A client-supplied attestation (or the plaintext-proxy bypass) skips only
+//     the origin check — the masked-token check still gates every
+//     state-changing request. This is what lets non-browser API clients, which
+//     cannot pass Origin/Referer validation, work with valid tokens.
+//   - A client-supplied attestation contradicted by an Origin header from a
+//     different, untrusted origin is rejected with ErrCSRFAttestationConflict
+//     before nosurf sees the request: browsers never produce that combination,
+//     so it can only be forged.
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	validateConfig("CSRFConfig", cfg.Validate())
 
 	warnEmptyTrustedProxies(cfg)
+
+	trustedOrigins := parseTrustedOriginURLs(cfg.TrustedOrigins)
 
 	return func(next http.Handler) http.Handler {
 		inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -375,6 +425,19 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			cfg.fieldName() != DefaultCSRFFieldName
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if origin := contradictedAttestationOrigin(r, trustedOrigins); origin != "" {
+				slog.Warn(
+					"httputil: CSRF rejected request with forged same-origin attestation",
+					slog.String("method", r.Method),
+					slog.String("path", r.URL.Path),
+					slog.String("origin", origin),
+				)
+
+				handleCSRFRejection(cfg, w, r, ErrCSRFAttestationConflict.WithContext("origin", origin))
+
+				return
+			}
+
 			SetPlaintextHTTPOrigin(r, cfg)
 
 			if needsTranslation {
@@ -403,12 +466,18 @@ func warnEmptyTrustedProxies(cfg CSRFConfig) {
 // SetPlaintextHTTPOrigin sets the Sec-Fetch-Site header to "same-origin" for
 // plain HTTP requests without origin headers. This allows nosurf to skip
 // origin validation for HTTP deployments behind trusted proxies.
+//
+// It only fills a blank: requests that already carry Sec-Fetch-Site, Origin,
+// or Referer pass through untouched. The forged value is exactly what a
+// non-browser client could send itself — nosurf v1.2.0 short-circuits origin
+// validation on any literal same-origin attestation — so the bypass grants no
+// client new power; the masked-token check still applies.
 func SetPlaintextHTTPOrigin(r *http.Request, cfg CSRFConfig) {
 	if !shouldBypassPlaintextOrigin(r, cfg) {
 		return
 	}
 
-	r.Header.Set("Sec-Fetch-Site", "same-origin")
+	r.Header.Set(headerSecFetchSite, attestationSameOrigin)
 }
 
 func shouldBypassPlaintextOrigin(r *http.Request, cfg CSRFConfig) bool {
@@ -429,9 +498,9 @@ func shouldBypassPlaintextOrigin(r *http.Request, cfg CSRFConfig) bool {
 }
 
 func hasOriginHeader(r *http.Request) bool {
-	return r.Header.Get("Sec-Fetch-Site") != "" ||
-		r.Header.Get("Origin") != "" ||
-		r.Header.Get("Referer") != ""
+	return r.Header.Get(headerSecFetchSite) != "" ||
+		r.Header.Get(headerOrigin) != "" ||
+		r.Header.Get(headerReferer) != ""
 }
 
 func remoteHostAndIP(remoteAddr string) (string, net.IP) {
@@ -467,6 +536,91 @@ func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg C
 	}
 
 	return false
+}
+
+// parseTrustedOriginURLs parses TrustedOrigins entries into URLs for the
+// attestation-consistency check. Entries that fail to parse are skipped:
+// they cannot match any Origin header, matching how nosurf discards them.
+func parseTrustedOriginURLs(origins []string) []*url.URL {
+	parsed := make([]*url.URL, 0, len(origins))
+
+	for _, origin := range origins {
+		u, parseErr := url.Parse(origin)
+		if parseErr != nil {
+			continue
+		}
+
+		parsed = append(parsed, u)
+	}
+
+	return parsed
+}
+
+// isUnsafeCSRFMethod mirrors nosurf's safe-method set: origin validation (and
+// therefore attestation-consistency checking) applies only to state-changing
+// requests.
+func isUnsafeCSRFMethod(method string) bool {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+		return false
+	}
+
+	return true
+}
+
+// contradictedAttestationOrigin returns the Origin header value when a
+// client-supplied "Sec-Fetch-Site: same-origin" attestation is contradicted
+// by an Origin header that nosurf itself would reject (unparseable, or from a
+// different origin that is neither self nor trusted), and "" otherwise.
+//
+// nosurf v1.2.0 skips Origin/Referer validation on any literal same-origin
+// attestation before it ever consults the Origin header, so without this
+// check a forged attestation would smuggle a disallowed Origin past
+// validation. Browsers never produce the combination — Sec-Fetch-Site is a
+// forbidden header name set by the browser itself, and a cross-origin request
+// is attested as cross-site — so a contradiction means the attestation was
+// forged. The "null" origin is left to nosurf, which treats it as absent.
+func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL) string {
+	if !isUnsafeCSRFMethod(r.Method) {
+		return ""
+	}
+
+	if r.Header.Get(headerSecFetchSite) != attestationSameOrigin {
+		return ""
+	}
+
+	originStr := r.Header.Get(headerOrigin)
+	if originStr == "" || originStr == originNull {
+		return ""
+	}
+
+	origin, parseErr := url.Parse(originStr)
+	if parseErr != nil {
+		return originStr
+	}
+
+	if origin.Host == r.Host && origin.Scheme == requestScheme(r) {
+		return ""
+	}
+
+	for _, trusted := range trustedOrigins {
+		if origin.Host == trusted.Host && origin.Scheme == trusted.Scheme {
+			return ""
+		}
+	}
+
+	return originStr
+}
+
+// requestScheme reports the URL scheme a client used, based on whether the
+// connection is TLS-terminated locally. It mirrors how nosurf builds the self
+// origin for same-origin comparisons.
+func requestScheme(r *http.Request) string {
+	if r.TLS != nil {
+		return "https"
+	}
+
+	return "http"
 }
 
 // TranslateCSRFHeaders maps custom header/field names to nosurf's default
@@ -598,6 +752,13 @@ func CSRFTestToken(middleware func(http.Handler) http.Handler) (string, *http.Co
 func ValidateCSRF(r *http.Request, cfg CSRFConfig) (bool, *httptest.ResponseRecorder) {
 	if nosurf.Token(r) != "" {
 		return true, nil
+	}
+
+	if origin := contradictedAttestationOrigin(r, parseTrustedOriginURLs(cfg.TrustedOrigins)); origin != "" {
+		rec := httptest.NewRecorder()
+		handleCSRFRejection(cfg, rec, r, ErrCSRFAttestationConflict.WithContext("origin", origin))
+
+		return false, rec
 	}
 
 	var validated bool

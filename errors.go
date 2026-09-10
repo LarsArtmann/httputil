@@ -136,6 +136,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Use CIDR notation such as 10.0.0.0/8, or a bare IP such as 10.0.0.1.",
 		WayOut: "Fix the entry; the middleware refuses to start with an unparseable proxy list.",
 	},
+	string(codeCSRFAttestationConflict): {
+		What:   "CSRF same-origin attestation contradicts the Origin header",
+		Why:    "The request claimed Sec-Fetch-Site: same-origin while carrying Origin: {origin}; browsers attest cross-origin requests as cross-site, so the attestation was forged.",
+		Fix:    "Stop sending Sec-Fetch-Site manually and rely on the CSRF token, or send truthful Fetch-Metadata headers.",
+		WayOut: "Legitimate same-origin clients are unaffected; non-browser clients need only a valid token, no attestation header.",
+	},
 
 	// CORS config (Rejection family: fix the configuration, never retry).
 	string(codeCorsCredentialsWithAllOrigins): {

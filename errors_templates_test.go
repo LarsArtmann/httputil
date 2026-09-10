@@ -67,6 +67,8 @@ var allHTTputilErrorCodes = []Code{
 	codeDecompressionSizeExceeded,
 	codeDecompressionReadFailed,
 	codeDecompressionCloseFailed,
+
+	codeCSRFAttestationConflict,
 }
 
 // legacyErrorCodes are pre-taxonomy codes kept for backward compatibility.
