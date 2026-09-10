@@ -18,10 +18,21 @@ const (
 	codeDecompressionSizeExceeded = Code("decompression.size_exceeded")
 	codeDecompressionReadFailed   = Code("decompression.read_failed")
 	codeDecompressionCloseFailed  = Code("decompression.close_failed")
+
+	codeDecompressionEncodingUnrecognized = Code("decompression.encoding_unrecognized")
+	codeDecompressionEncodingDuplicate    = Code("decompression.encoding_duplicate")
 )
 
 var errMaxDecompressionSizeNegative = codeDecompressionSizeNegative.Rejection(
 	"DecompressionConfig.MaxDecompressionSize must not be negative",
+)
+
+var errDecompressionEncodingUnrecognized = codeDecompressionEncodingUnrecognized.Rejection(
+	"DecompressionConfig.Encodings contains an unsupported encoding; supported values are gzip and deflate",
+)
+
+var errDecompressionEncodingDuplicate = codeDecompressionEncodingDuplicate.Rejection(
+	"DecompressionConfig.Encodings contains the same encoding twice",
 )
 
 // errDecompressionSizeExceeded is the bomb-protection trip: the decompressed
@@ -60,6 +71,23 @@ func (c DecompressionConfig) Validate() error {
 			"max_decompression_size",
 			c.MaxDecompressionSize,
 		)
+	}
+
+	// Normalize entries the same way the middleware does before checking,
+	// so case and whitespace variants are accepted consistently.
+	seen := make(map[string]bool, len(c.Encodings))
+
+	for _, enc := range c.Encodings {
+		normalized := strings.ToLower(strings.TrimSpace(enc))
+		if normalized != encodingGzip && normalized != encodingDeflate {
+			return errDecompressionEncodingUnrecognized.WithContext("encoding", enc)
+		}
+
+		if seen[normalized] {
+			return errDecompressionEncodingDuplicate.WithContext("encoding", normalized)
+		}
+
+		seen[normalized] = true
 	}
 
 	return nil

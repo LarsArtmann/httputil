@@ -55,6 +55,7 @@ func DefaultCORSConfig() CORSConfig {
 const (
 	codeCorsCredentialsWithAllOrigins = Code("cors.credentials_with_all_origins")
 	codeCorsMaxAgeNegative            = Code("cors.max_age_negative")
+	codeCorsMethodsEmpty              = Code("cors.methods_empty")
 )
 
 var (
@@ -62,6 +63,9 @@ var (
 		"CORSConfig: AllowCredentials=true with AllowAllOrigins=true is not permitted by the CORS spec",
 	)
 	errNegativeMaxAge = codeCorsMaxAgeNegative.Rejection("CORSConfig: MaxAge must not be negative")
+	errMethodsEmpty   = codeCorsMethodsEmpty.Rejection(
+		"CORSConfig: AllowedMethods must not be empty; preflight responses would advertise no methods",
+	)
 )
 
 // Validate checks the CORSConfig for invalid combinations and returns an error
@@ -72,6 +76,10 @@ func (c CORSConfig) Validate() error {
 		return errCredentialsWithAllOrigins.
 			WithContextAny("allow_credentials", c.AllowCredentials).
 			WithContextAny("allow_all_origins", c.AllowAllOrigins)
+	}
+
+	if len(c.AllowedMethods) == 0 {
+		return errMethodsEmpty
 	}
 
 	if c.MaxAge < 0 {

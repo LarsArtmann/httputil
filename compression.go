@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"io"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -137,13 +138,14 @@ func DefaultCompressionConfig() CompressionConfig {
 // parsing. Config codes are Rejection (invalid input); q-value codes are
 // Rejection too — a malformed Accept-Encoding header is the client's input.
 const (
-	codeCompressionLevelInvalid  = Code("compression.level_invalid")
-	codeCompressionMinSizeNeg    = Code("compression.min_size_negative")
-	codeCompressionNoFactory     = Code("compression.no_writer_factory")
-	codeCompressionQValueEmpty   = Code("compression.qvalue_empty")
-	codeCompressionQValueInvalid = Code("compression.qvalue_invalid_int")
-	codeCompressionQValueTrail   = Code("compression.qvalue_trailing_chars")
-	codeCompressionQValueTooBig  = Code("compression.qvalue_too_large")
+	codeCompressionLevelInvalid           = Code("compression.level_invalid")
+	codeCompressionMinSizeNeg             = Code("compression.min_size_negative")
+	codeCompressionNoFactory              = Code("compression.no_writer_factory")
+	codeCompressionIncompressibleInvalid  = Code("compression.incompressible_prefix_invalid")
+	codeCompressionQValueEmpty            = Code("compression.qvalue_empty")
+	codeCompressionQValueInvalid          = Code("compression.qvalue_invalid_int")
+	codeCompressionQValueTrail            = Code("compression.qvalue_trailing_chars")
+	codeCompressionQValueTooBig           = Code("compression.qvalue_too_large")
 )
 
 var (
@@ -156,6 +158,9 @@ var (
 	errNoWriterFactory = codeCompressionNoFactory.Rejection(
 		"compression WriterFactories is empty; at least one encoding is required",
 	)
+	errIncompressiblePrefixInvalid = codeCompressionIncompressibleInvalid.Rejection(
+		"compression IncompressibleTypes entries must be non-empty media-type prefixes such as \"image/\"",
+	)
 	errEmptyQValue    = codeCompressionQValueEmpty.Rejection("empty q-value")
 	errInvalidQInt    = codeCompressionQValueInvalid.Rejection("invalid q-value integer")
 	errTrailingQChars = codeCompressionQValueTrail.Rejection("trailing chars in q-value")
@@ -164,9 +169,13 @@ var (
 
 // Validate checks the CompressionConfig for invalid values. Level == 0 is
 // accepted as the zero-value shorthand for gzip.DefaultCompression (see
-// CompressionConfig.Level).
+// CompressionConfig.Level). The Level range check applies only when
+// WriterFactories is empty — that is the only case where Level drives
+// factory construction; with explicit factories, Level is ignored and is
+// not validated, so configs that set both do not produce spurious warnings.
 func (c CompressionConfig) Validate() error {
-	if c.Level != gzip.DefaultCompression &&
+	if len(c.WriterFactories) == 0 &&
+		c.Level != gzip.DefaultCompression &&
 		(c.Level < gzip.HuffmanOnly || c.Level > gzip.BestCompression) {
 		return errInvalidCompressionLevel.WithContextAny("level", c.Level)
 	}
@@ -177,6 +186,12 @@ func (c CompressionConfig) Validate() error {
 
 	if len(c.WriterFactories) == 0 {
 		return errNoWriterFactory
+	}
+
+	for _, prefix := range c.IncompressibleTypes {
+		if prefix == "" || strings.TrimSpace(prefix) != prefix || !strings.Contains(prefix, "/") {
+			return errIncompressiblePrefixInvalid.WithContext("prefix", prefix)
+		}
 	}
 
 	return nil
@@ -193,11 +208,18 @@ func Compression(cfg CompressionConfig) Middleware {
 	// the WriterFactories field existed.
 	//
 	// Level == 0 means "unset" (see CompressionConfig.Level), so the
-	// zero-value config compresses at gzip.DefaultCompression.
+	// zero-value config compresses at gzip.DefaultCompression. Because the
+	// level becomes the factories' level here, it is range-checked at this
+	// use site; Validate skips it once WriterFactories is filled.
 	if len(cfg.WriterFactories) == 0 {
 		level := cfg.Level
 		if level == 0 {
 			level = gzip.DefaultCompression
+		}
+
+		if level != gzip.DefaultCompression &&
+			(level < gzip.HuffmanOnly || level > gzip.BestCompression) {
+			validateConfig("CompressionConfig", errInvalidCompressionLevel.WithContextAny("level", cfg.Level))
 		}
 
 		cfg.WriterFactories = DefaultWriterFactoriesForLevel(level)
