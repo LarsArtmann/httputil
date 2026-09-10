@@ -53,19 +53,27 @@ func FuzzCSRFConfig_TrustedProxiesCIDR(f *testing.F) {
 
 		// Validate must not panic. Either returns nil (valid CIDR) or
 		// an error (invalid CIDR) — both outcomes are acceptable.
-		_ = cfg.Validate()
+		err := cfg.Validate()
 
-		// TrustedProxiesCIDR must be populated consistently with TrustedProxies.
-		// If Validate succeeded, every CIDR entry must have produced a parsed
-		// IPNet entry (no entries skipped).
-		if len(cfg.TrustedProxies) == 1 && strings.Contains(cfg.TrustedProxies[0], "/") {
-			if len(cfg.TrustedProxiesCIDR) > 1 {
-				t.Errorf(
-					"Validate accepted %q but parsed multiple IPNets: %d",
-					cidr,
-					len(cfg.TrustedProxiesCIDR),
-				)
-			}
+		// Parsing lives in withParsedTrustedProxies (Validate is pure). If
+		// Validate accepted a single CIDR entry, the parse must produce
+		// exactly one IPNet; an invalid entry must produce none.
+		parsed := cfg.withParsedTrustedProxies()
+
+		if err == nil && strings.Contains(cidr, "/") && len(parsed.TrustedProxiesCIDR) != 1 {
+			t.Errorf(
+				"Validate accepted %q but parsed %d IPNets, want 1",
+				cidr,
+				len(parsed.TrustedProxiesCIDR),
+			)
+		}
+
+		if err != nil && len(parsed.TrustedProxiesCIDR) != 0 {
+			t.Errorf(
+				"Validate rejected %q but parse produced %d IPNets, want 0",
+				cidr,
+				len(parsed.TrustedProxiesCIDR),
+			)
 		}
 	})
 }

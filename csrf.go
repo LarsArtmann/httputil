@@ -175,7 +175,7 @@ type CSRFConfig struct {
 	ErrorHandler ErrorHandler
 }
 
-func (c *CSRFConfig) cookieName() string {
+func (c CSRFConfig) cookieName() string {
 	if c.CookieName != "" {
 		return c.CookieName
 	}
@@ -183,7 +183,7 @@ func (c *CSRFConfig) cookieName() string {
 	return DefaultCSRFCookieName
 }
 
-func (c *CSRFConfig) headerName() string {
+func (c CSRFConfig) headerName() string {
 	if c.HeaderName != "" {
 		return c.HeaderName
 	}
@@ -191,7 +191,7 @@ func (c *CSRFConfig) headerName() string {
 	return DefaultCSRFHeaderName
 }
 
-func (c *CSRFConfig) fieldName() string {
+func (c CSRFConfig) fieldName() string {
 	if c.FieldName != "" {
 		return c.FieldName
 	}
@@ -199,7 +199,7 @@ func (c *CSRFConfig) fieldName() string {
 	return DefaultCSRFFieldName
 }
 
-func (c *CSRFConfig) maxAge() time.Duration {
+func (c CSRFConfig) maxAge() time.Duration {
 	if c.MaxAge > 0 {
 		return c.MaxAge
 	}
@@ -207,7 +207,7 @@ func (c *CSRFConfig) maxAge() time.Duration {
 	return defaultCSRFMaxAge
 }
 
-func (c *CSRFConfig) path() string {
+func (c CSRFConfig) path() string {
 	if c.Path != "" {
 		return c.Path
 	}

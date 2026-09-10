@@ -478,15 +478,45 @@ func TestCSRFConfig_Validate_ValidCIDR(t *testing.T) {
 		t.Fatalf("expected no error for valid CIDR: %v", err)
 	}
 
-	if len(cfg.TrustedProxiesCIDR) != 1 {
-		t.Fatalf("expected 1 parsed CIDR, got %d", len(cfg.TrustedProxiesCIDR))
+	// Validate is pure: parsing happens in withParsedTrustedProxies, so the
+	// receiver must be untouched.
+	if len(cfg.TrustedProxiesCIDR) != 0 {
+		t.Fatalf("Validate must not mutate the config, got %d parsed CIDRs", len(cfg.TrustedProxiesCIDR))
 	}
 }
 
-func TestCSRFConfig_Validate_SecureFalseLogsWarning(t *testing.T) {
+func TestCSRFConfig_WithParsedTrustedProxies_PopulatesCIDR(t *testing.T) {
 	t.Parallel()
 
-	// Secure=false with no other issues: exercises the slog.Warn path.
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8", "192.168.0.1"}}
+
+	parsed := cfg.withParsedTrustedProxies()
+
+	if len(parsed.TrustedProxiesCIDR) != 1 {
+		t.Fatalf("expected 1 parsed CIDR (bare IP ignored), got %d", len(parsed.TrustedProxiesCIDR))
+	}
+
+	if _, subnet, _ := net.ParseCIDR("10.0.0.0/8"); !parsed.TrustedProxiesCIDR[0].IP.Equal(subnet.IP) {
+		t.Errorf("parsed CIDR = %v, want the 10.0.0.0/8 network", parsed.TrustedProxiesCIDR[0])
+	}
+}
+
+func TestCSRFConfig_WithParsedTrustedProxies_InvalidCIDRYieldsEmpty(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8", "10.0.0.0/99"}}
+
+	parsed := cfg.withParsedTrustedProxies()
+
+	if len(parsed.TrustedProxiesCIDR) != 0 {
+		t.Fatalf("invalid entry must yield an empty CIDR list, got %d", len(parsed.TrustedProxiesCIDR))
+	}
+}
+
+func TestCSRFConfig_Validate_SecureFalseIsNotAnError(t *testing.T) {
+	t.Parallel()
+
+	// Secure=false alone is a constructor warning, not a validation error.
 	cfg := CSRFConfig{}
 	err := cfg.Validate()
 	if err != nil {
