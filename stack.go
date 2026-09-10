@@ -98,12 +98,23 @@ func (s *MiddlewareStack) Validate() error {
 // The first middleware added becomes the outermost wrapper. Does not call
 // [MiddlewareStack.Validate]; call it separately to check ordering.
 func (s *MiddlewareStack) Build(handler http.Handler) http.Handler {
-	//nolint:makezero // pre-allocated with known length, not append
-	mws := make([]Middleware, len(s.entries))
+	return s.Middleware()(handler)
+}
 
-	for i, e := range s.entries {
-		mws[i] = e.middleware
+// Middleware returns the stack as a single composable middleware. Ordering
+// matches [MiddlewareStack.Build]: the first middleware added is the
+// outermost wrapper when the returned middleware is applied to a handler.
+// The returned middleware reads the stack's entries each time it is applied,
+// so middleware added after this call is included.
+func (s *MiddlewareStack) Middleware() Middleware {
+	return func(handler http.Handler) http.Handler {
+		//nolint:makezero // pre-allocated with known length, not append
+		mws := make([]Middleware, len(s.entries))
+
+		for i, e := range s.entries {
+			mws[i] = e.middleware
+		}
+
+		return Chain(handler, mws...)
 	}
-
-	return Chain(handler, mws...)
 }
