@@ -40,3 +40,45 @@ func FuzzCompressWriterState(f *testing.F) {
 		}
 	})
 }
+
+// FuzzNegotiatorWireFormat fuzzes raw Accept-Encoding header strings through
+// the negotiator, complementing the q-value property tests with arbitrary
+// wire input. Invariants: negotiation with the default factories (identity
+// registered) always succeeds — a client that excludes every encoding falls
+// back to identity, never to failure — and any accepted result is a
+// registered canonical encoding name with a q-value in (0, 1].
+func FuzzNegotiatorWireFormat(f *testing.F) {
+	f.Add("gzip")
+	f.Add("gzip, deflate, br")
+	f.Add("gzip;q=0.5, deflate;q=0.8")
+	f.Add("*")
+	f.Add("gzip;q=0, deflate;q=0, identity;q=0")
+	f.Add(" GZIP ; Q=0.5 ,")
+	f.Add("x-gzip;q=abc, gzip;q=1.000")
+	f.Add("gzip;q=1.001")
+	f.Add("gzip;q=")
+	f.Add(",,,")
+
+	neg := newTestNegotiator()
+
+	f.Fuzz(func(t *testing.T, header string) {
+		encoding, q, ok := neg.negotiateEncoding(header)
+
+		if !ok {
+			t.Errorf(
+				"negotiation failed for header %q with identity registered, want identity fallback",
+				header,
+			)
+
+			return
+		}
+
+		if _, registered := neg.factories[encoding]; !registered {
+			t.Errorf("negotiated encoding %q is not registered (header %q)", encoding, header)
+		}
+
+		if q <= 0 || q > 1 {
+			t.Errorf("negotiated q = %v outside (0,1] for header %q", q, header)
+		}
+	})
+}

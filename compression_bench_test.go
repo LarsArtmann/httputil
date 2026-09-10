@@ -13,6 +13,12 @@ import (
 // produces a decodable response for arbitrary bodies and Accept-Encoding
 // headers: when the response carries the negotiated gzip encoding, gunzipping
 // it must reproduce the handler's body exactly.
+//
+// The decode-and-compare check relies on Go's gzip reader treating
+// concatenated members as a multistream: if the writer ever emitted the
+// payload twice as separate gzip members (the exact-fill duplication bug),
+// the decoded bytes would be body+body and the byte comparison would fail
+// instead of silently passing on the first member.
 func FuzzCompression(f *testing.F) {
 	f.Add([]byte("hello world"), "gzip")
 	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate")
