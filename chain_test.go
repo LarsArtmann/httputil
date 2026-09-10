@@ -622,7 +622,11 @@ func TestChain_NonceWithServerTiming_NonceSurvivesTimingWrapper(t *testing.T) {
 	want := "nonce=" + cspNonceFromHeader(t, csp)
 
 	if rec.Body.String() != want {
-		t.Errorf("body = %q, want %q (context nonce must match the CSP nonce)", rec.Body.String(), want)
+		t.Errorf(
+			"body = %q, want %q (context nonce must match the CSP nonce)",
+			rec.Body.String(),
+			want,
+		)
 	}
 }
 
