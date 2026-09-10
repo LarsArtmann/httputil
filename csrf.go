@@ -99,6 +99,15 @@ const (
 // forged client input, never retried).
 const codeCSRFAttestationConflict = Code("csrf.origin_attestation_conflict")
 
+// codeCSRFMaxAgeNegative classifies a negative CSRFConfig.MaxAge (Rejection:
+// fix the config, never retry). A negative cookie MaxAge deletes the cookie,
+// which is never a meaningful CSRF configuration.
+const codeCSRFMaxAgeNegative = Code("csrf.max_age_negative")
+
+var errCSRFMaxAgeNegative = codeCSRFMaxAgeNegative.Rejection(
+	"CSRFConfig: MaxAge must not be negative; zero uses the 24h default",
+)
+
 // CSRFConfig configures CSRF protection.
 //
 // All fields are optional; zero values use secure defaults.
@@ -120,7 +129,8 @@ type CSRFConfig struct {
 	FieldName string
 
 	// MaxAge is the cookie max age.
-	// Default: 24 hours
+	// Default: 24 hours. A negative value fails Validate
+	// (csrf.max_age_negative); zero uses the default.
 	MaxAge time.Duration
 
 	// Secure sets the Secure flag on the cookie.
@@ -206,6 +216,10 @@ func (c *CSRFConfig) path() string {
 // Validate checks the CSRF configuration for common misconfigurations.
 // Returns a non-nil error if the config would produce insecure or broken behavior.
 func (c *CSRFConfig) Validate() error {
+	if c.MaxAge < 0 {
+		return errCSRFMaxAgeNegative.WithContextAny("max_age", c.MaxAge)
+	}
+
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
 		return codeCSRFSameSiteInsecure.Infrastructure("SameSite=None requires Secure=true").
 			WithCause(ErrCSRFConfig).
