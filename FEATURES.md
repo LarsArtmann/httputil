@@ -158,7 +158,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `docs/migrating-to-keyed-rate-limiter.md` — deprecation migration guide.
 - `docs/integrations/` — extensibility examples (brotli/zstd, redis, prometheus, samber/do, huma, compose bundles).
 - `docs/architecture-reference.md` — file-by-file export tables, error-classification table, lint profile.
-- `RELEASE.md` + `scripts/prerelease-check.sh` — the documented, automated release gates.
+- `docs/RELEASE.md` (runbook) + `scripts/prerelease-check.sh` — the documented, automated release gates.
 - Status reports in `docs/status/`.
 - Execution plans in `docs/planning/`.
 

@@ -6,6 +6,8 @@ Step-by-step checklist for cutting an httputil release. Follow in order — each
 
 Run every gate below. If any fails, fix it before proceeding.
 
+**Automation:** `./scripts/prerelease-check.sh` runs gates 1-6 (plus the erraudit gates, the coverage-threshold checker, changelog freshness, and `nix flake check`) for BOTH modules in one command and fails on the first violation. The manual commands below document each gate individually and remain the source of truth.
+
 ### 1. Clean build
 
 ```bash
@@ -22,11 +24,11 @@ go test -race -count=1 ./...
 ### 3. Coverage measurement
 
 ```bash
-go test -race -coverprofile=coverage.out ./...
-go tool cover -func=coverage.out | tail -1
+go test $(go list ./... | grep -v scripts/coverage-threshold) -coverprofile=coverage.out
+go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95
 ```
 
-Record the total percentage. If it dropped below 95%, investigate before releasing (the documented gate threshold is 95%).
+Library packages only: the `scripts/` dev-tooling package has no tests and would drag the total below the gate. The checker exits nonzero below 95% (the documented gate threshold) and fails loudly on malformed reports.
 
 ### 4. govulncheck
 

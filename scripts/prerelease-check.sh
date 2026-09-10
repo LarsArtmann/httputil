@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # prerelease-check.sh — automate the pre-release gates documented in
-# RELEASE.md. Run this before cutting a version tag; every gate must pass.
+# docs/RELEASE.md (Pre-Release Verification). Run this before cutting a version tag; every gate must pass.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -51,4 +51,4 @@ echo "found"
 step "9/9 Flake gates"
 nix flake check || fail "nix flake check"
 
-printf '\nAll pre-release gates passed. Proceed with the RELEASE.md tag checklist.\n'
+printf '\nAll pre-release gates passed. Proceed with the docs/RELEASE.md release-time steps (7. CHANGELOG ... 16. cleanup).\n'
