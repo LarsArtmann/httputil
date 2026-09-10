@@ -103,6 +103,12 @@ GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-e
 
 # server_timing sub-module (run from server_timing/)
 cd server_timing && go test -race ./... && golangci-lint run
+
+# Documented 3s×5 benchmark protocol (see docs/benchmarks.md)
+nix run .#bench
+
+# Release: scripts/prerelease-check.sh automates the gates; runbook is
+# docs/RELEASE.md. CHANGELOG [version] sections freeze at the tag.
 ```
 
 **`go test -count=1` does NOT detect data races.** Only `go test -race` catches shared-state access between goroutines. After writing or modifying ANY test that uses `t.Parallel()`, shared fixtures, or closures over mutable state, run `go test -race -count=10 ./...` to surface timing-dependent races before declaring done. (See 2026-08-05 fix in `cors_ratelimit_specs_test.go:138` for an example of a race that passed `go test -count=1 ./...` clean but failed 60% of `-race` runs.)
@@ -191,6 +197,7 @@ Codified 2026-08-30 (source: `06-12:f.6` — "test names must match what they as
 - **Helpers:** constructors `newXxx()`, assertions `assertXxx(t, ...)` starting with `t.Helper()`, doubles as unexported structs in `testutil_test.go`.
 - **Assertion messages:** `got = %v, want %v` style with the expression under test first; `t.Fatalf` when continuing is meaningless, `t.Errorf` otherwise.
 - **Mutation-check preservation tests:** any test whose name says "preserves"/"passthrough" must fail when the preserved behavior is mutated away, not merely when the symbol disappears. Interface-assertion-only tests get a companion delegation call (see `TestServerTimingMiddleware_PreservesHijacker`, mutation-verified 2026-08-30).
+- **Never assert sync.Pool instance reuse across Put→Get** — a same-goroutine Put-then-Get is not GC-stable under parallel test load (a single GC between the two statements clears the slot), so identity assertions flake. Test pool-path selection with a fake `pool.New` returning a sentinel, and factory-call-count bounds, instead.
 - **Benchmark harnesses must reset mutated request state every iteration** (2026-08-30 rule, born from the Decompression incident): middleware that consumes the request body or deletes headers (`Decompression` removes `Content-Encoding`/`Content-Length`) leaves a reused `*http.Request` in a degraded state, so a benchmark that constructs the request once decompresses on iteration 1 and then times no-ops. Restore `req.Body` and the deleted headers inside `b.Loop`. Eyeball the implied bytes/second (`SetBytes` ÷ ns/op): anything above memory bandwidth (~50 GB/s) is a broken harness, not a fast benchmark.
 - **Every "0 means X" config claim gets an execution-probe test** (2026-08-30 rule): two consecutive sessions found documented zero-value semantics that were false (`MaxDecompressionSize: 0` "disables" — it selects the 16 MiB default; `MaxBytes: 0` "unlimited" — it rejects any non-empty body). When documenting a zero-value special case, pin it with a test that executes the behavior (`TestMaxBodySize_ZeroLimitRejectsNonEmptyBody` is the pattern).
 - **Fuzz invariants over line coverage for response-transforming code** (2026-08-30 rule): 96.9% line coverage missed the compression exact-fill duplication bug; a decode-and-compare round-trip invariant found it in seconds. Every component that transforms response bytes gets a gunzip-and-compare (or equivalent) invariant in its fuzz target. Reference decoders inside fuzz targets must be bounded (`io.LimitReader`) so corrupt input cannot OOM the runner.
