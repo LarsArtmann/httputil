@@ -129,3 +129,12 @@ Nothing in the Go tree was broken this session: no code changes were needed for 
 ---
 
 *Point-in-time snapshot. Section (f) items marked "(tracked)" already live in TODO_LIST.md/ROADMAP.md; unmarked session-born items (#4-10, #17-19, #25-27, #47, #50) are HARVEST candidates for the next docs-health pass.*
+
+---
+
+## Resolution addendum (2026-09-10 ~06:30 CEST) — owner answers executed
+
+- **§g-1 answered:** PRIVATE consumer repos DO exist beyond the 4 public ones (count unknown to me). The flat-root "second consumer" trigger is armed beyond what public scans show; recorded in TODO_LIST httpspec item.
+- **§g-2 answered + executed ("just don't panic"):** `MiddlewareFunc.Then(nil)` now wires a 500-stub handler (compose.go:27); the dead `crypto/rand.Read` panic guards in `id_generator.go`/`nonce.go` deleted (`rand.Read` documented never to fail — verified via go doc); test rewritten (`TestMiddlewareFunc_Then_NilHandlerServesInternalServerError`); CHANGELOG + AGENTS.md updated. Remaining 4 panic sites documented as deliberate: `recovery.go` stdlib ErrAbortHandler sentinel, `compress_pool.go` factory-contract violations (inside Recovery's envelope), `httpspec.go` unexported test helper. Gates re-run: build, lint 0 issues, `test -race -count=10`, both erraudit gates — all green.
+- **§g-3 answered:** push httpspec discovery → TODO_LIST.md item added (README section + runnable example + docs-site page).
+- **Context note:** a parallel session executed a v1.0.0 completion sweep during this window (compose-bundles docs, KRL property test, CORS fuzz invariant, `Server.ListenerAddr`, pool-Get skip, WrapConflict/WrapOrchestration — all landed DONE) and swept some of my in-flight doc edits into its commits. Coordination note stands: check `git log` before editing shared living docs.

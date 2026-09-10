@@ -22,7 +22,7 @@ _Updated: 2026-09-10 (v1.0 completion sweep: full backlog executed, v1.0.0 cut l
 
 ## Low Priority
 
-- [ ] **httpspec discovery push** — the 2026-09-10 importer scan (pkg.go.dev + Sourcegraph) found ZERO importers of `httpspec` anywhere; add a README section, a runnable example, and a docs-site page for the spec runner (owner decision: push discovery, not retire).
+- [ ] **httpspec discovery push** — the 2026-09-10 importer scan (pkg.go.dev + Sourcegraph) found ZERO importers of `httpspec` anywhere; add a README section, a runnable example, and a docs-site page for the spec runner (owner decision: push discovery, not retire). Note: owner also confirms PRIVATE consumer repos exist beyond the 4 public ones (2026-09-10).
 - [x] **Document the `Compose` bundle pattern** — DONE 2026-09-10: [docs/integrations/compose-bundles.md](docs/integrations/compose-bundles.md) (build-once-apply-many bundles, stack nesting via `MiddlewareStack.Middleware()`, ordering rules, `MiddlewareFunc.Then` wiring contract), linked from README.
 - [x] **KeyedRateLimiter property test** — DONE 2026-09-10: `TestPerKeyLimiter_Property_CapacityEvictionPreservesInvariants` (2,000 seeded ops, heap/map/heapRef/index/ordering invariants checked every 97 ops) + `TestPerKeyLimiter_MaxKeysChurn_KeepsMostRecentKeys` (sliding-window determinism) + `BenchmarkKeyedRateLimiter_MaxKeysChurn` (fresh key per iteration = real eviction path).
 - [x] **CORS fuzz invariant for exact-origin allowlists** — DONE 2026-09-10: `FuzzCORSOriginEcho` — no third-party reflection ever; exact-allowlist+DenyUnmatched oracle (echo ⟺ allowlisted); ~1.4M execs clean.
