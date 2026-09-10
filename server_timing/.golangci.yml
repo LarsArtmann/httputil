@@ -40,7 +40,7 @@ linters:
     - errname
     - errorlint
     - exhaustive
-    - exhaustruct
+    - exhaustruct_v5
     - exptostd
     - fatcontext
     - forbidigo
@@ -134,8 +134,8 @@ linters:
         main:
           allow:
             - $gostd
-    exhaustruct:
-      exclude:
+    exhaustruct_v5:
+      ignore-patterns:
         - github\.com/larsartmann/httputil/server_timing\.(ServerTiming|serverTimingWriter)$
     ginkgolinter:
       forbid-focus-container: true
@@ -204,7 +204,7 @@ linters:
     rules:
       - path: _test\.go
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - testpackage
           - gochecknoglobals
           - funlen
