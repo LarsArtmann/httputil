@@ -27,7 +27,7 @@ var errNoTotalLine = errors.New("no total: line found; is this a `go tool cover 
 // as the only argument (a percentage). It replaces a fragile awk one-liner:
 // a malformed report now fails loudly instead of silently passing the gate.
 //
-// Usage: go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95
+// Usage: go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95.
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: coverage-threshold <threshold-percent> (report on stdin)")

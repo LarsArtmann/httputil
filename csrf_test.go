@@ -481,7 +481,10 @@ func TestCSRFConfig_Validate_ValidCIDR(t *testing.T) {
 	// Validate is pure: parsing happens in withParsedTrustedProxies, so the
 	// receiver must be untouched.
 	if len(cfg.TrustedProxiesCIDR) != 0 {
-		t.Fatalf("Validate must not mutate the config, got %d parsed CIDRs", len(cfg.TrustedProxiesCIDR))
+		t.Fatalf(
+			"Validate must not mutate the config, got %d parsed CIDRs",
+			len(cfg.TrustedProxiesCIDR),
+		)
 	}
 }
 
@@ -496,7 +499,11 @@ func TestCSRFConfig_WithParsedTrustedProxies_PopulatesCIDR(t *testing.T) {
 		t.Fatalf("expected 1 parsed CIDR (bare IP ignored), got %d", len(parsed.TrustedProxiesCIDR))
 	}
 
-	if _, subnet, _ := net.ParseCIDR("10.0.0.0/8"); !parsed.TrustedProxiesCIDR[0].IP.Equal(subnet.IP) {
+	if _, subnet, _ := net.ParseCIDR(
+		"10.0.0.0/8",
+	); !parsed.TrustedProxiesCIDR[0].IP.Equal(
+		subnet.IP,
+	) {
 		t.Errorf("parsed CIDR = %v, want the 10.0.0.0/8 network", parsed.TrustedProxiesCIDR[0])
 	}
 }
@@ -509,7 +516,10 @@ func TestCSRFConfig_WithParsedTrustedProxies_InvalidCIDRYieldsEmpty(t *testing.T
 	parsed := cfg.withParsedTrustedProxies()
 
 	if len(parsed.TrustedProxiesCIDR) != 0 {
-		t.Fatalf("invalid entry must yield an empty CIDR list, got %d", len(parsed.TrustedProxiesCIDR))
+		t.Fatalf(
+			"invalid entry must yield an empty CIDR list, got %d",
+			len(parsed.TrustedProxiesCIDR),
+		)
 	}
 }
 
