@@ -1,56 +1,78 @@
-# httputil target architecture: what changes, what deliberately does not.
-# Trigger-gated moves are dashed; everything else is verified current state.
-# Render: nix develop -c d2 --layout elk docs/architecture-understanding/2026-09-10_04_49-go-modularize-boundaries-improved.d2 docs/architecture-understanding/2026-09-10_04_49-go-modularize-boundaries-improved.svg
-direction: right
+# httputil target architecture: boundaries held, moves trigger-gated.
+# Solid = shipped and verified. Dashed amber = trigger-gated (NOT scheduled without its trigger).
+# Render: nix develop -c d2 --layout elk <input> <output>
+direction: down
 
-consumers: Consumer projects {
-  apps: Server applications
-  datastar: go-datastar
-}
-
-workspace: go.work workspace (UNCHANGED boundaries) {
-  root: Root module github.com/larsartmann/httputil {
-    pkg: package httputil (flat by documented decision; revisit at 50 files / v1.0+2nd consumer) {
-      middleware: 14 middleware factories
-      compose: Composition API front door (Compose / MiddlewareFunc / MiddlewareStack.Middleware)
-      lifecycle: Server + Health
-      errors: Error model (sentinels live with the interface that throws them)
-      internal: OPTIONAL internal/ hygiene step (only if 2nd consumer demands it)
-    }
-    httpspec: package httpspec (stays a subpackage; module split only on consumer demand for independent versioning)
+legend: Reading guide {
+  solid: shipped + verified (builds, consumers, CI) {
+    style.stroke: "#111111"
   }
-
-  st: Sub-module server_timing (stdlib-only, independently versioned)
+  gated: exists only if its trigger fires {
+    style.stroke: "#d97706"
+    style.border-dashed: true
+  }
 }
 
-extracted: Extracted modules (the proven seam pattern) {
-  goetag: go-etag (extracted 2026-08-07)
-  gocompress: go-compression (TRIGGER-GATED: extract when go-datastar SSE need lands; unblocks nothing else)
+consumers: Consumers (verified via pkg.go.dev importer scan) {
+  shape: person
+  infamily: 4 owner repos import root
+  cqrs: cqrs-htmx imports server_timing standalone
+  thirdparty: third-party adoption: none yet (discovery gap, not architecture gap)
 }
 
-ext: External deps (all behind plugin seams) {
+root: Root module github.com/larsartmann/httputil — BOUNDARIES HELD {
+  pkg: package httputil (flat; revisit only at >50 files or v1.0 + internal/ request) {
+    mw: 14 middleware factories
+    compose: Composition API front door
+    life: Server + Health
+    errs: Error model (sentinels live with the code that throws them)
+  }
+  httpspec: package httpspec {
+    label: "package httpspec\nstays a subpackage\nmodule split needs a consumer\nthat needs independent versioning"
+    style.stroke: "#1d4ed8"
+  }
+  internal: internal/ hygiene step {
+    style.stroke: "#d97706"
+    style.border-dashed: true
+  }
+}
+
+st: server_timing sub-module (zero deps, independent tags) {
+  style.stroke: "#1d4ed8"
+}
+
+gocompress: go-compression module {
+  label: "go-compression module\nextract ONLY when go-datastar\nSSE-compression need lands\n(plan: docs/planning 2026-08-16)"
+  style.stroke: "#d97706"
+  style.border-dashed: true
+}
+
+ext: External deps (plugin seams or adapters) {
+  shape: cloud
   errf: go-error-family
   xtime: golang.org/x/time
   nosurf: justinas/nosurf
+  goetag: go-etag
 }
 
-rule: Boundary rules (verified 2026-09-10) {
-  r1: DAG enforced: consumers -> root -> server_timing
-  r2: Dual strategy: go.work AND replace, CI GOWORK=off check
-  r3: Every dep isolated behind an interface or adapter
-  r4: Zero-dep modules stay zero-dep
-}
+consumers.infamily -> root.pkg: one import path
+consumers.cqrs -> st: standalone import
+consumers.thirdparty -> root.pkg: arrives via discovery (README, docs site)
 
-consumers.apps -> workspace.root.pkg: secure-stack bundles via Compose
-consumers.datastar -> extracted.gocompress: pulls compression when triggered
-consumers.apps -> workspace.httpspec: optional behavior specs
+root.pkg -> st: replace => ./server_timing
+root.pkg.mw -> ext: seams only
+root.pkg.compose -> ext.goetag: Middleware alias composition
+root.httpspec -> root.pkg: same module
 
-workspace.root.pkg -> workspace.st: replace directive
-workspace.root.pkg.middleware -> extracted.goetag: Middleware type alias
-workspace.root.pkg.compose -> extracted.gocompress: WriterFactory plugin (dashed, trigger-gated) {
-  style.stroke-dash: 4
+gocompress -> root.pkg.mw: provides WriterFactory plugins to Compression() when extracted {
+  style.stroke: "#d97706"
+  style.border-dashed: true
 }
-workspace.root.pkg -> ext: plugin seams only
-workspace.internal -> workspace.pkg: invisible outside module (internal/ rule) {
-  style.stroke-dash: 4
+consumers.thirdparty -> gocompress: imports compression without middleware {
+  style.stroke: "#d97706"
+  style.border-dashed: true
+}
+root.internal -> root.pkg: invisible outside the module (internal/ rule) {
+  style.stroke: "#d97706"
+  style.border-dashed: true
 }

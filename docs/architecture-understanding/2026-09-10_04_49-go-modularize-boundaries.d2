@@ -1,44 +1,51 @@
-# httputil workspace: module and package boundaries as verified 2026-09-10.
-# Render: nix develop -c d2 --layout elk docs/architecture-understanding/2026-09-10_04_49-go-modularize-boundaries.d2 docs/architecture-understanding/2026-09-10_04_49-go-modularize-boundaries.svg
-direction: right
+# httputil module boundaries, verified 2026-09-10 (go-modularize run).
+# Evidence: pkg.go.dev/Sourcegraph importer scan, git tag audit, GOWORK=off builds, check-module-boundaries.sh.
+# Render: nix develop -c d2 --layout elk <input> <output>
+direction: down
 
-consumers: Consumer projects {
-  apps: Server applications
-  datastar: go-datastar (planned SSE consumer)
+consumers: Consumers (all in-family today) {
+  shape: rectangle
+  cqrs: cqrs-htmx (v2/v3/v4 + admin-demo)
+  pixyd: emeet-pixyd
+  appkit: go-appkit
+  tal: template-arch-lint
 }
 
-workspace: go.work workspace {
-  root: Root module github.com/larsartmann/httputil {
-    pkg: package httputil (38 non-test files, ONE flat package) {
-      middleware: 14 middleware factories
-      compose: Composition API (Compose / MiddlewareFunc / MiddlewareStack)
-      lifecycle: Server + Health
-      errors: Error model (Code / Domain / errorfamily)
-      infra: Shared unexported infra (validateConfig, responseWrapper, headers, hex)
-    }
-    httpspec: package httpspec (behavior-spec runner, stdlib-only leaf)
+root: Root module github.com/larsartmann/httputil (tagged v0.12.0) {
+  pkg: package httputil — 37 files, ONE flat package (documented decision) {
+    mw: 14 middleware factories (uniform Middleware signature)
+    compose: Composition API: Compose / MiddlewareFunc.Then / MiddlewareStack.Middleware
+    life: Server + Health lifecycle
+    errs: Error model (Code / Domain, go-error-family)
   }
-
-  st: Sub-module github.com/larsartmann/httputil/server_timing (v0.12.0) {
-    servertiming: package servertiming (W3C Server-Timing, stdlib-only, zero requires)
+  httpspec: package httpspec {
+    label: "package httpspec\nbehavior-spec runner\nstdlib-only leaf\n0 known importers"
+    style.stroke: "#1d4ed8"
   }
 }
 
-ext: External dependencies (isolated behind plugin seams) {
+st: Sub-module github.com/larsartmann/httputil/server_timing (tagged server_timing/v0.12.0) {
+  label: "server_timing module\nW3C Server-Timing\nzero requires (stdlib-only)\nstandalone consumer: cqrs-htmx"
+  style.stroke: "#1d4ed8"
+}
+
+ext: External dependencies (each behind a plugin seam or adapter) {
+  shape: cloud
   errf: go-error-family
   xtime: golang.org/x/time
-  nosurf: justinas/nosurf (wrapped by CSRFMiddleware)
-  goetag: go-etag (wrapped by etag.go adapter)
+  nosurf: justinas/nosurf
+  goetag: go-etag
 }
 
-consumers.apps -> workspace.root.pkg: imports one path
-consumers.datastar -> workspace.root.pkg: future (SSE compression trigger)
-consumers.apps -> workspace.httpspec: optional behavior specs
+consumers.cqrs -> root.pkg: imports middleware + server_timing standalone
+consumers.pixyd -> root.pkg: imports
+consumers.appkit -> root.pkg: imports
+consumers.tal -> root.pkg: imports
+consumers.cqrs -> st: imports server_timing directly
 
-workspace.root.pkg -> workspace.st: replace => ./server_timing
-workspace.httpspec -> workspace.root.pkg: same module (versions together)
-
-workspace.root.pkg.middleware -> ext.errf: error classification
-workspace.root.pkg.middleware -> ext.xtime: token bucket (deprecated path)
-workspace.root.pkg.middleware -> ext.nosurf: CSRF core
-workspace.root.pkg.compose -> ext.goetag: etag.New composes via Middleware alias
+root.httpspec -> root.pkg: versions with root module (same go.mod)
+root.pkg -> st: replace => ./server_timing
+root.pkg.mw -> ext.errf: classifies errors
+root.pkg.mw -> ext.xtime: token bucket (deprecated)
+root.pkg.mw -> ext.nosurf: CSRF core
+root.pkg.compose -> ext.goetag: etag.New via Middleware alias

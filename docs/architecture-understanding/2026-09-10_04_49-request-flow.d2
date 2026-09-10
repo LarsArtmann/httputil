@@ -1,0 +1,45 @@
+# Request flow through a composed httputil stack — the library's "events & commands" view.
+# One GET request through: Compose(Recovery, Logging, RequestID, Compression)(handler)
+# This is what the module boundaries exist to serve: every box is one uniform Middleware value.
+# Render: nix develop -c d2 --layout elk <input> <output>
+direction: down
+
+client: Client {
+  shape: person
+}
+
+stack: Compose(Recovery, Logging, RequestID, Compression)(handler) — first = outermost {
+  s1: 1. Recovery {
+    label: "1. Recovery\noutermost by MiddlewareStack rule\nrecovers panics from ALL inner layers\nre-panics http.ErrAbortHandler unchanged"
+  }
+  s2: 2. Logging {
+    label: "2. Logging\nstarts timer, wraps writer in ResponseRecorder\nemits method/path/status/duration/request_id\nsurvives canceled contexts (WithoutCancel)"
+  }
+  s3: 3. RequestID {
+    label: "3. RequestID\nhonors incoming X-Request-ID\nelse generates time-ordered hex ID\nstores in context, sets response header"
+  }
+  s4: 4. Compression {
+    label: "4. Compression\nnegotiates Accept-Encoding (RFC 7231 q-values)\npooled gzip/deflate writers, identity passthrough\nskips incompressible content types"
+  }
+  h: terminal handler {
+    label: "terminal handler\nwrites body; implicit 200 if no WriteHeader\nrecorder captures real status"
+  }
+}
+
+st: server_timing sub-module (optional layer) {
+  label: "server_timing (optional)\nMeasureServerTiming(ctx, name)\nrenders W3C Server-Timing header\nCRLF-sanitized"
+  style.stroke: "#1d4ed8"
+}
+
+client -> stack.s1: GET request
+stack.s1 -> stack.s2: next.ServeHTTP (panic guard active)
+stack.s2 -> stack.s3: next.ServeHTTP (timer running)
+stack.s3 -> stack.s4: next.ServeHTTP (request_id in context)
+stack.s4 -> stack.h: wrapped writer (gzip if negotiated)
+stack.h -> stack.s4: body bytes -> compressed write
+stack.s4 -> stack.s3: Content-Encoding set, pool returned
+stack.s3 -> stack.s2: X-Request-ID response header set
+stack.s2 -> stack.s1: status captured, log line emitted
+stack.s1 -> client: response (500 + logged stack only on panic)
+client -> st: opt-in via servertiming middleware
+st -> client: Server-Timing header
