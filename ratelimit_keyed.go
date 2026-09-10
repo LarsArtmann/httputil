@@ -188,6 +188,9 @@ func NewKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 // If the rate limit is exceeded the middleware responds with 429 Too Many
 // Requests and a Retry-After header in seconds.
 //
+// Tokens are consumed at admission: the decision is instantaneous and request
+// cancellation does not refund the consumed budget.
+//
 // The internal per-key limiter map uses min-heap-based eviction (default
 // 10 min TTL). For monitoring, use [NewKeyedRateLimiter] instead.
 func KeyedRateLimiterMiddleware(cfg KeyedRateLimiterConfig) func(http.Handler) http.Handler {

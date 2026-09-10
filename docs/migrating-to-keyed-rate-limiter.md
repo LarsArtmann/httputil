@@ -65,6 +65,16 @@ handler := httputil.KeyedRateLimiterMiddleware(
 | Callbacks          | Not available                     | `OnAllowed`, `OnRejected`                 |
 | Custom rejection   | `OnDenied http.HandlerFunc`       | `RejectionHandler func(w, r, retryAfter)` |
 
+## Admission Contract
+
+Tokens are consumed at admission: the allow/reject decision is instantaneous,
+and request cancellation does not refund the consumed budget. One request in
+flight means one token, regardless of whether the client later disconnects —
+see [the ctx-cancellation design note](planning/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md)
+for the evaluation (a cancel-aware `Wait(ctx, key)` remains a post-v1.0
+additive option; abort-triggered refunds were rejected because they hand
+scanners a free retry budget).
+
 ## Monitoring
 
 `KeyedRateLimiter` exposes active key count for dashboards and autoscaling:

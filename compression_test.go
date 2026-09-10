@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
