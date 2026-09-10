@@ -10,7 +10,7 @@ These are the non-obvious rules that cause immediate lint failures. Read these b
 
 ### `exhaustruct_v5` — Every Struct Field Must Be Set
 
-When creating any struct literal, you must populate **every field**. This applies to `CORSConfig`, `ResponseRecorder`, and all stdlib structs except `os/exec.Cmd`. In test files this is relaxed. The linter is `exhaustruct_v5` (migrated from the deprecated `exhaustruct` on golangci-lint 2.13.2; its settings keys are `enforce-patterns`/`ignore-patterns`, and it no longer honors `exhaustruct` struct tags — use `//nolint:exhaustruct_v5` comment directives).
+When creating any struct literal, you must populate **every field**. This applies to `CORSConfig`, `ResponseRecorder`, and all stdlib structs except `os/exec.Cmd`; relaxed in test files. Settings keys are `enforce-patterns`/`ignore-patterns`; struct tags are not honored — use `//nolint:exhaustruct_v5` directives.
 
 ### `err113` — No Inline `errors.New()`
 
@@ -18,7 +18,7 @@ Package-level sentinel errors only. Do not call `errors.New()` or `fmt.Errorf()`
 
 ### `wsl_v5` — Strict Whitespace Rules
 
-Enforces blank lines before `return`, after declarations, and around control flow. Run `golangci-lint fmt` after editing — manual whitespace will likely be wrong.
+Blank lines before `return`, after declarations, around control flow. Run `golangci-lint fmt` after editing — manual whitespace will likely be wrong.
 
 ### `nonamedreturns` — No Named Return Values
 
@@ -26,7 +26,7 @@ Do not use named returns in function signatures.
 
 ### `noctx` — Always Use Context
 
-`http.NewRequest` is banned. Use `http.NewRequestWithContext`. In tests, `httptest.NewRequest` is also flagged by this linter (pre-existing warnings — don't fix unless asked).
+`http.NewRequest` is banned. Use `http.NewRequestWithContext` (or `net.ListenConfig.Listen`); `httptest.NewRequest` in test files is excluded via `.golangci.yml`.
 
 ### `godot` — Comments End With Periods
 
@@ -34,7 +34,7 @@ All doc comments and regular comments must end with a period.
 
 ### `mnd` — No Magic Numbers
 
-Extract numeric literals into named constants (e.g. `defaultMaxAge`, `defaultCompressionMinSize`).
+Extract numeric literals into named constants (`defaultMaxAge`, `defaultCompressionMinSize`).
 
 ### `gosec` — G705 Excluded Globally
 
@@ -77,8 +77,8 @@ The owner rejects ALL `Must*`-prefixed APIs (2026-09-10): they panic, and panics
 ## Commands
 
 ```bash
-# /mnt/buildcache is unwritable in some environments — export these first or every
-# Go toolchain invocation fails with "failed to initialize build cache":
+# /mnt/buildcache is unwritable in some environments — export these or every Go
+# toolchain call fails with "failed to initialize build cache":
 export GOCACHE=$HOME/.cache/go-build-httputil GOLANGCI_LINT_CACHE=$HOME/.cache/golangci-lint-httputil
 
 go test ./...              # Run tests
@@ -93,13 +93,13 @@ golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 nix fmt                    # treefmt (Go via golangci-lint formatters; run before the auto-commit daemon sees the tree)
 nix flake check            # Full flake gates (includes treefmt verification)
 
-# erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops)
+# erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops).
+# Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors.
+# The full --type-aware run reports ~30 `errors.Is` advisories in tests — all
+# correct sentinel matches; do NOT migrate them.
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
-# Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
-# The full --type-aware run reports ~30 `errors.Is` advisories in tests — all are
-# correct sentinel matches (package-level err*/Err* vars); do NOT migrate them.
 
 # server_timing sub-module (run from server_timing/)
 cd server_timing && go test -race ./... && golangci-lint run
@@ -111,7 +111,7 @@ cd server_timing && go test -race ./... && golangci-lint run
 
 ### Auto-Git-Commit Daemon
 
-An auto-git-commit daemon runs continuously and commits changes automatically. This is expected behavior — do not be surprised by commits you did not make. The daemon infers commit messages from diffs, so messages may be generic. For deliberate commits with meaningful messages, use `git commit` explicitly with `--no-verify` if the pre-commit hook is unavailable (e.g., `dprint` missing in Nix shell).
+An auto-git-commit daemon commits continuously; unexpected commits are expected, and inferred messages may be generic. For deliberate commits, run `git commit` explicitly with `--no-verify` when the pre-commit hook is unavailable (e.g., `dprint` missing).
 
 ### Doc-Freshness Cadence
 
@@ -129,7 +129,7 @@ Once a version tag (e.g., `v0.8.0`) is created, the corresponding `[version]` se
 
 One flat root package by decision (user-confirmed 2026-08-05, re-affirmed 2026-08-30): for a middleware library where everything shares one signature, a single import path (`httputil.CORS()`) beats fragmented namespaces; compression cannot be a public sub-package anyway (root-symbol cycle). Deferred: `internal/` extraction until post-v1.0 or ~50 non-test files. Analysis: `docs/modularization/2026-08-05_DECISION.html`.
 
-**Code map:** the file-by-file export tables for the root package, the `httpspec` subpackage, and the `server_timing` sub-module live in [docs/architecture-reference.md](docs/architecture-reference.md) (refresh it whenever files or exports change). Components: CORS, security headers, CSP nonce, request ID, recovery, timeout, logging, body limits (max + decompression), keyed rate limiting, metrics, response compression + negotiation, request decompression, CSRF (via nosurf), ETag adapter, health endpoints, server lifecycle, recorder/chaining/composition, named middleware stack, and the typed error-code model.
+**Code map:** the file-by-file export tables for the root package, the `httpspec` subpackage, and the `server_timing` sub-module live in [docs/architecture-reference.md](docs/architecture-reference.md) — refresh that page whenever files or exports change; do not re-grow tables here.
 
 ### `httpspec` subpackage
 
@@ -153,7 +153,7 @@ Every error the package produces is classified via `go-error-family` and typed t
 
 ## Error Classification
 
-Per-source error codes, families, retryability, and trigger conditions are tabulated in [docs/architecture-reference.md](docs/architecture-reference.md) (Error Classification section). Every classified error implements `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`; consumers use `errorfamily.Classify(err)` for retry/exit-code decisions and `httputil.InDomain(err, domain)` to route by failing component. Config validators return classified `Rejection` errors with offending field values in context; sentinel vars live next to their validators.
+Per-source error codes, families, retryability, and triggers: [docs/architecture-reference.md](docs/architecture-reference.md), Error Classification section. Classified errors implement `Coded`, `Classified`, `Contextual`, `Retryable`; use `errorfamily.Classify(err)` for retry decisions and `httputil.InDomain(err, domain)` to route by component. Config validators return classified `Rejection` errors with field values in context; sentinels live next to their validators.
 
 ## Non-Obvious Behaviors
 
@@ -226,5 +226,5 @@ Non-test duplication was extracted (compress-write error wrapping → `compressW
 
 ## Additional Active Linters Worth Knowing
 
-`wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero` (suppressed per-site for direct-index writes), `modernize` (prefers `errors.AsType`/`WaitGroup.Go`), and `nolintlint` (explanations required, unused directives fail). See the lint-profile section of [docs/architecture-reference.md](docs/architecture-reference.md) for per-linter detail.
+`wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero`, `modernize`, `nolintlint` (explanations required, unused directives fail). Per-linter detail: [docs/architecture-reference.md](docs/architecture-reference.md) lint-profile section.
 
