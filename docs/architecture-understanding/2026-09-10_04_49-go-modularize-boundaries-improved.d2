@@ -1,0 +1,56 @@
+# httputil target architecture: what changes, what deliberately does not.
+# Trigger-gated moves are dashed; everything else is verified current state.
+# Render: nix develop -c d2 --layout elk docs/architecture-understanding/2026-09-10_04_49-go-modularize-boundaries-improved.d2 docs/architecture-understanding/2026-09-10_04_49-go-modularize-boundaries-improved.svg
+direction: right
+
+consumers: Consumer projects {
+  apps: Server applications
+  datastar: go-datastar
+}
+
+workspace: go.work workspace (UNCHANGED boundaries) {
+  root: Root module github.com/larsartmann/httputil {
+    pkg: package httputil (flat by documented decision; revisit at 50 files / v1.0+2nd consumer) {
+      middleware: 14 middleware factories
+      compose: Composition API front door (Compose / MiddlewareFunc / MiddlewareStack.Middleware)
+      lifecycle: Server + Health
+      errors: Error model (sentinels live with the interface that throws them)
+      internal: OPTIONAL internal/ hygiene step (only if 2nd consumer demands it)
+    }
+    httpspec: package httpspec (stays a subpackage; module split only on consumer demand for independent versioning)
+  }
+
+  st: Sub-module server_timing (stdlib-only, independently versioned)
+}
+
+extracted: Extracted modules (the proven seam pattern) {
+  goetag: go-etag (extracted 2026-08-07)
+  gocompress: go-compression (TRIGGER-GATED: extract when go-datastar SSE need lands; unblocks nothing else)
+}
+
+ext: External deps (all behind plugin seams) {
+  errf: go-error-family
+  xtime: golang.org/x/time
+  nosurf: justinas/nosurf
+}
+
+rule: Boundary rules (verified 2026-09-10) {
+  r1: DAG enforced: consumers -> root -> server_timing
+  r2: Dual strategy: go.work AND replace, CI GOWORK=off check
+  r3: Every dep isolated behind an interface or adapter
+  r4: Zero-dep modules stay zero-dep
+}
+
+consumers.apps -> workspace.root.pkg: secure-stack bundles via Compose
+consumers.datastar -> extracted.gocompress: pulls compression when triggered
+consumers.apps -> workspace.httpspec: optional behavior specs
+
+workspace.root.pkg -> workspace.st: replace directive
+workspace.root.pkg.middleware -> extracted.goetag: Middleware type alias
+workspace.root.pkg.compose -> extracted.gocompress: WriterFactory plugin (dashed, trigger-gated) {
+  style.stroke-dash: 4
+}
+workspace.root.pkg -> ext: plugin seams only
+workspace.internal -> workspace.pkg: invisible outside module (internal/ rule) {
+  style.stroke-dash: 4
+}
