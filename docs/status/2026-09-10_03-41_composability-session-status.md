@@ -131,3 +131,12 @@ Nothing I shipped is broken: no failing test, no red gate attributable to this s
 ---
 
 *Point-in-time snapshot. Section (f) items marked "(tracked)" already live in TODO_LIST.md/ROADMAP.md; unmarked session-born items (#8, #11-17 partially, #23-29, #31-37) are HARVEST candidates for the next docs-health pass.*
+
+---
+
+## Resolution addendum (2026-09-10 ~03:55 CEST)
+
+- **§b-4 resolved:** the concurrent session landed its final commits (`46a8524`, `8c50f1f`, `67de041`) and fixed all 3 findings itself. Merged-tree verification at ~03:55: `go build`, `go vet`, `go test -race` (root + httpspec + server_timing), both erraudit gates, and `golangci-lint run` on **both** modules — all green, **0 issues**, working tree clean.
+- **§g-1 answered by owner:** the other session is done; no coordination constraint remains.
+- **§g-2 answered (research):** RFC 9110 §5.1 makes field names case-insensitive; no IANA/standard defines the CSRF header name (de-facto convention only), so `"X-Csrf-Token"` and `"X-CSRF-Token"` are the same header on the wire. Recommendation delivered: keep the canonical value. Owner may still override.
+- **§g-3 answered by owner:** implement `NonceConfig.Generator` + `GenerateNonce` + the composition-test cluster — scheduled as the first work item of the next session (§f items 4-5).
