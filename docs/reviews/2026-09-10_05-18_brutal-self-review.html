@@ -1038,7 +1038,7 @@
 
         <section id="fixed">
           <h2><span class="num">03</span>What got fixed today</h2>
-          <ol class="steps-md">
+          <ol>
             <li>Both boundary diagrams rewritten: correct dependency direction, semantic color coding (solid = verified, dashed amber = trigger-gated), named consumers, shape vocabulary, legend.</li>
             <li>Third diagram added: request flow through a composed stack &mdash; the events-and-commands analog for a middleware library, and the picture the module diagram cannot tell.</li>
             <li>boundaries.md upgraded from assumption-based to evidence-based: importer table, tag-namespace audit (root v* vs server_timing/v*), CI wiring proof, corrected counts, resolved-gap section.</li>
@@ -1048,7 +1048,7 @@
 
         <section id="open">
           <h2><span class="num">04</span>Still open (honest residue)</h2>
-          <div class="issue issue-warning" id="o1">
+          <div class="issue issue-important" id="o1">
             <span class="severity severity-important">Owner decision pending</span>
             <h3>MiddlewareFunc.Then(nil) panic vs the no-panic principle</h3>
             <div class="where">compose.go:29 &middot; how-to-golang: "errors as values, no panics in library code"</div>
@@ -1059,7 +1059,7 @@
               panic for now &mdash; the owner should pick deliberately.
             </p>
           </div>
-          <div class="issue issue-warning" id="o2">
+          <div class="issue issue-important" id="o2">
             <span class="severity severity-important">Private-consumer blind spot</span>
             <h3>Import scan sees public code only</h3>
             <div class="where">pkg.go.dev / Sourcegraph limitations</div>
