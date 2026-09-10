@@ -731,7 +731,7 @@ See the [full integration example](docs/integrations/huma.md) and the [detailed 
 
 For dependency injection and graceful lifecycle management, pair httputil with [samber/do](https://do.samber.dev/) — `httputil.Server.Shutdown(context.Context) error` satisfies `do.ShutdownerWithContextAndError` structurally, so the container discovers and shuts down the HTTP server automatically. See the [composition-root example](docs/integrations/samber-do.md).
 
-For distributed rate limiting, see the [Redis-backed RateLimiter example](docs/integrations/redis-ratelimiter.md). For observability, see the [Prometheus MetricsRecorder example](docs/integrations/prometheus-metrics.md).
+For distributed rate limiting, see the [Redis-backed RateLimiter example](docs/integrations/redis-ratelimiter.md). For observability, see the [Prometheus MetricsRecorder example](docs/integrations/prometheus-metrics.md). To build a secure middleware baseline once and apply it to many handlers (or nest whole stacks), see [Composing Middleware Bundles](docs/integrations/compose-bundles.md).
 
 ## Quality Gates
 

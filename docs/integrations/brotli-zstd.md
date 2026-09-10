@@ -101,6 +101,8 @@ Writers that implement the (unexported) `resettableWriter` interface — any typ
 
 Gzip and deflate writers from the stdlib implement `Reset` natively. For custom encoders, add a `Reset` method as shown above.
 
+Writers **without** `Reset` skip the pool entirely (the pool decision is made once at middleware construction by probing the factory), so a non-resettable custom writer costs one fresh allocation per request and nothing more.
+
 ## Adding a Custom Encoding
 
 ```go

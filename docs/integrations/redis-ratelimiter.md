@@ -2,7 +2,7 @@
 
 httputil's `RateLimiter` interface is designed for distributed backends. The built-in `TokenBucketLimiter` is in-memory; for multi-instance deployments, implement the interface with Redis.
 
-> **Deprecated API notice (2026-08-30):** `RateLimit()` / `RateLimiter` / `RateLimitConfig` are deprecated and will be removed at v1.0 (see [migrating-to-keyed-rate-limiter.md](../migrating-to-keyed-rate-limiter.md)). This integration pattern applies to the deprecated interface until then. The successor [`KeyedRateLimiter`](https://pkg.go.dev/github.com/larsartmann/httputil#KeyedRateLimiterMiddleware) intentionally does not expose a pluggable limiter backend yet — if you need distributed rate limiting today, stay on the deprecated API or front `KeyedRateLimiterMiddleware` with a proxy-level limiter. The interface below is the last supported backend hook.
+> **Deprecated API notice (2026-08-30):** `RateLimit()` / `RateLimiter` / `RateLimitConfig` are deprecated and will be removed in a post-v1.0 stabilization release (see [migrating-to-keyed-rate-limiter.md](../migrating-to-keyed-rate-limiter.md)). This integration pattern applies to the deprecated interface until then. The successor [`KeyedRateLimiter`](https://pkg.go.dev/github.com/larsartmann/httputil#KeyedRateLimiterMiddleware) intentionally does not expose a pluggable limiter backend yet — if you need distributed rate limiting today, stay on the deprecated API or front `KeyedRateLimiterMiddleware` with a proxy-level limiter. The interface below is the last supported backend hook.
 
 ## Interface
 
