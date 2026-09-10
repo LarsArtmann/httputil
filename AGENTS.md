@@ -8,9 +8,9 @@ These are the non-obvious rules that cause immediate lint failures. Read these b
 
 `depguard` allows `$gostd`, `$module` root and subpackages (via explicit `github.com/larsartmann/httputil` + `/**` entries because `$module` does not expand correctly in depguard v2.12.2), `github.com/larsartmann/httputil/server_timing` (the sub-module, listed explicitly because `/**` does not match separate go.mod modules), `github.com/larsartmann/go-error-family` (same author, zero transitive deps), `github.com/larsartmann/go-etag` (same author, ETag conditional requests, used by `etag.go` adapter), `golang.org/x/time` (canonical Go extension for rate limiting), and `github.com/justinas/nosurf` (CSRF protection, used by `csrf.go`). No other third-party libraries.
 
-### `exhaustruct` — Every Struct Field Must Be Set
+### `exhaustruct_v5` — Every Struct Field Must Be Set
 
-When creating any struct literal, you must populate **every field**. This applies to `CORSConfig`, `ResponseRecorder`, and all stdlib structs except `os/exec.Cmd`. In test files this is relaxed.
+When creating any struct literal, you must populate **every field**. This applies to `CORSConfig`, `ResponseRecorder`, and all stdlib structs except `os/exec.Cmd`. In test files this is relaxed. The linter is `exhaustruct_v5` (migrated from the deprecated `exhaustruct` on golangci-lint 2.13.2; its settings keys are `enforce-patterns`/`ignore-patterns`, and it no longer honors `exhaustruct` struct tags — use `//nolint:exhaustruct_v5` comment directives).
 
 ### `err113` — No Inline `errors.New()`
 
@@ -285,7 +285,7 @@ Coverage is measured per module with `go test -race -coverprofile` (race detecto
 
 ### Test File Lint Relaxations
 
-In `_test.go` files: `exhaustruct`, `testpackage`, `gochecknoglobals`, `funlen`, `cyclop`, `goconst`, `unused` are suppressed.
+In `_test.go` files: `exhaustruct_v5`, `testpackage`, `gochecknoglobals`, `funlen`, `cyclop`, `goconst`, `unused` are suppressed.
 
 ## Pre-Existing Lint Warnings
 
