@@ -130,6 +130,7 @@ func TestCORSConfig_Validate_NegativeMaxAge(t *testing.T) {
 
 	cfg := CORSConfig{
 		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST"},
 		MaxAge:         -1,
 	}
 

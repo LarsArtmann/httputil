@@ -128,7 +128,10 @@ func TestServerShutdownFailedClassified(t *testing.T) {
 func TestCompressionValidationErrorsClassified(t *testing.T) {
 	t.Parallel()
 
+	// Level is range-checked only when WriterFactories is empty (that is
+	// when Level drives factory construction), so clear the factories.
 	cfg := DefaultCompressionConfig()
+	cfg.WriterFactories = nil
 	cfg.Level = 99
 	assertValidationClassified(
 		t,

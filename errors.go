@@ -142,6 +142,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Stop sending Sec-Fetch-Site manually and rely on the CSRF token, or send truthful Fetch-Metadata headers.",
 		WayOut: "Legitimate same-origin clients are unaffected; non-browser clients need only a valid token, no attestation header.",
 	},
+	string(codeCSRFMaxAgeNegative): {
+		What:   "CSRF cookie MaxAge is negative",
+		Why:    "CSRFConfig.MaxAge is {max_age}; a negative cookie MaxAge deletes the cookie on every response, breaking all CSRF flows.",
+		Fix:    "Set MaxAge to zero (24h default) or a positive duration.",
+		WayOut: "Start from CSRFConfig{} which uses secure defaults.",
+	},
 
 	// CORS config (Rejection family: fix the configuration, never retry).
 	string(codeCorsCredentialsWithAllOrigins): {
@@ -155,6 +161,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Why:    "CORSConfig.MaxAge is {max_age}; preflight cache durations cannot be negative.",
 		Fix:    "Set MaxAge to zero (no caching) or a positive number of seconds.",
 		WayOut: "DefaultCORSConfig() ships a valid MaxAge.",
+	},
+	string(codeCorsMethodsEmpty): {
+		What:   "CORS allowed-methods list is empty",
+		Why:    "CORSConfig.AllowedMethods is empty, so preflight responses would advertise no allowed methods and every browser preflight would fail.",
+		Fix:    "List the HTTP methods the API supports, e.g. GET, POST, PUT, DELETE, OPTIONS.",
+		WayOut: "DefaultCORSConfig() ships a standard method list.",
 	},
 
 	// Server config.
@@ -249,6 +261,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Why:    "The q-value {input} is greater than the RFC 7231 maximum of 1.0.",
 		Fix:    msgQValueDiagnosticFix,
 		WayOut: msgQValueDiagnosticWayOut,
+	},
+	string(codeCompressionIncompressibleInvalid): {
+		What:   "Compression incompressible-type entry is not a valid media-type prefix",
+		Why:    "CompressionConfig.IncompressibleTypes contains {prefix}; entries must be non-empty prefixes with a slash, such as image/ or application/pdf — an empty prefix would mark every response incompressible.",
+		Fix:    "Use prefix form with a trailing or embedded slash, e.g. image/, or remove the entry.",
+		WayOut: "DefaultIncompressibleTypes() returns the recommended deny-list.",
 	},
 
 	// Rate limiting config (keyed and deprecated).
@@ -381,6 +399,18 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Why:    "The underlying decompressor or body reader failed to close cleanly.",
 		Fix:    "The response is usually already sent; log and investigate if it recurs.",
 		WayOut: "This is cleanup-only; the request itself has completed.",
+	},
+	string(codeDecompressionEncodingUnrecognized): {
+		What:   "Decompression encoding list contains an unsupported value",
+		Why:    "DecompressionConfig.Encodings contains {encoding}; only gzip and deflate have decompressor implementations.",
+		Fix:    "Remove the entry or spell it as gzip / deflate (case-insensitive).",
+		WayOut: "Leave Encodings empty to decompress both supported encodings.",
+	},
+	string(codeDecompressionEncodingDuplicate): {
+		What:   "Decompression encoding list contains a duplicate",
+		Why:    "DecompressionConfig.Encodings lists {encoding} more than once; duplicates are config noise and usually a copy-paste mistake.",
+		Fix:    "Keep one entry per encoding.",
+		WayOut: "Leave Encodings empty to decompress both supported encodings.",
 	},
 	string(codeCompressionPoolTypeUnexpected): {
 		What:   "Compression writer pool returned an unexpected type",

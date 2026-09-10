@@ -21,6 +21,9 @@ var allHTTputilErrorCodes = []Code{
 
 	codeCorsCredentialsWithAllOrigins,
 	codeCorsMaxAgeNegative,
+	codeCorsMethodsEmpty,
+
+	codeCSRFMaxAgeNegative,
 
 	codeServerAddrEmpty,
 	codeServerReadTimeoutNegative,
@@ -35,6 +38,7 @@ var allHTTputilErrorCodes = []Code{
 	codeCompressionLevelInvalid,
 	codeCompressionMinSizeNeg,
 	codeCompressionNoFactory,
+	codeCompressionIncompressibleInvalid,
 	codeCompressionQValueEmpty,
 	codeCompressionQValueInvalid,
 	codeCompressionQValueTrail,
@@ -67,6 +71,8 @@ var allHTTputilErrorCodes = []Code{
 	codeDecompressionSizeExceeded,
 	codeDecompressionReadFailed,
 	codeDecompressionCloseFailed,
+	codeDecompressionEncodingUnrecognized,
+	codeDecompressionEncodingDuplicate,
 
 	codeCSRFAttestationConflict,
 }
