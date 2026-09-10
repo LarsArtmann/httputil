@@ -447,7 +447,12 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 					slog.String("origin", origin),
 				)
 
-				handleCSRFRejection(cfg, w, r, ErrCSRFAttestationConflict.WithContext("origin", origin))
+				handleCSRFRejection(
+					cfg,
+					w,
+					r,
+					ErrCSRFAttestationConflict.WithContext("origin", origin),
+				)
 
 				return
 			}
@@ -768,7 +773,10 @@ func ValidateCSRF(r *http.Request, cfg CSRFConfig) (bool, *httptest.ResponseReco
 		return true, nil
 	}
 
-	if origin := contradictedAttestationOrigin(r, parseTrustedOriginURLs(cfg.TrustedOrigins)); origin != "" {
+	if origin := contradictedAttestationOrigin(
+		r,
+		parseTrustedOriginURLs(cfg.TrustedOrigins),
+	); origin != "" {
 		rec := httptest.NewRecorder()
 		handleCSRFRejection(cfg, rec, r, ErrCSRFAttestationConflict.WithContext("origin", origin))
 

@@ -175,12 +175,18 @@ func TestMiddlewareStack_Middleware_FirstAddedIsOutermost(t *testing.T) {
 
 	stack := NewMiddlewareStack()
 
-	err := stack.Add("first", func(next http.Handler) http.Handler { return recorder("first", next) })
+	err := stack.Add(
+		"first",
+		func(next http.Handler) http.Handler { return recorder("first", next) },
+	)
 	if err != nil {
 		t.Fatalf("Add first: %v", err)
 	}
 
-	err = stack.Add("second", func(next http.Handler) http.Handler { return recorder("second", next) })
+	err = stack.Add(
+		"second",
+		func(next http.Handler) http.Handler { return recorder("second", next) },
+	)
 	if err != nil {
 		t.Fatalf("Add second: %v", err)
 	}

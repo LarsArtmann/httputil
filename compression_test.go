@@ -3,6 +3,7 @@ package httputil
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -575,10 +576,14 @@ func TestCompression_ZeroLevelMeansDefaultCompression(t *testing.T) {
 
 	payload := bytes.Repeat([]byte("a"), bodySize)
 
-	handler := Compression(CompressionConfig{})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set(headerContentType, "text/plain")
-		_, _ = w.Write(payload)
-	}))
+	handler := Compression(
+		CompressionConfig{},
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set(headerContentType, "text/plain")
+			_, _ = w.Write(payload)
+		}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)
@@ -621,7 +626,10 @@ func TestCompressionConfig_Validate_ZeroLevelIsValid(t *testing.T) {
 	cfg := CompressionConfig{Level: 0, MinSize: 1, WriterFactories: DefaultWriterFactories()}
 
 	if err := cfg.Validate(); err != nil {
-		t.Fatalf(`Validate error = %v, want nil (Level == 0 means "unset, default compression")`, err)
+		t.Fatalf(
+			`Validate error = %v, want nil (Level == 0 means "unset, default compression")`,
+			err,
+		)
 	}
 }
 
@@ -634,10 +642,14 @@ func TestCompression_ExactMinSizeWrite_IsNotDuplicated(t *testing.T) {
 
 	payload := bytes.Repeat([]byte("x"), defaultCompressionMinSize)
 
-	handler := Compression(DefaultCompressionConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set(headerContentType, "text/plain")
-		_, _ = w.Write(payload)
-	}))
+	handler := Compression(
+		DefaultCompressionConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set(headerContentType, "text/plain")
+			_, _ = w.Write(payload)
+		}),
+	)
 
 	req := newTestRequest(http.MethodGet, "/", "")
 	req.Header.Set(headerAcceptEncoding, encodingGzip)
@@ -649,14 +661,14 @@ func TestCompression_ExactMinSizeWrite_IsNotDuplicated(t *testing.T) {
 
 	assertHeader(t, rec, headerContentEncoding, encodingGzip)
 
-	zr, err := gzip.NewReader(rec.Body)
+	gzReader, err := gzip.NewReader(rec.Body)
 	if err != nil {
 		t.Fatalf("gzip.NewReader error = %v", err)
 	}
 
-	defer func() { _ = zr.Close() }()
+	defer func() { _ = gzReader.Close() }()
 
-	decoded, err := io.ReadAll(zr)
+	decoded, err := io.ReadAll(gzReader)
 	if err != nil {
 		t.Fatalf("gzip decode error = %v", err)
 	}
@@ -677,7 +689,10 @@ func TestCompressionConfig_Validate_SkipsLevelCheckWhenFactoriesSet(t *testing.T
 	cfg.Level = 99
 
 	if err := cfg.Validate(); err != nil {
-		t.Fatalf("Validate() error = %v, want nil (Level is ignored when WriterFactories is set)", err)
+		t.Fatalf(
+			"Validate() error = %v, want nil (Level is ignored when WriterFactories is set)",
+			err,
+		)
 	}
 }
 
@@ -691,7 +706,11 @@ func TestCompressionConfig_Validate_RejectsInvalidIncompressiblePrefix(t *testin
 		if err := cfg.Validate(); err == nil {
 			t.Errorf("Validate() error = nil, want error for invalid prefix %q", prefix)
 		} else if !errors.Is(err, errIncompressiblePrefixInvalid) {
-			t.Errorf("Validate() error = %v, want errIncompressiblePrefixInvalid for prefix %q", err, prefix)
+			t.Errorf(
+				"Validate() error = %v, want errIncompressiblePrefixInvalid for prefix %q",
+				err,
+				prefix,
+			)
 		}
 	}
 }

@@ -108,7 +108,11 @@ func TestNonce_UniquePerRequest(t *testing.T) {
 
 	for _, nonce := range nonces {
 		if seen[nonce] {
-			t.Errorf("duplicate nonce %q across %d requests, want unique nonces", nonce, len(nonces))
+			t.Errorf(
+				"duplicate nonce %q across %d requests, want unique nonces",
+				nonce,
+				len(nonces),
+			)
 		}
 
 		seen[nonce] = true

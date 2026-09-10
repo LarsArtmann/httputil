@@ -138,14 +138,14 @@ func DefaultCompressionConfig() CompressionConfig {
 // parsing. Config codes are Rejection (invalid input); q-value codes are
 // Rejection too — a malformed Accept-Encoding header is the client's input.
 const (
-	codeCompressionLevelInvalid           = Code("compression.level_invalid")
-	codeCompressionMinSizeNeg             = Code("compression.min_size_negative")
-	codeCompressionNoFactory              = Code("compression.no_writer_factory")
-	codeCompressionIncompressibleInvalid  = Code("compression.incompressible_prefix_invalid")
-	codeCompressionQValueEmpty            = Code("compression.qvalue_empty")
-	codeCompressionQValueInvalid          = Code("compression.qvalue_invalid_int")
-	codeCompressionQValueTrail            = Code("compression.qvalue_trailing_chars")
-	codeCompressionQValueTooBig           = Code("compression.qvalue_too_large")
+	codeCompressionLevelInvalid          = Code("compression.level_invalid")
+	codeCompressionMinSizeNeg            = Code("compression.min_size_negative")
+	codeCompressionNoFactory             = Code("compression.no_writer_factory")
+	codeCompressionIncompressibleInvalid = Code("compression.incompressible_prefix_invalid")
+	codeCompressionQValueEmpty           = Code("compression.qvalue_empty")
+	codeCompressionQValueInvalid         = Code("compression.qvalue_invalid_int")
+	codeCompressionQValueTrail           = Code("compression.qvalue_trailing_chars")
+	codeCompressionQValueTooBig          = Code("compression.qvalue_too_large")
 )
 
 var (
@@ -219,7 +219,10 @@ func Compression(cfg CompressionConfig) Middleware {
 
 		if level != gzip.DefaultCompression &&
 			(level < gzip.HuffmanOnly || level > gzip.BestCompression) {
-			validateConfig("CompressionConfig", errInvalidCompressionLevel.WithContextAny("level", cfg.Level))
+			validateConfig(
+				"CompressionConfig",
+				errInvalidCompressionLevel.WithContextAny("level", cfg.Level),
+			)
 		}
 
 		cfg.WriterFactories = DefaultWriterFactoriesForLevel(level)
