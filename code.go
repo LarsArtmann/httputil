@@ -73,6 +73,11 @@ func (c Code) WrapRejection(cause error, message string) *errorfamily.Error {
 	return errorfamily.WrapRejection(cause, string(c), message)
 }
 
+// WrapConflict wraps cause in a fresh Conflict-family error with this code.
+func (c Code) WrapConflict(cause error, message string) *errorfamily.Error {
+	return errorfamily.WrapConflict(cause, string(c), message)
+}
+
 // WrapTransient wraps cause in a fresh Transient-family error with this code.
 func (c Code) WrapTransient(cause error, message string) *errorfamily.Error {
 	return errorfamily.WrapTransient(cause, string(c), message)
@@ -87,6 +92,12 @@ func (c Code) WrapCorruption(cause error, message string) *errorfamily.Error {
 // this code.
 func (c Code) WrapInfrastructure(cause error, message string) *errorfamily.Error {
 	return errorfamily.WrapInfrastructure(cause, string(c), message)
+}
+
+// WrapOrchestration wraps cause in a fresh Orchestration-family error with
+// this code.
+func (c Code) WrapOrchestration(cause error, message string) *errorfamily.Error {
+	return errorfamily.WrapOrchestration(cause, string(c), message)
 }
 
 // DomainOf returns the error-code domain of err: the component prefix of

@@ -30,7 +30,7 @@
 
 ## God-package check (root `httputil`)
 
-Fires the rules of thumb (38 files, 28 exported types, 75 exported funcs, 14 middleware concerns) — but concern clusters are file-separated with near-zero cross-references, sub-packaging compression is structurally impossible (root-symbol dependency), and the flat layout is a confirmed user decision (2026-08-05, re-affirmed 2026-08-30). Revisit triggers unchanged: >50 non-test files, v1.0 + a second consumer asking for `internal/` hygiene, or the go-compression extraction landing.
+Fires the rules of thumb (37 files, 28 exported types, 75 exported funcs, 14 middleware concerns) — but concern clusters are file-separated with near-zero cross-references, sub-packaging compression is structurally impossible (root-symbol dependency), and the flat layout is a confirmed user decision (2026-08-05, re-affirmed 2026-08-30). Revisit triggers unchanged: >50 non-test files, v1.0 + a second consumer asking for `internal/` hygiene, or the go-compression extraction landing.
 
 ## Self-review (Phase 4) — challenges considered and declined
 

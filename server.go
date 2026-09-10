@@ -193,17 +193,19 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 func (srv *Server) Start() <-chan error {
 	errChan := make(chan error, 1)
 
-	ln, err := net.Listen("tcp", srv.httpServer.Addr)
+	var listenConfig net.ListenConfig
+
+	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
 	if err != nil {
 		errChan <- err
 
 		return errChan
 	}
 
-	srv.setListener(ln)
+	srv.setListener(listener)
 
 	go func() {
-		err := srv.httpServer.Serve(ln)
+		err := srv.httpServer.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
@@ -225,20 +227,22 @@ func (srv *Server) Start() <-chan error {
 func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	errChan := make(chan error, 1)
 
-	ln, err := net.Listen("tcp", srv.httpServer.Addr)
+	var listenConfig net.ListenConfig
+
+	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
 	if err != nil {
 		errChan <- err
 
 		return errChan
 	}
 
-	srv.setListener(ln)
+	srv.setListener(listener)
 
 	go func() {
 		// ServeTLS clones the TLS config, appends the h2 ALPN protocol, and
 		// loads the certificate files when given, matching the stdlib
 		// ListenAndServeTLS setup the previous implementation relied on.
-		err := srv.httpServer.ServeTLS(ln, certFile, keyFile)
+		err := srv.httpServer.ServeTLS(listener, certFile, keyFile)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
