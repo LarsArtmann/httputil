@@ -82,7 +82,12 @@ func (p *writerPool) acquire(dst io.Writer, factory WriterFactory) (io.WriteClos
 		return nil, errUnexpectedPoolType.WithContextf("pool_element_type", "%T", raw)
 	}
 
-	writer.(resettableWriter).Reset(dst)
+	resettable, ok := writer.(resettableWriter)
+	if !ok {
+		return nil, errUnexpectedPoolType.WithContextf("pool_element_type", "%T", writer)
+	}
+
+	resettable.Reset(dst)
 
 	return writer, nil
 }

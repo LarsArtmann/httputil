@@ -145,6 +145,8 @@ func (c ServerConfig) Validate() error {
 type Server struct {
 	httpServer      *http.Server
 	shutdownTimeout time.Duration
+	mu              sync.Mutex
+	listener        net.Listener
 }
 
 // NewServer creates a new Server with the given configuration and handler.
@@ -175,18 +177,31 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 			Protocols:                    nil,
 		},
 		shutdownTimeout: cfg.ShutdownTimeout,
+		mu:              sync.Mutex{},
+		listener:        nil,
 	}
 
 	return server, nil
 }
 
 // Start begins listening on the configured address in a goroutine.
-// It returns a channel that receives any non-shutdown error from ListenAndServe.
+// It returns a channel that receives any non-shutdown error from Serve;
+// a bind failure (e.g. address already in use) is delivered immediately.
+// Use ListenerAddr to resolve ephemeral ports after a ":0" address.
 func (srv *Server) Start() <-chan error {
 	errChan := make(chan error, 1)
 
+	ln, err := net.Listen("tcp", srv.httpServer.Addr)
+	if err != nil {
+		errChan <- err
+
+		return errChan
+	}
+
+	srv.setListener(ln)
+
 	go func() {
-		err := srv.httpServer.ListenAndServe()
+		err := srv.httpServer.Serve(ln)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
@@ -199,15 +214,29 @@ func (srv *Server) Start() <-chan error {
 // goroutine, using the certificate and key files at the given paths. The
 // server's TLSConfig (validated to enforce TLS 1.2+ when set) applies to the
 // listener. It returns a channel that receives any non-shutdown error from
-// ListenAndServeTLS.
+// Serve; a bind failure (e.g. address already in use) is delivered
+// immediately. Use ListenerAddr to resolve ephemeral ports after a ":0"
+// address.
 //
 // With in-memory certificates, pass empty paths and set
 // TLSConfig.GetCertificate (or Certificates) on the ServerConfig instead.
 func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	errChan := make(chan error, 1)
 
+	ln, err := net.Listen("tcp", srv.httpServer.Addr)
+	if err != nil {
+		errChan <- err
+
+		return errChan
+	}
+
+	srv.setListener(ln)
+
 	go func() {
-		err := srv.httpServer.ListenAndServeTLS(certFile, keyFile)
+		// ServeTLS clones the TLS config, appends the h2 ALPN protocol, and
+		// loads the certificate files when given, matching the stdlib
+		// ListenAndServeTLS setup the previous implementation relied on.
+		err := srv.httpServer.ServeTLS(ln, certFile, keyFile)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
@@ -232,10 +261,44 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 		return errServerShutdownFailed.WithCause(err)
 	}
 
+	srv.clearListener()
+
 	return nil
 }
 
-// Addr returns the server's listen address.
+// Addr returns the configured listen address (e.g. ":8080" or ":0"); it is
+// not rewritten when the OS picks an ephemeral port. Use ListenerAddr for the
+// resolved address of the active listener.
 func (srv *Server) Addr() string {
 	return srv.httpServer.Addr
+}
+
+// ListenerAddr returns the resolved network address of the active listener
+// (useful after binding an ephemeral port such as ":0"), and false when the
+// server is not currently listening (never started, failed to bind, or shut
+// down).
+func (srv *Server) ListenerAddr() (net.Addr, bool) {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+
+	if srv.listener == nil {
+		return nil, false
+	}
+
+	return srv.listener.Addr(), true
+}
+
+func (srv *Server) setListener(ln net.Listener) {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+
+	srv.listener = ln
+}
+
+func (srv *Server) clearListener() {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+
+	srv.listener = nil
+}
 }
