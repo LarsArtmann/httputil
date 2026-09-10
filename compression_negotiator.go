@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"slices"
-	"sync"
 )
 
 // negotiator pre-compiles encoding priority at config time so per-request
@@ -13,9 +12,9 @@ type negotiator struct {
 	order []string
 	// factories maps encoding name to its factory.
 	factories map[string]WriterFactory
-	// pools maps encoding name to a sync.Pool of reusable writers for that
-	// factory. Owned per Compression middleware instance so it is bounded.
-	pools map[string]*sync.Pool
+	// pools maps encoding name to a reusable writer pool for that factory.
+	// Owned per Compression middleware instance so it is bounded.
+	pools map[string]*writerPool
 }
 
 // buildNegotiator pre-parses the factory map and assigns each encoding a
@@ -68,8 +67,8 @@ func buildNegotiator(factories map[string]WriterFactory) *negotiator {
 
 // buildWriterPools creates one writer pool per factory, keyed by encoding
 // name. Pools live for the negotiator's lifetime (one Compression instance).
-func buildWriterPools(factories map[string]WriterFactory) map[string]*sync.Pool {
-	pools := make(map[string]*sync.Pool, len(factories))
+func buildWriterPools(factories map[string]WriterFactory) map[string]*writerPool {
+	pools := make(map[string]*writerPool, len(factories))
 
 	for name, factory := range factories {
 		pools[name] = newWriterPool(factory)
@@ -80,7 +79,7 @@ func buildWriterPools(factories map[string]WriterFactory) map[string]*sync.Pool 
 
 // poolFor returns the writer pool for the given encoding, or nil if the
 // encoding is not registered.
-func (n *negotiator) poolFor(encoding string) *sync.Pool {
+func (n *negotiator) poolFor(encoding string) *writerPool {
 	return n.pools[encoding]
 }
 

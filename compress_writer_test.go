@@ -218,8 +218,8 @@ func TestCompressWriter_StartCompression_PoolTypeMismatch(t *testing.T) {
 	compressWriter := newTestCompressWriter()
 
 	// *nonWriter does not implement io.WriteCloser, so the type assertion in
-	// startCompression fails on every Get().
-	compressWriter.pool = &sync.Pool{New: func() any { return &nonWriter{} }}
+	// acquire fails on every Get().
+	compressWriter.pool = newPoisonedWriterPool()
 
 	err := compressWriter.startCompression()
 
@@ -326,7 +326,7 @@ func TestCompressWriter_StreamWriteError(t *testing.T) {
 		1,
 		encodingGzip,
 		factory,
-		&sync.Pool{New: func() any { return &flakyWriteCloser{} }},
+		newWriterPool(factory),
 		nil,
 	)
 	compressWriter.WriteHeader(http.StatusOK)
@@ -418,7 +418,7 @@ func TestCompressWriter_StartCompression_BufferedWriteError(t *testing.T) {
 		1,
 		encodingGzip,
 		factory,
-		&sync.Pool{New: func() any { return &failingCompressWriter{} }},
+		newWriterPool(factory),
 		nil,
 	)
 	compressWriter.WriteHeader(http.StatusOK)
@@ -434,7 +434,7 @@ func TestCompressWriter_StartCompressAndStream_PoolError(t *testing.T) {
 	t.Parallel()
 
 	compressWriter := newTestCompressWriter()
-	compressWriter.pool = &sync.Pool{New: func() any { return &nonWriter{} }}
+	compressWriter.pool = newPoisonedWriterPool()
 	compressWriter.WriteHeader(http.StatusOK)
 
 	_, err := compressWriter.startCompressAndStream([]byte("x"), 1)
@@ -514,20 +514,19 @@ func TestCompressWriter_FlushPlainAndStream_EmptyRemainder(t *testing.T) {
 }
 
 // TestNewWriterPool_PanicsOnFactoryError covers the panic branch in
-// newWriterPool when the factory fails to construct a writer. Reuses
-// erroringFactory rather than a duplicate local factory.
+// newWriterPool when the factory fails to construct a writer. The probe runs
+// at construction time, so the panic surfaces from newWriterPool itself.
+// Reuses erroringFactory rather than a duplicate local factory.
 func TestNewWriterPool_PanicsOnFactoryError(t *testing.T) {
 	t.Parallel()
 
-	pool := newWriterPool(erroringFactory)
-
 	defer func() {
 		if r := recover(); r == nil {
-			t.Fatal("pool.Get() did not panic on factory error")
+			t.Fatal("newWriterPool did not panic on factory error")
 		}
 	}()
 
-	_ = pool.Get()
+	_ = newWriterPool(erroringFactory)
 }
 
 // TestPassthroughFactory covers passthroughFactory directly. It is part of the

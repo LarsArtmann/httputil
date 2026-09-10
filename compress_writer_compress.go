@@ -1,41 +1,19 @@
 package httputil
 
-import (
-	"io"
-)
-
 func (w *compressWriter) startCompression() error {
 	w.Header().Set(headerContentEncoding, w.encoding)
 	w.Header().Del(headerContentLength)
 
 	// Pull a writer from this middleware instance's pool (owned by the
-	// negotiator and keyed by encoding name). The pool's New function creates
-	// a writer bound to io.Discard; we Reset() it to our real writer below to
-	// recycle the expensive internal state.
-	pool := w.pool
-	raw := pool.Get()
-
-	writer, ok := raw.(io.WriteCloser)
-	if !ok {
+	// negotiator and keyed by encoding name). Resettable factories recycle a
+	// pooled writer Reset to our real writer; non-resettable factories build
+	// a fresh writer directly, skipping the wasted pooled allocation.
+	writer, err := w.pool.acquire(w.ResponseWriter, w.factory)
+	if err != nil {
 		return codeCompressWriteFailed.WrapTransient(
-			errUnexpectedPoolType.WithContextf("pool_element_type", "%T", raw),
+			err,
 			"pool returned unexpected type",
 		).WithContext("encoding", w.encoding)
-	}
-
-	if resettable, ok := writer.(resettableWriter); ok {
-		resettable.Reset(w.ResponseWriter)
-	} else {
-		// Custom factory without Reset support: fall back to fresh writer.
-		fresh, err := w.factory(w.ResponseWriter)
-		if err != nil {
-			return codeCompressWriteFailed.WrapTransient(
-				err,
-				"failed to create compression writer",
-			).WithContext("encoding", w.encoding)
-		}
-
-		writer = fresh
 	}
 
 	flusher, ok := writer.(writeCloseFlusher)

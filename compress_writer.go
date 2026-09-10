@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"sync"
 )
 
 // compressWriter wraps an http.ResponseWriter, buffering small responses to
@@ -19,7 +18,7 @@ type compressWriter struct {
 
 	encoding    string
 	factory     WriterFactory
-	pool        *sync.Pool
+	pool        *writerPool
 	minSize     int
 	skipTypes   []string
 	buf         []byte
@@ -48,7 +47,7 @@ func newCompressWriter(
 	minSize int,
 	encoding string,
 	factory WriterFactory,
-	pool *sync.Pool,
+	pool *writerPool,
 	skipTypes []string,
 ) *compressWriter {
 	bufCap := max(minSize, defaultCompressionMinSize)
@@ -237,9 +236,7 @@ func (w *compressWriter) Close() error {
 		// Return the writer to the per-factory pool. Only writers that
 		// implement resettableWriter (gzip.Writer, flate.Writer) are
 		// poolable; others are released for GC.
-		if _, resettable := w.writer.(resettableWriter); resettable {
-			w.pool.Put(w.writer)
-		}
+		w.pool.release(w.writer)
 
 		w.compressing = false
 		w.writer = nil
