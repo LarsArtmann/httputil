@@ -3,6 +3,7 @@ package httputil
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -720,5 +721,180 @@ func TestCSRFMiddleware_RejectionSetsPlainTextContentType(t *testing.T) {
 
 	if rec.Body.Len() == 0 {
 		t.Error("rejection body should name the failure reason")
+	}
+}
+
+// newValidCSRFPost builds a POST request carrying the given middleware's valid
+// masked token and session cookie, so a test exercises only the origin
+// attestation logic instead of token validation.
+func newValidCSRFPost(t *testing.T, mw func(http.Handler) http.Handler) *http.Request {
+	t.Helper()
+
+	token, cookie := CSRFTestToken(mw)
+	if token == "" {
+		t.Fatal("CSRFTestToken returned empty token")
+	}
+
+	if cookie == nil {
+		t.Fatal("CSRFTestToken returned nil cookie")
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Header.Set(DefaultCSRFHeaderName, token)
+	req.AddCookie(cookie)
+
+	return req
+}
+
+func TestCSRFMiddleware_RejectsContradictedSecFetchSiteAttestation(t *testing.T) {
+	t.Parallel()
+
+	var captured error
+
+	cfg := CSRFConfig{
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			captured = err
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+
+	mw := CSRFMiddleware(cfg)
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://evil.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("forged same-origin attestation with cross-origin Origin should be rejected with 403, got %d", rec.Code)
+	}
+
+	if !errors.Is(captured, ErrCSRFAttestationConflict) {
+		t.Fatalf("ErrorHandler error should match ErrCSRFAttestationConflict, got %v", captured)
+	}
+}
+
+func TestCSRFMiddleware_AllowsConsistentSameOriginAttestation(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "http://example.com")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("consistent same-origin attestation should be accepted, got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_AllowsTrustedOriginWithSameOriginAttestation(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{
+		TrustedOrigins: []string{"https://trusted.example"},
+	})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://trusted.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("same-origin attestation with trusted Origin should be accepted, got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_AllowsSecFetchSiteAttestationWithoutOriginHeaders(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("client-supplied same-origin attestation with no Origin/Referer should pass nosurf (documented v1.2.0 short-circuit), got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_SafeMethodIgnoresContradictedAttestation(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://evil.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("safe methods skip origin validation and attestation checks, got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_RejectsCrossSiteAttestationWithCrossOrigin(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	req.Header.Set("Origin", "https://evil.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("cross-site attestation with disallowed Origin should fail nosurf origin validation with 403, got %d", rec.Code)
+	}
+}
+
+func TestValidateCSRF_RejectsContradictedAttestation(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://evil.example")
+
+	valid, rec := ValidateCSRF(req, CSRFConfig{})
+
+	if valid {
+		t.Fatal("ValidateCSRF should reject a contradicted same-origin attestation")
+	}
+
+	if rec == nil || rec.Code != http.StatusForbidden {
+		t.Fatalf("ValidateCSRF rejection should carry a 403 response, got %v", rec)
 	}
 }

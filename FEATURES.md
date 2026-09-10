@@ -31,7 +31,7 @@ _Updated: 2026-08-30 — full-code-review executed (critical compression exact-f
 | ETag _(deprecated)_      | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | `BenchmarkETagAdapterOverhead` (zero-cost passthrough) | —                   |
 | CSP Nonce                | `nonce.go`                             | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders       | Yes   | `ExampleNonce`                      | `BenchmarkNonce*`                                      | `FuzzNonce`         |
 
-Plus `Chain()` in `recorder.go` for middleware composition.
+Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware`) in `recorder.go`/`compose.go`, `MiddlewareFunc.Then()` for value-level chaining, and `MiddlewareStack.Middleware()` to nest a stack as a single middleware.
 
 ### Error Classification System
 

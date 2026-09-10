@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Middleware-to-middleware composition API** (`compose.go`, `stack.go`): `Compose(mws ...Middleware) Middleware` builds a reusable middleware bundle (first = outermost, matching `Chain`; empty = identity), `MiddlewareStack.Middleware()` exposes a stack as a single nestable middleware with `Build`'s ordering, and `MiddlewareFunc` (a defined type, unlike the `Middleware` alias) carries a `Then(handler)` method for value-level chaining that panics on nil handlers at wiring time. Nine tests including bundle-nesting and a `Middleware()`/`Build` equivalence check, run 10x under `-race`.
+
 - **`Server.StartTLS(certFile, keyFile)`** (`server.go`): HTTPS serving. `ServerConfig.TLSConfig` was validated but never used — `Start()` only called `ListenAndServe`. `StartTLS` wraps `ListenAndServeTLS` (TLS 1.2+ minimum enforced by validation); in-memory certificates work via `TLSConfig.GetCertificate` with empty paths. Integration-tested with a self-signed certificate.
 - **httpspec `ExpectJSON` / `ExpectHTML` check builders**: validate a response is valid JSON (plus JSON Content-Type, structured-syntax suffixes supported) or HTML (incl. XHTML), with optional exact Content-Type matching.
 - **httpspec `ExpectVaryContains` / `ExpectNotModifiedWithETag` builders**: pin cache-correctness (`Vary` field presence, `Vary: *` aware) and ETag conditional-request (304) contracts for opt-in composition via `WithExtraSpecs`.
@@ -23,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Full-code-review fuzz invariants** (`compression_bench_test.go`, `decompression_fuzz_invariants_test.go`): `FuzzCompression` now gunzips every negotiated-gzip response and compares it byte-for-byte against the handler's body; `FuzzDecompressionInvariants` wraps the fuzzer-chosen plaintext in the requested encoding and verifies the middleware output against an independent reference decoder (corruption coverage stays in `FuzzDecompression`, which feeds raw bytes). The compression invariant found the exact-fill duplication bug below within seconds of first execution.
 - **`FuzzCompression` seed corpus** (`testdata/fuzz/FuzzCompression/`): the 512-byte exact-fill counterexample is kept as a permanent regression seed.
 - **`TestMaxBodySize_ZeroLimitRejectsNonEmptyBody` execution-probe test**: pins the probed stdlib semantics (a `MaxBytesReader` limit of zero rejects any non-empty body) so the "0 means X" class of doc bugs stays falsifiable (2026-08-30).
+
+### Changed
+
+- **`DefaultCSRFHeaderName` value canonicalized from `"X-CSRF-Token"` to `"X-Csrf-Token"`** (`csrf.go`): Go's canonical MIME header form, as enforced by the `canonicalheader` linter (which tracks constants through every `Header.Set`/`Get` use site). Functionally identical on the wire — HTTP header names are case-insensitive and all reads/writes go through canonicalizing methods; verified against nosurf v1.2.0, which compares via `Header.Get`. Consumers doing exact-string matching against the old spelling should switch to the constant or the canonical value.
 
 ### Fixed
 

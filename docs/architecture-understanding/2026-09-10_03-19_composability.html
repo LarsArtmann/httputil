@@ -847,3 +847,434 @@
       }
     </style>
   </head>
+  <body>
+    <div class="top-bar">
+      <span>ARCHITECTURE REVIEW</span>
+      <span>2026-09-10</span>
+      <span>httputil &middot; COMPOSABILITY FOCUS</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#findings">Findings</a>
+          <a href="#proposal">Before / After</a>
+          <a href="#roadmap">Roadmap</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">ARCHITECTURE REVIEW &middot; 2026-09-10</div>
+          <h1>How composable is httputil?</h1>
+          <p class="subtitle">
+            A structural review of the two-module workspace (root
+            <code>httputil</code> + <code>server_timing</code> sub-module +
+            <code>httpspec</code> subpackage) through the composability lens:
+            how easily existing pieces recombine into new functionality, and
+            what one change would push the score from good to excellent.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Focus: composability</span>
+            <span class="tag">Go 1.26.7 &middot; 3 modules in go.work</span>
+            <span class="tag teal">R1-R3 executed in this session</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">3.9</div>
+            <div class="label">Avg score (7 dims, 1-5)</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">4 &rarr; 5</div>
+            <div class="label">Composability, before &rarr; after</div>
+          </div>
+          <div class="score-card">
+            <div class="score">0</div>
+            <div class="label">Import cycles (compiler-enforced)</div>
+          </div>
+          <div class="score-card">
+            <div class="score">5</div>
+            <div class="label">Plugin seams (interfaces + func fields)</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            The architecture is composability-first by design: every middleware
+            shares one signature (<code>func(http.Handler) http.Handler</code>,
+            aliased as <code>Middleware</code>), third-party behavior hides
+            behind five plugin seams, and <code>Chain</code> +
+            <code>MiddlewareStack</code> assemble handlers in declaration
+            order. The one structural gap was that composition always required
+            a handler upfront: there was no way to build a reusable
+            <em>bundle</em> of middleware and apply it later, pass it as a
+            single argument, or nest stacks inside stacks.
+          </p>
+          <p>
+            That gap is closed in this session. <code>Compose</code>,
+            <code>MiddlewareStack.Middleware()</code>, and
+            <code>MiddlewareFunc.Then</code> landed in
+            <code>compose.go</code> / <code>stack.go</code> with nine new
+            tests; the full race-enabled suite, the 70-linter gate (restored
+            from 13 findings to 0), and both erraudit gates pass.
+          </p>
+          <div class="callout callout-teal">
+            <strong>The bottom line</strong>
+            Good architecture (3.9/5) with a deliberate, documented flat-root
+            decision that should NOT be re-opened. The composability ceiling
+            was the missing middleware-to-middleware composition &mdash; now
+            shipped. The only remaining open item of substance is nonce
+            generator injection, already tracked in TODO_LIST.md.
+          </div>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Uniform middleware signature everywhere</strong>
+                <span>All 14 middlewares are <code>Middleware</code> (recorder.go:18), so any piece recombines with any other without adapters. ETag composes directly via the alias (docs/adr/0001).</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Five plugin seams isolate every external behavior</strong>
+                <span><code>RateLimiter</code> and <code>KeyExtractor</code> (ratelimit*.go), <code>MetricsRecorder</code> (metrics.go:17), <code>CSPBuilder func(string) string</code> and <code>GenerateID func() string</code> function fields (nonce.go:62, requestid.go:15), <code>WriterFactory</code> (compression.go). Redis limiters, Prometheus recorders, brotli writers all fit without core changes.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dependency direction is textbook</strong>
+                <span><code>httpspec</code> and <code>server_timing</code> are leaves (zero third-party deps); the root imports them, never the reverse. nosurf hides behind <code>CSRFMiddleware</code>; go-etag behind the thin adapter (etag.go).</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Composition is verified, not assumed</strong>
+                <span>chain_test.go, stack_integration_test.go, and the httpspec runner pin cross-middleware contracts; fuzz tests pin writer invariants. New composition code ships with 9 tests run 10x under -race.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <h2><span class="num">01</span>Findings</h2>
+
+          <div class="issue issue-nice" id="issue-1">
+            <span class="severity severity-nice">P1 &middot; Fixed this session</span>
+            <h3>No middleware-to-middleware composition</h3>
+            <div class="where">recorder.go:148 (Chain) &middot; stack.go:100 (Build)</div>
+            <p>
+              <code>Chain(handler, mws...)</code> bakes the handler in
+              immediately. A reusable "secure stack" bundle could not be built
+              once and applied to many handlers, passed as one
+              <code>Middleware</code> argument, or nested &mdash; every bundle
+              had to re-thread the handler through at the call site.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fixed</strong>
+              <code>Compose(mws ...Middleware) Middleware</code> (compose.go),
+              <code>(*MiddlewareStack).Middleware()</code> (stack.go), and
+              <code>MiddlewareFunc.Then(handler)</code> for value-level
+              chaining. Ordering mirrors Chain: first = outermost.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="issue-2">
+            <span class="severity severity-important">P2 &middot; Open (tracked)</span>
+            <h3>Nonce randomness is not injectable; composition cluster never run</h3>
+            <div class="where">nonce.go:119 &middot; TODO_LIST.md:43</div>
+            <p>
+              Nonce generation hardcodes <code>crypto/rand</code> with no
+              override, and the cross-middleware composition tests (nonce
+              &times; Compression / CORS / ServerTiming / CSRF helpers) listed
+              by three consecutive audits have never been written. This is the
+              last seam where a consumer cannot substitute behavior.
+            </p>
+            <div class="callout callout-amber">
+              <strong>Next step</strong>
+              Decide (implement or formally decline) a public
+              <code>GenerateNonce</code> plus a <code>NonceConfig.Generator</code>
+              override, then add the composition-test cluster. Already the top
+              item in TODO_LIST.md &mdash; do not duplicate; execute there.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="issue-3">
+            <span class="severity severity-nice">P3 &middot; Fixed this session</span>
+            <h3>Lint-config rework regressed the header-canonicalization invariant</h3>
+            <div class="where">csrf.go:27 &middot; logging_test.go:97 &middot; chain_hijack_test.go:165 &middot; testutil_test.go:52</div>
+            <p>
+              Commit 4bb191c (lint config rework) left 13 findings: 11
+              canonicalheader (the <code>DefaultCSRFHeaderName</code> constant
+              carried the non-canonical <code>"X-CSRF-Token"</code> spelling;
+              the linter tracks constants through use sites), 1 makezero, 1
+              unparam. AGENTS.md documents "0 active warnings" as the
+              invariant, so this was drift, not debt.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fixed</strong>
+              Constant value canonicalized to <code>"X-Csrf-Token"</code>
+              (functionally identical: all reads/writes go through
+              canonicalizing Get/Set; verified nosurf v1.2.0 compares via
+              Header.Get), test literal fixed, nolint-with-reason added for the
+              direct-index make, and the unparam site diversified. Gate
+              restored to 0 issues.
+            </div>
+          </div>
+
+          <div class="issue" id="issue-4">
+            <span class="severity">Declined &middot; decided</span>
+            <h3>Do NOT split the flat root into sub-packages</h3>
+            <div class="where">docs/architecture-understanding/2026-08-30_package-structure-analysis-refresh.md</div>
+            <p>
+              Sub-packaging is structurally impossible for compression (it
+              depends on root symbols; extraction would cycle) and
+              ergonomically worse for a one-import middleware library. The
+              user re-affirmed the flat root on 2026-08-30 with explicit
+              revisit triggers (~50 non-test files, currently 37; post-v1.0
+              internal/ hygiene; go-compression extraction). Composability
+              gains come from the composition API, not from directories.
+            </p>
+          </div>
+
+          <div class="issue" id="issue-5">
+            <span class="severity">Declined &middot; decided</span>
+            <h3>Do NOT add logger injection to validateConfig</h3>
+            <div class="where">recorder.go:58</div>
+            <p>
+              <code>slog.Default()</code> IS the stdlib injection point; the
+              advisory construction-time warning never touches the request
+              path. Wrapping it in a config field would add API surface for
+              zero capability. Consumers redirect via
+              <code>slog.SetDefault</code>.
+            </p>
+          </div>
+        </section>
+
+        <section id="proposal">
+          <h2><span class="num">02</span>Before / After: the composition API</h2>
+          <div class="compare-header">
+            <div class="compare-before">Before</div>
+            <div class="compare-after">After (shipped)</div>
+          </div>
+          <div class="compare-row">
+            <pre><code>// Bundle = inline, handler threaded
+// through at every call site:
+h := Chain(handler,
+    Recovery(),
+    Logging(log),
+    RequestID(cfg))
+
+// Stack &rarr; handler only, never
+// reusable as a single unit:
+h = stack.Build(handler)</code></pre>
+            <pre><code>// Bundle once, apply anywhere:
+var secure = Compose(
+    Recovery(), Logging(log),
+    RequestID(cfg))
+
+h := secure(handler)   // as unit
+h2 := secure(other)    // reuse
+
+// Nest stacks inside stacks:
+outer.Add("inner",
+    stack.Middleware())
+
+// Value-level chaining:
+var auth MiddlewareFunc = func(next http.Handler) http.Handler {...}
+h3 := auth.Then(handler)</code></pre>
+          </div>
+          <div class="callout callout-teal">
+            <strong>Why this matters</strong>
+            Middleware bundles become first-class values: build once, pass as
+            arguments, nest, test in isolation. This is the difference between
+            "middleware can be chained" (score 4) and "middleware composes
+            into new middleware" (score 5) on the rubric.
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="num">03</span>Action roadmap</h2>
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Execute R4: nonce generator injection (P2, effort S/M)</h4>
+              <p>
+                Decide <code>GenerateNonce</code> +
+                <code>NonceConfig.Generator</code>; add the never-run nonce
+                &times; Compression/CORS/ServerTiming/CSRF composition tests.
+                Owner: TODO_LIST.md item (do not duplicate here).
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Add MiddlewareStack.MustAdd (P3, effort S)</h4>
+              <p>
+                Startup wiring at composition roots currently needs error
+                handling per Add; a Must variant that panics with the
+                classified error message matches the library's
+                fail-at-wiring-time story. Complements Middleware().
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Hold the flat-root decision (P3, ongoing)</h4>
+              <p>
+                Re-run the package-structure analysis only when a revisit
+                trigger fires: ~50 non-test files (now 37), post-v1.0 consumer
+                demand for internal/, or the go-compression extraction landing.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Document the bundle pattern (P3, effort S)</h4>
+              <p>
+                Add a Compose example to README/docs/integrations showing the
+                secure-stack idiom from the Before/After section, so consumers
+                discover the new API.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">04</span>Appendix: dimension scores</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Dimension</th>
+                  <th>Score</th>
+                  <th>Evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Coupling</td>
+                  <td class="yes">5</td>
+                  <td>No cycles possible (single root package + leaves); externals isolated behind 5 plugin seams + adapter.</td>
+                </tr>
+                <tr>
+                  <td>Cohesion</td>
+                  <td class="yes">4</td>
+                  <td>36 root files each single-responsibility; package-level "one paragraph test" fails by design (flat root, user-decided).</td>
+                </tr>
+                <tr>
+                  <td>Modularity</td>
+                  <td class="no">3</td>
+                  <td>Boundaries porous inside root (everything sees unexported internals, see 2026-08-29 internal-coupling.d2); deliberate.</td>
+                </tr>
+                <tr>
+                  <td>Composability</td>
+                  <td class="yes">4 &rarr; 5</td>
+                  <td>Uniform Middleware signature, Chain, plugin seams; middleware&crarr;middleware gap closed this session (Compose, Then, Stack.Middleware).</td>
+                </tr>
+                <tr>
+                  <td>Scalability</td>
+                  <td class="yes">4</td>
+                  <td>New middleware = 1 file + 1 test file; friction only in errors.go triple-touch (code + template + test list).</td>
+                </tr>
+                <tr>
+                  <td>Service orientation</td>
+                  <td class="no">3</td>
+                  <td>Monolith with clear internal boundaries, extraction-ready (server_timing + go-etag prove the path).</td>
+                </tr>
+                <tr>
+                  <td>Dependency direction</td>
+                  <td class="yes">4</td>
+                  <td>Root &rarr; leaves only; third parties wrapped (nosurf, go-etag, x/time); minor leak: ConfigureNosurfHandler exposes nosurf handler type.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Average 3.9/5 &mdash; <strong>Good: address the lowest-scoring
+            dimensions, no urgent restructuring.</strong> Both 3-scores are
+            gated by the documented flat-root decision, not by accidents.
+          </p>
+          <h3>Method</h3>
+          <p>
+            Structure mapped from go.work/go.mod + file census (18,285 LOC
+            total; 75 exported top-level funcs, 28 exported types in root).
+            Coupling via the 2026-08-29 internal-coupling D2 graph and import
+            audit. API surface via grep of exported decls. Every finding cites
+            file:line verified this session. Scores use the 1-5 assessment
+            rubric. The R1-R3 fixes were executed and verified (go test -race
+            -count=10, golangci-lint run = 0 issues, both erraudit gates exit
+            0) before this report was written.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-09-10 &middot; Reviewed against master @ 4bb191c +
+            working tree &middot; All claims verified against source code this
+            session
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
