@@ -55,6 +55,7 @@ func BenchmarkIDGeneratorRefillSwap(b *testing.B) {
 // the bare crypto/rand read into a reused 2 KiB buffer, no allocation and no
 // publication.
 func BenchmarkIDGeneratorRefillRawRandRead(b *testing.B) {
+	//nolint:makezero // pre-allocated for direct rand.Read writes, not append
 	buf := make([]byte, randBufferLen)
 
 	b.ReportAllocs()

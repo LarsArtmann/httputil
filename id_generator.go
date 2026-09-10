@@ -179,7 +179,7 @@ func refillRandomBuffer(gen uint64) {
 		return
 	}
 
-	fresh := &randomGeneration{gen: gen}
+	fresh := &randomGeneration{gen: gen, buf: [randBufferLen]byte{}}
 
 	_, err := rand.Read(fresh.buf[:])
 	if err != nil {

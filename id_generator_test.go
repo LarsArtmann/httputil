@@ -152,16 +152,13 @@ func TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails(t *testing.T) 
 
 	var wg sync.WaitGroup
 
+	//nolint:makezero // pre-allocated for direct index writes, not append
 	batches := make([][]string, goroutines)
 
 	start := make(chan struct{})
 
 	for g := range goroutines {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			<-start
 
 			batch := make([]string, 0, perGoroutine)
@@ -171,7 +168,7 @@ func TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails(t *testing.T) 
 			}
 
 			batches[g] = batch
-		}()
+		})
 	}
 
 	close(start)
@@ -191,7 +188,11 @@ func TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails(t *testing.T) 
 			tail := generated[idTimeBytes*hexEncodedBytes+idCtrBytes*hexEncodedBytes:]
 
 			if _, duplicate := seenTails[tail]; duplicate {
-				t.Fatalf("duplicate random tail %s (id %s) under concurrent generation", tail, generated)
+				t.Fatalf(
+					"duplicate random tail %s (id %s) under concurrent generation",
+					tail,
+					generated,
+				)
 			}
 
 			seenTails[tail] = struct{}{}
