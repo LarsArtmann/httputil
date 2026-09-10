@@ -93,6 +93,36 @@ func TestCodeWrapPreservesCause(t *testing.T) {
 	}
 }
 
+func TestCodeWrapConflict_PreservesCauseAndFamily(t *testing.T) {
+	t.Parallel()
+
+	cause := errTestBoom
+	err := Code("test.wrap_conflict").WrapConflict(cause, "wrapper message")
+
+	if !errors.Is(err, cause) {
+		t.Errorf("errors.Is(err, cause) = false, want true")
+	}
+
+	if err.ErrorFamily() != errorfamily.Conflict {
+		t.Errorf("family = %v, want %v", err.ErrorFamily(), errorfamily.Conflict)
+	}
+}
+
+func TestCodeWrapOrchestration_PreservesCauseAndFamily(t *testing.T) {
+	t.Parallel()
+
+	cause := errTestBoom
+	err := Code("test.wrap_orchestration").WrapOrchestration(cause, "wrapper message")
+
+	if !errors.Is(err, cause) {
+		t.Errorf("errors.Is(err, cause) = false, want true")
+	}
+
+	if err.ErrorFamily() != errorfamily.Orchestration {
+		t.Errorf("family = %v, want %v", err.ErrorFamily(), errorfamily.Orchestration)
+	}
+}
+
 func TestDomainOfClassifiedError(t *testing.T) {
 	t.Parallel()
 

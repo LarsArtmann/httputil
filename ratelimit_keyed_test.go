@@ -2,10 +2,14 @@ package httputil
 
 import (
 	"errors"
+	"fmt"
+	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 func TestKeyedRateLimiterMiddleware_AllowsUnderLimit(t *testing.T) {
@@ -503,5 +507,136 @@ func TestKeyedRateLimiter_InvalidConfigLogsAndContinues(t *testing.T) {
 
 	if !called {
 		t.Error("inner handler was not called (invalid config should log and continue)")
+	}
+}
+
+// assertPerKeyLimiterInvariants verifies the heap/map bookkeeping of a
+// perKeyLimiter: capacity respected, map and heap the same size, every map
+// entry's heapRef pointing at its own live heap slot, every heap entry
+// referring to a tracked key, and the min-heap ordering on lastUsed intact.
+// The caller must keep TTL expiry out of the picture (long TTL) so the
+// size-equality invariant holds.
+func assertPerKeyLimiterInvariants(t *testing.T, p *perKeyLimiter, maxKeys uint) {
+	t.Helper()
+
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	if got := uint(len(p.limiters)); got > maxKeys {
+		t.Errorf("tracked keys = %d, want <= %d", got, maxKeys)
+	}
+
+	if len(p.limiters) != p.heap.Len() {
+		t.Errorf(
+			"map size %d != heap size %d (no TTL expiry expected in this test)",
+			len(p.limiters),
+			p.heap.Len(),
+		)
+	}
+
+	for key, entry := range p.limiters {
+		ref := entry.heapRef
+		if ref == nil {
+			t.Errorf("key %q has nil heapRef", key)
+
+			continue
+		}
+
+		if ref.index < 0 || ref.index >= p.heap.Len() {
+			t.Errorf(
+				"key %q heapRef.index = %d, outside heap range [0,%d)",
+				key,
+				ref.index,
+				p.heap.Len(),
+			)
+
+			continue
+		}
+
+		if (*p.heap)[ref.index] != ref {
+			t.Errorf("key %q heapRef does not match heap slot %d", key, ref.index)
+		}
+	}
+
+	entries := *p.heap
+
+	for i, e := range entries {
+		if _, tracked := p.limiters[e.key]; !tracked {
+			t.Errorf("heap slot %d references untracked key %q", i, e.key)
+		}
+
+		for _, child := range []int{2*i + 1, 2*i + 2} {
+			if child < len(entries) && entries[child].lastUsed.Before(entries[i].lastUsed) {
+				t.Errorf(
+					"heap ordering violated at slot %d: parent %v after child %v",
+					i,
+					entries[i].lastUsed,
+					entries[child].lastUsed,
+				)
+			}
+		}
+	}
+}
+
+// TestPerKeyLimiter_Property_CapacityEvictionPreservesInvariants drives
+// pseudo-random key churn well above MaxKeys with a fixed seed and asserts
+// the heap/map invariants periodically, so a bookkeeping bug under eviction
+// pressure cannot hide behind a hand-picked case list.
+func TestPerKeyLimiter_Property_CapacityEvictionPreservesInvariants(t *testing.T) {
+	t.Parallel()
+
+	const (
+		keyPoolSize = 128
+		maxKeys     = 32
+		operations  = 2000
+	)
+
+	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
+
+	rng := rand.New(rand.NewPCG(42, 2026))
+
+	for i := range operations {
+		_ = p.limiter(fmt.Sprintf("key-%d", rng.IntN(keyPoolSize)))
+
+		if i%97 == 0 {
+			assertPerKeyLimiterInvariants(t, p, maxKeys)
+		}
+	}
+
+	assertPerKeyLimiterInvariants(t, p, maxKeys)
+}
+
+// TestPerKeyLimiter_MaxKeysChurn_KeepsMostRecentKeys pins the eviction policy
+// under sustained churn: with unique keys inserted in strictly increasing
+// time order and no TTL expiry, the survivors are exactly the most recent
+// MaxKeys keys.
+func TestPerKeyLimiter_MaxKeysChurn_KeepsMostRecentKeys(t *testing.T) {
+	t.Parallel()
+
+	const (
+		totalKeys = 256
+		maxKeys   = 32
+	)
+
+	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
+
+	for i := range totalKeys {
+		_ = p.limiter(fmt.Sprintf("key-%04d", i))
+	}
+
+	if got := p.Len(); got != maxKeys {
+		t.Fatalf("tracked keys = %d, want %d", got, maxKeys)
+	}
+
+	for i := totalKeys - maxKeys; i < totalKeys; i++ {
+		key := fmt.Sprintf("key-%04d", i)
+
+		p.mu.RLock()
+		_, tracked := p.limiters[key]
+		p.mu.RUnlock()
+
+		if !tracked {
+			t.Errorf("recent key %q evicted, want it retained", key)
+		}
 	}
 }

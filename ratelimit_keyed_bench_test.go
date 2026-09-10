@@ -1,197 +1,25 @@
 package httputil
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
-// BenchmarkKeyedRateLimiter_Allow measures throughput of the per-key token
-// bucket on the allow path with a small number of keys (low contention).
-// This represents the common case: a small set of clients hitting the API
-// within their rate limit.
-func BenchmarkKeyedRateLimiter_Allow(b *testing.B) {
-	cfg := KeyedRateLimiterConfig{
-		Limit:        1_000_000,
-		Window:       time.Minute,
-		KeyExtractor: KeyExtractorFromRemoteAddr(),
-	}
+// BenchmarkKeyedRateLimiter_MaxKeysChurn measures the true slow path under
+// sustained MaxKeys pressure: every iteration inserts a fresh key, so each
+// insert at capacity pays the heap-pop eviction plus push.
+func BenchmarkKeyedRateLimiter_MaxKeysChurn(b *testing.B) {
+	const maxKeys = 1024
 
-	handler := KeyedRateLimiterMiddleware(cfg)(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-
-	keys := []string{
-		"10.0.0.1:1234",
-		"10.0.0.2:1234",
-		"10.0.0.3:1234",
-		"10.0.0.4:1234",
-		"10.0.0.5:1234",
-	}
-
-	//nolint:makezero // pre-allocated with known length, not append
-	requests := make([]*http.Request, len(keys))
-
-	for i, addr := range keys {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.RemoteAddr = addr
-		requests[i] = req
-	}
-
-	b.ReportAllocs()
+	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
 
 	i := 0
 
 	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, requests[i%len(requests)])
 		i++
-	}
-}
-
-// BenchmarkKeyedRateLimiter_Reject measures throughput on the reject path
-// (limit exceeded). This is the path that writes 429 + Retry-After.
-func BenchmarkKeyedRateLimiter_Reject(b *testing.B) {
-	cfg := KeyedRateLimiterConfig{
-		Limit:        1,
-		Window:       time.Hour,
-		KeyExtractor: KeyExtractorFromRemoteAddr(),
-	}
-
-	handler := KeyedRateLimiterMiddleware(cfg)(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-
-	// Warm up: first request is allowed; subsequent ones rejected.
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.RemoteAddr = "10.0.0.1:1234"
-
-	warmup := httptest.NewRecorder()
-	handler.ServeHTTP(warmup, req)
-
-	b.ReportAllocs()
-
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
-	}
-}
-
-// BenchmarkKeyedRateLimiter_HighCardinality measures throughput when keys
-// rotate rapidly (high cardinality, low reuse). With 10k distinct keys and the
-// default TTL, inserts use the write path and later revisits hit the read-lock
-// fast path; sustained MaxKeys-pressure churn is covered by
-// TestKeyedRateLimiter_EvictsOldestWhenAtCapacity.
-func BenchmarkKeyedRateLimiter_HighCardinality(b *testing.B) {
-	cfg := KeyedRateLimiterConfig{
-		Limit:        100_000,
-		Window:       time.Minute,
-		MaxKeys:      10_000,
-		KeyExtractor: KeyExtractorFromRemoteAddr(),
-	}
-
-	handler := KeyedRateLimiterMiddleware(cfg)(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-
-	b.ReportAllocs()
-
-	for i := 0; b.Loop(); i++ {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.RemoteAddr = "10.0.0." + strconv.Itoa(i%10_000) + ":1234"
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
-	}
-}
-
-// BenchmarkKeyedRateLimiter_EmptyKey measures the overhead of the empty-key
-// exempt path (KeyExtractor returns ""). This should be near-zero — the
-// middleware short-circuits before the limiter is consulted.
-func BenchmarkKeyedRateLimiter_EmptyKey(b *testing.B) {
-	cfg := KeyedRateLimiterConfig{
-		Limit:  1,
-		Window: time.Minute,
-		KeyExtractor: func(_ *http.Request) string {
-			return ""
-		},
-	}
-
-	handler := KeyedRateLimiterMiddleware(cfg)(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-
-	b.ReportAllocs()
-
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
-	}
-}
-
-// BenchmarkKeyedRateLimiter_EvictionOverhead measures the cost of TTL-based
-// eviction on the slow path. A TTL of one nanosecond guarantees every request
-// misses the read-lock fast path (the entry is always older than the TTL), so
-// each iteration pays the write-lock path including the evictStale sweep.
-func BenchmarkKeyedRateLimiter_EvictionOverhead(b *testing.B) {
-	cfg := KeyedRateLimiterConfig{
-		Limit:        100_000,
-		Window:       time.Minute,
-		TTL:          time.Nanosecond, // always stale: forces the slow path
-		KeyExtractor: KeyExtractorFromRemoteAddr(),
-	}
-
-	handler := KeyedRateLimiterMiddleware(cfg)(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-
-	b.ReportAllocs()
-
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
-	}
-}
-
-// BenchmarkKeyedRateLimiter_ClientIPExtractor measures the cost of using
-// ClientIP as the key extractor (which respects X-Forwarded-For / X-Real-IP).
-// This is the recommended production configuration behind a reverse proxy.
-func BenchmarkKeyedRateLimiter_ClientIPExtractor(b *testing.B) {
-	cfg := KeyedRateLimiterConfig{
-		Limit:        100_000,
-		Window:       time.Minute,
-		KeyExtractor: KeyExtractorFromClientIP(),
-	}
-
-	handler := KeyedRateLimiterMiddleware(cfg)(
-		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("X-Forwarded-For", "203.0.113.1, 70.41.3.18, 150.172.238.178")
-	req.RemoteAddr = "10.0.0.1:1234"
-
-	b.ReportAllocs()
-
-	for b.Loop() {
-		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
+		_ = p.limiter("key-" + strconv.Itoa(i))
 	}
 }
