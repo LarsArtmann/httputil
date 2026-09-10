@@ -175,7 +175,7 @@ func corsVaryOriginCheck() Check {
 		}
 
 		vary := rec.Header().Get("Vary")
-		if !varyContainsToken(vary, "Origin") {
+		if !varyContainsOrigin(vary) {
 			return Fail(
 				"Access-Control-Allow-Origin = %q (dynamic), but Vary header = %q "+
 					"does not include \"Origin\"; caches may serve this response to other origins",
@@ -371,12 +371,12 @@ func validateNonNegativeInt(name, value string) string {
 	return ""
 }
 
-// varyContainsToken reports whether the Vary header value contains the given
-// token in a case-insensitive comparison (Vary tokens are case-insensitive per
-// RFC 7231 §7.1.4).
-func varyContainsToken(vary, token string) bool {
+// varyContainsOrigin reports whether the Vary header value contains the
+// "Origin" token in a case-insensitive comparison (Vary tokens are
+// case-insensitive per RFC 7231 §7.1.4).
+func varyContainsOrigin(vary string) bool {
 	for t := range strings.SplitSeq(vary, ",") {
-		if strings.EqualFold(strings.TrimSpace(t), token) {
+		if strings.EqualFold(strings.TrimSpace(t), "Origin") {
 			return true
 		}
 	}

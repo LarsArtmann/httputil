@@ -307,23 +307,23 @@ func TestRateLimitSpecs_FailOnInvalidRetryAfter(t *testing.T) {
 func TestVaryContainsToken_SingleTokenMatch(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("Origin", "Origin"); !got {
-		t.Errorf("varyContainsToken(Origin, Origin) = %v, want true", got)
+	if got := varyContainsOrigin("Origin"); !got {
+		t.Errorf("varyContainsOrigin(Origin, Origin) = %v, want true", got)
 	}
 }
 
 func TestVaryContainsToken_CaseInsensitive(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("origin", "Origin"); !got {
-		t.Errorf("varyContainsToken(origin, Origin) = %v, want true", got)
+	if got := varyContainsOrigin("origin"); !got {
+		t.Errorf("varyContainsOrigin(origin, Origin) = %v, want true", got)
 	}
 }
 
 func TestVaryContainsToken_MultiTokenMatch(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("Accept-Encoding, Origin", "Origin"); !got {
+	if got := varyContainsOrigin("Accept-Encoding, Origin"); !got {
 		t.Errorf("varyContainsToken with multi-token Vary = %v, want true", got)
 	}
 }
@@ -331,7 +331,7 @@ func TestVaryContainsToken_MultiTokenMatch(t *testing.T) {
 func TestVaryContainsToken_MultiTokenMatchCaseInsensitive(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("accept-encoding, ORIGIN", "Origin"); !got {
+	if got := varyContainsOrigin("accept-encoding, ORIGIN"); !got {
 		t.Errorf("varyContainsToken with uppercase token = %v, want true", got)
 	}
 }
@@ -339,7 +339,7 @@ func TestVaryContainsToken_MultiTokenMatchCaseInsensitive(t *testing.T) {
 func TestVaryContainsToken_WhitespacePadded(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken(" Origin , Accept-Encoding", "Origin"); !got {
+	if got := varyContainsOrigin(" Origin , Accept-Encoding"); !got {
 		t.Errorf("varyContainsToken with whitespace padding = %v, want true", got)
 	}
 }
@@ -347,7 +347,7 @@ func TestVaryContainsToken_WhitespacePadded(t *testing.T) {
 func TestVaryContainsToken_Missing(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("Accept-Encoding", "Origin"); got {
+	if got := varyContainsOrigin("Accept-Encoding"); got {
 		t.Errorf("varyContainsToken without token = %v, want false", got)
 	}
 }
@@ -355,7 +355,7 @@ func TestVaryContainsToken_Missing(t *testing.T) {
 func TestVaryContainsToken_Empty(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("", "Origin"); got {
+	if got := varyContainsOrigin(""); got {
 		t.Errorf("varyContainsToken with empty Vary = %v, want false", got)
 	}
 }
@@ -363,7 +363,7 @@ func TestVaryContainsToken_Empty(t *testing.T) {
 func TestVaryContainsToken_Partial(t *testing.T) {
 	t.Parallel()
 
-	if got := varyContainsToken("X-Origin", "Origin"); got {
+	if got := varyContainsOrigin("X-Origin"); got {
 		t.Errorf("varyContainsToken with partial token = %v, want false", got)
 	}
 }

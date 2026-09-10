@@ -771,7 +771,10 @@ func TestCSRFMiddleware_RejectsContradictedSecFetchSiteAttestation(t *testing.T)
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
-		t.Fatalf("forged same-origin attestation with cross-origin Origin should be rejected with 403, got %d", rec.Code)
+		t.Fatalf(
+			"forged same-origin attestation with cross-origin Origin should be rejected with 403, got %d",
+			rec.Code,
+		)
 	}
 
 	if !errors.Is(captured, ErrCSRFAttestationConflict) {
@@ -837,7 +840,10 @@ func TestCSRFMiddleware_AllowsSecFetchSiteAttestationWithoutOriginHeaders(t *tes
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("client-supplied same-origin attestation with no Origin/Referer should pass nosurf (documented v1.2.0 short-circuit), got %d", rec.Code)
+		t.Fatalf(
+			"client-supplied same-origin attestation with no Origin/Referer should pass nosurf (documented v1.2.0 short-circuit), got %d",
+			rec.Code,
+		)
 	}
 }
 
@@ -877,7 +883,10 @@ func TestCSRFMiddleware_RejectsCrossSiteAttestationWithCrossOrigin(t *testing.T)
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
-		t.Fatalf("cross-site attestation with disallowed Origin should fail nosurf origin validation with 403, got %d", rec.Code)
+		t.Fatalf(
+			"cross-site attestation with disallowed Origin should fail nosurf origin validation with 403, got %d",
+			rec.Code,
+		)
 	}
 }
 

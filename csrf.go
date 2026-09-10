@@ -255,7 +255,7 @@ func (c *CSRFConfig) Validate() error {
 
 // ConfigureNosurfHandler applies CSRFConfig settings to a nosurf handler.
 func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
-	//nolint:gosec,exhaustruct // HttpOnly=false required for double-submit
+	//nolint:gosec,exhaustruct_v5 // HttpOnly=false required for double-submit
 	cookie := http.Cookie{
 		Name:     cfg.cookieName(),
 		Path:     cfg.path(),
@@ -349,7 +349,7 @@ func CSRFTokenFromRequest(r *http.Request) string {
 // to be generated on the next request. Call this on login/logout to prevent
 // CSRF fixation attacks.
 func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
-	//nolint:gosec,exhaustruct // HttpOnly=false required for double-submit; http.Cookie has many optional fields
+	//nolint:gosec,exhaustruct_v5 // HttpOnly=false required for double-submit; http.Cookie has many optional fields
 	cookie := &http.Cookie{
 		Name:     cfg.cookieName(),
 		Value:    "",
