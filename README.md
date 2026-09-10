@@ -137,7 +137,7 @@ handler := httputil.Chain(
 
 ### Behavioral Spec Suite
 
-Validate any `http.Handler` against standard HTTP conventions with a single call. The `httpspec` subpackage runs 18 behavioral specs as parallel subtests.
+Validate any `http.Handler` against standard HTTP conventions with a single call. The `httpspec` subpackage runs 19 behavioral specs as parallel subtests.
 
 ```go
 import "github.com/larsartmann/httputil/httpspec"
