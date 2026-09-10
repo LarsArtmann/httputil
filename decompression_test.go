@@ -414,3 +414,40 @@ func TestDecompression_InvalidConfigLogsAndContinues(t *testing.T) {
 		t.Error("inner handler was not called (invalid config should log and continue)")
 	}
 }
+
+func TestDecompressionConfig_Validate_RejectsUnrecognizedEncoding(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultDecompressionConfig()
+	cfg.Encodings = []string{"gzip", "br"}
+
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() error = nil, want error for unrecognized encoding")
+	} else if !errors.Is(err, errDecompressionEncodingUnrecognized) {
+		t.Errorf("Validate() error = %v, want errDecompressionEncodingUnrecognized", err)
+	}
+}
+
+func TestDecompressionConfig_Validate_RejectsDuplicateEncoding(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultDecompressionConfig()
+	cfg.Encodings = []string{"gzip", "GZIP"}
+
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() error = nil, want error for case-insensitive duplicate")
+	} else if !errors.Is(err, errDecompressionEncodingDuplicate) {
+		t.Errorf("Validate() error = %v, want errDecompressionEncodingDuplicate", err)
+	}
+}
+
+func TestDecompressionConfig_Validate_AcceptsCaseAndWhitespaceVariants(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultDecompressionConfig()
+	cfg.Encodings = []string{"  Gzip ", "DEFLATE"}
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want nil (middleware normalizes case/whitespace)", err)
+	}
+}

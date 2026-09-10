@@ -669,3 +669,39 @@ func TestCompression_ExactMinSizeWrite_IsNotDuplicated(t *testing.T) {
 		)
 	}
 }
+
+func TestCompressionConfig_Validate_SkipsLevelCheckWhenFactoriesSet(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.Level = 99
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want nil (Level is ignored when WriterFactories is set)", err)
+	}
+}
+
+func TestCompressionConfig_Validate_RejectsInvalidIncompressiblePrefix(t *testing.T) {
+	t.Parallel()
+
+	for _, prefix := range []string{"", "image", " image/"} {
+		cfg := DefaultCompressionConfig()
+		cfg.IncompressibleTypes = []string{prefix}
+
+		if err := cfg.Validate(); err == nil {
+			t.Errorf("Validate() error = nil, want error for invalid prefix %q", prefix)
+		} else if !errors.Is(err, errIncompressiblePrefixInvalid) {
+			t.Errorf("Validate() error = %v, want errIncompressiblePrefixInvalid for prefix %q", err, prefix)
+		}
+	}
+}
+
+func TestCompressionConfig_Validate_AcceptsDefaultIncompressibleTypes(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want nil for DefaultIncompressibleTypes", err)
+	}
+}

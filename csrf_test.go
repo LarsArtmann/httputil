@@ -907,3 +907,25 @@ func TestValidateCSRF_RejectsContradictedAttestation(t *testing.T) {
 		t.Fatalf("ValidateCSRF rejection should carry a 403 response, got %v", rec)
 	}
 }
+
+func TestCSRFConfig_Validate_RejectsNegativeMaxAge(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{MaxAge: -time.Hour}
+
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() error = nil, want error for negative MaxAge")
+	} else if !errors.Is(err, errCSRFMaxAgeNegative) {
+		t.Errorf("Validate() error = %v, want errCSRFMaxAgeNegative", err)
+	}
+}
+
+func TestCSRFConfig_Validate_AcceptsZeroMaxAge(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{MaxAge: 0}
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want nil (zero MaxAge uses the 24h default)", err)
+	}
+}

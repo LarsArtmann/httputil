@@ -405,3 +405,27 @@ func TestCORS_InvalidConfigLogsAndContinues(t *testing.T) {
 		t.Error("inner handler was not called (invalid config should log and continue)")
 	}
 }
+
+func TestCORSConfig_Validate_RejectsEmptyMethods(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCORSConfig()
+	cfg.AllowedMethods = nil
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for empty AllowedMethods")
+	}
+
+	if !errors.Is(err, errMethodsEmpty) {
+		t.Errorf("Validate() error = %v, want errMethodsEmpty", err)
+	}
+}
+
+func TestCORSConfig_Validate_AcceptsDefaultMethods(t *testing.T) {
+	t.Parallel()
+
+	if err := DefaultCORSConfig().Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want nil for DefaultCORSConfig", err)
+	}
+}
