@@ -72,7 +72,7 @@ Any function taking `*testing.T` that calls `t.Fatal`/`t.Error` must start with 
 
 ### No `Must*` Functions — Owner API Constraint (not lint-enforced)
 
-The owner rejects ALL `Must*`-prefixed APIs (2026-09-10): they panic, and panics are rejected as an API design tool. Never propose, add, or document `MustAdd`/`MustNew*`/etc. — wiring and construction errors return errors (`MiddlewareStack.Add` is the pattern) and the caller decides how to fail. Recorded as a Non-goal in ROADMAP.md. The only panics in the codebase are unrecoverable internal contract violations (`crypto/rand` failure in `id_generator.go`/`nonce.go`) and `MiddlewareFunc.Then(nil)`'s wiring-time fail-fast — removing that guard would not remove the panic, only defer it to an obscure nil-deref at request time.
+The owner rejects ALL `Must*`-prefixed APIs (2026-09-10): they panic, and panics are rejected as an API design tool. Never propose, add, or document `MustAdd`/`MustNew*`/etc. — wiring and construction errors return errors (`MiddlewareStack.Add` is the pattern) and the caller decides how to fail. Recorded as a Non-goal in ROADMAP.md. The library is panic-free as of 2026-09-10: `MiddlewareFunc.Then(nil)` wires a 500-stub handler (diagnosable response, never a panic), and the `crypto/rand.Read` failure guards in `id_generator.go`/`nonce.go` were deleted as dead code (`rand.Read` is documented never to return an error; entropy failure crashes inside crypto/rand itself).
 
 ## Commands
 
