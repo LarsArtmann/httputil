@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   fuzz:
@@ -90,3 +91,20 @@ jobs:
 
       - name: Fuzz Server-Timing CRLF injection
         run: go test -run='^$' -fuzz FuzzServerTimingMiddleware -fuzztime 300s ./server_timing
+
+      - name: Fuzz MaxBodySize contract
+        run: go test -run='^$' -fuzz FuzzMaxBodySize -fuzztime 300s .
+
+      - name: Fuzz CORS origin echo
+        run: go test -run='^$' -fuzz FuzzCORSOriginEcho -fuzztime 300s .
+
+      - name: Fuzz negotiator wire format
+        run: go test -run='^$' -fuzz FuzzNegotiatorWireFormat -fuzztime 300s .
+
+      - name: File issue on fuzz crash
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create             --title "nightly fuzz: crash detected $(date -u +%Y-%m-%d)"             --body "A nightly fuzz target failed. The fuzzing engine writes failing inputs to testdata/fuzz/** in the job checkout (paths in the run log). Run: ${RUN_URL}"             --label "bug" || echo "::warning::issue creation failed; see run log"

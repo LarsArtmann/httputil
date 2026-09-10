@@ -161,6 +161,8 @@ type CSRFConfig struct {
 	TrustedProxies []string
 
 	// TrustedProxiesCIDR is the parsed form of TrustedProxies CIDR entries.
+	// CSRFMiddleware populates it from TrustedProxies at construction time;
+	// Validate does not mutate the config. It may also be set directly.
 	TrustedProxiesCIDR []*net.IPNet
 
 	// AllowPlaintextBypass grants the plaintext-HTTP origin bypass to ALL
@@ -215,7 +217,12 @@ func (c *CSRFConfig) path() string {
 
 // Validate checks the CSRF configuration for common misconfigurations.
 // Returns a non-nil error if the config would produce insecure or broken behavior.
-func (c *CSRFConfig) Validate() error {
+//
+// Validate is pure: it neither logs nor mutates the receiver. (Before the
+// v1.0 cleanup it parsed TrustedProxies into TrustedProxiesCIDR as a side
+// effect and warned about Secure=false; CSRFMiddleware now does both at
+// construction time.)
+func (c CSRFConfig) Validate() error {
 	if c.MaxAge < 0 {
 		return errCSRFMaxAgeNegative.WithContextAny("max_age", c.MaxAge)
 	}
@@ -235,15 +242,6 @@ func (c *CSRFConfig) Validate() error {
 		}
 	}
 
-	if !c.Secure {
-		slog.Warn(
-			"httputil: CSRFConfig.Validate: Secure is false — CSRF cookies will be sent over plain HTTP",
-			slog.String("hint", "set Secure=true in production"),
-		)
-	}
-
-	// Parse TrustedProxies CIDR entries.
-	c.TrustedProxiesCIDR = nil
 	for _, p := range c.TrustedProxies {
 		if p == "" {
 			return codeCSRFUnsafeProxy.Infrastructure(
@@ -252,19 +250,52 @@ func (c *CSRFConfig) Validate() error {
 		}
 
 		if strings.Contains(p, "/") {
-			_, ipnet, err := net.ParseCIDR(p)
-			if err != nil {
+			if _, _, err := net.ParseCIDR(p); err != nil {
 				return codeCSRFInvalidCIDR.Infrastructure("TrustedProxies contains invalid CIDR").
 					WithCause(ErrCSRFConfig).
 					WithContext("proxy", p).
 					WithContextAny("parse_error", err)
 			}
-
-			c.TrustedProxiesCIDR = append(c.TrustedProxiesCIDR, ipnet)
 		}
 	}
 
 	return nil
+}
+
+// withParsedTrustedProxies returns a copy of c with TrustedProxiesCIDR
+// populated from its TrustedProxies entries. CSRFMiddleware calls it once at
+// construction so the request path never parses CIDRs. Any entry that fails
+// to parse leaves the CIDR list empty, matching the validate-and-log
+// contract: an invalid config never aborts the middleware but must not
+// widen proxy trust either.
+func (c CSRFConfig) withParsedTrustedProxies() CSRFConfig {
+	out := c
+	out.TrustedProxiesCIDR = nil
+
+	cidrs := make([]*net.IPNet, 0, len(c.TrustedProxies))
+
+	for _, p := range c.TrustedProxies {
+		if p == "" {
+			out.TrustedProxiesCIDR = nil
+
+			return out
+		}
+
+		if strings.Contains(p, "/") {
+			_, ipnet, err := net.ParseCIDR(p)
+			if err != nil {
+				out.TrustedProxiesCIDR = nil
+
+				return out
+			}
+
+			cidrs = append(cidrs, ipnet)
+		}
+	}
+
+	out.TrustedProxiesCIDR = cidrs
+
+	return out
 }
 
 // ConfigureNosurfHandler applies CSRFConfig settings to a nosurf handler.
@@ -418,6 +449,17 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //     so it can only be forged.
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	validateConfig("CSRFConfig", cfg.Validate())
+
+	if !cfg.Secure {
+		slog.Warn(
+			"httputil: CSRFConfig: Secure is false — CSRF cookies will be sent over plain HTTP",
+			slog.String("hint", "set Secure=true in production"),
+		)
+	}
+
+	// Parse the trusted-proxy CIDRs once here so Validate stays pure and the
+	// request path never re-parses configuration.
+	cfg = cfg.withParsedTrustedProxies()
 
 	warnEmptyTrustedProxies(cfg)
 

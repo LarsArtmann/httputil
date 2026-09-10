@@ -15,7 +15,7 @@ env:
   GOEXPERIMENT: jsonv2
   # setup-go's manifest lags new Go patches; pin the toolchain via Go
   # itself so govulncheck scans a stdlib with current security fixes.
-  GOTOOLCHAIN: go1.26.6
+  GOTOOLCHAIN: go1.26.7
 
 jobs:
   release:
@@ -32,8 +32,18 @@ jobs:
       - name: Build
         run: go build ./...
 
+      - name: Vet (root module)
+        run: go vet ./...
+
       - name: Test
         run: go test -v -race ./...
+
+      - name: server_timing sub-module gates (build, vet, test)
+        run: |
+          cd server_timing
+          go build ./...
+          go vet ./...
+          go test -race ./...
 
       - name: Lint
         uses: golangci/golangci-lint-action@9fae48acfc02a90574d7c304a1758ef9895495fa # v7
@@ -41,9 +51,14 @@ jobs:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           args: --timeout=5m
 
-      - name: Run govulncheck
+      - name: Run govulncheck (root module)
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Run govulncheck (server_timing sub-module)
+        run: |
+          cd server_timing
           govulncheck ./...
 
       - name: Create GitHub Release

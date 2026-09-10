@@ -58,6 +58,7 @@
               pkgs.govulncheck
               pkgs.trash-cli
               pkgs.d2
+              pkgs.dprint
             ];
 
             shellHook = ''
@@ -195,6 +196,23 @@
                   };
                 in
                 "${script}/bin/run-vulncheck";
+            };
+
+            bench = {
+              type = "app";
+              meta.description = "Run the documented benchmark baseline (3s×5 protocol, benchstat-ready)";
+              program =
+                let
+                  script = pkgs.writeShellApplication {
+                    name = "run-bench";
+                    runtimeInputs = [ goPkg ];
+                    text = ''
+                      export GOWORK=off
+                      exec ${goPkg}/bin/go test -run='^$' -bench . -benchtime=3s -count=5 "$@"
+                    '';
+                  };
+                in
+                "${script}/bin/run-bench";
             };
 
             clean = {
