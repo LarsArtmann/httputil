@@ -62,7 +62,7 @@ func FuzzNegotiatorWireFormat(f *testing.F) {
 	neg := newTestNegotiator()
 
 	f.Fuzz(func(t *testing.T, header string) {
-		encoding, q, ok := neg.negotiateEncoding(header)
+		encoding, quality, ok := neg.negotiateEncoding(header)
 
 		if !ok {
 			t.Errorf(
@@ -77,8 +77,8 @@ func FuzzNegotiatorWireFormat(f *testing.F) {
 			t.Errorf("negotiated encoding %q is not registered (header %q)", encoding, header)
 		}
 
-		if q <= 0 || q > 1 {
-			t.Errorf("negotiated q = %v outside (0,1] for header %q", q, header)
+		if quality <= 0 || quality > 1 {
+			t.Errorf("negotiated q = %v outside (0,1] for header %q", quality, header)
 		}
 	})
 }

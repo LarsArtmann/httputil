@@ -10,12 +10,11 @@ import (
 )
 
 // FuzzMaxBodySize pins the middleware contract for arbitrary bodies and
-// limits, matching http.MaxBytesReader semantics exactly: a body of
-// len(body) <= maxBytes bytes reads back byte-exact with no error, and a body
-// larger than the limit fails the read with http.MaxBytesError. Zero and
-// negative limits therefore reject every non-empty body (discovered by this
-// fuzz target: a negative limit allows the empty body through, it does not
-// error unconditionally).
+// limits, matching http.MaxBytesReader semantics exactly: a body larger than
+// max(maxBytes, 0) fails the read with http.MaxBytesError, every other body
+// reads back byte-exact with no error. Zero and negative limits therefore
+// reject every non-empty body while letting the empty body through (both
+// boundaries probed against net/http).
 func FuzzMaxBodySize(f *testing.F) {
 	f.Add([]byte("hello"), int64(5))
 	f.Add([]byte("hello"), int64(0))
@@ -41,7 +40,9 @@ func FuzzMaxBodySize(f *testing.F) {
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
 
-		if int64(len(body)) <= maxBytes {
+		effectiveLimit := max(maxBytes, 0)
+
+		if int64(len(body)) <= effectiveLimit {
 			if readErr != nil {
 				t.Errorf("body of %d bytes under limit %d failed: %v", len(body), maxBytes, readErr)
 
@@ -61,8 +62,7 @@ func FuzzMaxBodySize(f *testing.F) {
 			return
 		}
 
-		var tooLarge *http.MaxBytesError
-		if !errors.As(readErr, &tooLarge) {
+		if _, ok := errors.AsType[*http.MaxBytesError](readErr); !ok {
 			t.Errorf("read error = %v, want http.MaxBytesError", readErr)
 		}
 	})

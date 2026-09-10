@@ -399,7 +399,12 @@ func ExampleServer() {
 		return
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://"+addr+"/", nil)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		"http://"+addr+"/",
+		nil,
+	)
 	if err != nil {
 		fmt.Println("error:", err)
 
@@ -442,7 +447,10 @@ func ExampleMiddlewareStack() {
 		return
 	}
 
-	if err := stack.Add(MiddlewareSecurityHeaders, SecurityHeaders(DefaultSecurityHeadersConfig())); err != nil {
+	if err := stack.Add(
+		MiddlewareSecurityHeaders,
+		SecurityHeaders(DefaultSecurityHeadersConfig()),
+	); err != nil {
 		fmt.Println("error:", err)
 
 		return

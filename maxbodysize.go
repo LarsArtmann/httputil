@@ -54,7 +54,8 @@ func MaxBodySizeMiddleware(cfg MaxBodySizeConfig) Middleware {
 // MaxBodySize returns middleware that limits request body size to maxBytes.
 // When the limit is exceeded, the underlying read returns an error and the
 // connection is closed to prevent the client from sending more data. A
-// maxBytes of zero rejects any non-empty body; there is no unlimited option.
+// maxBytes of zero or negative rejects any non-empty body (the empty body is
+// allowed through); there is no unlimited option.
 //
 // Handlers should check for errors from r.Body.Read and respond with
 // http.StatusRequestEntityTooLarge (413) as appropriate.
