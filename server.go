@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"net"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -300,5 +302,4 @@ func (srv *Server) clearListener() {
 	defer srv.mu.Unlock()
 
 	srv.listener = nil
-}
 }

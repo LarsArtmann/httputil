@@ -262,16 +262,19 @@ func TestChain_DecompressionThenMaxBodySizeLimitsDecompressed(t *testing.T) {
 
 	cfg := DefaultDecompressionConfig()
 	cfg.MaxDecompressionSize = 1024
+
+	var readErr error
 	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		n, err := io.Copy(io.Discard, r.Body)
+		_, err := io.Copy(io.Discard, r.Body)
+		readErr = err
 		if err != nil {
 			w.WriteHeader(http.StatusExpectationFailed)
 
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		_ = r.Body.Close()
-		_ = n
 	})
 
 	wrapped := Chain(
@@ -285,12 +288,12 @@ func TestChain_DecompressionThenMaxBodySizeLimitsDecompressed(t *testing.T) {
 	req.Header.Set("Content-Encoding", "gzip")
 	wrapped.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusExpectationFailed {
-		t.Errorf(
-			"status = %d, want %d (bomb protection must abort the decompressed read)",
-			rec.Code,
-			http.StatusExpectationFailed,
-		)
+	if readErr == nil {
+		t.Fatal("decompressed body read error = nil, want the bomb-protection size error")
+	}
+
+	if !errors.Is(readErr, errDecompressionSizeExceeded) {
+		t.Errorf("read error = %v, want the decompression.size_exceeded sentinel", readErr)
 	}
 }
 

@@ -2,14 +2,13 @@ package httputil
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"io"
 	"math/big"
 	"net"
@@ -536,7 +535,6 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	freePort := reserveFreePort(t)
 	certPEM, keyPEM := newSelfSignedCert(t)
 	certPath, keyPath := filepath.Join(
 		t.TempDir(),
@@ -571,7 +569,7 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	}
 
 	srv, err := NewServer(ServerConfig{
-		Addr:              fmt.Sprintf("127.0.0.1:%d", freePort),
+		Addr:              "127.0.0.1:0",
 		ReadTimeout:       time.Second,
 		ReadHeaderTimeout: time.Second,
 		WriteTimeout:      time.Second,
@@ -584,13 +582,12 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	}
 
 	errChan := srv.StartTLS(certPath, keyPath)
-
-	select {
-	case e := <-errChan:
-		t.Fatalf("StartTLS error: %v", e)
-	default:
+	listenAddr, ok := waitForListenerAddr(t, srv, errChan)
+	if !ok {
+		t.Fatal("listener address did not resolve after StartTLS")
 	}
-	waitForTLS(t, srv, tlsCfg)
+
+	waitForTLS(t, errChan, listenAddr, tlsCfg)
 
 	clientTLS := tlsCfg.Clone()
 	clientTLS.NextProtos = []string{"http/1.1"}
@@ -598,7 +595,7 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	client := &http.Client{
 		Transport: &http.Transport{TLSClientConfig: clientTLS, ForceAttemptHTTP2: false},
 	}
-	resp, err := client.Get("https://" + srv.Addr() + "/")
+	resp, err := client.Get("https://" + listenAddr + "/")
 	if err != nil {
 		t.Fatalf("HTTPS request failed: %v", err)
 	}
@@ -626,10 +623,34 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	}
 }
 
+// waitForListenerAddr polls Server.ListenerAddr until the started listener
+// resolves or the deadline elapses, failing the test on a startup error from
+// errChan.
+func waitForListenerAddr(t *testing.T, srv *Server, errChan <-chan error) (string, bool) {
+	t.Helper()
+
+	deadline := time.Now().Add(3 * time.Second)
+
+	for time.Now().Before(deadline) {
+		select {
+		case err := <-errChan:
+			t.Fatalf("server failed to start: %v", err)
+		case <-time.After(10 * time.Millisecond):
+		}
+
+		addr, ok := srv.ListenerAddr()
+		if ok {
+			return addr.String(), true
+		}
+	}
+
+	return "", false
+}
+
 func newSelfSignedCert(t *testing.T) ([]byte, []byte) {
 	t.Helper()
 
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	_, key, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -639,36 +660,49 @@ func newSelfSignedCert(t *testing.T) ([]byte, []byte) {
 		Subject:               pkix.Name{CommonName: "localhost"},
 		NotBefore:             time.Now().Add(-time.Hour),
 		NotAfter:              time.Now().Add(time.Hour),
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
 		DNSNames:              []string{"localhost"},
 	}
 
-	der, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	der, err := x509.CreateCertificate(rand.Reader, &template, &template, key.Public(), key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	keyDER, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	keyPEM := pem.EncodeToMemory(
-		&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)},
-	)
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER})
 
 	return certPEM, keyPEM
 }
 
-func waitForTLS(t *testing.T, srv *Server, cfg *tls.Config) {
+// waitForTLS blocks until the TLS server at addr completes a handshake with
+// cfg, failing the test on a startup error from errChan or if the deadline
+// elapses. Prefer passing the resolved address from Server.ListenerAddr so a
+// retried dial cannot race a different process onto a recycled port.
+func waitForTLS(t *testing.T, errChan <-chan error, addr string, cfg *tls.Config) {
 	t.Helper()
 
 	deadline := time.Now().Add(3 * time.Second)
 
 	for time.Now().Before(deadline) {
+		select {
+		case err := <-errChan:
+			t.Fatalf("server failed to start: %v", err)
+		default:
+		}
+
 		conn, err := tls.DialWithDialer(
 			&net.Dialer{Timeout: 100 * time.Millisecond},
 			"tcp",
-			srv.Addr(),
+			addr,
 			cfg,
 		)
 		if err == nil {
@@ -683,19 +717,70 @@ func waitForTLS(t *testing.T, srv *Server, cfg *tls.Config) {
 	t.Fatal("TLS server did not become ready within 3s")
 }
 
-func reserveFreePort(t *testing.T) int {
-	t.Helper()
+func TestServer_ListenerAddr_NotListening_ReturnsFalse(t *testing.T) {
+	t.Parallel()
 
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+	srv, err := NewServer(DefaultServerConfig(), http.NotFoundHandler())
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { _ = l.Close() }()
 
-	addr, ok := l.Addr().(*net.TCPAddr)
-	if !ok {
-		t.Fatalf("unexpected listener address type: %T", l.Addr())
+	if addr, ok := srv.ListenerAddr(); ok {
+		t.Errorf("ListenerAddr before Start = (%v, true), want (nil, false)", addr)
+	}
+}
+
+func TestServer_Start_EphemeralAddr_ListenerAddrResolvesPort(t *testing.T) {
+	t.Parallel()
+
+	srv, err := NewServer(ServerConfig{
+		Addr:              "127.0.0.1:0",
+		ReadTimeout:       time.Second,
+		ReadHeaderTimeout: time.Second,
+		WriteTimeout:      time.Second,
+		IdleTimeout:       time.Second,
+		ShutdownTimeout:   time.Second,
+	}, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	return addr.Port
+	errChan := srv.Start()
+
+	listenAddr, ok := waitForListenerAddr(t, srv, errChan)
+	if !ok {
+		t.Fatal("listener address did not resolve after Start")
+	}
+
+	tcpAddr, err := net.ResolveTCPAddr("tcp", listenAddr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if tcpAddr.Port == 0 {
+		t.Errorf("resolved port = 0, want the OS-assigned ephemeral port")
+	}
+
+	resp, err := http.Get("http://" + listenAddr + "/")
+	if err != nil {
+		t.Fatalf("request to resolved address failed: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		t.Fatalf("shutdown failed: %v", err)
+	}
+
+	if addr, ok := srv.ListenerAddr(); ok {
+		t.Errorf("ListenerAddr after Shutdown = (%v, true), want (nil, false)", addr)
+	}
 }
