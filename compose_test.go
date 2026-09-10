@@ -44,14 +44,14 @@ func TestCompose_EmptyListReturnsIdentityMiddleware(t *testing.T) {
 
 	var order []string
 
-	terminal := newAppendingHandler(&order, "handler")
+	terminal := newAppendingHandler(&order, "terminal")
 
 	handler := Compose()(terminal)
 
 	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/", ""))
 
-	if len(order) != 1 || order[0] != "handler" {
-		t.Errorf("order = %v, want [handler]", order)
+	if len(order) != 1 || order[0] != "terminal" {
+		t.Errorf("order = %v, want [terminal]", order)
 	}
 }
 
@@ -205,12 +205,12 @@ func TestMiddlewareStack_Middleware_EmptyStackPassesHandlerThrough(t *testing.T)
 
 	var order []string
 
-	handler := NewMiddlewareStack().Middleware()(newAppendingHandler(&order, "handler"))
+	handler := NewMiddlewareStack().Middleware()(newAppendingHandler(&order, "terminal"))
 
 	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/", ""))
 
-	if len(order) != 1 || order[0] != "handler" {
-		t.Errorf("order = %v, want [handler]", order)
+	if len(order) != 1 || order[0] != "terminal" {
+		t.Errorf("order = %v, want [terminal]", order)
 	}
 }
 

@@ -23,8 +23,10 @@ const (
 	// DefaultCSRFCookieName is the default name of the CSRF cookie.
 	DefaultCSRFCookieName = "csrf_token"
 	// DefaultCSRFHeaderName is the default request header containing the CSRF
-	// token. HTMX sends this header when configured with hx-headers.
-	DefaultCSRFHeaderName = "X-CSRF-Token"
+	// token. HTMX sends this header when configured with hx-headers. The value
+	// uses Go's canonical MIME header form; HTTP header names are
+	// case-insensitive, so this matches the conventional X-CSRF-Token spelling.
+	DefaultCSRFHeaderName = "X-Csrf-Token"
 	// DefaultCSRFFieldName is the default form field name for the CSRF token.
 	DefaultCSRFFieldName = "csrf_token"
 	defaultCSRFMaxAge    = 24 * time.Hour
@@ -84,7 +86,7 @@ type CSRFConfig struct {
 
 	// HeaderName is the request header containing the CSRF token.
 	// HTMX sends this header when configured with hx-headers.
-	// Default: "X-CSRF-Token"
+	// Default: "X-Csrf-Token" (case-insensitive on the wire)
 	HeaderName string
 
 	// FieldName is the form field name containing the CSRF token.
@@ -350,7 +352,7 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //
 // For state-changing methods (POST/PUT/PATCH/DELETE), it validates that the
 // request includes a matching token in either:
-//   - The X-CSRF-Token header (HTMX default)
+//   - The X-Csrf-Token header (HTMX default)
 //   - A form field named "csrf_token"
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	validateConfig("CSRFConfig", cfg.Validate())
@@ -487,7 +489,7 @@ func TranslateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
 }
 
 // CSRFResponseHeaderMiddleware returns HTTP middleware that automatically sets
-// the X-CSRF-Token response header on every request. This eliminates the need
+// the X-Csrf-Token response header on every request. This eliminates the need
 // for individual handlers to manually set the token.
 //
 // Place this AFTER CSRFMiddleware in the chain so the token is already in context.

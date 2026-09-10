@@ -162,6 +162,7 @@ func TestChain_HijackUpgrade_BytesFlowThroughHijackedConn(t *testing.T) {
 			return
 		}
 
+		//nolint:makezero // pre-allocated with known length for io.ReadFull, not append
 		echo := make(
 			[]byte,
 			len(hijackEchoPayload),

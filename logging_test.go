@@ -94,9 +94,9 @@ func TestLogging_IncludesRequestIDMatchingResponseHeader(t *testing.T) {
 
 	handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/test", ""))
 
-	headerID := rec.Header().Get("X-Request-Id")
+	headerID := rec.Header().Get("X-Request-ID")
 	if headerID == "" {
-		t.Fatal("response missing X-Request-Id header")
+		t.Fatal("response missing X-Request-ID header")
 	}
 
 	out := buf.String()
