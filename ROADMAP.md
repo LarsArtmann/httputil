@@ -59,6 +59,7 @@ Things we are deliberately NOT pursuing and why:
 - **Removing `TokenBucketLimiter` before v1.0** — deprecated, but removal waits for the v1.0 stability freeze to avoid breaking consumers.
 - **Property-based tests for token bucket** — existing benchmarks and integration tests cover the contract; adding rapid/quickcheck would violate the dependency policy.
 - **`MustNewTokenBucketLimiter`** — would add code to a deprecated API.
+- **All `Must*`-style APIs (`MustAdd` on `MiddlewareStack`, etc.)** — owner decision 2026-09-10: `Must*` functions panic and panics are rejected as an API design tool. Wiring errors return errors from `Add` (callers choose how to fail); no Must variants will be added to any type.
 - **`AllowN` on the rate limiter interface** — evaluated and rejected: `KeyedRateLimiter` uses `MaxKeys` and per-key capacity, not per-request burst; `AllowN` is the wrong primitive.
 - **Exporting `delegatingWriter`** — internal ResponseWriter plumbing; not part of the public API.
 - **Wrapping post-header-commit body-write errors** — unreportable in Go's Handler model; the "honest silence" contract is documented in AGENTS.md.

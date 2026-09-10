@@ -25,7 +25,6 @@ _Updated: 2026-09-10 (composability architecture review + docs harvest)._
 
 ## Low Priority
 
-- [ ] **`MiddlewareStack.MustAdd`** — startup wiring at composition roots needs error handling per `Add`; a Must variant that panics with the classified error message matches the fail-at-wiring-time story and complements `MiddlewareStack.Middleware()` (`stack.go:61`; [2026-09-10_03-19_composability.html](docs/architecture-understanding/2026-09-10_03-19_composability.html) roadmap step 2).
 - [ ] **Document the `Compose` bundle pattern** — add a secure-stack example (build once, apply to many handlers, nest stacks via `MiddlewareStack.Middleware()`) to README or docs/integrations so consumers discover the composition API (`compose.go`; [2026-09-10_03-19_composability.html](docs/architecture-understanding/2026-09-10_03-19_composability.html) roadmap step 4).
 - [x] **Chain-level regression for the exact-fill duplication fix** — DONE 2026-09-10: `TestCompression_ExactMinSizeWrite_IsNotDuplicated` — the unit test covers `compressWriter` directly; add the same 512-byte-exact-fill case through the full `Compression()` middleware (`11-30:f18`).
 - [ ] **KeyedRateLimiter property test** — heap/map consistency under churn above `MaxKeys` (pattern: the compression negotiator property test) plus a benchmark with real `MaxKeys`-pressure churn (`11-30:f20`, `f21`).

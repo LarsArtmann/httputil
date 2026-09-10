@@ -1130,12 +1130,18 @@ h3 := auth.Then(handler)</code></pre>
           <div class="migration-step">
             <div class="migration-num">2</div>
             <div class="migration-content">
-              <h4>Add MiddlewareStack.MustAdd (P3, effort S)</h4>
+              <h4><del>Add MiddlewareStack.MustAdd (P3, effort S)</del> &mdash; DECLINED 2026-09-10</h4>
               <p>
                 Startup wiring at composition roots currently needs error
                 handling per Add; a Must variant that panics with the
                 classified error message matches the library's
                 fail-at-wiring-time story. Complements Middleware().
+              </p>
+              <p>
+                <strong>Declined by owner:</strong> no <code>Must*</code> APIs
+                ever &mdash; they panic, and panics are rejected as an API
+                design tool. Callers handle <code>Add</code>'s error. See
+                ROADMAP Non-goals.
               </p>
             </div>
           </div>

@@ -80,7 +80,7 @@ Nothing I shipped is broken: no failing test, no red gate attributable to this s
 | 7 | CI: enforce clean `golangci-lint run` on `.golangci.yml` changes (closes §d-1 root cause) | High | S | Quality |
 | 8 | v1.0 cut decision + stabilization checklist (tracked) | High | M | Feature |
 | 9 | Verify CSRF `Sec-Fetch-Site` trust model against nosurf source (tracked) | High | M | Quality |
-| 10 | `MiddlewareStack.MustAdd` (tracked, harvested this session) | Medium | S | Feature |
+| 10 | ~~`MiddlewareStack.MustAdd` (tracked, harvested this session)~~ **DECLINED by owner 2026-09-10** — no `Must*` APIs ever (they panic; panics rejected). Recorded in ROADMAP Non-goals + AGENTS.md. | ~~Medium~~ | S | ~~Feature~~ |
 | 11 | `ExampleCompose`, `ExampleMiddlewareFunc_Then`, `ExampleMiddlewareStack` (also closes pre-existing ExampleMiddlewareStack gap) | Medium | S | Documentation |
 | 12 | `BenchmarkCompose` + `BenchmarkMiddlewareStack_Middleware` (pin near-zero wrapping overhead) | Medium | S | Quality |
 | 13 | CHANGELOG entries for the concurrent session's uncommitted-scope work (csrf.go +191, errors.go new codes, compression.go, new httpspec spec) if it didn't write them | Medium | S | Documentation |
