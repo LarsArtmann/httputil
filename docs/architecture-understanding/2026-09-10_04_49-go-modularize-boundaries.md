@@ -7,6 +7,8 @@
 | Check | Result |
 | --- | --- |
 | go.mod inventory | 2 modules (`.` + `./server_timing`) + `go.work` — workspace mode, already split |
+| Non-test file count | **37** in package `httputil`, 41 module-wide incl. `httpspec` (corrects the 36/38 figures circulating in older docs) |
+| Tag audit | dual namespace works: root plain `v*` (latest v0.12.0), submodule `server_timing/v*` (latest v0.12.0); `go.work.sum` absent — harmless, local `replace` pins resolve without it |
 | `GOWORK=off go build` per module | both pass (FM#4/FM#12 clean) |
 | `scripts/check-module-boundaries.sh` | OK both modules |
 | `go work sync` + `go work edit -fmt` | clean (no FM#9 drift) |
@@ -15,14 +17,16 @@
 | root external deps | 5, each behind a plugin seam or adapter |
 | Test-dep leaks in production go.mod | none (FM#3 clean) |
 | Co-change via git log | **unreliable here** — the auto-commit daemon batches all changed files per commit; dependency graph + release cadence used instead |
+| **External consumer scan** (pkg.go.dev imported-by + Sourcegraph, 2026-09-10) | root: 4 repos, all owner-owned (`emeet-pixyd`, `template-arch-lint`, `go-appkit`, `cqrs-htmx` v2/v3/v4). `server_timing`: imported standalone by `cqrs-htmx` v4 + admin-demo — composability payoff **proven**. `httpspec`: **zero importers anywhere** |
+| CI wiring | verified real, not ghost gates: `ci.yml:44` runs `check-module-boundaries.sh`, golangci-lint action + `GOEXPERIMENT=jsonv2` set, `nightly-fuzz.yml` + `release.yml` present |
 
 ## Phase 1.5 boundary scoring
 
 | Boundary | Cohesion | Coupling | Independent build/version | Depth | Composability payoff | Action |
 | --- | --- | --- | --- | --- | --- | --- |
-| root module (packages `httputil` + `httpspec`) | 4 — flat by documented decision, file-per-concern | low — 5 ext deps, all isolated | yes | right-for-now (38/50 non-test files) | yes — one import path is the product | **Keep** |
+| root module (packages `httputil` + `httpspec`) | 4 — flat by documented decision, file-per-concern | low — 5 ext deps, all isolated | yes | right-for-now (37/50 non-test files; 4 consumer repos depend on the single import path) | yes — proven by 4 importing repos | **Keep** |
 | `server_timing` module | 5 — single concern | zero deps | yes — own go.mod, own v0.12.x tags, own lint config | right | yes — importable standalone | **Keep** |
-| `httpspec` as separate module | 5 — single concern | zero deps | would be yes | **too fine today** — no known consumer needs it versioned apart from root | unproven | **Keep as subpackage**; revisit only on consumer demand |
+| `httpspec` as separate module | 5 — single concern | zero deps | would be yes | **dead question for now — zero importers found** | none proven (0 importers) | **Keep as subpackage**; splitting a module nobody imports is overhead, not architecture |
 
 ## God-package check (root `httputil`)
 
@@ -41,6 +45,14 @@ Fires the rules of thumb (38 files, 28 exported types, 75 exported funcs, 14 mid
 2. **`internal/` hygiene step** — only if a second consumer demands it post-v1.0.
 3. **httpspec → own module** — only if a consumer needs it versioned independently of root.
 
-## Known-evidence gap
+## Resolved: the consumer-evidence gap
 
-Whether any external consumer imports `httpspec` (or `server_timing`) without the root middleware is unknown from inside the repo — that fact would upgrade or kill the httpspec module-split question definitively.
+The 08-30 analysis and earlier versions of this doc listed "no known external consumers" as an open question. Resolved 2026-09-10 via pkg.go.dev imported-by + Sourcegraph:
+
+- **4 repos import the root module** — all owned by LarsArtmann (`emeet-pixyd`, `template-arch-lint`, `go-appkit`, `cqrs-htmx`). No third-party importers are public. The flat root's one-import-path ergonomics now serve 4 codebases — raising the cost of any future split and strengthening the Hold verdict.
+- **`server_timing` has a proven standalone consumer** (`cqrs-htmx` v4 + admin-demo) — the module boundary earns its keep by the skill's own litmus test.
+- **`httpspec` has zero importers** — built, tested, documented, unused externally. The module-split question is closed (nobody needs it versioned apart); the real gap is **discovery/marketing**, which belongs to the README/docs-site workstream, not to go.mod surgery. The flat-root "second consumer asks for internal/ hygiene" trigger is now *partially armed*: consumer count already exceeds two, so any one of them asking fires it.
+
+## Known-evidence gap (remaining)
+
+pkg.go.dev/Sourcegraph only see public code. Private in-family consumers beyond the 4 found would not appear — the owner knows the full set.

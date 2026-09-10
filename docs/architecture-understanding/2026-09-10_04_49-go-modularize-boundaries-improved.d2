@@ -4,12 +4,12 @@
 direction: down
 
 legend: Reading guide {
-  solid: shipped + verified (builds, consumers, CI) {
+  solid: "shipped + verified (builds, consumers, CI)" {
     style.stroke: "#111111"
   }
   gated: exists only if its trigger fires {
     style.stroke: "#d97706"
-    style.border-dashed: true
+    style.stroke-dash: 4
   }
 }
 
@@ -17,11 +17,11 @@ consumers: Consumers (verified via pkg.go.dev importer scan) {
   shape: person
   infamily: 4 owner repos import root
   cqrs: cqrs-htmx imports server_timing standalone
-  thirdparty: third-party adoption: none yet (discovery gap, not architecture gap)
+  thirdparty: "third-party adoption: none yet (discovery gap, not architecture gap)"
 }
 
 root: Root module github.com/larsartmann/httputil — BOUNDARIES HELD {
-  pkg: package httputil (flat; revisit only at >50 files or v1.0 + internal/ request) {
+  pkg: "package httputil (flat; revisit only at >50 files or v1.0 + internal/ request)" {
     mw: 14 middleware factories
     compose: Composition API front door
     life: Server + Health
@@ -33,7 +33,7 @@ root: Root module github.com/larsartmann/httputil — BOUNDARIES HELD {
   }
   internal: internal/ hygiene step {
     style.stroke: "#d97706"
-    style.border-dashed: true
+    style.stroke-dash: 4
   }
 }
 
@@ -44,7 +44,7 @@ st: server_timing sub-module (zero deps, independent tags) {
 gocompress: go-compression module {
   label: "go-compression module\nextract ONLY when go-datastar\nSSE-compression need lands\n(plan: docs/planning 2026-08-16)"
   style.stroke: "#d97706"
-  style.border-dashed: true
+  style.stroke-dash: 4
 }
 
 ext: External deps (plugin seams or adapters) {
@@ -66,13 +66,13 @@ root.httpspec -> root.pkg: same module
 
 gocompress -> root.pkg.mw: provides WriterFactory plugins to Compression() when extracted {
   style.stroke: "#d97706"
-  style.border-dashed: true
+  style.stroke-dash: 4
 }
 consumers.thirdparty -> gocompress: imports compression without middleware {
   style.stroke: "#d97706"
-  style.border-dashed: true
+  style.stroke-dash: 4
 }
 root.internal -> root.pkg: invisible outside the module (internal/ rule) {
   style.stroke: "#d97706"
-  style.border-dashed: true
+  style.stroke-dash: 4
 }

@@ -36,7 +36,7 @@ stack.s1 -> stack.s2: next.ServeHTTP (panic guard active)
 stack.s2 -> stack.s3: next.ServeHTTP (timer running)
 stack.s3 -> stack.s4: next.ServeHTTP (request_id in context)
 stack.s4 -> stack.h: wrapped writer (gzip if negotiated)
-stack.h -> stack.s4: body bytes -> compressed write
+stack.h -> stack.s4: body bytes compressed on write
 stack.s4 -> stack.s3: Content-Encoding set, pool returned
 stack.s3 -> stack.s2: X-Request-ID response header set
 stack.s2 -> stack.s1: status captured, log line emitted
