@@ -691,24 +691,43 @@ func TestLeakPatternsCoversCommonLeaks(t *testing.T) {
 	}
 }
 
-func TestHasVersionLeakDetectsVersionPattern(t *testing.T) {
+func TestHasVersionLeak_DetectsNginxVersion(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		server string
-		leak   bool
-	}{
-		{"nginx/1.21.3", true},
-		{"Apache/2.4.41 (Ubuntu)", true},
-		{"nginx", false},
-		{"", false},
-		{"MyServer", false},
+	if got := hasVersionLeak("nginx/1.21.3"); !got {
+		t.Errorf("hasVersionLeak(nginx/1.21.3) = %v, want true", got)
 	}
+}
 
-	for _, tc := range cases {
-		if got := hasVersionLeak(tc.server); got != tc.leak {
-			t.Errorf("hasVersionLeak(%q) = %v, want %v", tc.server, got, tc.leak)
-		}
+func TestHasVersionLeak_DetectsApacheVersion(t *testing.T) {
+	t.Parallel()
+
+	if got := hasVersionLeak("Apache/2.4.41 (Ubuntu)"); !got {
+		t.Errorf("hasVersionLeak(Apache/2.4.41 (Ubuntu)) = %v, want true", got)
+	}
+}
+
+func TestHasVersionLeak_BareNameDoesNotLeak(t *testing.T) {
+	t.Parallel()
+
+	if got := hasVersionLeak("nginx"); got {
+		t.Errorf("hasVersionLeak(nginx) = %v, want false", got)
+	}
+}
+
+func TestHasVersionLeak_EmptyDoesNotLeak(t *testing.T) {
+	t.Parallel()
+
+	if got := hasVersionLeak(""); got {
+		t.Errorf("hasVersionLeak(empty) = %v, want false", got)
+	}
+}
+
+func TestHasVersionLeak_CustomNameDoesNotLeak(t *testing.T) {
+	t.Parallel()
+
+	if got := hasVersionLeak("MyServer"); got {
+		t.Errorf("hasVersionLeak(MyServer) = %v, want false", got)
 	}
 }
 

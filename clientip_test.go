@@ -7,67 +7,61 @@ import (
 	"testing"
 )
 
-func TestClientIP(t *testing.T) {
-	t.Parallel()
+// newClientIPRequest builds a GET request with a specific RemoteAddr and an
+// optional spoofable forwarding header.
+func newClientIPRequest(remoteAddr, header, headerVal string) *http.Request {
+	request := httptest.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		"/",
+		nil,
+	)
 
-	const defaultRemoteAddr = "10.0.0.1:1234"
-
-	tests := []struct {
-		name       string
-		remoteAddr string
-		header     string
-		headerVal  string
-		want       string
-	}{
-		{
-			name:      "X-Forwarded-For first entry wins",
-			header:    "X-Forwarded-For",
-			headerVal: "1.2.3.4, 5.6.7.8",
-			want:      "1.2.3.4",
-		},
-		{
-			name:      "X-Real-IP fallback",
-			header:    "X-Real-IP",
-			headerVal: "9.8.7.6",
-			want:      "9.8.7.6",
-		},
-		{
-			name: "RemoteAddr with port",
-			want: "10.0.0.1",
-		},
-		{
-			name:       "RemoteAddr without port",
-			remoteAddr: "10.0.0.1",
-			want:       "10.0.0.1",
-		},
+	request.RemoteAddr = remoteAddr
+	if header != "" {
+		request.Header.Set(header, headerVal)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	return request
+}
 
-			remoteAddr := tt.remoteAddr
-			if remoteAddr == "" {
-				remoteAddr = defaultRemoteAddr
-			}
+func TestClientIP_XForwardedForFirstEntryWins(t *testing.T) {
+	t.Parallel()
 
-			request := httptest.NewRequestWithContext(
-				context.Background(),
-				http.MethodGet,
-				"/",
-				nil,
-			)
+	request := newClientIPRequest("10.0.0.1:1234", "X-Forwarded-For", "1.2.3.4, 5.6.7.8")
 
-			request.RemoteAddr = remoteAddr
-			if tt.header != "" {
-				request.Header.Set(tt.header, tt.headerVal)
-			}
+	if got := ClientIP(request); got != "1.2.3.4" {
+		t.Errorf("ClientIP() = %q, want %q", got, "1.2.3.4")
+	}
+}
 
-			got := ClientIP(request)
-			if got != tt.want {
-				t.Errorf("ClientIP() = %q, want %q", got, tt.want)
-			}
-		})
+func TestClientIP_XRealIPFallback(t *testing.T) {
+	t.Parallel()
+
+	request := newClientIPRequest("10.0.0.1:1234", "X-Real-IP", "9.8.7.6")
+
+	if got := ClientIP(request); got != "9.8.7.6" {
+		t.Errorf("ClientIP() = %q, want %q", got, "9.8.7.6")
+	}
+}
+
+func TestClientIP_RemoteAddrWithPort(t *testing.T) {
+	t.Parallel()
+
+	request := newClientIPRequest("10.0.0.1:1234", "", "")
+
+	if got := ClientIP(request); got != "10.0.0.1" {
+		t.Errorf("ClientIP() = %q, want %q", got, "10.0.0.1")
+	}
+}
+
+func TestClientIP_RemoteAddrWithoutPort(t *testing.T) {
+	t.Parallel()
+
+	request := newClientIPRequest("10.0.0.1", "", "")
+
+	if got := ClientIP(request); got != "10.0.0.1" {
+		t.Errorf("ClientIP() = %q, want %q", got, "10.0.0.1")
 	}
 }
 

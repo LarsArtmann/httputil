@@ -304,67 +304,123 @@ func TestRateLimitSpecs_FailOnInvalidRetryAfter(t *testing.T) {
 	t.Fatal("SpecNameRateLimitHeaderOnReject not found in RateLimitSpecs")
 }
 
-func TestVaryContainsToken(t *testing.T) {
+func TestVaryContainsToken_SingleTokenMatch(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name  string
-		vary  string
-		token string
-		want  bool
-	}{
-		{"single token match", "Origin", "Origin", true},
-		{"case-insensitive", "origin", "Origin", true},
-		{"multi-token match", "Accept-Encoding, Origin", "Origin", true},
-		{"multi-token match case-insensitive", "accept-encoding, ORIGIN", "Origin", true},
-		{"whitespace padded", " Origin , Accept-Encoding", "Origin", true},
-		{"missing", "Accept-Encoding", "Origin", false},
-		{"empty", "", "Origin", false},
-		{"partial", "X-Origin", "Origin", false},
-	}
-
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := varyContainsToken(testCase.vary, testCase.token)
-			if got != testCase.want {
-				t.Errorf("varyContainsToken(%q, %q) = %v, want %v",
-					testCase.vary, testCase.token, got, testCase.want)
-			}
-		})
+	if got := varyContainsToken("Origin", "Origin"); !got {
+		t.Errorf("varyContainsToken(Origin, Origin) = %v, want true", got)
 	}
 }
 
-func TestValidateNonNegativeInt(t *testing.T) {
+func TestVaryContainsToken_CaseInsensitive(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name     string
-		value    string
-		wantFail bool
-	}{
-		{"empty", "", false},
-		{"zero", "0", false},
-		{"positive", "42", false},
-		{"negative", "-1", true},
-		{"non-numeric", "abc", true},
-		{"float", "1.5", true},
-		{"trailing", "12abc", true},
+	if got := varyContainsToken("origin", "Origin"); !got {
+		t.Errorf("varyContainsToken(origin, Origin) = %v, want true", got)
 	}
+}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			t.Parallel()
+func TestVaryContainsToken_MultiTokenMatch(t *testing.T) {
+	t.Parallel()
 
-			msg := validateNonNegativeInt("X-Test", testCase.value)
-			gotFail := msg != ""
+	if got := varyContainsToken("Accept-Encoding, Origin", "Origin"); !got {
+		t.Errorf("varyContainsToken with multi-token Vary = %v, want true", got)
+	}
+}
 
-			if gotFail != testCase.wantFail {
-				t.Errorf("validateNonNegativeInt(%q) fail=%v, want %v (msg=%q)",
-					testCase.value, gotFail, testCase.wantFail, msg)
-			}
-		})
+func TestVaryContainsToken_MultiTokenMatchCaseInsensitive(t *testing.T) {
+	t.Parallel()
+
+	if got := varyContainsToken("accept-encoding, ORIGIN", "Origin"); !got {
+		t.Errorf("varyContainsToken with uppercase token = %v, want true", got)
+	}
+}
+
+func TestVaryContainsToken_WhitespacePadded(t *testing.T) {
+	t.Parallel()
+
+	if got := varyContainsToken(" Origin , Accept-Encoding", "Origin"); !got {
+		t.Errorf("varyContainsToken with whitespace padding = %v, want true", got)
+	}
+}
+
+func TestVaryContainsToken_Missing(t *testing.T) {
+	t.Parallel()
+
+	if got := varyContainsToken("Accept-Encoding", "Origin"); got {
+		t.Errorf("varyContainsToken without token = %v, want false", got)
+	}
+}
+
+func TestVaryContainsToken_Empty(t *testing.T) {
+	t.Parallel()
+
+	if got := varyContainsToken("", "Origin"); got {
+		t.Errorf("varyContainsToken with empty Vary = %v, want false", got)
+	}
+}
+
+func TestVaryContainsToken_Partial(t *testing.T) {
+	t.Parallel()
+
+	if got := varyContainsToken("X-Origin", "Origin"); got {
+		t.Errorf("varyContainsToken with partial token = %v, want false", got)
+	}
+}
+
+func TestValidateNonNegativeInt_Empty(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", ""); msg != "" {
+		t.Errorf("validateNonNegativeInt(empty) = %q, want no failure", msg)
+	}
+}
+
+func TestValidateNonNegativeInt_Zero(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", "0"); msg != "" {
+		t.Errorf("validateNonNegativeInt(0) = %q, want no failure", msg)
+	}
+}
+
+func TestValidateNonNegativeInt_Positive(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", "42"); msg != "" {
+		t.Errorf("validateNonNegativeInt(42) = %q, want no failure", msg)
+	}
+}
+
+func TestValidateNonNegativeInt_Negative(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", "-1"); msg == "" {
+		t.Error("validateNonNegativeInt(-1) should fail")
+	}
+}
+
+func TestValidateNonNegativeInt_NonNumeric(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", "abc"); msg == "" {
+		t.Error("validateNonNegativeInt(abc) should fail")
+	}
+}
+
+func TestValidateNonNegativeInt_Float(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", "1.5"); msg == "" {
+		t.Error("validateNonNegativeInt(1.5) should fail")
+	}
+}
+
+func TestValidateNonNegativeInt_Trailing(t *testing.T) {
+	t.Parallel()
+
+	if msg := validateNonNegativeInt("X-Test", "12abc"); msg == "" {
+		t.Error("validateNonNegativeInt(12abc) should fail")
 	}
 }
 

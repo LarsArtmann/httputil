@@ -9,40 +9,104 @@ import (
 	"testing"
 )
 
-func TestParseUintQuery(t *testing.T) {
+// newQueryRequest builds a GET request whose query string is the given text.
+func newQueryRequest(query string) *http.Request {
+	return httptest.NewRequest(http.MethodGet, "/?"+query, nil)
+}
+
+func TestParseUintQuery_Valid(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name  string
-		query string
-		key   string
-		want  uint
-	}{
-		{"valid", "page=42", "page", 42},
-		{"missing key", "", "page", 0},
-		{"empty value", "page=", "page", 0},
-		{"negative", "page=-1", "page", 0},
-		{"non-numeric", "page=abc", "page", 0},
-		{"zero", "page=0", "page", 0},
-		{"large valid", "page=4294967295", "page", 4294967295},
-		{"overflow 32-bit", "page=4294967296", "page", 0},
-		{"different key", "size=10&page=3", "page", 3},
-		{"float", "page=1.5", "page", 0},
-		{"hex notation", "page=0x10", "page", 0},
-		{"plus sign", "page=+5", "page", 0},
+	if got := ParseUintQuery(newQueryRequest("page=42"), "page"); got != 42 {
+		t.Errorf("ParseUintQuery(page) = %d, want 42", got)
 	}
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+func TestParseUintQuery_MissingKey(t *testing.T) {
+	t.Parallel()
 
-			req := httptest.NewRequest(http.MethodGet, "/?"+tt.query, nil)
+	if got := ParseUintQuery(newQueryRequest(""), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
 
-			got := ParseUintQuery(req, tt.key)
-			if got != tt.want {
-				t.Errorf("ParseUintQuery(%q) = %d, want %d", tt.key, got, tt.want)
-			}
-		})
+func TestParseUintQuery_EmptyValue(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page="), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_Negative(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=-1"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_NonNumeric(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=abc"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_Zero(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=0"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_LargeValid(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=4294967295"), "page"); got != 4294967295 {
+		t.Errorf("ParseUintQuery(page) = %d, want 4294967295", got)
+	}
+}
+
+func TestParseUintQuery_Overflow32Bit(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=4294967296"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_DifferentKey(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("size=10&page=3"), "page"); got != 3 {
+		t.Errorf("ParseUintQuery(page) = %d, want 3", got)
+	}
+}
+
+func TestParseUintQuery_Float(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=1.5"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_HexNotation(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=0x10"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
+	}
+}
+
+func TestParseUintQuery_PlusSign(t *testing.T) {
+	t.Parallel()
+
+	if got := ParseUintQuery(newQueryRequest("page=+5"), "page"); got != 0 {
+		t.Errorf("ParseUintQuery(page) = %d, want 0", got)
 	}
 }
 

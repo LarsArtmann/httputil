@@ -140,32 +140,58 @@ func TestServerTiming_MeasureWithDesc(t *testing.T) {
 	}
 }
 
-func TestServerTiming_NameSanitization(t *testing.T) {
+func TestServerTiming_NameSanitization_KeepsSimpleName(t *testing.T) {
 	t.Parallel()
 
-	cases := map[string]string{
-		"db":        "db",
-		"my metric": "my_metric",
-		"a/b:c":     "a_b_c",
-		"":          "", // dropped entirely
-		"a b c":     "a_b_c",
+	st := NewServerTiming()
+	st.Record("db", "", time.Millisecond)
+
+	if hv := st.HeaderValue(); hv != "db;dur=1" {
+		t.Errorf("simple name: got %q, want %q", hv, "db;dur=1")
 	}
-	for input, want := range cases {
-		st := NewServerTiming()
-		st.Record(input, "", time.Millisecond)
+}
 
-		hv := st.HeaderValue()
-		if want == "" {
-			if hv != "" {
-				t.Errorf("name %q: expected dropped, got %q", input, hv)
-			}
+func TestServerTiming_NameSanitization_ReplacesSpaces(t *testing.T) {
+	t.Parallel()
 
-			continue
-		}
+	st := NewServerTiming()
+	st.Record("my metric", "", time.Millisecond)
 
-		if hv != want+";dur=1" {
-			t.Errorf("name %q: got %q, want %s", input, hv, want+";dur=1")
-		}
+	if hv := st.HeaderValue(); hv != "my_metric;dur=1" {
+		t.Errorf("name with space: got %q, want %q", hv, "my_metric;dur=1")
+	}
+}
+
+func TestServerTiming_NameSanitization_ReplacesSeparators(t *testing.T) {
+	t.Parallel()
+
+	st := NewServerTiming()
+	st.Record("a/b:c", "", time.Millisecond)
+
+	if hv := st.HeaderValue(); hv != "a_b_c;dur=1" {
+		t.Errorf("name with separators: got %q, want %q", hv, "a_b_c;dur=1")
+	}
+}
+
+func TestServerTiming_NameSanitization_DropsEmptyName(t *testing.T) {
+	t.Parallel()
+
+	st := NewServerTiming()
+	st.Record("", "", time.Millisecond)
+
+	if hv := st.HeaderValue(); hv != "" {
+		t.Errorf("empty name should be dropped entirely, got %q", hv)
+	}
+}
+
+func TestServerTiming_NameSanitization_ReplacesConsecutiveSpaces(t *testing.T) {
+	t.Parallel()
+
+	st := NewServerTiming()
+	st.Record("a b c", "", time.Millisecond)
+
+	if hv := st.HeaderValue(); hv != "a_b_c;dur=1" {
+		t.Errorf("name with multiple spaces: got %q, want %q", hv, "a_b_c;dur=1")
 	}
 }
 
@@ -228,23 +254,43 @@ func TestServerTiming_PrependTotalAtFront(t *testing.T) {
 	}
 }
 
-func TestFormatMillis(t *testing.T) {
+func TestFormatMillis_Millisecond(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		d    time.Duration
-		want string
-	}{
-		{1 * time.Millisecond, "1"},
-		{53 * time.Millisecond, "53"},
-		{500 * time.Microsecond, "0.5"},
-		{123 * time.Microsecond, "0.123"},
-		{0, "0"},
+	if got := formatMillis(1 * time.Millisecond); got != "1" {
+		t.Errorf("formatMillis(1ms) = %q, want %q", got, "1")
 	}
-	for _, c := range cases {
-		if got := formatMillis(c.d); got != c.want {
-			t.Errorf("formatMillis(%v) = %q, want %q", c.d, got, c.want)
-		}
+}
+
+func TestFormatMillis_MultipleMilliseconds(t *testing.T) {
+	t.Parallel()
+
+	if got := formatMillis(53 * time.Millisecond); got != "53" {
+		t.Errorf("formatMillis(53ms) = %q, want %q", got, "53")
+	}
+}
+
+func TestFormatMillis_HalfMillisecond(t *testing.T) {
+	t.Parallel()
+
+	if got := formatMillis(500 * time.Microsecond); got != "0.5" {
+		t.Errorf("formatMillis(0.5ms) = %q, want %q", got, "0.5")
+	}
+}
+
+func TestFormatMillis_SubMillisecondPrecision(t *testing.T) {
+	t.Parallel()
+
+	if got := formatMillis(123 * time.Microsecond); got != "0.123" {
+		t.Errorf("formatMillis(0.123ms) = %q, want %q", got, "0.123")
+	}
+}
+
+func TestFormatMillis_Zero(t *testing.T) {
+	t.Parallel()
+
+	if got := formatMillis(0); got != "0" {
+		t.Errorf("formatMillis(0) = %q, want %q", got, "0")
 	}
 }
 
