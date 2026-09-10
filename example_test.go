@@ -3,6 +3,7 @@ package httputil
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -317,4 +318,144 @@ func ExampleNonce() {
 	// Output:
 	// true
 	// true
+}
+
+// exampleMetricsRecorder captures the most recent observation for assertion
+// in ExampleMetrics.
+type exampleMetricsRecorder struct {
+	lastMethod string
+	lastPath   string
+	lastStatus int
+}
+
+func (r *exampleMetricsRecorder) Record(method, path string, status int, _ time.Duration) {
+	r.lastMethod = method
+	r.lastPath = path
+	r.lastStatus = status
+}
+
+func ExampleMetrics() {
+	recorder := &exampleMetricsRecorder{}
+
+	handler := Metrics(MetricsConfig{Recorder: recorder})(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusTeapot)
+		}),
+	)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/hello", nil))
+
+	fmt.Println(rec.Code, recorder.lastMethod, recorder.lastPath, recorder.lastStatus)
+
+	// Output: 418 GET /hello 418
+}
+
+func ExampleHealthHandler() {
+	rec := httptest.NewRecorder()
+	HealthHandler()(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+
+	fmt.Println(rec.Code)
+	fmt.Println(rec.Header().Get("Content-Type"))
+	fmt.Print(rec.Body.String())
+
+	// Output:
+	// 200
+	// application/json
+	// {"status":"up"}
+}
+
+func ExampleServer() {
+	srv, err := NewServer(ServerConfig{
+		Addr:            "127.0.0.1:0",
+		ShutdownTimeout: time.Second,
+	}, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "hello")
+	}))
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	srv.Start()
+
+	addr, ok := func() (string, bool) {
+		deadline := time.Now().Add(time.Second)
+
+		for time.Now().Before(deadline) {
+			if listenAddr, listening := srv.ListenerAddr(); listening {
+				return listenAddr.String(), true
+			}
+
+			time.Sleep(time.Millisecond)
+		}
+
+		return "", false
+	}()
+	if !ok {
+		fmt.Println("server did not start")
+
+		return
+	}
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://"+addr+"/", nil)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println(resp.StatusCode, string(body))
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		fmt.Println("error:", err)
+	}
+
+	// Output: 200 hello
+}
+
+func ExampleMiddlewareStack() {
+	stack := NewMiddlewareStack()
+
+	if err := stack.Add(MiddlewareRequestID, RequestID(DefaultRequestIDConfig())); err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	if err := stack.Add(MiddlewareSecurityHeaders, SecurityHeaders(DefaultSecurityHeadersConfig())); err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	handler := stack.Build(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "ok")
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	fmt.Println(rec.Code, rec.Body.String(), stack.Names())
+
+	// Output: 200 ok [request-id security-headers]
 }
