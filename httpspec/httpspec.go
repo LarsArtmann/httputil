@@ -88,6 +88,7 @@ const (
 	SpecNameConnectRejected               = "CONNECT method should be rejected to prevent tunneling"
 	SpecNameRespectsAcceptHeader          = "servers should respect Accept header for content negotiation"
 	SpecNameLongURLHandled                = "servers should handle very long URLs without server errors"
+	SpecNameNoInjectionHeaderReflection   = "responses should not reflect injection-prone request headers"
 )
 
 // Option configures the spec runner.

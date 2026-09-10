@@ -566,3 +566,60 @@ func TestCompression_InvalidConfigContinues(t *testing.T) {
 		t.Error("inner handler was not called (invalid config should log and continue)")
 	}
 }
+
+func TestCompression_ZeroLevelMeansDefaultCompression(t *testing.T) {
+	t.Parallel()
+
+	const bodySize = 10_000
+
+	payload := bytes.Repeat([]byte("a"), bodySize)
+
+	handler := Compression(CompressionConfig{})(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set(headerContentType, "text/plain")
+		_, _ = w.Write(payload)
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
+
+	gzipReader, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("gzip.NewReader error = %v", err)
+	}
+
+	defer func() { _ = gzipReader.Close() }()
+
+	decompressed, err := io.ReadAll(gzipReader)
+	if err != nil {
+		t.Fatalf("io.ReadAll error = %v", err)
+	}
+
+	if !bytes.Equal(decompressed, payload) {
+		t.Error("gunzipped body should round-trip the original payload")
+	}
+
+	if rec.Body.Len() >= bodySize {
+		t.Errorf(
+			"compressed length = %d, want well below %d (Level == 0 must select gzip.DefaultCompression, not gzip.NoCompression stored blocks)",
+			rec.Body.Len(),
+			bodySize,
+		)
+	}
+}
+
+func TestCompressionConfig_Validate_ZeroLevelIsValid(t *testing.T) {
+	t.Parallel()
+
+	cfg := CompressionConfig{Level: 0, MinSize: 1, WriterFactories: DefaultWriterFactories()}
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf(`Validate error = %v, want nil (Level == 0 means "unset, default compression")`, err)
+	}
+}

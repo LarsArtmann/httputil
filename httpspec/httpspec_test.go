@@ -632,6 +632,7 @@ func TestStandardSpecsHasAllExpectedNames(t *testing.T) {
 		SpecNameConnectRejected:               false,
 		SpecNameRespectsAcceptHeader:          false,
 		SpecNameLongURLHandled:                false,
+		SpecNameNoInjectionHeaderReflection:   false,
 	}
 
 	for _, s := range specs {
@@ -646,6 +647,29 @@ func TestStandardSpecsHasAllExpectedNames(t *testing.T) {
 		if !found {
 			t.Errorf("expected spec %q was not found", name)
 		}
+	}
+}
+
+func TestNoInjectionHeaderReflectionPasses(t *testing.T) {
+	t.Parallel()
+
+	result := noInjectionHeaderReflectionCheck()(newGoodHandler())
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestNoInjectionHeaderReflectionFailsForReflectedHeader(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Forwarded-For", r.Header.Get("X-Forwarded-For"))
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := noInjectionHeaderReflectionCheck()(handler)
+	if result.OK {
+		t.Error("expected failure when a probe header name is reflected in the response")
 	}
 }
 

@@ -142,6 +142,57 @@ func securitySpecs(cfg config) []Spec {
 			Category: CategorySecurity,
 			Check:    xContentTypeOptionsCheck(cfg.indexPath),
 		},
+		{
+			Name:     SpecNameNoInjectionHeaderReflection,
+			Category: CategorySecurity,
+			Check:    noInjectionHeaderReflectionCheck(),
+		},
+	}
+}
+
+// injectionProbeHeaders are request header names that must never reappear as
+// response header names. They cover proxy/forwarding metadata, Fetch Metadata
+// attestation, and method/URL override conventions; echoing any of them back
+// amplifies header-injection, smuggling, and cache-poisoning attacks.
+func injectionProbeHeaders() []string {
+	return []string{
+		"X-Forwarded-For",
+		"X-Forwarded-Host",
+		"X-Forwarded-Proto",
+		"X-Real-Ip",
+		"Forwarded",
+		"Referer",
+		"Origin",
+		"Sec-Fetch-Site",
+		"X-Http-Method-Override",
+		"X-Original-Url",
+		"X-Rewrite-Url",
+	}
+}
+
+func noInjectionHeaderReflectionCheck() Check {
+	return func(handler http.Handler) Result {
+		req := mustRequest(http.MethodGet, unknownPath)
+
+		probes := injectionProbeHeaders()
+		for _, name := range probes {
+			req.Header.Set(name, "httpspec-injection-probe")
+		}
+
+		rec := serve(handler, req)
+
+		for _, name := range probes {
+			values, reflected := rec.Header()[textproto.CanonicalMIMEHeaderKey(name)]
+			if reflected {
+				return Fail(
+					"response reflects the client-supplied %q header back as %q, which amplifies header-injection and cache-poisoning attacks",
+					name,
+					values,
+				)
+			}
+		}
+
+		return Pass()
 	}
 }
 

@@ -58,6 +58,11 @@ type CompressionConfig struct {
 	// WriterFactories is not supplied. Ignored when WriterFactories is set.
 	// Valid range: gzip.HuffmanOnly to gzip.BestCompression, or
 	// gzip.DefaultCompression (-1).
+	//
+	// The zero value means "unset": Compression() treats Level == 0 as
+	// gzip.DefaultCompression, so a zero-value config compresses at the
+	// default level. A genuinely uncompressed response is not expressible
+	// through Level; use the identity encoding or skip the middleware.
 	Level int
 
 	// WriterFactories maps canonical encoding names to factory functions.
@@ -87,6 +92,10 @@ func DefaultWriterFactories() map[string]WriterFactory {
 // encodings (gzip, deflate, identity) at the given compression level. Use this
 // when you want CompressionConfig.Level to take effect without supplying a
 // custom WriterFactories map.
+//
+// Unlike CompressionConfig.Level, the level parameter follows compress/gzip
+// semantics literally: 0 means gzip.NoCompression here, not "unset". Pass
+// gzip.DefaultCompression (-1) for the default level.
 func DefaultWriterFactoriesForLevel(level int) map[string]WriterFactory {
 	return map[string]WriterFactory{
 		encodingGzip:     GzipWriterFactory(level),
@@ -153,7 +162,9 @@ var (
 	errQValueTooLarge = codeCompressionQValueTooBig.Rejection("q-value > 1.0")
 )
 
-// Validate checks the CompressionConfig for invalid values.
+// Validate checks the CompressionConfig for invalid values. Level == 0 is
+// accepted as the zero-value shorthand for gzip.DefaultCompression (see
+// CompressionConfig.Level).
 func (c CompressionConfig) Validate() error {
 	if c.Level != gzip.DefaultCompression &&
 		(c.Level < gzip.HuffmanOnly || c.Level > gzip.BestCompression) {
@@ -180,6 +191,9 @@ func Compression(cfg CompressionConfig) Middleware {
 	// Fall back to defaults if the caller didn't supply a factory map.
 	// This preserves backward compatibility with configs created before
 	// the WriterFactories field existed.
+	//
+	// Level == 0 means "unset" (see CompressionConfig.Level), so the
+	// zero-value config compresses at gzip.DefaultCompression.
 	if len(cfg.WriterFactories) == 0 {
 		level := cfg.Level
 		if level == 0 {

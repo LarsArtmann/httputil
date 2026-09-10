@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code. Completed work lives in [CHANGELOG.md](CHANGELOG.md); rejected ideas live in [ROADMAP.md](ROADMAP.md) Non-goals; process decisions live in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
-_Updated: 2026-08-30 (docs-health pass after the full-code-review execution session)._
+_Updated: 2026-09-10 (composability architecture review + docs harvest)._
 
 ---
 
@@ -17,7 +17,6 @@ _Updated: 2026-08-30 (docs-health pass after the full-code-review execution sess
 - [ ] **Extract response compression into `go-compression`** — full Pareto plan: [docs/planning/2026-08-16_08-03_extract-compression-into-go-compression.md](docs/planning/2026-08-16_08-03_extract-compression-into-go-compression.md). Trigger: go-datastar needs SSE-safe compression. Decompression stays in httputil.
 - [ ] **CI release workflow** — automated tag → build → GitHub Release pipeline (including `go vet` for both modules if CI lands). Sources: `23-33:f24`, `00-51:f24`, `11-30:f33`, `f41`.
 - [ ] **go-error-family upstream: conditional-request classification** — propose classification guidance upstream. Sources: `23-33:f40`, `22-43:f48`, `05-45:f47`. (Run the `verify-before-filing` skill before opening the upstream issue.)
-- [ ] **`architecture-review` re-run** — last full pass predates ETag extraction + adapter + keyed limiter. Sources: `05-45:f38`, `06-50:f38`, `11-30:f31`.
 - [ ] **Convert the remaining legacy table-driven tests** (surfaced by full-code-review 2026-08-30) — `clientip_test.go` TestClientIP, `queryparam_test.go` TestParseUintQuery, `httpspec/cors_ratelimit_specs_test.go` TestVaryContainsToken + TestValidateNonNegativeInt, `httpspec/httpspec_test.go` TestHasVersionLeakDetectsVersionPattern, `server_timing/server_timing_test.go` TestFormatMillis + TestServerTiming_NameSanitization. Either split into standalone `TestX_Case` funcs or amend the AGENTS.md convention to allow property-style subtests; decide once, apply consistently (`11-30:f16`).
 - [ ] **Refresh `docs/benchmarks.md` rows for benches changed 2026-08-30** — full-code-review moved recorders inside the loop (health/metrics/recorder/httpspec-check benches), added `b.ReportAllocs` (compression/CORS/ClientIP), and pointed the keyed-limiter eviction bench at the true slow path. Re-measure with the documented 3s×5 protocol and update the affected rows. While there: audit remaining pre-`b.Loop` benchmarks for stale `b.ResetTimer` usage (`11-30:f10`, `f39`).
 - [ ] **Finish the T13 line-by-line test review** — `csrf_test.go`, `nonce_test.go`, `security_test.go`, `requestid_test.go`, `id_generator_test.go` got structural checks only (parallel/alloc/sleep audit) in the 2026-08-30 review; read them line by line (`11-30:b1`, `f8`).
@@ -26,6 +25,8 @@ _Updated: 2026-08-30 (docs-health pass after the full-code-review execution sess
 
 ## Low Priority
 
+- [ ] **`MiddlewareStack.MustAdd`** — startup wiring at composition roots needs error handling per `Add`; a Must variant that panics with the classified error message matches the fail-at-wiring-time story and complements `MiddlewareStack.Middleware()` (`stack.go:61`; [2026-09-10_03-19_composability.html](docs/architecture-understanding/2026-09-10_03-19_composability.html) roadmap step 2).
+- [ ] **Document the `Compose` bundle pattern** — add a secure-stack example (build once, apply to many handlers, nest stacks via `MiddlewareStack.Middleware()`) to README or docs/integrations so consumers discover the composition API (`compose.go`; [2026-09-10_03-19_composability.html](docs/architecture-understanding/2026-09-10_03-19_composability.html) roadmap step 4).
 - [ ] **Chain-level regression for the exact-fill duplication fix** — the unit test covers `compressWriter` directly; add the same 512-byte-exact-fill case through the full `Compression()` middleware (`11-30:f18`).
 - [ ] **KeyedRateLimiter property test** — heap/map consistency under churn above `MaxKeys` (pattern: the compression negotiator property test) plus a benchmark with real `MaxKeys`-pressure churn (`11-30:f20`, `f21`).
 - [ ] **CORS fuzz invariant for exact-origin allowlists** — echo property beyond `DenyUnmatched` (`11-30:f22`).

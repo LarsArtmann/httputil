@@ -374,6 +374,13 @@ Token helpers for templates: `CSRFTokenFormField` (hidden input), `CSRFTokenHTML
 
 Call `InvalidateCSRFCookie(w, cfg)` on login/logout to rotate the token.
 
+**Origin attestation trust model.** nosurf (verified at v1.2.0) skips Origin/Referer validation whenever a request carries a literal `Sec-Fetch-Site: same-origin` header. Browsers set that header truthfully and JavaScript cannot forge it (forbidden header name), so it is reliable against the classic cross-site attacker — but any non-browser client can send it manually. Two deliberate consequences:
+
+- A client-supplied attestation (or the plaintext-proxy bypass, `SetPlaintextHTTPOrigin`) skips only the origin check; the masked-token check still gates every state-changing request. This is what lets non-browser API clients — which cannot pass Origin/Referer validation on plain HTTP — work with valid tokens.
+- A client-supplied attestation contradicted by an `Origin` header from a different, untrusted origin is rejected with `ErrCSRFAttestationConflict` before nosurf sees the request. Browsers never produce that combination, so it can only be forged. The `null` origin is exempt (nosurf treats it as absent).
+
+Plaintext-HTTP origin bypass: requests with no `Origin`/`Referer`/`Sec-Fetch-Site` header are auto-marked same-origin only when they arrive from loopback or `TrustedProxies` (or from everywhere with `AllowPlaintextBypass`, which logs a warning — it is insecure for internet-facing plain HTTP).
+
 ### Server-Timing
 
 W3C Server-Timing header with per-request sub-metrics. Lives in the `server_timing` sub-module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`).
@@ -426,6 +433,7 @@ Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 | `Hijack`   | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
 | `Compress` | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write/Close fails         |
 | `CSRF`     | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched |
+| `CSRF`     | `csrf.origin_attestation_conflict` | Rejection | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
 | `CSRF`     | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid                   |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
