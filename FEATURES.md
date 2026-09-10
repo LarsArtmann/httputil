@@ -12,7 +12,7 @@ _Updated: 2026-08-30 — full-code-review executed (critical compression exact-f
 
 | Middleware               | File                                   | Config Type                                                   | Tests | Examples                            | Benchmarks                                             | Fuzz                |
 | ------------------------ | -------------------------------------- | ------------------------------------------------------------- | ----- | ----------------------------------- | ------------------------------------------------------ | ------------------- |
-| CORS                     | `cors.go`                              | `CORSConfig` + `Validate()`                                   | Yes   | `ExampleCORS`                       | `BenchmarkCORS`                                        | `FuzzCORS`          |
+| CORS                     | `cors.go`                              | `CORSConfig` + `Validate()`                                   | Yes   | `ExampleCORS`                       | `BenchmarkCORS`                                        | `FuzzCORS*` (4)     |
 | ClientIP                 | `clientip.go`, `context.go`            | —                                                             | Yes   | `ExampleClientIP`                   | `BenchmarkClientIP`                                    | `FuzzClientIP`      |
 | RequestID                | `requestid.go`, `id_generator.go`      | `RequestIDConfig` + `Validate()`, time-ordered ID generator   | Yes   | `ExampleRequestID`                  | `BenchmarkRequestID`                                   | `FuzzRequestID`     |
 | SecurityHeaders          | `security.go`                          | `SecurityHeadersConfig` + `Validate()`                        | Yes   | `ExampleSecurityHeaders`            | `BenchmarkSecurityHeaders`                             | —                   |
@@ -20,10 +20,10 @@ _Updated: 2026-08-30 — full-code-review executed (critical compression exact-f
 | Timeout                  | `timeout.go`                           | `time.Duration`                                               | Yes   | `ExampleTimeout`                    | `BenchmarkTimeout`                                     | —                   |
 | Logging                  | `logging.go`                           | `*slog.Logger`                                                | Yes   | `ExampleLogging`                    | `BenchmarkLogging`                                     | —                   |
 | ResponseRecorder         | `recorder.go`                          | —                                                             | Yes   | `ExampleNewResponseRecorder`        | `BenchmarkResponseRecorder`                            | —                   |
-| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression*`                                | `FuzzCompression`   |
-| MaxBodySize              | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | `ExampleMaxBodySize`                | —                                                      | —                   |
+| Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression*`                                | `FuzzCompression*` (3) |
+| MaxBodySize              | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | `ExampleMaxBodySize`                | `BenchmarkMaxBodySize`                                 | `FuzzMaxBodySize`   |
 | RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface     | Yes   | —                                   | `BenchmarkTokenBucketLimiter`                          | —                   |
-| Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | —                                   | —                                                      | —                   |
+| Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | `ExampleMetrics`                    | `BenchmarkMetricsMiddleware*`                          | —                   |
 | Server-Timing            | `server_timing/server_timing.go`       | —                                                             | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`                               | `FuzzServerTiming*` |
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`                             | `FuzzCSRF*` (6)     |
 | KeyedRateLimit           | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`                           | —                   |
@@ -35,7 +35,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Error Classification System
 
-- 4 error codes registered via `go-error-family`: `ErrCodeWriteFailed`, `ErrCodeHijackUnsupported`, `ErrCodeHijackFailed`, `ErrCodeCompressWriteFailed`. Plus 3 ETag error codes from `go-etag` (`etag.ErrCodeETagWriteFailed`, `etag.ErrCodeInvalidConfig`, `etag.ErrCodeHashWriteFailed`) registered via `RegisterErrorClassifications()`.
+- Typed error-code model (`Code`/`Domain`, v0.12.0): every code is `domain.failure`; constructor + Wrap pairs cover all six families; `DomainOf`/`InDomain` route by failing component. Runtime codes: `http.write_failed`, `http.hijack_unsupported`, `http.hijack_failed`, `http.compress_write_failed`, `http.etag_*`, `compression.pool_type_unexpected`, `compression.qvalue_*`, `compression.incompressible_prefix_invalid`, `decompression.*`, `server.shutdown_failed`, `ratelimit.*`, `maxbodysize.*`, `requestid.*`, `security.*`, `metrics.*`, `nonce.*`, `cors.*`, `csrf.*`, `stack.*`. Plus 3 ETag codes from `go-etag` registered via `RegisterErrorClassifications()`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
 - CSRF middleware uses `go-error-family` directly: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family), plus inline `NewInfrastructure` errors for config validation failures.
 - Message templates with `what/why/fix/wayOut` for all classified errors.
@@ -68,7 +68,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 - `DefaultWriterFactoriesForLevel(level int)` returns a fresh default factory map (gzip + deflate + identity) at any compression level.
 - `Compression()` uses `cfg.Level` to build default factories when `WriterFactories` is empty — `Level` is no longer ignored.
-- Per-encoding `sync.Pool` (owned by the negotiator, one pool per encoding per `Compression` instance) reuses `gzip.Writer` and `flate.Writer` instances.
+- Per-encoding `writerPool` (owned by the negotiator, one pool per encoding per `Compression` instance) reuses `gzip.Writer` and `flate.Writer` instances; a construction-time probe makes non-resettable custom factories skip the pool entirely (no wasted pooled allocation per request).
 - Content-type deny-list skips incompressible formats (`image/`, `video/`, `audio/`, `application/gzip`, `application/zip`, `application/pdf`, etc.).
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
@@ -77,7 +77,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Rate Limiting
 
-- **Token bucket algorithm** via `TokenBucketLimiter` (deprecated, backed by `golang.org/x/time/rate`) — per-key limiters with fixed-rate refill up to burst capacity. Slated for removal at v1.0.
+- **Token bucket algorithm** via `TokenBucketLimiter` (deprecated, backed by `golang.org/x/time/rate`) — per-key limiters with fixed-rate refill up to burst capacity. Slated for removal in a post-v1.0 stabilization release.
 - **Keyed rate limiting** via `KeyedRateLimiter` (new in v0.8.0) — O(log n) min-heap eviction, `MaxKeys` cap, lazy TTL eviction, `Retry-After` headers, and a monitoring API (`ActiveKeys()`). This is the recommended API going forward.
 - `NewTokenBucketLimiter(rate, burst)` validates inputs — returns error if rate or burst is not positive.
 - `EvictionTTL` field on `KeyedRateLimiterConfig` enables opt-in lazy eviction of idle buckets. Zero (default) preserves unbounded-growth behavior.
@@ -125,17 +125,18 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - 16-byte time-ordered ID: Unix seconds (4 B) + atomic counter (4 B) + random tail (8 B).
 - 32-character lowercase hex output, lexicographically sortable and monotonic within a second.
 - Amortized `crypto/rand` via a process-wide 2048-byte buffer (one syscall every ~256 IDs).
-- Thread-safe refill with mutex and double-checked atomic slot allocation.
+- Generation-swapped immutable buffers: monotonic generation-stamped slot claims, atomic publication, GC reclamation of superseded generations (2026-09-10); the refill mutex serializes publishers only.
 
 ### Server Lifecycle
 
 - `ServerConfig` with `Validate()` — read, header, write, and idle timeout validation.
 - `DefaultServerConfig()` — production defaults (`:8080`, 10s/5s/30s/60s timeouts).
 - `NewServer()` wraps `http.Server` with lifecycle helpers.
-- `Start()` is non-blocking and returns a `<-chan error` for listen errors.
+- `Start()` / `StartTLS()` bind via `net.Listen` first (bind errors are delivered immediately on the returned channel) and track the listener.
+- `ListenerAddr()` returns the resolved address of the active listener (`"127.0.0.1:0"` → the real port), `(nil, false)` when not listening; cleared on successful `Shutdown()`.
 - `StartTLS(certFile, keyFile)` serves HTTPS with the validated `TLSConfig` (TLS 1.2+ enforced); in-memory certs work via `GetCertificate` with empty paths.
 - `Shutdown()` performs graceful shutdown respecting a context deadline.
-- `Addr()` returns the configured listen address.
+- `Addr()` returns the configured listen address (never rewritten for ephemeral ports).
 
 ### Health Checks
 
@@ -155,16 +156,18 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `docs/v1-stability.md` — v1.0 frozen API surface.
 - `docs/DOMAIN_LANGUAGE.md` — domain glossary.
 - `docs/migrating-to-keyed-rate-limiter.md` — deprecation migration guide.
-- `docs/integrations/` — extensibility examples (brotli, redis, prometheus).
+- `docs/integrations/` — extensibility examples (brotli/zstd, redis, prometheus, samber/do, huma, compose bundles).
+- `docs/architecture-reference.md` — file-by-file export tables, error-classification table, lint profile.
+- `RELEASE.md` + `scripts/prerelease-check.sh` — the documented, automated release gates.
 - Status reports in `docs/status/`.
 - Execution plans in `docs/planning/`.
 
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.0% statement coverage** (`httputil`), **98.8%** (`httpspec`) — measured 2026-08-30 with race detection enabled.
-- 23 fuzz targets (21 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns), Compression (round-trip gunzip-and-compare invariant + writer state machine), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), and CSRF (6 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). All 23 targets run 5 minutes each in the nightly fuzz workflow.
-- 57 top-level benchmark functions (70 result rows counting `b.Run` sub-benchmarks) and 26 example functions across `httputil` + `httpspec` (`server_timing` has none).
+- `go test -race ./...` passes across the full suite with **97.2% statement coverage** (`httputil`, library packages), **98.8%** (`httpspec`) — measured 2026-09-10 with race detection enabled.
+- 26 fuzz targets (24 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns + exact-allowlist origin echo), Compression (round-trip gunzip-and-compare invariant + writer state machine + Accept-Encoding wire format), MaxBodySize (limit contract), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), and CSRF (6 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). All 26 targets run 5 minutes each in the nightly fuzz workflow.
+- 61 top-level benchmark functions (74+ result rows counting `b.Run` sub-benchmarks) and 30 example functions across `httputil` + `httpspec` (`server_timing` has none).
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.

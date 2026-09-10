@@ -8,6 +8,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Changed
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [1.0.0] - 2026-09-10
+
+### Added
+
+- **`Server.ListenerAddr()`** (`server.go`): the resolved-port API. `Start`/`StartTLS` now `net.Listen` first — bind failures (address already in use) surface immediately on the error channel — and the `Server` tracks its listener, so `ListenerAddr() (net.Addr, bool)` returns the real address for ephemeral ports like `":0"` and `(nil, false)` before start / after `Shutdown`. `Addr()` keeps returning the configured string, now documented as never rewritten.
+- **`Code.WrapConflict` / `Code.WrapOrchestration`** (`code.go`): the constructor + Wrap pairs now cover all six error families; the asymmetry was an oversight, not intent.
+- **Nonce composition-test cluster** (`chain_test.go`): the four never-run compositions — nonce × Compression (CSP nonce survives the gzip round-trip and matches the body), nonce × CORS (headers coexist), nonce × ServerTiming (context nonce survives `WrapServerTiming`), nonce × CSRF token helpers (form field + nonce attribute from one request).
+- **`FuzzMaxBodySize` + `BenchmarkMaxBodySize`**: the last middleware without a fuzz/bench pair is covered; the fuzz target pins the probed stdlib contract (read error ⟺ `len(body) > max(limit, 0)` — zero and negative limits reject every non-empty body but let the empty body through, a boundary the fuzzer itself discovered) with `http.MaxBytesError` verification.
+- **`FuzzCORSOriginEcho`**: arbitrary origins × arbitrary allowlists must never reflect a third-party origin; exact-allowlist + `DenyUnmatched` configs get the stronger oracle (echo ⟺ allowlisted, silence otherwise).
+- **`FuzzNegotiatorWireFormat`**: raw `Accept-Encoding` fuzzing — negotiation with identity registered always succeeds, results are registered canonical encodings with q ∈ (0, 1]; gzip multistream reliance documented in the `FuzzCompression` round-trip comment.
+- **KeyedRateLimiter property tests** (`ratelimit_keyed_test.go`): seeded 2,000-op churn above `MaxKeys` with heap/map/heapRef/index/ordering invariants checked continuously, a deterministic sliding-window eviction test, and `BenchmarkKeyedRateLimiter_MaxKeysChurn` driving the true eviction path (fresh key per iteration).
+- **ID-generator refill benchmarks** (`id_generator_bench_test.go`): `BenchmarkIDGeneratorRefillSwap` (alloc + crypto/rand + atomic publication, `ns/ID-amortized` metric) against the raw-syscall baseline; the ring's publication overhead is ~5 ns/ID over the ~18.6 ns/ID syscall amortization.
+- **ID-generator concurrency stress test**: 8 goroutines × 20k IDs under `-race`, asserting BOTH full-ID and random-tail uniqueness — the tail assertion pins the generation-stamped claim contract.
+- **Four runnable examples**: `ExampleMetrics`, `ExampleHealthHandler`, `ExampleServer` (showing `ListenerAddr`), `ExampleMiddlewareStack`. `ExampleRateLimit` is formally declined — deprecated APIs should not gain discoverable examples.
+- **`RELEASE.md` + `scripts/prerelease-check.sh`**: the release process documented and its nine gates automated (clean tree, build, vet, race tests, lint, erraudit, 95% coverage via the new checker, changelog freshness, flake check) for both modules.
+- **`scripts/check-commit-lint.sh` + CI `commit-lint` job**: PRs are rejected when commit subjects lack a conventional prefix.
+- **`scripts/coverage-threshold`**: the CI coverage gate is now a Go program that fails loudly on malformed reports (the awk one-liner silently passed them) and measures library packages only (the dev-tooling package has no tests).
+- **flake**: `nix run .#bench` runs the documented 3s×5 benchmark protocol; `dprint` joins the devShell so markdown formatting is verifiable again.
+- **`docs/architecture-reference.md`**: the file-by-file export tables (root, httpspec, server_timing), the error-classification table, and the lint profile moved out of AGENTS.md (58.5 KB → 29.3 KiB, back under the docs-health budget) and refreshed for the current API.
+- **`docs/integrations/compose-bundles.md`**: the Compose bundle pattern — build once, apply to many handlers, nest stacks via `MiddlewareStack.Middleware()`, ordering rules, and the `MiddlewareFunc.Then` wiring contract — linked from the README.
+- **Verified upstream-issue draft** (`docs/planning/2026-09-10_go-error-family-conditional-request-classification-issue-draft.md`): classification guidance for conditional-request outcomes (304 is not an error; 412 = Conflict + `HTTPStatuser` override), all verify-before-filing gates passed against the go-error-family source.
+
+### Changed
+
+
 - **CSRF `Sec-Fetch-Site` attestation-conflict defense** (`csrf.go`): the full-code-review trust-model question was verified against the pinned nosurf v1.2.0 source — `ensureSameOrigin` short-circuits ALL Origin/Referer validation on a literal `Sec-Fetch-Site: same-origin` header. Browsers cannot forge it (forbidden header name), but any non-browser client can. Requests whose attestation is contradicted by an `Origin` header that nosurf itself would reject (cross-origin, untrusted, or unparseable) are now rejected with the new `ErrCSRFAttestationConflict` (`csrf.origin_attestation_conflict`, Rejection) before nosurf sees them; the `null` origin stays exempt. The trust boundary is documented on `CSRFMiddleware`, `SetPlaintextHTTPOrigin`, and in the README. Seven new tests (six middleware, one `ValidateCSRF`) including a probe that pins the documented nosurf short-circuit; run 5x under `-race`.
 - **httpspec no-injection-header-reflection spec** (`SpecNameNoInjectionHeaderReflection`, 19 standard specs): sends eleven injection-prone request headers (forwarding metadata, Fetch Metadata, method/URL overrides) and fails when any of those header NAMES is reflected in the response. Answered the 2026-08-30 "warranted?" question with yes.
 - **Config-validation hardening batch** (validate-and-log, so behavior is unchanged — misconfigs now surface as classified construction warnings): `CORSConfig.AllowedMethods` must be non-empty (`cors.methods_empty`), `DecompressionConfig.Encodings` rejects unrecognized entries (`decompression.encoding_unrecognized`) and case-insensitive duplicates (`decompression.encoding_duplicate`), `CompressionConfig.IncompressibleTypes` entries must be non-empty media-type prefixes with a slash (`compression.incompressible_prefix_invalid` — an empty prefix would mark every response incompressible), and `CSRFConfig.MaxAge` rejects negative values (`csrf.max_age_negative`). All five codes have message templates and validator tests.
@@ -35,6 +70,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **`CSRFConfig.Validate()` is pure** (`csrf.go`): value receiver, no logging, no mutation (it previously parsed `TrustedProxiesCIDR` as a side effect and warned about `Secure=false`). CIDR parsing moved to construction (`withParsedTrustedProxies()`, where any parse failure yields an empty trust list instead of the old partial-parse state) and the warning moved to the `CSRFMiddleware` constructor; all `CSRFConfig` methods normalized to value receivers. Landed in v1.0.0 — the last cheap moment for an API-semantics cleanup.
+- **ID-generator random buffer: generation-swapped immutable ring** (`id_generator.go`): published generation buffers are never written again, so reader copies are race-free (the old shared buffer had a formal copy-vs-refill data race whose worst case was a torn read of two independent crypto/rand fills); claims are monotonic and generation-stamped, so no slot is ever drawn twice and random tails stay duplication-free across refills. Hot path: one extra atomic pointer load. Decision in DECISION_LOG; stress test pins ID and tail uniqueness at 160k IDs under `-race`.
+- **Compression writer pools probe resettability at construction** (`compress_pool.go`): `writerPool` wraps the `sync.Pool` with a one-time factory probe; factories whose writers lack `Reset(io.Writer)` skip the pool entirely instead of paying one wasted pooled allocation per request. Pool type-mismatch errors keep their classification and context.
+- **CI toolchain pins aligned to go1.26.7** (`.github/workflows/*`): go.mod/go.work require 1.26.7 and the old `GOTOOLCHAIN: go1.26.6` pin was now OLDER than the module requirement — CI was broken for every workspace-mode run. govulncheck now scans both modules in `ci.yml` and `release.yml`; `release.yml` runs build + vet + race tests for both modules before publishing; the nightly fuzz workflow files an issue on crash (run-log link + corpus pointer) and covers the three new fuzz targets.
+- **`docs/benchmarks.md` re-measured end-to-end** (3s×5 on the post-sweep code): health-handler rows now include the trailing-newline write (~600-730 ns/op, was ~200 under the stale harness), ID generation reflects the generation-swapped ring (108.8 ns/op), the keyed-limiter eviction bench drives the real capacity path (417 ns/op), and the deprecated-rate-limiter rows are labeled. `nix run .#bench` reproduces the protocol.
+- **Test-helper consolidation**: `bench_batch_test.go` dissolved into per-middleware bench files (stale `b.ResetTimer` calls removed); `waitForTLS` lives in `testutil_test.go` beside `waitForServerStart`, fails fast on startup errors, and dials the resolved address; `reserveFreePort` is gone (obsolete via `ListenerAddr`); the TLS test certificate is Ed25519 instead of RSA-2048.
+- **Integration docs refreshed against the current API**: samber-do, huma, prometheus verified current; brotli-zstd documents the pool-skip semantics; redis deprecation corrected to post-v1.0 removal. AGENTS.md pointers now target `docs/architecture-reference.md`.
 - **`exhaustruct` migrated to `exhaustruct_v5`** (`.golangci.yml`, `server_timing/.golangci.yml`): ahead of the v2 deprecation becoming removal, on golangci-lint 2.13.2. The v5 settings keys are `enforce-patterns`/`ignore-patterns` (old `exclude` renamed), the `exhaustruct` struct-tag opt-out is gone (nolint directives renamed accordingly), and the full run stays at 0 issues with no new findings.
 - **`CompressionConfig.Level = 0` has one documented meaning**: "unset → `gzip.DefaultCompression`". The constructor's remap stays, `Validate` documents why `0` passes, `DefaultWriterFactoriesForLevel` documents that its raw level parameter follows stdlib gzip semantics (`0` = `NoCompression` there), and the Level range check applies only when `WriterFactories` is empty — the only case where Level drives factory construction — so configs that set both no longer produce a spurious warning (the constructor checks the level at its use site instead).
 

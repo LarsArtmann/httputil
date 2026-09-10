@@ -683,40 +683,6 @@ func newSelfSignedCert(t *testing.T) ([]byte, []byte) {
 	return certPEM, keyPEM
 }
 
-// waitForTLS blocks until the TLS server at addr completes a handshake with
-// cfg, failing the test on a startup error from errChan or if the deadline
-// elapses. Prefer passing the resolved address from Server.ListenerAddr so a
-// retried dial cannot race a different process onto a recycled port.
-func waitForTLS(t *testing.T, errChan <-chan error, addr string, cfg *tls.Config) {
-	t.Helper()
-
-	deadline := time.Now().Add(3 * time.Second)
-
-	for time.Now().Before(deadline) {
-		select {
-		case err := <-errChan:
-			t.Fatalf("server failed to start: %v", err)
-		default:
-		}
-
-		conn, err := tls.DialWithDialer(
-			&net.Dialer{Timeout: 100 * time.Millisecond},
-			"tcp",
-			addr,
-			cfg,
-		)
-		if err == nil {
-			_ = conn.Close()
-
-			return
-		}
-
-		time.Sleep(10 * time.Millisecond)
-	}
-
-	t.Fatal("TLS server did not become ready within 3s")
-}
-
 func TestServer_ListenerAddr_NotListening_ReturnsFalse(t *testing.T) {
 	t.Parallel()
 
