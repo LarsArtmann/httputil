@@ -485,3 +485,182 @@ func TestChain_RecoveryErrAbortHandler_ThroughStack(t *testing.T) {
 
 	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/", ""))
 }
+
+// cspNonceFromHeader extracts the first nonce value from a
+// Content-Security-Policy header ('nonce-<value>' token) for cross-checking
+// against nonces rendered into response bodies.
+func cspNonceFromHeader(t *testing.T, csp string) string {
+	t.Helper()
+
+	marker := "'nonce-"
+
+	start := strings.Index(csp, marker)
+	if start < 0 {
+		t.Fatalf("no 'nonce- token in CSP header %q", csp)
+	}
+
+	start += len(marker)
+
+	end := strings.IndexByte(csp[start:], '\'')
+	if end < 0 {
+		t.Fatalf("unterminated 'nonce- token in CSP header %q", csp)
+	}
+
+	return csp[start : start+end]
+}
+
+// TestChain_NonceThenCompression_CSPNonceEmbeddedInCompressedBody runs the
+// never-previously-exercised nonce x compression composition: the CSP header
+// written through the compression wrapper must survive, and the nonce the
+// handler rendered into the body must be exactly the nonce the CSP header
+// carries, after a full gzip round-trip.
+func TestChain_NonceThenCompression_CSPNonceEmbeddedInCompressedBody(t *testing.T) {
+	t.Parallel()
+
+	padding := strings.Repeat("x", defaultCompressionMinSize)
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(headerContentType, "text/html")
+
+		_, _ = fmt.Fprintf(w, "<script %s>ok()</script><!-- %s -->", NonceAttr(r), padding)
+	})
+
+	wrapped := Chain(inner, Compression(DefaultCompressionConfig()), Nonce(DefaultNonceConfig()))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+	wrapped.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if csp == "" {
+		t.Fatal("Content-Security-Policy header = empty, want the nonce-bearing CSP")
+	}
+
+	cspNonce := cspNonceFromHeader(t, csp)
+
+	if got := rec.Header().Get(headerContentEncoding); got != encodingGzip {
+		t.Fatalf("Content-Encoding = %q, want %q", got, encodingGzip)
+	}
+
+	zr, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("gzip.NewReader() error = %v, want nil", err)
+	}
+
+	decoded, err := io.ReadAll(zr)
+	if err != nil {
+		t.Fatalf("gzip decode error = %v, want nil", err)
+	}
+
+	wantAttr := `nonce="` + cspNonce + `"`
+
+	if !strings.Contains(string(decoded), wantAttr) {
+		t.Errorf(
+			"decompressed body does not embed the CSP nonce %q: body %q",
+			wantAttr,
+			string(decoded),
+		)
+	}
+}
+
+// TestChain_NonceThenCORS_CSPAndAllowOriginCoexist verifies the nonce and CORS
+// middlewares do not overwrite each other's response headers when composed.
+func TestChain_NonceThenCORS_CSPAndAllowOriginCoexist(t *testing.T) {
+	t.Parallel()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrapped := Chain(inner, CORS(DefaultCORSConfig()), Nonce(DefaultNonceConfig()))
+
+	req := newTestRequest(http.MethodGet, "/", "https://example.com")
+
+	rec := newRecorder()
+	wrapped.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "*" {
+		t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, "*")
+	}
+
+	if got := rec.Header().Get("Content-Security-Policy"); got == "" {
+		t.Error("Content-Security-Policy header = empty, want the nonce-bearing CSP")
+	}
+}
+
+// TestChain_NonceWithServerTiming_NonceSurvivesTimingWrapper verifies a
+// handler that wraps its writer with WrapServerTiming still sees the nonce in
+// the request context, and both the Server-Timing and CSP headers land on the
+// response.
+func TestChain_NonceWithServerTiming_NonceSurvivesTimingWrapper(t *testing.T) {
+	t.Parallel()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		timingWriter, timingReq := servertiming.WrapServerTiming(w, r)
+
+		_, _ = fmt.Fprintf(timingWriter, "nonce=%s", NonceFromRequest(timingReq))
+	})
+
+	wrapped := Chain(inner, Nonce(DefaultNonceConfig()))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	rec := newRecorder()
+	wrapped.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if csp == "" {
+		t.Fatal("Content-Security-Policy header = empty, want the nonce-bearing CSP")
+	}
+
+	if got := rec.Header().Get(servertiming.HeaderServerTiming); got == "" {
+		t.Error("Server-Timing header = empty, want non-empty from the timing wrapper")
+	}
+
+	want := "nonce=" + cspNonceFromHeader(t, csp)
+
+	if rec.Body.String() != want {
+		t.Errorf("body = %q, want %q (context nonce must match the CSP nonce)", rec.Body.String(), want)
+	}
+}
+
+// TestChain_NonceWithCSRFTokenHelpers_BothAttributesRender verifies a handler
+// can render CSRF token helpers and the nonce attribute from one request: the
+// nonce and CSRF token context values coexist without key collisions.
+func TestChain_NonceWithCSRFTokenHelpers_BothAttributesRender(t *testing.T) {
+	t.Parallel()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := WithCSRFToken(r.Context(), "test-csrf-token")
+
+		_, _ = fmt.Fprintf(
+			w,
+			"%s %s",
+			CSRFTokenFormField(r.WithContext(ctx)),
+			NonceAttr(r.WithContext(ctx)),
+		)
+	})
+
+	wrapped := Chain(inner, Nonce(DefaultNonceConfig()))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+
+	rec := newRecorder()
+	wrapped.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `name="csrf_token" value="test-csrf-token"`) {
+		t.Errorf("body %q missing the CSRF form field with the context token", body)
+	}
+
+	csp := rec.Header().Get("Content-Security-Policy")
+
+	wantAttr := `nonce="` + cspNonceFromHeader(t, csp) + `"`
+
+	if !strings.Contains(body, wantAttr) {
+		t.Errorf("body %q missing the nonce attribute %q", body, wantAttr)
+	}
+}

@@ -29,6 +29,12 @@ import (
 // For a stricter policy, use ProductionCSPWithNonce as the CSPBuilder.
 // Responses with per-request nonces must not be cached — set
 // Cache-Control: no-store in your handler or caching middleware.
+//
+// There is deliberately no NonceConfig.Generator override and no public
+// GenerateNonce: the middleware's contract is a cryptographically random
+// per-request nonce, and pluggable generators would weaken it. To inject a
+// nonce yourself (deterministic tests, custom flows), use WithNonce and read
+// it back with NonceFromRequest or NonceAttr.
 
 const (
 	// defaultNonceSize is the number of random bytes (before base64 encoding)
