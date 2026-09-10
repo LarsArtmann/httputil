@@ -12,7 +12,10 @@ export GOLANGCI_LINT_CACHE="${GOLANGCI_LINT_CACHE:-$HOME/.cache/golangci-lint-ht
 export GOEXPERIMENT=jsonv2
 
 step() { printf '\n=== %s ===\n' "$1"; }
-fail() { printf '\n!!! FAILED: %s\n' "$1" >&2; exit 1; }
+fail() {
+	printf '\n!!! FAILED: %s\n' "$1" >&2
+	exit 1
+}
 
 step "1/9 Working tree must be clean"
 [[ -z "$(git status --porcelain)" ]] || fail "working tree is dirty; commit or stash first"
@@ -35,13 +38,13 @@ golangci-lint run ./... || fail "golangci-lint run (root)"
 
 step "6/9 erraudit gates"
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as || fail "erraudit legacy_as"
-GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family \
-	|| fail "erraudit stdlib_constructor"
+GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family ||
+	fail "erraudit stdlib_constructor"
 
 step "7/9 Coverage threshold (95%)"
 # Library coverage only: the scripts/ dev tooling package has no tests and
 # would drag the total below the gate.
-go test $(go list ./... | grep -v scripts/coverage-threshold) -coverprofile=coverage.out 	|| fail "go test -coverprofile"
+go test $(go list ./... | grep -v scripts/coverage-threshold) -coverprofile=coverage.out || fail "go test -coverprofile"
 go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95 || fail "coverage below 95%"
 
 step "8/9 CHANGELOG has an [Unreleased] section"

@@ -426,20 +426,20 @@ Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 
 `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
 
-| Source     | Error Code                   | Family         | Retryable | When                                         |
-| ---------- | ---------------------------- | -------------- | --------- | -------------------------------------------- |
-| `Write`    | `http.write_failed`          | Transient      | Yes       | Underlying ResponseWriter.Write fails        |
-| `Hijack`   | `http.hijack_unsupported`    | Infrastructure | No        | Underlying writer doesn't implement Hijacker |
-| `Hijack`   | `http.hijack_failed`         | Transient      | Yes       | Underlying Hijack call fails                 |
-| `Compress` | `http.compress_write_failed` | Transient      | Yes       | Compression writer Write/Close fails         |
-| `CSRF`     | `csrf_invalid`               | Rejection      | No        | CSRF token missing, malformed, or mismatched |
-| `CSRF`     | `csrf.origin_attestation_conflict` | Rejection | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
-| `CSRF`     | `csrf_config`                | Infrastructure | No        | CSRF configuration invalid                   |
-| `CSRF`     | `csrf.max_age_negative`      | Rejection      | No        | CSRFConfig.MaxAge is negative                |
-| `CORS`     | `cors.methods_empty`         | Rejection      | No        | CORSConfig.AllowedMethods is empty           |
-| `Compress` | `compression.incompressible_prefix_invalid` | Rejection | No | IncompressibleTypes entry is empty or lacks a slash |
-| `Decompress` | `decompression.encoding_unrecognized` | Rejection | No   | Encodings entry other than gzip/deflate      |
-| `Decompress` | `decompression.encoding_duplicate` | Rejection | No   | Same encoding listed twice                   |
+| Source       | Error Code                                  | Family         | Retryable | When                                                                                                          |
+| ------------ | ------------------------------------------- | -------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `Write`      | `http.write_failed`                         | Transient      | Yes       | Underlying ResponseWriter.Write fails                                                                         |
+| `Hijack`     | `http.hijack_unsupported`                   | Infrastructure | No        | Underlying writer doesn't implement Hijacker                                                                  |
+| `Hijack`     | `http.hijack_failed`                        | Transient      | Yes       | Underlying Hijack call fails                                                                                  |
+| `Compress`   | `http.compress_write_failed`                | Transient      | Yes       | Compression writer Write/Close fails                                                                          |
+| `CSRF`       | `csrf_invalid`                              | Rejection      | No        | CSRF token missing, malformed, or mismatched                                                                  |
+| `CSRF`       | `csrf.origin_attestation_conflict`          | Rejection      | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
+| `CSRF`       | `csrf_config`                               | Infrastructure | No        | CSRF configuration invalid                                                                                    |
+| `CSRF`       | `csrf.max_age_negative`                     | Rejection      | No        | CSRFConfig.MaxAge is negative                                                                                 |
+| `CORS`       | `cors.methods_empty`                        | Rejection      | No        | CORSConfig.AllowedMethods is empty                                                                            |
+| `Compress`   | `compression.incompressible_prefix_invalid` | Rejection      | No        | IncompressibleTypes entry is empty or lacks a slash                                                           |
+| `Decompress` | `decompression.encoding_unrecognized`       | Rejection      | No        | Encodings entry other than gzip/deflate                                                                       |
+| `Decompress` | `decompression.encoding_duplicate`          | Rejection      | No        | Same encoding listed twice                                                                                    |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 

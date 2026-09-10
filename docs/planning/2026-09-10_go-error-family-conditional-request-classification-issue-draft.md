@@ -12,8 +12,8 @@ Document classification guidance for conditional-request outcomes (304 Not Modif
 
 `Family.HTTPStatus()` provides a canonical family → HTTP status mapping (Rejection → 400, Conflict → 409, Transient → 503, Corruption → 500, Infrastructure → 503, Orchestration → 500, `family.go` `familyData`), and `HTTPStatuser` lets an error override the status. What the classification table does not answer is how a **library author** should treat conditional-request outcomes under RFC 9110 §13:
 
-1. **304 Not Modified** is a *success* outcome of a successful conditional GET, not an error. Nothing in the docs says "do not route this through error classification," so the temptation is to model it as some family and get a nonsense 4xx/5xx out of `HTTPStatus(err)`.
-2. **412 Precondition Failed** has no canonical pairing. The table's closest rows are Rejection (400) and Conflict (409), and neither is obviously right: the request *syntax* is fine (so 400/Rejection reads wrong), and 409/Conflict is about request-state conflicts with the current state of the target resource — close, but the doc gives no ruling.
+1. **304 Not Modified** is a _success_ outcome of a successful conditional GET, not an error. Nothing in the docs says "do not route this through error classification," so the temptation is to model it as some family and get a nonsense 4xx/5xx out of `HTTPStatus(err)`.
+2. **412 Precondition Failed** has no canonical pairing. The table's closest rows are Rejection (400) and Conflict (409), and neither is obviously right: the request _syntax_ is fine (so 400/Rejection reads wrong), and 409/Conflict is about request-state conflicts with the current state of the target resource — close, but the doc gives no ruling.
 3. **304/412 in handler-returning-error designs.** With `HandlerFunc`/`HTTPHandler`, a handler that wants to end with 304/412 must either return `nil` (losing the reason) or an error whose family maps to the wrong status. The `HTTPStatuser` escape hatch exists but the docs don't present it as the answer for these cases.
 
 ### Evidence this is a real gap

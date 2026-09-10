@@ -2,7 +2,7 @@ package httpspec
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
 	"fmt"
 	"mime"
 	"net/http"
@@ -283,7 +283,7 @@ func ExpectJSON(method, path, contentType string) Check {
 			)
 		}
 
-		if !json.Valid(rec.Body.Bytes()) {
+		if !jsontext.Value(rec.Body.Bytes()).IsValid() {
 			return Fail("%s %s response body is not valid JSON", method, path)
 		}
 

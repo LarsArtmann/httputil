@@ -17,7 +17,7 @@ func newCORSAwareHandler(origin string) http.Handler {
 		requested := r.Header.Get("Origin")
 
 		switch {
-		case requested == origin, matchSpecWildcardOrigin(requested):
+		case requested == origin, strings.HasSuffix(requested, ".example.com"):
 			w.Header().Set("Access-Control-Allow-Origin", requested)
 		case requested == "":
 			w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -31,12 +31,6 @@ func newCORSAwareHandler(origin string) http.Handler {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
-}
-
-// matchSpecWildcardOrigin reports whether the origin matches the *.example.com
-// pattern the CORS-aware test handler authorizes.
-func matchSpecWildcardOrigin(origin string) bool {
-	return strings.HasSuffix(origin, ".example.com")
 }
 
 // newRateLimitedHandler returns a handler that rejects the first 2 requests

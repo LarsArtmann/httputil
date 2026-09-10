@@ -234,4 +234,3 @@ Non-test duplication was extracted (compress-write error wrapping → `compressW
 ## Additional Active Linters Worth Knowing
 
 `wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero`, `modernize`, `nolintlint` (explanations required, unused directives fail). Per-linter detail: [docs/architecture-reference.md](docs/architecture-reference.md) lint-profile section.
-

@@ -2,11 +2,11 @@
 
 httputil gives you three composition primitives, and they are designed to be used together:
 
-| Primitive      | Signature                        | What it is for                                                       |
-| -------------- | -------------------------------- | -------------------------------------------------------------------- |
-| `Chain(h, mw…)` | handler + middlewares → handler | Apply a middleware list to one handler (first = outermost)           |
-| `Compose(mw…)`  | middlewares → middleware        | Bundle a middleware list into a single reusable `Middleware`         |
-| `MiddlewareStack` | named, validated collection   | Collect middleware with duplicate prevention and optional ordering validation |
+| Primitive         | Signature                       | What it is for                                                                |
+| ----------------- | ------------------------------- | ----------------------------------------------------------------------------- |
+| `Chain(h, mw…)`   | handler + middlewares → handler | Apply a middleware list to one handler (first = outermost)                    |
+| `Compose(mw…)`    | middlewares → middleware        | Bundle a middleware list into a single reusable `Middleware`                  |
+| `MiddlewareStack` | named, validated collection     | Collect middleware with duplicate prevention and optional ordering validation |
 
 All middleware is `func(http.Handler) http.Handler`, so anything you write composes with anything the library provides.
 

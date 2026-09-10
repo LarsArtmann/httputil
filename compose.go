@@ -26,7 +26,11 @@ type MiddlewareFunc func(http.Handler) http.Handler
 func (mw MiddlewareFunc) Then(next http.Handler) http.Handler {
 	if next == nil {
 		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			http.Error(w, "httputil: nil handler wired into MiddlewareFunc.Then", http.StatusInternalServerError)
+			http.Error(
+				w,
+				"httputil: nil handler wired into MiddlewareFunc.Then",
+				http.StatusInternalServerError,
+			)
 		})
 	}
 

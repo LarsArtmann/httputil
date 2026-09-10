@@ -93,6 +93,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 ## f) NEXT 50 (ordered, concrete)
 
 **Immediate — before pushing v1.0.0**
+
 1. Run the scheduled full-code-review over everything in the `[1.0.0]` section (the recorded gate).
 2. Fix whatever that review finds; if anything lands, `git tag -d v1.0.0`, re-cut, re-verify.
 3. Run govulncheck locally on the release commit (both modules).

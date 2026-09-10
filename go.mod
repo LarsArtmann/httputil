@@ -4,7 +4,7 @@ go 1.26.7
 
 require github.com/larsartmann/go-error-family v0.10.0
 
-require golang.org/x/time v0.15.0
+require golang.org/x/time v0.16.0
 
 require github.com/justinas/nosurf v1.2.0
 
