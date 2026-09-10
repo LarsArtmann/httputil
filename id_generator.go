@@ -23,8 +23,8 @@ import (
 //   - Monotonic uniqueness within a second (bytes 4-7 are counter, never reused).
 //   - Cryptographic uniqueness across seconds (bytes 8-15 are random).
 //   - Fast: ~150 ns per ID after warmup. The hot path avoids crypto/rand
-//     syscalls by drawing the 8-byte random tail from a process-wide buffer
-//     that refills 256 IDs at a time.
+//     syscalls by drawing the 8-byte random tail from a process-wide
+//     generation buffer that refills 256 IDs at a time.
 
 const (
 	idRawBytes  = 16
@@ -32,8 +32,8 @@ const (
 	idCtrBytes  = 4
 	idRandBytes = idRawBytes - idTimeBytes - idCtrBytes // 8
 
-	// Random buffer holds 256 * 8 = 2048 bytes. crypto/rand refills
-	// amortize across ~256 IDs (one syscall every ~256 requests).
+	// Each generation buffer holds 256 * 8 = 2048 bytes, so crypto/rand
+	// refills amortize across ~256 IDs (one syscall every ~256 requests).
 	randBufferIDs = 256
 	randBufferLen = randBufferIDs * idRandBytes
 
@@ -42,10 +42,25 @@ const (
 	hexEncodedBytes = 2
 )
 
-//nolint:gochecknoglobals // Process-wide random buffer amortizes crypto/rand syscalls.
+// randomGeneration is one immutable crypto/rand fill. Once published, a
+// generation buffer is never written again, so concurrent readers copying
+// from it are race-free; superseded generations stay reachable through the
+// pointer a slow reader already loaded and are reclaimed by GC afterwards.
+type randomGeneration struct {
+	gen uint64
+	buf [randBufferLen]byte
+}
+
+//nolint:gochecknoglobals // Monotonic slot claims serialize buffer use process-wide.
 var (
-	randBuf [randBufferLen]byte
+	// randPos hands out generation-stamped slot claims and never resets:
+	// slot s maps to generation s/randBufferIDs and offset s%randBufferIDs,
+	// so every claim identifies exactly one buffer position for all time.
 	randPos atomic.Uint64
+
+	// randomState holds the newest published generation (nil until the
+	// first refill).
+	randomState atomic.Pointer[randomGeneration]
 )
 
 //nolint:gochecknoglobals // Per-process monotonic counter ensures uniqueness within a second.
@@ -66,9 +81,9 @@ func generateTimeOrderedID() string {
 	// time component differentiates wrap-around IDs). Monotonic, so
 	// even back-to-back calls in the same nanosecond get distinct values.
 	c := lastCounter.Add(1)
-	binary.BigEndian.PutUint32(raw[idTimeBytes:idTimeBytes+idCtrBytes], c)
+	binary.BigEndian.PutUint32(raw[idTimeBytes : idTimeBytes+idCtrBytes], c)
 
-	// [8..16) Random tail from the amortized buffer.
+	// [8..16) Random tail from the amortized generation buffer.
 	drawRandomBytes(raw[idTimeBytes+idCtrBytes : idRawBytes])
 
 	// Hex-encode in place. 16 bytes -> 32 chars, all lowercase ASCII.
@@ -90,13 +105,23 @@ func hexEncodeLower(src []byte) string {
 	return string(out)
 }
 
-// drawRandomBytes copies n bytes from the process-wide random buffer into dst,
-// refilling the buffer when exhausted. Thread-safe via atomic slot allocation
-// and a refill mutex.
+// drawRandomBytes copies idRandBytes from the process-wide generation buffer
+// into dst, refilling with a fresh generation when the current one is
+// exhausted. Thread-safe via atomic slot claims and an immutable published
+// buffer per generation.
 //
-// On the cold path (first call or after exhaustion) this performs one
-// crypto/rand read of randBufferLen bytes. Subsequent calls draw from
-// the buffer with no syscall.
+// Every claim (randPos.Add(1)) identifies exactly one (generation, offset)
+// pair for all time, so no two IDs can ever draw the same random tail, even
+// when a refill swaps the buffer between the claim and the copy: a claim whose
+// generation was already superseded is simply abandoned, and its slot is never
+// handed to another caller.
+//
+// The copy cannot race a refill: published generation buffers are immutable,
+// so a slow reader copying from a superseded generation keeps that buffer
+// alive via GC until the copy completes. The former design (one shared buffer
+// overwritten in place under a refill mutex while lock-free readers copied
+// from it) had a formal data race with a torn-read outcome; immutability
+// removes the race entirely.
 func drawRandomBytes(dst []byte) {
 	if len(dst) != idRandBytes {
 		// Fall back to a direct read for unusual sizes. Should never
@@ -109,47 +134,57 @@ func drawRandomBytes(dst []byte) {
 		return
 	}
 
-	// Atomically claim a slot. If we've gone past the end of the buffer,
-	// refill and try again. The refill is serialized via a mutex to
-	// prevent two goroutines from writing randBuf concurrently.
 	for {
 		slot := randPos.Add(1) - 1
+		gen := slot / randBufferIDs
+		offset := int(slot%randBufferIDs) * idRandBytes
 
-		if slot < randBufferIDs {
-			offset := int(slot) * idRandBytes
-			copy(dst, randBuf[offset:offset+idRandBytes])
+		cur := randomState.Load()
+		if cur == nil || cur.gen < gen {
+			// First use ever, or our claim ran ahead of the published
+			// generation: publish the generation this claim belongs to.
+			refillRandomBuffer(gen)
 
-			return
+			continue
 		}
 
-		// We exhausted the buffer. Refill and retry.
-		refillRandomBuffer()
+		if cur.gen > gen {
+			// Our generation was fully consumed and replaced while we were
+			// descheduled. Re-claim a fresh slot in (or past) the current
+			// generation; this claim's slot is abandoned, never reused.
+			continue
+		}
+
+		copy(dst, cur.buf[offset:offset+idRandBytes])
+
+		return
 	}
 }
 
-// refillMu serializes buffer refills to prevent concurrent writes to randBuf.
+// refillMu serializes buffer refills so only one goroutine publishes a given
+// generation.
 //
-//nolint:gochecknoglobals // Process-wide lock guarding the random buffer.
+//nolint:gochecknoglobals // Process-wide lock guarding generation publication.
 var refillMu sync.Mutex
 
-// refillRandomBuffer fills the process-wide random buffer and resets the slot
-// counter to 0. The mutex ensures that only one goroutine refills at a time;
-// other goroutines block briefly and then retry their slot claim against the
-// freshly-filled buffer.
-func refillRandomBuffer() {
+// refillRandomBuffer fills a fresh generation buffer from crypto/rand and
+// publishes it atomically. The mutex ensures only one publisher at a time;
+// the double-check skips redundant crypto/rand reads when another goroutine
+// already published the target generation or a newer one.
+func refillRandomBuffer(gen uint64) {
 	refillMu.Lock()
 	defer refillMu.Unlock()
 
-	// Double-check: another goroutine may have refilled while we waited
-	// for the lock. If randPos is no longer past the end, skip.
-	if randPos.Load() < uint64(randBufferIDs) {
+	if cur := randomState.Load(); cur != nil && cur.gen >= gen {
 		return
 	}
 
-	_, err := rand.Read(randBuf[:])
+	fresh := &randomGeneration{gen: gen}
+
+	_, err := rand.Read(fresh.buf[:])
 	if err != nil {
 		panic("httputil: crypto/rand.Read failed: " + err.Error())
 	}
 
-	randPos.Store(0)
+	randomState.Store(fresh)
 }

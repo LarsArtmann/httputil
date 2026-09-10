@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"net/http"
+	"sync"
 	"testing"
 )
 
@@ -133,5 +134,67 @@ func TestDrawRandomBytes_Concurrent(t *testing.T) {
 
 	for range goroutines {
 		<-done
+	}
+}
+
+// TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails hammers the
+// generation-swap path with many parallel generators and asserts both ID
+// uniqueness and random-tail uniqueness. Tail uniqueness is the stronger
+// property: it pins the generation-stamped claim contract that no two draws
+// can ever receive bytes from the same buffer slot, across generation swaps.
+func TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails(t *testing.T) {
+	t.Parallel()
+
+	const (
+		goroutines   = 8
+		perGoroutine = 20000
+	)
+
+	var wg sync.WaitGroup
+
+	batches := make([][]string, goroutines)
+
+	start := make(chan struct{})
+
+	for g := range goroutines {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			<-start
+
+			batch := make([]string, 0, perGoroutine)
+
+			for range perGoroutine {
+				batch = append(batch, generateTimeOrderedID())
+			}
+
+			batches[g] = batch
+		}()
+	}
+
+	close(start)
+	wg.Wait()
+
+	seenIDs := make(map[string]struct{}, goroutines*perGoroutine)
+	seenTails := make(map[string]struct{}, goroutines*perGoroutine)
+
+	for _, batch := range batches {
+		for _, id := range batch {
+			if _, duplicate := seenIDs[id]; duplicate {
+				t.Fatalf("duplicate ID %s under concurrent generation", id)
+			}
+
+			seenIDs[id] = struct{}{}
+
+			tail := id[idTimeBytes*hexEncodedBytes+idCtrBytes*hexEncodedBytes:]
+
+			if _, duplicate := seenTails[tail]; duplicate {
+				t.Fatalf("duplicate random tail %s (id %s) under concurrent generation", tail, id)
+			}
+
+			seenTails[tail] = struct{}{}
+		}
 	}
 }
