@@ -31,11 +31,30 @@
       perSystem =
         {
           config,
+          lib,
           pkgs,
           ...
         }:
         let
           goPkg = pkgs.go_1_26;
+
+          # benchstat is not packaged in nixpkgs; pin it from the Go module
+          # proxy's source so benchmark comparisons use a fixed tool version.
+          benchstat = pkgs.buildGoModule rec {
+            pname = "benchstat";
+            version = "0.0.0-20260908200009-22c9c6c9d4da";
+
+            src = pkgs.fetchFromGitHub {
+              owner = "golang";
+              repo = "perf";
+              rev = "22c9c6c9d4da6248aedbc79f02ecedcd59f8f5f2";
+              hash = "sha256-RSiI5I92l9bMWxTbHNKhcti4OKj8kD9yFxeHaWQJiFU=";
+            };
+
+            subPackages = [ "cmd/benchstat" ];
+
+            vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
+          };
         in
         {
           treefmt = {
@@ -51,6 +70,7 @@
           devShells.default = pkgs.mkShellNoCC {
             packages = [
               goPkg
+              benchstat
               pkgs.golangci-lint
               pkgs.gofumpt
               pkgs.golines
@@ -66,6 +86,8 @@
               echo "  diagrams: d2 $(d2 --version 2>/dev/null || echo '?') — layout engine: elk (docs/architecture-understanding/*.d2)"
             '';
           };
+
+          packages.benchstat = benchstat;
 
           checks = {
             format = config.treefmt.build.check self;
