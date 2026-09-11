@@ -189,7 +189,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-09-11 with `go test -race -coverprofile`: **97.4%** (`httputil`, library packages), **98.6%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-09-11 with `go test -race -coverprofile`: **97.0%** (`httputil`, library packages; 97.3% total across both modules), **98.6%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **Typed error model (`code.go`):**
 
