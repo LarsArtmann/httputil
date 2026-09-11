@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -235,20 +236,56 @@ func FuzzCSRFRemoteHostAndIP(f *testing.F) {
 }
 
 // FuzzCSRFMiddleware_OriginHeaders verifies the middleware handles arbitrary
-// combinations of Origin / Referer / Sec-Fetch-Site headers without panicking.
-// These are the inputs that drive the plaintext-HTTP bypass decision — any
-// crash here is a CSRF protection bypass waiting to happen.
+// combinations of method / Origin / Referer / Sec-Fetch-Site headers without
+// panicking. These are the inputs that drive the plaintext-HTTP bypass and
+// attestation-conflict decisions — any crash here is a CSRF protection bypass
+// waiting to happen. The oracle additionally pins the attestation-conflict
+// contract: an unsafe method with a literal same-origin attestation and an
+// Origin that is neither absent, null, nor self MUST be rejected with 403
+// (ErrCSRFAttestationConflict) — the forged-attestation defense applies to
+// every unsafe method, not just GET.
 func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
-	f.Add("https://example.com", "", "")
-	f.Add("", "https://example.com/page", "")
-	f.Add("", "", "same-origin")
-	f.Add("", "", "cross-site")
-	f.Add("", "", "none")
-	f.Add("https://evil.com", "https://example.com", "same-origin")
-	f.Add(strings.Repeat("a", 500), strings.Repeat("b", 500), strings.Repeat("c", 500))
-	f.Add("https://example.com\r\nX-Evil: 1", "", "")
+	f.Add("https://example.com", "", "", http.MethodGet)
+	f.Add("", "https://example.com/page", "", http.MethodGet)
+	f.Add("", "", "same-origin", http.MethodGet)
+	f.Add("", "", "cross-site", http.MethodGet)
+	f.Add("", "", "none", http.MethodGet)
+	f.Add("https://evil.com", "https://example.com", "same-origin", http.MethodGet)
+	f.Add(
+		strings.Repeat("a", 500),
+		strings.Repeat("b", 500),
+		strings.Repeat("c", 500),
+		http.MethodPost,
+	)
+	f.Add("https://example.com\r\nX-Evil: 1", "", "", http.MethodGet)
+	// Contradictory combos on unsafe methods: the test request is plain HTTP
+	// with Host example.com, so an https Origin contradicts the attestation.
+	f.Add("https://example.com", "", "same-origin", http.MethodPost)
+	f.Add("https://evil.com", "", "same-origin", http.MethodPost)
+	f.Add("https://evil.com", "", "same-origin", http.MethodPut)
+	f.Add("https://evil.com", "", "same-origin", http.MethodPatch)
+	f.Add("https://evil.com", "", "same-origin", http.MethodDelete)
+	f.Add("not-an-origin", "", "same-origin", http.MethodPost)
+	f.Add("https://example.com\r\nX-Evil: 1", "", "same-origin", http.MethodPost)
+	// Boundary seeds: attestation with absent, null, or self origins is
+	// consistent and must NOT be treated as a conflict.
+	f.Add("", "", "same-origin", http.MethodPost)
+	f.Add("null", "", "same-origin", http.MethodPost)
+	f.Add("http://example.com", "", "same-origin", http.MethodPost)
+	f.Add("null", "", "same-origin", http.MethodGet)
 
-	f.Fuzz(func(t *testing.T, origin, referer, secFetchSite string) {
+	f.Fuzz(func(t *testing.T, method, origin, referer, secFetchSite string) {
+		// httptest.NewRequest panics on invalid method characters. Skip
+		// inputs that aren't valid HTTP tokens — this fuzzer targets CSRF
+		// behavior, not request construction.
+		if method == "" {
+			method = http.MethodGet
+		}
+
+		if !isValidHTTPToken(method) {
+			t.Skip("invalid HTTP method character")
+		}
+
 		mw := CSRFMiddleware(CSRFConfig{
 			AllowPlaintextBypass: true,
 		})
@@ -257,7 +294,7 @@ func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
 			w.WriteHeader(http.StatusOK)
 		}))
 
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req := httptest.NewRequest(method, "/", nil)
 		req.RemoteAddr = "1.2.3.4:1234" // non-loopback, non-trusted
 		if origin != "" {
 			req.Header.Set("Origin", origin)
@@ -277,6 +314,57 @@ func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
 		// Must not panic, must produce a valid HTTP status.
 		if rec.Code == 0 {
 			t.Errorf("recorder has no status code set")
+		}
+
+		// Attestation-conflict oracle, computed independently of the
+		// middleware internals: unsafe method (the RFC safe set is
+		// GET/HEAD/OPTIONS/TRACE) + literal same-origin attestation + an
+		// Origin that is non-empty, not "null", and either unparseable or
+		// not the request's own http://example.com origin. No trusted
+		// origins are configured, so none can excuse a mismatch.
+		unsafe := true
+		switch method {
+		case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+			unsafe = false
+		}
+
+		wantConflict := unsafe && secFetchSite == "same-origin" &&
+			origin != "" && origin != "null"
+
+		if wantConflict {
+			if parsed, parseErr := url.Parse(origin); parseErr == nil &&
+				parsed.Host == req.Host && parsed.Scheme == "http" {
+				wantConflict = false
+			}
+		}
+
+		if wantConflict && rec.Code != http.StatusForbidden {
+			t.Errorf(
+				"contradicted attestation (%s, Sec-Fetch-Site: same-origin, Origin %q): status = %d, want %d",
+				method, origin, rec.Code, http.StatusForbidden,
+			)
+			return
+		}
+
+		if wantConflict {
+			// The 403 must be the attestation-conflict rejection, not a
+			// nosurf token failure wearing the same status: the body names
+			// the code. Asserting the body keeps the oracle sensitive to
+			// the attestation check being deleted (nosurf would still 403
+			// on the missing token, but with csrf_invalid).
+			if body := rec.Body.String(); !strings.Contains(
+				body,
+				"csrf.origin_attestation_conflict",
+			) {
+				t.Errorf(
+					"contradicted attestation (%s, Origin %q): body = %q, want csrf.origin_attestation_conflict rejection",
+					method, origin, body,
+				)
+			}
+		}
+
+		if !wantConflict && rec.Code == 0 {
+			t.Errorf("consistent request (%s, Origin %q): no status set", method, origin)
 		}
 	})
 }
