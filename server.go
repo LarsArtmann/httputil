@@ -220,12 +220,14 @@ func (srv *Server) Start() <-chan error {
 	srv.setListener(listener)
 
 	go func() {
-		defer func() {
-			srv.clearListener()
-			srv.started.Store(false)
-		}()
-
+		// The listener and started flag are cleared before the error is
+		// delivered: receiving a Serve error must imply the failure state is
+		// settled, so ListenerAddr no longer reports a live listener.
 		err := srv.httpServer.Serve(listener)
+
+		srv.clearListener()
+		srv.started.Store(false)
+
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
@@ -267,17 +269,18 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	srv.setListener(listener)
 
 	go func() {
-		defer func() {
-			// A ServeTLS failure (e.g. unreadable certificate files) must
-			// not leave ListenerAddr reporting a live listener.
-			srv.clearListener()
-			srv.started.Store(false)
-		}()
-
 		// ServeTLS clones the TLS config, appends the h2 ALPN protocol, and
 		// loads the certificate files when given, matching the stdlib
 		// ListenAndServeTLS setup the previous implementation relied on.
 		err := srv.httpServer.ServeTLS(listener, certFile, keyFile)
+
+		// A ServeTLS failure (e.g. unreadable certificate files) must not
+		// leave ListenerAddr reporting a live listener. Clearing before the
+		// error is delivered guarantees a caller observing the error also
+		// observes the cleared listener state.
+		srv.clearListener()
+		srv.started.Store(false)
+
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}

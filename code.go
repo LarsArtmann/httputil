@@ -100,17 +100,30 @@ func (c Code) WrapOrchestration(cause error, message string) *errorfamily.Error 
 	return errorfamily.WrapOrchestration(cause, string(c), message)
 }
 
-// DomainOf returns the error-code domain of err: the component prefix of
-// its machine-readable code. It reports false when err carries no code
-// (i.e. implements neither errorfamily.Coded nor a compatible ErrorCode
-// method anywhere in its chain).
-func DomainOf(err error) (Domain, bool) {
+// CodeOf returns the full machine-readable error code of err (e.g.
+// "cors.max_age_negative"). It reports false when err carries no code (i.e.
+// implements neither errorfamily.Coded nor a compatible ErrorCode method
+// anywhere in its chain).
+func CodeOf(err error) (Code, bool) {
 	coded, ok := errors.AsType[errorfamily.Coded](err)
 	if !ok {
 		return "", false
 	}
 
-	return Code(coded.ErrorCode()).Domain(), true
+	return Code(coded.ErrorCode()), true
+}
+
+// DomainOf returns the error-code domain of err: the component prefix of
+// its machine-readable code. It reports false when err carries no code
+// (i.e. implements neither errorfamily.Coded nor a compatible ErrorCode
+// method anywhere in its chain).
+func DomainOf(err error) (Domain, bool) {
+	code, ok := CodeOf(err)
+	if !ok {
+		return "", false
+	}
+
+	return code.Domain(), true
 }
 
 // InDomain reports whether err carries an error code in the given domain.
