@@ -42,7 +42,7 @@ func main() {
 	for alias, pkgPath := range checkedPackages {
 		names, err := exportedNames(pkgPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "doc-snippet-refs: loading %s: %v\n", pkgPath, err)
+			fmt.Fprintf(os.Stderr, "doc-snippet-refs: loading API: %v\n", err)
 
 			os.Exit(2)
 		}
@@ -89,7 +89,7 @@ func exportedNames(pkgPath string) (map[string]bool, error) {
 
 	pkg, err := importer.ForCompiler(fset, "source", nil).Import(pkgPath)
 	if err != nil {
-		return nil, fmt.Errorf("import: %w", err)
+		return nil, fmt.Errorf("import %s: %w", pkgPath, err)
 	}
 
 	names := make(map[string]bool, len(pkg.Scope().Names()))
