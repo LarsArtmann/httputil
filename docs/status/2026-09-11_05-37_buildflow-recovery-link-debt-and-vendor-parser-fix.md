@@ -20,7 +20,7 @@ The remaining ~15.2k findings were detect-only warnings: markdown-lint 13,374 (8
 3. **markdown-lint: 13,374 → 0 findings.**
    - Added `.markdownlint.json` disabling exactly the rules whose findings are repo-intentional style or frozen history (MD001/009/010/012/013/022/024/026/028/029/031/034/036/037/040/051); every disabled rule's findings were located and judged first (archived session logs, CHANGELOG section repetition, Makefile-tab snippets, long-line table style).
    - Added `.markdownlintignore` (`vendor/`).
-   - Fixed the *real* MD042: README badge links `](#)` → plain images — in README.md **and** in `scripts/update-coverage-badge.sh` (the generator would have reintroduced the pattern on every coverage run; its stale sed-history comment updated too).
+   - Fixed the _real_ MD042: README badge links `](#)` → plain images — in README.md **and** in `scripts/update-coverage-badge.sh` (the generator would have reintroduced the pattern on every coverage run; its stale sed-history comment updated too).
    - Fixed MD034 in SECURITY.md: `**git@lars.software**` → `<git@lars.software>` autolink.
 4. **lychee: 113 → 0 broken links** (301 links checked, 300 OK, 1 excluded).
    - Root cause: the docs-health archiving move (`docs/status/` → `docs/status/archived/`, same for planning) added a directory level without rewriting the `../../CHANGELOG.md`/`../../ROADMAP.md` header links; all 35 archived reports got `../../../` depth fixes.
@@ -100,4 +100,4 @@ Nothing destructive. Two honest process fumbles:
 
 ---
 
-*Session verdict: the pipeline is green again (dry-run 61/0 failed), zero markdown/link/shellcheck findings, and the biggest recurring false-positive generator is fixed at its source. The open debt is documentation (AGENTS.md/CHANGELOG), the BuildFlow test+rebuild, and the three decisions above.*
+_Session verdict: the pipeline is green again (dry-run 61/0 failed), zero markdown/link/shellcheck findings, and the biggest recurring false-positive generator is fixed at its source. The open debt is documentation (AGENTS.md/CHANGELOG), the BuildFlow test+rebuild, and the three decisions above._
