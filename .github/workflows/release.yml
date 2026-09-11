@@ -10,7 +10,7 @@ permissions:
 
 env:
   GO_VERSION: "1.26"
-  GOLANGCI_LINT_VERSION: v2.12
+  GOLANGCI_LINT_VERSION: v2.13.2
   # The root package imports experiment-gated encoding/json/v2.
   GOEXPERIMENT: jsonv2
   # setup-go's manifest lags new Go patches; pin the toolchain via Go
