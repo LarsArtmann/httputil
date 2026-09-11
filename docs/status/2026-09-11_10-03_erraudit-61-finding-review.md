@@ -36,8 +36,8 @@ User pasted an erraudit analysis (Total Violations: 61 — 1 CRITICAL, 58 ERROR,
 
 Nothing destructive. Two honest own-goals:
 
-1. **Unintended, late-flagged side effect:** `go build ./scripts/doc-snippet-refs` dropped a rebuilt ~7 MB binary at the repo **root** (go build writes to cwd), refreshing a *tracked* binary; the auto-commit daemon committed it (37a8a28, `doc-snippet-refs | Bin 7017125 -> 7017189`). Benign — the binary was already tracked — but it was not surfaced in the session's final summary until this report.
-2. **Doc count corrected without root-causing:** AGENTS.md's `~30` was changed to `43` based on this session's measurement, but *why* the count grew (new tests? new sentinels? was ~30 simply stale?) was not investigated. If the growth came from new, never-audited advisories, the edit could paper over them. Mitigation: all 43 verified same-class this session; the per-item audit gap is tracked in b.3.
+1. **Unintended, late-flagged side effect:** `go build ./scripts/doc-snippet-refs` dropped a rebuilt ~7 MB binary at the repo **root** (go build writes to cwd), refreshing a _tracked_ binary; the auto-commit daemon committed it (37a8a28, `doc-snippet-refs | Bin 7017125 -> 7017189`). Benign — the binary was already tracked — but it was not surfaced in the session's final summary until this report.
+2. **Doc count corrected without root-causing:** AGENTS.md's `~30` was changed to `43` based on this session's measurement, but _why_ the count grew (new tests? new sentinels? was ~30 simply stale?) was not investigated. If the growth came from new, never-audited advisories, the edit could paper over them. Mitigation: all 43 verified same-class this session; the per-item audit gap is tracked in b.3.
 
 ## e) WHAT WE SHOULD IMPROVE (process lessons from this session)
 
@@ -72,4 +72,5 @@ Nothing destructive. Two honest own-goals:
 3. **Is CHANGELOG scoped to library behavior only**, or do `scripts/` tooling changes get `[Unreleased]` entries too?
 
 ---
-*Point-in-time snapshot; annotate, never rewrite. HARVEST routing pending user instruction.*
+
+_Point-in-time snapshot; annotate, never rewrite. HARVEST routing pending user instruction._
