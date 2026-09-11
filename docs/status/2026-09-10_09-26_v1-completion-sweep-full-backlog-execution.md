@@ -95,7 +95,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 **Immediate — before pushing v1.0.0**
 
 1. Run the scheduled full-code-review over everything in the `[1.0.0]` section (the recorded gate).
-2. Fix whatever that review finds; if anything lands, `git tag -d v1.0.0`, re-cut, re-verify.
+2. ~~Fix whatever that review finds; if anything lands, `git tag -d v1.0.0`, re-cut, re-verify.~~ obsolete — v1.0.0 reached origin before the fixes landed, and tags are immutable; the delta ships in v1.0.1 (CHANGELOG `[1.0.1]` records the contract as already-described-in-`[1.0.0]`)
 3. Run govulncheck locally on the release commit (both modules).
 4. Run the erraudit `--type-aware` advisory pass once over the post-sweep code (expect ~30 known test advisories; confirm no NEW ones).
 5. ~~Grep README + `docs/migrating-to-keyed-rate-limiter.md` + `docs/v1-stability.md` for "removed at v1.0"-class stale claims (only the redis doc was fixed).~~ done (docs-health pass 2026-09-11: README + migrating-doc + v1-stability grepped for stale v1.0 claims; v1-stability removal targets reworded post-v1.0)
@@ -157,7 +157,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 
 ## g) QUESTIONS FOR THE OWNER (cannot decide myself)
 
-1. **Push sequencing:** should I push `v1.0.0` as-is, or do you want the full-code-review to run first? If the review finds issues, do I delete the local tag and re-cut after fixes, or ship and patch in v1.0.1?
+1. **Push sequencing:** should I push `v1.0.0` as-is, or do you want the full-code-review to run first? If the review finds issues, do I delete the local tag and re-cut after fixes, or ship and patch in v1.0.1? — resolved by events: the tag pushed before the review fixes landed; the delta ships in v1.0.1.
 2. **Deprecated-API removal cadence:** does `TokenBucketLimiter`/`RateLimit()` removal (plan T18) target v1.1.0 as the first post-v1.0 stabilization release, or do you want a longer deprecation window now that v1.0 declared stability?
 3. **go-compression trigger:** do you want me to start the plan-refresh pass for the extraction next session regardless of go-datastar's timeline, or hold until go-datastar actually pulls?
 

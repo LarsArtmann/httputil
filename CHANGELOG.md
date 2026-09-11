@@ -8,12 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Changed
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [1.0.1] - 2026-09-11
+
+### Added
+
 - **Dependabot** (`.github/dependabot.yml`): weekly Go-module and GitHub-Actions update PRs, grouped per ecosystem.
 
 ### Changed
 
-- **go-etag upgraded to v0.3.0**: keeps the ETag middleware pin current with go-etag's server/client split release. The server API httputil uses is unchanged in v0.3.0; the breaking change (`client.PreserveOn304`) does not apply here.
-- **Panic-free API guarantee finalized** (`compose.go`, `id_generator.go`, `nonce.go`): `MiddlewareFunc.Then(nil)` now wires a fallback handler that serves 500 with a self-describing body instead of panicking, and the dead `crypto/rand.Read` failure guards in the ID generator and nonce generator were deleted (`rand.Read` is documented never to return an error). `httpspec.ExpectJSON` validates bodies through `encoding/json/jsontext`. **Note:** the local `v1.0.0` tag predates these commits — the `[1.0.0]` section below already describes this contract, so re-cut the (unpushed) tag before pushing, or ship the delta in v1.0.1.
+- **go-etag upgraded to v0.3.0 then v0.3.1**: keeps the ETag middleware pin current with go-etag's server/client split release. The server API httputil uses is unchanged; the breaking change (`client.PreserveOn304`) does not apply here.
+- **Panic-free API guarantee finalized** (`compose.go`, `id_generator.go`, `nonce.go`): `MiddlewareFunc.Then(nil)` now wires a fallback handler that serves 500 with a self-describing body instead of panicking, and the dead `crypto/rand.Read` failure guards in the ID generator and nonce generator were deleted (`rand.Read` is documented never to return an error). `httpspec.ExpectJSON` validates bodies through `encoding/json/jsontext`. **Note:** the pushed, immutable `v1.0.0` tag predates these commits — the frozen `[1.0.0]` section already describes this contract, so the code delta ships here in v1.0.1.
 
 ### Fixed
 
