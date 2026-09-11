@@ -9,7 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - **Repo-local quality-tool configs**: `.markdownlint.json` + `.markdownlintignore` (markdownlint findings 13,374 → 0; every disabled rule's findings were located and judged individually — frozen archived logs, CHANGELOG section repetition, Makefile tabs, long-line style) and `.buildflow.yml` (`skip_steps: [go-auto-upgrade]` — its suggestions require `samber/lo`, which the depguard allowlist bans).
-- **AGENTS.md "BuildFlow Pipeline" section**: invocation quirks (`--build-mode dev`, single `-s` per run), the stale-global-binary trap, the workspace-vendor `## explicit; go` marker format, and the accepted `vendor` info finding.
+- **AGENTS.md "BuildFlow Pipeline" section**: invocation quirks (`--build-mode dev`, single `-s` per run), the stale-global-binary trap, the result-cache purge pattern, and the 2026-09-11 vendor-parser incident.
+
+### Removed
+
+- **`vendor/` directory** (owner decision — was a gitignored on-disk `go work vendor` artifact, never committed): all dependencies are public, so workspace and `GOWORK=off` builds resolve from the module cache (both verified green); buildflow's `go-mod-vendor`/`go-work-vendor` steps and the `vendor-freshness` preflight now auto-skip, the "directory vendor exists but is not ignored" info finding is gone, and the vendor/modules.txt staleness incident class (2026-09-11) is structurally eliminated.
 
 ### Changed
 
