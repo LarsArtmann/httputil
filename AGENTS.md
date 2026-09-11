@@ -179,6 +179,7 @@ Per-source error codes, families, retryability, and triggers: [docs/architecture
 
 ## Non-Obvious Behaviors
 
+- **`Start`/`StartTLS` clear listener state before delivering a Serve error** — `clearListener()` and `started.Store(false)` run before the error is sent to the returned channel, so receiving an error implies (happens-before) `ListenerAddr()` reports not-listening and a retry `Start` is possible. Never move cleanup back into a `defer` after the send: the buffered channel send completes before the defer runs, which re-opens the race caught by `TestServer_StartTLS_ListenerClearedOnCertFailure` (2026-09-11).
 - **`ResponseRecorder.Status()` returns `0`** (not `200`) when `WriteHeader` hasn't been called. Check `WroteHeader()` to distinguish "no status set" from "status was actually 0".
 - **`ClientIP` trusts proxy headers blindly** — it does not validate X-Forwarded-For or X-Real-IP. Only safe behind a reverse proxy that strips/overwrites these headers.
 - **`Compression` negotiates encodings** per request from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity). If no header is present, the highest-priority configured encoding is chosen.

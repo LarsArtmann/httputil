@@ -228,3 +228,51 @@ func TestInDomainUncodedError(t *testing.T) {
 		t.Errorf("InDomain(plain, cors) = true, want false")
 	}
 }
+
+func TestCodeOf_ClassifiedError(t *testing.T) {
+	t.Parallel()
+
+	code, ok := CodeOf(Code("cors.max_age_negative").Rejection("msg"))
+	if !ok {
+		t.Fatal("CodeOf() ok = false, want true for a classified error")
+	}
+
+	if code != Code("cors.max_age_negative") {
+		t.Errorf("CodeOf() = %q, want %q", code, "cors.max_age_negative")
+	}
+}
+
+func TestCodeOf_UncodedError(t *testing.T) {
+	t.Parallel()
+
+	if _, ok := CodeOf(errTestPlain); ok {
+		t.Error("CodeOf() ok = true, want false for an uncoded error")
+	}
+
+	if _, ok := CodeOf(nil); ok {
+		t.Error("CodeOf(nil) ok = true, want false")
+	}
+}
+
+func TestDomainOf_FullCodeRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	// DomainOf is implemented in terms of CodeOf: the pair must agree on a
+	// classified error.
+	err := Code("cors.max_age_negative").Rejection("msg")
+
+	domain, domainOK := DomainOf(err)
+	code, codeOK := CodeOf(err)
+
+	if !domainOK || !codeOK {
+		t.Fatalf("ok flags = (%v, %v), want (true, true)", domainOK, codeOK)
+	}
+
+	if want := Domain("cors"); domain != want {
+		t.Errorf("DomainOf() = %q, want %q", domain, want)
+	}
+
+	if code.Domain() != domain {
+		t.Errorf("CodeOf().Domain() = %q, want %q (round-trip)", code.Domain(), domain)
+	}
+}

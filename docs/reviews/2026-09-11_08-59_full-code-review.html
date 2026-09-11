@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Code Review — httputil v1.0.x scope — 2026-09-11</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #181b23; --border: #2a2f3a;
+    --text: #e6e9ef; --muted: #9aa3b2;
+    --accent: #4f8ff7; --ok: #3fb96f; --warn: #e5a13c; --bad: #e05d5d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif; padding: 3rem 1.5rem; }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 1.9rem; letter-spacing: -0.02em; margin-bottom: .25rem; }
+  h2 { font-size: 1.25rem; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: .4rem; }
+  .meta { color: var(--muted); margin-bottom: 2rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; }
+  .card .n { font-size: 1.7rem; font-weight: 700; }
+  .card .l { color: var(--muted); font-size: .85rem; }
+  .card.ok .n { color: var(--ok); } .card.warn .n { color: var(--warn); } .card.bad .n { color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: .72rem; letter-spacing: .06em; }
+  .badge { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; letter-spacing: .04em; }
+  .b-critical { background: #4a1414; color: #ff9c9c; }
+  .b-major { background: #4a3514; color: #ffd39c; }
+  .b-minor { background: #14304a; color: #9cccff; }
+  .b-nit { background: #24301c; color: #bfe3a0; }
+  .b-fixed { background: #123524; color: #7fe0a8; }
+  .b-recorded { background: #3a3f4c; color: #c9d1e0; }
+  code { background: #232837; border-radius: 4px; padding: .08rem .35rem; font-size: .88em; font-family: ui-monospace, "JetBrains Mono", monospace; }
+  .good { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--ok); border-radius: 8px; padding: .8rem 1rem; margin: .6rem 0; }
+  .note { color: var(--muted); font-size: .9rem; margin-top: .5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Full Code Review — v1.0.x scope</h1>
+  <p class="meta">2026-09-11 · Scope: the <code>[1.0.0]</code>/<code>[1.0.1]</code> changelog surface (Server listener tracking, ID-generator ring, CSRF trust model, composition API, error taxonomy) plus the v1.1.0 stabilization batch and the 2026-09-11 session changes. Method: four parallel architect passes (production core, sweep test targets, fuzz/bench/pool invariants, scripts/examples) over every file in scope. Gates at review time: <code>go test -race</code> clean (9 consecutive suite runs), <code>golangci-lint</code> 0 issues, erraudit gates exit 0, govulncheck clean (both modules).</p>
+
+  <div class="cards">
+    <div class="card"><div class="n">4</div><div class="l">review passes</div></div>
+    <div class="card bad"><div class="n">2</div><div class="l">critical/major fixed on the spot</div></div>
+    <div class="card warn"><div class="n">12</div><div class="l">findings fixed in total</div></div>
+    <div class="card"><div class="n">9</div><div class="l">findings recorded, not fixed</div></div>
+    <div class="card ok"><div class="n">4</div><div class="l">patterns to preserve</div></div>
+  </div>
+
+  <h2>Fixed on the spot (verified by tests, fuzz, and mutation checks)</h2>
+  <table>
+    <tr><th>#</th><th>Severity</th><th>File</th><th>Issue</th><th>Fix</th></tr>
+    <tr><td>1</td><td><span class="badge b-critical">critical</span></td><td><code>stack.go</code></td><td>Data race by documented design: unsynchronized <code>entries</code> slice while the <code>Middleware()</code> doc invited <code>Add</code>-during-use; concurrent append realloc vs read was a genuine <code>-race</code> failure.</td><td><span class="badge b-fixed">fixed</span> Atomic immutable snapshots (<code>atomic.Pointer[[]middlewareEntry]</code>, CAS publication loop); <code>Add</code> documented safe for concurrent use; new stress test (8 writers × 200 adds vs 8 readers, <code>-race -count=5</code> clean).</td></tr>
+    <tr><td>2</td><td><span class="badge b-major">major</span></td><td><code>csrf.go</code></td><td>False-positive attestation rejection behind TLS termination: browser <code>Origin: https://site</code> + truthful <code>Sec-Fetch-Site: same-origin</code> vs plaintext upstream read as <code>http</code> → the most common production topology rejected as forged.</td><td><span class="badge b-fixed">fixed</span> <code>X-Forwarded-Proto</code> honored only from configured trusted proxies (<code>forwardedProtoFromTrustedProxy</code>); 4 new tests pin the trust boundary (trusted accepts, untrusted still rejects, different host still rejects).</td></tr>
+    <tr><td>3</td><td><span class="badge b-major">major</span></td><td><code>csrf.go</code></td><td>Attestation host comparison case-sensitive; DNS hosts are case-insensitive, so <code>https://EXAMPLE.com</code> vs <code>Host: example.com</code> flagged a legitimate request as forged.</td><td><span class="badge b-fixed">fixed</span> <code>strings.EqualFold</code> for self and trusted-origin host comparisons; fuzz oracle updated; the fuzzer itself found the stale oracle (input <code>343a4379baadd659</code> now pins the behavior in the seed corpus).</td></tr>
+    <tr><td>4</td><td><span class="badge b-major">major</span></td><td><code>csrf.go</code></td><td><code>CSRFTokenHXHeaders</code> embedded raw JSON in a single-quoted HTML attribute without escaping — an XSS sink whenever the context token is not the middleware's hex token.</td><td><span class="badge b-fixed">fixed</span> <code>html.EscapeString</code> around the JSON; browsers decode attribute values before JS parsing, so HTMX still receives the exact object.</td></tr>
+    <tr><td>5</td><td><span class="badge b-major">major</span></td><td><code>server.go</code></td><td><code>Start()</code> had no double-invocation guard: a second call bound an orphan listener invisible to <code>ListenerAddr</code>; a failed <code>StartTLS</code> left the listener marked live.</td><td><span class="badge b-fixed">fixed</span> <code>atomic.Bool</code> guard + <code>server.already_started</code> Rejection code (template registered); listeners cleared when <code>Serve/ServeTLS</code> returns; 2 new tests.</td></tr>
+    <tr><td>6</td><td><span class="badge b-major">major</span></td><td><code>csrf_fuzz_test.go</code></td><td>Token-validation fuzz oracle only asserted 403 for <em>missing</em> values; the double-submit bypass class (both present, mismatched) had no oracle.</td><td><span class="badge b-fixed">fixed</span> Unsafe methods must 403 with the <code>csrf_invalid</code> body for every bogus pair; 8s fuzz clean.</td></tr>
+    <tr><td>7</td><td><span class="badge b-major">major</span></td><td><code>compress_fuzz_test.go</code></td><td><code>FuzzCompressWriterState</code> oracle was vacuous (survived deletion of the whole middleware); unknown encodings coerced to gzip so wire fuzzing never happened.</td><td><span class="badge b-fixed">fixed</span> Real decode-and-compare round-trip invariant (bounded gzip/flate decoders, byte-exact pass-through branch, unexpected-<code>Content-Encoding</code> rejection); raw fuzzed <code>Accept-Encoding</code> now reaches negotiation.</td></tr>
+    <tr><td>8</td><td><span class="badge b-minor">minor</span></td><td><code>compose.go</code></td><td>Nil <code>MiddlewareFunc</code> receiver panicked at <code>mw(next)</code>, contradicting the never-panics doctrine. (First fix attempt reordered the nil checks wrongly — the fuzz suite caught the nil-handler regression before it shipped.)</td><td><span class="badge b-fixed">fixed</span> Nil next → 500 stub even for a nil receiver; nil receiver with real handler → identity; test added.</td></tr>
+    <tr><td>9</td><td><span class="badge b-minor">minor</span></td><td><code>maxbodysize_fuzz_test.go</code></td><td><code>io.ReadAll(r.Body)</code> unbounded for fuzz-chosen huge limits (repo rule: bounded reference reads).</td><td><span class="badge b-fixed">fixed</span> <code>LimitReader</code> at <code>len(body)+1</code> preserves both oracle branches; extreme-limit seeds added.</td></tr>
+    <tr><td>10</td><td><span class="badge b-minor">minor</span></td><td><code>code.go</code></td><td>No <code>CodeOf(err)</code> — callers needing the full code had to do the <code>errors.AsType</code> dance against errorfamily directly.</td><td><span class="badge b-fixed">fixed</span> Additive <code>CodeOf</code>; <code>DomainOf</code> now implemented in terms of it; round-trip test.</td></tr>
+    <tr><td>11</td><td><span class="badge b-minor">minor</span></td><td><code>stack.go</code></td><td><code>Add("", mw)</code> accepted: empty names defeat duplicate detection and produce empty diagnostics.</td><td><span class="badge b-fixed">fixed</span> Rejected with <code>stack.name_empty</code> Rejection (template registered); test pins that nothing is added.</td></tr>
+    <tr><td>12</td><td><span class="badge b-nit">nit</span></td><td><code>id_generator.go</code></td><td>Naming/doc lies: "per-second counter" (it is process-lifetime), uniqueness-after-wrap claim without the random-tail caveat, <code>hexEncodedBytes</code> meaning hex chars per byte.</td><td><span class="badge b-fixed">fixed</span> Comments corrected (wrap caveat made explicit); renamed to <code>hexCharsPerByte</code>.</td></tr>
+  </table>
+
+  <h2>Recorded findings — deliberate non-fixes (with reasons)</h2>
+  <table>
+    <tr><th>#</th><th>Severity</th><th>File</th><th>Finding</th><th>Why not fixed now</th></tr>
+    <tr><td>1</td><td><span class="badge b-major">major</span></td><td><code>csrf.go</code></td><td><code>ValidateCSRF</code> returns <code>*httptest.ResponseRecorder</code> from a production API (test-support type, hidden behaviors, signals test-only).</td><td><span class="badge b-recorded">recorded</span> <code>ValidateCSRF</code> is a Frozen v1.0 symbol; a result-type change is a signature change → v2.0 material. Tracked below.</td></tr>
+    <tr><td>2</td><td><span class="badge b-major">major</span></td><td><code>csrf.go</code></td><td>Validate-and-log continues on security-degrading config (e.g. <code>SameSite=None</code> + <code>Secure=false</code>) instead of remediating to secure defaults.</td><td><span class="badge b-recorded">recorded</span> Changing the validate-and-log contract is a documented decision (DECISION_LOG 2026-08-08); remediation-fallback is a behavior change needing its own design pass.</td></tr>
+    <tr><td>3</td><td><span class="badge b-major">major</span></td><td><code>csrf.go</code></td><td>Two different <code>TrustedOrigins</code> parsers (nosurf's <code>StaticOrigins</code> vs <code>parseTrustedOriginURLs</code>) can disagree on validity.</td><td><span class="badge b-recorded">recorded</span> Real risk but the divergence window is narrow (entries one parser rejects); unify with tests in a focused change.</td></tr>
+    <tr><td>4</td><td><span class="badge b-minor">minor</span></td><td><code>errors.go</code></td><td><code>http.ErrNoCookie</code>/<code>ErrNoLocation</code> registered as Transient; deterministic failures belong in Rejection by the package's own taxonomy. <code>ErrCodeHijackFailed</code> doc says Transient while the WayOut template reads Infrastructure.</td><td><span class="badge b-recorded">recorded</span> Reclassification changes consumer retry decisions — a behavior change that should ship with its own changelog entry, not ride along.</td></tr>
+    <tr><td>5</td><td><span class="badge b-minor">minor</span></td><td><code>csrf.go</code></td><td><code>ValidateCSRF</code> mutates the caller's request (header translation, form parse) without documenting it; "already validated" inferred from token presence.</td><td><span class="badge b-recorded">recorded</span> Doc + context-flag redesign; recorded below.</td></tr>
+    <tr><td>6</td><td><span class="badge b-minor">minor</span></td><td><code>csrf.go</code></td><td>On <code>nosurf.StaticOrigins</code> error the origin function is silently unset → different validation semantics than configured (only slog distinguishes).</td><td><span class="badge b-recorded">recorded</span> Fail-closed fallback changes behavior for configs that fail to parse; needs the same trust-model treatment as the TrustedProxies work.</td></tr>
+    <tr><td>7</td><td><span class="badge b-minor">minor</span></td><td><code>compose.go</code>/<code>recorder.go</code></td><td><code>MiddlewareFunc</code> vs <code>Middleware</code> alias split: inline literals silently lack <code>.Then</code>; type-safety paper cut baked into the public API.</td><td><span class="badge b-recorded">recorded</span> Making <code>MiddlewareFunc</code> canonical deprecates the core alias — v2.0 discussion, not a stabilization-release change.</td></tr>
+    <tr><td>8</td><td><span class="badge b-minor">minor</span></td><td><code>stack.go</code></td><td><code>Add</code> takes untyped <code>string</code> names despite the <code>Middleware*</code> constant set; <code>Build</code> skips <code>Validate</code> by design so misordering stays silent until requests run.</td><td><span class="badge b-recorded">recorded</span> Typed names are an additive candidate (new type + overload); <code>Build</code>-without-validate is documented and relied upon by tests.</td></tr>
+    <tr><td>9</td><td><span class="badge b-nit">nit</span></td><td><code>compress_pool.go</code></td><td>Pool probe validates error and type but not a <code>(nil, nil)</code> factory return; <code>acquire</code>'s factory parameter is ignored on the pooled path (divergent factories undetectable); <code>release</code> has no provenance check.</td><td><span class="badge b-recorded">recorded</span> All three are internal-contract hardening; the probe + fail-closed re-verification already catches the realistic violations, and today's single call site makes cross-pool Put unreachable. Recorded below for the pool's next touch.</td></tr>
+  </table>
+
+  <h2>Patterns to preserve</h2>
+  <div class="good"><strong>ID generator race-freedom by construction.</strong> Claim-then-load over immutable published generations: no locks on the hot path, abandoned slots never reused, superseded buffers GC-reachable through slow readers. The doc records why the old shared buffer was wrong.</div>
+  <div class="good"><strong>Written trust boundaries.</strong> <code>contradictedAttestationOrigin</code> is a pure function with an argued trust model, now extended with proxy-scoped <code>X-Forwarded-Proto</code> that grants trust only where <code>TrustedProxies</code> already does.</div>
+  <div class="good"><strong>Enforced error-taxonomy completeness.</strong> Template table coverage asserted by <code>errors_templates_test.go</code> — adding a code without a template fails the build, not a review.</div>
+  <div class="good"><strong>Tiered fuzz oracles.</strong> Universal weak invariant + strong invariant gated on provable preconditions (CORS origin echo), dual-channel status+body oracles (CSRF), decode-and-compare round-trips with bounded decoders (compression) — the strengthened CSRF oracle caught its own stale prediction model the day the trust model changed.</div>
+
+  <h2>Deferred work → TODO_LIST.md</h2>
+  <p class="note">Findings 1–9 above are harvested into <code>TODO_LIST.md</code> (post-v1.1 candidates: ValidateCSRF result type at v2.0, security-config remediation fallback, TrustedOrigins parser unification, error-family reclassification pass, ValidateCSRF mutation documentation, pool provenance hardening, typed middleware names). This report is a point-in-time snapshot; annotate, never rewrite.</p>
+</main>
+</body>
+</html>

@@ -21,8 +21,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **`flake.nix`**: removed `apps.test-race` — a byte-identical duplicate of `apps.test` (both ran `go test ./... -race -count=1` with `GOWORK=off`).
 
+### Added
+
+- **CSRF attestation trust model honors `X-Forwarded-Proto` from trusted proxies** (`csrf.go`): behind TLS termination the browser's `Origin: https://site` no longer reads as a scheme-contradicted forged attestation; the client-facing scheme is taken from `X-Forwarded-Proto` only when the request arrives from a configured `TrustedProxies`/`TrustedProxiesCIDR` address, and the header is ignored entirely when no proxies are configured. Four new tests pin the boundary (trusted proxy accepts, untrusted still rejects, different host still rejects).
+- **`MiddlewareStack` is safe for concurrent use**: entries publish as atomic immutable snapshots, so `Add` during `Build`/`Middleware`/`Names`/`Validate` is race-free and readers observe either the pre- or post-add state, never a torn mixture. Stress-tested (8 writers × 200 adds vs 8 readers under `-race`). `Add("")` is now rejected (`stack.name_empty`, Rejection) instead of silently defeating duplicate detection.
+- **`Server.Start`/`StartTLS` double-invocation guard**: a second call returns `server.already_started` (Rejection) instead of binding an untracked orphan listener; a failed `StartTLS` (e.g. unreadable certificate files) now clears the listener so `ListenerAddr()` reports `(nil, false)`.
+- **`CodeOf(err) (Code, bool)`** (`code.go`): the full machine-readable error code without importing errorfamily; `DomainOf` is now implemented in terms of it.
+- **`scripts/doc-snippet-refs`** + a CI step: parses the Go fences in README.md and docs/integrations/*.md and fails when a snippet references an exported symbol that no longer exists (the `Recovery(nil)` incident class). Verified against the v1.1.0 removals.
+- **`benchstat` pinned in the flake** (`nix run .#benchstat`, package `.#benchstat`): statistical comparison replaces best-of-five eyeballing.
+- **`server-timing-standalone` flake check**: proves the sub-module builds and vets with `GOWORK=off`, `GOPROXY=off`, `CGO_ENABLED=0` — its zero-dependency claim is now enforced, not asserted.
+- **Full-code review report**: `docs/reviews/2026-09-11_08-59_full-code-review.html` (4 passes over the v1.0.x scope; 12 findings fixed, 9 recorded with reasons).
+
+### Changed
+
+- **CSRF attestation host comparison is case-insensitive** (`strings.EqualFold`): DNS hosts are case-insensitive, so `Origin: http://EXAMPLE.COM` against `Host: example.com` is the same origin, not a forged attestation. The fuzz target's oracle was updated; the fuzzer located the stale oracle itself before the corpus pinned the new contract.
+- **Fuzz oracle hardening** (review-driven): `FuzzCSRFMiddleware_TokenValidation` now rejects every bogus token+cookie pair on unsafe methods (including the mismatched double-submit class) and asserts the `csrf_invalid` body; `FuzzCompressWriterState` gained a bounded decode-and-compare round-trip invariant and stopped coercing unknown `Accept-Encoding` values (raw wire strings now reach negotiation); `FuzzNegotiatorWireFormat` gained a single-token selection micro-oracle; `FuzzMaxBodySize` reference reads are bounded per the fuzz discipline and gained extreme-limit seeds.
+- **`nix flake check` additionally runs the server_timing standalone build**; the CI lint job verifies the golangci config schema with the pinned binary and lints the `server_timing` sub-module (previously unlinted in CI); the CI benchmark step uploads `bench.txt` as an artifact (making the "full raw data in CI artifacts" claim true); `scripts/prerelease-check.sh` gained `--skip-flake` for CI parity.
+
 ### Fixed
 
+- **The nightly-fuzz workflow was broken for every fuzz target**: `go test -fuzz` accepts a pattern matching exactly one fuzz target, and unanchored patterns (`FuzzDecompression`, `FuzzCORS`, …) started colliding when the sweep added sibling targets (`FuzzDecompressionInvariants`, `FuzzCORSOriginEcho`), failing the run in seconds and auto-filing false-positive bug issues (#7, #8 — closed). All 25 step patterns are now anchored (`^Name$`), the stale `FuzzEvictionTTL` step was dropped with the deprecated API, and every pattern was smoke-verified to match exactly one target. Root cause of the 2026-09-11 03:04 UTC scheduled failure.
 - **shellcheck findings in scripts**: `scripts/prerelease-check.sh` (SC2164 — `cd` without `|| exit 1`; SC2046 — unquoted `go list` substitution, now a `mapfile` into an array) and `scripts/update-coverage-badge.sh` (the generator emitted a `](#)` wrapper that produced markdownlint MD042 duplicate-link findings in the README badge; generator and output fixed together so the fix cannot be re-introduced by regenerating).
 - **Markdown defects**: README badge links (MD042) and SECURITY.md bare email address (MD034, now an autolink).
 - **Broken relative links in 35 archived status/planning docs**: the archiving move added a directory level, so `](../../ROADMAP.md)`-style links pointed one level short; all rewritten to `../../../`.
