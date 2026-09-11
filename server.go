@@ -211,6 +211,7 @@ func (srv *Server) Start() <-chan error {
 	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
 	if err != nil {
 		srv.started.Store(false)
+
 		errChan <- err
 
 		return errChan
@@ -257,6 +258,7 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
 	if err != nil {
 		srv.started.Store(false)
+
 		errChan <- err
 
 		return errChan

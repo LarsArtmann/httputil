@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/flate"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -84,17 +85,27 @@ func FuzzCompressWriterState(f *testing.F) {
 func decodeBoundedGzip(r []byte, limit int) ([]byte, error) {
 	gzipReader, err := gzip.NewReader(bytes.NewReader(r))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("gzip reader: %w", err)
 	}
 
 	defer func() { _ = gzipReader.Close() }()
 
-	return io.ReadAll(io.LimitReader(gzipReader, int64(limit)))
+	decoded, err := io.ReadAll(io.LimitReader(gzipReader, int64(limit)))
+	if err != nil {
+		return nil, fmt.Errorf("gzip read: %w", err)
+	}
+
+	return decoded, nil
 }
 
 // decodeBoundedFlate inflates at most limit bytes of raw-deflate data.
 func decodeBoundedFlate(r []byte, limit int) ([]byte, error) {
-	return io.ReadAll(io.LimitReader(flate.NewReader(bytes.NewReader(r)), int64(limit)))
+	decoded, err := io.ReadAll(io.LimitReader(flate.NewReader(bytes.NewReader(r)), int64(limit)))
+	if err != nil {
+		return nil, fmt.Errorf("flate read: %w", err)
+	}
+
+	return decoded, nil
 }
 
 // FuzzNegotiatorWireFormat fuzzes raw Accept-Encoding header strings through

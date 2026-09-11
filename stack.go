@@ -66,7 +66,7 @@ func NewMiddlewareStack() *MiddlewareStack {
 
 	s := &MiddlewareStack{
 		entries: atomic.Pointer[[]middlewareEntry]{},
-	} //nolint:exhaustruct_v5 // zero pointer is the empty snapshot
+	}
 	s.entries.Store(&empty)
 
 	return s
@@ -93,7 +93,7 @@ func (s *MiddlewareStack) Add(name string, middleware Middleware) error {
 	for {
 		current := s.entries.Load()
 
-		var next []middlewareEntry
+		var currentEntries []middlewareEntry
 
 		if current != nil {
 			for _, e := range *current {
@@ -102,14 +102,12 @@ func (s *MiddlewareStack) Add(name string, middleware Middleware) error {
 				}
 			}
 
-			next = make([]middlewareEntry, len(*current)+1)
-			copy(next, *current)
-		} else {
-			next = make([]middlewareEntry, 1) //nolint:makezero // pre-allocated, single direct-index write
+			currentEntries = *current
 		}
 
-		//nolint:makezero // pre-allocated with known length, direct-index write
-		next[len(next)-1] = middlewareEntry{name: name, middleware: middleware}
+		next := make([]middlewareEntry, 0, len(currentEntries)+1)
+		next = append(next, currentEntries...)
+		next = append(next, middlewareEntry{name: name, middleware: middleware})
 
 		if s.entries.CompareAndSwap(current, &next) {
 			return nil
