@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -29,51 +30,58 @@ var errNoTotalLine = errors.New("no total: line found; is this a `go tool cover 
 //
 // Usage: go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95.
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: coverage-threshold <threshold-percent> (report on stdin)")
+	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+}
 
-		os.Exit(exitUsage)
+// run executes the gate: parse the threshold argument, read the report from
+// report, and return the process exit code (0 pass, 1 below threshold, 2
+// usage or malformed report).
+func run(args []string, report io.Reader, stdout, stderr io.Writer) int {
+	if len(args) != 1 {
+		fmt.Fprintln(stderr, "usage: coverage-threshold <threshold-percent> (report on stdin)")
+
+		return exitUsage
 	}
 
-	threshold, err := strconv.ParseFloat(os.Args[1], 64)
+	threshold, err := strconv.ParseFloat(args[0], 64)
 	if err != nil || threshold < 0 || threshold > maxPercent {
-		fmt.Fprintf(os.Stderr, "invalid threshold %q: want a percentage in [0, 100]\n", os.Args[1])
+		fmt.Fprintf(stderr, "invalid threshold %q: want a percentage in [0, 100]\n", args[0])
 
-		os.Exit(exitUsage)
+		return exitUsage
 	}
 
-	total, err := findTotalLine(os.Stdin)
+	total, err := findTotalLine(report)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "coverage-threshold: %v\n", err)
+		fmt.Fprintf(stderr, "coverage-threshold: %v\n", err)
 
-		os.Exit(exitUsage)
+		return exitUsage
 	}
 
 	pct, err := parseTotalPercent(total)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "coverage-threshold: %v\n", err)
+		fmt.Fprintf(stderr, "coverage-threshold: %v\n", err)
 
-		os.Exit(exitUsage)
+		return exitUsage
 	}
 
-	fmt.Fprintln(os.Stdout, total)
+	fmt.Fprintln(stdout, total)
 
 	if pct < threshold {
 		fmt.Fprintf(
-			os.Stderr,
+			stderr,
 			"::error::Coverage %.2f%% is below %.2f%% threshold\n",
 			pct,
 			threshold,
 		)
 
-		os.Exit(exitBelowThreshold)
+		return exitBelowThreshold
 	}
 
-	os.Exit(exitOK)
+	return exitOK
 }
 
 // findTotalLine scans the report for the single "total:" summary line.
-func findTotalLine(f *os.File) (string, error) {
+func findTotalLine(f io.Reader) (string, error) {
 	total := ""
 
 	scanner := bufio.NewScanner(f)
