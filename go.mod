@@ -10,6 +10,6 @@ require github.com/justinas/nosurf v1.2.0
 
 require github.com/larsartmann/httputil/server_timing v0.12.0
 
-require github.com/larsartmann/go-etag v0.2.0
+require github.com/larsartmann/go-etag v0.3.0
 
 replace github.com/larsartmann/httputil/server_timing => ./server_timing
