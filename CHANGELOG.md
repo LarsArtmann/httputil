@@ -8,15 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Repo-local quality-tool configs**: `.markdownlint.json` + `.markdownlintignore` (markdownlint findings 13,374 → 0; every disabled rule's findings were located and judged individually — frozen archived logs, CHANGELOG section repetition, Makefile tabs, long-line style) and `.buildflow.yml` (`skip_steps: [go-auto-upgrade]` — its suggestions require `samber/lo`, which the depguard allowlist bans).
+- **AGENTS.md "BuildFlow Pipeline" section**: invocation quirks (`--build-mode dev`, single `-s` per run), the stale-global-binary trap, the workspace-vendor `## explicit; go` marker format, and the accepted `vendor` info finding.
 
 ### Changed
 
-- Nothing yet.
+- **`flake.nix`**: removed `apps.test-race` — a byte-identical duplicate of `apps.test` (both ran `go test ./... -race -count=1` with `GOWORK=off`).
 
 ### Fixed
 
-- Nothing yet.
+- **shellcheck findings in scripts**: `scripts/prerelease-check.sh` (SC2164 — `cd` without `|| exit 1`; SC2046 — unquoted `go list` substitution, now a `mapfile` into an array) and `scripts/update-coverage-badge.sh` (the generator emitted a `](#)` wrapper that produced markdownlint MD042 duplicate-link findings in the README badge; generator and output fixed together so the fix cannot be re-introduced by regenerating).
+- **Markdown defects**: README badge links (MD042) and SECURITY.md bare email address (MD034, now an autolink).
+- **Broken relative links in 35 archived status/planning docs**: the archiving move added a directory level, so `](../../ROADMAP.md)`-style links pointed one level short; all rewritten to `../../../`.
+- **Link-check debt**: lychee went from 113 findings to 0 errors (301 links, 300 OK; run with `--exclude-path vendor`).
 
 ## [1.0.1] - 2026-09-11
 
