@@ -89,23 +89,6 @@
                 "${script}/bin/run-tests";
             };
 
-            test-race = {
-              type = "app";
-              meta.description = "Run Go tests with race detection";
-              program =
-                let
-                  script = pkgs.writeShellApplication {
-                    name = "run-tests-race";
-                    runtimeInputs = [ goPkg ];
-                    text = ''
-                      export GOWORK=off
-                      exec ${goPkg}/bin/go test ./... -race -count=1 "$@"
-                    '';
-                  };
-                in
-                "${script}/bin/run-tests-race";
-            };
-
             build = {
               type = "app";
               meta.description = "Build all Go packages";

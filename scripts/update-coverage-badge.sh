@@ -38,13 +38,13 @@ color=$(awk -v t="$total" 'BEGIN { if (t >= 90) print "green"; else if (t >= 70)
 
 # Replace the badge line in the README. The pattern matches any line
 # containing the static shields.io coverage badge URL.
-new_badge="[![Coverage](https://img.shields.io/badge/coverage-${formatted}%25-${color})](#)"
+new_badge="![Coverage](https://img.shields.io/badge/coverage-${formatted}%25-${color})"
 
 if grep -q 'shields.io/badge/coverage-' "$README"; then
 	# Use awk for reliable whole-line replacement. The old sed approach
-	# matched only the inner image (![Coverage](...)) but new_badge
-	# includes the outer markdown link wrapper, causing nested brackets
-	# to accumulate on every run.
+	# matched only the inner image (![Coverage](...)) but the badge line
+	# previously carried an outer markdown link wrapper, causing nested
+	# brackets to accumulate on every run.
 	tmp="${README}.tmp"
 	awk -v replacement="$new_badge" '
         /shields\.io\/badge\/coverage-/ { print replacement; next }

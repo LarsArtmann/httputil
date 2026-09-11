@@ -1,0 +1,9 @@
+# BuildFlow configuration — see https://github.com/larsartmann/buildflow
+# go-auto-upgrade suggests converting manual loops to samber/lo helpers
+# (lo.Reduce, lo.SliceToMap). This repository forbids samber/lo: the
+# depguard allowlist in .golangci.yml admits only $gostd, this module, and
+# the four documented external dependencies. Adding the dependency would
+# fail golangci-lint immediately. Run the step explicitly when wanted:
+#   buildflow -s go-auto-upgrade
+skip_steps:
+  - go-auto-upgrade

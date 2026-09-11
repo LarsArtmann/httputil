@@ -13,7 +13,7 @@ Once v1.0 is released, the latest minor within the current major will be support
 
 ## Reporting a Vulnerability
 
-Email **git@lars.software** with a description of the issue, reproduction steps, and impact assessment.
+Email <git@lars.software> with a description of the issue, reproduction steps, and impact assessment.
 
 - **Do not** open a public GitHub issue for security vulnerabilities.
 - You will receive an acknowledgment within **48 hours**.
