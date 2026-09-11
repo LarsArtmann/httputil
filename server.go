@@ -63,7 +63,9 @@ var (
 	// errServerShutdownFailed wraps shutdown failures as Infrastructure: the
 	// surrounding process state, not the request, is what failed.
 	errServerShutdownFailed = codeServerShutdownFailed.Infrastructure("server shutdown failed")
-	errServerAlreadyStarted = codeServerAlreadyStarted.Rejection("server is already started: Start or StartTLS was called twice")
+	errServerAlreadyStarted = codeServerAlreadyStarted.Rejection(
+		"server is already started: Start or StartTLS was called twice",
+	)
 )
 
 // ServerConfig holds the configuration for an HTTP server.

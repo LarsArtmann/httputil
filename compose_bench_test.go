@@ -30,6 +30,11 @@ func BenchmarkCompose(b *testing.B) {
 		composed := Compose(nopMiddleware, nopMiddleware, nopMiddleware)(handler)
 		req := newTestRequest(http.MethodGet, "/", "")
 
+		// Fresh recorder per iteration (the BenchmarkChain harness style):
+		// httptest.ResponseRecorder cannot be reset, so the measured
+		// allocs/op include the capture cost — same basis as the other
+		// middleware benches. nopMiddleware never mutates req, so the
+		// request is safe to reuse.
 		for b.Loop() {
 			rec := newRecorder()
 			composed.ServeHTTP(rec, req)

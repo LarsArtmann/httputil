@@ -11,7 +11,9 @@ import (
 // Time-ordered request ID layout (16 bytes, 32 hex chars):
 //
 //   [0..4)   uint32 BE: Unix seconds (sortable, valid until year 2106)
-//   [4..8)   uint32 BE: per-second atomic counter (4B IDs/sec, monotonic)
+//   [4..8)   uint32 BE: process-lifetime atomic counter (monotonic; NOT
+//            reset at second boundaries — uniqueness after a uint32 wrap
+//            rests on the random tail, see Properties)
 //   [8..16)  8 bytes:  cryptographic random tail (64 bits of entropy)
 //
 // The string form is 32 lowercase hex characters, matching common request-ID
@@ -20,8 +22,10 @@ import (
 //
 // Properties:
 //   - Chronological sortability (bytes 0-3 are unix seconds).
-//   - Monotonic uniqueness within a second (bytes 4-7 are counter, never reused).
-//   - Cryptographic uniqueness across seconds (bytes 8-15 are random).
+//   - Monotonic per-process counter (bytes 4-7): each value is claimed at
+//     most once, and after a uint32 wrap the 64-bit random tail keeps
+//     cross-generation collision probability negligible (~2^-64 per pair).
+//   - Cryptographic uniqueness from the tail (bytes 8-15 are random).
 //   - Fast: ~150 ns per ID after warmup. The hot path avoids crypto/rand
 //     syscalls by drawing the 8-byte random tail from a process-wide
 //     generation buffer that refills 256 IDs at a time.
@@ -37,9 +41,9 @@ const (
 	randBufferIDs = 256
 	randBufferLen = randBufferIDs * idRandBytes
 
-	// hexEncodedBytes is the number of hex characters produced from one
+	// hexCharsPerByte is the number of hex characters produced from one
 	// raw byte: 1 byte = 2 hex chars.
-	hexEncodedBytes = 2
+	hexCharsPerByte = 2
 )
 
 // randomGeneration is one immutable crypto/rand fill. Once published, a
@@ -95,11 +99,11 @@ func generateTimeOrderedID() string {
 // to 2*len(src) bytes.
 func hexEncodeLower(src []byte) string {
 	//nolint:makezero // pre-allocated for direct index writes, not append
-	out := make([]byte, len(src)*hexEncodedBytes)
+	out := make([]byte, len(src)*hexCharsPerByte)
 
 	for i, b := range src {
-		out[i*hexEncodedBytes] = hexDigitsLower[b>>4]
-		out[i*hexEncodedBytes+1] = hexDigitsLower[b&0x0f]
+		out[i*hexCharsPerByte] = hexDigitsLower[b>>4]
+		out[i*hexCharsPerByte+1] = hexDigitsLower[b&0x0f]
 	}
 
 	return string(out)

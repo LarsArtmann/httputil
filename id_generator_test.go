@@ -185,7 +185,7 @@ func TestGenerateTimeOrderedID_ConcurrentRefill_UniqueIDsAndTails(t *testing.T) 
 
 			seenIDs[generated] = struct{}{}
 
-			tail := generated[idTimeBytes*hexEncodedBytes+idCtrBytes*hexEncodedBytes:]
+			tail := generated[idTimeBytes*hexCharsPerByte+idCtrBytes*hexCharsPerByte:]
 
 			if _, duplicate := seenTails[tail]; duplicate {
 				t.Fatalf(
