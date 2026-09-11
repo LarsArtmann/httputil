@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Documentation-only, per the CHANGELOG freeze policy:** the pushed, immutable `v1.1.0` tag predates the reference-link definitions for its heading (`[1.1.0]:` compare link added; `[Unreleased]` retargeted to `v1.1.0...HEAD`), so the tag's CI run failed the CHANGELOG link check. Release content itself is unaffected.
+
 ## [1.1.0] - 2026-09-11
 
 ### Added
@@ -546,7 +550,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/larsartmann/httputil/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/larsartmann/httputil/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/larsartmann/httputil/compare/v0.12.0...v1.0.0
 [0.12.0]: https://github.com/larsartmann/httputil/compare/v0.11.0...v0.12.0
