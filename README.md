@@ -576,7 +576,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | Field                  | Type            | Default            | Description                                                            |
 | ---------------------- | --------------- | ------------------ | ---------------------------------------------------------------------- |
 | `CookieName`           | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                |
-| `HeaderName`           | `string`        | `"X-CSRF-Token"`   | Request header containing the CSRF token                               |
+| `HeaderName`           | `string`        | `"X-Csrf-Token"`   | Request header containing the CSRF token (canonical MIME spelling; header names are case-insensitive on the wire) |
 | `FieldName`            | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                     |
 | `MaxAge`               | `time.Duration` | `24h`              | Cookie max age                                                         |
 | `Secure`               | `bool`          | `false`            | Sets the Secure flag on the cookie (set `true` in production)          |

@@ -48,7 +48,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 3. **Upstream issue filing** — draft verified and saved, but the issue is not filed (owner repo, owner action; gh auth untested for it).
 4. **Test-helper consolidation** — `reserveFreePort` deleted, `waitForTLS` relocated + upgraded, `waitForListenerAddr` added; but `waitForServerStart` (timeout-heuristic) is now arguably redundant with `waitForListenerAddr` and its existing callers were NOT migrated. Consolidation is ~80% done.
 5. **`docs/architecture-reference.md` freshness** — the three rows I knew changed were refreshed (code.go, compress_pool.go, server.go), but the table was verified 2026-08-30 and this session's other new files (fuzz/bench files, nonce additions, compose API surface details) were not exhaustively re-inventoried.
-6. **AGENTS.md slimming** — under budget, but compression cost some nuance (a few sections are now summaries pointing at the reference doc), and the docs-health skill was not re-run to validate the new structure against its rubric.
+6. ~~**AGENTS.md slimming** — under budget, but compression cost some nuance (a few sections are now summaries pointing at the reference doc), and the docs-health skill was not re-run to validate the new structure against its rubric.~~ done (v1.0.0 sweep: AGENTS.md 58.5 KB to 29.3 KiB via the docs/architecture-reference.md split; 30.1 KiB on 2026-09-11 (a hair over the 30 KB flag line))
 7. **`docs/status/` annotation obligation** — I read `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` during upstream research (and grepped others) but did not annotate the stale claims I noticed in the one I read. The doc-freshness cadence calls reading-without-annotating a missed obligation — this was missed this session.
 
 ## c) NOT STARTED
@@ -98,8 +98,8 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 2. Fix whatever that review finds; if anything lands, `git tag -d v1.0.0`, re-cut, re-verify.
 3. Run govulncheck locally on the release commit (both modules).
 4. Run the erraudit `--type-aware` advisory pass once over the post-sweep code (expect ~30 known test advisories; confirm no NEW ones).
-5. Grep README + `docs/migrating-to-keyed-rate-limiter.md` + `docs/v1-stability.md` for "removed at v1.0"-class stale claims (only the redis doc was fixed).
-6. Reconcile `docs/v1-stability.md` with what v1.0.0 actually froze (ListenerAddr/WrapConflict in; deprecated APIs still present pending removal).
+5. ~~Grep README + `docs/migrating-to-keyed-rate-limiter.md` + `docs/v1-stability.md` for "removed at v1.0"-class stale claims (only the redis doc was fixed).~~ done (docs-health pass 2026-09-11: README + migrating-doc + v1-stability grepped for stale v1.0 claims; v1-stability removal targets reworded post-v1.0)
+6. ~~Reconcile `docs/v1-stability.md` with what v1.0.0 actually froze (ListenerAddr/WrapConflict in; deprecated APIs still present pending removal).~~ done (docs-health pass 2026-09-11: ListenerAddr, Compose, MiddlewareFunc.Then, MiddlewareStack.Middleware, WrapConflict/Orchestration + attestation code added to v1-stability.md)
 7. Verify the `bug` label exists for the nightly-fuzz issue step (or change the step's label).
 8. Push: `git push origin master && git push origin v1.0.0` (owner action or explicit instruction).
 9. Watch the tag-triggered release.yml run end-to-end; fix anything the real environment surfaces.
@@ -118,8 +118,8 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 20. Add `benchstat` to the flake so the documented comparison workflow is executable.
 21. Consider uploading bench artifacts in CI (benchmarks.md claims "full raw data in CI artifacts"; the bench job currently uploads nothing).
 22. `KeyedRateLimiterMiddleware` measured 220 ns/op vs the doc's historical ~191 — sanity-check whether that is harness noise or a real regression from the sweep (property-test additions did not touch the hot path, so probably protocol difference; confirm with benchstat).
-23. Sweep TODO_LIST/ROADMAP for "v1.0" milestone references that now need marking done/re-baselined.
-24. Update ROADMAP: the v1.0 vision entry and the `Wait(ctx)` post-v1.0 path need their status text refreshed now that v1.0.0 exists.
+23. ~~Sweep TODO_LIST/ROADMAP for "v1.0" milestone references that now need marking done/re-baselined.~~ done (docs-health pass 2026-09-11: TODO_LIST rebuilt (completed items deleted to CHANGELOG))
+24. ~~Update ROADMAP: the v1.0 vision entry and the `Wait(ctx)` post-v1.0 path need their status text refreshed now that v1.0.0 exists.~~ done (docs-health pass 2026-09-11: ROADMAP Current Position + v1.0 section rewritten for the shipped v1.0.0)
 25. Re-run `nix flake check --all-systems` on a darwin host or accept the documented omission explicitly.
 
 **Post-v1.0 stabilization release (v1.1.0 candidates)**
@@ -140,9 +140,9 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 36. Wire a coverage-badge refresh into the release runbook (the badge step exists in ci.yml only; release.yml does not run it).
 37. Make `prerelease-check.sh` accept `--skip-flake` for environments without nix (CI parity).
 38. Consider a `justfile`-free task table in README pointing at the flake apps (bench/test/lint/vet/coverage) so consumers discover them.
-39. Update the coverage badge value if it still states the 2026-08-30 number (97.0% → 97.2%).
+39. ~~Update the coverage badge value if it still states the 2026-08-30 number (97.0% → 97.2%).~~ done (docs-health pass 2026-09-11: README badge + gates table updated to fresh race-measured 97.4%/98.6%)
 40. Normalize `docs/status/` — run the docs-health pass: annotate struck items found during this sweep, archive fully-resolved reports via `git mv`.
-41. Fix the pre-existing CHANGELOG markdown quirk in the frozen `[1.0.0]` health bullet (embedded literal newline inside a code span) ONLY IF a correction policy for frozen sections is agreed — otherwise leave per the freeze rule and note it in `[Unreleased]`.
+41. ~~Fix the pre-existing CHANGELOG markdown quirk in the frozen `[1.0.0]` health bullet (embedded literal newline inside a code span) ONLY IF a correction policy for frozen sections is agreed — otherwise leave per the freeze rule and note it in `[Unreleased]`.~~ done (docs-health pass 2026-09-11: freeze policy honored; duplication + broken code span recorded in [Unreleased])
 42. Decide a tag-annotation convention for multi-module releases (single-tag-with-replace is the current, documented pattern — re-verify it against the multi-module reference after the first real consumer appears).
 43. Add `GOWORK=off` server_timing build to the flake checks (module-boundary script exists in CI; the flake check does not run it).
 44. Review `.golangci.yml` exclusions for test-file `noctx` now that `httptest.NewRequest`-with-context patterns exist (`newTestRequest`) — possibly narrowable.
@@ -150,7 +150,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 **Ideas surfaced, not yet decided**
 45. Property-test the middleware stack ordering rules (Recovery-outermost) the way the limiter heap invariants are now tested.
 46. Add an execution-probe test for `ServeTLS` ALPN mutation (the h2-append behavior is documented in AGENTS; a test would pin it).
-47. Consider exporting `CSRFTestToken`-style deterministic helpers for Nonce if composition-test authors keep needing `WithNonce` scaffolding (currently declined — revisit only with a concrete second consumer).
+47. ~~Consider exporting `CSRFTestToken`-style deterministic helpers for Nonce if composition-test authors keep needing `WithNonce` scaffolding (currently declined — revisit only with a concrete second consumer).~~ **Won't implement — declined 2026-09-10 in the v1.0 sweep; WithNonce is the injection escape hatch, revisit only with a concrete second consumer.**
 48. Document the three-layer Go version policy (go.mod minimum / CI pin / local patch) in docs/RELEASE.md so the pin alignment rule survives sessions.
 49. Evaluate `go test -fuzz` corpus seeds committed for the three new targets (corpus only lands on failure; consider committing representative seeds for the CORS echo oracle).
 50. After the first post-sweep full-code-review: schedule the NEXT one (the cadence this item establishes is the real deliverable).

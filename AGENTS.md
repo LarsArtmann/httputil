@@ -117,7 +117,7 @@ nix run .#bench
 
 ### Auto-Git-Commit Daemon
 
-An auto-git-commit daemon commits continuously; unexpected commits are expected, and inferred messages may be generic. For deliberate commits, run `git commit` explicitly with `--no-verify` when the pre-commit hook is unavailable (e.g., `dprint` missing).
+An auto-git-commit daemon commits continuously; unexpected commits are expected, and inferred messages may be generic. For deliberate commits, run `git commit` explicitly with `--no-verify` when the pre-commit hook is unavailable (e.g., `dprint` missing). Consequence: git-log co-change analysis is unreliable here — the daemon batches unrelated files into single commits, so use dependency graphs, not "changed together" evidence.
 
 ### Doc-Freshness Cadence
 
