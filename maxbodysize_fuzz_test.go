@@ -21,6 +21,8 @@ func FuzzMaxBodySize(f *testing.F) {
 	f.Add([]byte(""), int64(0))
 	f.Add([]byte("exactly5"), int64(8))
 	f.Add([]byte("beyond"), int64(-1))
+	f.Add([]byte("x"), int64(1<<62))
+	f.Add([]byte(""), int64(-1<<62))
 
 	f.Fuzz(func(t *testing.T, body []byte, maxBytes int64) {
 		var (
@@ -28,11 +30,15 @@ func FuzzMaxBodySize(f *testing.F) {
 			readErr error
 		)
 
+		// Bounded read (repo fuzz discipline): one byte beyond the corpus
+		// body suffices for both oracle branches — a body over the limit
+		// still trips http.MaxBytesError, a body under it still reads
+		// byte-exact — while the decode can never balloon the runner.
 		handler := MaxBodySize(maxBytes)(http.HandlerFunc(func(
 			w http.ResponseWriter,
 			r *http.Request,
 		) {
-			got, readErr = io.ReadAll(r.Body)
+			got, readErr = io.ReadAll(io.LimitReader(r.Body, int64(len(body))+1))
 			w.WriteHeader(http.StatusOK)
 		}))
 

@@ -20,15 +20,11 @@ func Compose(middlewares ...Middleware) Middleware {
 type MiddlewareFunc func(http.Handler) http.Handler
 
 // Then applies the middleware to next, returning the wrapped handler. A nil
-// next wires a fallback handler that serves 500 for every request, and a nil
-// receiver applies as the identity (nothing wraps next) — wiring mistakes
-// surface as a diagnosable response instead of a panic — the library never
-// panics by design.
+// next wires a fallback handler that serves 500 for every request (even for a
+// nil receiver), and a nil receiver with a non-nil next applies as the
+// identity (nothing wraps next) — wiring mistakes surface as a diagnosable
+// response instead of a panic — the library never panics by design.
 func (mw MiddlewareFunc) Then(next http.Handler) http.Handler {
-	if mw == nil {
-		return next
-	}
-
 	if next == nil {
 		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			http.Error(
@@ -37,6 +33,10 @@ func (mw MiddlewareFunc) Then(next http.Handler) http.Handler {
 				http.StatusInternalServerError,
 			)
 		})
+	}
+
+	if mw == nil {
+		return next
 	}
 
 	return mw(next)

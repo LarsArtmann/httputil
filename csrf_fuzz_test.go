@@ -199,17 +199,36 @@ func FuzzCSRFMiddleware_TokenValidation(f *testing.F) {
 		// Must not panic on any input
 		handler.ServeHTTP(rec, req)
 
-		// For state-changing methods, missing/invalid tokens MUST be rejected.
+		// For state-changing methods, every fuzzed input is an invalid
+		// token+cookie pair (missing, empty, mismatched, or not a real
+		// masked token) and MUST be rejected with the CSRF rejection —
+		// including the double-submit bypass class where both values are
+		// present but differ. Safe methods must never be rejected here.
+		unsafe := true
+
 		switch method {
-		case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-			if tokenValue == "" || cookieValue == "" {
-				if rec.Code != http.StatusForbidden {
-					t.Errorf(
-						"%s without valid token+cookie: got %d, want 403",
-						method, rec.Code,
-					)
-				}
-			}
+		case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+			unsafe = false
+		}
+
+		if !unsafe {
+			return
+		}
+
+		if rec.Code != http.StatusForbidden {
+			t.Errorf(
+				"%s with bogus token=%q cookie=%q: got %d, want 403",
+				method, tokenValue, cookieValue, rec.Code,
+			)
+
+			return
+		}
+
+		if body := rec.Body.String(); !strings.Contains(body, "csrf_invalid") {
+			t.Errorf(
+				"%s with bogus token: body = %q, want the csrf_invalid rejection",
+				method, body,
+			)
 		}
 	})
 }

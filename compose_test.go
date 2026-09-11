@@ -303,3 +303,16 @@ func TestMiddlewareStack_Middleware_IncludesMiddlewareAddedAfterCall(t *testing.
 
 	assertSliceEqual(t, order, want)
 }
+
+func TestMiddlewareFunc_Then_NilReceiverAppliesAsIdentity(t *testing.T) {
+	t.Parallel()
+
+	var mw MiddlewareFunc
+
+	rec := newRecorder()
+
+	mw.Then(newWriteStatusHandler("ok")).ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))
+
+	assertStatus(t, rec, http.StatusOK)
+	assertBody(t, rec, "ok")
+}

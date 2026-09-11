@@ -136,5 +136,23 @@ func FuzzNegotiatorWireFormat(f *testing.F) {
 		if quality <= 0 || quality > 1 {
 			t.Errorf("negotiated q = %v outside (0,1] for header %q", quality, header)
 		}
+
+		// Selection micro-oracle: when the fuzzed header happens to name
+		// exactly one registered encoding (case/space variants), the result
+		// must be that encoding — this pins actual selection, not just
+		// internal consistency, so a negotiator that ignores the wire
+		// input fails here.
+		for name := range neg.factories {
+			if strings.EqualFold(strings.TrimSpace(header), name) {
+				if encoding != name {
+					t.Errorf(
+						"single-token header %q negotiated to %q, want %q",
+						header, encoding, name,
+					)
+				}
+
+				break
+			}
+		}
 	})
 }
