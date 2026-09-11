@@ -788,7 +788,12 @@ func CSRFTokenHXHeaders(r *http.Request) string {
 		return ""
 	}
 
-	return `hx-headers='` + string(jsonVal) + `'`
+	// The JSON goes into a single-quoted HTML attribute: escape it so a
+	// quote inside the value cannot terminate the attribute early (an XSS
+	// sink whenever the context token is not the middleware's hex token).
+	// Browsers HTML-decode attribute values before parsing them as JS, so
+	// HTMX still receives the exact JSON object.
+	return `hx-headers='` + html.EscapeString(string(jsonVal)) + `'`
 }
 
 // CSRFTokenFormField returns a hidden input HTML element containing the CSRF token.

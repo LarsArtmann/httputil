@@ -973,7 +973,7 @@ func TestCSRFConfig_Validate_AcceptsZeroMaxAge(t *testing.T) {
 func TestCSRFMiddleware_AllowsCaseDifferingHostWithSameOriginAttestation(t *testing.T) {
 	t.Parallel()
 
-	// DNS hosts are case-insensitive: Origin https://EXAMPLE.com against
+	// DNS hosts are case-insensitive: Origin http://EXAMPLE.COM against
 	// Host example.com is the same origin, not a forged attestation.
 	mw := CSRFMiddleware(CSRFConfig{})
 	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -982,7 +982,7 @@ func TestCSRFMiddleware_AllowsCaseDifferingHostWithSameOriginAttestation(t *test
 
 	req := newValidCSRFPost(t, mw)
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("Origin", "https://EXAMPLE.com")
+	req.Header.Set("Origin", "http://EXAMPLE.COM")
 
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)

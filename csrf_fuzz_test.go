@@ -332,8 +332,11 @@ func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
 			origin != "" && origin != "null"
 
 		if wantConflict {
+			// Host comparison is case-insensitive (DNS), and no trusted
+			// proxies are configured here, so the scheme view is the local
+			// connection's (plain HTTP).
 			if parsed, parseErr := url.Parse(origin); parseErr == nil &&
-				parsed.Host == req.Host && parsed.Scheme == "http" {
+				strings.EqualFold(parsed.Host, req.Host) && parsed.Scheme == "http" {
 				wantConflict = false
 			}
 		}
