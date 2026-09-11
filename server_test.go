@@ -756,3 +756,66 @@ func TestServer_Start_EphemeralAddr_ListenerAddrResolvesPort(t *testing.T) {
 		t.Errorf("ListenerAddr after Shutdown = (%v, true), want (nil, false)", addr)
 	}
 }
+
+func TestServer_Start_TwiceFailsSecondStart(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	errChan := srv.Start()
+
+	if _, ok := waitForListenerAddr(t, srv, errChan); !ok {
+		t.Fatal("listener address did not resolve after Start")
+	}
+
+	secondErrChan := srv.Start()
+
+	select {
+	case err := <-secondErrChan:
+		if !errors.Is(err, errServerAlreadyStarted) {
+			t.Errorf("second Start() error = %v, want errServerAlreadyStarted", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("second Start() delivered no error")
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
+	}
+}
+
+func TestServer_StartTLS_ListenerClearedOnCertFailure(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	errChan := srv.StartTLS("/nonexistent/cert.pem", "/nonexistent/key.pem")
+
+	select {
+	case err := <-errChan:
+		if err == nil {
+			t.Fatal("StartTLS with unreadable certificate files delivered nil error")
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("StartTLS with unreadable certificate files delivered no error")
+	}
+
+	if addr, ok := srv.ListenerAddr(); ok {
+		t.Errorf("ListenerAddr after failed StartTLS = (%v, true), want (nil, false)", addr)
+	}
+}

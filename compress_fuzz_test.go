@@ -1,6 +1,10 @@
 package httputil
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,14 +17,16 @@ func FuzzCompressWriterState(f *testing.F) {
 	f.Add("identity", "hello world", "text/plain")
 	f.Add("gzip", "", "text/plain")
 	f.Add("gzip", strings.Repeat("a", 1000), "application/json")
+	f.Add("br", "hello brotli", "text/plain")
+	f.Add("GZIP; q=0.5, deflate", "hello wire", "text/plain")
 
+	// Round-trip invariant (the repo rule for response transformers): the
+	// response body must decode — via the negotiated Content-Encoding — to
+	// exactly the bytes the handler wrote, or pass through byte-exact when
+	// no encoding was negotiated. Decoders are bounded so a hostile stream
+	// cannot balloon the runner.
 	f.Fuzz(func(t *testing.T, encoding, body, contentType string) {
 		t.Parallel()
-
-		acceptEncoding := encoding
-		if encoding != "gzip" && encoding != "deflate" && encoding != "identity" {
-			acceptEncoding = "gzip"
-		}
 
 		cfg := DefaultCompressionConfig()
 		handler := Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -30,15 +36,65 @@ func FuzzCompressWriterState(f *testing.F) {
 		}))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Accept-Encoding", acceptEncoding)
+		req.Header.Set("Accept-Encoding", encoding)
 
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
 
-		if rec.Code < 100 || rec.Code >= 600 {
-			t.Errorf("invalid status code: %d", rec.Code)
+		gotEncoding := rec.Header().Get("Content-Encoding")
+		gotBody := rec.Body.Bytes()
+
+		switch gotEncoding {
+		case "gzip":
+			decoded, err := decodeBoundedGzip(gotBody, len(body)+1024)
+			if err != nil {
+				t.Errorf("gzip round-trip failed for body %q: %v", body, err)
+
+				return
+			}
+
+			if !bytes.Equal(decoded, []byte(body)) {
+				t.Errorf("gzip round-trip mismatch: got %q, want %q", decoded, body)
+			}
+		case "deflate":
+			decoded, err := decodeBoundedFlate(gotBody, len(body)+1024)
+			if err != nil {
+				t.Errorf("deflate round-trip failed for body %q: %v", body, err)
+
+				return
+			}
+
+			if !bytes.Equal(decoded, []byte(body)) {
+				t.Errorf("deflate round-trip mismatch: got %q, want %q", decoded, body)
+			}
+		case "", "identity":
+			if !bytes.Equal(gotBody, []byte(body)) {
+				t.Errorf(
+					"uncompressed response must be byte-exact: got %q, want %q (encoding %q)",
+					gotBody, body, encoding,
+				)
+			}
+		default:
+			t.Errorf("negotiated unexpected Content-Encoding %q from Accept-Encoding %q", gotEncoding, encoding)
 		}
 	})
+}
+
+// decodeBoundedGzip gunzips at most limit bytes of r.
+func decodeBoundedGzip(r []byte, limit int) ([]byte, error) {
+	zr, err := gzip.NewReader(bytes.NewReader(r))
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = zr.Close() }()
+
+	return io.ReadAll(io.LimitReader(zr, int64(limit)))
+}
+
+// decodeBoundedFlate inflates at most limit bytes of raw-deflate data.
+func decodeBoundedFlate(r []byte, limit int) ([]byte, error) {
+	return io.ReadAll(io.LimitReader(flate.NewReader(bytes.NewReader(r)), int64(limit)))
 }
 
 // FuzzNegotiatorWireFormat fuzzes raw Accept-Encoding header strings through

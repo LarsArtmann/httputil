@@ -34,6 +34,7 @@ var allHTTputilErrorCodes = []Code{
 	codeServerTimeoutOrdering,
 	codeServerTLSMinVersionInsecure,
 	codeServerShutdownFailed,
+	codeServerAlreadyStarted,
 
 	codeCompressionLevelInvalid,
 	codeCompressionMinSizeNeg,
@@ -63,9 +64,6 @@ var allHTTputilErrorCodes = []Code{
 	codeStackDuplicateMiddleware,
 	codeStackRecoveryNotFirst,
 	codeStackEmptyName,
-
-	codeServerShutdownFailed,
-	codeServerAlreadyStarted,
 
 	codeDecompressionSizeNegative,
 	codeDecompressionSizeExceeded,
