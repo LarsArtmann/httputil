@@ -24,11 +24,11 @@ go test -race -count=1 ./...
 ### 3. Coverage measurement
 
 ```bash
-go test $(go list ./... | grep -v scripts/coverage-threshold) -coverprofile=coverage.out
+go test $(go list ./... | grep -v /scripts/) -coverprofile=coverage.out
 go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95
 ```
 
-Library packages only: the `scripts/` dev-tooling package has no tests and would drag the total below the gate. The checker exits nonzero below 95% (the documented gate threshold) and fails loudly on malformed reports.
+Library packages only: the `scripts/` dev-tooling packages have no tests (or test themselves) and would drag the total below the gate. The checker exits nonzero below 95% (the documented gate threshold) and fails loudly on malformed reports.
 
 ### 4. govulncheck
 
