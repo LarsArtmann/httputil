@@ -228,7 +228,7 @@ Measured 2026-09-11 with `go test -race -coverprofile`: **97.4%** (`httputil`, l
 
 ### Next release (v1.1.0 stabilization)
 
-- **v1.1.0** — remove the deprecated `TokenBucketLimiter`/`RateLimit()` per the migration guide; the v1.0.0 tag itself is cut locally and awaiting reconciliation + push (tracked in [TODO_LIST.md](TODO_LIST.md) High Priority).
+- ~~**v1.1.0** — remove the deprecated `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter per the migration guide~~ done 2026-09-11 (removed on master, recorded in CHANGELOG [Unreleased]; the v1.0.0 drift shipped as v1.0.1 and both tags are pushed).
 
 ---
 

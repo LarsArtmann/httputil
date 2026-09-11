@@ -43,6 +43,6 @@ Out of scope:
 httputil handles untrusted HTTP input. Security-relevant behaviors:
 
 - **CORS**: `ClientIP` trusts proxy headers without validation. Only safe behind a reverse proxy that strips or overwrites `X-Forwarded-For` and `X-Real-IP`.
-- **Rate limiting**: `TokenBucketLimiter` is in-memory per-instance. For distributed deployments, provide a custom `RateLimiter` implementation (e.g., Redis-backed).
+- **Rate limiting**: `KeyedRateLimiter` is in-memory per-instance. For distributed deployments, front `KeyedRateLimiterMiddleware` with a proxy-level limiter (e.g., at your reverse proxy or gateway).
 - **CORS wildcard fallback**: unmatched origins fall back to `"*"` by default. Set `DenyUnmatched: true` for security-hardened deployments.
 - **Dependencies**: only `go-error-family` (same author, zero transitive deps) and `golang.org/x/time` (canonical Go extension). No third-party attack surface.

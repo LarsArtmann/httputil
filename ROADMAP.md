@@ -10,7 +10,7 @@ _Updated: 2026-09-11._
 
 **v1.0.0 is cut locally (2026-09-10, annotated tag on `7a6d11b`, not yet pushed).** It freezes the API surface defined in [`docs/v1-stability.md`](docs/v1-stability.md): 18 middlewares, the composition API (`Compose`, `MiddlewareFunc.Then`, `MiddlewareStack.Middleware`), `Server.ListenerAddr`/`StartTLS`, the typed error model, 19-spec httpspec suite, 26 nightly fuzz targets, ~70 linters at 0 issues, 97.4% (httputil) / 98.6% (httpspec) race-enabled coverage. Post-tag HEAD already carries the panic-free finalization and a go-etag v0.3.0 pin — see CHANGELOG `[Unreleased]`.
 
-The next release (v1.1.0) is the first stabilization release: removal of the deprecated `TokenBucketLimiter`/`RateLimit()` per the migration guide, then the deferred `go-compression` extraction when the go-datastar trigger fires.
+The next release (v1.1.0) ships the stabilization batch: the deprecated `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter are removed on master (CHANGELOG [Unreleased]), then the deferred `go-compression` extraction follows when the go-datastar trigger fires.
 
 ## v1.0 — shipped (2026-09-10, local)
 
@@ -18,7 +18,7 @@ The "API is frozen" promise: after v1.0, breaking changes require a v2.0 major b
 
 Decisions taken on the way to v1.0:
 
-- **Deprecated APIs stayed in v1.0.0** — `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter ship deprecated; removal is the first post-v1.0 stabilization release (v1.1.0), tracked in [TODO_LIST.md](TODO_LIST.md).
+- **Deprecated APIs stayed in v1.0.0** — `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter shipped deprecated; removed on master for v1.1.0 (2026-09-11, CHANGELOG [Unreleased]).
 - **Rate limiter interface refinement closed** — `AllowN` (burst > 1 per request) was evaluated and rejected (`KeyedRateLimiter` uses `MaxKeys`, not per-request burst). `context.Context` cancellation was evaluated in [docs/planning/archived/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md](docs/planning/archived/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md): v1.0 ships the admission-only contract (tokens consumed at admission, no refund on abort); a `Wait(ctx, key)` primitive remains the post-v1.0 additive evolution path.
 - **Conditional-request scope** — ETag middleware lives in the independent `go-etag` module (`etag.New()` composes directly with httputil via the `Middleware` type alias; pinned v0.3.0). Conditional-request scope decisions (If-Match helpers, Last-Modified, If-Range) are evaluated in go-etag.
 

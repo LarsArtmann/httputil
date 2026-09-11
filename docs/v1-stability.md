@@ -138,7 +138,6 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 | Symbol                          | Tier     | Notes                                                                                  |
 | ------------------------------- | -------- | -------------------------------------------------------------------------------------- |
-| `RateLimitConfig`               | Additive | Deprecated v0.8.0                                                                      |
 | `KeyExtractor`                  | Frozen   | Function type                                                                          |
 | `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                                        |
 | `KeyExtractorFromClientIP`      | Frozen   |                                                                                        |

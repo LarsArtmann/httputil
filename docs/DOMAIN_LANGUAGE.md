@@ -344,8 +344,6 @@ Invariants and policies that the library enforces.
 
 ### Rate Limiting Rules
 
-- `TokenBucketLimiter` creates per-key token buckets; tokens refill at the configured rate up to burst capacity _(deprecated — use `KeyedRateLimiter`)_
-- `NewTokenBucketLimiter` rejects rate <= 0 or burst <= 0
 - `EvictionTTL` (zero by default) controls lazy eviction of idle buckets — non-zero enables sweeping
 - Each `Allow(key)` consumes one token; returns false when the bucket is empty
 - Custom `RateLimiter` implementations can replace the in-memory limiter (e.g., Redis-backed)
