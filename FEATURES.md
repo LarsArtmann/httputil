@@ -48,6 +48,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 ### Infrastructure Types
 
 - `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 14 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Nonce, Compression, Decompression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit, ETag).
+- `MiddlewareETag` intentionally survives the v1.1.0 adapter removal: it is the stack name key for composing `etag.New` (from `github.com/larsartmann/go-etag/server`) directly via `MiddlewareStack.Add`.
 - `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
@@ -226,9 +227,9 @@ Measured 2026-09-11 with `go test -race -coverprofile`: **97.4%** (`httputil`, l
 
 ## PLANNED
 
-### Next release (v1.1.0 stabilization)
+### v1.1.0 stabilization (shipped 2026-09-11)
 
-- ~~**v1.1.0** — remove the deprecated `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter per the migration guide~~ done 2026-09-11 (removed on master, recorded in CHANGELOG [Unreleased]; the v1.0.0 drift shipped as v1.0.1 and both tags are pushed).
+- ~~**v1.1.0** — remove the deprecated `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter per the migration guide~~ done 2026-09-11 (removed on master, recorded in CHANGELOG [1.1.0]; the v1.0.0 drift shipped as v1.0.1 and both tags are pushed).
 
 ---
 

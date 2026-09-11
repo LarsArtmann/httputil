@@ -4,23 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
-
-### Added
-
-- **Repo-local quality-tool configs**: `.markdownlint.json` + `.markdownlintignore` (markdownlint findings 13,374 → 0; every disabled rule's findings were located and judged individually — frozen archived logs, CHANGELOG section repetition, Makefile tabs, long-line style) and `.buildflow.yml` (`skip_steps: [go-auto-upgrade]` — its suggestions require `samber/lo`, which the depguard allowlist bans).
-- **AGENTS.md "BuildFlow Pipeline" section**: invocation quirks (`--build-mode dev`, single `-s` per run), the stale-global-binary trap, the result-cache purge pattern, and the 2026-09-11 vendor-parser incident.
-
-### Removed
-
-- **`vendor/` directory** (owner decision — was a gitignored on-disk `go work vendor` artifact, never committed): all dependencies are public, so workspace and `GOWORK=off` builds resolve from the module cache (both verified green); buildflow's `go-mod-vendor`/`go-work-vendor` steps and the `vendor-freshness` preflight now auto-skip, the "directory vendor exists but is not ignored" info finding is gone, and the vendor/modules.txt staleness incident class (2026-09-11) is structurally eliminated.
-- **Deprecated `TokenBucketLimiter` / `RateLimit()` API** (pre-declared for the first post-v1.0 stabilization release; migration guide: [docs/migrating-to-keyed-rate-limiter.md](docs/migrating-to-keyed-rate-limiter.md)): the `RateLimiter` interface, `TokenBucketLimiter`, `NewTokenBucketLimiter`, `RateLimitConfig`, `DefaultRateLimitConfig`, the `RateLimit()` middleware, the `BenchmarkTokenBucketLimiter*` rows, their four error codes (`ratelimit.nil_limiter`, `ratelimit.rate_not_positive`, `ratelimit.burst_not_positive`, `ratelimit.status_invalid`), and the Redis integration doc built on the removed interface (`docs/integrations/redis-ratelimiter.md`; for distributed rate limiting, front `KeyedRateLimiterMiddleware` with a proxy-level limiter). `KeyedRateLimiterMiddleware` is the replacement. The `golang.org/x/time` dependency stays (the keyed limiter uses it).
-- **Deprecated `httputil.ETag()` adapter** (pre-declared in ROADMAP for the same window): use `etag.New` from `github.com/larsartmann/go-etag/server` directly — the adapter was a pure passthrough. The `BenchmarkETagAdapterOverhead` harness lost its subject and was deleted; the go-etag dependency stays for the error-template superset (`RegisterErrorClassifications`) and the frozen go-etag error codes.
-
-### Changed
-
-- **The 95% coverage gate excludes the whole `scripts/` tree** (was: only `scripts/coverage-threshold`): the new `scripts/doc-snippet-refs` tool is intentionally untested (its verification is the CI drift check itself) and would have dragged the gate to 93.1%; `scripts/coverage-threshold` now tests itself (94.6%) but stays out of the library measurement per the "library packages only" design. Gate verified green on this tree: 97.3% (httputil 97.0% / httpspec 98.6%). Fixed in both `scripts/prerelease-check.sh` and the CI workflow.
-- **`flake.nix`**: removed `apps.test-race` — a byte-identical duplicate of `apps.test` (both ran `go test ./... -race -count=1` with `GOWORK=off`).
+## [1.1.0] - 2026-09-11
 
 ### Added
 
@@ -32,12 +16,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`benchstat` pinned in the flake** (`nix run .#benchstat`, package `.#benchstat`): statistical comparison replaces best-of-five eyeballing.
 - **`server-timing-standalone` flake check**: proves the sub-module builds and vets with `GOWORK=off`, `GOPROXY=off`, `CGO_ENABLED=0` — its zero-dependency claim is now enforced, not asserted.
 - **Full-code review report**: `docs/reviews/2026-09-11_08-59_full-code-review.html` (4 passes over the v1.0.x scope; 12 findings fixed, 9 recorded with reasons).
+- **Repo-local quality-tool configs**: `.markdownlint.json` + `.markdownlintignore` (markdownlint findings 13,374 → 0; every disabled rule's findings were located and judged individually — frozen archived logs, CHANGELOG section repetition, Makefile tabs, long-line style) and `.buildflow.yml` (`skip_steps: [go-auto-upgrade]` — its suggestions require `samber/lo`, which the depguard allowlist bans).
+- **AGENTS.md "BuildFlow Pipeline" section**: invocation quirks (`--build-mode dev`, single `-s` per run), the stale-global-binary trap, the result-cache purge pattern, and the 2026-09-11 vendor-parser incident.
 
 ### Changed
 
+- **The 95% coverage gate excludes the whole `scripts/` tree** (was: only `scripts/coverage-threshold`): the new `scripts/doc-snippet-refs` tool is intentionally untested (its verification is the CI drift check itself) and would have dragged the gate to 93.1%; `scripts/coverage-threshold` now tests itself (94.6%) but stays out of the library measurement per the "library packages only" design. Gate verified green on this tree: 97.3% (httputil 97.0% / httpspec 98.6%). Fixed in both `scripts/prerelease-check.sh` and the CI workflow.
+- **`flake.nix`**: removed `apps.test-race` — a byte-identical duplicate of `apps.test` (both ran `go test ./... -race -count=1` with `GOWORK=off`).
 - **CSRF attestation host comparison is case-insensitive** (`strings.EqualFold`): DNS hosts are case-insensitive, so `Origin: http://EXAMPLE.COM` against `Host: example.com` is the same origin, not a forged attestation. The fuzz target's oracle was updated; the fuzzer located the stale oracle itself before the corpus pinned the new contract.
 - **Fuzz oracle hardening** (review-driven): `FuzzCSRFMiddleware_TokenValidation` now rejects every bogus token+cookie pair on unsafe methods (including the mismatched double-submit class) and asserts the `csrf_invalid` body; `FuzzCompressWriterState` gained a bounded decode-and-compare round-trip invariant and stopped coercing unknown `Accept-Encoding` values (raw wire strings now reach negotiation); `FuzzNegotiatorWireFormat` gained a single-token selection micro-oracle; `FuzzMaxBodySize` reference reads are bounded per the fuzz discipline and gained extreme-limit seeds.
 - **`nix flake check` additionally runs the server_timing standalone build**; the CI lint job verifies the golangci config schema with the pinned binary and lints the `server_timing` sub-module (previously unlinted in CI); the CI benchmark step uploads `bench.txt` as an artifact (making the "full raw data in CI artifacts" claim true); `scripts/prerelease-check.sh` gained `--skip-flake` for CI parity.
+
+### Removed
+
+- **Deprecated `TokenBucketLimiter` / `RateLimit()` API** (pre-declared for the first post-v1.0 stabilization release; migration guide: [docs/migrating-to-keyed-rate-limiter.md](docs/migrating-to-keyed-rate-limiter.md)): the `RateLimiter` interface, `TokenBucketLimiter`, `NewTokenBucketLimiter`, `RateLimitConfig`, `DefaultRateLimitConfig`, the `RateLimit()` middleware, the `BenchmarkTokenBucketLimiter*` rows, their four error codes (`ratelimit.nil_limiter`, `ratelimit.rate_not_positive`, `ratelimit.burst_not_positive`, `ratelimit.status_invalid`), and the Redis integration doc built on the removed interface (`docs/integrations/redis-ratelimiter.md`; for distributed rate limiting, front `KeyedRateLimiterMiddleware` with a proxy-level limiter). `KeyedRateLimiterMiddleware` is the replacement. The `golang.org/x/time` dependency stays (the keyed limiter uses it).
+- **Deprecated `httputil.ETag()` adapter** (pre-declared in ROADMAP for the same window): use `etag.New` from `github.com/larsartmann/go-etag/server` directly — the adapter was a pure passthrough. The `BenchmarkETagAdapterOverhead` harness lost its subject and was deleted; the go-etag dependency stays for the error-template superset (`RegisterErrorClassifications`) and the frozen go-etag error codes.
+- **`vendor/` directory** (owner decision — was a gitignored on-disk `go work vendor` artifact, never committed): all dependencies are public, so workspace and `GOWORK=off` builds resolve from the module cache (both verified green); buildflow's `go-mod-vendor`/`go-work-vendor` steps and the `vendor-freshness` preflight now auto-skip, the "directory vendor exists but is not ignored" info finding is gone, and the vendor/modules.txt staleness incident class (2026-09-11) is structurally eliminated.
 
 ### Fixed
 

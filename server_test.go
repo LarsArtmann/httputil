@@ -542,13 +542,9 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	})
 
 	certPEM, keyPEM := newSelfSignedCert(t)
-	certPath, keyPath := filepath.Join(
-		t.TempDir(),
-		"cert.pem",
-	), filepath.Join(
-		t.TempDir(),
-		"key.pem",
-	)
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "cert.pem")
+	keyPath := filepath.Join(dir, "key.pem")
 	if err := os.WriteFile(certPath, certPEM, 0o600); err != nil {
 		t.Fatal(err)
 	}
