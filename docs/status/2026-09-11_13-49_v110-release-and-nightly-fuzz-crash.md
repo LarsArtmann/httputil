@@ -14,7 +14,7 @@
 5. **Consumer verification beyond the runbook** — not just `go get` + `go mod verify` (runbook step 15) but a real **build + run** of a program importing both `httputil v1.1.0` and `server_timing v1.0.1` through the module proxy: `CONSUMER_BUILD_OK`. `go get` alone can pass while a broken zip only fails at build time, so the probe was strengthened deliberately.
 6. **Runbook steps 7–9 executed with verification** — FEATURES PLANNED section retitled "v1.1.0 stabilization (shipped 2026-09-11)" with the `[Unreleased]`→`[1.1.0]` reference update; `MiddlewareETag` documented as the intentional composition seam surviving the adapter removal (report item 19 from 09-35); step 9's historical-annotation sweep verified to have **zero** release-resolvable open claims (DECISION_LOG hits are standing decisions; RELEASE.md matches itself) — verified, not assumed.
 7. **Benchmark baseline confirmed fresh** — `docs/benchmarks.md` was measured today, post-v1.1.0-removal, and already notes the ETag-adapter row death; runbook gate 6's refresh requirement satisfied without a redundant 3s×5 re-run.
-8. **Granted on-sight fixes landed** — `server_test.go` double `t.TempDir()` collapsed (item 42; test verified green); FEATURES coverage figure corrected 97.4% → 97.0% to match the measured gate; `docs/RELEASE.md` gate-3 command widened to `grep -v /scripts/` (the documented manual command would now *fail its own gate* since `scripts/doc-snippet-refs` is untested; noticed during this session's report prep).
+8. **Granted on-sight fixes landed** — `server_test.go` double `t.TempDir()` collapsed (item 42; test verified green); FEATURES coverage figure corrected 97.4% → 97.0% to match the measured gate; `docs/RELEASE.md` gate-3 command widened to `grep -v /scripts/` (the documented manual command would now _fail its own gate_ since `scripts/doc-snippet-refs` is untested; noticed during this session's report prep).
 9. **TODO_LIST High Priority closed with evidence** — push-master, fuzz re-dispatch, and cut-v1.1.0 items marked done with run IDs and verification notes.
 10. **CI red-on-tag incident diagnosed and fixed on master** — link definitions added, `[Unreleased]` compare retargeted to `v1.1.0...HEAD`, freeze-policy `Fixed` bullet recorded; `scripts/check-changelog-links.sh` verified green locally before pushing; master CI green again.
 11. **Nightly-fuzz crash triaged to root cause** (see d3/b2 — the crash is real, the bug is in the test oracle).
@@ -40,7 +40,7 @@
 
 1. **CI was RED on the exact commit the v1.1.0 tag points at** (`ae0a46d`, CI run 34578794785, step "CHANGELOG link check"). Root cause, two stacked process failures of mine:
    - **I never read the bottom of CHANGELOG.md.** I viewed lines 1–49 and grepped the rest; the file's reference-link-definition block (lines 549+) requires a `[1.1.0]:` compare link per version heading, and `[Unreleased]:` must retarget to the just-cut tag. Restructuring a file without viewing it end-to-end is exactly the failure mode the global rules warn about ("READ the relevant context before editing").
-   - **I pushed the tag before the tag commit's CI finished** — violating this session's own discipline (verify the *delivering* gate; the summary's lesson after the unread-published-file incident was READ-before-PUBLISH, and I re-committed a variant of the same sin in the time dimension: PUBLISH-before-verify).
+   - **I pushed the tag before the tag commit's CI finished** — violating this session's own discipline (verify the _delivering_ gate; the summary's lesson after the unread-published-file incident was READ-before-PUBLISH, and I re-committed a variant of the same sin in the time dimension: PUBLISH-before-verify).
    - Blast radius: **docs-only.** The Release workflow (build + vet + race tests, both modules) passed on the same commit; all code gates were green; consumers are unaffected (proxy zip build+run verified). Per the immutable-tags policy the tag is **not** re-cut; master is green at `ba85626`; the fix is recorded in `[Unreleased]` per the freeze policy (v1.0.1 precedent).
 2. **Wasted a full prerelease gate cycle** by not reading `scripts/prerelease-check.sh`'s gate list before reorganizing CHANGELOG — gate 8 hard-requires a standing `[Unreleased]` section, which Keep-a-Changelog practice would have suggested anyway. First run: 8/9 with a self-inflicted failure.
 3. **The nightly fuzz found a real oracle bug the moment it ran clean** — `FuzzHealthResponse_Encoding` (health_test.go:138) asserts `json.MarshalWrite` returns nil for **any** `HealthStatus` string, but jsonv2 legitimately rejects invalid UTF-8 (`jsontext: invalid UTF-8 within "/status" after offset 10`). The fuzzer fed `"\x82"` and the oracle called a correct encoder rejection a crash. Secondary observation: production `writeHealthBody` (health.go:83) discards the `MarshalWrite` error (`_ =`) — harmless today (only `"up"`/`"down"` literals ship) but it would silently mask this entire class if health statuses ever become dynamic. The crasher is issue **#9**.
@@ -49,11 +49,11 @@
 ## e) WHAT WE SHOULD IMPROVE
 
 1. **Release gate: CI-green-on-tag-commit.** `docs/RELEASE.md` must make "wait for CI green on the exact tag commit before `gh release create`" an explicit numbered step. Today it is implicit, and implicit steps get skipped — proven today.
-2. **Fold `check-changelog-links.sh` into `prerelease-check.sh`** as gate 8b. The release script validated changelog *existence* but missed the link-definition contract that CI enforces; the local gate must be a superset of CI, not a subset.
+2. **Fold `check-changelog-links.sh` into `prerelease-check.sh`** as gate 8b. The release script validated changelog _existence_ but missed the link-definition contract that CI enforces; the local gate must be a superset of CI, not a subset.
 3. **Whole-file reads before restructures.** Any file being reorganized (not just edited) gets viewed end-to-end first — header, body, and trailing metadata blocks.
 4. **Gate `release.yml` on CI** (workflow_run or a single-publisher design) so a tag whose CI is red cannot produce a published release silently.
 5. **Document the CHANGELOG link-definition convention in AGENTS.md** (`[X.Y.Z]:` compare links, `[Unreleased]:` retarget at tag time) — it is a hard release constraint currently discoverable only by CI failure.
-6. **Fuzz-oracle discipline for jsonv2:** encoder *refusals* (invalid UTF-8, unsupported values) are legitimate outcomes; oracles must assert "error ⟺ contract-violating input," not "never errors." `FuzzHealthResponse_Encoding` is the second oracle-contrast finding this month; a review pass over string-input oracles for the same pattern is cheap insurance.
+6. **Fuzz-oracle discipline for jsonv2:** encoder _refusals_ (invalid UTF-8, unsupported values) are legitimate outcomes; oracles must assert "error ⟺ contract-violating input," not "never errors." `FuzzHealthResponse_Encoding` is the second oracle-contrast finding this month; a review pass over string-input oracles for the same pattern is cheap insurance.
 7. **Probe discipline:** grep the target repo's signatures before writing consumer verification programs.
 8. **Codify the server_timing drift check** (`git log <last-submodule-tag>..HEAD -- server_timing/`) as an explicit prerelease step — I ran it ad hoc; it should be in the runbook.
 
@@ -105,7 +105,7 @@
 44. nightly-fuzz runtime: ~2h for 25 targets; consider a rotation subset for shorter cycles.
 45. Bump actions/checkout + actions/setup-go past the Node 20 deprecation warnings seen in tonight's run.
 46. Decide the release-commit mechanics (daemon won the race twice; tag identity may be enough — make it policy either way).
-47. Remember the `[Unreleased]` Fixed bullet (link-def fix) retitles into the *next* version section at that release.
+47. Remember the `[Unreleased]` Fixed bullet (link-def fix) retitles into the _next_ version section at that release.
 48. After issue #9 lands, close it referencing the new corpus seed and the green nightly run.
 49. Consider a `docs/status/` archival pass for fully-resolved reports (docs-health ANNOTATE cadence, monthly).
 50. Keep `MiddlewareETag` seam documentation in sync if go-etag's API surface changes (Dependabot bumps will touch it).
@@ -118,4 +118,4 @@
 
 ---
 
-*Report written per session instructions; awaiting owner decisions on g1–g3.*
+_Report written per session instructions; awaiting owner decisions on g1–g3._
