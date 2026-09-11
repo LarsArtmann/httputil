@@ -347,7 +347,10 @@ func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
 			if rec.Code != http.StatusForbidden {
 				t.Errorf(
 					"contradicted attestation (%s, Sec-Fetch-Site: same-origin, Origin %q): status = %d, want %d",
-					method, origin, rec.Code, http.StatusForbidden,
+					method,
+					origin,
+					rec.Code,
+					http.StatusForbidden,
 				)
 			}
 

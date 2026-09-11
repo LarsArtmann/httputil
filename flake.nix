@@ -91,6 +91,24 @@
 
           checks = {
             format = config.treefmt.build.check self;
+
+            # The sub-module must build standalone (GOWORK=off, network off):
+            # it is a separate Go module that consumers can adopt without the
+            # workspace, and its zero-dependency claim is only proven when the
+            # build cannot reach a module proxy.
+            server-timing-standalone =
+              pkgs.runCommand "server-timing-gowork-off-build"
+                {
+                  src = self + "/server_timing";
+                  nativeBuildInputs = [ goPkg ];
+                }
+                ''
+                  export GOWORK=off GOPROXY=off CGO_ENABLED=0 GOCACHE=$TMPDIR/go-cache
+                  cd "$src"
+                  go build ./...
+                  go vet ./...
+                  touch $out
+                '';
           };
 
           apps = {

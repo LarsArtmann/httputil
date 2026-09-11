@@ -43,7 +43,12 @@ func TestRun_PassAtExactThreshold(t *testing.T) {
 	code, _, stderr := runWithReport(t, []string{"90"}, sampleReport)
 
 	if code != exitOK {
-		t.Errorf("exit code = %d, want %d for exactly-at-threshold (stderr: %q)", code, exitOK, stderr)
+		t.Errorf(
+			"exit code = %d, want %d for exactly-at-threshold (stderr: %q)",
+			code,
+			exitOK,
+			stderr,
+		)
 	}
 }
 
@@ -134,7 +139,11 @@ func TestRun_InvalidThresholds(t *testing.T) {
 		}
 
 		if !strings.Contains(stderr, "invalid threshold") {
-			t.Errorf("threshold %q: stderr = %q, want the invalid-threshold message", threshold, stderr)
+			t.Errorf(
+				"threshold %q: stderr = %q, want the invalid-threshold message",
+				threshold,
+				stderr,
+			)
 		}
 	}
 }
