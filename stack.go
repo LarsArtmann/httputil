@@ -64,7 +64,9 @@ type middlewareEntry struct {
 func NewMiddlewareStack() *MiddlewareStack {
 	empty := []middlewareEntry{}
 
-	s := &MiddlewareStack{}
+	s := &MiddlewareStack{
+		entries: atomic.Pointer[[]middlewareEntry]{},
+	} //nolint:exhaustruct_v5 // zero pointer is the empty snapshot
 	s.entries.Store(&empty)
 
 	return s
@@ -103,9 +105,10 @@ func (s *MiddlewareStack) Add(name string, middleware Middleware) error {
 			next = make([]middlewareEntry, len(*current)+1)
 			copy(next, *current)
 		} else {
-			next = make([]middlewareEntry, 1)
+			next = make([]middlewareEntry, 1) //nolint:makezero // pre-allocated, single direct-index write
 		}
 
+		//nolint:makezero // pre-allocated with known length, direct-index write
 		next[len(next)-1] = middlewareEntry{name: name, middleware: middleware}
 
 		if s.entries.CompareAndSwap(current, &next) {

@@ -192,11 +192,7 @@ func TestMiddlewareStack_ConcurrentAddAndRead_RaceFree(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for w := range writers {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for iteration := range iterations {
 				err := stack.Add(
 					fmt.Sprintf("middleware-%d-%d", w, iteration),
@@ -208,21 +204,17 @@ func TestMiddlewareStack_ConcurrentAddAndRead_RaceFree(t *testing.T) {
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	for range reads {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for range iterations {
 				_ = stack.Names()
 				_ = stack.Validate()
 				_ = stack.Build(newNoOpHandler())
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

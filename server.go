@@ -187,6 +187,7 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 		shutdownTimeout: cfg.ShutdownTimeout,
 		mu:              sync.Mutex{},
 		listener:        nil,
+		started:         atomic.Bool{},
 	}
 
 	return server, nil

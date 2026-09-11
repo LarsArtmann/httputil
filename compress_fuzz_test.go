@@ -82,14 +82,14 @@ func FuzzCompressWriterState(f *testing.F) {
 
 // decodeBoundedGzip gunzips at most limit bytes of r.
 func decodeBoundedGzip(r []byte, limit int) ([]byte, error) {
-	zr, err := gzip.NewReader(bytes.NewReader(r))
+	gzipReader, err := gzip.NewReader(bytes.NewReader(r))
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() { _ = zr.Close() }()
+	defer func() { _ = gzipReader.Close() }()
 
-	return io.ReadAll(io.LimitReader(zr, int64(limit)))
+	return io.ReadAll(io.LimitReader(gzipReader, int64(limit)))
 }
 
 // decodeBoundedFlate inflates at most limit bytes of raw-deflate data.
