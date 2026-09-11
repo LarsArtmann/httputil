@@ -63,6 +63,20 @@ func TestCodeConstructorFamilies(t *testing.T) {
 			errorfamily.Infrastructure,
 		)
 	}
+
+	conflict := code.Conflict("msg")
+	if conflict.ErrorFamily() != errorfamily.Conflict {
+		t.Errorf("Conflict() family = %v, want %v", conflict.ErrorFamily(), errorfamily.Conflict)
+	}
+
+	orchestration := code.Orchestration("msg")
+	if orchestration.ErrorFamily() != errorfamily.Orchestration {
+		t.Errorf(
+			"Orchestration() family = %v, want %v",
+			orchestration.ErrorFamily(),
+			errorfamily.Orchestration,
+		)
+	}
 }
 
 func TestCodeConstructorSetsCodeAndMessage(t *testing.T) {
@@ -90,6 +104,21 @@ func TestCodeWrapPreservesCause(t *testing.T) {
 
 	if err.ErrorFamily() != errorfamily.Transient {
 		t.Errorf("family = %v, want %v", err.ErrorFamily(), errorfamily.Transient)
+	}
+}
+
+func TestCodeWrapRejection_PreservesCauseAndFamily(t *testing.T) {
+	t.Parallel()
+
+	cause := errTestBoom
+	err := Code("test.wrap_rejection").WrapRejection(cause, "wrapper message")
+
+	if !errors.Is(err, cause) {
+		t.Errorf("errors.Is(err, cause) = false, want true")
+	}
+
+	if err.ErrorFamily() != errorfamily.Rejection {
+		t.Errorf("family = %v, want %v", err.ErrorFamily(), errorfamily.Rejection)
 	}
 }
 

@@ -264,7 +264,9 @@ func TestServerStartAndShutdown(t *testing.T) {
 
 	errChan := srv.Start()
 
-	waitForServerStart(t, errChan, 100*time.Millisecond)
+	if _, ok := waitForListenerAddr(t, srv, errChan); !ok {
+		t.Fatal("listener address did not resolve after Start")
+	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -289,7 +291,9 @@ func TestServerShutdownWithBackgroundContext(t *testing.T) {
 
 	errChan := srv.Start()
 
-	waitForServerStart(t, errChan, 100*time.Millisecond)
+	if _, ok := waitForListenerAddr(t, srv, errChan); !ok {
+		t.Fatal("listener address did not resolve after Start")
+	}
 
 	err = srv.Shutdown(context.Background())
 	if err != nil {
@@ -346,7 +350,9 @@ func TestServerServesRequests(t *testing.T) {
 
 	errChan := srv.Start()
 
-	waitForServerStart(t, errChan, 100*time.Millisecond)
+	if _, ok := waitForListenerAddr(t, srv, errChan); !ok {
+		t.Fatal("listener address did not resolve after Start")
+	}
 
 	resp, err := http.Get("http://" + addr + "/")
 	if err != nil {

@@ -143,6 +143,10 @@ Two Go modules in a workspace (`go.work`): the root `httputil` module (flat pack
 
 Once a version tag (e.g., `v0.8.0`) is created, the corresponding `[version]` section in `CHANGELOG.md` is **frozen** — it is immutable history. Corrections, additions, or clarifications for already-released work go in `[Unreleased]`. This prevents retroactive edits that make release history unreliable.
 
+### Tag Immutability (owner directive 2026-09-11: "We never retag!")
+
+Tags are never deleted or re-cut — not even when the tag predates code its own changelog documents. Drift between a pushed tag and its frozen changelog section ships as a patch release with a correction-of-record note (the `v1.0.1` pattern). Re-cutting would break every consumer that pinned or cached the tag.
+
 ### Why the Root Package Is Flat (Deliberate, Not Debt)
 
 One flat root package by decision (user-confirmed 2026-08-05, re-affirmed 2026-08-30): for a middleware library where everything shares one signature, a single import path (`httputil.CORS()`) beats fragmented namespaces; compression cannot be a public sub-package anyway (root-symbol cycle). Deferred: `internal/` extraction until post-v1.0 or ~50 non-test files. Analysis: `docs/modularization/2026-08-05_DECISION.html`.

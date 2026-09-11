@@ -178,22 +178,6 @@ func assertBody(t *testing.T, rec *httptest.ResponseRecorder, want string) {
 	}
 }
 
-// waitForServerStart blocks until errChan receives an error or the timeout
-// elapses. It fails the test if an error is received. The timeout branch is a
-// heuristic "assumed started": the server may in principle still be binding,
-// so tests that need a reachable address should dial the concrete addr after
-// this returns rather than relying on the timeout alone.
-func waitForServerStart(t *testing.T, errChan <-chan error, timeout time.Duration) {
-	t.Helper()
-
-	select {
-	case err := <-errChan:
-		t.Fatalf("server failed to start: %v", err)
-	case <-time.After(timeout):
-		// No startup error within the window; assume the listener is up.
-	}
-}
-
 // assertNegotiatedEncoding runs the negotiator on header, fails the test on
 // negotiation failure, and verifies the result matches wantEncoding. The
 // contextMsg is appended to the failure message to clarify the test intent
