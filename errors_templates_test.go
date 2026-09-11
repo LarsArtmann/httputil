@@ -47,10 +47,6 @@ var allHTTputilErrorCodes = []Code{
 	codeRatelimitKeyedLimitZero,
 	codeRatelimitKeyedWindowZero,
 	codeRatelimitKeyedTTLNegative,
-	codeRatelimitNilLimiter,
-	codeRatelimitInvalidRate,
-	codeRatelimitInvalidBurst,
-	codeRatelimitInvalidStatus,
 
 	codeMaxBodySizeNegative,
 

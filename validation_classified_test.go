@@ -324,31 +324,6 @@ func TestNonceValidationErrorClassified(t *testing.T) {
 	)
 }
 
-func TestRateLimitValidationErrorsClassified(t *testing.T) {
-	t.Parallel()
-
-	cfg := DefaultRateLimitConfig()
-	cfg.Limiter = nil
-	assertValidationClassified(
-		t,
-		cfg.Validate(),
-		errNilRateLimiter,
-		codeRatelimitNilLimiter,
-		errorfamily.Rejection,
-	)
-
-	cfg = DefaultRateLimitConfig()
-	cfg.Limiter = &alwaysDenyLimiter{}
-	cfg.Status = 42
-	assertValidationClassified(
-		t,
-		cfg.Validate(),
-		errInvalidStatus,
-		codeRatelimitInvalidStatus,
-		errorfamily.Rejection,
-	)
-}
-
 func TestStackValidationErrorsClassified(t *testing.T) {
 	t.Parallel()
 

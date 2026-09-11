@@ -288,31 +288,6 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Set TTL to zero (keep idle keys forever) or a positive duration.",
 		WayOut: "Leave TTL at zero for small, bounded key populations.",
 	},
-	string(codeRatelimitNilLimiter): {
-		What:   "Rate limiter is missing",
-		Why:    "RateLimitConfig.Limiter is nil, so no rate decision could be made.",
-		Fix:    "Set Limiter to a RateLimiter such as NewTokenBucketLimiter, or migrate to KeyedRateLimiterMiddleware.",
-		WayOut: "KeyedRateLimiterMiddleware supersedes this deprecated API.",
-	},
-	string(codeRatelimitInvalidRate): {
-		What:   "Token bucket rate is not positive",
-		Why:    "The rate must be a positive number of tokens per second.",
-		Fix:    "Pass a positive rate to NewTokenBucketLimiter.",
-		WayOut: "Consider KeyedRateLimiterMiddleware instead of the deprecated API.",
-	},
-	string(codeRatelimitInvalidBurst): {
-		What:   "Token bucket burst is not positive",
-		Why:    "The burst must be a positive number of tokens.",
-		Fix:    "Pass a positive burst to NewTokenBucketLimiter.",
-		WayOut: "Consider KeyedRateLimiterMiddleware instead of the deprecated API.",
-	},
-	string(codeRatelimitInvalidStatus): {
-		What:   "Rate limit denial status is not a valid HTTP status code",
-		Why:    "RateLimitConfig.Status is {status}; status codes must be in the 100-599 range or zero for the default.",
-		Fix:    "Set Status to zero (429 Too Many Requests) or a valid status code.",
-		WayOut: "The default denial status is 429.",
-	},
-
 	// Per-middleware config.
 	string(codeMaxBodySizeNegative): {
 		What:   "Request body size limit is negative",
