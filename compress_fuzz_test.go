@@ -76,7 +76,11 @@ func FuzzCompressWriterState(f *testing.F) {
 				)
 			}
 		default:
-			t.Errorf("negotiated unexpected Content-Encoding %q from Accept-Encoding %q", gotEncoding, encoding)
+			t.Errorf(
+				"negotiated unexpected Content-Encoding %q from Accept-Encoding %q",
+				gotEncoding,
+				encoding,
+			)
 		}
 	})
 }

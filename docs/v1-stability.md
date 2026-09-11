@@ -41,41 +41,41 @@ This document enumerates every exported symbol and classifies its stability comm
 
 Each returns a config with sensible defaults. Frozen at v1.0.
 
-| Constructor                     | Config                         |
-| ------------------------------- | ------------------------------ |
-| `DefaultCORSConfig`             | `CORSConfig`                   |
-| `DefaultCompressionConfig`      | `CompressionConfig`            |
-| `DefaultDecompressionConfig`    | `DecompressionConfig`          |
-| `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig`       |
-| `DefaultMaxBodySizeConfig`      | `MaxBodySizeConfig`            |
-| `DefaultMetricsConfig`          | `MetricsConfig`                |
-| `DefaultNonceConfig`            | `NonceConfig`                  |
-| `DefaultRequestIDConfig`        | `RequestIDConfig`              |
-| `DefaultSecurityHeadersConfig`  | `SecurityHeadersConfig`        |
-| `DefaultServerConfig`           | `ServerConfig`                 |
+| Constructor                     | Config                   |
+| ------------------------------- | ------------------------ |
+| `DefaultCORSConfig`             | `CORSConfig`             |
+| `DefaultCompressionConfig`      | `CompressionConfig`      |
+| `DefaultDecompressionConfig`    | `DecompressionConfig`    |
+| `DefaultKeyedRateLimiterConfig` | `KeyedRateLimiterConfig` |
+| `DefaultMaxBodySizeConfig`      | `MaxBodySizeConfig`      |
+| `DefaultMetricsConfig`          | `MetricsConfig`          |
+| `DefaultNonceConfig`            | `NonceConfig`            |
+| `DefaultRequestIDConfig`        | `RequestIDConfig`        |
+| `DefaultSecurityHeadersConfig`  | `SecurityHeadersConfig`  |
+| `DefaultServerConfig`           | `ServerConfig`           |
 
 ### Middleware Factory Functions (all Frozen at v1.0)
 
-| Function                       | Signature                                                       |
-| ------------------------------ | --------------------------------------------------------------- |
-| `CORS`                         | `func(CORSConfig) Middleware`                                   |
-| `CSRFMiddleware`               | `func(CSRFConfig) Middleware`                                   |
-| `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`                               |
-| `Compression`                  | `func(CompressionConfig) Middleware`                            |
-| `Decompression`                | `func(DecompressionConfig) Middleware`                          |
-| `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`                       |
-| `Logging`                      | `func(*slog.Logger) Middleware`                                 |
-| `MaxBodySize`                  | `func(int64) Middleware`                                        |
-| `MaxBodySizeMiddleware`        | `func(MaxBodySizeConfig) Middleware`                            |
-| `Metrics`                      | `func(MetricsConfig) Middleware`                                |
-| `Nonce`                        | `func(NonceConfig) Middleware`                                  |
-| `Recovery`                     | `func(*slog.Logger) Middleware`                                 |
-| `RequestID`                    | `func(RequestIDConfig) Middleware`                              |
-| `SecurityHeaders`              | `func(SecurityHeadersConfig) Middleware`                        |
-| `ServerTimingMiddleware`       | `func() Middleware`                                             |
-| `ServerTimingMiddlewareWhen`   | `func(func(*http.Request) bool) Middleware`                     |
-| `Timeout`                      | `func(time.Duration) Middleware`                                |
-| `ClientIPMiddleware`           | `func(http.Handler) http.Handler`                               |
+| Function                       | Signature                                   |
+| ------------------------------ | ------------------------------------------- |
+| `CORS`                         | `func(CORSConfig) Middleware`               |
+| `CSRFMiddleware`               | `func(CSRFConfig) Middleware`               |
+| `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`           |
+| `Compression`                  | `func(CompressionConfig) Middleware`        |
+| `Decompression`                | `func(DecompressionConfig) Middleware`      |
+| `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`   |
+| `Logging`                      | `func(*slog.Logger) Middleware`             |
+| `MaxBodySize`                  | `func(int64) Middleware`                    |
+| `MaxBodySizeMiddleware`        | `func(MaxBodySizeConfig) Middleware`        |
+| `Metrics`                      | `func(MetricsConfig) Middleware`            |
+| `Nonce`                        | `func(NonceConfig) Middleware`              |
+| `Recovery`                     | `func(*slog.Logger) Middleware`             |
+| `RequestID`                    | `func(RequestIDConfig) Middleware`          |
+| `SecurityHeaders`              | `func(SecurityHeadersConfig) Middleware`    |
+| `ServerTimingMiddleware`       | `func() Middleware`                         |
+| `ServerTimingMiddlewareWhen`   | `func(func(*http.Request) bool) Middleware` |
+| `Timeout`                      | `func(time.Duration) Middleware`            |
+| `ClientIPMiddleware`           | `func(http.Handler) http.Handler`           |
 
 ### Server Lifecycle (Frozen at v1.0)
 
@@ -136,16 +136,16 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Rate Limiting (Frozen at v1.0)
 
-| Symbol                          | Tier     | Notes                                                                                  |
-| ------------------------------- | -------- | -------------------------------------------------------------------------------------- |
-| `KeyExtractor`                  | Frozen   | Function type                                                                          |
-| `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                                        |
-| `KeyExtractorFromClientIP`      | Frozen   |                                                                                        |
-| `KeyedRateLimiterConfig`        | Additive | New in v0.8.0                                                                          |
-| `KeyedRateLimiter`              | Additive | New in v0.8.0; `ActiveKeys`/`Check`/`Middleware` methods frozen at v1.0                |
-| `NewKeyedRateLimiter`           | Frozen   | New in v0.8.0                                                                          |
-| `KeyedRateLimiterMiddleware`    | Frozen   | New in v0.8.0                                                                          |
-| `DefaultKeyedRateLimiterConfig` | Frozen   | New in v0.8.0                                                                          |
+| Symbol                          | Tier     | Notes                                                                   |
+| ------------------------------- | -------- | ----------------------------------------------------------------------- |
+| `KeyExtractor`                  | Frozen   | Function type                                                           |
+| `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                         |
+| `KeyExtractorFromClientIP`      | Frozen   |                                                                         |
+| `KeyedRateLimiterConfig`        | Additive | New in v0.8.0                                                           |
+| `KeyedRateLimiter`              | Additive | New in v0.8.0; `ActiveKeys`/`Check`/`Middleware` methods frozen at v1.0 |
+| `NewKeyedRateLimiter`           | Frozen   | New in v0.8.0                                                           |
+| `KeyedRateLimiterMiddleware`    | Frozen   | New in v0.8.0                                                           |
+| `DefaultKeyedRateLimiterConfig` | Frozen   | New in v0.8.0                                                           |
 
 ### CSRF Protection (Frozen at v1.0)
 

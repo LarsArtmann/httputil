@@ -988,7 +988,10 @@ func TestCSRFMiddleware_AllowsCaseDifferingHostWithSameOriginAttestation(t *test
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("case-differing same host should not be treated as a forged attestation, got %d", rec.Code)
+		t.Fatalf(
+			"case-differing same host should not be treated as a forged attestation, got %d",
+			rec.Code,
+		)
 	}
 }
 
@@ -1014,7 +1017,10 @@ func TestCSRFMiddleware_TrustedProxyForwardedProtoAllowsHTTPSOrigin(t *testing.T
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("https Origin behind a trusted TLS-terminating proxy should be accepted, got %d", rec.Code)
+		t.Fatalf(
+			"https Origin behind a trusted TLS-terminating proxy should be accepted, got %d",
+			rec.Code,
+		)
 	}
 }
 
@@ -1047,7 +1053,10 @@ func TestCSRFMiddleware_UntrustedForwardedProtoStillRejected(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
-		t.Fatalf("X-Forwarded-Proto from an untrusted address must not excuse the contradiction, got %d", rec.Code)
+		t.Fatalf(
+			"X-Forwarded-Proto from an untrusted address must not excuse the contradiction, got %d",
+			rec.Code,
+		)
 	}
 
 	if !errors.Is(captured, ErrCSRFAttestationConflict) {

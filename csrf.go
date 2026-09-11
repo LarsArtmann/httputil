@@ -641,7 +641,11 @@ func isUnsafeCSRFMethod(method string) bool {
 // forbidden header name set by the browser itself, and a cross-origin request
 // is attested as cross-site — so a contradiction means the attestation was
 // forged. The "null" origin is left to nosurf, which treats it as absent.
-func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL, cfg CSRFConfig) string {
+func contradictedAttestationOrigin(
+	r *http.Request,
+	trustedOrigins []*url.URL,
+	cfg CSRFConfig,
+) string {
 	if !isUnsafeCSRFMethod(r.Method) {
 		return ""
 	}
