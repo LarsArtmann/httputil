@@ -481,7 +481,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			cfg.fieldName() != DefaultCSRFFieldName
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if origin := contradictedAttestationOrigin(r, trustedOrigins); origin != "" {
+			if origin := contradictedAttestationOrigin(r, trustedOrigins, cfg); origin != "" {
 				slog.Warn(
 					"httputil: CSRF rejected request with forged same-origin attestation",
 					slog.String("method", r.Method),
@@ -641,7 +641,7 @@ func isUnsafeCSRFMethod(method string) bool {
 // forbidden header name set by the browser itself, and a cross-origin request
 // is attested as cross-site — so a contradiction means the attestation was
 // forged. The "null" origin is left to nosurf, which treats it as absent.
-func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL) string {
+func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL, cfg CSRFConfig) string {
 	if !isUnsafeCSRFMethod(r.Method) {
 		return ""
 	}
@@ -660,12 +660,12 @@ func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL) s
 		return originStr
 	}
 
-	if origin.Host == r.Host && origin.Scheme == requestScheme(r) {
+	if strings.EqualFold(origin.Host, r.Host) && origin.Scheme == requestScheme(r, cfg) {
 		return ""
 	}
 
 	for _, trusted := range trustedOrigins {
-		if origin.Host == trusted.Host && origin.Scheme == trusted.Scheme {
+		if strings.EqualFold(origin.Host, trusted.Host) && origin.Scheme == trusted.Scheme {
 			return ""
 		}
 	}
@@ -673,15 +673,53 @@ func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL) s
 	return originStr
 }
 
-// requestScheme reports the URL scheme a client used, based on whether the
+// requestScheme reports the URL scheme the client used, based on whether the
 // connection is TLS-terminated locally. It mirrors how nosurf builds the self
 // origin for same-origin comparisons.
-func requestScheme(r *http.Request) string {
+func requestScheme(r *http.Request, cfg CSRFConfig) string {
+	if forwarded := forwardedProtoFromTrustedProxy(r, cfg); forwarded != "" {
+		return forwarded
+	}
+
 	if r.TLS != nil {
 		return "https"
 	}
 
 	return "http"
+}
+
+// forwardedProtoFromTrustedProxy returns the effective client-facing scheme
+// from X-Forwarded-Proto when the request arrives from a configured trusted
+// proxy, and "" otherwise. TLS termination is the most common production
+// topology: the browser sends Origin https://site over TLS, the proxy
+// forwards plaintext, and without this a truthful same-origin attestation
+// would be rejected as forged (scheme mismatch against the local view).
+// The header is honored only from trusted proxies — from anywhere else it is
+// attacker-controlled. No trusted proxies configured means the header is
+// never honored.
+func forwardedProtoFromTrustedProxy(r *http.Request, cfg CSRFConfig) string {
+	if len(cfg.TrustedProxies) == 0 && len(cfg.TrustedProxiesCIDR) == 0 {
+		return ""
+	}
+
+	remoteHost, remoteIP := remoteHostAndIP(r.RemoteAddr)
+	if !isTrustedProxy(remoteHost, remoteIP, r.RemoteAddr, cfg) {
+		return ""
+	}
+
+	header := r.Header.Get("X-Forwarded-Proto")
+	if header == "" {
+		return ""
+	}
+
+	// First hop in the header is the client-facing scheme; normalize case
+	// (schemes are case-insensitive) and drop anything after a comma.
+	proto := strings.ToLower(strings.TrimSpace(strings.SplitN(header, ",", 2)[0]))
+	if proto != "http" && proto != "https" {
+		return ""
+	}
+
+	return proto
 }
 
 // TranslateCSRFHeaders maps custom header/field names to nosurf's default
@@ -818,6 +856,7 @@ func ValidateCSRF(r *http.Request, cfg CSRFConfig) (bool, *httptest.ResponseReco
 	if origin := contradictedAttestationOrigin(
 		r,
 		parseTrustedOriginURLs(cfg.TrustedOrigins),
+		cfg.withParsedTrustedProxies(),
 	); origin != "" {
 		rec := httptest.NewRecorder()
 		handleCSRFRejection(cfg, rec, r, ErrCSRFAttestationConflict.WithContext("origin", origin))

@@ -2,9 +2,11 @@ package httputil
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 )
 
@@ -154,5 +156,78 @@ func TestMiddlewareStackNames(t *testing.T) {
 
 	if names[1] != MiddlewareCORS {
 		t.Errorf("names[1] = %q, want %q", names[1], MiddlewareCORS)
+	}
+}
+
+func TestMiddlewareStack_Add_RejectsEmptyName(t *testing.T) {
+	t.Parallel()
+
+	stack := NewMiddlewareStack()
+
+	err := stack.Add("", func(next http.Handler) http.Handler { return next })
+	if err == nil {
+		t.Fatal("Add with empty name error = nil, want error")
+	}
+
+	if !errors.Is(err, errEmptyMiddlewareName) {
+		t.Errorf("error = %v, want errEmptyMiddlewareName", err)
+	}
+
+	if got := stack.Names(); len(got) != 0 {
+		t.Errorf("Names() = %v, want empty (rejected entry must not be added)", got)
+	}
+}
+
+func TestMiddlewareStack_ConcurrentAddAndRead_RaceFree(t *testing.T) {
+	t.Parallel()
+
+	stack := NewMiddlewareStack()
+
+	const writers = 8
+
+	const reads = 8
+
+	const iterations = 200
+
+	var wg sync.WaitGroup
+
+	for w := range writers {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for iteration := range iterations {
+				err := stack.Add(
+					fmt.Sprintf("middleware-%d-%d", w, iteration),
+					func(next http.Handler) http.Handler { return next },
+				)
+				if err != nil {
+					t.Errorf("Add: %v", err)
+
+					return
+				}
+			}
+		}()
+	}
+
+	for range reads {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for range iterations {
+				_ = stack.Names()
+				_ = stack.Validate()
+				_ = stack.Build(newNoOpHandler())
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if got := len(stack.Names()); got != writers*iterations {
+		t.Errorf("len(Names()) = %d, want %d (no Add may be lost)", got, writers*iterations)
 	}
 }

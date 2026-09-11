@@ -969,3 +969,126 @@ func TestCSRFConfig_Validate_AcceptsZeroMaxAge(t *testing.T) {
 		t.Fatalf("Validate() error = %v, want nil (zero MaxAge uses the 24h default)", err)
 	}
 }
+
+func TestCSRFMiddleware_AllowsCaseDifferingHostWithSameOriginAttestation(t *testing.T) {
+	t.Parallel()
+
+	// DNS hosts are case-insensitive: Origin https://EXAMPLE.com against
+	// Host example.com is the same origin, not a forged attestation.
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://EXAMPLE.com")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("case-differing same host should not be treated as a forged attestation, got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_TrustedProxyForwardedProtoAllowsHTTPSOrigin(t *testing.T) {
+	t.Parallel()
+
+	// TLS termination: the browser sends Origin https://example.com, the
+	// trusted proxy forwards plaintext. X-Forwarded-Proto from the trusted
+	// proxy restores the client-facing scheme, so the truthful attestation
+	// is consistent instead of "forged".
+	mw := CSRFMiddleware(CSRFConfig{TrustedProxies: []string{"10.0.0.1"}})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.RemoteAddr = "10.0.0.1:12345"
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://example.com")
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("https Origin behind a trusted TLS-terminating proxy should be accepted, got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_UntrustedForwardedProtoStillRejected(t *testing.T) {
+	t.Parallel()
+
+	var captured error
+
+	cfg := CSRFConfig{
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			captured = err
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+
+	mw := CSRFMiddleware(cfg)
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	// X-Forwarded-Proto from a NON-trusted address is attacker-controlled
+	// and must not rescue a scheme-contradicted attestation.
+	req := newValidCSRFPost(t, mw)
+	req.RemoteAddr = "1.2.3.4:1234"
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://example.com")
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("X-Forwarded-Proto from an untrusted address must not excuse the contradiction, got %d", rec.Code)
+	}
+
+	if !errors.Is(captured, ErrCSRFAttestationConflict) {
+		t.Errorf("ErrorHandler error = %v, want ErrCSRFAttestationConflict", captured)
+	}
+}
+
+func TestCSRFMiddleware_TrustedProxyDoesNotExcuseDifferentHost(t *testing.T) {
+	t.Parallel()
+
+	var captured error
+
+	cfg := CSRFConfig{
+		TrustedProxies: []string{"10.0.0.1"},
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			captured = err
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+
+	mw := CSRFMiddleware(cfg)
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	// A trusted proxy widens only the scheme view; a different host is
+	// still a forged attestation.
+	req := newValidCSRFPost(t, mw)
+	req.RemoteAddr = "10.0.0.1:12345"
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://evil.example")
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("different host behind a trusted proxy must still be rejected, got %d", rec.Code)
+	}
+
+	if !errors.Is(captured, ErrCSRFAttestationConflict) {
+		t.Errorf("ErrorHandler error = %v, want ErrCSRFAttestationConflict", captured)
+	}
+}
