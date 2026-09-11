@@ -3,7 +3,7 @@
 # docs/RELEASE.md (Pre-Release Verification). Run this before cutting a version tag; every gate must pass.
 set -uo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
 # /mnt/buildcache is unwritable in some environments; without these exports
 # every Go toolchain call fails with "failed to initialize build cache".
@@ -44,7 +44,8 @@ GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-e
 step "7/9 Coverage threshold (95%)"
 # Library coverage only: the scripts/ dev tooling package has no tests and
 # would drag the total below the gate.
-go test $(go list ./... | grep -v scripts/coverage-threshold) -coverprofile=coverage.out || fail "go test -coverprofile"
+mapfile -t coverage_packages < <(go list ./... | grep -v scripts/coverage-threshold)
+go test "${coverage_packages[@]}" -coverprofile=coverage.out || fail "go test -coverprofile"
 go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95 || fail "coverage below 95%"
 
 step "8/9 CHANGELOG has an [Unreleased] section"
