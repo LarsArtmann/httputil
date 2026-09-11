@@ -20,7 +20,7 @@
 6. **The three open questions from the prior report — decided, executed, documented**:
    - _Rebuild before or after the test?_ Test first — executed in that order.
    - _Silence opinion tools?_ Split decision: `go-auto-upgrade` stays skipped (advice unconditionally forbidden by depguard); branching-flow/erraudit/go-structure-linter stay **visible** (detect-only, never fail, blanket-skipping would hide new genuine findings mixed into the noise).
-   - _Keep committed `vendor/`?_ **Yes — deliberate.** Load-bearing for the `GOWORK=off` CI gates; mkPreparedSource solves a problem this repo doesn't have (public deps, flake runs checks not hermetic Go packages).
+   - ~~_Keep committed `vendor/`?_ **Yes — deliberate.** Load-bearing for the `GOWORK=off` CI gates; mkPreparedSource solves a problem this repo doesn't have (public deps, flake runs checks not hermetic Go packages).~~ **Superseded same day (owner decision): `vendor/` deleted.** It was never committed (gitignored on-disk artifact), and workspace + `GOWORK=off` builds verify green from the module cache — see ROADMAP.md Non-goals and AGENTS.md BuildFlow Pipeline.
 7. **Vendor-format facts established empirically** (scratch-copy, `/tmp`, cleaned up after):
    - go1.26.7 writes `## explicit; go <ver>` annotations under **both** `go mod vendor` and `go work vendor` — the parser fix was needed for both, not just workspace mode.
    - `go work vendor` output omits the trailing versionless replace-marking header (`# mod => ./path`), so forced `GOWORK=off go build -mod=vendor` fails with "not marked as replaced" — **pre-existing, latent, no gate uses `-mod=vendor`** (A/B tested: fails identically with and without any `ignore` directive — the failure is format-inherent, not caused by anything recent).

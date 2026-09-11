@@ -47,6 +47,7 @@ Things we are deliberately NOT pursuing and why:
 - **Internal `compress/` subpackage** — compression files depend on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), so extracting creates a circular import. The flat layout is structural (confirmed 2026-08-05).
 - **Built-in brotli/zstd encoders** — kept as `WriterFactory` plugin examples to preserve the dependency policy.
 - **Functional options (`With*`) pattern** — the struct-config + `Validate()` pattern is established and consistent. Functional options would create two parallel configuration styles.
+- **Vendoring (`vendor/` directory)** — removed 2026-09-11 (owner decision). Every dependency is public; workspace and `GOWORK=off` builds resolve from the module cache. Vendoring bought offline builds we never needed, and its modules.txt staleness caused the 2026-09-11 pipeline incident. `.gitignore` still lists `vendor/` as a guard against accidental reintroduction.
 - **Hand-rolled CSRF implementation** — `justinas/nosurf` was added because double-submit cookie CSRF is security-critical and complex. Re-implementing it would be a liability.
 - **Removing `nopCloserWriter` / `nopFlushCloser`** — defensive scaffolding for the `WriterFactory` contract; kept for API safety.
 - **Removing `TokenBucketLimiter` before the first post-v1.0 stabilization release** — deprecated, shipped in v1.0.0 for compatibility; removal is scheduled work now (TODO_LIST v1.1.0 batch), no longer a question.
