@@ -100,7 +100,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 4. Run the erraudit `--type-aware` advisory pass once over the post-sweep code (expect ~30 known test advisories; confirm no NEW ones).
 5. ~~Grep README + `docs/migrating-to-keyed-rate-limiter.md` + `docs/v1-stability.md` for "removed at v1.0"-class stale claims (only the redis doc was fixed).~~ done (docs-health pass 2026-09-11: README + migrating-doc + v1-stability grepped for stale v1.0 claims; v1-stability removal targets reworded post-v1.0)
 6. ~~Reconcile `docs/v1-stability.md` with what v1.0.0 actually froze (ListenerAddr/WrapConflict in; deprecated APIs still present pending removal).~~ done (docs-health pass 2026-09-11: ListenerAddr, Compose, MiddlewareFunc.Then, MiddlewareStack.Middleware, WrapConflict/Orchestration + attestation code added to v1-stability.md)
-7. Verify the `bug` label exists for the nightly-fuzz issue step (or change the step's label).
+7. ~~Verify the `bug` label exists for the nightly-fuzz issue step (or change the step's label).~~ done (docs-health pass 2026-09-11: gh label list confirms the bug label exists)
 8. Push: `git push origin master && git push origin v1.0.0` (owner action or explicit instruction).
 9. Watch the tag-triggered release.yml run end-to-end; fix anything the real environment surfaces.
 10. Post-push: `go get github.com/larsartmann/httputil@v1.0.0` + `go mod verify` from a scratch module; check pkg.go.dev.
