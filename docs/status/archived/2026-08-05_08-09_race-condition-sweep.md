@@ -1,6 +1,6 @@
 # Status Report — 2026-08-05 08:09 — Race-Condition Sweep Post-Mortem
 
-> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
+> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../../CHANGELOG.md)), were parked in [ROADMAP.md](../../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
 > **Scope:** This session began after the previous "todo-list execution sweep" summary was delivered (`docs/status/2026-08-05_07-45_todo-list-execution-sweep.md`). The user asked one sharply pointed question: _"go test -race is fine? 100%?"_ The truth came back fast, and the rest of this report is the full, honest accounting of what that one question revealed.
 
 ---

@@ -2,7 +2,7 @@
 
 > Note: doc-number protocol, single-source-of-ownership, and pool-test determinism all became codified AGENTS.md rules; the deny-list shipped as IncompressibleTypes.
 
-> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
+> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../../CHANGELOG.md)), were parked in [ROADMAP.md](../../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
 > **Date:** 2026-06-17 00:48\
 > **Commit:** _work in progress_ (based on b88eaf5)\
 > **Trigger:** Follow-up execution on the 2026-06-16 post-`util.go`-removal audit; documentation sync, test-gap closure, performance wins, and a real production defect discovered in the compression writer pool.

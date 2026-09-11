@@ -2,7 +2,7 @@
 
 > Note: DenyUnmatched/EvictionTTL/validation decisions shipped as proposed; naming and coverage findings were executed in later passes.
 
-> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
+> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../../CHANGELOG.md)), were parked in [ROADMAP.md](../../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
 > **Date:** 2026-07-05 21:22
 > **Session:** Executed Pareto-sorted TODO list from brutal self-review (11 tasks + docs)
 > **Commits:** 11 commits (`2f2038b` → `bd27ea1`)

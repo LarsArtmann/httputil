@@ -2,7 +2,7 @@
 
 > Note: TokenBucketLimiter eviction was superseded by KeyedRateLimiter (MaxKeys + TTL); stack validation, integration tests, fuzz/bench/examples for new middleware all shipped.
 
-> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
+> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../../CHANGELOG.md)), were parked in [ROADMAP.md](../../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
 > **Date:** 2026-07-02 03:50 CEST
 > **Author:** Crush session (continuation of multi-session effort)
 > **Branch:** master (uncommitted working tree)

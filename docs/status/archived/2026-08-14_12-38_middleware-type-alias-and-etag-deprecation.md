@@ -1,6 +1,6 @@
 # Status Report: Middleware Type Alias & ETag Deprecation
 
-> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
+> **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../../CHANGELOG.md)), were parked in [ROADMAP.md](../../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
 > **Date:** 2026-08-14 12:38
 > **Session scope:** Changing `Middleware` from named type to type alias across httputil, server_timing, and go-etag; deprecating `httputil.ETag()` adapter.
 

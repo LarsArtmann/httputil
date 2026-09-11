@@ -238,4 +238,4 @@ Measured 2026-09-11 with `go test -race -coverprofile`: **97.4%** (`httputil`, l
 ## WORTH CONSIDERING
 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
-- **Rate limiter `context.Context` cancellation** — a cancel-aware `Wait(ctx, key)` remains the post-v1.0 additive path; v1.0 shipped the admission-only contract (evaluated in [docs/planning/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md](docs/planning/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md), decided in [ROADMAP.md](ROADMAP.md)).
+- **Rate limiter `context.Context` cancellation** — a cancel-aware `Wait(ctx, key)` remains the post-v1.0 additive path; v1.0 shipped the admission-only contract (evaluated in [docs/planning/archived/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md](docs/planning/archived/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md), decided in [ROADMAP.md](ROADMAP.md)).
