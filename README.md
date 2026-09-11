@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
-[![Coverage](https://img.shields.io/badge/coverage-97.0%25-green)](#)
+[![Coverage](https://img.shields.io/badge/coverage-97.4%25-green)](#)
 [![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
@@ -455,6 +455,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `WithClientIP`                   | `func(context.Context, string) context.Context`                       | Store client IP in context                                |
 | `NewResponseRecorder`            | `func(http.ResponseWriter) *ResponseRecorder`                         | Wrap writer to capture status                             |
 | `Chain`                          | `func(http.Handler, ...func(http.Handler) http.Handler) http.Handler` | Compose middleware                                        |
+| `Compose`                        | `func(...Middleware) Middleware`                                      | Reusable middleware bundle (first = outermost)            |
 | `SecurityHeaders`                | `func(SecurityHeadersConfig) func(http.Handler) http.Handler`         | Security response headers                                 |
 | `DefaultSecurityHeadersConfig`   | `func() SecurityHeadersConfig`                                        | Sensible security defaults                                |
 | `RequestID`                      | `func(RequestIDConfig) func(http.Handler) http.Handler`               | Request ID propagation/generation                         |
@@ -492,9 +493,12 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Metrics`                        | `func(MetricsConfig) func(http.Handler) http.Handler`                 | Request metrics recording                                 |
 | `DefaultMetricsConfig`           | `func() MetricsConfig`                                                | Default metrics config                                    |
 | `NewMiddlewareStack`             | `func() *MiddlewareStack`                                             | Named middleware stack builder                            |
+| `MiddlewareStack.Middleware()`   | `func() Middleware`                                                   | Nest the whole stack as one middleware                    |
+| `MiddlewareFunc.Then`            | `func(http.Handler) http.Handler`                                     | Value-level chaining; nil wires a 500-stub handler        |
 | `DetectCapabilities`             | `func(http.ResponseWriter) Capabilities`                              | Report Hijacker/Flusher support                           |
 | `RegisterErrorClassifications`   | `func()`                                                              | Register stdlib error sentinels + templates               |
 | `NewServer`                      | `func(ServerConfig, http.Handler) (*Server, error)`                   | Configurable HTTP server with timeouts                    |
+| `Server.ListenerAddr()`          | `func() (net.Addr, bool)`                                             | Resolved listener address (`:0` → real port); false when not listening |
 | `DefaultServerConfig`            | `func() ServerConfig`                                                 | Sensible server timeout defaults                          |
 | `RegisterHealth`                 | `func(*http.ServeMux)`                                                | Register /health + /live + /ready                         |
 | `HealthHandler`                  | `func() http.HandlerFunc`                                             | Simple `{"status":"up"}` handler                          |
@@ -648,7 +652,7 @@ Conventions:
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
-- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. All 23 fuzz targets run nightly in CI.
+- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. All 26 fuzz targets run nightly in CI.
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 
@@ -741,7 +745,7 @@ This project maintains strict quality standards enforced in CI:
 | ---------------- | ------------------------------------------ | ------------------------------------------------ |
 | Tests            | `go test -race -count=1 ./...`             | Passing                                          |
 | Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
-| Coverage         | `go test -coverprofile=coverage.out ./...` | 97.0% httputil / 98.8% httpspec (threshold: 95%) |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 97.4% httputil / 98.6% httpspec (threshold: 95%) |
 | Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
 | Vet              | `go vet ./...`                             | Clean                                            |
 | Vulnerabilities  | `govulncheck ./...`                        | None found                                       |

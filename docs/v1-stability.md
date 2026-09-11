@@ -89,6 +89,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `NewServer`       | Frozen   | `func(ServerConfig, http.Handler) (*Server, error)`       |
 | `Server.Start`    | Frozen   | `func() <-chan error`                                     |
 | `Server.StartTLS` | Additive | Added post-v0.10.0: HTTPS serving via `ListenAndServeTLS` |
+| `Server.ListenerAddr` | Additive | Added in v1.0.0: `func() (net.Addr, bool)` — resolved listener address |
 | `Server.Shutdown` | Frozen   | `func(context.Context) error`                             |
 | `Server.Addr`     | Frozen   | `func() string`                                           |
 
@@ -141,9 +142,9 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 | Symbol                          | Tier     | Notes                                                                   |
 | ------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `RateLimiter`                   | Frozen   | Interface (deprecated; removal targeted for v1.0)                       |
+| `RateLimiter`                   | Frozen   | Interface (deprecated; removal targeted for the first post-v1.0 stabilization release) |
 | `RateLimitConfig`               | Additive | Deprecated v0.8.0                                                       |
-| `TokenBucketLimiter`            | Additive | Deprecated v0.8.0; removal targeted for v1.0                            |
+| `TokenBucketLimiter`            | Additive | Deprecated v0.8.0; removal targeted for the first post-v1.0 stabilization release |
 | `NewTokenBucketLimiter`         | Frozen   | Deprecated v0.8.0                                                       |
 | `KeyExtractor`                  | Frozen   | Function type                                                           |
 | `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                         |
@@ -223,6 +224,9 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ---------------------------- | -------- |
 | `NewMiddlewareStack`         | Frozen   |
 | `MiddlewareStack`            | Additive |
+| `MiddlewareStack.Middleware` | Additive | Added in v1.0.0: nest the stack as one middleware |
+| `Compose`                    | Additive | Added in v1.0.0: reusable middleware bundle (first = outermost) |
+| `MiddlewareFunc`             | Additive | Added in v1.0.0: defined type; `Then(nil)` wires a 500-stub handler |
 | `Middleware*` constants (14) | Frozen   |
 
 ### Query Parsing (Frozen at v1.0)
@@ -244,6 +248,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error      |
 | `ErrCSRFInvalid`               | Frozen | CSRF sentinel   |
 | `ErrCSRFConfig`                | Frozen | CSRF sentinel   |
+| `ErrCSRFAttestationConflict`   | Frozen | Added in v1.0.0: CSRF origin-attestation contradiction rejection |
 | `RegisterErrorClassifications` | Frozen |                 |
 
 ### Metrics (Frozen at v1.0)
