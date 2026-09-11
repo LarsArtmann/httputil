@@ -57,9 +57,10 @@ GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-e
 	fail "erraudit stdlib_constructor"
 
 step "7/9 Coverage threshold (95%)"
-# Library coverage only: the scripts/ dev tooling package has no tests and
-# would drag the total below the gate.
-mapfile -t coverage_packages < <(go list ./... | grep -v scripts/coverage-threshold)
+# Library coverage only: the scripts/ dev tooling (doc-snippet-refs has no
+# tests by design; coverage-threshold tests itself) would drag the total
+# below the gate.
+mapfile -t coverage_packages < <(go list ./... | grep -v /scripts/)
 go test "${coverage_packages[@]}" -coverprofile=coverage.out || fail "go test -coverprofile"
 go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95 || fail "coverage below 95%"
 

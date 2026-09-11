@@ -53,7 +53,7 @@ jobs:
         run: go test -race -count=10 ./...
 
       - name: Test with coverage (library packages; scripts/ dev tooling excluded)
-        run: go test $(go list ./... | grep -v scripts/coverage-threshold) -coverprofile=coverage.out
+        run: go test $(go list ./... | grep -v /scripts/) -coverprofile=coverage.out
 
       - name: Coverage threshold check
         run: go tool cover -func=coverage.out | go run ./scripts/coverage-threshold 95
