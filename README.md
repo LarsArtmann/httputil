@@ -148,7 +148,7 @@ func TestHTTPBehavior(t *testing.T) {
 }
 ```
 
-Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence. Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
+Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence, no injection-header reflection (a client-supplied `X-CSRF-Token`/probe header value must never be echoed back in a response header). Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
 
 ```go
 httpspec.Run(t, handler,
@@ -378,6 +378,8 @@ Call `InvalidateCSRFCookie(w, cfg)` on login/logout to rotate the token.
 
 - A client-supplied attestation (or the plaintext-proxy bypass, `SetPlaintextHTTPOrigin`) skips only the origin check; the masked-token check still gates every state-changing request. This is what lets non-browser API clients — which cannot pass Origin/Referer validation on plain HTTP — work with valid tokens.
 - A client-supplied attestation contradicted by an `Origin` header from a different, untrusted origin is rejected with `ErrCSRFAttestationConflict` before nosurf sees the request. Browsers never produce that combination, so it can only be forged. The `null` origin is exempt (nosurf treats it as absent).
+
+**Migrating (behavior change in v1.0.0):** a non-browser client that sent a forged `Sec-Fetch-Site: same-origin` alongside an `Origin` from a different host previously slipped past nosurf's origin validation (the attestation short-circuit) and only had to pass the token check. Such requests now get `403` with the `csrf.origin_attestation_conflict` error code before nosurf runs. Fix the client, not the middleware: send no `Sec-Fetch-Site` header at all (nosurf then applies normal Origin/Referer validation), or send a truthful attestation, or add the client's real origin to `CSRFConfig.TrustedOrigins`.
 
 Plaintext-HTTP origin bypass: requests with no `Origin`/`Referer`/`Sec-Fetch-Site` header are auto-marked same-origin only when they arrive from loopback or `TrustedProxies` (or from everywhere with `AllowPlaintextBypass`, which logs a warning — it is insecure for internet-facing plain HTTP).
 
@@ -620,6 +622,18 @@ if httputil.InDomain(err, httputil.Domain("cors")) {
     // a CORS misconfiguration, not a network failure
 }
 
+// Route a CSRF rejection by its exact code — e.g. a 403 carrying
+// csrf.origin_attestation_conflict means a client sent a forged
+// Sec-Fetch-Site: same-origin attestation next to a cross-origin Origin.
+// That is forged client input (Rejection family): fix or block the client,
+// never retry.
+if httputil.InDomain(err, httputil.Domain("csrf")) {
+    if coded, ok := errors.AsType[errorfamily.Coded](err); ok &&
+        coded.ErrorCode() == "csrf.origin_attestation_conflict" {
+        log.Printf("forged CSRF attestation from %s", r.RemoteAddr)
+    }
+}
+
 // 2. What is the exact failure? Read the code via the Coded interface.
 if coded, ok := errors.AsType[errorfamily.Coded](err); ok {
     log.Printf("code=%s", coded.ErrorCode()) // e.g. "server.timeout_ordering"
@@ -639,7 +653,7 @@ Conventions:
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
-- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. All 26 fuzz targets run nightly in CI.
+- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. All 25 fuzz targets run nightly in CI.
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 

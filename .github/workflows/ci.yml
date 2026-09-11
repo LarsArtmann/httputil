@@ -59,7 +59,9 @@ jobs:
         run: ./scripts/update-coverage-badge.sh coverage.out README.md
 
       - name: Benchmark
-        run: go test -bench=. -benchmem -count=1 -run=^$ ./...
+        run: |
+          set -o pipefail
+          go test -bench=. -benchmem -count=1 -run='^$' ./... 2>&1 | tee bench.txt
 
       - name: Run govulncheck (root module)
         run: |
@@ -75,6 +77,11 @@ jobs:
         with:
           name: coverage
           path: coverage.out
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: bench
+          path: bench.txt
 
   lint:
     name: Lint
@@ -92,6 +99,20 @@ jobs:
         with:
           version: v2.13.2
           args: --timeout=5m
+
+      # A .golangci.yml edit once shipped 13 findings because CI's older
+      # binary silently ignored the new linter keys. Config schema + both
+      # modules must pass with the same pinned binary the action uses —
+      # server_timing is a separate Go module the action does not visit.
+      - name: Verify golangci config schema (root + server_timing)
+        run: |
+          golangci-lint config verify
+          cd server_timing && golangci-lint config verify
+
+      - name: Lint (server_timing sub-module)
+        run: |
+          cd server_timing
+          golangci-lint run ./...
 
   commit-lint:
     name: Commit Lint
