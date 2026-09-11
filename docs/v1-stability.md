@@ -83,15 +83,15 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Server Lifecycle (Frozen at v1.0)
 
-| Symbol            | Tier     | Notes                                                     |
-| ----------------- | -------- | --------------------------------------------------------- |
-| `Server`          | Frozen   | Struct; constructor + methods locked                      |
-| `NewServer`       | Frozen   | `func(ServerConfig, http.Handler) (*Server, error)`       |
-| `Server.Start`    | Frozen   | `func() <-chan error`                                     |
-| `Server.StartTLS` | Additive | Added post-v0.10.0: HTTPS serving via `ListenAndServeTLS` |
+| Symbol                | Tier     | Notes                                                                  |
+| --------------------- | -------- | ---------------------------------------------------------------------- |
+| `Server`              | Frozen   | Struct; constructor + methods locked                                   |
+| `NewServer`           | Frozen   | `func(ServerConfig, http.Handler) (*Server, error)`                    |
+| `Server.Start`        | Frozen   | `func() <-chan error`                                                  |
+| `Server.StartTLS`     | Additive | Added post-v0.10.0: HTTPS serving via `ListenAndServeTLS`              |
 | `Server.ListenerAddr` | Additive | Added in v1.0.0: `func() (net.Addr, bool)` — resolved listener address |
-| `Server.Shutdown` | Frozen   | `func(context.Context) error`                             |
-| `Server.Addr`     | Frozen   | `func() string`                                           |
+| `Server.Shutdown`     | Frozen   | `func(context.Context) error`                                          |
+| `Server.Addr`         | Frozen   | `func() string`                                                        |
 
 ### Client IP (Frozen at v1.0)
 
@@ -140,20 +140,20 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Rate Limiting (Frozen at v1.0)
 
-| Symbol                          | Tier     | Notes                                                                   |
-| ------------------------------- | -------- | ----------------------------------------------------------------------- |
+| Symbol                          | Tier     | Notes                                                                                  |
+| ------------------------------- | -------- | -------------------------------------------------------------------------------------- |
 | `RateLimiter`                   | Frozen   | Interface (deprecated; removal targeted for the first post-v1.0 stabilization release) |
-| `RateLimitConfig`               | Additive | Deprecated v0.8.0                                                       |
-| `TokenBucketLimiter`            | Additive | Deprecated v0.8.0; removal targeted for the first post-v1.0 stabilization release |
-| `NewTokenBucketLimiter`         | Frozen   | Deprecated v0.8.0                                                       |
-| `KeyExtractor`                  | Frozen   | Function type                                                           |
-| `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                         |
-| `KeyExtractorFromClientIP`      | Frozen   |                                                                         |
-| `KeyedRateLimiterConfig`        | Additive | New in v0.8.0                                                           |
-| `KeyedRateLimiter`              | Additive | New in v0.8.0; `ActiveKeys`/`Check`/`Middleware` methods frozen at v1.0 |
-| `NewKeyedRateLimiter`           | Frozen   | New in v0.8.0                                                           |
-| `KeyedRateLimiterMiddleware`    | Frozen   | New in v0.8.0                                                           |
-| `DefaultKeyedRateLimiterConfig` | Frozen   | New in v0.8.0                                                           |
+| `RateLimitConfig`               | Additive | Deprecated v0.8.0                                                                      |
+| `TokenBucketLimiter`            | Additive | Deprecated v0.8.0; removal targeted for the first post-v1.0 stabilization release      |
+| `NewTokenBucketLimiter`         | Frozen   | Deprecated v0.8.0                                                                      |
+| `KeyExtractor`                  | Frozen   | Function type                                                                          |
+| `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                                        |
+| `KeyExtractorFromClientIP`      | Frozen   |                                                                                        |
+| `KeyedRateLimiterConfig`        | Additive | New in v0.8.0                                                                          |
+| `KeyedRateLimiter`              | Additive | New in v0.8.0; `ActiveKeys`/`Check`/`Middleware` methods frozen at v1.0                |
+| `NewKeyedRateLimiter`           | Frozen   | New in v0.8.0                                                                          |
+| `KeyedRateLimiterMiddleware`    | Frozen   | New in v0.8.0                                                                          |
+| `DefaultKeyedRateLimiterConfig` | Frozen   | New in v0.8.0                                                                          |
 
 ### CSRF Protection (Frozen at v1.0)
 
@@ -224,9 +224,9 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | ---------------------------- | -------- |
 | `NewMiddlewareStack`         | Frozen   |
 | `MiddlewareStack`            | Additive |
-| `MiddlewareStack.Middleware` | Additive | Added in v1.0.0: nest the stack as one middleware |
-| `Compose`                    | Additive | Added in v1.0.0: reusable middleware bundle (first = outermost) |
-| `MiddlewareFunc`             | Additive | Added in v1.0.0: defined type; `Then(nil)` wires a 500-stub handler |
+| `MiddlewareStack.Middleware` | Additive |
+| `Compose`                    | Additive |
+| `MiddlewareFunc`             | Additive |
 | `Middleware*` constants (14) | Frozen   |
 
 ### Query Parsing (Frozen at v1.0)
@@ -237,19 +237,19 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Error Classification (Frozen at v1.0)
 
-| Symbol                         | Tier   | Notes           |
-| ------------------------------ | ------ | --------------- |
-| `ErrCodeWriteFailed`           | Frozen | String constant |
-| `ErrCodeHijackUnsupported`     | Frozen |                 |
-| `ErrCodeHijackFailed`          | Frozen |                 |
-| `ErrCodeCompressWriteFailed`   | Frozen |                 |
-| `etag.ErrCodeETagWriteFailed`  | Frozen | ETag error      |
-| `etag.ErrCodeInvalidConfig`    | Frozen | ETag error      |
-| `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error      |
-| `ErrCSRFInvalid`               | Frozen | CSRF sentinel   |
-| `ErrCSRFConfig`                | Frozen | CSRF sentinel   |
+| Symbol                         | Tier   | Notes                                                            |
+| ------------------------------ | ------ | ---------------------------------------------------------------- |
+| `ErrCodeWriteFailed`           | Frozen | String constant                                                  |
+| `ErrCodeHijackUnsupported`     | Frozen |                                                                  |
+| `ErrCodeHijackFailed`          | Frozen |                                                                  |
+| `ErrCodeCompressWriteFailed`   | Frozen |                                                                  |
+| `etag.ErrCodeETagWriteFailed`  | Frozen | ETag error                                                       |
+| `etag.ErrCodeInvalidConfig`    | Frozen | ETag error                                                       |
+| `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error                                                       |
+| `ErrCSRFInvalid`               | Frozen | CSRF sentinel                                                    |
+| `ErrCSRFConfig`                | Frozen | CSRF sentinel                                                    |
 | `ErrCSRFAttestationConflict`   | Frozen | Added in v1.0.0: CSRF origin-attestation contradiction rejection |
-| `RegisterErrorClassifications` | Frozen |                 |
+| `RegisterErrorClassifications` | Frozen |                                                                  |
 
 ### Metrics (Frozen at v1.0)
 

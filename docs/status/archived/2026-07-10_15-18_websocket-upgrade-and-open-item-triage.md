@@ -1,10 +1,9 @@
 # Status Report: WebSocket Upgrade Test + Open-Item Triage
 
-
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-07-10 15:18
-**Session Scope:** Resolve 4 open TODO items — WebSocket upgrade test (deliverable), Validate() duplication (decision), compress/ split (decision), RequestIDConfig naming (defer)
-**Reporter:** Crush (glm-5.2)
+> **Date:** 2026-07-10 15:18
+> **Session Scope:** Resolve 4 open TODO items — WebSocket upgrade test (deliverable), Validate() duplication (decision), compress/ split (decision), RequestIDConfig naming (defer)
+> **Reporter:** Crush (glm-5.2)
 
 ---
 

@@ -1,10 +1,9 @@
 # Consumer Reinvents httputil's Entire Nonce/CSP System — Introduces CSP Bug
 
-
 > **Resolution status (docs-health pass 2026-09-11):** processed. The API-gap recommendations were decided in the v1.0.0 sweep: public `GenerateNonce` and `NonceConfig.Generator` formally declined (rationale in `nonce.go` + DECISION_LOG; `WithNonce` is the injection escape hatch), and the per-route CSP ideas are parked in ROADMAP Post-v1.0 ideas (CSP nonce extensions batch). No open work lives in this file.
-**Discovered:** 2026-08-09
-**Consumer:** `file-and-image-renamer` (pkg/healthd)
-**Severity:** Medium (consumer bug already fixed, but the API gap that enabled it remains)
+> **Discovered:** 2026-08-09
+> **Consumer:** `file-and-image-renamer` (pkg/healthd)
+> **Severity:** Medium (consumer bug already fixed, but the API gap that enabled it remains)
 
 ---
 

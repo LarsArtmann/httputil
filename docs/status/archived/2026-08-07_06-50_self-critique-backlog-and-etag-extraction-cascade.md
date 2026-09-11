@@ -1,11 +1,10 @@
 # Status Report: Self-Critique Backlog + ETag Extraction Cascade
 
-
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-08-07 06:50
-**Session scope:** Execute the prior session's 10-item self-critique backlog (D2 SVG, honest-silence comments, FEATURES timestamp, AGENTS.md, LSP restart, art-dupl, coverage tests). Then got interrupted by the auto-commit daemon extracting ETag and Server-Timing into separate modules, which broke the build and required a cascade of cleanup work.
-**Starting state:** `ada0c8d` — build broken (3 test files referencing deleted ETag symbols)
-**Ending state:** All quality gates green. Build, vet, lint 0 issues, fmt, race -count=1, nix flake check, art-dupl 0 clones. Coverage 96.9% (`go test` reported) / 97.4% (`go tool cover` total).
+> **Date:** 2026-08-07 06:50
+> **Session scope:** Execute the prior session's 10-item self-critique backlog (D2 SVG, honest-silence comments, FEATURES timestamp, AGENTS.md, LSP restart, art-dupl, coverage tests). Then got interrupted by the auto-commit daemon extracting ETag and Server-Timing into separate modules, which broke the build and required a cascade of cleanup work.
+> **Starting state:** `ada0c8d` — build broken (3 test files referencing deleted ETag symbols)
+> **Ending state:** All quality gates green. Build, vet, lint 0 issues, fmt, race -count=1, nix flake check, art-dupl 0 clones. Coverage 96.9% (`go test` reported) / 97.4% (`go tool cover` total).
 
 ---
 

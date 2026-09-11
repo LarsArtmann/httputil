@@ -3,18 +3,18 @@
 > Note: ordering validation (MiddlewareStack.Validate), deflate, q-value parsing, deny-list, batching, and the rate limiter all shipped; streaming ETag is a recorded non-goal.
 
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-06-08 04:57 CEST
-**Branch:** `master` (up to date with origin)
-**Last commit:** `6584b26` docs(changelog): prepare v0.1.1 release
-**Go version:** 1.26.3
-**Lines of Go code:** 4,481 across 26 files
-**Test coverage:** 91.2% of statements
-**Lint status:** 0 issues across ~70 linters
-**Test status:** 112 tests passing, race detection clean
-**Benchmarks:** 15 covering all middlewares + Chain + Itoa + Join
-**Fuzz tests:** 5 (ClientIP, Compression, ETag, CORS, RequestID)
-**Example functions:** 11 covering all public API
-**Nix flake:** `nix flake check` passes (format check only)
+> **Date:** 2026-06-08 04:57 CEST
+> **Branch:** `master` (up to date with origin)
+> **Last commit:** `6584b26` docs(changelog): prepare v0.1.1 release
+> **Go version:** 1.26.3
+> **Lines of Go code:** 4,481 across 26 files
+> **Test coverage:** 91.2% of statements
+> **Lint status:** 0 issues across ~70 linters
+> **Test status:** 112 tests passing, race detection clean
+> **Benchmarks:** 15 covering all middlewares + Chain + Itoa + Join
+> **Fuzz tests:** 5 (ClientIP, Compression, ETag, CORS, RequestID)
+> **Example functions:** 11 covering all public API
+> **Nix flake:** `nix flake check` passes (format check only)
 
 ---
 

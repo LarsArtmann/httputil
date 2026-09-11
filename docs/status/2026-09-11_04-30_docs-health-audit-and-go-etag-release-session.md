@@ -37,10 +37,10 @@ Each item implemented AND verified (test run, gate output, or API check as appro
 ## b) PARTIALLY DONE
 
 1. **"View ALL files" is again triage-viewed, not full-read.** All 125 files inventoried and classified; the 12 active-frontier reports were worked per-item; the 38 archived stragglers got per-section scans, spot-fixes of verified-done items, and resolution banners — not per-item verdicts. The honest residue: **~2,300 unmarked items in archived files are covered by a top-banner claim + a 10-item sample audit (10/10 accurate), not by per-item markers.** The skill's #1 failure mode (banner-only on files with numbered items) is mitigated by convention and sampling, not eliminated. This is the same disclosed debt as the 14:58 pass, now larger.
-2. **Sample audit scope differs from the request**: prior `19-17:f2` asked for N≈30 sampled audits of *existing keyword-batch verdicts*; I audited 10 *unmarked items' fates* against the current tree. Related evidence, not the same check. The correctness of ~2,000 struck batch markers remains unsampled beyond the original pass.
+2. **Sample audit scope differs from the request**: prior `19-17:f2` asked for N≈30 sampled audits of _existing keyword-batch verdicts_; I audited 10 _unmarked items' fates_ against the current tree. Related evidence, not the same check. The correctness of ~2,000 struck batch markers remains unsampled beyond the original pass.
 3. **httputil gate coverage was reduced (docs-only session)**: `nix fmt` (0 changed), changelog-link gate, go builds, and the coverage runs executed; **`golangci-lint run`, both erraudit gates, `go vet`, and `nix flake check` did NOT run this session** — the AGENTS "0 issues" invariant went unverified in-session (nothing I changed could affect it, but the claim is time-stamped, not current).
 4. **pkg.go.dev for go-etag@v0.3.1 never confirmed** — the `/fetch/` endpoint returned 404 at +75s; proxy and checksum DB verifiably serve the version (scratch `go get` OK). Cosmetic indexing lag, but unconfirmed at session end.
-5. **Consumer flake builds not proven**: vendorHash unchanged is *argued* from byte-identity (and confirmed by zero vendor diffs), but no `nix build` was run on any of the four flake consumers to prove the hash actually validates. DiscordSync's guard test (which runs `check-flake-pins.sh`) is the only executed Nix-adjacent proof.
+5. **Consumer flake builds not proven**: vendorHash unchanged is _argued_ from byte-identity (and confirmed by zero vendor diffs), but no `nix build` was run on any of the four flake consumers to prove the hash actually validates. DiscordSync's guard test (which runs `check-flake-pins.sh`) is the only executed Nix-adjacent proof.
 6. **Consumer version-surface sweep incomplete**: besides DiscordSync's flake pin (caught by its guard), I did not sweep the other five repos' docs/READMEs/AGENTS for "go-etag v0.3.0" prose references (the ecosystem skill's version-surface inventory). httputil's own CHANGELOG said v0.3.0 until the concurrent cut reworded it.
 7. **Living-doc verification was targeted, not exhaustive**: README (49 KB) got stale-claim greps + API-table fixes, not the full verify-checklist (install commands walked, quick-start executed); `docs/DOMAIN_LANGUAGE.md` was only checked for existence — its terms were never grep-verified against code; CONTRIBUTING/SECURITY not checked.
 8. **AGENTS.md budget**: grew to **31,156 bytes** (30.1 → 31.1 KiB) from my two one-liner additions — over the 30 KB flag line, in violation of the "don't grow a file you just flagged" rule (repeat of `14-58:e6`).
@@ -118,7 +118,7 @@ Each item implemented AND verified (test run, gate output, or API check as appro
 
 **Corpus hygiene (docs-health residues, bounded)**
 
-31. Sample-audit 30 *struck batch markers* (the actual `19-17:f2` ask — my 10 were unmarked-item fates).
+31. Sample-audit 30 _struck batch markers_ (the actual `19-17:f2` ask — my 10 were unmarked-item fates).
 32. Per-item verdict pass over the ~300 genuinely ambiguous unmarked items in the 38 banner-archived files — or formally accept banner+convention as terminal (Q3).
 33. Upgrade dated "docs-health pass 2026-09-11" v-markers to hash citations now that the daemon commits exist (f5dc283/3903cfc/…).
 34. Post-commit leftover scan: re-run the malformed-marker/remainder scan after the daemon's final formatting pass.

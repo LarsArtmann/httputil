@@ -1,12 +1,11 @@
 # Status Report: Pareto Plan T1–T30 Execution — Hardening, StartTLS, and the Red-Suite Discovery
 
-
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Struck items shipped as cited; unmarked items were executed by the v1.0.0 completion sweep (2026-09-10), parked in ROADMAP/TODO_LIST, or superseded. No open work lives in this file; it is archived history.
-**Date:** 2026-08-29 23:05 CEST
-**Session scope:** Execute the entire 2026-08-29 20:24 Pareto plan (T1–T30): harvest the open-item backlog, run brutal-self-review, upgrade the May–July annotation corpus, add the test/bench/fuzz/integration batches, ship the docs-structure and CI work, and finish with a full docs-health audit.
-**Duration:** ~3.5 hours (20:00–23:05 CEST), 19 commits on `master` (unpushed).
-**Starting state:** clean tree at `598b5b5` (plan doc committed); the environment's `/mnt/buildcache` blocker had made `go test`/`go vet`/`golangci-lint` fail at cache-init for every session since 2026-08-16.
-**Ending state:** all quality gates green (build, vet, `-race -count=1` and `-count=10`, ~70 linters at 0 issues in both modules, `nix flake check`), 515 test functions, 13 fuzz targets, 50-benchmark baseline recorded, TODO_LIST rebuilt and current.
+> **Date:** 2026-08-29 23:05 CEST
+> **Session scope:** Execute the entire 2026-08-29 20:24 Pareto plan (T1–T30): harvest the open-item backlog, run brutal-self-review, upgrade the May–July annotation corpus, add the test/bench/fuzz/integration batches, ship the docs-structure and CI work, and finish with a full docs-health audit.
+> **Duration:** ~3.5 hours (20:00–23:05 CEST), 19 commits on `master` (unpushed).
+> **Starting state:** clean tree at `598b5b5` (plan doc committed); the environment's `/mnt/buildcache` blocker had made `go test`/`go vet`/`golangci-lint` fail at cache-init for every session since 2026-08-16.
+> **Ending state:** all quality gates green (build, vet, `-race -count=1` and `-count=10`, ~70 linters at 0 issues in both modules, `nix flake check`), 515 test functions, 13 fuzz targets, 50-benchmark baseline recorded, TODO_LIST rebuilt and current.
 
 ---
 

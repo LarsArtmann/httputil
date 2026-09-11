@@ -3,9 +3,9 @@
 > Note: validate-at-construction shipped across all constructors in v0.11.0; remaining items were executed by later passes or parked.
 
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-08-08 07:48\
-**Session:** 4 (continuation of nonce middleware hardening series)\
-**Prior reports:** `2026-08-08_06-54_nonce-middleware-post-hardening-audit.md`
+> **Date:** 2026-08-08 07:48\
+> **Session:** 4 (continuation of nonce middleware hardening series)\
+> **Prior reports:** `2026-08-08_06-54_nonce-middleware-post-hardening-audit.md`
 
 ---
 

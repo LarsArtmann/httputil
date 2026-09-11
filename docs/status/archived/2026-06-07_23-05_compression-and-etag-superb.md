@@ -3,10 +3,10 @@
 > Note: all fourteen work-plan items shipped or moved to go-etag; Pusher-related items died with HTTP/2 Push (v0.3.0 non-goal).
 
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-06-07 23:05 CEST
-**Branch:** `master`
-**Commits ahead of origin:** 9
-**Last commits:**
+> **Date:** 2026-06-07 23:05 CEST
+> **Branch:** `master`
+> **Commits ahead of origin:** 9
+> **Last commits:**
 
 - `0f2a591` perf(compression,etag): reduce allocations and improve throughput
 - `3ce061e` test(compression,etag): add Hijack, Push, and fuzz tests for response wrappers

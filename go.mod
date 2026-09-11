@@ -8,7 +8,7 @@ require golang.org/x/time v0.16.0
 
 require github.com/justinas/nosurf v1.2.0
 
-require github.com/larsartmann/httputil/server_timing v0.12.0
+require github.com/larsartmann/httputil/server_timing v1.0.1
 
 require github.com/larsartmann/go-etag v0.3.1
 

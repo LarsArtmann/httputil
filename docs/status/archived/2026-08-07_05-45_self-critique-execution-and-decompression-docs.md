@@ -1,9 +1,8 @@
 # Status Report: Self-Critique Execution + Decompression Docs Gap Closure
 
-
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-08-07 05:45
-**Session scope:** Execute the prior session's self-critique backlog — resolve Q1/Q2 (writeBufferedBody ceremony + compressWriter split brain), close decompression documentation gaps across 6 files, write bomb-protection tests, add ETag edge-case tests, run `nix flake check`.
+> **Date:** 2026-08-07 05:45
+> **Session scope:** Execute the prior session's self-critique backlog — resolve Q1/Q2 (writeBufferedBody ceremony + compressWriter split brain), close decompression documentation gaps across 6 files, write bomb-protection tests, add ETag edge-case tests, run `nix flake check`.
 
 > **Ending state:** All quality gates green (build, vet, lint 0 issues, fmt, race -count=10, nix flake check, changelog links). Coverage improved 96.7% to 97.2%. 11 of 12 items from the prior session's "NOT STARTED" list are now DONE. But the D2 SVG is stale, 6 more silent error swallows exist undocumented, and FEATURES.md timestamp is stale.
 

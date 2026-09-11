@@ -1,6 +1,5 @@
 # Status Report — 2026-08-05 07:10 — ROADMAP Cleanup Self-Critique
 
-
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
 > **Scope:** This report covers ONLY the ROADMAP.md cleanup task executed in this session (2026-08-05 ~07:00–07:10 CEST). It is a brutal self-critique of that single piece of work, not a full project audit. The user explicitly constrained scope: _"Do not research other stuff unrelated to what you did."_
 >

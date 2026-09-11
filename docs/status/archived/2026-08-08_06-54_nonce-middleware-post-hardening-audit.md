@@ -3,9 +3,9 @@
 > Note: the CSP nonce extension ideas are parked in ROADMAP Post-v1.0 ideas.
 
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-08-08 06:54
-**Session scope:** Executing all actionable items from the `2026-08-08_03-20` comprehensive audit
-**Verdict:** All critical and hardening items resolved. nonce.go is production-ready with comprehensive test coverage. Three design questions remain open for user input.
+> **Date:** 2026-08-08 06:54
+> **Session scope:** Executing all actionable items from the `2026-08-08_03-20` comprehensive audit
+> **Verdict:** All critical and hardening items resolved. nonce.go is production-ready with comprehensive test coverage. Three design questions remain open for user input.
 
 ---
 

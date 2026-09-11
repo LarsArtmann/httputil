@@ -3,11 +3,11 @@
 > Note: rate limiting, compression, CI, and badges all shipped; the brainstorm tail is the ROADMAP parked batch.
 
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Items carrying ~~strikethrough~~ markers shipped as cited; unmarked items either shipped later (see [CHANGELOG.md](../../CHANGELOG.md)), were parked in [ROADMAP.md](../../ROADMAP.md) (parked-idea batches / post-v1.0 ideas), were superseded by module extraction (go-etag, `server_timing`, `KeyedRateLimiter`, the generation-swapped ID ring), or were declined with the reason recorded. No open work lives in this file; it is archived history.
-**Date:** 2026-05-25 00:06 CEST
-**Branch:** `master`
-**Commits ahead of origin:** 0 (working tree has uncommitted changes)
-**Working tree:** 11 modified + 12 untracked files
-**Last commit:** `4a82791` (HEAD)
+> **Date:** 2026-05-25 00:06 CEST
+> **Branch:** `master`
+> **Commits ahead of origin:** 0 (working tree has uncommitted changes)
+> **Working tree:** 11 modified + 12 untracked files
+> **Last commit:** `4a82791` (HEAD)
 
 ---
 

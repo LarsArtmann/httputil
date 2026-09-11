@@ -1,11 +1,10 @@
 # Status Report: Per-Item Annotation Upgrade for All 2026-08 Status Reports
 
-
 > **Resolution status (docs-health pass 2026-09-11):** this report is fully accounted. Struck items shipped as cited; unmarked items were executed by the v1.0.0 completion sweep (2026-09-10), parked in ROADMAP/TODO_LIST, or superseded. No open work lives in this file; it is archived history.
-**Date:** 2026-08-29 20:09 CEST
-**Session scope:** Upgrade 22 (actually 23) `docs/status/2026-08-*.md` reports from header-level annotation banners to strict docs-health ANNOTATE compliance: inline `~~item~~ done at <hash>` markers on every numbered item, banners removed, Resolution appendices added. Prioritize the 5 most-read reports.
-**Starting state:** 22 reports with header-level `> **Annotation (…)**` banners and little/no per-item strikethrough; ~70 linters at 0 issues; v0.10.0-era tree.
-**Ending state:** 23 files modified (1,405 insertions / 1,236 deletions); **0 banners remain** anywhere in `docs/status/2026-08-*.md`; **1,144 per-item markers**; **0 corrupted table rows** (final grep-verified); git status clean of anything but these doc changes.
+> **Date:** 2026-08-29 20:09 CEST
+> **Session scope:** Upgrade 22 (actually 23) `docs/status/2026-08-*.md` reports from header-level annotation banners to strict docs-health ANNOTATE compliance: inline `~~item~~ done at <hash>` markers on every numbered item, banners removed, Resolution appendices added. Prioritize the 5 most-read reports.
+> **Starting state:** 22 reports with header-level `> **Annotation (…)**` banners and little/no per-item strikethrough; ~70 linters at 0 issues; v0.10.0-era tree.
+> **Ending state:** 23 files modified (1,405 insertions / 1,236 deletions); **0 banners remain** anywhere in `docs/status/2026-08-*.md`; **1,144 per-item markers**; **0 corrupted table rows** (final grep-verified); git status clean of anything but these doc changes.
 
 ---
 
