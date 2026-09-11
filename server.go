@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -31,6 +32,7 @@ const (
 	codeServerTimeoutOrdering           = Code("server.timeout_ordering")
 	codeServerTLSMinVersionInsecure     = Code("server.tls_min_version_insecure")
 	codeServerShutdownFailed            = Code("server.shutdown_failed")
+	codeServerAlreadyStarted            = Code("server.already_started")
 )
 
 var (
@@ -61,6 +63,7 @@ var (
 	// errServerShutdownFailed wraps shutdown failures as Infrastructure: the
 	// surrounding process state, not the request, is what failed.
 	errServerShutdownFailed = codeServerShutdownFailed.Infrastructure("server shutdown failed")
+	errServerAlreadyStarted = codeServerAlreadyStarted.Rejection("server is already started: Start or StartTLS was called twice")
 )
 
 // ServerConfig holds the configuration for an HTTP server.
@@ -149,6 +152,7 @@ type Server struct {
 	shutdownTimeout time.Duration
 	mu              sync.Mutex
 	listener        net.Listener
+	started         atomic.Bool
 }
 
 // NewServer creates a new Server with the given configuration and handler.
@@ -193,10 +197,17 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 func (srv *Server) Start() <-chan error {
 	errChan := make(chan error, 1)
 
+	if !srv.started.CompareAndSwap(false, true) {
+		errChan <- errServerAlreadyStarted
+
+		return errChan
+	}
+
 	var listenConfig net.ListenConfig
 
 	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
 	if err != nil {
+		srv.started.Store(false)
 		errChan <- err
 
 		return errChan
@@ -205,6 +216,11 @@ func (srv *Server) Start() <-chan error {
 	srv.setListener(listener)
 
 	go func() {
+		defer func() {
+			srv.clearListener()
+			srv.started.Store(false)
+		}()
+
 		err := srv.httpServer.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
@@ -227,10 +243,17 @@ func (srv *Server) Start() <-chan error {
 func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	errChan := make(chan error, 1)
 
+	if !srv.started.CompareAndSwap(false, true) {
+		errChan <- errServerAlreadyStarted
+
+		return errChan
+	}
+
 	var listenConfig net.ListenConfig
 
 	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
 	if err != nil {
+		srv.started.Store(false)
 		errChan <- err
 
 		return errChan
@@ -239,6 +262,13 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	srv.setListener(listener)
 
 	go func() {
+		defer func() {
+			// A ServeTLS failure (e.g. unreadable certificate files) must
+			// not leave ListenerAddr reporting a live listener.
+			srv.clearListener()
+			srv.started.Store(false)
+		}()
+
 		// ServeTLS clones the TLS config, appends the h2 ALPN protocol, and
 		// loads the certificate files when given, matching the stdlib
 		// ListenAndServeTLS setup the previous implementation relied on.

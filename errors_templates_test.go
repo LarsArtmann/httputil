@@ -64,6 +64,9 @@ var allHTTputilErrorCodes = []Code{
 	codeStackRecoveryNotFirst,
 	codeStackEmptyName,
 
+	codeServerShutdownFailed,
+	codeServerAlreadyStarted,
+
 	codeDecompressionSizeNegative,
 	codeDecompressionSizeExceeded,
 	codeDecompressionReadFailed,

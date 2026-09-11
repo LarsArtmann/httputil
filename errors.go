@@ -363,6 +363,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Extend ShutdownTimeout, drain in-flight requests faster, or investigate the connection named in the cause.",
 		WayOut: "The process state is still controlled; shutdown can be re-attempted.",
 	},
+	string(codeServerAlreadyStarted): {
+		What:   "Server is already started",
+		Why:    "Start or StartTLS was called while a previous listener from this Server is still serving; a second listener would be unreachable through ListenerAddr and impossible to track.",
+		Fix:    "Call Start/StartTLS once per Server; create a new Server for a second listener.",
+		WayOut: "Shutdown the running server first, then start again.",
+	},
 	string(codeDecompressionSizeExceeded): {
 		What:   "Decompressed request body exceeded the size limit",
 		Why:    "The decompressed body grew past the configured MaxDecompressionSize; this is the decompression-bomb protection rejecting the request.",
