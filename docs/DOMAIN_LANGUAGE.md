@@ -65,8 +65,6 @@ Objects with identity and lifecycle within the library.
 | RequestIDConfig        | A configuration value object defining request ID header name and generation logic                            | Request ID           |
 | CompressionConfig      | A configuration value object defining compression parameters (encodings, level, min size)                    | Compression          |
 | DecompressionConfig    | A configuration value object defining decompression parameters (encodings, bomb-protection limit)            | Decompression        |
-| RateLimitConfig        | A configuration value object defining deprecated token-bucket rate limiting policy                           | Rate Limiting        |
-| TokenBucketLimiter     | A deprecated in-memory token bucket rate limiter with per-key buckets (removal at v1.0)                      | Rate Limiting        |
 | KeyedRateLimiterConfig | A configuration value object defining keyed rate limiting policy (limit, window, burst, keys)                | Rate Limiting        |
 | KeyedRateLimiter       | A per-key rate limiter with O(log n) min-heap eviction, MaxKeys cap, and monitoring API                      | Rate Limiting        |
 | CSRFConfig             | A configuration value object defining CSRF policy (cookie, headers, trusted origins/proxies)                 | CSRF Protection      |
@@ -157,9 +155,6 @@ Actions the library performs.
 | `ReadyHandler()`                     | Return a handler for Kubernetes readiness probes (always up by default)                                    | Health               |
 | `ReadyHandlerWithProbe(ready)`       | Return a handler that calls `ready()` and responds 200 up or 503 down                                      | Health               |
 | `RegisterHealth(mux)`                | Register `/health`, `/health/live`, `/health/ready` on a ServeMux                                          | Health               |
-| `NewTokenBucketLimiter(rate,burst)`  | Create an in-memory token bucket rate limiter (returns error if rate/burst <= 0) _(deprecated)_            | Rate Limiting        |
-| `RateLimit(cfg)`                     | Create middleware that enforces rate limiting using the configured limiter _(deprecated)_                  | Rate Limiting        |
-| `DefaultRateLimitConfig()`           | Return a RateLimitConfig with 429 status and RemoteAddr key func _(deprecated)_                            | Rate Limiting        |
 | `NewKeyedRateLimiter(cfg)`           | Create a keyed rate limiter with O(log n) eviction, MaxKeys cap, and monitoring API                        | Rate Limiting        |
 | `KeyedRateLimiterMiddleware(cfg)`    | Create middleware enforcing per-key rate limits with Retry-After on rejection                              | Rate Limiting        |
 | `DefaultKeyedRateLimiterConfig()`    | Return a KeyedRateLimiterConfig with sensible defaults (100 req/min, ClientIP key)                         | Rate Limiting        |
@@ -391,7 +386,7 @@ Invariants and policies that the library enforces.
 
 ### Conditional Requests Rules
 
-- `etag.New(cfg)` is the ETag middleware constructor from the independent `go-etag` module; it composes directly with httputil's `Chain` and `MiddlewareStack` via the `Middleware` type alias. The deprecated `httputil.ETag()` is a pure passthrough.
+- `etag.New(cfg)` is the ETag middleware constructor from the independent `go-etag` module; it composes directly with httputil's `Chain` and `MiddlewareStack` via the `Middleware` type alias. The former `httputil.ETag()` adapter was removed in v1.1.0; use `etag.New` directly.
 - For GET/HEAD requests, the middleware buffers the response body (up to `MaxBufferSize`, default 1 MB), computes an ETag via `HashFunc` (default FNV-64a), and writes the `ETag` response header
 - When `If-None-Match` matches the computed ETag, the middleware responds `304 Not Modified` with an empty body
 - Responses exceeding `MaxBufferSize` are streamed without an ETag (ETag generation abandoned)

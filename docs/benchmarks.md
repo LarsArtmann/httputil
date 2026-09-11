@@ -43,8 +43,6 @@
 | BenchmarkGenerateNonce                                             | 112.80 |      |           |
 | BenchmarkNonceAttr                                                 | 48.38  |      |           |
 | BenchmarkParseUintQuery                                            | 219.20 | 432  | 4         |
-| BenchmarkTokenBucketLimiter _(deprecated)_                         | 82.90  | 0    | 0         |
-| BenchmarkTokenBucketLimiterWithEviction _(deprecated)_             | 135.70 | 13   | 1         |
 | BenchmarkResponseRecorder                                          | 537.00 | 1008 | 9         |
 | BenchmarkETagAdapterOverhead/baselineNoMiddleware                  | 159.80 | 304  | 6         |
 | BenchmarkETagAdapterOverhead/directEtagNew                         | 617.10 | 1240 | 14        |

@@ -474,10 +474,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DefaultIncompressibleTypes`     | `func() []string`                                                     | Default content-type deny-list for compression                         |
 | `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection                           |
 | `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                                                  |
-| `ETag`                           | `func(etag.ETagConfig) Middleware`                                    | ETag adapter over go-etag _(deprecated — use `etag.New`)_              |
-| `RateLimit`                      | `func(RateLimitConfig) func(http.Handler) http.Handler`               | Token bucket rate limiting _(deprecated)_                              |
-| `DefaultRateLimitConfig`         | `func() RateLimitConfig`                                              | Default rate limit config _(deprecated)_                               |
-| `NewTokenBucketLimiter`          | `func(float64, int) (*TokenBucketLimiter, error)`                     | Token bucket limiter constructor _(deprecated)_                        |
 | `KeyedRateLimiterMiddleware`     | `func(KeyedRateLimiterConfig) func(http.Handler) http.Handler`        | Per-key rate limiting with eviction                                    |
 | `NewKeyedRateLimiter`            | `func(KeyedRateLimiterConfig) *KeyedRateLimiter`                      | Rate limiter with monitoring API                                       |
 | `DefaultKeyedRateLimiterConfig`  | `func() KeyedRateLimiterConfig`                                       | Default per-key rate limit config                                      |
@@ -547,15 +543,6 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | ---------------------- | ---------- | ------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `Encodings`            | `[]string` | gzip, deflate | Request body encodings to decompress; empty = both defaults                                                           |
 | `MaxDecompressionSize` | `int64`    | `16777216`    | Max decompressed body size in bytes to prevent zip bombs (16 MiB); 0 selects the 16 MiB default (no unlimited option) |
-
-### `RateLimitConfig` fields _(deprecated — use `KeyedRateLimiterConfig`)_
-
-| Field      | Type                         | Default            | Description                                                       |
-| ---------- | ---------------------------- | ------------------ | ----------------------------------------------------------------- |
-| `Limiter`  | `RateLimiter`                | `nil`              | Decides whether to allow each request (required)                  |
-| `KeyFunc`  | `func(*http.Request) string` | `nil` (RemoteAddr) | Extracts the rate-limiting key from the request (e.g., client IP) |
-| `Status`   | `int`                        | `429`              | HTTP status when rate limited (ignored when `OnDenied` is set)    |
-| `OnDenied` | `http.HandlerFunc`           | `nil`              | Custom handler for rejected requests; overrides default response  |
 
 ### `KeyedRateLimiterConfig` fields
 
@@ -735,7 +722,7 @@ See the [full integration example](docs/integrations/huma.md) and the [detailed 
 
 For dependency injection and graceful lifecycle management, pair httputil with [samber/do](https://do.samber.dev/) — `httputil.Server.Shutdown(context.Context) error` satisfies `do.ShutdownerWithContextAndError` structurally, so the container discovers and shuts down the HTTP server automatically. See the [composition-root example](docs/integrations/samber-do.md).
 
-For distributed rate limiting, see the [Redis-backed RateLimiter example](docs/integrations/redis-ratelimiter.md). For observability, see the [Prometheus MetricsRecorder example](docs/integrations/prometheus-metrics.md). To build a secure middleware baseline once and apply it to many handlers (or nest whole stacks), see [Composing Middleware Bundles](docs/integrations/compose-bundles.md).
+For observability, see the [Prometheus MetricsRecorder example](docs/integrations/prometheus-metrics.md). To build a secure middleware baseline once and apply it to many handlers (or nest whole stacks), see [Composing Middleware Bundles](docs/integrations/compose-bundles.md).
 
 ## Quality Gates
 

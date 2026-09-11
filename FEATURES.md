@@ -22,7 +22,6 @@ _Updated: 2026-09-11 — docs-health VERIFY pass. Coverage re-measured with race
 | ResponseRecorder         | `recorder.go`                          | —                                                             | Yes   | `ExampleNewResponseRecorder`        | `BenchmarkResponseRecorder`                            | —                      |
 | Compression              | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin    | Yes   | `ExampleCompression`                | `BenchmarkCompression*`                                | `FuzzCompression*` (3) |
 | MaxBodySize              | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | `ExampleMaxBodySize`                | `BenchmarkMaxBodySize`                                 | `FuzzMaxBodySize`      |
-| RateLimit _(deprecated)_ | `ratelimit.go`                         | `RateLimitConfig` + `Validate()`, `RateLimiter` interface     | Yes   | —                                   | `BenchmarkTokenBucketLimiter`                          | —                      |
 | Metrics                  | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | `ExampleMetrics`                    | `BenchmarkMetricsMiddleware*`                          | —                      |
 | Server-Timing            | `server_timing/server_timing.go`       | —                                                             | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`                               | `FuzzServerTiming*`    |
 | CSRF                     | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`                             | `FuzzCSRF*` (6)        |
@@ -77,9 +76,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Rate Limiting
 
-- **Token bucket algorithm** via `TokenBucketLimiter` (deprecated, backed by `golang.org/x/time/rate`) — per-key limiters with fixed-rate refill up to burst capacity. Slated for removal in a post-v1.0 stabilization release.
 - **Keyed rate limiting** via `KeyedRateLimiter` (new in v0.8.0) — O(log n) min-heap eviction, `MaxKeys` cap, lazy TTL eviction, `Retry-After` headers, and a monitoring API (`ActiveKeys()`). This is the recommended API going forward.
-- `NewTokenBucketLimiter(rate, burst)` validates inputs — returns error if rate or burst is not positive.
 - `EvictionTTL` field on `KeyedRateLimiterConfig` enables opt-in lazy eviction of idle buckets. Zero (default) preserves unbounded-growth behavior.
 - Pluggable `KeyExtractor` interface (`KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP`).
 - Pluggable `RejectionHandler` for custom 429 responses.

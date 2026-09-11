@@ -252,7 +252,7 @@ func ExampleKeyedRateLimiterMiddleware() {
 	// Output: 200
 }
 
-func ExampleETag() {
+func Example_conditionalRequests() {
 	handler := etag.New(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
 
 	// First request: the middleware computes and sets the ETag header.

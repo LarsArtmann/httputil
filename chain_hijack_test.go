@@ -35,7 +35,7 @@ func newHijackChain(inner http.Handler) http.Handler {
 	return Chain(
 		inner,
 		Compression(DefaultCompressionConfig()),
-		ETag(etag.DefaultETagConfig()),
+		etag.New(etag.DefaultETagConfig()),
 	)
 }
 

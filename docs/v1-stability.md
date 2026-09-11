@@ -32,7 +32,6 @@ This document enumerates every exported symbol and classifies its stability comm
 | `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
 | `NonceConfig`            | Additive | New in v0.10.0                                            |
-| `RateLimitConfig`        | Additive | Deprecated v0.8.0; removal targeted for v1.0              |
 | `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
 | `SecurityHeadersConfig`  | Additive |                                                           |
 | `ServerConfig`           | Additive |                                                           |
@@ -51,7 +50,6 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `DefaultMaxBodySizeConfig`      | `MaxBodySizeConfig`            |
 | `DefaultMetricsConfig`          | `MetricsConfig`                |
 | `DefaultNonceConfig`            | `NonceConfig`                  |
-| `DefaultRateLimitConfig`        | `RateLimitConfig` (deprecated) |
 | `DefaultRequestIDConfig`        | `RequestIDConfig`              |
 | `DefaultSecurityHeadersConfig`  | `SecurityHeadersConfig`        |
 | `DefaultServerConfig`           | `ServerConfig`                 |
@@ -65,14 +63,12 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `CSRFResponseHeaderMiddleware` | `func(http.Handler) http.Handler`                               |
 | `Compression`                  | `func(CompressionConfig) Middleware`                            |
 | `Decompression`                | `func(DecompressionConfig) Middleware`                          |
-| `ETag`                         | `func(etag.ETagConfig) Middleware` — deprecated, use `etag.New` |
 | `KeyedRateLimiterMiddleware`   | `func(KeyedRateLimiterConfig) Middleware`                       |
 | `Logging`                      | `func(*slog.Logger) Middleware`                                 |
 | `MaxBodySize`                  | `func(int64) Middleware`                                        |
 | `MaxBodySizeMiddleware`        | `func(MaxBodySizeConfig) Middleware`                            |
 | `Metrics`                      | `func(MetricsConfig) Middleware`                                |
 | `Nonce`                        | `func(NonceConfig) Middleware`                                  |
-| `RateLimit`                    | `func(RateLimitConfig) Middleware` (deprecated)                 |
 | `Recovery`                     | `func(*slog.Logger) Middleware`                                 |
 | `RequestID`                    | `func(RequestIDConfig) Middleware`                              |
 | `SecurityHeaders`              | `func(SecurityHeadersConfig) Middleware`                        |
@@ -142,10 +138,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 | Symbol                          | Tier     | Notes                                                                                  |
 | ------------------------------- | -------- | -------------------------------------------------------------------------------------- |
-| `RateLimiter`                   | Frozen   | Interface (deprecated; removal targeted for the first post-v1.0 stabilization release) |
 | `RateLimitConfig`               | Additive | Deprecated v0.8.0                                                                      |
-| `TokenBucketLimiter`            | Additive | Deprecated v0.8.0; removal targeted for the first post-v1.0 stabilization release      |
-| `NewTokenBucketLimiter`         | Frozen   | Deprecated v0.8.0                                                                      |
 | `KeyExtractor`                  | Frozen   | Function type                                                                          |
 | `KeyExtractorFromRemoteAddr`    | Frozen   |                                                                                        |
 | `KeyExtractorFromClientIP`      | Frozen   |                                                                                        |
@@ -297,4 +290,5 @@ New standard specs may be added in minor versions. Existing specs will not be re
 
 - **v1.0:** This document takes effect. All "Frozen" symbols are locked.
 - **Post-1.0 minor versions:** May add new fields to "Additive" types, new exported functions, and new standard specs. No existing symbol signature changes.
+- **v1.1.0:** The APIs pre-declared for removal shipped deprecated and are gone: `RateLimit()`, `RateLimitConfig`, `DefaultRateLimitConfig`, `RateLimiter`, `TokenBucketLimiter`, `NewTokenBucketLimiter` (see [migrating-to-keyed-rate-limiter.md](migrating-to-keyed-rate-limiter.md)) and the `httputil.ETag()` adapter (use `etag.New` directly).
 - **Post-1.0 major versions (v2.0+):** Breaking changes permitted with migration guide.

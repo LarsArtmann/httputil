@@ -1,10 +1,12 @@
 # Migrating from TokenBucketLimiter to KeyedRateLimiter
 
-The legacy `TokenBucketLimiter` / `RateLimit()` / `RateLimitConfig` API is
-deprecated as of v0.8.0 and will be removed in a future release. Migrate to
+The legacy `TokenBucketLimiter` / `RateLimit()` / `RateLimitConfig` API —
+deprecated as of v0.8.0 — was **removed in v1.1.0**. Migrate to
 `KeyedRateLimiter` / `KeyedRateLimiterMiddleware` / `KeyedRateLimiterConfig`,
 which adds O(log n) min-heap eviction, a MaxKeys cap, Retry-After headers,
-and a monitoring API.
+and a monitoring API. The Redis-backed integration example built on the
+removed interface was deleted with it; for distributed rate limiting today,
+front `KeyedRateLimiterMiddleware` with a proxy-level limiter.
 
 ## Symbol Mapping
 
