@@ -36,8 +36,8 @@ All quality gates are green at the end of the session: build + vet, `go test -ra
 
 ## b) PARTIALLY DONE
 
-1. **T13 batch line-by-line review** (csrf_test, nonce_test, security_test, requestid_test, id_generator_test, csrf_bench): the review agent failed twice on infrastructure (sourcegraph timeout), so I ran structural checks instead — 102/102 tests have `t.Parallel()`, zero `slog.SetDefault` mutations, zero sleeps, all benchmarks report allocs, fuzz files read in full (guards are solid). The four big unit-test files were **not** read line by line. Ticketed as a follow-up.
-2. **docs/benchmarks.md** — now stale for ~10 benches whose harnesses changed (recorder-per-iteration, ReportAllocs, eviction slow path). Numbers must be re-measured with the 3s×5 protocol; ticketed rather than patched ad hoc.
+1. ~~**T13 batch line-by-line review** (csrf_test, nonce_test, security_test, requestid_test, id_generator_test, csrf_bench): the review agent failed twice on infrastructure (sourcegraph timeout), so I ran structural checks instead — 102/102 tests have `t.Parallel()`, zero `slog.SetDefault` mutations, zero sleeps, all benchmarks report allocs, fuzz files read in full (guards are solid). The four big unit-test files were **not** read line by line. Ticketed as a follow-up.~~ done (done 2026-09-10 (04-03 a9): the batch was completed by the CSRF session)
+2. ~~**docs/benchmarks.md** — now stale for ~10 benches whose harnesses changed (recorder-per-iteration, ReportAllocs, eviction slow path). Numbers must be re-measured with the 3s×5 protocol; ticketed rather than patched ad hoc.~~ done (v1.0.0 sweep: docs/benchmarks.md re-measured end-to-end under the 3s x 5 protocol)
 3. ~~**FEATURES.md** — benchmark/example counts still correct (57/26), but the new fuzz invariants, new tests, and the duplication-bug fix are not reflected in FEATURES content.~~ done (FEATURES updated in the 2026-08-30 docs-health pass)
 4. ~~**AGENTS.md** — the execution-probe test pattern ("0 means X" claims get a pinning test) is now practiced but not codified; the benchmark-harness reset rule exists but the "reference-decode must be bounded" fuzz rule is not written down.~~ done (execution-probe + fuzz-harness rules codified in AGENTS.md)
 5. ~~**DECISION_LOG.md** — no rows added this session for: lexicographic tie-break replacement, `ErrAbortHandler` re-panic policy, fuzz-invariant-first approach, benchmark-harness reset rule application.~~ done (4 session rows added to docs/DECISION_LOG.md)
@@ -78,58 +78,58 @@ Also honest: **the exact-fill duplication bug survived because I reviewed `write
 **v1.0 gate (blocks everything else)**
 
 1. ~~Commit the working tree (two sessions, 65 files) and upgrade the dated markers in the 4 historical status reports to hash markers.~~ done (dated markers upgraded + both 08-30 reports annotated in the 2026-08-30 docs-health pass; tree left to the auto-commit daemon)
-2. Verify the nosurf `Sec-Fetch-Site` trust model by reading upstream source (no encoding of assumptions).
-3. Decide and implement the CSRF boundary response to client-supplied `Sec-Fetch-Site` (strip/reject/document) based on 2.
-4. Remove deprecated `TokenBucketLimiter`/`RateLimit()` per `docs/migrating-to-keyed-rate-limiter.md`.
-5. Confirm the rate-limiter admission contract per the ctx-cancellation design note.
-6. Decide `CompressionConfig.Level=0` semantics (currently remapped to DefaultCompression while Validate accepts 0 as a valid flate level) — align Validate + constructor + docs.
-7. Cut v1.0 (go-release skill: CHANGELOG cut, tag, proxy verification).
+2. ~~Verify the nosurf `Sec-Fetch-Site` trust model by reading upstream source (no encoding of assumptions).~~ done (done 2026-09-10 (04-03 a1): nosurf v1.2.0 source read; short-circuit verified)
+3. ~~Decide and implement the CSRF boundary response to client-supplied `Sec-Fetch-Site` (strip/reject/document) based on 2.~~ done (done 2026-09-10 (04-03 a2): contradiction rejection with ErrCSRFAttestationConflict)
+4. ~~Remove deprecated `TokenBucketLimiter`/`RateLimit()` per `docs/migrating-to-keyed-rate-limiter.md`.~~ done (superseded: v1.0.0 shipped with the deprecated APIs; removal scheduled v1.1.0 (TODO_LIST))
+5. ~~Confirm the rate-limiter admission contract per the ctx-cancellation design note.~~ done (done 2026-09-10 (04-03 a5): admission contract documented on Check/KeyedRateLimiterMiddleware/migration guide)
+6. ~~Decide `CompressionConfig.Level=0` semantics (currently remapped to DefaultCompression while Validate accepts 0 as a valid flate level) — align Validate + constructor + docs.~~ done (done 2026-09-10 (04-03 a4): 0 means unset; execution-probe test pins it)
+7. ~~Cut v1.0 (go-release skill: CHANGELOG cut, tag, proxy verification).~~ done (v1.0.0 cut locally 2026-09-10 (tag 7a6d11b); push pending (TODO_LIST High))
 
 **Correctness/completeness debt from this session**
-8. Finish line-by-line review of the T13 batch (csrf/nonce/security/requestid/id_generator unit-test files).
+8. ~~Finish line-by-line review of the T13 batch (csrf/nonce/security/requestid/id_generator unit-test files).~~ done (done 2026-09-10 (04-03 a9): 5 test files read end-to-end; 2 real test bugs fixed)
 9. ~~Full `go test -race -count=10 ./...` (AGENTS.md rule after parallel-test changes).~~ done (full -race -count=10 green 2026-08-30)
-10. Refresh `docs/benchmarks.md` rows for the ~10 changed benches (3s×5 protocol).
+10. ~~Refresh `docs/benchmarks.md` rows for the ~10 changed benches (3s×5 protocol).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (full 3s x 5 re-measure))
 11. ~~Re-measure coverage (96.9%/98.8% baseline) after the new tests; update FEATURES/AGENTS numbers.~~ done (re-measured 2026-08-30: 97.0% / 98.8%; README badge + FEATURES updated)
 12. ~~Update FEATURES.md with the new fuzz invariants + tests + the duplication fix.~~ done (FEATURES fuzz inventory lists all 23 targets + the round-trip invariant)
 13. ~~Add DECISION_LOG rows: lexicographic tie-break, ErrAbortHandler re-panic, fuzz-invariant-first, bounded reference decoders.~~ done (DECISION_LOG.md rows added 2026-08-30)
 14. ~~Codify the execution-probe pattern in AGENTS.md ("0 means X" → pinning test).~~ done (AGENTS.md execution-probe rule codified)
 15. ~~Codify the fuzz-harness rules in AGENTS.md (bounded reference decode, request-construction guards, seed retention).~~ done (AGENTS.md fuzz-invariant-first + bounded-decoder rules codified)
-16. Decide the remaining table-driven tests: convert 6 files or amend the convention.
-17. `CSRFConfig.Validate` side-effect cleanup (pure Validate + separate parse) — post-v1.0 API change.
-18. Chain-level regression for exact-fill duplication through the full `Compression()` middleware (unit test exists).
+16. ~~Decide the remaining table-driven tests: convert 6 files or amend the convention.~~ done (done 2026-09-10 (04-03 a6/a7): 7 files converted, decision made once)
+17. ~~`CSRFConfig.Validate` side-effect cleanup (pure Validate + separate parse) — post-v1.0 API change.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (landed in v1.0.0 as the last cheap moment))
+18. ~~Chain-level regression for exact-fill duplication through the full `Compression()` middleware (unit test exists).~~ done (done 2026-09-10 (04-03 a12): TestCompression_ExactMinSizeWrite_IsNotDuplicated)
 19. ~~Nightly fuzz workflow: verify it covers the two new invariants and add them if not.~~ done (nightly-fuzz.yml now runs all 23 targets incl. FuzzCompression (was 8))
-20. KeyedRateLimiter property test: heap/map consistency under churn above MaxKeys (pattern: the negotiator property test).
-21. KeyedRateLimiter benchmark with real MaxKeys-pressure churn (the comment currently points at a test, not a bench).
-22. CORS fuzz invariant for exact-origin allowlists (echo property beyond DenyUnmatched).
-23. Document `compressWriter.Hijack` buffered-bytes-dropped semantics in code.
-24. Decide `WrapConflict`/`WrapOrchestration` symmetry or document the asymmetry as intentional.
-25. Consider skipping pool Get for non-resettable factories (currently one wasted allocation per request).
-26. Decide on `Server.Addr()` exposing the resolved port (":0" pain bitten twice in tests).
-27. Sweep `errors.As` remnants (erraudit gate is green, but confirm zero `legacy_as` stays green post-v1.0 refactor).
+20. ~~KeyedRateLimiter property test: heap/map consistency under churn above MaxKeys (pattern: the negotiator property test).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (property tests))
+21. ~~KeyedRateLimiter benchmark with real MaxKeys-pressure churn (the comment currently points at a test, not a bench).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (BenchmarkKeyedRateLimiter_MaxKeysChurn))
+22. ~~CORS fuzz invariant for exact-origin allowlists (echo property beyond DenyUnmatched).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (FuzzCORSOriginEcho))
+23. ~~Document `compressWriter.Hijack` buffered-bytes-dropped semantics in code.~~ done (done 2026-09-10 (04-03 a14): doc comment states the dropped-bytes semantics)
+24. ~~Decide `WrapConflict`/`WrapOrchestration` symmetry or document the asymmetry as intentional.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (both added; constructor + Wrap pairs cover all six families))
+25. ~~Consider skipping pool Get for non-resettable factories (currently one wasted allocation per request).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (writerPool construction-time probe))
+26. ~~Decide on `Server.Addr()` exposing the resolved port (":0" pain bitten twice in tests).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (shipped as Server.ListenerAddr))
+27. ~~Sweep `errors.As` remnants (erraudit gate is green, but confirm zero `legacy_as` stays green post-v1.0 refactor).~~ done (v1.0.0 sweep final verification: both erraudit real gates exit 0)
 28. LSP hygiene: restart stale clients when diagnostics contradict the toolchain (two sessions of ghost warnings).
-29. dprint acquisition for markdown formatting verification.
+29. ~~dprint acquisition for markdown formatting verification.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (pkgs.dprint in the devShell))
 30. ~~Annotate this session's report + the morning's report with hash markers after commit.~~ done (resolved by the 2026-08-30 docs-health annotation pass)
 
 **Bigger rocks (pre-existing TODO_LIST)**
 31. Re-run the `architecture-review` skill (pre-ETag-extraction staleness).
 32. go-compression extraction per the existing Pareto plan.
-33. CI release workflow (tag → build → GitHub Release).
-34. go-error-family upstream proposal (run verify-before-filing first).
+33. ~~CI release workflow (tag → build → GitHub Release).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (release.yml both modules))
+34. ~~go-error-family upstream proposal (run verify-before-filing first).~~ done (v1.0.0 sweep: verified draft saved; filing is an owner action)
 35. ~~Roadmap.md refresh against post-review reality.~~ done (ROADMAP refreshed 2026-08-30)
 36. ~~README: mention the fuzz-invariant suite and the honest-silence model where they sell (short additions).~~ done (README Design: round-trip fuzz bullet added)
-37. httpspec: consider a built-in "no injection header reflection" spec if the Sec-Fetch-Site finding warrants it.
+37. ~~httpspec: consider a built-in "no injection header reflection" spec if the Sec-Fetch-Site finding warrants it.~~ done (done 2026-09-10 (04-03 a16): SpecNameNoInjectionHeaderReflection (19 standard specs))
 38. ~~Verify module-boundary CI script still passes with the new test files (GOWORK=off consumer view).~~ done (check-module-boundaries.sh green 2026-08-30)
-39. Consider `b.ResetTimer` removal audit: any remaining benchmarks with pre-loop setup should use the b.Loop idiom consistently.
-40. Add a fuzz target for the negotiator (name/q parsing already property-tested; wire-format fuzz could complement).
-41. Check `go vet` (not just lint) in CI for both modules if a CI workflow lands (see 33).
+39. ~~Consider `b.ResetTimer` removal audit: any remaining benchmarks with pre-loop setup should use the b.Loop idiom consistently.~~ done (v1.0.0 sweep: two stale b.ResetTimer calls removed while dissolving bench_batch_test.go)
+40. ~~Add a fuzz target for the negotiator (name/q parsing already property-tested; wire-format fuzz could complement).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (FuzzNegotiatorWireFormat))
+41. ~~Check `go vet` (not just lint) in CI for both modules if a CI workflow lands (see 33).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (release.yml runs go vet for both modules))
 42. ~~Benchmark doc provenance note: mark which rows came from the pre-fix harness (the morning's decompression rows) so history stays honest.~~ done (provenance note present in docs/benchmarks.md header)
-43. Consider documenting gzip multistream behavior of the round-trip fuzz (decoded vs raw) in the fuzz comment.
-44. Add `TestChain_RecoveryErrAbortHandler_ThroughStack` (sentinel through Chain, not just Recovery alone).
-45. Review `.golangci.yml` exhaustruct deprecation (v2.13 replaced by exhaustruct_v5) — plan the linter swap before it breaks.
-46. Re-check golangci-lint upgrade path (config currently on v2.12.2 semantics).
-47. Add the two new fuzz invariants to FEATURES "testing" inventory.
-48. Consider a `make`-free task runner entry in flake.nix for the documented benchmark protocol (3s×5) so doc refreshes are one command.
-49. Post-v1.0: revisit `KeyExtractor` returning "" semantics (exempt vs shared-bucket) — the two configs read differently; confirm docs are unambiguous.
+43. ~~Consider documenting gzip multistream behavior of the round-trip fuzz (decoded vs raw) in the fuzz comment.~~ done (v1.0.0 sweep: multistream reliance documented in the FuzzCompression round-trip comment)
+44. ~~Add `TestChain_RecoveryErrAbortHandler_ThroughStack` (sentinel through Chain, not just Recovery alone).~~ done (done 2026-09-10 (04-03 a13): TestChain_RecoveryErrAbortHandler_ThroughStack)
+45. ~~Review `.golangci.yml` exhaustruct deprecation (v2.13 replaced by exhaustruct_v5) — plan the linter swap before it breaks.~~ done (done 2026-09-10 (04-03 a8): exhaustruct_v5 migration on golangci-lint 2.13.2)
+46. ~~Re-check golangci-lint upgrade path (config currently on v2.12.2 semantics).~~ done (on golangci-lint 2.13.2 since 04-03 a8; the v5 migration removed the blocking deprecation)
+47. ~~Add the two new fuzz invariants to FEATURES "testing" inventory.~~ done (FEATURES fuzz inventory verified current 2026-09-11 (26 targets listed))
+48. ~~Consider a `make`-free task runner entry in flake.nix for the documented benchmark protocol (3s×5) so doc refreshes are one command.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (nix run .#bench))
+49. ~~Post-v1.0: revisit `KeyExtractor` returning "" semantics (exempt vs shared-bucket) — the two configs read differently; confirm docs are unambiguous.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (docs verified unambiguous; no change needed))
 50. Schedule the next full-code-review (the report is a snapshot; per skill, use docs-health ANNOTATE when bringing it current).
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF

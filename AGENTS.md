@@ -86,7 +86,7 @@ go test -race ./...        # Race detection (REQUIRED for tests with t.Parallel(
 go test -race -count=N ./... # Surface timing-dependent races — repeat N times
 go vet ./...               # Vet
 go test -bench=. ./...     # Benchmarks
-golangci-lint run          # Lint (~70 linters, 0 issues)
+golangci-lint run          # Lint (~70 linters, 0 issues) — full-package runs only: linting a file subset typechecks incompletely and reports phantom issues
 golangci-lint run --fix    # Auto-fix what's possible
 golangci-lint fmt          # Format (gofumpt + golines@120 + gci)
 
