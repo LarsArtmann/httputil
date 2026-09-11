@@ -53,10 +53,10 @@
 1. Upgrade the dated "2026-08-30 pass" v-markers to `f916278` hash markers where a single commit can be cited (T14 policy: hash-for-changes). Now unblocked by the daemon commit. Effort: 30 min.
 2. Sample-audit ~30 keyword-batch verdicts in the May–June files; correct overclaims (carried f1 — still the top open quality item of the corpus pass).
 3. Attempt one dprint workaround (`nix run nixpkgs#dprint fmt` / devShell addition); format-check the ~50 files the two passes touched; also eyeball the nested-tilde line in `08-14_12-38` as rendered.
-4. `gh release view v0.6.1`; annotate `18-16` f2 accordingly (one command, twice deferred).
-5. Write the two one-comment code docs (Hijack buffered-bytes-dropped; gzip-multistream fuzz note).
-6. Trim TODO_LIST tail to ROADMAP batches (target ≤20 tracked items).
-7. AGENTS.md surgery once g-Q3 is answered (A: table → docs/ pointer; B: compress in place; C: accept + DECISION_LOG row) — the 53 KB Critical finding stands.
+4. ~~`gh release view v0.6.1`; annotate `18-16` f2 accordingly (one command, twice deferred).~~ done (docs-health pass 2026-09-11: gh release view v0.6.1 succeeds (created 2026-07-26); annotate 18-16 f2 accordingly)
+5. ~~Write the two one-comment code docs (Hijack buffered-bytes-dropped; gzip-multistream fuzz note).~~ done (done — Hijack buffered-bytes doc landed 04-03 a14; gzip-multistream note landed in the v1.0.0 sweep)
+6. ~~Trim TODO_LIST tail to ROADMAP batches (target ≤20 tracked items).~~ done (docs-health pass 2026-09-11: TODO_LIST rebuilt to 18 open items)
+7. ~~AGENTS.md surgery once g-Q3 is answered (A: table → docs/ pointer; B: compress in place; C: accept + DECISION_LOG row) — the 53 KB Critical finding stands.~~ done (v1.0.0 sweep: AGENTS.md 58.5 KB to 29.3 KiB via the docs/architecture-reference.md split (Option A))
 8. Push `master` + decide the commit-granularity policy going forward (g-Q2).
 9. Add "end-of-report `git status`/`git log -1` snapshot" to the status-report checklist in AGENTS.md (e.1 above).
 10. Where historical prose citations cluster densest (00-23, 05-10, 22-43 reference 3+ archived files each), consider a one-line "archived reports live in `docs/status/archived/`" pointer at the top of those files rather than rewriting citations.

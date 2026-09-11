@@ -75,10 +75,10 @@
 **Session-specific follow-ups (my own loose ends)**
 
 1. Audit a random sample (N≈30) of the keyword-batch v-markers in the May–June files; correct any that overclaim. Effort: 45 min.
-2. Attempt one dprint workaround (`nix run nixpkgs#dprint fmt` or add to devShell); if it works, format-check all ~48 files this session touched. Effort: 15 min.
-3. Run `gh release view v0.6.1` and annotate 18-16 f2 accordingly. Effort: 2 min.
-4. Add the two one-comment code docs I ticketed instead of wrote: `compressWriter.Hijack` buffered-bytes-dropped semantics; gzip-multistream note in the round-trip fuzz comment. Effort: 10 min.
-5. Trim TODO_LIST Low-priority tail into ROADMAP batches where items are ideas, not tasks (target ≤ 20 tracked items). Effort: 20 min.
+2. ~~Attempt one dprint workaround (`nix run nixpkgs#dprint fmt` or add to devShell); if it works, format-check all ~48 files this session touched. Effort: 15 min.~~ done (v1.0.0 sweep: pkgs.dprint in the flake devShell (verified 0.56.1); markdown now formatter-verifiable)
+3. ~~Run `gh release view v0.6.1` and annotate 18-16 f2 accordingly. Effort: 2 min.~~ done (docs-health pass 2026-09-11: gh release view v0.6.1 succeeds (created 2026-07-26); the 18-16 f2 question is settled)
+4. ~~Add the two one-comment code docs I ticketed instead of wrote: `compressWriter.Hijack` buffered-bytes-dropped semantics; gzip-multistream note in the round-trip fuzz comment. Effort: 10 min.~~ done (done — Hijack buffered-bytes doc landed 04-03 a14; gzip-multistream note landed in the v1.0.0 sweep)
+5. ~~Trim TODO_LIST Low-priority tail into ROADMAP batches where items are ideas, not tasks (target ≤ 20 tracked items). Effort: 20 min.~~ done (docs-health pass 2026-09-11: TODO_LIST rebuilt to 18 open items; completed items live in CHANGELOG)
 
 **AGENTS.md budget (Critical finding, open)**
 6. Decide the AGENTS.md slimming direction (see g-Q3): export-table relocation vs in-place compression; execute to <30 KB without losing Hard Constraints / Non-Obvious Behaviors / Testing Conventions. Effort: 1–2 hr.
@@ -122,7 +122,7 @@
 **Corpus hygiene (new, from this pass)**
 39. After the daemon commits, upgrade this session's dated v-markers to hash markers where a single commit can be cited (T14 policy: hash-for-changes).
 40. Re-run the leftover scanner once post-commit to confirm zero unaccounted remainders survived the daemon's formatting.
-41. Consider a `docs/status/INDEX.md` (90 files incl. archived) — rejected once as noise (00-23 f32), now larger; one-line summaries would help navigation. Decide, don't drift.
+41. ~~Consider a `docs/status/INDEX.md` (90 files incl. archived) — rejected once as noise (00-23 f32), now larger; one-line summaries would help navigation. Decide, don't drift.~~ **Won't implement — declined 2026-09-11: the archived/ convention plus grep suffice; an INDEX would be one more doc to keep fresh.**
 42. The 19 html/d2/svg snapshots in `docs/` are unannotatable by design; if any is still cited as current evidence anywhere, replace the citation with the .md twin (none known — verify once).
 
 _(f-list deliberately stops at 42; the remaining carried TODO items are already enumerated in TODO_LIST.md and duplicating them here adds drift surface.)_

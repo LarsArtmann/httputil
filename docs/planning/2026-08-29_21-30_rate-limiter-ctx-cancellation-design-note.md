@@ -1,7 +1,7 @@
 # Design Note — `context.Context` Cancellation for the Keyed Rate Limiter
 
 **Date:** 2026-08-29
-**Status:** PROPOSAL — implementation is gated on the v1.0 API-freeze decision (ROADMAP "v1.0 — API stability commitment"). Not implemented pre-v1.0 because it shapes the frozen interface.
+**Status:** DECIDED 2026-09-10 — v1.0 shipped the admission-only contract (Option C's documentation); `Wait(ctx, key)` (Option D) is the post-v1.0 additive path (ROADMAP).
 
 ## Problem
 
@@ -31,8 +31,8 @@ Ship v1.0 with the current admission-only contract (Option C's documentation), b
 
 ## What must happen before v1.0 instead
 
-- Document "tokens are consumed at admission; request cancellation does not refund" on `KeyedRateLimiter` and in `docs/migrating-to-keyed-rate-limiter.md`.
-- Record the `Wait(ctx)` post-v1.0 path in ROADMAP.
+- ~~Document "tokens are consumed at admission; request cancellation does not refund" on `KeyedRateLimiter` and in `docs/migrating-to-keyed-rate-limiter.md`.~~ done 2026-09-10 (04-03 a5: Admission Contract section added to the migration guide; middleware + `Check` docs updated)
+- ~~Record the `Wait(ctx)` post-v1.0 path in ROADMAP.~~ done (ROADMAP v1.0 section + Post-v1.0 ideas)
 
 ## Evidence
 

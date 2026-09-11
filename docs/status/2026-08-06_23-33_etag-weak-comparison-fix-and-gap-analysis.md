@@ -181,7 +181,7 @@ Nothing. The fix is correct, tested, lint-clean, race-clean, and fuzz-clean. The
 
 36. ~~**Study Fiber's ETag middleware** for any techniques we're missing (skip logic for SSE, non-200, empty body)~~ done (studied in this session — see the ecosystem table above)
 37. ~~**Study `blizzy78/conditional-http`** for If-Match/If-Modified-Since patterns we could adapt~~ done (studied in this session — see the ecosystem table above)
-38. **Check if `go-error-family` has conditional-request error classification patterns**
+38. ~~**Check if `go-error-family` has conditional-request error classification patterns**~~ done (v1.0.0 sweep (a24): go-error-family source verified — familyData covers only 400/409/503/500, no conditional-request guidance; verified issue draft saved at docs/planning/2026-09-10_go-error-family-conditional-request-classification-issue-draft.md)
 
 ### Code Quality (P3)
 

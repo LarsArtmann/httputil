@@ -49,7 +49,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 4. **Test-helper consolidation** — `reserveFreePort` deleted, `waitForTLS` relocated + upgraded, `waitForListenerAddr` added; but `waitForServerStart` (timeout-heuristic) is now arguably redundant with `waitForListenerAddr` and its existing callers were NOT migrated. Consolidation is ~80% done.
 5. **`docs/architecture-reference.md` freshness** — the three rows I knew changed were refreshed (code.go, compress_pool.go, server.go), but the table was verified 2026-08-30 and this session's other new files (fuzz/bench files, nonce additions, compose API surface details) were not exhaustively re-inventoried.
 6. ~~**AGENTS.md slimming** — under budget, but compression cost some nuance (a few sections are now summaries pointing at the reference doc), and the docs-health skill was not re-run to validate the new structure against its rubric.~~ done (v1.0.0 sweep: AGENTS.md 58.5 KB to 29.3 KiB via the docs/architecture-reference.md split; 30.1 KiB on 2026-09-11 (a hair over the 30 KB flag line))
-7. **`docs/status/` annotation obligation** — I read `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` during upstream research (and grepped others) but did not annotate the stale claims I noticed in the one I read. The doc-freshness cadence calls reading-without-annotating a missed obligation — this was missed this session.
+7. ~~**`docs/status/` annotation obligation** — I read `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` during upstream research (and grepped others) but did not annotate the stale claims I noticed in the one I read. The doc-freshness cadence calls reading-without-annotating a missed obligation — this was missed this session.~~ done (docs-health pass 2026-09-11: the etag gap-analysis report fully annotated (last open item f38 marked with the sweep evidence))
 
 ## c) NOT STARTED
 
@@ -111,8 +111,8 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 13. Re-inventory `docs/architecture-reference.md` tables file-by-file against HEAD (this session added 7+ files not in the tables).
 14. Add a docs-snippet compilation harness so integration-doc examples (compose-bundles etc.) are build-tested.
 15. Re-measure httpspec + server_timing benchmark baselines under the 3s×5 protocol.
-16. Annotate `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` (read, not annotated — missed obligation).
-17. Run the docs-health skill over the new AGENTS.md / architecture-reference split to validate against the quality rubric.
+16. ~~Annotate `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` (read, not annotated — missed obligation).~~ done (docs-health pass 2026-09-11: item f38 of that report marked done with the sweep evidence; file now fully resolved)
+17. ~~Run the docs-health skill over the new AGENTS.md / architecture-reference split to validate against the quality rubric.~~ done (docs-health pass 2026-09-11 (this pass executed the skill over the corpus; scores in the session report))
 18. Add tests for `scripts/coverage-threshold` (currently the only Go in the repo with 0% coverage, excluded from the gate for that reason).
 19. Investigate the gopls `stdversion` warnings (`json.MarshalWrite requires go1.27`) that shadowed the whole session — decide whether go.mod moves to 1.27 when json/v2 stabilizes.
 20. Add `benchstat` to the flake so the documented comparison workflow is executable.
@@ -141,7 +141,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 37. Make `prerelease-check.sh` accept `--skip-flake` for environments without nix (CI parity).
 38. Consider a `justfile`-free task table in README pointing at the flake apps (bench/test/lint/vet/coverage) so consumers discover them.
 39. ~~Update the coverage badge value if it still states the 2026-08-30 number (97.0% → 97.2%).~~ done (docs-health pass 2026-09-11: README badge + gates table updated to fresh race-measured 97.4%/98.6%)
-40. Normalize `docs/status/` — run the docs-health pass: annotate struck items found during this sweep, archive fully-resolved reports via `git mv`.
+40. ~~Normalize `docs/status/` — run the docs-health pass: annotate struck items found during this sweep, archive fully-resolved reports via `git mv`.~~ done (docs-health pass 2026-09-11 (this pass: Sep/Aug reports annotated, resolved files archiving))
 41. ~~Fix the pre-existing CHANGELOG markdown quirk in the frozen `[1.0.0]` health bullet (embedded literal newline inside a code span) ONLY IF a correction policy for frozen sections is agreed — otherwise leave per the freeze rule and note it in `[Unreleased]`.~~ done (docs-health pass 2026-09-11: freeze policy honored; duplication + broken code span recorded in [Unreleased])
 42. Decide a tag-annotation convention for multi-module releases (single-tag-with-replace is the current, documented pattern — re-verify it against the multi-module reference after the first real consumer appears).
 43. Add `GOWORK=off` server_timing build to the flake checks (module-boundary script exists in CI; the flake check does not run it).
