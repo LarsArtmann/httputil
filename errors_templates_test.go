@@ -62,6 +62,7 @@ var allHTTputilErrorCodes = []Code{
 
 	codeStackDuplicateMiddleware,
 	codeStackRecoveryNotFirst,
+	codeStackEmptyName,
 
 	codeDecompressionSizeNegative,
 	codeDecompressionSizeExceeded,

@@ -343,6 +343,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Add Recovery with MiddlewareRecovery first, or reorder the stack so it is outermost.",
 		WayOut: "MiddlewareStack.Validate() reports this before any request is served.",
 	},
+	string(codeStackEmptyName): {
+		What:   "Middleware name is empty",
+		Why:    "MiddlewareStack.Add was called with an empty name; empty names defeat duplicate detection and produce empty diagnostics.",
+		Fix:    "Pass a non-empty name, ideally one of the Middleware* constants.",
+		WayOut: "Use the Middleware* name constants for well-known middleware.",
+	},
 	string(codeDecompressionSizeNegative): {
 		What:   "Decompression size limit is negative",
 		Why:    "DecompressionConfig.MaxDecompressionSize is {max_decompression_size}; a negative limit is meaningless.",
