@@ -21,6 +21,8 @@ import (
 
 // checkedPackages maps the import alias used inside snippets to the package
 // whose exported API the selector must resolve against.
+//
+//nolint:gochecknoglobals // static configuration table, never mutated
 var checkedPackages = map[string]string{
 	"httputil":     "github.com/larsartmann/httputil",
 	"servertiming": "github.com/larsartmann/httputil/server_timing",
@@ -64,6 +66,7 @@ func main() {
 			for _, alias := range sortedAliases(refs) {
 				for _, name := range refs[alias] {
 					fmt.Fprintf(os.Stderr, "%s: no exported symbol %s.%s\n", path, alias, name)
+
 					findings++
 				}
 			}
@@ -76,7 +79,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("doc-snippet-refs: all snippet references resolve")
+	fmt.Fprintln(os.Stdout, "doc-snippet-refs: all snippet references resolve")
 }
 
 // exportedNames returns the exported package-level names of pkgPath, resolved

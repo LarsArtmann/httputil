@@ -40,6 +40,9 @@ jobs:
       - name: CHANGELOG link check
         run: ./scripts/check-changelog-links.sh
 
+      - name: Doc snippet symbol check
+        run: go run ./scripts/doc-snippet-refs README.md docs/integrations/*.md
+
       - name: Module boundary check (GOWORK=off per module)
         run: ./scripts/check-module-boundaries.sh
 
