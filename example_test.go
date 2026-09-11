@@ -467,3 +467,76 @@ func ExampleMiddlewareStack() {
 
 	// Output: 200 ok [request-id security-headers]
 }
+
+func ExampleCompose() {
+	// Composing an empty list yields the identity middleware: the handler
+	// passes through unchanged.
+	handler := Compose()(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "ok")
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	fmt.Println(rec.Code, rec.Body.String())
+
+	// Output: 200 ok
+}
+
+func ExampleCompose_ordered() {
+	// Middleware apply in declaration order: the first entry becomes the
+	// outermost wrapper.
+	addHeader := func(name, value string) Middleware {
+		return func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set(name, value)
+				next.ServeHTTP(w, r)
+			})
+		}
+	}
+
+	composed := Compose(
+		addHeader("X-Outer", "outer"),
+		addHeader("X-Inner", "inner"),
+	)
+
+	handler := composed(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "ok")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(
+		rec.Code,
+		rec.Body.String(),
+		rec.Header().Get("X-Outer"),
+		rec.Header().Get("X-Inner"),
+	)
+
+	// Output: 200 ok outer inner
+}
+
+func ExampleMiddlewareFunc_Then() {
+	// MiddlewareFunc lets a plain middleware function carry the Then method,
+	// so middleware and handler chain fluently without a call to Chain.
+	var addHeader MiddlewareFunc = func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Trace", "abc")
+			next.ServeHTTP(w, r)
+		})
+	}
+
+	handler := addHeader.Then(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "ok")
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	fmt.Println(rec.Code, rec.Body.String(), rec.Header().Get("X-Trace"))
+
+	// Output: 200 ok abc
+}
