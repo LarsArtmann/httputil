@@ -8,9 +8,9 @@ _Updated: 2026-09-11 (post-session reconciliation: TODO executed end-to-end, ful
 
 ## High Priority
 
-- [ ] **Push `master`** — the v1.1.0-destined work (deprecated-API removals, race fixes, CSRF trust model, composition API, ~40 test/fuzz/bench targets) is committed locally; `v1.0.0`/`v1.0.1` tags are already pushed. Then per [docs/RELEASE.md](docs/RELEASE.md): verify pkg.go.dev + `go get` after the next tag.
-- [ ] **Re-dispatch `nightly-fuzz.yml` and verify step 1 passes** — all 25 patterns are now anchored (`^Name$`) and smoke-verified to match exactly one target, but the in-session dispatch ran the OLD committed workflow and failed as predicted. Issues #7/#8 (false-positive auto-filings from the old pattern collision) are closed. After the push, `gh workflow run nightly-fuzz.yml --repo LarsArtmann/httputil`, confirm the anchor fix, and close any new false-positive issue it files.
-- [ ] **Cut `v1.1.0`** — BLOCKED on owner answers (asked in docs/status/2026-09-11_09-05_todo-execution-v1-code-review-session.md): ① push master first vs tag in the same motion; ② re-run the two LLM-rate-limit-lost review passes or accept direct-authorship coverage; ③ CSRF security-degrading config: log-only final or remediate-to-secure-defaults (see Medium #2 below). Tags are permanent — never cut without an explicit owner go.
+- [x] ~~**Push `master`**~~ done 2026-09-11 (`20f6917..ae0a46d` pushed; pkg.go.dev proxy verified via consumer `go get` + build of both modules — see v1.1.0 item below).
+- [x] ~~**Re-dispatch `nightly-fuzz.yml` and verify step 1 passes**~~ done 2026-09-11 (run 34574182326: anchored `^FuzzDecompression$` step PASS; no new false-positive issues, #7/#8 stay closed).
+- [x] ~~**Cut `v1.1.0`**~~ done 2026-09-11 (owner ruled "Release a new version!"): all 9 prerelease gates green, tag SSH-signed and verified, GitHub release published with the CHANGELOG section as notes, consumer `go get`/`go build` verified for `httputil v1.1.0` + `server_timing v1.0.1` (sub-module had zero drift — no new sub-module tag).
 
 ## Medium Priority
 
