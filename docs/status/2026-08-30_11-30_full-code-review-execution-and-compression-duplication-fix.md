@@ -45,12 +45,12 @@ All quality gates are green at the end of the session: build + vet, `go test -ra
 
 ## c) NOT STARTED (carried in TODO_LIST, untouched this session)
 
-- v1.0 release decision → cut v1.0 (incl. deprecated `TokenBucketLimiter`/`RateLimit()` removal per the migration guide and the rate-limiter admission-contract confirmation)
-- go-compression extraction (plan exists, trigger: go-datastar SSE-safe compression)
-- CI release workflow (tag → build → GitHub Release)
-- go-error-family upstream proposal (conditional-request classification; needs verify-before-filing)
-- architecture-review re-run (last pass predates ETag extraction, adapter, keyed limiter)
-- dprint availability for markdown formatter verification (known limitation, two sessions running)
+- ~~v1.0 release decision → cut v1.0 (incl. deprecated `TokenBucketLimiter`/`RateLimit()` removal per the migration guide and the rate-limiter admission-contract confirmation)~~ done (v1.0.0 cut locally 2026-09-10 with the deprecated APIs in; admission contract confirmed; removal scheduled v1.1.0)
+- go-compression extraction (plan exists, trigger: go-datastar SSE-safe compression) — deferred post-v1.0 by decision, tracked in TODO_LIST
+- ~~CI release workflow (tag → build → GitHub Release)~~ done (v1.0.0 sweep: release.yml, both modules)
+- ~~go-error-family upstream proposal (conditional-request classification; needs verify-before-filing)~~ done (verified draft saved in the sweep; filing is an owner action)
+- architecture-review re-run (last pass predates ETag extraction, adapter, keyed limiter) — tracked in TODO_LIST Low
+- ~~dprint availability for markdown formatter verification (known limitation, two sessions running)~~ done (v1.0.0 sweep: pkgs.dprint in the flake devShell)
 
 ## d) TOTALLY FUCKED UP
 

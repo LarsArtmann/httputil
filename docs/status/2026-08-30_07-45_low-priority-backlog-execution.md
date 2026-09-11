@@ -29,12 +29,12 @@
 
 ## b) PARTIALLY DONE
 
-1. **dprint formatting** — `dprint` is not on PATH in this environment (the 08-29 report documented the same blocker); the new/edited markdown follows existing conventions but is not formatter-verified.
+1. ~~**dprint formatting** — `dprint` is not on PATH in this environment (the 08-29 report documented the same blocker); the new/edited markdown follows existing conventions but is not formatter-verified.~~ done (v1.0.0 sweep: pkgs.dprint in the flake devShell (verified 0.56.1))
 2. ~~**erraudit type-aware advisories** — still the documented ~30 `errors.Is` sentinel matches; both exit-0 gates pass; nothing migrated beyond the single `errors.As` finding (in `maxbodysize_test.go`, a pre-existing violation the 08-29 session's "all gates green" missed or predates).~~ done (both erraudit exit-0 gates green 2026-08-30; the ~30 test errors.Is advisories are documented correct matches (AGENTS.md Commands))
 
 ## c) NOT STARTED
 
-Nothing from the Low Priority list — all nine items closed. Remaining TODO_LIST High/Medium items (full-code-review skill, v1.0 decision, go-compression extraction, CI release workflow, go-error-family upstream, architecture-review re-run) untouched by design.
+Nothing from the Low Priority list — all nine items closed. Remaining TODO_LIST High/Medium items (full-code-review skill, v1.0 decision, go-compression extraction, CI release workflow, go-error-family upstream, architecture-review re-run) untouched by design. _(2026-09-11 update: v1.0.0 cut locally with the deprecated APIs in; CI release workflow shipped; go-error-family draft verified; go-compression deferred post-v1.0; the two review re-runs are tracked in TODO_LIST.)_
 
 ## d) TOTALLY FUCKED UP
 
@@ -45,14 +45,14 @@ Nothing from the Low Priority list — all nine items closed. Remaining TODO_LIS
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Add a harness rule to the benchmark section of AGENTS.md**: any middleware that mutates the request (`Decompression` deletes headers; others may consume the body) requires per-iteration state restoration, with a worked example pointing at the Decompression incident.
-2. **Sanity-check benchmark results against physics**: bytes/second implied by `SetBytes` should be eyeballed on every baseline run; anything above memory bandwidth (~50 GB/s) is a broken harness. This would have caught the baseline lie in August.
-3. **README/config-table claims about zero-values need an execution probe** before release (a 10-line test per "0 means X" claim would have caught the MaxDecompressionSize lie at authoring time).
-4. **The `MaxBytesError` erraudit finding survived a "all gates green" claim** (08-29 session). Either erraudit wasn't run that session or its failure was misread. Gate scripts should be a single script that fails loudly, not a checklist remembered per session.
+1. ~~**Add a harness rule to the benchmark section of AGENTS.md**: any middleware that mutates the request (`Decompression` deletes headers; others may consume the body) requires per-iteration state restoration, with a worked example pointing at the Decompression incident.~~ done (codified in AGENTS.md Testing Conventions (benchmark harnesses must reset mutated request state, born from this incident))
+2. ~~**Sanity-check benchmark results against physics**: bytes/second implied by `SetBytes` should be eyeballed on every baseline run; anything above memory bandwidth (~50 GB/s) is a broken harness. This would have caught the baseline lie in August.~~ done (codified in AGENTS.md (SetBytes / ns/op eyeball rule, ~50 GB/s ceiling))
+3. ~~**README/config-table claims about zero-values need an execution probe** before release (a 10-line test per "0 means X" claim would have caught the MaxDecompressionSize lie at authoring time).~~ done (codified in AGENTS.md (every 0-means-X claim gets an execution-probe test))
+4. ~~**The `MaxBytesError` erraudit finding survived a "all gates green" claim** (08-29 session). Either erraudit wasn't run that session or its failure was misread. Gate scripts should be a single script that fails loudly, not a checklist remembered per session.~~ done (v1.0.0 sweep: scripts/prerelease-check.sh automates the nine release gates)
 
 ## f) Next
 
-The TODO_LIST Low Priority section is now empty; the remaining items are the strategic ones (full-code-review skill before v1.0, the v1.0 decision itself, go-compression extraction, CI release workflow, go-error-family upstream proposal, architecture-review re-run).
+The TODO_LIST Low Priority section is now empty; the remaining items are the strategic ones (full-code-review skill before v1.0, the v1.0 decision itself, go-compression extraction, CI release workflow, go-error-family upstream proposal, architecture-review re-run). _(2026-09-11: all of these except go-compression (deferred) and the two review re-runs (tracked in TODO_LIST) have since shipped in v1.0.0.)_
 
 ---
 
