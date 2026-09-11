@@ -95,11 +95,20 @@ nix flake check            # Full flake gates (includes treefmt verification)
 
 # erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops).
 # Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors.
-# The full --type-aware run reports ~30 `errors.Is` advisories in tests — all
+# The full --type-aware run reports 43 `errors.Is` advisories in tests — all
 # correct sentinel matches; do NOT migrate them.
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
+# Review verdict 2026-09-11 for a full `erraudit . --enforce-samber-oops
+# --enforce-generic-return --no-suppress` run (61 findings; newer erraudit
+# builds): 43 sentinel_concrete_type — REJECTED, the concrete
+# `*errorfamily.Error` sentinel type is load-bearing (`errX.WithContext/
+# WithCause` clone call sites need it; declaring `var errX error` breaks the
+# build); 11 `ignored` `_ =` discards — the documented honest-silence set; 4
+# stdlib_constructor + 2 generic_return in scripts/ — standalone stdlib tools
+# the documented gate deliberately exempts (verified: gate exits 0 scoped to
+# ./scripts/...); 1 real context_loss in doc-snippet-refs — fixed (import %s).
 
 # server_timing sub-module (run from server_timing/)
 cd server_timing && go test -race ./... && golangci-lint run
