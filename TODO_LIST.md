@@ -33,6 +33,7 @@ _Updated: 2026-09-11 (docs-health pass: post-tag drift reconciled, completed ite
 - [ ] **Resolve the gopls `stdversion` warnings** — 5 standing diagnostics claim `json.MarshalWrite` "requires go1.27" while go.mod pins 1.26.7; decide whether go.mod moves to 1.27 when json/v2 stabilizes. Sources: `03-41:d3`, `09-26:f19`.
 - [ ] **CSRF docs follow-ups** — migration note for the new `ErrCSRFAttestationConflict` 403 (behavior change for consumers relying on forged attestations); mention the httpspec no-injection-header-reflection spec in the README httpspec block; surface `csrf.origin_attestation_conflict` in a consumer-facing classification example. Sources: `04-03:e7/f1/f42/f43`.
 - [ ] **Decide `CSRFConfig.withParsedTrustedProxies` export post-v1.0** — revisit only if external consumers need to construct the CIDR form themselves. Sources: `09-26:f34`.
+- [ ] **`architecture-review` re-run post-v1.0** — the last full run predates the ETag extraction, keyed limiter, compose API, and the attestation defense; the 2026-09-10 composability review covered one dimension only. Sources: `04-03:c4/f14`, `03-41:a1`.
 
 ---
 

@@ -51,34 +51,34 @@ All items verified against running code, not just claims. Each was test-covered 
 Untouched from TODO_LIST (verified against the file at session end — these checkboxes are still open):
 
 1. Extract response compression into `go-compression` (Pareto plan exists; go-datastar trigger)
-2. CI release workflow (tag → build → GitHub Release, both modules)
-3. go-error-family upstream: conditional-request classification guidance (needs `verify-before-filing`)
+2. ~~CI release workflow (tag → build → GitHub Release, both modules)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+3. ~~go-error-family upstream: conditional-request classification guidance (needs `verify-before-filing`)~~ done (v1.0.0 sweep: verified draft saved; filing remains an owner action)
 4. `architecture-review` re-run (stale: predates ETag extraction, keyed limiter, compose API, attestation defense)
-5. Refresh `docs/benchmarks.md` rows for the 2026-08-30 bench changes (3s×5 protocol)
-6. `CSRFConfig.Validate` side-effect cleanup (pure Validate + parse step; post-v1.0 candidate)
-7. KeyedRateLimiter property test (heap/map consistency under churn) + MaxKeys-pressure benchmark
-8. CORS fuzz invariant for exact-origin allowlists
-9. `WrapConflict`/`WrapOrchestration` symmetry decision
-10. Skip pool `Get` for non-resettable factories (wasted alloc/request)
-11. `Server.Addr()` resolved-port variant API decision
-12. Negotiator wire-format fuzz target + gzip multistream doc note
-13. Test-helper hygiene trio (dissolve `bench_batch_test.go`, consolidate `waitForTLS`/`reserveFreePort`, Ed25519 test cert)
-14. flake.nix benchmark-protocol app (one-command 3s×5 baseline)
-15. Slim AGENTS.md below the 30 KB docs-health budget (~53 KB before today; I **added** ~2 KB — see e4)
-16. Test-coverage gaps: MaxBodySize bench/fuzz + `ExampleMetrics`, `ExampleRateLimit`, `ExampleHealthHandler`, `ExampleServer`, `ExampleMiddlewareStack`
-17. Nonce design decisions: `NonceConfig.Generator` override + public `GenerateNonce` (implement or formally decline) + nonce composition-test cluster
-18. ID-generator refill-path benchmark
-19. dprint availability in devShell (markdown formatter verification skipped 3+ sessions)
-20. Nightly fuzz crash issue-template step
-21. govulncheck for `server_timing` in CI
-22. Commit-lint CI step (reject non-conventional prefixes)
-23. Go-based coverage threshold check (replace awk in ci.yml) + pre-release checklist script
-24. `go.work` `go 1.26.5` vs CI vs local 1.26.7 pinning
-25. `TestChain_DecompressionThenMaxBodySize` 417-as-signal assertion → read limiter error directly
-26. Post-v1.0: `KeyExtractor` returning `""` semantics doc check
-27. Integration-docs content refresh (samber/do, HTMX-ideas, Redis, Prometheus)
+5. ~~Refresh `docs/benchmarks.md` rows for the 2026-08-30 bench changes (3s×5 protocol)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+6. ~~`CSRFConfig.Validate` side-effect cleanup (pure Validate + parse step; post-v1.0 candidate)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (landed in v1.0.0 as the last cheap moment))
+7. ~~KeyedRateLimiter property test (heap/map consistency under churn) + MaxKeys-pressure benchmark~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+8. ~~CORS fuzz invariant for exact-origin allowlists~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+9. ~~`WrapConflict`/`WrapOrchestration` symmetry decision~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+10. ~~Skip pool `Get` for non-resettable factories (wasted alloc/request)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+11. ~~`Server.Addr()` resolved-port variant API decision~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (shipped as Server.ListenerAddr))
+12. ~~Negotiator wire-format fuzz target + gzip multistream doc note~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+13. ~~Test-helper hygiene trio (dissolve `bench_batch_test.go`, consolidate `waitForTLS`/`reserveFreePort`, Ed25519 test cert)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+14. ~~flake.nix benchmark-protocol app (one-command 3s×5 baseline)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (nix run .#bench))
+15. ~~Slim AGENTS.md below the 30 KB docs-health budget (~53 KB before today; I **added** ~2 KB — see e4)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (58.5 KB to 29.3 KiB))
+16. ~~Test-coverage gaps: MaxBodySize bench/fuzz + `ExampleMetrics`, `ExampleRateLimit`, `ExampleHealthHandler`, `ExampleServer`, `ExampleMiddlewareStack`~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (ExampleRateLimit formally declined))
+17. ~~Nonce design decisions: `NonceConfig.Generator` override + public `GenerateNonce` (implement or formally decline) + nonce composition-test cluster~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (Generator/GenerateNonce formally declined; 4 composition tests added))
+18. ~~ID-generator refill-path benchmark~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+19. ~~dprint availability in devShell (markdown formatter verification skipped 3+ sessions)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+20. ~~Nightly fuzz crash issue-template step~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+21. ~~govulncheck for `server_timing` in CI~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+22. ~~Commit-lint CI step (reject non-conventional prefixes)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
+23. ~~Go-based coverage threshold check (replace awk in ci.yml) + pre-release checklist script~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (scripts/coverage-threshold + prerelease-check.sh))
+24. ~~`go.work` `go 1.26.5` vs CI vs local 1.26.7 pinning~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (converged on 1.26.7))
+25. ~~`TestChain_DecompressionThenMaxBodySize` 417-as-signal assertion → read limiter error directly~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (asserts the classified sentinel directly))
+26. ~~Post-v1.0: `KeyExtractor` returning `""` semantics doc check~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (docs verified unambiguous, no change needed))
+27. ~~Integration-docs content refresh (samber/do, HTMX-ideas, Redis, Prometheus)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
 28. Schedule next `full-code-review`
-29. Re-mark deprecated `TokenBucketLimiter`/`RateLimit` for removal in the v1.0 CHANGELOG (part of the cut)
+29. ~~Re-mark deprecated `TokenBucketLimiter`/`RateLimit` for removal in the v1.0 CHANGELOG (part of the cut)~~ done (deprecation state documented in CHANGELOG [1.0.0] rows + v1-stability.md removal targeting; removal itself scheduled in the v1.1.0 batch (TODO_LIST))
 
 ## d) TOTALLY FUCKED UP
 
