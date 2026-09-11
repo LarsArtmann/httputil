@@ -338,27 +338,28 @@ func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
 			}
 		}
 
-		if wantConflict && rec.Code != http.StatusForbidden {
-			t.Errorf(
-				"contradicted attestation (%s, Sec-Fetch-Site: same-origin, Origin %q): status = %d, want %d",
-				method, origin, rec.Code, http.StatusForbidden,
-			)
-			return
-		}
-
 		if wantConflict {
 			// The 403 must be the attestation-conflict rejection, not a
-			// nosurf token failure wearing the same status: the body names
-			// the code. Asserting the body keeps the oracle sensitive to
-			// the attestation check being deleted (nosurf would still 403
-			// on the missing token, but with csrf_invalid).
+			// nosurf token failure wearing the same status: the status and
+			// the body both name it. Asserting the body keeps the oracle
+			// sensitive to the attestation check being deleted (nosurf
+			// would still 403 on the missing token, but with csrf_invalid).
+			if rec.Code != http.StatusForbidden {
+				t.Errorf(
+					"contradicted attestation (%s, Sec-Fetch-Site: same-origin, Origin %q): status = %d, want %d",
+					method, origin, rec.Code, http.StatusForbidden,
+				)
+			}
+
 			if body := rec.Body.String(); !strings.Contains(
 				body,
 				"csrf.origin_attestation_conflict",
 			) {
 				t.Errorf(
 					"contradicted attestation (%s, Origin %q): body = %q, want csrf.origin_attestation_conflict rejection",
-					method, origin, body,
+					method,
+					origin,
+					body,
 				)
 			}
 		}
