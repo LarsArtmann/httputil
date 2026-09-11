@@ -642,10 +642,6 @@ func isUnsafeCSRFMethod(method string) bool {
 // is attested as cross-site — so a contradiction means the attestation was
 // forged. The "null" origin is left to nosurf, which treats it as absent.
 func contradictedAttestationOrigin(r *http.Request, trustedOrigins []*url.URL) string {
-	if true { // MUTATION TEST
-		return ""
-	}
-
 	if !isUnsafeCSRFMethod(r.Method) {
 		return ""
 	}

@@ -245,34 +245,34 @@ func FuzzCSRFRemoteHostAndIP(f *testing.F) {
 // (ErrCSRFAttestationConflict) — the forged-attestation defense applies to
 // every unsafe method, not just GET.
 func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
-	f.Add("https://example.com", "", "", http.MethodGet)
-	f.Add("", "https://example.com/page", "", http.MethodGet)
-	f.Add("", "", "same-origin", http.MethodGet)
-	f.Add("", "", "cross-site", http.MethodGet)
-	f.Add("", "", "none", http.MethodGet)
-	f.Add("https://evil.com", "https://example.com", "same-origin", http.MethodGet)
+	f.Add(http.MethodGet, "https://example.com", "", "")
+	f.Add(http.MethodGet, "", "https://example.com/page", "")
+	f.Add(http.MethodGet, "", "", "same-origin")
+	f.Add(http.MethodGet, "", "", "cross-site")
+	f.Add(http.MethodGet, "", "", "none")
+	f.Add(http.MethodGet, "https://evil.com", "https://example.com", "same-origin")
 	f.Add(
+		http.MethodPost,
 		strings.Repeat("a", 500),
 		strings.Repeat("b", 500),
 		strings.Repeat("c", 500),
-		http.MethodPost,
 	)
-	f.Add("https://example.com\r\nX-Evil: 1", "", "", http.MethodGet)
+	f.Add(http.MethodGet, "https://example.com\r\nX-Evil: 1", "", "")
 	// Contradictory combos on unsafe methods: the test request is plain HTTP
 	// with Host example.com, so an https Origin contradicts the attestation.
-	f.Add("https://example.com", "", "same-origin", http.MethodPost)
-	f.Add("https://evil.com", "", "same-origin", http.MethodPost)
-	f.Add("https://evil.com", "", "same-origin", http.MethodPut)
-	f.Add("https://evil.com", "", "same-origin", http.MethodPatch)
-	f.Add("https://evil.com", "", "same-origin", http.MethodDelete)
-	f.Add("not-an-origin", "", "same-origin", http.MethodPost)
-	f.Add("https://example.com\r\nX-Evil: 1", "", "same-origin", http.MethodPost)
+	f.Add(http.MethodPost, "https://example.com", "", "same-origin")
+	f.Add(http.MethodPost, "https://evil.com", "", "same-origin")
+	f.Add(http.MethodPut, "https://evil.com", "", "same-origin")
+	f.Add(http.MethodPatch, "https://evil.com", "", "same-origin")
+	f.Add(http.MethodDelete, "https://evil.com", "", "same-origin")
+	f.Add(http.MethodPost, "not-an-origin", "", "same-origin")
+	f.Add(http.MethodPost, "https://example.com\r\nX-Evil: 1", "", "same-origin")
 	// Boundary seeds: attestation with absent, null, or self origins is
 	// consistent and must NOT be treated as a conflict.
-	f.Add("", "", "same-origin", http.MethodPost)
-	f.Add("null", "", "same-origin", http.MethodPost)
-	f.Add("http://example.com", "", "same-origin", http.MethodPost)
-	f.Add("null", "", "same-origin", http.MethodGet)
+	f.Add(http.MethodPost, "", "", "same-origin")
+	f.Add(http.MethodPost, "null", "", "same-origin")
+	f.Add(http.MethodPost, "http://example.com", "", "same-origin")
+	f.Add(http.MethodGet, "null", "", "same-origin")
 
 	f.Fuzz(func(t *testing.T, method, origin, referer, secFetchSite string) {
 		// httptest.NewRequest panics on invalid method characters. Skip
