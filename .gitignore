@@ -75,3 +75,7 @@ result-*
 # module zips, so downstream consumers never see it. Negated here (outside
 # the managed block) because the block above lists it as ignored.
 !go.work
+
+# Tool artifact databases accidentally committed by the daemon
+/coverage-threshold
+/doc-snippet-refs
