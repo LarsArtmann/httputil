@@ -285,7 +285,7 @@ func (c CSRFConfig) Validate() error {
 // construction-time gate (validateTrustedOriginEntry) must agree on what
 // parses; only Validate adds the stricter scheme://host shape check on top.
 func parseTrustedOrigin(origin string) (*url.URL, error) {
-	return url.Parse(origin)
+	return url.Parse(origin) //nolint:wrapcheck // passthrough is the contract; callers classify
 }
 
 // validateTrustedOriginEntry rejects one TrustedOrigins entry unless it is a
