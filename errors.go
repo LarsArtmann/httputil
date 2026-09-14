@@ -126,6 +126,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "List specific origins such as https://app.example.com.",
 		WayOut: "Remove the entry entirely to trust no additional origins.",
 	},
+	string(codeCSRFInvalidOrigin): {
+		What:   "CSRF trusted origin entry is not a usable origin",
+		Why:    "CSRFConfig.TrustedOrigins contains {origin}, which is not a usable origin: {parse_error}. Such an entry can never match an Origin header and silently changes validation semantics.",
+		Fix:    "Use full origins such as https://app.example.com.",
+		WayOut: "Remove the entry to trust same-origin requests only.",
+	},
 	string(codeCSRFUnsafeProxy): {
 		What:   "CSRF trusted proxy list contains an empty entry",
 		Why:    "CSRFConfig.TrustedProxies has an empty string, which would match no proxy and signals a config mistake.",

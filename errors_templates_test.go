@@ -24,6 +24,7 @@ var allHTTputilErrorCodes = []Code{
 	codeCorsMethodsEmpty,
 
 	codeCSRFMaxAgeNegative,
+	codeCSRFInvalidOrigin,
 
 	codeServerAddrEmpty,
 	codeServerReadTimeoutNegative,

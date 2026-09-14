@@ -108,6 +108,18 @@ var errCSRFMaxAgeNegative = codeCSRFMaxAgeNegative.Rejection(
 	"CSRFConfig: MaxAge must not be negative; zero uses the 24h default",
 )
 
+// codeCSRFInvalidOrigin classifies a TrustedOrigins entry that is not a
+// usable scheme://host origin (Rejection: fix the config, never retry). An
+// entry without scheme or host can never match an Origin header, and an
+// entry url.Parse rejects makes nosurf's StaticOrigins fail wholesale —
+// both silently change validation semantics, so Validate rejects them
+// loudly at construction time.
+const codeCSRFInvalidOrigin = Code("csrf.trusted_origin_invalid")
+
+var errCSRFInvalidOrigin = codeCSRFInvalidOrigin.Rejection(
+	"CSRFConfig: TrustedOrigins contains an entry that is not a scheme://host origin",
+)
+
 // CSRFConfig configures CSRF protection.
 //
 // All fields are optional; zero values use secure defaults.
@@ -240,6 +252,11 @@ func (c CSRFConfig) Validate() error {
 			).WithCause(ErrCSRFConfig).
 				WithContext("origin", origin)
 		}
+
+		entryErr := validateTrustedOriginEntry(origin)
+		if entryErr != nil {
+			return entryErr
+		}
 	}
 
 	for _, p := range c.TrustedProxies {
@@ -257,6 +274,36 @@ func (c CSRFConfig) Validate() error {
 					WithContextAny("parse_error", err)
 			}
 		}
+	}
+
+	return nil
+}
+
+// validateTrustedOriginEntry rejects one TrustedOrigins entry unless it is a
+// well-formed origin: url.Parse must succeed and the parsed URL must carry
+// both scheme and host. Entries that fail either check make nosurf's
+// StaticOrigins fail wholesale or can never match an Origin header; either
+// way they silently change validation semantics, so they carry
+// csrf.trusted_origin_invalid with the specific problem in context.
+func validateTrustedOriginEntry(origin string) error {
+	u, parseErr := url.Parse(origin)
+	if parseErr != nil {
+		return errCSRFInvalidOrigin.
+			WithCause(ErrCSRFConfig).
+			WithContext("origin", origin).
+			WithContextAny("parse_error", parseErr.Error())
+	}
+
+	if u.Scheme == "" || u.Host == "" {
+		problem := "missing host"
+		if u.Scheme == "" {
+			problem = "missing scheme"
+		}
+
+		return errCSRFInvalidOrigin.
+			WithCause(ErrCSRFConfig).
+			WithContext("origin", origin).
+			WithContextAny("parse_error", problem)
 	}
 
 	return nil
@@ -320,11 +367,11 @@ func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 	})
 
 	if len(cfg.TrustedOrigins) > 0 {
-		origins, err := nosurf.StaticOrigins(cfg.TrustedOrigins...)
-		if err != nil {
+		origins, originsErr := nosurf.StaticOrigins(cfg.TrustedOrigins...)
+		if originsErr != nil {
 			slog.Error(
-				"httputil: invalid TrustedOrigins",
-				slog.String("error", err.Error()),
+				"httputil: invalid TrustedOrigins; falling back to same-origin-only validation",
+				slog.String("error", originsErr.Error()),
 			)
 		} else {
 			handler.SetIsAllowedOriginFunc(origins)
@@ -600,15 +647,19 @@ func isTrustedProxy(remoteHost string, remoteIP net.IP, remoteAddr string, cfg C
 }
 
 // parseTrustedOriginURLs parses TrustedOrigins entries into URLs for the
-// attestation-consistency check. Entries that fail to parse are skipped:
-// they cannot match any Origin header, matching how nosurf discards them.
+// attestation-consistency check. Parsing is all-or-nothing, mirroring
+// nosurf.StaticOrigins: any entry that fails url.Parse leaves no trusted
+// origins at all, so the attestation check can never trust a different set
+// than the nosurf handler enforces. CSRFConfig.Validate rejects such entries
+// at construction time; this fail-closed fallback covers configs that reach
+// the request path without validation.
 func parseTrustedOriginURLs(origins []string) []*url.URL {
 	parsed := make([]*url.URL, 0, len(origins))
 
 	for _, origin := range origins {
 		u, parseErr := url.Parse(origin)
 		if parseErr != nil {
-			continue
+			return nil
 		}
 
 		parsed = append(parsed, u)

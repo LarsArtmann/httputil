@@ -449,6 +449,110 @@ func TestCSRFConfig_Validate_UnsafeOriginWildcard(t *testing.T) {
 	}
 }
 
+func TestCSRFConfig_Validate_TrustedOriginNotParseable(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{"https://app.example.com/%zz"}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for a TrustedOrigins entry url.Parse rejects")
+	}
+
+	if !errors.Is(err, errCSRFInvalidOrigin) {
+		t.Errorf("Validate() error = %v, want errCSRFInvalidOrigin", err)
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+
+	code, ok := CodeOf(err)
+	if !ok || code != codeCSRFInvalidOrigin {
+		t.Errorf("CodeOf(err) = %q, %v; want %q", code, ok, codeCSRFInvalidOrigin)
+	}
+}
+
+func TestCSRFConfig_Validate_TrustedOriginMissingScheme(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{"app.example.com"}}
+	err := cfg.Validate()
+	if !errors.Is(err, errCSRFInvalidOrigin) {
+		t.Errorf("Validate() error = %v, want errCSRFInvalidOrigin for a scheme-less origin", err)
+	}
+}
+
+func TestCSRFConfig_Validate_TrustedOriginMissingHost(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{"https://"}}
+	err := cfg.Validate()
+	if !errors.Is(err, errCSRFInvalidOrigin) {
+		t.Errorf("Validate() error = %v, want errCSRFInvalidOrigin for a host-less origin", err)
+	}
+}
+
+func TestCSRFConfig_Validate_TrustedOriginWellFormedAccepted(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{
+		"https://app.example.com",
+		"http://other.example.net:8443/path",
+	}}
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want nil for scheme://host origins (extra path parts are ignored)", err)
+	}
+}
+
+func TestParseTrustedOriginURLs_AllOrNothing(t *testing.T) {
+	t.Parallel()
+
+	broken := parseTrustedOriginURLs([]string{"https://good.example", "https://bad.example/%zz"})
+	if broken != nil {
+		t.Errorf("parseTrustedOriginURLs with any unparseable entry = %v, want nil (all-or-nothing, mirroring nosurf.StaticOrigins)", broken)
+	}
+
+	good := parseTrustedOriginURLs([]string{"https://good.example"})
+	if len(good) != 1 {
+		t.Errorf("parseTrustedOriginURLs with only valid entries length = %d, want 1", len(good))
+	}
+}
+
+func TestCSRFMiddleware_UnparseableTrustedOriginFailsClosed(t *testing.T) {
+	t.Parallel()
+
+	var captured error
+
+	cfg := CSRFConfig{
+		TrustedOrigins: []string{"https://trusted.example", "https://broken.example/%zz"},
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			captured = err
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+
+	mw := CSRFMiddleware(cfg)
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Origin", "https://trusted.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("request should be rejected when TrustedOrigins contain an unparseable entry, got %d", rec.Code)
+	}
+
+	if !errors.Is(captured, ErrCSRFAttestationConflict) {
+		t.Errorf("ErrorHandler error = %v, want ErrCSRFAttestationConflict: with an unparseable entry no origin may be trusted, not even a well-formed sibling", captured)
+	}
+}
+
 func TestCSRFConfig_Validate_EmptyProxyEntry(t *testing.T) {
 	t.Parallel()
 
