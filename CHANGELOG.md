@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`http.ErrNoCookie`/`http.ErrNoLocation` are classified Rejection instead of Transient** (`RegisterErrorClassifications`): the named cookie or header location is deterministically absent, so an unchanged retry can never succeed — the package's own taxonomy puts deterministic failures in Rejection. This changes `errorfamily.Classify`/`IsRetryable` results for consumers who route retry decisions on these stdlib sentinels. The `ErrCodeHijackFailed` doc comment and message template were aligned in the same pass (family stays Transient per the documented taxonomy; the template's Fix text no longer implies a deterministic failure).
+
+- **CSRF `TrustedOrigins` parsing is unified and fail-closed** (`csrf.go`): the attestation-consistency check now parses the origin list all-or-nothing, mirroring `nosurf.StaticOrigins` — any entry `url.Parse` rejects leaves no trusted origins at all, so the attestation check can never trust a different set than the nosurf handler enforces (previously a bad entry silently split the semantics: nosurf trusted nothing while the attestation check kept the parseable siblings). `CSRFConfig.Validate` additionally rejects entries that are not usable `scheme://host` origins (unparseable, missing scheme, or missing host) with the new `csrf.trusted_origin_invalid` code (Rejection, cause-chained to `ErrCSRFConfig`) — such entries can never match an Origin header and previously died silently. Construction still follows the validate-and-log contract: an invalid list falls back to same-origin-only validation, loudly logged.
+
 ### Fixed
+
+- **Documentation-only:** `ValidateCSRF` now documents that it mutates the caller's request in place (the `Sec-Fetch-Site` plaintext-bypass fill, the `X-Csrf-Token` header translation including the form parse for custom field names), that nosurf's own token/reason never reach the caller's request, and that "already validated" is inferred from nosurf token presence with no validation-marker context flag (re-validation re-runs the full check; a marker flag would require either a signature change or `*r` reassignment — both declined).
 
 - **Documentation-only, per the CHANGELOG freeze policy:** the pushed, immutable `v1.1.0` tag predates the reference-link definitions for its heading (`[1.1.0]:` compare link added; `[Unreleased]` retargeted to `v1.1.0...HEAD`), so the tag's CI run failed the CHANGELOG link check. Release content itself is unaffected.
 

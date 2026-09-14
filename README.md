@@ -438,6 +438,7 @@ Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 | `CSRF`       | `csrf.origin_attestation_conflict`          | Rejection      | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
 | `CSRF`       | `csrf_config`                               | Infrastructure | No        | CSRF configuration invalid                                                                                    |
 | `CSRF`       | `csrf.max_age_negative`                     | Rejection      | No        | CSRFConfig.MaxAge is negative                                                                                 |
+| `CSRF`       | `csrf.trusted_origin_invalid`               | Rejection      | No        | TrustedOrigins entry is not a usable scheme://host origin                                                     |
 | `CORS`       | `cors.methods_empty`                        | Rejection      | No        | CORSConfig.AllowedMethods is empty                                                                            |
 | `Compress`   | `compression.incompressible_prefix_invalid` | Rejection      | No        | IncompressibleTypes entry is empty or lacks a slash                                                           |
 | `Decompress` | `decompression.encoding_unrecognized`       | Rejection      | No        | Encodings entry other than gzip/deflate                                                                       |

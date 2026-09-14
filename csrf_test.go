@@ -510,7 +510,10 @@ func TestParseTrustedOriginURLs_AllOrNothing(t *testing.T) {
 
 	broken := parseTrustedOriginURLs([]string{"https://good.example", "https://bad.example/%zz"})
 	if broken != nil {
-		t.Errorf("parseTrustedOriginURLs with any unparseable entry = %v, want nil (all-or-nothing, mirroring nosurf.StaticOrigins)", broken)
+		t.Errorf(
+			"parseTrustedOriginURLs with any unparseable entry = %v, want nil (all-or-nothing, mirroring nosurf.StaticOrigins)",
+			broken,
+		)
 	}
 
 	good := parseTrustedOriginURLs([]string{"https://good.example"})
@@ -549,7 +552,10 @@ func TestCSRFMiddleware_UnparseableTrustedOriginFailsClosed(t *testing.T) {
 	}
 
 	if !errors.Is(captured, ErrCSRFAttestationConflict) {
-		t.Errorf("ErrorHandler error = %v, want ErrCSRFAttestationConflict: with an unparseable entry no origin may be trusted, not even a well-formed sibling", captured)
+		t.Errorf(
+			"ErrorHandler error = %v, want ErrCSRFAttestationConflict: with an unparseable entry no origin may be trusted, not even a well-formed sibling",
+			captured,
+		)
 	}
 }
 

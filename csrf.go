@@ -286,7 +286,7 @@ func (c CSRFConfig) Validate() error {
 // way they silently change validation semantics, so they carry
 // csrf.trusted_origin_invalid with the specific problem in context.
 func validateTrustedOriginEntry(origin string) error {
-	u, parseErr := url.Parse(origin)
+	originURL, parseErr := url.Parse(origin)
 	if parseErr != nil {
 		return errCSRFInvalidOrigin.
 			WithCause(ErrCSRFConfig).
@@ -294,9 +294,9 @@ func validateTrustedOriginEntry(origin string) error {
 			WithContextAny("parse_error", parseErr.Error())
 	}
 
-	if u.Scheme == "" || u.Host == "" {
+	if originURL.Scheme == "" || originURL.Host == "" {
 		problem := "missing host"
-		if u.Scheme == "" {
+		if originURL.Scheme == "" {
 			problem = "missing scheme"
 		}
 

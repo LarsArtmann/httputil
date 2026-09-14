@@ -87,6 +87,7 @@ Separate Go module (`github.com/larsartmann/httputil/server_timing`, package `se
 | `CSRF`     | `csrf_invalid`                              | Rejection      | No        | CSRF token missing, malformed, or mismatched                                                                  |
 | `CSRF`     | `csrf.origin_attestation_conflict`          | Rejection      | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
 | `CSRF`     | `csrf.max_age_negative`                     | Rejection      | No        | CSRFConfig.MaxAge is negative (would delete the cookie on every response)                                     |
+| `CSRF`     | `csrf.trusted_origin_invalid`               | Rejection      | No        | TrustedOrigins entry is not a usable scheme://host origin (unparseable, or missing scheme/host)               |
 | `CSRF`     | `csrf_config` / `csrf_*`                    | Infrastructure | No        | CSRF configuration invalid (legacy underscore codes, cause-chained to `ErrCSRFConfig`)                        |
 | `CORS`     | `cors.methods_empty`                        | Rejection      | No        | CORSConfig.AllowedMethods is empty; preflight would advertise no methods                                      |
 | `ETag`     | `http.etag_write_failed`                    | Transient      | Yes       | ETag writer fails to stream buffered data                                                                     |
