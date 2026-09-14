@@ -279,6 +279,15 @@ func (c CSRFConfig) Validate() error {
 	return nil
 }
 
+// parseTrustedOrigin is the single parse point for TrustedOrigins entries,
+// mirroring nosurf.StaticOrigins exactly: url.Parse alone, no shape
+// requirement. The runtime allowlist (parseTrustedOriginURLs) and the
+// construction-time gate (validateTrustedOriginEntry) must agree on what
+// parses; only Validate adds the stricter scheme://host shape check on top.
+func parseTrustedOrigin(origin string) (*url.URL, error) {
+	return url.Parse(origin)
+}
+
 // validateTrustedOriginEntry rejects one TrustedOrigins entry unless it is a
 // well-formed origin: url.Parse must succeed and the parsed URL must carry
 // both scheme and host. Entries that fail either check make nosurf's
@@ -286,12 +295,12 @@ func (c CSRFConfig) Validate() error {
 // way they silently change validation semantics, so they carry
 // csrf.trusted_origin_invalid with the specific problem in context.
 func validateTrustedOriginEntry(origin string) error {
-	originURL, parseErr := url.Parse(origin)
+	originURL, parseErr := parseTrustedOrigin(origin)
 	if parseErr != nil {
 		return errCSRFInvalidOrigin.
 			WithCause(ErrCSRFConfig).
 			WithContext("origin", origin).
-			WithContextAny("parse_error", parseErr.Error())
+			WithContext("parse_error", parseErr.Error())
 	}
 
 	if originURL.Scheme == "" || originURL.Host == "" {
@@ -303,7 +312,7 @@ func validateTrustedOriginEntry(origin string) error {
 		return errCSRFInvalidOrigin.
 			WithCause(ErrCSRFConfig).
 			WithContext("origin", origin).
-			WithContextAny("parse_error", problem)
+			WithContext("parse_error", problem)
 	}
 
 	return nil
@@ -657,7 +666,7 @@ func parseTrustedOriginURLs(origins []string) []*url.URL {
 	parsed := make([]*url.URL, 0, len(origins))
 
 	for _, origin := range origins {
-		u, parseErr := url.Parse(origin)
+		u, parseErr := parseTrustedOrigin(origin)
 		if parseErr != nil {
 			return nil
 		}
