@@ -95,8 +95,10 @@ nix flake check            # Full flake gates (includes treefmt verification)
 
 # erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops).
 # Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors.
-# The full --type-aware run reports 43 `errors.Is` advisories in tests — all
-# correct sentinel matches; do NOT migrate them.
+# The full --type-aware run reports one advisory class in tests — `errors.Is`
+# on load-bearing `*errorfamily.Error` sentinels (44 as of 2026-09-14; grows
+# by one per added sentinel, never a new class) — all correct sentinel
+# matches; do NOT migrate them.
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
@@ -180,7 +182,7 @@ Every error the package produces is classified via `go-error-family` and typed t
 - **Sentinels**: package-level `err*` vars built from `Code` constructors. `errors.Is` matches by code+family (errorfamily `Is` semantics), so `WithContext`/`WithCause` clones still match their sentinel.
 - **Exported `ErrCode*` string constants stay untyped** for backward compatibility; internal construction uses typed mirrors (`codeWriteFailed = Code(ErrCodeWriteFailed)`). Do NOT create parallel exported `Code` aliases.
 - **Config errors are `Rejection`** (fix the config, never retry); runtime write/hijack failures are `Transient`; shutdown and pool-contract violations are `Infrastructure`; corrupt compressed bodies are `Corruption`. Legacy CSRF config codes stay `Infrastructure` with `WithCause(ErrCSRFConfig)` chaining for backward compatibility, and use the historical underscore spelling (`csrf_samesite_insecure`, no dot).
-- **Message templates**: `errors.go` holds an `errorTemplates` map (what/why/fix/wayOut per code, `{key}` placeholders from context). `errors_templates_test.go` asserts completeness via `allHTTputilErrorCodes` — when adding a code, add it to the map, the list, and the domain test.
+- **Message templates**: `errors.go` holds an `errorTemplates` map (what/why/fix/wayOut per code, `{key}` placeholders from context). `errors_templates_test.go` asserts completeness via `allHTTputilErrorCodes` — when adding a code, add it to the map, the list, and the domain test, then sweep the doc side in the same change: the erraudit advisory note above (sentinel count), FEATURES.md inventory, docs/v1-stability.md (exported identifiers only), and the README/architecture-reference classification tables.
 
 ## Error Classification
 

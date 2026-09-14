@@ -565,6 +565,70 @@ func TestCSRFMiddleware_UnparseableTrustedOriginFailsClosed(t *testing.T) {
 	}
 }
 
+func TestCSRFMiddleware_AllowsTrustedOriginWithoutAttestationHeader(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{
+		TrustedOrigins: []string{"https://trusted.example"},
+	})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Origin", "https://trusted.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf(
+			"cross-origin request with valid token and a listed Origin should be accepted without a Sec-Fetch-Site attestation, got %d",
+			rec.Code,
+		)
+	}
+}
+
+func TestCSRFMiddleware_UnparseableTrustedOriginFallsBackToSameOriginOnly(t *testing.T) {
+	t.Parallel()
+
+	var captured error
+
+	cfg := CSRFConfig{
+		TrustedOrigins: []string{"https://trusted.example", "https://broken.example/%zz"},
+		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+			captured = err
+			w.WriteHeader(http.StatusForbidden)
+		},
+	}
+
+	mw := CSRFMiddleware(cfg)
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := newValidCSRFPost(t, mw)
+	req.Header.Set("Origin", "https://trusted.example")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf(
+			"cross-origin request with valid token should be rejected once any TrustedOrigins entry is unparseable (same-origin-only fallback), got %d",
+			rec.Code,
+		)
+	}
+
+	if !errors.Is(captured, ErrCSRFInvalid) {
+		t.Errorf(
+			"ErrorHandler error = %v, want ErrCSRFInvalid: the nosurf token path, not the attestation check, must reject the now-untrusted origin",
+			captured,
+		)
+	}
+}
+
 func TestCSRFConfig_Validate_EmptyProxyEntry(t *testing.T) {
 	t.Parallel()
 

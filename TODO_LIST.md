@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code. Completed work lives in [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]`, `[1.0.1]`, `[1.0.0]`); rejected ideas live in [ROADMAP.md](ROADMAP.md) Non-goals; process decisions live in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
-_Updated: 2026-09-14 (full-code-review findings 3–6 executed: TrustedOrigins parser unification + fail-closed StaticOrigins, stdlib error reclassification, ValidateCSRF mutation documentation; completed items moved to CHANGELOG)._
+_Updated: 2026-09-14 (follow-up pass: end-to-end same-origin-only fallback test, fuzz seeds + shape oracle, `WithContext` consistency, parse-point consolidation, doc-semantics sweep; completed items moved to CHANGELOG)._
 
 ---
 
@@ -35,6 +35,7 @@ _Updated: 2026-09-14 (full-code-review findings 3–6 executed: TrustedOrigins p
 - [ ] **File the verified go-error-family issue** — draft verified and saved: [docs/planning/2026-09-10_go-error-family-conditional-request-classification-issue-draft.md](docs/planning/2026-09-10_go-error-family-conditional-request-classification-issue-draft.md). Owner action (own repo).
 - [ ] **Decide `CSRFConfig.withParsedTrustedProxies` export post-v1.1** — revisit only if external consumers need to construct the CIDR form themselves. Sources: `09-26:f34`.
 - [ ] **Re-run the two review passes lost to LLM rate limits** — sweep test targets: chain_test.go, server_test.go, ratelimit_keyed_test.go, id_generator tests; scripts/examples scope. Owner question ② pending; everything else was covered by 4 completed passes or direct authorship.
+- [ ] **Next release: migration-note the two `[Unreleased]` behavior changes** — (1) TrustedOrigins parsing is all-or-nothing and `Validate` now rejects non-`scheme://host` entries (consumers relying on partial parsing or scheme-less entries see behavior changes); (2) `http.ErrNoCookie`/`ErrNoLocation` classifications changed. Add a release-notes callout (or `docs/migrating-*.md`) and the `docs/v1-stability.md` Versioning Policy bullet — that doc has no behavioral-delta section beyond version-scoped bullets (verified 2026-09-14).
 
 ---
 

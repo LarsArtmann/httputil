@@ -90,6 +90,8 @@ func FuzzCSRFConfig_TrustedOrigins(f *testing.F) {
 	f.Add("https://*")
 	f.Add("*://example.com")
 	f.Add("https://example.com*")
+	f.Add("example.com") // scheme-less: parses, must fail the shape gate
+	f.Add("https://")    // host-less: parses, must fail the shape gate
 	f.Add(strings.Repeat("a", 1000))
 	f.Add("https://example.com\nhttp://evil.com") // header injection attempt
 
@@ -108,8 +110,14 @@ func FuzzCSRFConfig_TrustedOrigins(f *testing.F) {
 			}
 		}
 
-		// Validate must not panic on any input
-		_ = err
+		// Entries that cannot parse or lack scheme/host MUST be rejected:
+		// an unparseable entry makes nosurf.StaticOrigins fail wholesale,
+		// and a scheme-less entry can never match an Origin header — both
+		// silently change trust semantics.
+		originURL, parseErr := parseTrustedOrigin(origin)
+		if (parseErr != nil || originURL.Scheme == "" || originURL.Host == "") && err == nil {
+			t.Errorf("Validate accepted non-scheme://host origin %q", origin)
+		}
 	})
 }
 

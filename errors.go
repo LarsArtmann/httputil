@@ -9,7 +9,8 @@ import (
 
 // Error codes for classified errors returned by ResponseRecorder operations.
 // All codes use the http. namespace and are compatible with go-error-family
-// for behavioral classification (Transient vs Infrastructure) and retry decisions.
+// for family classification (Rejection, Transient, Infrastructure, Corruption)
+// and retry decisions.
 const (
 	// ErrCodeWriteFailed is returned when the underlying ResponseWriter.Write fails.
 	// Classified as Transient (retryable).
@@ -127,7 +128,7 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		WayOut: "Remove the entry entirely to trust no additional origins.",
 	},
 	string(codeCSRFInvalidOrigin): {
-		What:   "CSRF trusted origin entry is not a usable origin",
+		What:   "CSRF trusted origin entry is not a scheme://host origin",
 		Why:    "CSRFConfig.TrustedOrigins contains {origin}, which is not a usable origin: {parse_error}. Such an entry can never match an Origin header and silently changes validation semantics.",
 		Fix:    "Use full origins such as https://app.example.com.",
 		WayOut: "Remove the entry to trust same-origin requests only.",
