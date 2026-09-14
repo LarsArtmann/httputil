@@ -102,16 +102,16 @@ Honest answers to the three questions asked, plus the self-review:
 
 **Direct session follow-ups (small, this week):**
 
-1. Update AGENTS.md erraudit note 43 → 44 (or reword to the class-based phrasing so the number stops rotting).
-2. Add end-to-end test: broken `TrustedOrigins` list ⇒ cross-origin request with valid token rejected by nosurf (same-origin-only fallback).
-3. Add fuzz seeds `"example.com"` and `"https://"` to `FuzzCSRFConfig_TrustedOrigins`.
-4. Replace the two `WithContextAny("parse_error", …)` string passes with `WithContext`.
-5. Consolidate the two TrustedOrigins parse helpers behind one core (`requireShape` flag or caller-side shape check).
-6. Update FEATURES.md feature bullet + DOMAIN_LANGUAGE.md line 368 to the all-or-nothing/shape semantics.
-7. Check `docs/v1-stability.md` for a behavioral-delta note on `Validate()` tightening; add one line if the section exists.
-8. Run `nix flake check` once on this tree to close the B5 gap.
-9. Run `buildflow --build-mode dev` to confirm the pipeline agrees with the manual gates.
-10. Re-run `scripts/coverage-threshold` (the actual gate binary) instead of the manual `go tool cover` total.
+1. ~~Update AGENTS.md erraudit note 43 → 44 (or reword to the class-based phrasing so the number stops rotting).~~ done 2026-09-14 (class-based rewording; measured: 44 sentinel_concrete_type + 40 test-side errors.Is advisories, both documented).
+2. ~~Add end-to-end test: broken `TrustedOrigins` list ⇒ cross-origin request with valid token rejected by nosurf (same-origin-only fallback).~~ done 2026-09-14 (`TestCSRFMiddleware_UnparseableTrustedOriginFallsBackToSameOriginOnly` pinning `ErrCSRFInvalid`, plus positive contrast `TestCSRFMiddleware_AllowsTrustedOriginWithoutAttestationHeader`).
+3. ~~Add fuzz seeds `"example.com"` and `"https://"` to `FuzzCSRFConfig_TrustedOrigins`.~~ done 2026-09-14 (both seeds added and the fuzz oracle extended to pin the scheme://host shape contract; 10s run green).
+4. ~~Replace the two `WithContextAny("parse_error", …)` string passes with `WithContext`.~~ done 2026-09-14 (the error-value site legitimately stays `WithContextAny`).
+5. ~~Consolidate the two TrustedOrigins parse helpers behind one core (`requireShape` flag or caller-side shape check).~~ done 2026-09-14 (single parse point `parseTrustedOrigin`, mirroring nosurf, used by both helpers; no boolean flag).
+6. ~~Update FEATURES.md feature bullet + DOMAIN_LANGUAGE.md line 368 to the all-or-nothing/shape semantics.~~ done 2026-09-14.
+7. ~~Check `docs/v1-stability.md` for a behavioral-delta note on `Validate()` tightening; add one line if the section exists.~~ done 2026-09-14 (verified: no behavioral-delta section exists — the Versioning Policy is version-scoped; obligation routed to the new TODO_LIST next-release item).
+8. ~~Run `nix flake check` once on this tree to close the B5 gap.~~ done 2026-09-14 (all checks passed).
+9. ~~Run `buildflow --build-mode dev` to confirm the pipeline agrees with the manual gates.~~ done 2026-09-14 (all fixable steps green; findings gate trips only on the documented policy-rejected residuals — erraudit delta exactly +1 sentinel/−1 ignored from this session's edits, zero findings outside documented classes).
+10. ~~Re-run `scripts/coverage-threshold` (the actual gate binary) instead of the manual `go tool cover` total.~~ done 2026-09-14 (gate binary green: total 97.5% ≥ 95%).
 
 **TODO_LIST execution (existing Medium items, in order):**
 11. Owner-ruling pass on CSRF security-degrading config (question ③) → then either close or run the remediation design pass.
@@ -124,7 +124,7 @@ Honest answers to the three questions asked, plus the self-review:
 16. HARVEST this report's section f into TODO_LIST/ROADMAP with routing rigor (status-report↔docs-health loop is open).
 17. Annotate `docs/status/2026-09-11_13-49_*.md` items 14–17 (four items this session executed) with done-at hashes per the ANNOTATE convention.
 18. Sweep all living docs for the phrase "TrustedOrigins" to catch the last semantic stragglers (README prose section beyond the field table).
-19. Add the doc-side checklist analog of the "map, list, domain test" rule: "when adding a sentinel/code → grep AGENTS.md advisory count + FEATURES inventory + v1-stability" (candidate AGENTS.md line).
+19. ~~Add the doc-side checklist analog of the "map, list, domain test" rule: "when adding a sentinel/code → grep AGENTS.md advisory count + FEATURES inventory + v1-stability" (candidate AGENTS.md line).~~ done 2026-09-14 (appended to the AGENTS.md Message-templates bullet).
 20. Consider renaming/rewording the FEATURES "New middleware" coverage header (it predates the taxonomy rename and mixes sections).
 
 **Testing depth (from self-review):**
@@ -139,9 +139,9 @@ Honest answers to the three questions asked, plus the self-review:
 
 **API/API-doc polish:**
 29. Decide whether `csrf.trusted_origin_invalid` should be exposed as an exported `Code` constant for consumer error routing (additive; see question 3).
-30. Error-template pass on the new entry: confirm `{parse_error}` renders readably for all three problem kinds (parse error text / "missing scheme" / "missing host").
-31. `errors.go:10-12` header comment still says "(Transient vs Infrastructure)" — stale family dichotomy; one-line refresh.
-32. `errCSRFInvalidOrigin` message says "not a scheme://host origin" while the template What says "not a usable origin" — unify wording.
+30. ~~Error-template pass on the new entry: confirm `{parse_error}` renders readably for all three problem kinds (parse error text / "missing scheme" / "missing host").~~ done 2026-09-14 (verified by template inspection: all three render readably inline after the colon).
+31. ~~`errors.go:10-12` header comment still says "(Transient vs Infrastructure)" — stale family dichotomy; one-line refresh.~~ done 2026-09-14 (now lists all four families).
+32. ~~`errCSRFInvalidOrigin` message says "not a scheme://host origin" while the template What says "not a usable origin" — unify wording.~~ done 2026-09-14 (template What unified on "scheme://host").
 
 **Pre-existing small debts noticed this session (not mine, but real):**
 33. `Validate()` complexity is near the cyclop ceiling after the new gate — the helper helped; next addition should extract the TrustedProxies loop too.
@@ -161,7 +161,7 @@ Honest answers to the three questions asked, plus the self-review:
 45. Owner: file the verified go-error-family conditional-request classification issue.
 46. Owner: go-compression new-repo/remote setup (precondition 2).
 47. Website-launch effort → unblocks httpspec docs page.
-48. Next release: the `[Unreleased]` section now carries two behavior changes (reclassification, TrustedOrigins) — both need the migration-note treatment in the next version's notes.
+48. ~~Next release: the `[Unreleased]` section now carries two behavior changes (reclassification, TrustedOrigins) — both need the migration-note treatment in the next version's notes.~~ done 2026-09-14 (routed: TODO_LIST now carries the next-release item covering both behavior changes, a migration callout, and the v1-stability Versioning-Policy bullet).
 49. Consider a `docs/migrating-*.md` note for consumers who relied on partial TrustedOrigins parsing (narrow but real behavior change).
 50. Next docs-health VERIFY pass should re-check today's coverage numbers (97.2/98.6/97.5) against a fresh race-profile run.
 
