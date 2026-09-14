@@ -563,20 +563,20 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `CSRFConfig` fields
 
-| Field                  | Type            | Default            | Description                                                                                                       |
-| ---------------------- | --------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `CookieName`           | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                                                           |
-| `HeaderName`           | `string`        | `"X-Csrf-Token"`   | Request header containing the CSRF token (canonical MIME spelling; header names are case-insensitive on the wire) |
-| `FieldName`            | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                                                                |
-| `MaxAge`               | `time.Duration` | `24h`              | Cookie max age                                                                                                    |
-| `Secure`               | `bool`          | `false`            | Sets the Secure flag on the cookie (set `true` in production)                                                     |
-| `SameSite`             | `http.SameSite` | `SameSiteLaxMode`  | SameSite attribute on the cookie                                                                                  |
-| `Domain`               | `string`        | `""` (host-only)   | Cookie domain                                                                                                     |
-| `Path`                 | `string`        | `"/"`              | Cookie path                                                                                                       |
+| Field                  | Type            | Default            | Description                                                                                                                                       |
+| ---------------------- | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CookieName`           | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                                                                                           |
+| `HeaderName`           | `string`        | `"X-Csrf-Token"`   | Request header containing the CSRF token (canonical MIME spelling; header names are case-insensitive on the wire)                                 |
+| `FieldName`            | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                                                                                                |
+| `MaxAge`               | `time.Duration` | `24h`              | Cookie max age                                                                                                                                    |
+| `Secure`               | `bool`          | `false`            | Sets the Secure flag on the cookie (set `true` in production)                                                                                     |
+| `SameSite`             | `http.SameSite` | `SameSiteLaxMode`  | SameSite attribute on the cookie                                                                                                                  |
+| `Domain`               | `string`        | `""` (host-only)   | Cookie domain                                                                                                                                     |
+| `Path`                 | `string`        | `"/"`              | Cookie path                                                                                                                                       |
 | `TrustedOrigins`       | `[]string`      | `nil`              | Origins allowed for cross-domain CSRF (each must be a `scheme://host` origin; parsing is all-or-nothing — one bad entry means no trusted origins) |
-| `TrustedProxies`       | `[]string`      | `nil`              | IP/CIDR of reverse proxies that may strip origin headers                                                          |
-| `AllowPlaintextBypass` | `bool`          | `false`            | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)                                            |
-| `ErrorHandler`         | `ErrorHandler`  | `nil` (403 + body) | Custom handler for CSRF validation failures                                                                       |
+| `TrustedProxies`       | `[]string`      | `nil`              | IP/CIDR of reverse proxies that may strip origin headers                                                                                          |
+| `AllowPlaintextBypass` | `bool`          | `false`            | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)                                                                            |
+| `ErrorHandler`         | `ErrorHandler`  | `nil` (403 + body) | Custom handler for CSRF validation failures                                                                                                       |
 
 ### `MetricsConfig` fields
 
