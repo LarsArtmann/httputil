@@ -501,7 +501,10 @@ func TestCSRFConfig_Validate_TrustedOriginWellFormedAccepted(t *testing.T) {
 	}}
 
 	if err := cfg.Validate(); err != nil {
-		t.Fatalf("Validate() error = %v, want nil for scheme://host origins (extra path parts are ignored)", err)
+		t.Fatalf(
+			"Validate() error = %v, want nil for scheme://host origins (extra path parts are ignored)",
+			err,
+		)
 	}
 }
 
@@ -548,7 +551,10 @@ func TestCSRFMiddleware_UnparseableTrustedOriginFailsClosed(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
-		t.Fatalf("request should be rejected when TrustedOrigins contain an unparseable entry, got %d", rec.Code)
+		t.Fatalf(
+			"request should be rejected when TrustedOrigins contain an unparseable entry, got %d",
+			rec.Code,
+		)
 	}
 
 	if !errors.Is(captured, ErrCSRFAttestationConflict) {

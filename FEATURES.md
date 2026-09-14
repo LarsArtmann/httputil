@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-09-11 — docs-health VERIFY pass. Coverage re-measured with race detection: 97.4% (`httputil`, library packages), 98.6% (`httpspec`). All claims checked against the 2026-09-11 `-race -coverprofile` runs and the post-v1.0.0 tree._
+_Updated: 2026-09-14 — full-code-review findings 3–6 executed (TrustedOrigins unification + fail-closed, stdlib reclassification, ValidateCSRF docs). Coverage re-measured with race detection: 97.2% (`httputil`, library packages), 98.6% (`httpspec`)._
 
 ---
 
@@ -163,7 +163,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.4% statement coverage** (`httputil`, library packages), **98.6%** (`httpspec`) — measured 2026-09-11 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate).
+- `go test -race ./...` passes across the full suite with **97.2% statement coverage** (`httputil`, library packages), **98.6%** (`httpspec`) — measured 2026-09-14 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate).
 - 26 fuzz targets (24 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns + exact-allowlist origin echo), Compression (round-trip gunzip-and-compare invariant + writer state machine + Accept-Encoding wire format), MaxBodySize (limit contract), RequestID, ClientIP, `ParseUintQuery`, `EvictionTTL`, `HealthResponse` encoding, Server-Timing (header value + middleware), ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), and CSRF (6 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). All 26 targets run 5 minutes each in the nightly fuzz workflow.
 - 49 top-level benchmark functions (58 result rows counting `b.Run` sub-benchmarks) and 30 example functions across `httputil` + `httpspec` (`server_timing` has none).
 - `go vet` clean.
@@ -189,7 +189,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-09-11 with `go test -race -coverprofile`: **97.0%** (`httputil`, library packages; 97.3% total across both modules), **98.6%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-09-14 with `go test -race -coverprofile`: **97.2%** (`httputil`, library packages; 97.5% combined across both modules), **98.6%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
 **Typed error model (`code.go`):**
 
@@ -197,13 +197,11 @@ Measured 2026-09-11 with `go test -race -coverprofile`: **97.0%** (`httputil`, l
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit, TLS):**
 
-- `csrf.go:302 ConfigureNosurfHandler` — 93.8%. TrustedOrigins parse error branch (internal to nosurf).
-- `csrf.go:605 parseTrustedOriginURLs` — 85.7%. Malformed trusted-origin URL branches.
-- `csrf.go:644 contradictedAttestationOrigin` — 93.8%. Unparseable-Origin contradiction branch (v1.0.0 attestation defense).
-- `csrf.go:679 requestScheme` — 66.7%. The `r.TLS != nil` HTTPS branch needs a TLS request fixture.
-- `csrf.go:742 CSRFTokenHXHeaders` — 71.4%. `json.Marshal` error on `map[string]string` (practically unreachable).
-- `csrf.go:778 CSRFTestToken` — 92.9%. Internal nosurf error branches.
-- `csrf.go:813 ValidateCSRF` — 94.4%. Nosurf TrustedOrigins parse failure paths.
+- `csrf.go:734 requestScheme` — 80.0%. The `r.TLS != nil` HTTPS branch needs a TLS request fixture.
+- `csrf.go:755 forwardedProtoFromTrustedProxy` — 75.0%. The untrusted-remote, empty-header, and non-http(s)-proto early returns need XFP fixtures with a configured trusted proxy (current tests exercise the no-proxy and trusted-proxy happy paths).
+- `csrf.go:835 CSRFTokenHXHeaders` — 71.4%. Token-less request branch and the `json.Marshal` error on `map[string]string` (practically unreachable).
+- `csrf.go:876 CSRFTestToken` — 92.9%. Internal nosurf error branches.
+- `csrf.go:928 ValidateCSRF` — 94.4%. The custom header/field-name translation branch (`needsTranslation`) is only exercised through `CSRFMiddleware`, not through `ValidateCSRF`.
 - `ratelimit_keyed.go:200 buildKeyedRateLimiter` — 93.1%. Defensive config validation edge.
 - `ratelimit_keyed.go:320 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
 - `ratelimit_keyed.go:384 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
