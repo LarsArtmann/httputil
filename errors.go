@@ -20,7 +20,9 @@ const (
 	ErrCodeHijackUnsupported = "http.hijack_unsupported"
 
 	// ErrCodeHijackFailed is returned when the underlying Hijack call fails.
-	// Classified as Transient (retryable).
+	// Classified as Transient (retryable): the failure usually means the client
+	// connection dropped or the writer was already hijacked, and a fresh request
+	// may succeed.
 	ErrCodeHijackFailed = "http.hijack_failed"
 
 	// ErrCodeCompressWriteFailed is returned when gzip write during
@@ -71,7 +73,7 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 	ErrCodeHijackFailed: {
 		What:   "Failed to hijack HTTP connection",
 		Why:    "The underlying Hijack() call returned an error.",
-		Fix:    "Check if the connection is still active and not already hijacked.",
+		Fix:    "Inspect the cause: the client connection may have dropped, or the writer was already hijacked by an earlier handler.",
 		WayOut: msgRetryMaySucceed,
 	},
 	ErrCodeCompressWriteFailed: {
@@ -416,11 +418,16 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 // classifications, so consumers need only call this once. Do not also call
 // etag.RegisterErrorClassifications.
 func RegisterErrorClassifications() {
+	// ErrNoCookie and ErrNoLocation are Rejection: the named cookie or header
+	// location is deterministically absent, so an unchanged retry can never
+	// succeed. ErrAbortHandler stays Transient (an aborted request can be
+	// retried), and the unsupported-protocol/skip sentinels stay
+	// Infrastructure (the environment does not support the operation).
 	errorfamily.RegisterClassifications(map[error]errorfamily.Family{
 		http.ErrNotSupported:    errorfamily.Infrastructure,
 		http.ErrAbortHandler:    errorfamily.Transient,
-		http.ErrNoCookie:        errorfamily.Transient,
-		http.ErrNoLocation:      errorfamily.Transient,
+		http.ErrNoCookie:        errorfamily.Rejection,
+		http.ErrNoLocation:      errorfamily.Rejection,
 		http.ErrSkipAltProtocol: errorfamily.Infrastructure,
 	})
 

@@ -221,8 +221,23 @@ func TestRegisterErrorClassifications_RegistersStdlibSentinels(t *testing.T) {
 
 	RegisterErrorClassifications()
 
-	family := errorfamily.Classify(http.ErrNotSupported)
-	if family != errorfamily.Infrastructure {
+	if family := errorfamily.Classify(http.ErrNotSupported); family != errorfamily.Infrastructure {
 		t.Errorf("Classify(ErrNotSupported) = %v, want Infrastructure", family)
+	}
+
+	if family := errorfamily.Classify(http.ErrSkipAltProtocol); family != errorfamily.Infrastructure {
+		t.Errorf("Classify(ErrSkipAltProtocol) = %v, want Infrastructure", family)
+	}
+
+	if family := errorfamily.Classify(http.ErrAbortHandler); family != errorfamily.Transient {
+		t.Errorf("Classify(ErrAbortHandler) = %v, want Transient", family)
+	}
+
+	if family := errorfamily.Classify(http.ErrNoCookie); family != errorfamily.Rejection {
+		t.Errorf("Classify(ErrNoCookie) = %v, want Rejection (deterministic absence, retry cannot succeed)", family)
+	}
+
+	if family := errorfamily.Classify(http.ErrNoLocation); family != errorfamily.Rejection {
+		t.Errorf("Classify(ErrNoLocation) = %v, want Rejection (deterministic absence, retry cannot succeed)", family)
 	}
 }

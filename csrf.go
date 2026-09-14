@@ -855,8 +855,25 @@ func CSRFTestToken(middleware func(http.Handler) http.Handler) (string, *http.Co
 // request fails validation — the recorder contains the failure response
 // (headers, status code, body) that should be copied to the real ResponseWriter.
 //
-// If the request already has a valid nosurf token (global CSRFMiddleware already
-// ran), returns (true, nil) without re-validating.
+// # Caller-request mutation
+//
+// ValidateCSRF mutates r in place, mirroring exactly what CSRFMiddleware does
+// to a request before the nosurf handler runs:
+//
+//   - SetPlaintextHTTPOrigin may set "Sec-Fetch-Site: same-origin" on a
+//     plain-HTTP request that carries no origin headers (the trusted-proxy
+//     plaintext bypass).
+//   - TranslateCSRFHeaders may set the X-Csrf-Token header from the configured
+//     custom header or form field. Reading a custom form field calls
+//     r.PostFormValue, which parses and caches the request form.
+//   - nosurf itself never leaks into the caller's request: it validates a
+//     context-annotated copy, so its token and failure reason stay internal.
+//
+// "Already validated" is inferred, not tracked: the (true, nil) short-circuit
+// fires when r already carries a nosurf token, which only happens when
+// CSRFMiddleware ran upstream on the same request. There is no
+// validation-marker context flag — a second ValidateCSRF call on the same
+// unvalidated request re-runs the full validation (and is idempotent).
 func ValidateCSRF(r *http.Request, cfg CSRFConfig) (bool, *httptest.ResponseRecorder) {
 	if nosurf.Token(r) != "" {
 		return true, nil
