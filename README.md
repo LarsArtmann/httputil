@@ -441,6 +441,7 @@ Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 | `CSRF`       | `csrf.trusted_origin_invalid`               | Rejection      | No        | TrustedOrigins entry is not a usable scheme://host origin                                                     |
 | `CORS`       | `cors.methods_empty`                        | Rejection      | No        | CORSConfig.AllowedMethods is empty                                                                            |
 | `Compress`   | `compression.incompressible_prefix_invalid` | Rejection      | No        | IncompressibleTypes entry is empty or lacks a slash                                                           |
+| `Compress`   | `compression.absent_encoding_invalid`       | Rejection      | No        | AbsentEncoding is not a known AbsentEncodingPolicy constant                                                   |
 | `Decompress` | `decompression.encoding_unrecognized`       | Rejection      | No        | Encodings entry other than gzip/deflate                                                                       |
 | `Decompress` | `decompression.encoding_duplicate`          | Rejection      | No        | Same encoding listed twice                                                                                    |
 
