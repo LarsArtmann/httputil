@@ -46,7 +46,7 @@ Quick counts: **10 follow-ups fully done · 5 polish items done alongside · 0 n
 All deliberately untouched — owner-gated by their own recorded decisions or separate skill-sized efforts:
 
 1. **CSRF security-degrading config: log-only vs remediate design pass** — standing owner question ③; would overturn DECISION_LOG 2026-08-08.
-2. **Re-run the two LLM-rate-limit-lost review passes** (chain_test, server_test, ratelimit_keyed_test, id_generator tests; scripts/examples scope) — owner question ②.
+~~2. **Re-run the two LLM-rate-limit-lost review passes** (chain_test, server_test, ratelimit_keyed_test, id_generator tests; scripts/examples scope) — owner question ②.~~ done 2026-09-15: both passes re-run for real; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6, commit `0cb25ea`).
 3. **Export `csrf.trusted_origin_invalid` as an exported `Code` constant** — owner question ③-adjacent (new this session's standing set; consumers can currently match only via the string).
 4. **go-compression extraction** — deferred post-v1.1; owner owns new-repo/remote setup; my precondition (plan inventory refresh) still open.
 5. **Re-run `architecture-review` post-v1.1** — HTML deliverable, separate session.
@@ -104,7 +104,7 @@ All deliberately untouched — owner-gated by their own recorded decisions or se
 4. AGENTS.md lint-note: nolint explanations must keep the line <120 cols (golines will orphan longer directives onto the wrong line).
 5. Unit test pinning opaque-URL TrustedOrigins entries (`mailto:addr`, `data:text/plain,x`) — shape gate rejects via `Host == ""`; currently only fuzz-explored, not seed- or test-pinned.
 6. Test asserting the fallback log fires: broken TrustedOrigins ⇒ the "falling back to same-origin-only validation" `slog.Error` record (behavior is pinned; the loud-log half of the contract is not asserted).
-7. Owner-question ③ pending: close or plan the CSRF security-degrading-config design pass.
+~~7. Owner-question ③ pending: close or plan the CSRF security-degrading-config design pass.~~ done 2026-09-15: design pass executed per the owner ruling; fallback shipped (docs/planning/2026-09-15_csrf-security-degrading-config-design-note.md).
 8. Owner-question ② pending: scope ruling on the two lost review passes.
 9. Owner question: export policy for `csrf.trusted_origin_invalid` (exported `Code` constant vs internal-until-v2).
 10. Full docs-health HARVEST of both 2026-09-14 reports' open f-items into TODO_LIST/ROADMAP (B4).
@@ -113,8 +113,8 @@ All deliberately untouched — owner-gated by their own recorded decisions or se
 11. Refresh the go-compression extraction plan inventory (my precondition; owner owns repo/remote setup).
 12. Re-run `architecture-review` post-v1.1 (HTML deliverable, docs/architecture-understanding).
 13. httpspec docs-site page (when website-launch resumes).
-14. Annotate `docs/status/2026-09-11_13-49_*.md` items 14–17 with done-at hashes (carried item 17).
-15. Sweep README prose (beyond the field table) for TrustedOrigins semantic stragglers (carried item 18).
+~~14. Annotate `docs/status/2026-09-11_13-49_*.md` items 14–17 with done-at hashes (carried item 17).~~ done 2026-09-15 (docs-health pass: items 14–17 struck in that report).
+~~15. Sweep README prose (beyond the field table) for TrustedOrigins semantic stragglers (carried item 18).~~ done 2026-09-15 (docs-health VERIFY: README lines 382/441/577 verified carrying the all-or-nothing/`scheme://host` semantics; no stragglers).
 
 **Docs hygiene:**
 16. Consider renaming/rewording the FEATURES "New middleware" coverage header (carried item 20).
@@ -165,8 +165,8 @@ All deliberately untouched — owner-gated by their own recorded decisions or se
 
 ## g) Questions I cannot figure out myself
 
-1. **Question ③ (standing): CSRF security-degrading configs — keep validate-and-log, or do you want a remediate-to-secure-defaults design pass?** This session deliberately preserved log-only (construction proceeds, fail-closed trust); the SameSite/Secure class stays open and decides whether I plan a behavior-changing pass or close the TODO item.
-2. **Question ② (standing): should I re-run the two LLM-rate-limit-lost review passes now** (chain_test.go, server_test.go, ratelimit_keyed_test.go, id_generator tests; scripts/examples scope), or does that stay parked?
+1. **Question ③ (standing): CSRF security-degrading configs — keep validate-and-log, or do you want a remediate-to-secure-defaults design pass?** This session deliberately preserved log-only (construction proceeds, fail-closed trust); the SameSite/Secure class stays open and decides whether I plan a behavior-changing pass or close the TODO item. ~~Answered 2026-09-15: remediate (owner ruling; B1 + opt-out shipped, DECISION_LOG 2026-09-15).~~
+2. **Question ② (standing): should I re-run the two LLM-rate-limit-lost review passes now** (chain_test.go, server_test.go, ratelimit_keyed_test.go, id_generator tests; scripts/examples scope), or does that stay parked? ~~Answered 2026-09-15: re-run executed; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6).~~
 3. **Export policy: should `csrf.trusted_origin_invalid` become an exported `Code` constant** (additive, frozen-API-safe; lets consumers route on it without string matching), or is internal-only the policy for new CSRF codes until v2? Today's `WithContext` cleanup touched all its construction sites, so exporting later would be a one-line change — but the decision is yours.
 
 ---

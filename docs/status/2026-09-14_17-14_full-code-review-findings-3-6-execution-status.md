@@ -47,7 +47,7 @@ All deliberately untouched — each is blocked by its own recorded owner decisio
 1. **CSRF security-degrading config: log-only vs remediate** (standing owner question ③; would overturn DECISION_LOG 2026-08-08).
 2. **Extract response compression into `go-compression`** — deferred post-v1.1; preconditions: plan-inventory refresh (mine to do eventually), owner new-repo/remote setup, phased execution.
 3. **Re-run `architecture-review` post-v1.1** — separate large analysis with HTML deliverable; not attempted to avoid a rushed artifact in this session.
-4. **Re-run the two review passes lost to LLM rate limits** — parked on owner question ② (scope).
+~~4. **Re-run the two review passes lost to LLM rate limits** — parked on owner question ② (scope).~~ done 2026-09-15: both passes re-run for real; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6, commit `0cb25ea`).
 5. **httpspec docs-site page** — blocked on the website-launch effort.
 6. **File the verified go-error-family issue** — TODO marks it "Owner action (own repo)"; draft is saved and verified.
 7. **Decide `CSRFConfig.withParsedTrustedProxies` export** — revisit only on external consumer need.
@@ -114,10 +114,10 @@ Honest answers to the three questions asked, plus the self-review:
 10. ~~Re-run `scripts/coverage-threshold` (the actual gate binary) instead of the manual `go tool cover` total.~~ done 2026-09-14 (gate binary green: total 97.5% ≥ 95%).
 
 **TODO_LIST execution (existing Medium items, in order):**
-11. Owner-ruling pass on CSRF security-degrading config (question ③) → then either close or run the remediation design pass.
+~~11. Owner-ruling pass on CSRF security-degrading config (question ③) → then either close or run the remediation design pass.~~ done 2026-09-15: design pass + owner ruling + implementation shipped (docs/planning/2026-09-15_csrf-security-degrading-config-design-note.md; DECISION_LOG 2026-09-15).
 12. Refresh the go-compression extraction plan inventory (precondition 1 of the deferred item; owner owns preconditions 2–3).
 13. Re-run `architecture-review` post-v1.1 (HTML deliverable, docs/architecture-understanding).
-14. Rule on question ② and re-run the two lost review passes (chain_test, server_test, ratelimit_keyed_test, id_generator; scripts/examples scope).
+~~14. Rule on question ② and re-run the two lost review passes (chain_test, server_test, ratelimit_keyed_test, id_generator; scripts/examples scope).~~ done 2026-09-15 (docs/status/2026-09-15_06-14 a2–a6).
 15. httpspec docs-site page (when website-launch effort resumes).
 
 **Docs-health / hygiene:**
@@ -169,7 +169,7 @@ Honest answers to the three questions asked, plus the self-review:
 
 ## g) Questions I cannot figure out myself
 
-1. **Question ③ (standing): CSRF security-degrading config — should `Validate()`-and-log stay, or do you want a remediate-to-secure-defaults design pass?** My session touched the adjacent code (TrustedOrigins) and preserved log-only; the SameSite/Secure class is still open and it decides whether I plan a behavior-changing pass or close the TODO item.
+1. **Question ③ (standing): CSRF security-degrading config — should `Validate()`-and-log stay, or do you want a remediate-to-secure-defaults design pass?** My session touched the adjacent code (TrustedOrigins) and preserved log-only; the SameSite/Secure class is still open and it decides whether I plan a behavior-changing pass or close the TODO item. ~~Answered 2026-09-15: remediate — owner ruled "good defaults + config options + power to the applications"; B1 fallback (`Secure=true`) + `AllowInsecureSameSiteNone` opt-out shipped (DECISION_LOG 2026-09-15).~~
 2. **Question ② (standing): should I re-run the two LLM-rate-limit-lost review passes now** (chain_test.go, server_test.go, ratelimit_keyed_test.go, id_generator tests; scripts/examples scope), or does that stay parked?
 3. **Export policy for the new validity rule:** `csrf.trusted_origin_invalid` is currently internal-only (unexported `Code` + sentinel). Consumers who call `Validate()` themselves can match it only via the string. Do you want it exported (additive, frozen-API-safe), or is internal-only the policy for new CSRF codes until v2?
 

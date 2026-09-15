@@ -67,7 +67,7 @@ The resumed session completed 8 of 9 tracked tasks; the ninth (v1.1.0 tag cut) i
 | 7  | End-to-end `prerelease-check.sh`: **all 9 gates passed** — first full green run on this tree                                                                                                   | "All pre-release gates passed" + flake tail                                                                                              |
 | 8  | master pushed: `4f304c8..ffda15e` (4 commits)                                                                                                                                                  | `git push` output; branch in sync                                                                                                        |
 | 9  | nightly-fuzz re-dispatched; **step 1 `^FuzzDecompression$` passed** (300 s); no new false-positive issues (#7/#8 stay closed)                                                                  | Run 34574182326; step transition visible via `gh run view`                                                                               |
-| 10 | Both lost review passes re-run by direct authorship (~3.5k lines: server_test, chain_test, ratelimit_keyed_test, id_generator_test, both scripts, examples/compose): **zero findings**         | Owner question ② resolved — moot                                                                                                         |
+| 10 | ~~Both lost review passes re-run by direct authorship (~3.5k lines: server_test, chain_test, ratelimit_keyed_test, id_generator_test, both scripts, examples/compose): **zero findings**~~ superseded 2026-09-15: the question-② split-brain re-run found 3 real findings (fixed in `0cb25ea`; docs/status/2026-09-15_06-14 a2–a6) | ~~Owner question ② resolved — moot~~ resolved again 2026-09-15, this time with findings |
 | 11 | Stale-diagnostic triage: `doc-snippet-refs` "unused imports" warning disproven by build+vet+lint (LSP cache lie)                                                                               | `go build ./...` + `go vet` + prerelease lint all green                                                                                  |
 
 ## b) PARTIALLY DONE
@@ -77,7 +77,7 @@ The resumed session completed 8 of 9 tracked tasks; the ninth (v1.1.0 tag cut) i
 3. **`[Unreleased]` CHANGELOG hygiene** — content is complete and accurate, but has duplicated `### Added`/`### Changed` headers; needs a pre-tag reorganization into single sections.
 4. **server_timing sub-module** — build verified via flake standalone check; its `go test -race` not explicitly re-run this session (code untouched since last green).
 5. **erraudit `--type-aware` advisory pass** — the two enforcing gates ran green in prerelease; the advisory-only full pass (~30 known-correct sentinel matches) not re-run.
-6. **Owner question ②** — resolved by execution (review passes re-run clean), but the 09-05 status report is not yet annotated with that answer (docs-health ANNOTATE territory).
+~~6. **Owner question ②** — resolved by execution (review passes re-run clean), but the 09-05 status report is not yet annotated with that answer (docs-health ANNOTATE territory).~~ annotated 2026-09-15 (docs-health pass); the underlying 're-run clean' claim was itself superseded — the 2026-09-15 re-run found and fixed 3 findings (docs/status/2026-09-15_06-14 a2–a6).
 
 ## c) NOT STARTED
 
@@ -118,7 +118,7 @@ Nothing rose to "fucked up" — no data loss, no broken master, no re-tagging. T
 3. Reorganize `[Unreleased]` CHANGELOG to single Added/Changed/Fixed sections; retitle to `[1.1.0]` at tag time.
 4. At tag: run RELEASE.md steps 7-16 (GitHub release, pkg.go.dev propagation, `go get` verification, badge).
 5. Add `doc-snippet-refs` step to prerelease-check.sh (CI parity).
-6. Annotate the 09-05 status report: question ② answered (passes re-run clean); ① resolution once ruled.
+~~6. Annotate the 09-05 status report: question ② answered (passes re-run clean); ① resolution once ruled.~~ done 2026-09-15 (docs-health pass annotated the 09-05 report's question-② and ③ items; the ② answer was revised — the 09-15 re-run found 3 findings).
 7. Triage incoming Dependabot PRs (weekly cadence is live).
 
 **Owner decisions pending**
@@ -181,7 +181,7 @@ Nothing rose to "fucked up" — no data loss, no broken master, no re-tagging. T
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF (3)
 
 1. **v1.1.0 timing:** cut the tag **now** (master pushed, all nine gates green, review passes clean) or **after** the full nightly-fuzz run goes green (~2 h)? Tags are permanent, so this is purely your risk call: ship on green gates, or ship on green gates _plus_ a full 2-hour fuzz soak.
-2. **CSRF security-degrading config** (carried, still blocks TODO Medium #1): keep validate-and-log as final (documented 2026-08-08 decision), or spend the design pass to remediate dangerous combos (`SameSite=None` + `Secure=false` etc.) to secure defaults in v1.1.x/v1.2?
+2. **CSRF security-degrading config** (carried, still blocks TODO Medium #1): keep validate-and-log as final (documented 2026-08-08 decision), or spend the design pass to remediate dangerous combos (`SameSite=None` + `Secure=false` etc.) to secure defaults in v1.1.x/v1.2? ~~Answered 2026-09-15: remediate — B1 fallback + `AllowInsecureSameSiteNone` opt-out shipped (DECISION_LOG 2026-09-15).~~
 3. **Issue #4** (open since 2026-08-29): "Compression negotiates gzip for an absent `Accept-Encoding` header (RFC 7231 says identity)" — keep the current documented server-priority behavior, or align with the RFC reading and return identity when no header is present? Your ruling either retires the issue or converts it into a spec'd (behavior-changing) task.
 
 ---

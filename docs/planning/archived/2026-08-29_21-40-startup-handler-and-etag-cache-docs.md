@@ -1,7 +1,7 @@
 # Design Note — StartupHandler (Readiness Warmup) and ETag Cache-Control Handoff
 
 **Date:** 2026-08-29
-**Status:** DESIGN — not scheduled for implementation; recorded so the idea survives and the shape is thought through.
+~~**Status:** DESIGN — not scheduled for implementation; recorded so the idea survives and the shape is thought through.~~ still parked 2026-09-15; the StartupHandler idea is surfaced to ROADMAP Post-v1.0 ideas so it is not archive-only.
 
 ## StartupHandler
 
