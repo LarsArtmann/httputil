@@ -1,12 +1,13 @@
 # Migrating to httputil v1.2 (behavior changes)
 
-The next minor release (v1.2.0) changes the behavior of three existing
+The next minor release (v1.2.0) changes the behavior of four existing
 mechanisms. No exported signature changes; the deltas are visible only
-through error classification results, CSRF config validation, and the CSRF
-cookie's attributes. Read this if you use `CSRFConfig.TrustedOrigins`,
-configure `SameSite=None`, or route retry decisions through
-`errorfamily.Classify`/`IsRetryable` on the stdlib sentinels
-`http.ErrNoCookie`/`http.ErrNoLocation`.
+through error classification results, CSRF config validation, the CSRF
+cookie's attributes, and response compression for header-less requests. Read
+this if you use `CSRFConfig.TrustedOrigins`, configure `SameSite=None`,
+route retry decisions through `errorfamily.Classify`/`IsRetryable` on the
+stdlib sentinels `http.ErrNoCookie`/`http.ErrNoLocation`, or serve
+compression to clients that send no `Accept-Encoding` header.
 
 ## CSRF `TrustedOrigins` parsing is all-or-nothing and validated
 
@@ -75,6 +76,37 @@ invalid.
 - Deployments that must keep the insecure cookie verbatim (legacy clients
   that ignore the Secure requirement): set
   `AllowInsecureSameSiteNone: true`.
+
+## Requests without `Accept-Encoding` are served uncompressed by default
+
+**Before (v1.1.x):** a request carrying no `Accept-Encoding` header was
+compressed with the highest-priority configured encoding. RFC 7231 §5.3.4
+makes an absent header "no explicit preference" — compressing is legal —
+but minimal HTTP clients, health probes, and intermediaries that do not
+declare support may not decompress, so the compressed bytes could be
+misinterpreted or stored corrupted (issue #4). Consumers worked around this
+with explicit guard wrappers upstream.
+
+**After (v1.2.0):** header-less requests receive the uncompressed
+representation. The new `CompressionConfig.AbsentEncoding` field
+(`AbsentEncodingPolicy`) controls the behavior: the zero value
+`AbsentEncodingIdentity` is the new default (and makes an empty header
+value — which RFC 7231 defines as "no content-coding" — correct as well);
+`AbsentEncodingFirstConfigured` restores the exact v1.1.x behavior.
+Explicit `Accept-Encoding` negotiation (q-values, `identity`, q=0
+exclusions, server priority tiebreaks) is unchanged.
+
+**What to do:**
+
+- Most deployments: no action — header-less clients now get bytes they can
+  always read, and browsers (which always send `Accept-Encoding: gzip`) are
+  unaffected.
+- Deployments whose clients send no header but always decompress (custom
+  SDKs, trusted intermediaries): set
+  `AbsentEncoding: httputil.AbsentEncodingFirstConfigured` to keep the old
+  compression behavior.
+- Remove any upstream guard wrapper that forced identity for header-less
+  requests — the middleware now does it.
 
 ## Also in this release (additive, no action required)
 

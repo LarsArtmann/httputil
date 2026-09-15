@@ -244,7 +244,7 @@ handler := httputil.Logging(slog.Default())(mux)
 
 ### Response Compression
 
-Transparent response compression negotiated from the client's `Accept-Encoding` header. Supports gzip and deflate out of the box, respects RFC 7231 q-values, and leaves small responses, non-2xx statuses, and already-encoded responses uncompressed.
+Transparent response compression negotiated from the client's `Accept-Encoding` header. Supports gzip and deflate out of the box, respects RFC 7231 q-values, and leaves small responses, non-2xx statuses, and already-encoded responses uncompressed. Requests without an `Accept-Encoding` header are served uncompressed by default (minimal clients and probes may not decompress); set `AbsentEncoding: httputil.AbsentEncodingFirstConfigured` to restore the pre-v1.2 behavior of compressing for header-less clients.
 
 ```go
 handler := httputil.Compression(httputil.DefaultCompressionConfig())(mux)

@@ -218,10 +218,8 @@ func (c CompressionConfig) Validate() error {
 		return errNegativeMinSize.WithContextAny("min_size", c.MinSize)
 	}
 
-	switch c.AbsentEncoding {
-	case AbsentEncodingIdentity, AbsentEncodingFirstConfigured:
-	default:
-		return errAbsentEncodingInvalid.WithContextAny("policy", int(c.AbsentEncoding))
+	if err := c.validateAbsentEncoding(); err != nil {
+		return err
 	}
 
 	if len(c.WriterFactories) == 0 {
@@ -232,6 +230,18 @@ func (c CompressionConfig) Validate() error {
 		if prefix == "" || strings.TrimSpace(prefix) != prefix || !strings.Contains(prefix, "/") {
 			return errIncompressiblePrefixInvalid.WithContext("prefix", prefix)
 		}
+	}
+
+	return nil
+}
+
+// validateAbsentEncoding rejects AbsentEncoding values that are not one of
+// the defined AbsentEncodingPolicy constants.
+func (c CompressionConfig) validateAbsentEncoding() error {
+	known := c.AbsentEncoding == AbsentEncodingIdentity ||
+		c.AbsentEncoding == AbsentEncodingFirstConfigured
+	if !known {
+		return errAbsentEncodingInvalid.WithContextAny("policy", int(c.AbsentEncoding))
 	}
 
 	return nil

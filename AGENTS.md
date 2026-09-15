@@ -97,7 +97,7 @@ nix flake check            # Full flake gates (includes treefmt verification)
 # Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors.
 # The full --type-aware run reports two advisory classes (measured 2026-09-15,
 # do NOT migrate either): 45 `sentinel_concrete_type` — the load-bearing
-# `*errorfamily.Error` sentinels, +1 per added sentinel; and 40 test-side
+# `*errorfamily.Error` sentinels, +1 per added sentinel; and 41 test-side
 # `errors.Is` advisories — all correct sentinel matches.
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as
