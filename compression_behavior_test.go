@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -63,7 +64,7 @@ func TestCompression_AllQValuesZeroFallsBackToIdentity(t *testing.T) {
 
 // assertUncompressedResponse asserts the response carries no Content-Encoding
 // header and the body is byte-identical to the plain text the handler wrote.
-func assertUncompressedResponse(t *testing.T, rec *ResponseRecorder, wantBody string) {
+func assertUncompressedResponse(t *testing.T, rec *httptest.ResponseRecorder, wantBody string) {
 	t.Helper()
 
 	if got := rec.Header().Get(headerContentEncoding); got != "" {
@@ -77,7 +78,7 @@ func assertUncompressedResponse(t *testing.T, rec *ResponseRecorder, wantBody st
 
 // assertGzipResponseBody asserts the response is gzip-encoded and gunzips to
 // exactly wantBody.
-func assertGzipResponseBody(t *testing.T, rec *ResponseRecorder, wantBody string) {
+func assertGzipResponseBody(t *testing.T, rec *httptest.ResponseRecorder, wantBody string) {
 	t.Helper()
 
 	assertHeader(t, rec, headerContentEncoding, encodingGzip)
