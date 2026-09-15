@@ -24,6 +24,20 @@ type CORSConfig struct {
 	// allowing all origins. When true, no Access-Control-Allow-Origin header is
 	// set, causing the browser to deny the cross-origin request.
 	DenyUnmatched bool
+	// AllowPrivateNetwork opts this origin into Chrome's Private Network
+	// Access / Local Network Access (LNA) check: when true, the middleware's
+	// preflight response carries Access-Control-Allow-Private-Network: true,
+	// which Chrome requires before a page from a less-private address space
+	// (public internet, private LAN) may fetch subresources that resolve to a
+	// more-private one (LAN, localhost). The header is set only on the
+	// middleware-generated preflight response, never on actual requests and
+	// never with OptionsPassthrough (there the handler owns the preflight), and
+	// it is sent unconditionally rather than echoed from the request so the
+	// behavior cannot silently break if Chrome changes its request-side
+	// signal. Default false: enabling it grants cross-origin pages permission
+	// to reach this origin from a less-private network, which is an explicit
+	// security decision.
+	AllowPrivateNetwork bool
 }
 
 // DefaultCORSConfig returns a permissive development-friendly CORS config
@@ -46,6 +60,7 @@ func DefaultCORSConfig() CORSConfig {
 		MaxAge:             defaultMaxAge,
 		OptionsPassthrough: false,
 		DenyUnmatched:      true,
+		AllowPrivateNetwork: false,
 	}
 }
 
@@ -139,6 +154,10 @@ func CORS(cfg CORSConfig) Middleware {
 			}
 
 			if req.Method == http.MethodOptions && !cfg.OptionsPassthrough {
+				if cfg.AllowPrivateNetwork {
+					resp.Header().Set("Access-Control-Allow-Private-Network", "true")
+				}
+
 				resp.WriteHeader(http.StatusNoContent)
 
 				return
