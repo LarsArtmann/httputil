@@ -39,6 +39,27 @@ func GzipWriterFactory(level int) WriterFactory {
 	}
 }
 
+// AbsentEncodingPolicy selects the response representation for requests that
+// carry no Accept-Encoding header (or an empty one). RFC 7231 §5.3.4: an
+// absent header signals no explicit client preference, and an empty value
+// signals that no content-coding is wanted.
+type AbsentEncodingPolicy int
+
+const (
+	// AbsentEncodingIdentity (zero value) serves the uncompressed
+	// representation to requests without an Accept-Encoding header. Minimal
+	// HTTP clients, health probes, and intermediaries that do not declare
+	// support may not decompress a compressed response, so not compressing
+	// is the safe default.
+	AbsentEncodingIdentity AbsentEncodingPolicy = iota
+
+	// AbsentEncodingFirstConfigured restores the v1.1.x behavior: requests
+	// without an Accept-Encoding header receive the highest-priority
+	// configured encoding. Use it only for deployments whose clients are
+	// known to decompress every response.
+	AbsentEncodingFirstConfigured
+)
+
 // CompressionConfig holds configuration for response compression.
 //
 // The default config negotiates between gzip and deflate based on the client's
@@ -80,6 +101,14 @@ type CompressionConfig struct {
 	// from DefaultIncompressibleTypes() are used. Set to an empty slice to
 	// compress all content types.
 	IncompressibleTypes []string
+
+	// AbsentEncoding selects the response representation for requests that
+	// carry no Accept-Encoding header (or an empty one).
+	//
+	// The zero value is AbsentEncodingIdentity: the response is sent
+	// uncompressed. Set AbsentEncodingFirstConfigured to restore the v1.1.x
+	// behavior of compressing with the highest-priority configured encoding.
+	AbsentEncoding AbsentEncodingPolicy
 }
 
 // DefaultWriterFactories returns a fresh map containing the stdlib encodings
@@ -131,6 +160,7 @@ func DefaultCompressionConfig() CompressionConfig {
 		Level:               gzip.DefaultCompression,
 		WriterFactories:     DefaultWriterFactories(),
 		IncompressibleTypes: nil,
+		AbsentEncoding:      AbsentEncodingIdentity,
 	}
 }
 
@@ -142,6 +172,7 @@ const (
 	codeCompressionMinSizeNeg            = Code("compression.min_size_negative")
 	codeCompressionNoFactory             = Code("compression.no_writer_factory")
 	codeCompressionIncompressibleInvalid = Code("compression.incompressible_prefix_invalid")
+	codeCompressionAbsentEncodingInvalid = Code("compression.absent_encoding_invalid")
 	codeCompressionQValueEmpty           = Code("compression.qvalue_empty")
 	codeCompressionQValueInvalid         = Code("compression.qvalue_invalid_int")
 	codeCompressionQValueTrail           = Code("compression.qvalue_trailing_chars")
@@ -160,6 +191,9 @@ var (
 	)
 	errIncompressiblePrefixInvalid = codeCompressionIncompressibleInvalid.Rejection(
 		"compression IncompressibleTypes entries must be non-empty media-type prefixes such as \"image/\"",
+	)
+	errAbsentEncodingInvalid = codeCompressionAbsentEncodingInvalid.Rejection(
+		"compression AbsentEncoding policy is not a known AbsentEncodingPolicy value",
 	)
 	errEmptyQValue    = codeCompressionQValueEmpty.Rejection("empty q-value")
 	errInvalidQInt    = codeCompressionQValueInvalid.Rejection("invalid q-value integer")
@@ -182,6 +216,12 @@ func (c CompressionConfig) Validate() error {
 
 	if c.MinSize < 0 {
 		return errNegativeMinSize.WithContextAny("min_size", c.MinSize)
+	}
+
+	switch c.AbsentEncoding {
+	case AbsentEncodingIdentity, AbsentEncodingFirstConfigured:
+	default:
+		return errAbsentEncodingInvalid.WithContextAny("policy", int(c.AbsentEncoding))
 	}
 
 	if len(c.WriterFactories) == 0 {
@@ -230,7 +270,7 @@ func Compression(cfg CompressionConfig) Middleware {
 
 	validateConfig("CompressionConfig", cfg.Validate())
 
-	neg := buildNegotiator(cfg.WriterFactories)
+	neg := buildNegotiator(cfg.WriterFactories, cfg.AbsentEncoding)
 
 	skipTypes := cfg.IncompressibleTypes
 	if skipTypes == nil {

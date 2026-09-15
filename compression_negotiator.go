@@ -15,12 +15,19 @@ type negotiator struct {
 	// pools maps encoding name to a reusable writer pool for that factory.
 	// Owned per Compression middleware instance so it is bounded.
 	pools map[string]*writerPool
+	// absentEncoding is the policy for requests that carry no Accept-Encoding
+	// header (see AbsentEncodingPolicy).
+	absentEncoding AbsentEncodingPolicy
 }
 
 // buildNegotiator pre-parses the factory map and assigns each encoding a
 // stable priority index. The negotiator's order field is the priority list
-// used for tiebreaking when two encodings have identical q-values.
-func buildNegotiator(factories map[string]WriterFactory) *negotiator {
+// used for tiebreaking when two encodings have identical q-values. The
+// absentEncoding policy governs the no-Accept-Encoding-header case.
+func buildNegotiator(
+	factories map[string]WriterFactory,
+	absentEncoding AbsentEncodingPolicy,
+) *negotiator {
 	// Unknown encodings sort after all built-ins, alphabetically, via a
 	// lexicographic rank computed once here (deterministic, no numeric
 	// overflow for long names).
@@ -59,9 +66,10 @@ func buildNegotiator(factories map[string]WriterFactory) *negotiator {
 	}
 
 	return &negotiator{
-		order:     order,
-		factories: factories,
-		pools:     buildWriterPools(factories),
+		order:          order,
+		factories:      factories,
+		pools:          buildWriterPools(factories),
+		absentEncoding: absentEncoding,
 	}
 }
 
@@ -102,7 +110,8 @@ var preferredEncodingOrder = []string{
 // comes from the negotiator's pre-built map.
 //
 // Returns ("", 0, false) if no acceptable encoding is found (client
-// excluded every available encoding via q=0 or sent *; q=0).
+// excluded every available encoding via q=0, sent *; q=0, or sent no
+// header under the AbsentEncodingIdentity policy).
 func (n *negotiator) negotiateEncoding(header string) (string, float64, bool) {
 	if header == "" {
 		return n.negotiateEmptyHeader()
@@ -125,9 +134,16 @@ func (n *negotiator) negotiateEncoding(header string) (string, float64, bool) {
 	return bestName, bestQ, true
 }
 
-// negotiateEmptyHeader handles the "no Accept-Encoding header" case: pick
-// the first configured encoding (deterministic via sorted order).
+// negotiateEmptyHeader handles the "no Accept-Encoding header" case. Under
+// AbsentEncodingIdentity (the default) the uncompressed representation is
+// signaled via ("", 0, false); under AbsentEncodingFirstConfigured the first
+// configured encoding is picked (deterministic via sorted order), which
+// preserves the v1.1.x behavior.
 func (n *negotiator) negotiateEmptyHeader() (string, float64, bool) {
+	if n.absentEncoding == AbsentEncodingIdentity {
+		return "", 0, false
+	}
+
 	if len(n.order) > 0 {
 		return n.order[0], defaultQValue, true
 	}
