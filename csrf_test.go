@@ -216,7 +216,9 @@ func TestInvalidateCSRFCookie_NoneWithoutSecure_FallsBackToSecure(t *testing.T) 
 			found = true
 
 			if !c.Secure {
-				t.Errorf("c.Secure = false, want true (deletion cookie must match the fallback cookie)")
+				t.Errorf(
+					"c.Secure = false, want true (deletion cookie must match the fallback cookie)",
+				)
 			}
 
 			if c.SameSite != http.SameSiteNoneMode {
@@ -511,7 +513,10 @@ func TestCSRFMiddleware_NoneWithoutSecure_FallbackLogsRemediation(t *testing.T) 
 	})
 
 	if len(records) < 2 {
-		t.Fatalf("records = %d, want at least 2 (Validate rejection + remediation fallback)", len(records))
+		t.Fatalf(
+			"records = %d, want at least 2 (Validate rejection + remediation fallback)",
+			len(records),
+		)
 	}
 
 	if records[0]["level"] != "ERROR" || records[0]["code"] != "csrf_samesite_insecure" {
