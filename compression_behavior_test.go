@@ -1,7 +1,10 @@
 package httputil
 
 import (
+	"compress/gzip"
+	"io"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -56,4 +59,104 @@ func TestCompression_AllQValuesZeroFallsBackToIdentity(t *testing.T) {
 	t.Parallel()
 
 	assertNegotiationForAcceptEncoding(t, "gzip;q=0, deflate;q=0, identity", "")
+}
+
+// assertUncompressedResponse asserts the response carries no Content-Encoding
+// header and the body is byte-identical to the plain text the handler wrote.
+func assertUncompressedResponse(t *testing.T, rec *ResponseRecorder, wantBody string) {
+	t.Helper()
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding = %q, want none", got)
+	}
+
+	if got := rec.Body.String(); got != wantBody {
+		t.Errorf("body was transformed: len = %d, want %d", len(got), len(wantBody))
+	}
+}
+
+// assertGzipResponseBody asserts the response is gzip-encoded and gunzips to
+// exactly wantBody.
+func assertGzipResponseBody(t *testing.T, rec *ResponseRecorder, wantBody string) {
+	t.Helper()
+
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
+
+	gzipReader, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("gzip.NewReader error = %v", err)
+	}
+
+	defer func() { _ = gzipReader.Close() }()
+
+	decoded, err := io.ReadAll(gzipReader)
+	if err != nil {
+		t.Fatalf("io.ReadAll error = %v", err)
+	}
+
+	if string(decoded) != wantBody {
+		t.Errorf("gunzipped body = %d bytes, want the %d plain bytes", len(decoded), len(wantBody))
+	}
+}
+
+// TestCompression_AbsentAcceptEncoding_ServesUncompressedByDefault specifies
+// the default absent-header policy (issue #4): a request without an
+// Accept-Encoding header receives the uncompressed representation, because
+// minimal clients, probes, and intermediaries that do not declare support may
+// not decompress.
+func TestCompression_AbsentAcceptEncoding_ServesUncompressedByDefault(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertUncompressedResponse(t, rec, strings.Repeat("a", defaultCompressionMinSize+1))
+}
+
+// TestCompression_EmptyAcceptEncodingValue_ServesUncompressedByDefault
+// specifies RFC 7231 §5.3.4 for an empty Accept-Encoding value ("implies that
+// the user agent does not want any content-coding in response"): the
+// response is sent uncompressed.
+func TestCompression_EmptyAcceptEncodingValue_ServesUncompressedByDefault(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, "")
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertUncompressedResponse(t, rec, strings.Repeat("a", defaultCompressionMinSize+1))
+}
+
+// TestCompression_AbsentAcceptEncoding_FirstConfiguredCompressesWithHighestPriority
+// specifies the legacy opt-out: with AbsentEncodingFirstConfigured, a request
+// without an Accept-Encoding header receives the highest-priority configured
+// encoding (gzip for the default factories), fully decompressible to the
+// original bytes.
+func TestCompression_AbsentAcceptEncoding_FirstConfiguredCompressesWithHighestPriority(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.AbsentEncoding = AbsentEncodingFirstConfigured
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertGzipResponseBody(t, rec, strings.Repeat("a", defaultCompressionMinSize+1))
 }

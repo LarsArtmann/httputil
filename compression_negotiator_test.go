@@ -265,3 +265,42 @@ func TestNegotiator_ScanAcceptEncoding_OnlyUnsupported(t *testing.T) {
 		t.Errorf("encoding = %q, want %q (identity fallback)", encoding, encodingIdentity)
 	}
 }
+
+// TestNegotiator_AbsentHeader_IdentityPolicyReturnsFalse specifies the
+// default absent-header policy (issue #4): with AbsentEncodingIdentity, a
+// missing Accept-Encoding header selects no encoding, so the middleware
+// serves the uncompressed representation.
+func TestNegotiator_AbsentHeader_IdentityPolicyReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	neg := buildNegotiator(DefaultWriterFactories(), AbsentEncodingIdentity)
+
+	encoding, quality, ok := neg.negotiateEncoding("")
+	if ok {
+		t.Errorf(
+			"negotiateEncoding(empty) with identity policy = (%q, %v, true), want false",
+			encoding,
+			quality,
+		)
+	}
+}
+
+// TestNegotiator_AbsentHeader_FirstConfiguredReturnsHighestPriority pins the
+// v1.1.x behavior: with AbsentEncodingFirstConfigured, a missing
+// Accept-Encoding header selects the first configured encoding (gzip for the
+// default factories).
+func TestNegotiator_AbsentHeader_FirstConfiguredReturnsHighestPriority(t *testing.T) {
+	t.Parallel()
+
+	neg := buildNegotiator(DefaultWriterFactories(), AbsentEncodingFirstConfigured)
+
+	encoding, _, ok := neg.negotiateEncoding("")
+	if !ok || encoding != encodingGzip {
+		t.Errorf(
+			"negotiateEncoding(empty) with first-configured policy = (%q, %v), want (%q, true)",
+			encoding,
+			ok,
+			encodingGzip,
+		)
+	}
+}
