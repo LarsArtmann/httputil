@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-09-14 — full-code-review findings 3–6 executed (TrustedOrigins unification + fail-closed, stdlib reclassification, ValidateCSRF docs). Coverage re-measured with race detection: 97.2% (`httputil`, library packages), 98.6% (`httpspec`)._
+_Updated: 2026-09-15 — CSRF `SameSite=None` fallback (+ `AllowInsecureSameSiteNone`) and CORS `AllowPrivateNetwork` swept in. Coverage re-measured with race detection 2026-09-14: 97.2% (`httputil`, library packages), 98.6% (`httpspec`)._
 
 ---
 
