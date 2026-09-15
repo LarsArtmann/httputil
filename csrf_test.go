@@ -1,9 +1,12 @@
 package httputil
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json/v2"
 	"errors"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -200,6 +203,33 @@ func TestInvalidateCSRFCookie_SetsExpiredCookie(t *testing.T) {
 	}
 }
 
+func TestInvalidateCSRFCookie_NoneWithoutSecure_FallsBackToSecure(t *testing.T) {
+	t.Parallel()
+
+	rec := httptest.NewRecorder()
+	InvalidateCSRFCookie(rec, CSRFConfig{SameSite: http.SameSiteNoneMode, Secure: false})
+
+	var found bool
+
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == DefaultCSRFCookieName {
+			found = true
+
+			if !c.Secure {
+				t.Errorf("c.Secure = false, want true (deletion cookie must match the fallback cookie)")
+			}
+
+			if c.SameSite != http.SameSiteNoneMode {
+				t.Errorf("c.SameSite = %v, want %v", c.SameSite, http.SameSiteNoneMode)
+			}
+		}
+	}
+
+	if !found {
+		t.Fatal("invalidation cookie not set")
+	}
+}
+
 func TestCSRFTokenFormField_ReturnsEmptyWhenNoToken(t *testing.T) {
 	t.Parallel()
 
@@ -313,6 +343,188 @@ func TestCSRFMiddleware_InvalidConfigContinues(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200 despite invalid config, got %d", rec.Code)
+	}
+}
+
+func TestCSRFMiddleware_NoneWithoutSecure_FallsBackToSecureCookie(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{SameSite: http.SameSiteNoneMode, Secure: false})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	handler.ServeHTTP(rec, req)
+
+	cookie := csrfTokenCookie(t, rec)
+
+	if !cookie.Secure {
+		t.Errorf("cookie.Secure = false, want true (rfc6265bis fallback)")
+	}
+
+	if cookie.SameSite != http.SameSiteNoneMode {
+		t.Errorf("cookie.SameSite = %v, want %v", cookie.SameSite, http.SameSiteNoneMode)
+	}
+}
+
+func TestCSRFMiddleware_NoneWithoutSecure_OptOutKeepsVerbatim(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{
+		SameSite:                  http.SameSiteNoneMode,
+		AllowInsecureSameSiteNone: true,
+	})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	handler.ServeHTTP(rec, req)
+
+	cookie := csrfTokenCookie(t, rec)
+
+	if cookie.Secure {
+		t.Errorf("cookie.Secure = true, want false (opt-out keeps the config verbatim)")
+	}
+
+	if cookie.SameSite != http.SameSiteNoneMode {
+		t.Errorf("cookie.SameSite = %v, want %v", cookie.SameSite, http.SameSiteNoneMode)
+	}
+}
+
+func TestCSRFMiddleware_NoneWithSecure_Unchanged(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{SameSite: http.SameSiteNoneMode, Secure: true})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	handler.ServeHTTP(rec, req)
+
+	cookie := csrfTokenCookie(t, rec)
+
+	if !cookie.Secure {
+		t.Errorf("cookie.Secure = false, want true")
+	}
+
+	if cookie.SameSite != http.SameSiteNoneMode {
+		t.Errorf("cookie.SameSite = %v, want %v", cookie.SameSite, http.SameSiteNoneMode)
+	}
+}
+
+func TestCSRFMiddleware_LaxWithoutSecure_StaysUnchanged(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{SameSite: http.SameSiteLaxMode, Secure: false})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	handler.ServeHTTP(rec, req)
+
+	cookie := csrfTokenCookie(t, rec)
+
+	if cookie.Secure {
+		t.Errorf("cookie.Secure = true, want false (fallback applies only to SameSite=None)")
+	}
+
+	if cookie.SameSite != http.SameSiteLaxMode {
+		t.Errorf("cookie.SameSite = %v, want %v", cookie.SameSite, http.SameSiteLaxMode)
+	}
+}
+
+// csrfTokenCookie returns the CSRF cookie set on rec, failing the test when
+// absent. The middleware sets it on the first request via nosurf's token
+// regeneration.
+func csrfTokenCookie(t *testing.T, rec *httptest.ResponseRecorder) *http.Cookie {
+	t.Helper()
+
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == DefaultCSRFCookieName {
+			return c
+		}
+	}
+
+	t.Fatalf("no %s cookie in Set-Cookie headers", DefaultCSRFCookieName)
+
+	return nil
+}
+
+// captureCSRFConstructorLogs runs fn with slog's default logger swapped for a
+// JSON handler writing to a buffer, and returns every decoded log record in
+// order. Use for construction-path log assertions that need more than the
+// first record.
+func captureCSRFConstructorLogs(t *testing.T, fn func()) []map[string]any {
+	t.Helper()
+
+	var buf bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
+
+	t.Cleanup(func() {
+		slog.SetDefault(previous)
+	})
+
+	fn()
+
+	lines := bytes.Split(bytes.TrimSpace(buf.Bytes()), []byte("\n"))
+	records := make([]map[string]any, 0, len(lines))
+
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+
+		var decoded map[string]any
+
+		err := json.Unmarshal(line, &decoded)
+		if err != nil {
+			t.Fatalf("decoding log line %q: %v", line, err)
+		}
+
+		records = append(records, decoded)
+	}
+
+	return records
+}
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestCSRFMiddleware_NoneWithoutSecure_FallbackLogsRemediation(t *testing.T) {
+	records := captureCSRFConstructorLogs(t, func() {
+		CSRFMiddleware(CSRFConfig{SameSite: http.SameSiteNoneMode, Secure: false})
+	})
+
+	if len(records) < 2 {
+		t.Fatalf("records = %d, want at least 2 (Validate rejection + remediation fallback)", len(records))
+	}
+
+	if records[0]["level"] != "ERROR" || records[0]["code"] != "csrf_samesite_insecure" {
+		t.Errorf("validateConfig record = %v/%v, want ERROR/csrf_samesite_insecure", records[0]["level"], records[0]["code"])
+	}
+
+	if records[1]["level"] != "WARN" {
+		t.Errorf("fallback level = %v, want WARN", records[1]["level"])
+	}
+
+	msg, _ := records[1]["msg"].(string)
+	if !strings.Contains(msg, "fell back to Secure=true") {
+		t.Errorf("fallback msg = %q, want it to name the Secure=true fallback", msg)
 	}
 }
 
