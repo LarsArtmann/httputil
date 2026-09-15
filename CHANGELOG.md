@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`CORSConfig.AllowPrivateNetwork`** (`cors.go`): opt-in support for Chrome's Private Network Access / Local Network Access (LNA) preflight check. When true, the middleware-generated preflight response carries `Access-Control-Allow-Private-Network: true`, which Chrome requires before a page from a less-private address space (public internet, private LAN) may fetch subresources that resolve to a more-private one (LAN, localhost) — without the header, every such asset dies browser-side with \"blocked by CORS policy: Permission was denied for this request to access the `local` address space\" and the server never sees the request at all. The header is set only on the preflight 204 (never on actual requests, never with `OptionsPassthrough`, where the handler owns the preflight) and is sent unconditionally rather than echoed from the request header, so a Chrome-side change to the request signal cannot silently break it. Default `false`: enabling it is an explicit decision to grant cross-origin pages reach into a more-private address space. Closes the CORS blocker from the dnsblockd adoption analysis (33-project fleet consumer).
+
 ### Changed
 
 - **`http.ErrNoCookie`/`http.ErrNoLocation` are classified Rejection instead of Transient** (`RegisterErrorClassifications`): the named cookie or header location is deterministically absent, so an unchanged retry can never succeed — the package's own taxonomy puts deterministic failures in Rejection. This changes `errorfamily.Classify`/`IsRetryable` results for consumers who route retry decisions on these stdlib sentinels. The `ErrCodeHijackFailed` doc comment and message template were aligned in the same pass (family stays Transient per the documented taxonomy; the template's Fix text no longer implies a deterministic failure).

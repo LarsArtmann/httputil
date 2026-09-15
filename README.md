@@ -72,7 +72,7 @@ cfg := httputil.CORSConfig{
 handler := httputil.CORS(cfg)(mux)
 ```
 
-Preflight `OPTIONS` requests receive `204 No Content` automatically. Set `OptionsPassthrough` to forward them to your handler instead. Wildcard patterns like `*.example.com` match subdomains.
+Preflight `OPTIONS` requests receive `204 No Content` automatically. Set `OptionsPassthrough` to forward them to your handler instead. Wildcard patterns like `*.example.com` match subdomains. Set `AllowPrivateNetwork: true` to answer Chrome's Local Network Access preflights with `Access-Control-Allow-Private-Network: true` (needed when pages from a less-private network fetch LAN or localhost subresources).
 
 Use `cfg.Validate()` to catch invalid configurations at startup (e.g., `AllowCredentials: true` with `AllowAllOrigins: true` which browsers reject).
 
@@ -518,6 +518,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin                                                 |
 | `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler                                             |
 | `DenyUnmatched`      | `bool`     | `true`                                                 | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (secure by default) |
+| `AllowPrivateNetwork` | `bool`    | `false`                                                | Answer Chrome Local Network Access preflights (preflight responses only)        |
 
 ### `ResponseRecorder` methods
 

@@ -254,6 +254,7 @@ Invariants and policies that the library enforces.
 - Wildcard patterns like `*.example.com` match subdomains
 - If no match → fall back to `*` (default), or suppress the header entirely when `DenyUnmatched=true`
 - Preflight `OPTIONS` requests receive `204 No Content` (unless `OptionsPassthrough` is set)
+- When `AllowPrivateNetwork=true`, preflight responses additionally carry `Access-Control-Allow-Private-Network: true` (Chrome's Private Network Access / Local Network Access check; never on actual requests, never with `OptionsPassthrough`)
 - `MaxAge` is sent as `Access-Control-Max-Age` in seconds (default: 86400 = 24 hours)
 - `Validate()` rejects `AllowCredentials=true` with `AllowAllOrigins=true` (browsers reject this)
 - `Validate()` rejects negative `MaxAge`

@@ -45,4 +45,5 @@ httputil handles untrusted HTTP input. Security-relevant behaviors:
 - **CORS**: `ClientIP` trusts proxy headers without validation. Only safe behind a reverse proxy that strips or overwrites `X-Forwarded-For` and `X-Real-IP`.
 - **Rate limiting**: `KeyedRateLimiter` is in-memory per-instance. For distributed deployments, front `KeyedRateLimiterMiddleware` with a proxy-level limiter (e.g., at your reverse proxy or gateway).
 - **CORS wildcard fallback**: unmatched origins fall back to `"*"` by default. Set `DenyUnmatched: true` for security-hardened deployments.
+- **CORS private-network access**: `AllowPrivateNetwork` is opt-in and off by default. Enabling it answers Chrome's Local Network Access preflights, granting cross-origin pages from a less-private address space permission to fetch this origin's LAN/localhost subresources — an explicit decision, never a default.
 - **Dependencies**: only `go-error-family` (same author, zero transitive deps) and `golang.org/x/time` (canonical Go extension). No third-party attack surface.

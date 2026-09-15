@@ -61,6 +61,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 ### CORS Security
 
 - `DenyUnmatched` option on `CORSConfig` — when true, withholds `Access-Control-Allow-Origin` for origins not in `AllowedOrigins`, preventing allowlist bypass via wildcard fallback. Default is `true` since v0.7.0.
+- `AllowPrivateNetwork` option on `CORSConfig` — when true, the preflight response carries `Access-Control-Allow-Private-Network: true` for Chrome's Private Network Access / Local Network Access check (pages from a less-private address space fetching LAN/localhost subresources). Preflight-only and opt-in (default `false`); never set on actual requests or with `OptionsPassthrough`.
 - Wildcard origin matching (e.g., `*.example.com`) rejects lookalike domains (`*.example.com.evil.com`).
 - `AllowCredentials: true` + `AllowAllOrigins: true` rejected at `Validate()` time (browsers reject this combination).
 
