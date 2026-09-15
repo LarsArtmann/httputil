@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Pre-commit hook: runs golangci-lint on staged Go files.
+# Pre-commit hook: runs golangci-lint on the whole package (full-package runs
+# only; a staged-file subset typechecks incompletely and reports phantom issues).
 # Fails the commit if any lint issues are found.
 set -euo pipefail
 
@@ -9,7 +10,7 @@ if [ -z "$STAGED_GO_FILES" ]; then
 	exit 0
 fi
 
-echo "Running golangci-lint on staged Go files..."
+echo "Running golangci-lint (full package)..."
 
 if ! golangci-lint run --timeout=5m; then
 	echo ""

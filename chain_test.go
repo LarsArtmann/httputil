@@ -359,25 +359,38 @@ func TestChain_NonceCSPSurvivesDefaultSecurityHeaders(t *testing.T) {
 	}
 }
 
-func TestChain_NonceBeforeSecurityHeadersKeepsNonceCSP(t *testing.T) {
+// TestChain_NonceInnerToSecurityHeaders_OverwritesStaticCSP pins the
+// documented composition guidance: with SecurityHeaders outermost carrying a
+// static Content-Security-Policy and Nonce inner to it, the nonce-bearing CSP
+// overwrites the static policy (both middlewares set the header on the request
+// path, so the inner one writes last).
+func TestChain_NonceInnerToSecurityHeaders_OverwritesStaticCSP(t *testing.T) {
 	t.Parallel()
+
+	const staticCSP = "default-src 'self'; report-uri /csp-reports"
 
 	nonceCfg := DefaultNonceConfig()
 	nonceCfg.CSPBuilder = RecommendedCSPWithNonce
-	static := SecurityHeaders(DefaultSecurityHeadersConfig())
+
+	staticCfg := DefaultSecurityHeadersConfig()
+	staticCfg.ContentSecurityPolicy = staticCSP
 
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	wrapped := Chain(inner, Nonce(nonceCfg), static)
+	wrapped := Chain(inner, SecurityHeaders(staticCfg), Nonce(nonceCfg))
 
 	rec := httptest.NewRecorder()
 	wrapped.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	got := rec.Header().Get("Content-Security-Policy")
 	if !strings.Contains(got, "'nonce-") {
-		t.Errorf("nonce-bearing CSP should win when Nonce is inner, got %q", got)
+		t.Errorf("nonce-bearing CSP should overwrite the static policy when Nonce is inner, got %q", got)
+	}
+
+	if strings.Contains(got, "report-uri") {
+		t.Errorf("static CSP should not survive the nonce overwrite, got %q", got)
 	}
 }
 

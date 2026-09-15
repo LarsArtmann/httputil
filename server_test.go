@@ -327,21 +327,8 @@ func TestServerStartError(t *testing.T) {
 func TestServerServesRequests(t *testing.T) {
 	t.Parallel()
 
-	// Bind a concrete port so the test can issue a real HTTP request through
-	// the running server (a :0 address never exposes the resolved port).
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("net.Listen: %v", err)
-	}
-
-	addr := listener.Addr().String()
-
-	if err := listener.Close(); err != nil {
-		t.Fatalf("listener.Close: %v", err)
-	}
-
 	cfg := DefaultServerConfig()
-	cfg.Addr = addr
+	cfg.Addr = "127.0.0.1:0"
 
 	srv, err := NewServer(cfg, newWriteStatusHandler("hello"))
 	if err != nil {
@@ -350,13 +337,14 @@ func TestServerServesRequests(t *testing.T) {
 
 	errChan := srv.Start()
 
-	if _, ok := waitForListenerAddr(t, srv, errChan); !ok {
+	listenAddr, ok := waitForListenerAddr(t, srv, errChan)
+	if !ok {
 		t.Fatal("listener address did not resolve after Start")
 	}
 
-	resp, err := http.Get("http://" + addr + "/")
+	resp, err := http.Get("http://" + listenAddr + "/")
 	if err != nil {
-		t.Fatalf("GET http://%s/: %v", addr, err)
+		t.Fatalf("GET http://%s/: %v", listenAddr, err)
 	}
 
 	defer func() { _ = resp.Body.Close() }()
