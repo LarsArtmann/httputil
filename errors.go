@@ -118,8 +118,8 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 	string(codeCSRFSameSiteInsecure): {
 		What:   "CSRF cookie would be sent insecurely",
 		Why:    "CSRFConfig has SameSite=None without Secure=true; browsers reject SameSite=None cookies on non-HTTPS connections.",
-		Fix:    "Set Secure=true (recommended) or use SameSite=Lax/Strict.",
-		WayOut: "SameSite=Lax keeps most single-sign-in flows working.",
+		Fix:    "Set Secure=true (recommended) or use SameSite=Lax/Strict; the middleware falls back to Secure=true until fixed.",
+		WayOut: "Set AllowInsecureSameSiteNone to keep the insecure cookie verbatim, for legacy-client deployments only.",
 	},
 	string(codeCSRFUnsafeOrigin): {
 		What:   "CSRF trusted origin list contains an unsafe entry",
