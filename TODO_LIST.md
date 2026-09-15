@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code. Completed work lives in [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]`, `[1.0.1]`, `[1.0.0]`); rejected ideas live in [ROADMAP.md](ROADMAP.md) Non-goals; process decisions live in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
-_Updated: 2026-09-15 (dnsblockd adoption analysis harvested: the CORS LNA gap it identified is implemented and struck below)._ 
+_Updated: 2026-09-15 (dnsblockd adoption analysis harvested: the CORS LNA gap it identified is implemented and struck below)._
 
 ---
 

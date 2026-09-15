@@ -507,18 +507,18 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `CORSConfig` fields
 
-| Field                | Type       | Default                                                | Description                                                                     |
-| -------------------- | ---------- | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `AllowedOrigins`     | `[]string` | `["*"]`                                                | Origins permitted in CORS responses (supports `*.example.com`)                  |
-| `AllowedMethods`     | `[]string` | `["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]` | Allowed HTTP methods                                                            |
-| `AllowedHeaders`     | `[]string` | `["Content-Type", "Authorization", "X-Request-ID"]`    | Accepted request headers                                                        |
-| `ExposedHeaders`     | `[]string` | `[]`                                                   | Headers the browser may access                                                  |
-| `AllowCredentials`   | `bool`     | `false`                                                | Whether to send credentials                                                     |
-| `MaxAge`             | `int`      | `86400`                                                | Preflight cache duration in seconds                                             |
-| `AllowAllOrigins`    | `bool`     | `true`                                                 | Respond with `*` for any origin                                                 |
-| `OptionsPassthrough` | `bool`     | `false`                                                | Forward OPTIONS to the next handler                                             |
-| `DenyUnmatched`      | `bool`     | `true`                                                 | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (secure by default) |
-| `AllowPrivateNetwork` | `bool`    | `false`                                                | Answer Chrome Local Network Access preflights (preflight responses only)        |
+| Field                 | Type       | Default                                                | Description                                                                     |
+| --------------------- | ---------- | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `AllowedOrigins`      | `[]string` | `["*"]`                                                | Origins permitted in CORS responses (supports `*.example.com`)                  |
+| `AllowedMethods`      | `[]string` | `["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]` | Allowed HTTP methods                                                            |
+| `AllowedHeaders`      | `[]string` | `["Content-Type", "Authorization", "X-Request-ID"]`    | Accepted request headers                                                        |
+| `ExposedHeaders`      | `[]string` | `[]`                                                   | Headers the browser may access                                                  |
+| `AllowCredentials`    | `bool`     | `false`                                                | Whether to send credentials                                                     |
+| `MaxAge`              | `int`      | `86400`                                                | Preflight cache duration in seconds                                             |
+| `AllowAllOrigins`     | `bool`     | `true`                                                 | Respond with `*` for any origin                                                 |
+| `OptionsPassthrough`  | `bool`     | `false`                                                | Forward OPTIONS to the next handler                                             |
+| `DenyUnmatched`       | `bool`     | `true`                                                 | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (secure by default) |
+| `AllowPrivateNetwork` | `bool`     | `false`                                                | Answer Chrome Local Network Access preflights (preflight responses only)        |
 
 ### `ResponseRecorder` methods
 
