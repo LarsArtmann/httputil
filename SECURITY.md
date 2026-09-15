@@ -2,14 +2,14 @@
 
 ## Supported Versions
 
-httputil is pre-1.0. Only the latest release receives security fixes.
+httputil is v1.x (API frozen as of v1.0). Only the latest release receives security fixes.
 
 | Version  | Supported          |
 | -------- | ------------------ |
 | latest   | :white_check_mark: |
 | < latest | :x:                |
 
-Once v1.0 is released, the latest minor within the current major will be supported.
+Within the current major version, the latest minor/patch release is supported.
 
 ## Reporting a Vulnerability
 
@@ -44,6 +44,7 @@ httputil handles untrusted HTTP input. Security-relevant behaviors:
 
 - **CORS**: `ClientIP` trusts proxy headers without validation. Only safe behind a reverse proxy that strips or overwrites `X-Forwarded-For` and `X-Real-IP`.
 - **Rate limiting**: `KeyedRateLimiter` is in-memory per-instance. For distributed deployments, front `KeyedRateLimiterMiddleware` with a proxy-level limiter (e.g., at your reverse proxy or gateway).
-- **CORS wildcard fallback**: unmatched origins fall back to `"*"` by default. Set `DenyUnmatched: true` for security-hardened deployments.
+- **CORS wildcard fallback**: `DefaultCORSConfig()` sets `DenyUnmatched: true` (unmatched origins get no `Access-Control-Allow-Origin`). A bare `CORSConfig{}` literal carries the zero value, which falls back to `"*"` — start from `DefaultCORSConfig()` or set `DenyUnmatched` explicitly for hardened deployments.
 - **CORS private-network access**: `AllowPrivateNetwork` is opt-in and off by default. Enabling it answers Chrome's Local Network Access preflights, granting cross-origin pages from a less-private address space permission to fetch this origin's LAN/localhost subresources — an explicit decision, never a default.
-- **Dependencies**: only `go-error-family` (same author, zero transitive deps) and `golang.org/x/time` (canonical Go extension). No third-party attack surface.
+- **CSRF**: `SameSite=None` without `Secure` is remediated to `Secure=true` at construction (rfc6265bis-compliant browsers refuse to store the combination, so the cookie would silently never persist); `AllowInsecureSameSiteNone` opts out for legacy-client deployments only. The fallback logs with the `csrf_samesite_insecure` code — configs never weaken silently.
+- **Dependencies**: `go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go rate-limit extension), `github.com/justinas/nosurf` (CSRF double-submit cookie — security-critical and complex to hand-roll), and `go-etag` (same author; error-code registration). No other third-party attack surface.

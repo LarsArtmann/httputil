@@ -103,6 +103,8 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 - Tests: constructor on `None+Secure=false` emits `Set-Cookie` with `Secure` (and keeps `SameSite=None`); `Lax`/`Strict`/zero-value configs unchanged; `Secure=false` non-`None` still warns and stays `false`; `TestCSRFMiddleware_InvalidConfigContinues` (csrf_test.go:298) keeps passing — add a cookie-attribute assertion next to it; validate-and-log contract tests (`validate_config_log_test.go`) unchanged since `Validate()` output is identical.
 - Gates: `go build ./...`, `go test -race -count=10 ./...`, `golangci-lint run`, the three erraudit gates, `nix fmt`, `nix flake check`.
 
+_Implemented shape differs from this sketch (post-implementation correction, 2026-09-15): the check lives in a shared `withSecureFallback(cfg)` helper used by both `CSRFMiddleware` and `InvalidateCSRFCookie` (so the deletion cookie matches the remediated one), the remediation log carries the structured `csrf_samesite_insecure` code, and the additive `CSRFConfig.AllowInsecureSameSiteNone` opt-out bypasses the fallback verbatim. See `csrf.go` and the CHANGELOG `[Unreleased]` entries._
+
 ## 8. Decision ask (owner, question ③)
 
 1. **A** — keep log-only verbatim; close the TODO as a documented decision.

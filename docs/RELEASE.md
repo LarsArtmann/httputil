@@ -105,6 +105,16 @@ git push origin master
 git push origin vX.Y.Z
 ```
 
+### 12.5. Wait for CI green on the exact tag commit
+
+Never create the GitHub Release before the CI run on the tagged commit is green — all jobs, including the CHANGELOG link check:
+
+```bash
+gh run watch "$(gh run list --branch vX.Y.Z --limit 1 --json databaseId --jq '.[0].databaseId')"
+```
+
+The v1.1.0 tag shipped red on the docs-only link check (2026-09-11) because this step was implicit; implicit steps get skipped. A red check on the tag is permanent — the release page inherits it.
+
 ### 13. Create GitHub Release
 
 Extract the CHANGELOG section for this version as release notes:

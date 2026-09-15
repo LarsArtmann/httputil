@@ -68,6 +68,9 @@ step "8/9 CHANGELOG has an [Unreleased] section"
 grep -q "## \[Unreleased\]" CHANGELOG.md || fail "CHANGELOG.md has no [Unreleased] section"
 echo "found"
 
+step "8b/9 CHANGELOG link definitions (CI parity)"
+./scripts/check-changelog-links.sh || fail "check-changelog-links.sh"
+
 step "9/9 Flake gates"
 if [[ "$skip_flake" == true ]]; then
 	echo "skipped (--skip-flake)"
