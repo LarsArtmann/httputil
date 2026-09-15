@@ -386,7 +386,10 @@ func TestChain_NonceInnerToSecurityHeaders_OverwritesStaticCSP(t *testing.T) {
 
 	got := rec.Header().Get("Content-Security-Policy")
 	if !strings.Contains(got, "'nonce-") {
-		t.Errorf("nonce-bearing CSP should overwrite the static policy when Nonce is inner, got %q", got)
+		t.Errorf(
+			"nonce-bearing CSP should overwrite the static policy when Nonce is inner, got %q",
+			got,
+		)
 	}
 
 	if strings.Contains(got, "report-uri") {

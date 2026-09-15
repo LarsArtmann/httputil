@@ -7,7 +7,7 @@
 ## a) FULLY DONE
 
 | # | Item | Evidence |
-|---|------|----------|
+| --- | ------ | ---------- |
 | 1 | Verified the dnsblockd analysis claims against the tree: zero `Private-Network` support, correlation-ID only a doc comment (id_generator.go:20), tree at v1.1.1 (audit baseline) | greps + `git tag` this session |
 | 2 | Harvested the analysis into the backlog: TODO_LIST Medium item (CORS LNA) + ROADMAP Post-v1.0 idea (correlation-ID open question) | TODO_LIST.md / ROADMAP.md, daemon commit |
 | 3 | **`CORSConfig.AllowPrivateNetwork` implemented** — opt-in (`false` default, explicit in `DefaultCORSConfig()`); preflight-204-only echo of `Access-Control-Allow-Private-Network: true`; never on actual requests; never with `OptionsPassthrough`; unconditional-when-enabled (matches dnsblockd's Chromium-cited consumer implementation — deliberately NOT an echo of the request header) | cors.go (field + preflight branch); daemon commit `4f9a353` |
@@ -53,7 +53,7 @@
 ## f) Next tasks (ranked by impact)
 
 | # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
+| --- | ------ | -------- | -------- | ---------- |
 | 1 | Cut next release (tag) with `[Unreleased]`: AllowPrivateNetwork + TrustedOrigins + error-classification changes, with the migration-note callout (existing TODO item) — the only thing standing between dnsblockd and adoption | Critical | M | Release |
 | 2 | Decide + pin LNA-on-denied-origin preflight behavior (test + field-doc sentence; current behavior is defensible) | Medium | S | Feature |
 | 3 | Verify the LNA header contract against live Chrome/spec documentation (web check failed this session) | Medium | S | Documentation |

@@ -1,6 +1,6 @@
 # Issue draft — go-error-family: classification guidance for conditional-request outcomes (304/412)
 
-Status: verified 2026-09-10 against go-error-family `family.go` / `http.go` (v0.10.0 consumer: httputil). Not yet filed — the repo is the owner's; review, adjust, and file when ready. Verified per the verify-before-filing discipline (no existing guidance in source, README, TODO_LIST, ROADMAP, or FEATURES).
+Status: verified 2026-09-10 against go-error-family `family.go` / `http.go` (v0.10.0 consumer: httputil). ~~Not yet filed — the repo is the owner's; review, adjust, and file when ready.~~ Filed 2026-09-15 as [LarsArtmann/go-error-family#5](https://github.com/LarsArtmann/go-error-family/issues/5) after re-verification at master `a422df2` (no guidance landed; no open/closed duplicate; `file:line` evidence refreshed). Verified per the verify-before-filing discipline (no existing guidance in source, README, TODO_LIST, ROADMAP, or FEATURES).
 
 ## Title
 
@@ -52,6 +52,6 @@ err := &preconditionFailedError{errorfamily.NewConflict(
 
 ## Filing checklist (before posting)
 
-- [ ] Re-verify against the go-error-family HEAD at filing time (guidance may have landed).
-- [ ] Confirm no open/closed issue proposes the same (`gh issue list --repo larsartmann/go-error-family --state all`).
-- [ ] File from an account with write access decisions made by the owner (own repo).
+- [x] Re-verify against the go-error-family HEAD at filing time (guidance may have landed). — done 2026-09-15 at `a422df2`, no drift.
+- [x] Confirm no open/closed issue proposes the same (`gh issue list --repo larsartmann/go-error-family --state all`). — done 2026-09-15, zero issues existed.
+- [x] File from an account with write access decisions made by the owner (own repo). — done: [#5](https://github.com/LarsArtmann/go-error-family/issues/5).
