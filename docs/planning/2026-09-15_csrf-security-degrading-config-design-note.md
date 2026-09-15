@@ -1,7 +1,7 @@
 # Design note — CSRF security-degrading config: log-only vs remediate-to-secure-defaults
 
 - **Date:** 2026-09-15
-- **Status:** DESIGN COMPLETE — owner ruling pending (standing question ③, TODO_LIST Medium priority)
+- **Status:** DECIDED — owner ruling 2026-09-15 (see §9); implementation this session
 - **Origin:** full-code-review 2026-09-11 finding 2 (major); would overturn/refine DECISION_LOG 2026-08-08 ("Validate-and-log, not validate-and-abort, for middleware constructors")
 - **Verification:** all external claims fetched from primary sources 2026-09-15 (sources inline); library claims cite `file:line` at master.
 
@@ -108,3 +108,22 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 1. **A** — keep log-only verbatim; close the TODO as a documented decision.
 2. **B1** (recommended) — constructor forces `Secure=true` for the combo; ship in v1.2.0 with the migration note.
 3. **B2** — constructor falls back to `SameSite=Lax`; same release mechanics.
+
+## 9. Owner ruling (2026-09-15) and the design that implements it
+
+Ruling (verbatim): *"Good defaults + Config options (Operators know) + power to the applications?!"* — a principle, mapped to design as follows:
+
+| Ruling phrase | Design element |
+| --- | --- |
+| Good defaults | The constructor no longer honors the unenforceable combo: `SameSite=None` + `Secure=false` falls back to `Secure=true` (B1 — preserves the operator's cross-site intent where browsers can honor it; the secure direction). Zero-value configs are unaffected. |
+| Config options (Operators know) | Every deviation is loud: `Validate()` keeps returning `csrf_samesite_insecure`, `validateConfig` keeps its `LevelError` record, and the fallback adds a structured `Warn` naming the code and both fixes. |
+| Power to the applications | New additive config field `AllowInsecureSameSiteNone` opts out of the fallback and keeps today's verbatim behavior for legacy-client deployments and test rigs — the application, not the library, makes the final call. |
+
+Interpretation note: between B1 and B2 the ruling's "power to the applications" tips to B1 — remediating to `Lax` would silently strip the cross-site capability the config asked for, the opposite of preserving application power. The fallback therefore targets the config's own intent (`None` + `Secure`), with the escape hatch covering the rest.
+
+Implementation constraints recorded before coding:
+
+- `Validate()` stays a pure reporter and unchanged — callers gating their own config keep the rejection.
+- The remediation must live in ONE helper shared by `CSRFMiddleware` (logs) and `InvalidateCSRFCookie` (deletion attributes must match the set cookie or the delete silently fails).
+- `ConfigureNosurfHandler` stays the verbatim low-level configurator (documented); consumers calling it directly bypass the fallback by contract.
+- Additive field on the frozen `CSRFConfig` struct follows the `AllowPrivateNetwork` precedent (v1.2, additive, migration no-action note); no new error codes, so no template/registry sweep.

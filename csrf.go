@@ -146,7 +146,9 @@ type CSRFConfig struct {
 	MaxAge time.Duration
 
 	// Secure sets the Secure flag on the cookie.
-	// Default: false (auto-detected from request scheme)
+	// Default: false. With SameSite=None, the constructor falls back to
+	// Secure=true (see AllowInsecureSameSiteNone) because browsers refuse to
+	// store SameSite=None cookies without Secure.
 	Secure bool
 
 	// SameSite sets the SameSite attribute on the cookie.
@@ -181,6 +183,14 @@ type CSRFConfig struct {
 	// non-TLS requests when no TrustedProxies are configured.
 	// It is INSECURE for internet-facing plain-HTTP deployments.
 	AllowPlaintextBypass bool
+
+	// AllowInsecureSameSiteNone keeps a SameSite=None cookie without Secure
+	// instead of the constructor's Secure=true fallback. Current browsers
+	// refuse to store the insecure None cookie, so with this flag set every
+	// state-changing browser request fails CSRF validation. For legacy-client
+	// deployments and test rigs only. Validate reports the combination either
+	// way.
+	AllowInsecureSameSiteNone bool
 
 	// ErrorHandler is called when CSRF validation fails.
 	// Default: writes 403 Forbidden with plain text
@@ -354,6 +364,26 @@ func (c CSRFConfig) withParsedTrustedProxies() CSRFConfig {
 	return out
 }
 
+// withSecureFallback returns a copy of c with Secure forced on when the
+// SameSite=None + Secure=false combination would produce a cookie that
+// current browsers refuse to store (rfc6265bis §5.7: a None cookie without
+// Secure is ignored entirely). The fallback preserves the operator's
+// cross-site intent on HTTPS deployments and changes nothing at runtime for
+// plain-HTTP deployments, where the cookie was already unstorable.
+// AllowInsecureSameSiteNone opts out and keeps the config verbatim. Pure:
+// it neither logs nor mutates the receiver; CSRFMiddleware logs when the
+// fallback fires.
+func (c CSRFConfig) withSecureFallback() CSRFConfig {
+	if c.SameSite != http.SameSiteNoneMode || c.Secure || c.AllowInsecureSameSiteNone {
+		return c
+	}
+
+	out := c
+	out.Secure = true
+
+	return out
+}
+
 // ConfigureNosurfHandler applies CSRFConfig settings to a nosurf handler.
 func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 	//nolint:gosec,exhaustruct_v5 // HttpOnly=false required for double-submit
@@ -448,8 +478,11 @@ func CSRFTokenFromRequest(r *http.Request) string {
 
 // InvalidateCSRFCookie invalidates the current CSRF cookie, forcing a new token
 // to be generated on the next request. Call this on login/logout to prevent
-// CSRF fixation attacks.
+// CSRF fixation attacks. The deletion cookie matches the middleware's cookie,
+// including the SameSite=None fallback to Secure=true.
 func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
+	cfg = cfg.withSecureFallback()
+
 	//nolint:gosec,exhaustruct_v5 // HttpOnly=false required for double-submit; http.Cookie has many optional fields
 	cookie := &http.Cookie{
 		Name:     cfg.cookieName(),
@@ -503,8 +536,27 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //     different, untrusted origin is rejected with ErrCSRFAttestationConflict
 //     before nosurf sees the request: browsers never produce that combination,
 //     so it can only be forged.
+//
+// # SameSite=None fallback
+//
+// A SameSite=None cookie without Secure is refused by current browsers
+// (rfc6265bis §5.7), which would break every state-changing browser request.
+// The constructor therefore falls back to Secure=true for that combination
+// and logs the change; AllowInsecureSameSiteNone keeps the insecure cookie
+// for legacy-client deployments. Validate reports the combination either way.
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	validateConfig("CSRFConfig", cfg.Validate())
+
+	remediated := cfg.withSecureFallback()
+	if remediated.Secure != cfg.Secure {
+		slog.Warn(
+			"httputil: CSRFConfig: SameSite=None without Secure is unstorable in current browsers; fell back to Secure=true",
+			slog.String("code", string(codeCSRFSameSiteInsecure)),
+			slog.String("fix", "set Secure=true explicitly, or set AllowInsecureSameSiteNone to keep the insecure cookie"),
+		)
+	}
+
+	cfg = remediated
 
 	if !cfg.Secure {
 		slog.Warn(
