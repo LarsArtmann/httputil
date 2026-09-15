@@ -212,15 +212,22 @@ func TestNegotiator_SingleTokenFastPath(t *testing.T) {
 
 // TestNegotiator_EmptyOrderReturnsFalse covers the len(order)==0 branch of
 // negotiateEmptyHeader. A negotiator with no configured encodings cannot
-// serve anything.
+// serve anything, under either absent-header policy.
 func TestNegotiator_EmptyOrderReturnsFalse(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(map[string]WriterFactory{})
+	legacy := buildNegotiator(map[string]WriterFactory{}, AbsentEncodingFirstConfigured)
 
-	_, _, ok := neg.negotiateEncoding("")
+	_, _, ok := legacy.negotiateEncoding("")
 	if ok {
 		t.Error("negotiateEncoding(empty) with no encodings = true, want false")
+	}
+
+	safe := buildNegotiator(map[string]WriterFactory{}, AbsentEncodingIdentity)
+
+	_, _, ok = safe.negotiateEncoding("")
+	if ok {
+		t.Error("negotiateEncoding(empty) with identity policy = true, want false")
 	}
 }
 
@@ -233,7 +240,7 @@ func TestNegotiator_FallbackNoIdentity(t *testing.T) {
 	neg := buildNegotiator(map[string]WriterFactory{
 		encodingGzip:    GzipWriterFactory(gzip.DefaultCompression),
 		encodingDeflate: DeflateWriterFactory(gzip.DefaultCompression),
-	})
+	}, AbsentEncodingFirstConfigured)
 
 	_, _, ok := neg.negotiateEncoding("gzip;q=0, deflate;q=0")
 	if ok {

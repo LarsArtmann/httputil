@@ -235,7 +235,7 @@ func TestCompressWriter_StartCompression_PoolTypeMismatch(t *testing.T) {
 func TestNegotiator_PoolsAreStablePerEncoding(t *testing.T) {
 	t.Parallel()
 
-	neg := buildNegotiator(DefaultWriterFactories())
+	neg := buildNegotiator(DefaultWriterFactories(), AbsentEncodingFirstConfigured)
 
 	first := neg.poolFor(encodingGzip)
 	second := neg.poolFor(encodingGzip)

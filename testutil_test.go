@@ -200,9 +200,13 @@ func assertNegotiatedEncoding(
 }
 
 // newTestNegotiator returns a negotiator built from the default writer
-// factories, the standard fixture for negotiation tests.
+// factories, the standard fixture for negotiation tests. The
+// AbsentEncodingFirstConfigured policy pins the pre-v1.2 absent-header
+// behavior so the parsing-focused property and fuzz oracles (which treat an
+// empty header as "any encoding acceptable") stay unchanged; the identity
+// policy has its own focused tests in compression_negotiator_test.go.
 func newTestNegotiator() *negotiator {
-	return buildNegotiator(DefaultWriterFactories())
+	return buildNegotiator(DefaultWriterFactories(), AbsentEncodingFirstConfigured)
 }
 
 // assertClassified verifies err belongs to wantFamily and that retryability

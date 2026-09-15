@@ -41,6 +41,7 @@ var allHTTputilErrorCodes = []Code{
 	codeCompressionMinSizeNeg,
 	codeCompressionNoFactory,
 	codeCompressionIncompressibleInvalid,
+	codeCompressionAbsentEncodingInvalid,
 	codeCompressionQValueEmpty,
 	codeCompressionQValueInvalid,
 	codeCompressionQValueTrail,

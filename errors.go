@@ -277,6 +277,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Use prefix form with a trailing or embedded slash, e.g. image/, or remove the entry.",
 		WayOut: "DefaultIncompressibleTypes() returns the recommended deny-list.",
 	},
+	string(codeCompressionAbsentEncodingInvalid): {
+		What:   "Compression absent-encoding policy is not a known value",
+		Why:    "CompressionConfig.AbsentEncoding is {policy}; only AbsentEncodingIdentity and AbsentEncodingFirstConfigured are defined.",
+		Fix:    "Set AbsentEncoding to AbsentEncodingIdentity (default) or AbsentEncodingFirstConfigured.",
+		WayOut: "Leave AbsentEncoding unset to get the safe default (uncompressed for header-less clients).",
+	},
 
 	// Rate limiting config (keyed and deprecated).
 	string(codeRatelimitKeyedLimitZero): {
