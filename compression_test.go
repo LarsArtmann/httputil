@@ -724,3 +724,59 @@ func TestCompressionConfig_Validate_AcceptsDefaultIncompressibleTypes(t *testing
 		t.Fatalf("Validate() error = %v, want nil for DefaultIncompressibleTypes", err)
 	}
 }
+
+// TestCompressionConfig_Validate_RejectsUnknownAbsentEncodingPolicy specifies
+// that only the defined AbsentEncodingPolicy constants pass validation; an
+// out-of-range value is a config Rejection, not a silently-defaulted field.
+func TestCompressionConfig_Validate_RejectsUnknownAbsentEncodingPolicy(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCompressionConfig()
+	cfg.AbsentEncoding = AbsentEncodingPolicy(42)
+
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() error = nil, want errAbsentEncodingInvalid for policy 42")
+	} else if !errors.Is(err, errAbsentEncodingInvalid) {
+		t.Errorf("Validate() error = %v, want errAbsentEncodingInvalid for policy 42", err)
+	}
+}
+
+// TestCompressionConfig_Validate_AcceptsBothAbsentEncodingPolicies specifies
+// that both defined AbsentEncodingPolicy constants pass validation.
+func TestCompressionConfig_Validate_AcceptsBothAbsentEncodingPolicies(t *testing.T) {
+	t.Parallel()
+
+	for _, policy := range []AbsentEncodingPolicy{AbsentEncodingIdentity, AbsentEncodingFirstConfigured} {
+		cfg := DefaultCompressionConfig()
+		cfg.AbsentEncoding = policy
+
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("Validate() error = %v, want nil for policy %d", err, policy)
+		}
+	}
+}
+
+// TestCompression_ZeroValueAbsentEncodingServesUncompressed pins the
+// zero-value contract of CompressionConfig.AbsentEncoding ("0 means
+// identity", issue #4): a config literal that leaves the field unset serves
+// the uncompressed representation to requests without an Accept-Encoding
+// header.
+func TestCompression_ZeroValueAbsentEncodingServesUncompressed(t *testing.T) {
+	t.Parallel()
+
+	cfg := CompressionConfig{
+		MinSize:             0,
+		WriterFactories:     DefaultWriterFactories(),
+		IncompressibleTypes: nil,
+	}
+
+	handler := Compression(cfg)(newWriteLargeBodyHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusOK)
+	assertUncompressedResponse(t, rec, strings.Repeat("a", defaultCompressionMinSize+1))
+}
