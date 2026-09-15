@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"unicode/utf8"
 )
 
 func TestHealthHandler(t *testing.T) {
@@ -134,18 +135,33 @@ func FuzzHealthResponse_Encoding(f *testing.F) {
 		var buf bytes.Buffer
 
 		err := json.MarshalWrite(&buf, HealthResponse{Status: HealthStatus(status)})
-		if err != nil {
-			t.Fatalf("Encode error = %v, want nil for status %q", err, status)
+
+		// jsonv2 refuses to encode strings with invalid UTF-8 (the 2026-09-11
+		// nightly crash class): the encoder error is the contract for those
+		// inputs, not a bug. Valid UTF-8 must encode cleanly and round-trip
+		// exactly (the earlier "encoder normalizes to U+FFFD" assumption was
+		// falsified by the fuzzer).
+		if !utf8.ValidString(status) {
+			if err == nil {
+				t.Fatalf("MarshalWrite error = nil, want invalid-UTF-8 rejection for status %q", status)
+			}
+
+			return
 		}
 
-		// The encoded output must always be valid, parseable JSON. The exact
-		// round-trip value is not asserted because the JSON encoder normalizes
-		// invalid UTF-8 (e.g. lone continuation bytes) to U+FFFD.
+		if err != nil {
+			t.Fatalf("MarshalWrite error = %v, want nil for status %q", err, status)
+		}
+
 		var resp HealthResponse
 
 		err = json.Unmarshal(buf.Bytes(), &resp)
 		if err != nil {
 			t.Fatalf("Unmarshal error = %v, want nil for encoded %q", err, buf.String())
+		}
+
+		if resp.Status != HealthStatus(status) {
+			t.Errorf("round-trip status = %q, want %q", resp.Status, status)
 		}
 	})
 }
