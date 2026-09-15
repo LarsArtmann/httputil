@@ -8,7 +8,7 @@ _Trigger: Post-release audit after v0.1.0 push — "what did we miss"_
 
 ## Executive Summary
 
-v0.1.0 is pushed and the release CI is running. All quality gates pass (110 tests, 89.1% coverage, 0 lint, 0 races). However, this deep forensic audit uncovered a **critical data race** in `CORS()` that slipped through because `go test -race` only catches races that manifest during the test run — and no current test exercises concurrent requests with different origins.
+v0.1.0 is pushed and the release CI is running. All quality gates pass (110 tests, 89.1% coverage, 0 lint, 0 races). However, this deep forensic audit uncovered ~~a **critical data race** in `CORS()` that slipped through because `go test -race` only catches races that manifest during the test run — and no current test exercises concurrent requests with different origins.~~ fixed same day (02-57 report: race-free, `-race` clean; the fix shipped in the v0.1.x line).
 
 Additionally, CHANGELOG.md has stale metrics and AGENTS.md is missing 2 error codes. These are doc fixes. The race condition is a real production bug.
 

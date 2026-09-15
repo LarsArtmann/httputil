@@ -8,7 +8,7 @@ _Trigger: Final status after three sprint rounds (release → audit → fix)_
 
 ## Executive Summary
 
-httputil is in excellent shape. Three rounds of work transformed the codebase from "tagged with stale docs and a data race" to "clean, well-tested, race-free, 91.2% coverage." All known bugs are fixed. All docs are accurate. The only remaining question is whether to retag v0.1.0 to include the CORS fix.
+httputil is in excellent shape. Three rounds of work transformed the codebase from "tagged with stale docs and a data race" to "clean, well-tested, race-free, 91.2% coverage." All known bugs are fixed. All docs are accurate. ~~The only remaining question is whether to retag v0.1.0 to include the CORS fix.~~ answered: no retag — v0.1.1 shipped the delta (tags immutable, owner directive 2026-09-11).
 
 ---
 

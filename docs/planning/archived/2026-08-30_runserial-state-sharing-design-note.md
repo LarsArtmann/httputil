@@ -5,7 +5,7 @@
 
 ## Problem
 
-`httpspec.RunSerial` runs each spec sequentially, but specs do not share any request/response state: if two specs both need to inspect the same response (e.g., the CORS specs), each makes its own request (`07-45:f47`). Is this a design flaw worth optimizing away?
+`httpspec.RunSerial` runs each spec sequentially, but specs do not share any request/response state: if two specs both need to inspect the same response (e.g., the CORS specs), each makes its own request (`07-45:f47`). ~~Is this a design flaw worth optimizing away?~~ Answered 2026-08-30: no — option C selected (docs/DECISION_LOG.md 2026-08-30 row); archived 2026-09-15.
 
 ## Options considered
 
