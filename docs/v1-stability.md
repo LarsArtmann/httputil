@@ -26,7 +26,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | ------------------------ | -------- | --------------------------------------------------------- |
 | `CORSConfig`             | Additive | `DenyUnmatched` default flipped in v0.7.0; frozen at v1.0 |
 | `CSRFConfig`             | Additive | New in v0.8.0                                             |
-| `CompressionConfig`      | Additive | `AbsentEncoding` added in v1.2.0 (default: identity)       |
+| `CompressionConfig`      | Additive | `AbsentEncoding` added in v1.2.0 (default: identity)      |
 | `DecompressionConfig`    | Additive |                                                           |
 | `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
 | `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
@@ -201,15 +201,15 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 
 ### Compression (Frozen at v1.0)
 
-| Symbol                           | Tier      |
-| -------------------------------- | --------- |
-| `WriterFactory`                  | Frozen    |
-| `GzipWriterFactory`              | Frozen    |
-| `DeflateWriterFactory`           | Frozen    |
-| `DefaultWriterFactories`         | Frozen    |
-| `DefaultWriterFactoriesForLevel` | Frozen    |
-| `DefaultIncompressibleTypes`     | Frozen    |
-| `AbsentEncodingPolicy`           | Additive  |
+| Symbol                           | Tier     |
+| -------------------------------- | -------- |
+| `WriterFactory`                  | Frozen   |
+| `GzipWriterFactory`              | Frozen   |
+| `DeflateWriterFactory`           | Frozen   |
+| `DefaultWriterFactories`         | Frozen   |
+| `DefaultWriterFactoriesForLevel` | Frozen   |
+| `DefaultIncompressibleTypes`     | Frozen   |
+| `AbsentEncodingPolicy`           | Additive |
 
 ### Middleware Stack (Frozen at v1.0)
 

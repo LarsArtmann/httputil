@@ -335,7 +335,7 @@ M 30min-2hr, L >2hr). HARVEST note: items 1-16 are TODO_LIST-grade;
 ## g) Three questions I cannot answer myself
 
 1. **`AbsentEncodingFirstConfigured` lifecycle:** is the legacy knob a
-   *permanent* configuration axis, or should it be pre-declared for
+   _permanent_ configuration axis, or should it be pre-declared for
    removal in v2.0 (like `RateLimit()`/`ETag()` were)? This decides
    ROADMAP Non-goals wording, whether v1-stability should mark the
    constant "Evolving", and how loudly the migration doc should nudge
@@ -355,7 +355,7 @@ M 30min-2hr, L >2hr). HARVEST note: items 1-16 are TODO_LIST-grade;
 
 ---
 
-*Report format override note: written as `.md` per the owner's explicit
+_Report format override note: written as `.md` per the owner's explicit
 instruction (status-report skill's canonical output is a styled HTML
 dashboard; the explicit `.md` path in the instruction wins). Point-in-time
-snapshot — annotate, don't rewrite, per docs-health ANNOTATE mode.*
+snapshot — annotate, don't rewrite, per docs-health ANNOTATE mode._

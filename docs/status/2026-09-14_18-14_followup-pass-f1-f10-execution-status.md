@@ -46,14 +46,14 @@ Quick counts: **10 follow-ups fully done · 5 polish items done alongside · 0 n
 All deliberately untouched — owner-gated by their own recorded decisions or separate skill-sized efforts:
 
 1. **CSRF security-degrading config: log-only vs remediate design pass** — standing owner question ③; would overturn DECISION_LOG 2026-08-08.
-~~2. **Re-run the two LLM-rate-limit-lost review passes** (chain_test, server_test, ratelimit_keyed_test, id_generator tests; scripts/examples scope) — owner question ②.~~ done 2026-09-15: both passes re-run for real; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6, commit `0cb25ea`).
-3. **Export `csrf.trusted_origin_invalid` as an exported `Code` constant** — owner question ③-adjacent (new this session's standing set; consumers can currently match only via the string).
-4. **go-compression extraction** — deferred post-v1.1; owner owns new-repo/remote setup; my precondition (plan inventory refresh) still open.
-5. **Re-run `architecture-review` post-v1.1** — HTML deliverable, separate session.
-6. **httpspec docs-site page** — blocked on website-launch effort.
-7. **File the verified go-error-family issue** — owner action (own repo).
-8. **`ValidateCSRF` result type / `MiddlewareFunc` split / typed stack names / pool-contract hardening** — post-v1.1/v2.0 material, recorded.
-9. **Previous report's docs-health items 16–18, 20** (full HARVEST, annotate the 2026-09-11 report, README-prose TrustedOrigins sweep, FEATURES header rename) and testing-depth items 21–29 — not attempted this session (follow-up pass scope only).
+   ~~2. **Re-run the two LLM-rate-limit-lost review passes** (chain_test, server_test, ratelimit_keyed_test, id_generator tests; scripts/examples scope) — owner question ②.~~ done 2026-09-15: both passes re-run for real; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6, commit `0cb25ea`).
+2. **Export `csrf.trusted_origin_invalid` as an exported `Code` constant** — owner question ③-adjacent (new this session's standing set; consumers can currently match only via the string).
+3. **go-compression extraction** — deferred post-v1.1; owner owns new-repo/remote setup; my precondition (plan inventory refresh) still open.
+4. **Re-run `architecture-review` post-v1.1** — HTML deliverable, separate session.
+5. **httpspec docs-site page** — blocked on website-launch effort.
+6. **File the verified go-error-family issue** — owner action (own repo).
+7. **`ValidateCSRF` result type / `MiddlewareFunc` split / typed stack names / pool-contract hardening** — post-v1.1/v2.0 material, recorded.
+8. **Previous report's docs-health items 16–18, 20** (full HARVEST, annotate the 2026-09-11 report, README-prose TrustedOrigins sweep, FEATURES header rename) and testing-depth items 21–29 — not attempted this session (follow-up pass scope only).
 
 ## d) TOTALLY FUCKED UP
 
@@ -104,10 +104,10 @@ All deliberately untouched — owner-gated by their own recorded decisions or se
 4. AGENTS.md lint-note: nolint explanations must keep the line <120 cols (golines will orphan longer directives onto the wrong line).
 5. Unit test pinning opaque-URL TrustedOrigins entries (`mailto:addr`, `data:text/plain,x`) — shape gate rejects via `Host == ""`; currently only fuzz-explored, not seed- or test-pinned.
 6. Test asserting the fallback log fires: broken TrustedOrigins ⇒ the "falling back to same-origin-only validation" `slog.Error` record (behavior is pinned; the loud-log half of the contract is not asserted).
-~~7. Owner-question ③ pending: close or plan the CSRF security-degrading-config design pass.~~ done 2026-09-15: design pass executed per the owner ruling; fallback shipped (docs/planning/2026-09-15_csrf-security-degrading-config-design-note.md).
-8. Owner-question ② pending: scope ruling on the two lost review passes.
-9. Owner question: export policy for `csrf.trusted_origin_invalid` (exported `Code` constant vs internal-until-v2).
-10. Full docs-health HARVEST of both 2026-09-14 reports' open f-items into TODO_LIST/ROADMAP (B4).
+   ~~7. Owner-question ③ pending: close or plan the CSRF security-degrading-config design pass.~~ done 2026-09-15: design pass executed per the owner ruling; fallback shipped (docs/planning/2026-09-15_csrf-security-degrading-config-design-note.md).
+7. Owner-question ② pending: scope ruling on the two lost review passes.
+8. Owner question: export policy for `csrf.trusted_origin_invalid` (exported `Code` constant vs internal-until-v2).
+9. Full docs-health HARVEST of both 2026-09-14 reports' open f-items into TODO_LIST/ROADMAP (B4).
 
 **TODO_LIST execution (existing items, in order):**
 11. Refresh the go-compression extraction plan inventory (my precondition; owner owns repo/remote setup).

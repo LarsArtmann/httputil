@@ -47,12 +47,12 @@ All deliberately untouched — each is blocked by its own recorded owner decisio
 1. **CSRF security-degrading config: log-only vs remediate** (standing owner question ③; would overturn DECISION_LOG 2026-08-08).
 2. **Extract response compression into `go-compression`** — deferred post-v1.1; preconditions: plan-inventory refresh (mine to do eventually), owner new-repo/remote setup, phased execution.
 3. **Re-run `architecture-review` post-v1.1** — separate large analysis with HTML deliverable; not attempted to avoid a rushed artifact in this session.
-~~4. **Re-run the two review passes lost to LLM rate limits** — parked on owner question ② (scope).~~ done 2026-09-15: both passes re-run for real; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6, commit `0cb25ea`).
-5. **httpspec docs-site page** — blocked on the website-launch effort.
-6. **File the verified go-error-family issue** — TODO marks it "Owner action (own repo)"; draft is saved and verified.
-7. **Decide `CSRFConfig.withParsedTrustedProxies` export** — revisit only on external consumer need.
-8. **`ValidateCSRF` returns `*httptest.ResponseRecorder`** — frozen v1.0 symbol, v2.0 material.
-9. **`MiddlewareFunc` vs `Middleware` alias split / typed `MiddlewareStack` names / pool-contract hardening** — recorded post-v1.1/v2.0 items.
+   ~~4. **Re-run the two review passes lost to LLM rate limits** — parked on owner question ② (scope).~~ done 2026-09-15: both passes re-run for real; 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6, commit `0cb25ea`).
+4. **httpspec docs-site page** — blocked on the website-launch effort.
+5. **File the verified go-error-family issue** — TODO marks it "Owner action (own repo)"; draft is saved and verified.
+6. **Decide `CSRFConfig.withParsedTrustedProxies` export** — revisit only on external consumer need.
+7. **`ValidateCSRF` returns `*httptest.ResponseRecorder`** — frozen v1.0 symbol, v2.0 material.
+8. **`MiddlewareFunc` vs `Middleware` alias split / typed `MiddlewareStack` names / pool-contract hardening** — recorded post-v1.1/v2.0 items.
 
 ## d) TOTALLY FUCKED UP
 
