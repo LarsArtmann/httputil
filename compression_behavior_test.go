@@ -146,7 +146,9 @@ func TestCompression_EmptyAcceptEncodingValue_ServesUncompressedByDefault(t *tes
 // without an Accept-Encoding header receives the highest-priority configured
 // encoding (gzip for the default factories), fully decompressible to the
 // original bytes.
-func TestCompression_AbsentAcceptEncoding_FirstConfiguredCompressesWithHighestPriority(t *testing.T) {
+func TestCompression_AbsentAcceptEncoding_FirstConfiguredCompressesWithHighestPriority(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	cfg := DefaultCompressionConfig()
