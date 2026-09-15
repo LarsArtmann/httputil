@@ -95,8 +95,8 @@ nix flake check            # Full flake gates (includes treefmt verification)
 
 # erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops).
 # Real gates (exit 0 required): no legacy errors.As, no inline stdlib constructors.
-# The full --type-aware run reports two advisory classes (measured 2026-09-14,
-# do NOT migrate either): 44 `sentinel_concrete_type` — the load-bearing
+# The full --type-aware run reports two advisory classes (measured 2026-09-15,
+# do NOT migrate either): 45 `sentinel_concrete_type` — the load-bearing
 # `*errorfamily.Error` sentinels, +1 per added sentinel; and 40 test-side
 # `errors.Is` advisories — all correct sentinel matches.
 GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
@@ -196,7 +196,7 @@ Per-source error codes, families, retryability, and triggers: [docs/architecture
 - **`Server.Start`/`StartTLS` are single-shot** — a second call returns `server.already_started` (Rejection, `errServerAlreadyStarted`) instead of binding an untracked orphan listener; the guard is an `atomic.Bool` CAS, and both the started flag and the listener are cleared when Serve/ServeTLS returns or fails, so a retried `Start` is legal. `ListenerAddr()` reports `(nil, false)` whenever the server is not currently listening (never started, failed to bind, or shut down).
 - **`ResponseRecorder.Status()` returns `0`** (not `200`) when `WriteHeader` hasn't been called. Check `WroteHeader()` to distinguish "no status set" from "status was actually 0".
 - **`ClientIP` trusts proxy headers blindly** — it does not validate X-Forwarded-For or X-Real-IP. Only safe behind a reverse proxy that strips/overwrites these headers.
-- **`Compression` negotiates encodings** per request from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity). If no header is present, the highest-priority configured encoding is chosen.
+- **`Compression` negotiates encodings** per request from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity). A missing header (or an empty one) is served uncompressed by default — `CompressionConfig.AbsentEncoding` (zero value `AbsentEncodingIdentity`, issue #4); `AbsentEncodingFirstConfigured` restores the pre-v1.2 behavior of picking the highest-priority configured encoding. Validate rejects unknown policy values (`compression.absent_encoding_invalid`).
 - **`Compression` pools writers per encoding**, so gzip and deflate each have their own `sync.Pool` owned by the negotiator (one pool per encoding per `Compression` instance). Custom factories can opt into pooling by implementing `Reset(io.Writer)`.
 - **`Compression` short-circuits identity encoding** — when the client requests `identity` (or no encoding is negotiated), the middleware passes the raw `ResponseWriter` through without wrapping. This means `nopCloserWriter`, `nopFlushCloser`, and `passthroughFactory` are only reachable via direct `compressWriter` construction (unit tests), not through the `Compression()` middleware. They are defensive code for the `WriterFactory` contract.
 - **`RequestID` default generator** produces a 16-byte time-ordered ID (Unix seconds + atomic counter + random tail) and amortizes `crypto/rand` syscalls across ~256 IDs via a generation-swapped immutable ring: published generation buffers are never written again (reader copies are race-free), and slot claims are monotonic and generation-stamped, so no slot is drawn twice across refills. Hot path costs one extra atomic pointer load; don't "simplify" it back to a single shared buffer — that reintroduces the copy-vs-refill torn-read race.

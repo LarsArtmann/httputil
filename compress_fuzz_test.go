@@ -153,12 +153,16 @@ func FuzzNegotiatorWireFormat(f *testing.F) {
 		}
 
 		// Selection micro-oracle: when the fuzzed header happens to name
-		// exactly one registered encoding (case/space variants), the result
-		// must be that encoding — this pins actual selection, not just
-		// internal consistency, so a negotiator that ignores the wire
-		// input fails here.
+		// exactly one registered encoding (case/whitespace variants), the
+		// result must be that encoding — this pins actual selection, not
+		// just internal consistency, so a negotiator that ignores the wire
+		// input fails here. Trimming is HTTP OWS (SP/HTAB) only: control
+		// characters like \v are not whitespace on the wire, and a header
+		// such as "\vGZIP" is correctly an unsupported token (identity
+		// fallback), which strings.TrimSpace would wrongly normalize to
+		// "gzip" (found by this fuzz target, 2026-09-15).
 		for name := range neg.factories {
-			if strings.EqualFold(strings.TrimSpace(header), name) {
+			if strings.EqualFold(strings.Trim(header, " \t"), name) {
 				if encoding != name {
 					t.Errorf(
 						"single-token header %q negotiated to %q, want %q",

@@ -34,7 +34,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Error Classification System
 
-- Typed error-code model (`Code`/`Domain`, v0.12.0): every code is `domain.failure`; constructor + Wrap pairs cover all six families; `DomainOf`/`InDomain` route by failing component. Runtime codes: `http.write_failed`, `http.hijack_unsupported`, `http.hijack_failed`, `http.compress_write_failed`, `http.etag_*`, `compression.pool_type_unexpected`, `compression.qvalue_*`, `compression.incompressible_prefix_invalid`, `decompression.*`, `server.shutdown_failed`, `ratelimit.*`, `maxbodysize.*`, `requestid.*`, `security.*`, `metrics.*`, `nonce.*`, `cors.*`, `csrf.*`, `stack.*`. Plus 3 ETag codes from `go-etag` registered via `RegisterErrorClassifications()`.
+- Typed error-code model (`Code`/`Domain`, v0.12.0): every code is `domain.failure`; constructor + Wrap pairs cover all six families; `DomainOf`/`InDomain` route by failing component. Runtime codes: `http.write_failed`, `http.hijack_unsupported`, `http.hijack_failed`, `http.compress_write_failed`, `http.etag_*`, `compression.pool_type_unexpected`, `compression.qvalue_*`, `compression.incompressible_prefix_invalid`, `compression.absent_encoding_invalid`, `decompression.*`, `server.shutdown_failed`, `ratelimit.*`, `maxbodysize.*`, `requestid.*`, `security.*`, `metrics.*`, `nonce.*`, `cors.*`, `csrf.*`, `stack.*`. Plus 3 ETag codes from `go-etag` registered via `RegisterErrorClassifications()`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
 - CSRF middleware uses `go-error-family` directly: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family), plus inline `NewInfrastructure` errors for config validation failures.
 - Message templates with `what/why/fix/wayOut` for all classified errors.
@@ -74,6 +74,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
 - RFC 7231 `Accept-Encoding` negotiation with q-value parsing; server priority order is brotli > zstd > gzip > deflate > identity.
+- Requests without an `Accept-Encoding` header (or with an empty one) are served uncompressed by default (`CompressionConfig.AbsentEncoding` zero value `AbsentEncodingIdentity`); `AbsentEncodingFirstConfigured` restores the v1.1.x behavior of compressing with the highest-priority configured encoding (issue #4).
 - Single error-classification choke point: compress write failures funnel through `compressWriteError` with `encoding` context.
 
 ### Rate Limiting
