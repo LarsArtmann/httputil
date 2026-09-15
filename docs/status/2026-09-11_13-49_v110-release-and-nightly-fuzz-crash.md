@@ -23,14 +23,14 @@
 ## b) PARTIALLY DONE
 
 1. **Nightly-fuzz cycle 34574182326: 24/25 targets green, 1 crasher** — `FuzzHealthResponse_Encoding` failed in seconds (see d3). All other targets (including the previously problematic `^FuzzDecompression$`) passed.
-2. **Issue #9** (`nightly fuzz: crash detected 2026-09-11`) auto-filed and triaged in-session, **fix not yet landed** — the failing input (`ac6733e1726c6863`, 34 bytes, status `"\x82"`) lives in the job checkout, not in this repo's corpus yet.
+~~2. **Issue #9** (`nightly fuzz: crash detected 2026-09-11`) auto-filed and triaged in-session, **fix not yet landed** — the failing input (`ac6733e1726c6863`, 34 bytes, status `"\x82"`) lives in the job checkout, not in this repo's corpus yet.~~ done 2026-09-15: oracle corrected (invalid UTF-8 ⇒ error; valid ⇒ nil + exact round-trip), seed committed at `testdata/fuzz/FuzzHealthResponse_Encoding/ac6733e1726c6863`, issues #9–#13 (the same crasher auto-filed nightly through 09-15) closed with root-cause comments; 45s fuzz run 2.7M execs PASS.
 3. **The v1.1.0 GitHub release page lacks the honesty note** about the tag commit's red link-check (fix landed in `ba85626`). The CHANGELOG `[Unreleased]` records it; the release page itself does not yet.
 4. **Local unpushed docs edits** — RELEASE.md gate-3 fix and this report are committed-by-daemon but **not pushed** (per "THEN WAIT FOR INSTRUCTIONS").
-5. **pkg.go.dev** — resolution verified through the module proxy (`go get`/`go build`); the public package page rendering itself was not visually confirmed.
+~~5. **pkg.go.dev** — resolution verified through the module proxy (`go get`/`go build`); the public package page rendering itself was not visually confirmed.~~ done 2026-09-15: v1.1.0 and server_timing v1.0.1 pages fetched and verified rendering (Published Sep 11, 2026; valid go.mod; tagged/stable).
 
 ## c) NOT STARTED
 
-1. Issue #9 fix (oracle correction; corpus seed commit).
+~~1. Issue #9 fix (oracle correction; corpus seed commit).~~ done 2026-09-15 (docs-health pass) (see b2).
 2. TODO_LIST Medium batch: CSRF remediation ruling (standing question ②), TrustedOrigins parser unification, stdlib error reclassification, ValidateCSRF mutation docs, StaticOrigins fail-open, go-compression extraction (preconditions 1–3), post-v1.1 architecture-review.
 3. Post-v1.1/v2.0 items (review findings 1/7/8/9).
 4. docs-health HARVEST of the two 2026-09-11 reports' next-item lists into TODO_LIST/ROADMAP.
@@ -61,14 +61,14 @@
 
 1. Fix issue #9: correct the `FuzzHealthResponse_Encoding` oracle (invalid UTF-8 → assert the jsontext error; valid UTF-8 → nil + round-trip invariant), commit the minimized corpus seed (`ac6733e1726c6863`).
 2. Decide + record the `writeHealthBody` `_ =` discard: documented honest-silence vs propagation (pairs with #1; health.go:83).
-3. Add the CI-green-on-tag-commit gate to `docs/RELEASE.md` (step 12.5).
-4. Add `check-changelog-links.sh` to `prerelease-check.sh` as gate 8b.
-5. Add the honesty note to the published v1.1.0 GitHub release (tag predates the link-definition fix; fixed in `ba85626`).
-6. Document the CHANGELOG link-definition convention in AGENTS.md hard constraints.
+~~3. Add the CI-green-on-tag-commit gate to `docs/RELEASE.md` (step 12.5).~~ done 2026-09-15 (docs-health pass): RELEASE.md step 12.5 added (gh run watch on the tag commit) with the v1.1.0 red-tag incident as rationale.
+~~4. Add `check-changelog-links.sh` to `prerelease-check.sh` as gate 8b.~~ done 2026-09-15 (docs-health pass): gate 8b added and verified green on this tree.
+~~5. Add the honesty note to the published v1.1.0 GitHub release (tag predates the link-definition fix; fixed in `ba85626`).~~ done 2026-09-15 (docs-health pass): correction-of-record note appended to the release page via `gh release edit`.
+~~6. Document the CHANGELOG link-definition convention in AGENTS.md hard constraints.~~ done 2026-09-15 (docs-health pass): Link-definition convention paragraph added to the CHANGELOG Freeze Policy section.
 7. Gate `release.yml` on CI success.
 8. Confirm the next nightly-fuzz cycle is 25/25 green.
-9. Push the pending local docs (RELEASE.md fix + this report) with the next instruction batch.
-10. pkg.go.dev page visual check for v1.1.0 and server_timing v1.0.1.
+~~9. Push the pending local docs (RELEASE.md fix + this report) with the next instruction batch.~~ done 2026-09-15 (docs-health pass): `git ls-tree origin/master` confirms this report and the RELEASE.md fix are on origin.
+~~10. pkg.go.dev page visual check for v1.1.0 and server_timing v1.0.1.~~ done 2026-09-15 (docs-health pass): both pages fetched and verified rendering.
 11. Decide v1.1.1 scope (see g1/g2): oracle fix alone would be a clean patch.
 12. Owner question ② (standing): CSRF security-degrading config — log-only final vs remediate-to-secure-defaults.
 13. Owner question ③ (standing): gzip-on-absent-Accept-Encoding ruling (issue #4).

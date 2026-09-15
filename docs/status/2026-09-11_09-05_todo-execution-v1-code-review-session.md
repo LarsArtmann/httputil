@@ -78,7 +78,7 @@ Working-tree note: all session work is committed by the auto-daemon (heuristic m
 4. `go mod tidy` + full build.
 5. 95% coverage-gate measurement (`go test -coverprofile` + threshold checker).
 6. End-to-end `prerelease-check.sh` run.
-7. Push `master`.
+7. Push `master`. ~~annotated 2026-09-15 (docs-health pass); the 're-run clean' claim was itself superseded — the 2026-09-15 re-run found and fixed 3 findings (docs/status/2026-09-15_06-14 a2–a6).~~
 8. Re-dispatch `nightly-fuzz`, confirm step 1 passes, close any new false-positive issue.
 9. Re-run the 2 missing review passes (sweep test targets; scripts/examples scope).
 10. Cut v1.1.0 (CHANGELOG freeze + tag + push) — owner-timed.
@@ -126,5 +126,5 @@ Working-tree note: all session work is committed by the auto-daemon (heuristic m
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 
 1. **Release timing:** should I push master now and let the v1.1.0 removals sit as `[Unreleased]`, or do you want the v1.1.0 tag cut and pushed in the same motion (the TODO's push step lists only master + v1.0.0, which is already pushed)? Tags are forever, so I won't cut v1.1.0 without your explicit go.
-2. **Review coverage:** the two lost review passes (sweep test targets, scripts/examples) — re-run them now as agents, or do you accept my direct-authorship coverage of those files for the v1.0.x review cycle?
-3. **CSRF validate-and-log vs remediate:** for security-degrading configs (`SameSite=None` + `Secure=false`), is log-and-continue the final contract, or should v1.1.x remediate to secure defaults (a behavior change for anyone currently running that misconfiguration)?
+2. **Review coverage:** the two lost review passes (sweep test targets, scripts/examples) — re-run them now as agents, or do you accept my direct-authorship coverage of those files for the v1.0.x review cycle? ~~Answered 2026-09-15: the passes were re-run for real (not agent passes) — 3 findings found and fixed (docs/status/2026-09-15_06-14 a2–a6).~~
+3. **CSRF validate-and-log vs remediate:** for security-degrading configs (`SameSite=None` + `Secure=false`), is log-and-continue the final contract, or should v1.1.x remediate to secure defaults (a behavior change for anyone currently running that misconfiguration)? ~~Answered 2026-09-15: remediate — owner ruling "good defaults + config options + power to the applications"; B1 fallback + `AllowInsecureSameSiteNone` opt-out shipped (DECISION_LOG 2026-09-15).~~
