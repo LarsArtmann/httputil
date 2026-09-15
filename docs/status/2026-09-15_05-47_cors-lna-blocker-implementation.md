@@ -6,15 +6,15 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-| --- | ------ | ---------- |
-| 1 | Verified the dnsblockd analysis claims against the tree: zero `Private-Network` support, correlation-ID only a doc comment (id_generator.go:20), tree at v1.1.1 (audit baseline) | greps + `git tag` this session |
-| 2 | Harvested the analysis into the backlog: TODO_LIST Medium item (CORS LNA) + ROADMAP Post-v1.0 idea (correlation-ID open question) | TODO_LIST.md / ROADMAP.md, daemon commit |
-| 3 | **`CORSConfig.AllowPrivateNetwork` implemented** — opt-in (`false` default, explicit in `DefaultCORSConfig()`); preflight-204-only echo of `Access-Control-Allow-Private-Network: true`; never on actual requests; never with `OptionsPassthrough`; unconditional-when-enabled (matches dnsblockd's Chromium-cited consumer implementation — deliberately NOT an echo of the request header) | cors.go (field + preflight branch); daemon commit `4f9a353` |
-| 4 | 4 standalone tests, all `t.Parallel()`, execution probes not interface assertions: allowed-when-configured, omitted-by-default, omitted-on-actual-request, omitted-on-passthrough | cors_private_network_test.go; `go test -race -count=10 -run TestCORS` ok |
-| 5 | Docs sweep complete: CHANGELOG `[Unreleased]` Added; README prose + `CORSConfig` config-table row; FEATURES CORS Security bullet; DOMAIN_LANGUAGE CORS Policy line; SECURITY.md posture bullet; AGENTS.md Non-Obvious Behaviors bullet (incl. "do not simplify into an echo" warning); TODO_LIST item struck done with full evidence note | all 7 files, `4f9a353` (8-file batch) |
-| 6 | Quality gates green: `golangci-lint run` **0 issues** (~70 linters); `go test -race ./...` all packages ok; 10× CORS repeat under `-race` ok; both documented erraudit gates (`legacy_as`, `stdlib_constructor --enforce-go-error-family`) **exit 0**; treefmt/`nix fmt` 0 changed; no doc-snippet-refs impact (no new README fences) | direct CLI runs this session |
-| 7 | Confirmed the buildflow findings-gate ERROR (141 findings) is the documented policy-rejected residual set (flat-root-package per-file claims, branching-flow, erraudit advisories) — none touch the change | `buildflow --format finding` grep: only pre-existing `root-package-files` claims for cors.go |
+| # | Item                                                                                                                                                                                                                                                                                                                                                                                         | Evidence                                                                                     |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1 | Verified the dnsblockd analysis claims against the tree: zero `Private-Network` support, correlation-ID only a doc comment (id_generator.go:20), tree at v1.1.1 (audit baseline)                                                                                                                                                                                                             | greps + `git tag` this session                                                               |
+| 2 | Harvested the analysis into the backlog: TODO_LIST Medium item (CORS LNA) + ROADMAP Post-v1.0 idea (correlation-ID open question)                                                                                                                                                                                                                                                            | TODO_LIST.md / ROADMAP.md, daemon commit                                                     |
+| 3 | **`CORSConfig.AllowPrivateNetwork` implemented** — opt-in (`false` default, explicit in `DefaultCORSConfig()`); preflight-204-only echo of `Access-Control-Allow-Private-Network: true`; never on actual requests; never with `OptionsPassthrough`; unconditional-when-enabled (matches dnsblockd's Chromium-cited consumer implementation — deliberately NOT an echo of the request header) | cors.go (field + preflight branch); daemon commit `4f9a353`                                  |
+| 4 | 4 standalone tests, all `t.Parallel()`, execution probes not interface assertions: allowed-when-configured, omitted-by-default, omitted-on-actual-request, omitted-on-passthrough                                                                                                                                                                                                            | cors_private_network_test.go; `go test -race -count=10 -run TestCORS` ok                     |
+| 5 | Docs sweep complete: CHANGELOG `[Unreleased]` Added; README prose + `CORSConfig` config-table row; FEATURES CORS Security bullet; DOMAIN_LANGUAGE CORS Policy line; SECURITY.md posture bullet; AGENTS.md Non-Obvious Behaviors bullet (incl. "do not simplify into an echo" warning); TODO_LIST item struck done with full evidence note                                                    | all 7 files, `4f9a353` (8-file batch)                                                        |
+| 6 | Quality gates green: `golangci-lint run` **0 issues** (~70 linters); `go test -race ./...` all packages ok; 10× CORS repeat under `-race` ok; both documented erraudit gates (`legacy_as`, `stdlib_constructor --enforce-go-error-family`) **exit 0**; treefmt/`nix fmt` 0 changed; no doc-snippet-refs impact (no new README fences)                                                        | direct CLI runs this session                                                                 |
+| 7 | Confirmed the buildflow findings-gate ERROR (141 findings) is the documented policy-rejected residual set (flat-root-package per-file claims, branching-flow, erraudit advisories) — none touch the change                                                                                                                                                                                   | `buildflow --format finding` grep: only pre-existing `root-package-files` claims for cors.go |
 
 ## b) PARTIALLY DONE
 
@@ -52,28 +52,28 @@
 
 ## f) Next tasks (ranked by impact)
 
-| # | Task | Impact | Effort | Category |
-| --- | ------ | -------- | -------- | ---------- |
-| 1 | Cut next release (tag) with `[Unreleased]`: AllowPrivateNetwork + TrustedOrigins + error-classification changes, with the migration-note callout (existing TODO item) — the only thing standing between dnsblockd and adoption | Critical | M | Release |
-| 2 | Decide + pin LNA-on-denied-origin preflight behavior (test + field-doc sentence; current behavior is defensible) | Medium | S | Feature |
-| 3 | Verify the LNA header contract against live Chrome/spec documentation (web check failed this session) | Medium | S | Documentation |
-| 4 | httpspec: opt-in LNA preflight spec in `CORSSpecs()` | Medium | S | Feature |
-| 5 | Mutation-check the 4 new CORS tests (one-command mutate-run-revert pattern) | Medium | S | Quality |
-| 6 | dnsblockd P1 migration (SecurityHeaders/StatusRecorder/ClientIP) once its go-datastar session is quiet — other repo | High (dnsblockd) | M | Migration |
-| 7 | dnsblockd P2: RequestID + correlation-ID wrapper, pending the upstream-vs-wrapper ruling | Medium | S | Migration |
-| 8 | dnsblockd P3: CSRF migration as its own change with full gate + Chromium E2E smoke | High (dnsblockd) | L | Migration |
-| 9 | `Example*` with `// Output:` for AllowPrivateNetwork (testableexamples-compliant) | Low | S | Documentation |
-| 10 | README usage snippet for LNA (doc-snippet-refs-checked fence) | Low | S | Documentation |
-| 11 | Coverage probe: confirm cors_private_network_test.go covers the new branch ~100% under `-race -coverprofile` | Low | S | Quality |
-| 12 | Run `server_timing` sub-module gates (`cd server_timing && go test -race ./... && golangci-lint run`) for completeness | Low | S | Quality |
-| 13 | Add an LNA-shaped fuzz seed to the CORS fuzz target (preflight request shape) | Low | S | Quality |
-| 14 | Document Max-Age × LNA preflight-caching interplay in the field doc | Low | S | Documentation |
-| 15 | Pre-release `docs-health` pass over living docs (cadence: before each tag) | Medium | M | Documentation |
-| 16 | Close the ROADMAP correlation-ID open question once the owner rules | Medium | S | Decision |
-| 17 | Annotate dnsblockd's adoption analysis "CORS blocker resolved upstream" (dnsblockd-session action) | Low | S | Documentation |
-| 18 | Owner decision: explicit-commit policy for feature work vs daemon heuristic commits | Low | S | Process |
-| 19 | Watch Chrome LNA spec churn (contract already changed once: PNA → LNA); revisit if request-side signals change | Low | watch | Documentation |
-| 20 | Existing backlog unaffected but adjacent: re-run `architecture-review` post-v1.1 (already in TODO_LIST) | Medium | M | Quality |
+| #  | Task                                                                                                                                                                                                                           | Impact           | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ------ | ------------- |
+| 1  | Cut next release (tag) with `[Unreleased]`: AllowPrivateNetwork + TrustedOrigins + error-classification changes, with the migration-note callout (existing TODO item) — the only thing standing between dnsblockd and adoption | Critical         | M      | Release       |
+| 2  | Decide + pin LNA-on-denied-origin preflight behavior (test + field-doc sentence; current behavior is defensible)                                                                                                               | Medium           | S      | Feature       |
+| 3  | Verify the LNA header contract against live Chrome/spec documentation (web check failed this session)                                                                                                                          | Medium           | S      | Documentation |
+| 4  | httpspec: opt-in LNA preflight spec in `CORSSpecs()`                                                                                                                                                                           | Medium           | S      | Feature       |
+| 5  | Mutation-check the 4 new CORS tests (one-command mutate-run-revert pattern)                                                                                                                                                    | Medium           | S      | Quality       |
+| 6  | dnsblockd P1 migration (SecurityHeaders/StatusRecorder/ClientIP) once its go-datastar session is quiet — other repo                                                                                                            | High (dnsblockd) | M      | Migration     |
+| 7  | dnsblockd P2: RequestID + correlation-ID wrapper, pending the upstream-vs-wrapper ruling                                                                                                                                       | Medium           | S      | Migration     |
+| 8  | dnsblockd P3: CSRF migration as its own change with full gate + Chromium E2E smoke                                                                                                                                             | High (dnsblockd) | L      | Migration     |
+| 9  | `Example*` with `// Output:` for AllowPrivateNetwork (testableexamples-compliant)                                                                                                                                              | Low              | S      | Documentation |
+| 10 | README usage snippet for LNA (doc-snippet-refs-checked fence)                                                                                                                                                                  | Low              | S      | Documentation |
+| 11 | Coverage probe: confirm cors_private_network_test.go covers the new branch ~100% under `-race -coverprofile`                                                                                                                   | Low              | S      | Quality       |
+| 12 | Run `server_timing` sub-module gates (`cd server_timing && go test -race ./... && golangci-lint run`) for completeness                                                                                                         | Low              | S      | Quality       |
+| 13 | Add an LNA-shaped fuzz seed to the CORS fuzz target (preflight request shape)                                                                                                                                                  | Low              | S      | Quality       |
+| 14 | Document Max-Age × LNA preflight-caching interplay in the field doc                                                                                                                                                            | Low              | S      | Documentation |
+| 15 | Pre-release `docs-health` pass over living docs (cadence: before each tag)                                                                                                                                                     | Medium           | M      | Documentation |
+| 16 | Close the ROADMAP correlation-ID open question once the owner rules                                                                                                                                                            | Medium           | S      | Decision      |
+| 17 | Annotate dnsblockd's adoption analysis "CORS blocker resolved upstream" (dnsblockd-session action)                                                                                                                             | Low              | S      | Documentation |
+| 18 | Owner decision: explicit-commit policy for feature work vs daemon heuristic commits                                                                                                                                            | Low              | S      | Process       |
+| 19 | Watch Chrome LNA spec churn (contract already changed once: PNA → LNA); revisit if request-side signals change                                                                                                                 | Low              | watch  | Documentation |
+| 20 | Existing backlog unaffected but adjacent: re-run `architecture-review` post-v1.1 (already in TODO_LIST)                                                                                                                        | Medium           | M      | Quality       |
 
 ## g) Questions I cannot answer myself
 
@@ -83,4 +83,4 @@
 
 ---
 
-*Point-in-time snapshot. Section (f) feeds docs-health HARVEST; the four new bounded items were routed to TODO_LIST.md in the same pass (questions and cross-repo items were not — they belong to the owner / dnsblockd).*
+_Point-in-time snapshot. Section (f) feeds docs-health HARVEST; the four new bounded items were routed to TODO_LIST.md in the same pass (questions and cross-repo items were not — they belong to the owner / dnsblockd)._

@@ -20,20 +20,20 @@ The review recorded rather than fixed it: changing the validate-and-log contract
 
 ### 2.1 Inventory: every `Validate()` rejection vs. what construction does
 
-| Config problem | `Validate()` code | Construction behavior | Class |
-| --- | --- | --- | --- |
-| `MaxAge < 0` | `csrf.max_age_negative` | `maxAge()` falls back to the 24h default (`csrf.go:214-220`) | remediates to default |
-| `SameSite=None` + `Secure=false` | `csrf_samesite_insecure` | **honored verbatim** — cookie sent `SameSite=None` with no `Secure` | **the gap** |
-| `TrustedOrigins` `""`/`"*"`/non-origin | `csrf_unsafe_origin` / `csrf.trusted_origin_invalid` | all-or-nothing parse → same-origin-only fallback + loud log (2026-09-14 decision) | fail-closed |
-| `TrustedProxies` `""`/bad CIDR | `csrf_unsafe_proxy` / `csrf_invalid_cidr` | `withParsedTrustedProxies` → nil CIDR list (`csrf.go:327-355`) | fail-closed |
-| `AllowPlaintextBypass` w/o proxies | (none — deliberate) | honored + loud warn | opt-in insecure by design |
+| Config problem                         | `Validate()` code                                    | Construction behavior                                                             | Class                     |
+| -------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------- |
+| `MaxAge < 0`                           | `csrf.max_age_negative`                              | `maxAge()` falls back to the 24h default (`csrf.go:214-220`)                      | remediates to default     |
+| `SameSite=None` + `Secure=false`       | `csrf_samesite_insecure`                             | **honored verbatim** — cookie sent `SameSite=None` with no `Secure`               | **the gap**               |
+| `TrustedOrigins` `""`/`"*"`/non-origin | `csrf_unsafe_origin` / `csrf.trusted_origin_invalid` | all-or-nothing parse → same-origin-only fallback + loud log (2026-09-14 decision) | fail-closed               |
+| `TrustedProxies` `""`/bad CIDR         | `csrf_unsafe_proxy` / `csrf_invalid_cidr`            | `withParsedTrustedProxies` → nil CIDR list (`csrf.go:327-355`)                    | fail-closed               |
+| `AllowPlaintextBypass` w/o proxies     | (none — deliberate)                                  | honored + loud warn                                                               | opt-in insecure by design |
 
-Conclusion: `SameSite=None` + `Secure=false` is the **only** security-degrading combo the constructor honors verbatim. Every other rejected config already remediates fail-closed or falls back to defaults. The 2026-08-08 decision text itself reads: *"Invalid config logs via slog **and falls back to defaults**"* — this combo is the one place where the fallback step is missing. A remediation here **completes** the documented contract rather than overturning it (the behavior change vs. status quo is still real and must ship as such).
+Conclusion: `SameSite=None` + `Secure=false` is the **only** security-degrading combo the constructor honors verbatim. Every other rejected config already remediates fail-closed or falls back to defaults. The 2026-08-08 decision text itself reads: _"Invalid config logs via slog **and falls back to defaults**"_ — this combo is the one place where the fallback step is missing. A remediation here **completes** the documented contract rather than overturning it (the behavior change vs. status quo is still real and must ship as such).
 
 ## 3. What the misconfiguration does in reality (verified 2026-09-15)
 
-1. **Spec (normative):** draft-ietf-httpbis-rfc6265bis, §5.7 (storage model): *"If the cookie's 'same-site-flag' is 'None', abort this algorithm and ignore the cookie entirely unless the cookie's secure-only-flag is true."* — a `SameSite=None` cookie without `Secure` is **never stored**. Source: `httpwg.org/http-extensions/draft-ietf-httpbis-rfc6265bis.html` (URL as cited by MDN browser-compat-data), raw text extracted 2026-09-15.
-2. **MDN:** *"if `SameSite=None` is set then the `Secure` attribute must also be set — `SameSite=None` requires a secure context."* Source: raw `mdn/content` `files/en-us/web/http/guides/cookies/index.md` line 223, fetched 2026-09-15.
+1. **Spec (normative):** draft-ietf-httpbis-rfc6265bis, §5.7 (storage model): _"If the cookie's 'same-site-flag' is 'None', abort this algorithm and ignore the cookie entirely unless the cookie's secure-only-flag is true."_ — a `SameSite=None` cookie without `Secure` is **never stored**. Source: `httpwg.org/http-extensions/draft-ietf-httpbis-rfc6265bis.html` (URL as cited by MDN browser-compat-data), raw text extracted 2026-09-15.
+2. **MDN:** _"if `SameSite=None` is set then the `Secure` attribute must also be set — `SameSite=None` requires a secure context."_ Source: raw `mdn/content` `files/en-us/web/http/guides/cookies/index.md` line 223, fetched 2026-09-15.
 3. **Browser enforcement (mdn/browser-compat-data, `http/headers/Set-Cookie.json`):** Chromium-based browsers enforce the `SameSite` requirements (SameSite-by-default `Lax_default` row: Chrome 80 / Edge 86); older Chromium 51–67 rejected `SameSite=None` outright; Safari 12–13 treated `None` as `Strict` (WebKit bug 198181, fixed Catalina). Current evergreen browsers implement the rfc6265bis step.
 4. **nosurf v1.2.0 mechanics (module source, `~/go/pkg/mod/github.com/justinas/nosurf@v1.2.0/handler.go`):** the token lives **in the CSRF cookie**; `ServeHTTP` regenerates whenever the cookie token is absent/malformed, and every unsafe method compares cookie token vs. sent token. `SetIsTLSFunc` is only a downstream hook — nosurf has no internal TLS gating.
 
@@ -103,7 +103,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 - Tests: constructor on `None+Secure=false` emits `Set-Cookie` with `Secure` (and keeps `SameSite=None`); `Lax`/`Strict`/zero-value configs unchanged; `Secure=false` non-`None` still warns and stays `false`; `TestCSRFMiddleware_InvalidConfigContinues` (csrf_test.go:298) keeps passing — add a cookie-attribute assertion next to it; validate-and-log contract tests (`validate_config_log_test.go`) unchanged since `Validate()` output is identical.
 - Gates: `go build ./...`, `go test -race -count=10 ./...`, `golangci-lint run`, the three erraudit gates, `nix fmt`, `nix flake check`.
 
-*Implemented shape differs from this sketch (post-implementation correction, 2026-09-15): the check lives in a shared `withSecureFallback(cfg)` helper used by both `CSRFMiddleware` and `InvalidateCSRFCookie` (so the deletion cookie matches the remediated one), the remediation log carries the structured `csrf_samesite_insecure` code, and the additive `CSRFConfig.AllowInsecureSameSiteNone` opt-out bypasses the fallback verbatim. See `csrf.go` and the CHANGELOG `[Unreleased]` entries.*
+_Implemented shape differs from this sketch (post-implementation correction, 2026-09-15): the check lives in a shared `withSecureFallback(cfg)` helper used by both `CSRFMiddleware` and `InvalidateCSRFCookie` (so the deletion cookie matches the remediated one), the remediation log carries the structured `csrf_samesite_insecure` code, and the additive `CSRFConfig.AllowInsecureSameSiteNone` opt-out bypasses the fallback verbatim. See `csrf.go` and the CHANGELOG `[Unreleased]` entries._
 
 ## 8. Decision ask (owner, question ③)
 
@@ -113,13 +113,13 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 
 ## 9. Owner ruling (2026-09-15) and the design that implements it
 
-Ruling (verbatim): *"Good defaults + Config options (Operators know) + power to the applications?!"* — a principle, mapped to design as follows:
+Ruling (verbatim): _"Good defaults + Config options (Operators know) + power to the applications?!"_ — a principle, mapped to design as follows:
 
-| Ruling phrase | Design element |
-| --- | --- |
-| Good defaults | The constructor no longer honors the unenforceable combo: `SameSite=None` + `Secure=false` falls back to `Secure=true` (B1 — preserves the operator's cross-site intent where browsers can honor it; the secure direction). Zero-value configs are unaffected. |
-| Config options (Operators know) | Every deviation is loud: `Validate()` keeps returning `csrf_samesite_insecure`, `validateConfig` keeps its `LevelError` record, and the fallback adds a structured `Warn` naming the code and both fixes. |
-| Power to the applications | New additive config field `AllowInsecureSameSiteNone` opts out of the fallback and keeps today's verbatim behavior for legacy-client deployments and test rigs — the application, not the library, makes the final call. |
+| Ruling phrase                   | Design element                                                                                                                                                                                                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Good defaults                   | The constructor no longer honors the unenforceable combo: `SameSite=None` + `Secure=false` falls back to `Secure=true` (B1 — preserves the operator's cross-site intent where browsers can honor it; the secure direction). Zero-value configs are unaffected. |
+| Config options (Operators know) | Every deviation is loud: `Validate()` keeps returning `csrf_samesite_insecure`, `validateConfig` keeps its `LevelError` record, and the fallback adds a structured `Warn` naming the code and both fixes.                                                      |
+| Power to the applications       | New additive config field `AllowInsecureSameSiteNone` opts out of the fallback and keeps today's verbatim behavior for legacy-client deployments and test rigs — the application, not the library, makes the final call.                                       |
 
 Interpretation note: between B1 and B2 the ruling's "power to the applications" tips to B1 — remediating to `Lax` would silently strip the cross-site capability the config asked for, the opposite of preserving application power. The fallback therefore targets the config's own intent (`None` + `Secure`), with the escape hatch covering the rest.
 
