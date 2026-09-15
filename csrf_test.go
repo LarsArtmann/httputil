@@ -515,7 +515,11 @@ func TestCSRFMiddleware_NoneWithoutSecure_FallbackLogsRemediation(t *testing.T) 
 	}
 
 	if records[0]["level"] != "ERROR" || records[0]["code"] != "csrf_samesite_insecure" {
-		t.Errorf("validateConfig record = %v/%v, want ERROR/csrf_samesite_insecure", records[0]["level"], records[0]["code"])
+		t.Errorf(
+			"validateConfig record = %v/%v, want ERROR/csrf_samesite_insecure",
+			records[0]["level"],
+			records[0]["code"],
+		)
 	}
 
 	if records[1]["level"] != "WARN" {

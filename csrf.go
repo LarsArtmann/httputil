@@ -552,7 +552,10 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 		slog.Warn(
 			"httputil: CSRFConfig: SameSite=None without Secure is unstorable in current browsers; fell back to Secure=true",
 			slog.String("code", string(codeCSRFSameSiteInsecure)),
-			slog.String("fix", "set Secure=true explicitly, or set AllowInsecureSameSiteNone to keep the insecure cookie"),
+			slog.String(
+				"fix",
+				"set Secure=true explicitly, or set AllowInsecureSameSiteNone to keep the insecure cookie",
+			),
 		)
 	}
 
