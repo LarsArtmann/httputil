@@ -143,7 +143,10 @@ func FuzzHealthResponse_Encoding(f *testing.F) {
 		// falsified by the fuzzer).
 		if !utf8.ValidString(status) {
 			if err == nil {
-				t.Fatalf("MarshalWrite error = nil, want invalid-UTF-8 rejection for status %q", status)
+				t.Fatalf(
+					"MarshalWrite error = nil, want invalid-UTF-8 rejection for status %q",
+					status,
+				)
 			}
 
 			return
