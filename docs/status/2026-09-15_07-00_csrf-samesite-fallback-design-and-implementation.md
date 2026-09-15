@@ -1,0 +1,120 @@
+# Status — CSRF `SameSite=None` fallback: design pass, owner ruling, implementation
+
+- **Timestamp:** 2026-09-15 07:00 CEST
+- **Session scope:** TODO_LIST Medium item "CSRF security-degrading config: log-only vs remediate-to-secure-defaults" (full-code-review 2026-09-11 finding 2) — executed end-to-end: research → design pass → owner ruling → implementation → docs sweep → gates.
+- **Standing question ③:** RESOLVED this session. Ruling recorded in DECISION_LOG 2026-09-15; interpretation recorded falsifiably in the design note §9.
+
+---
+
+## Self-reflection first (what the user asked)
+
+- **What did I forget?** The project-convention verification polish for freshly shipped behavior: no mutation-check of the new tests (mutate `withSecureFallback` away → the fallback tests must fail), no `-race -coverprofile` probe of the new branch, no smoke-fuzz of the two CSRF fuzz targets, no `server_timing` sub-module gate, no `nix flake check`. None of these are correctness risks today (the suite is green ×10 under race), but they are the documented hardening pass for new behavior and the LNA TODO item shows they are expected per feature.
+- **What could I have done better?** (1) The owner's ruling came back as a one-line principle with "?!" — I interpreted it (B1 + opt-out) and proceeded; one explicit confirmation would have locked a shipped security default before code. The interpretation is now falsifiable in writing, but confirm-first would have been safer. (2) My first `question`-tool call was malformed and wasted a round trip. (3) The design doc §7 sketch diverged slightly from the final helper-based shape — harmless (it is labeled a sketch) but the doc could match the code exactly.
+- **What could I still improve?** Process: when `agentic_fetch` broke, I re-derived the raw-extraction patterns (gh api raw content, download+grep) that already exist as lessons — those workarounds should be written down once instead of re-discovered. Verification: apply the mutation-check/coverage/fuzz-smoke trio *while* shipping a behavior change, not as a follow-up item.
+
+---
+
+## a) FULLY DONE (verifiable)
+
+| # | Item | Evidence |
+| --- | --- | --- |
+| a1 | **Design pass written**: problem, full inventory of `Validate()` rejections vs constructor behavior, verified browser/spec facts, options A/B1/B2/C, recommendation, release mechanics | [docs/planning/2026-09-15_csrf-security-degrading-config-design-note.md](../planning/2026-09-15_csrf-security-degrading-config-design-note.md) (§1–§8) |
+| a2 | **External claims verified against primary sources (2026-09-15)**: rfc6265bis §5.7 ("abort… ignore the cookie entirely unless secure-only-flag is true") via httpwg.org raw download+grep; MDN cookies guide line 223 via raw `mdn/content`; browser-compat-data JSON via gh api; nosurf v1.2.0 token mechanics from module source | design note §3, sources inline |
+| a3 | **Owner ruling obtained and recorded**: "Good defaults + Config options (Operators know) + power to the applications" mapped to design in §9; DECISION_LOG row added | design note §9; [docs/DECISION_LOG.md](../../docs/DECISION_LOG.md) 2026-09-15 |
+| a4 | **Implementation shipped**: `CSRFConfig.AllowInsecureSameSiteNone` (additive opt-out), `withSecureFallback()` shared helper, `CSRFMiddleware` falls back to `Secure=true` with structured remediation Warn (`csrf_samesite_insecure`), `InvalidateCSRFCookie` applies the same fallback, `Validate()` unchanged, stale "auto-detected from request scheme" doc claim corrected, `CSRFMiddleware` doc gained a "SameSite=None fallback" section | `csrf.go` (daemon-committed `46c9070..73cfe4e`); grep confirms zero remaining "auto-detected" claims |
+| a5 | **6 new tests**: fallback cookie (Secure=true, None preserved), opt-out verbatim, None+Secure unchanged, Lax untouched, invalidation-cookie match, remediation log (multi-record slog capture helper) — all `t.Parallel()` except the slog-swap log test | `csrf_test.go` (`TestCSRFMiddleware_NoneWithoutSecure_*`, `TestCSRFMiddleware_LaxWithoutSecure_StaysUnchanged`, `TestInvalidateCSRFCookie_NoneWithoutSecure_FallsBackToSecure`) |
+| a6 | **Full docs sweep (9 files)**: CHANGELOG `[Unreleased]` Added+Changed bullets, migrating-to-v1.2.md third delta section + intro + additive list, v1-stability.md "Three behavior changes", README CSRFConfig table (Secure row + new field row), FEATURES.md, DOMAIN_LANGUAGE.md, AGENTS.md new Non-Obvious-Behaviors bullet, errors.go `csrf_samesite_insecure` template Fix/WayOut, TODO_LIST item struck done | file list in session diff; all reference the new field consistently |
+| a7 | **Quality gates green**: `go build`/`go vet` clean; full suite `go test -race -count=10 ./...` ok; `golangci-lint run` 0 issues (after golines reformat); erraudit real gates (`legacy_as`, `stdlib_constructor`) exit 0; type-aware run exactly at the documented baseline (44 sentinel_concrete_type + 40 test-side errors.Is — zero new advisories, no new sentinels); `nix fmt` applied | gate outputs this session; erraudit counts re-measured post-change |
+
+## b) PARTIALLY DONE
+
+| Item | Works now | Open | Effort |
+| --- | --- | --- | --- |
+| **Hardening pass for the shipped fallback** | Behavior is pinned by 6 tests, suite green ×10 under race | Mutation-check of the new pins, `-race -coverprofile` probe of the new branch, 30–60s smoke-fuzz of `FuzzCSRFMiddleware_*`, `server_timing` sub-module gate, full `nix flake check` — none executed this session | S |
+| **v1.2.0 release** | All three behavioral deltas + two additive fields are staged, migration doc complete, gates green | The cut itself (RELEASE.md runbook) not started — release timing is owner-gated | M |
+| **Tree cleanliness** | All substantive work daemon-committed; `git log 46c9070..73cfe4e` holds the session | The final treefmt reformat of `csrf_test.go` was still uncommitted at report time (daemon raced); verify it lands | S |
+
+## c) NOT STARTED (live backlog, verified present in TODO_LIST)
+
+| Item | Why not started |
+| --- | --- |
+| Pin LNA header behavior on denied-origin preflights (test vs suppress) | Owner security-posture question pending |
+| httpspec opt-in LNA preflight spec (`WithExtraSpecs` pattern) | Queued behind the posture decision |
+| Verify LNA header contract against live Chrome/spec docs | Web tooling failed twice (`agentic_fetch` json error) — workaround patterns now proven this session |
+| LNA documentation polish (Example, README fence, Max-Age × caching note) | Queued |
+| LNA verification polish (mutation checks, coverage probe, fuzz seed, sub-module gate) | Queued |
+| Re-run `architecture-review` post-v1.1 | Scheduled post-release pass |
+| Extract compression into `go-compression` | Deferred 2026-09-10; plan inventory must be refreshed first |
+| httpspec discovery docs-site page | Blocked on website-launch effort |
+| Post-v1.1 frozen-API items (ValidateCSRF recorder type, `MiddlewareFunc` split — v2.0; typed stack names, pool hardening) | v2.0 material / next-pool-touch, recorded not fixed |
+| Resolve the standing gzip-on-absent-Accept-Encoding ruling (go-error-family issue #4 thread) | Owner question, standing since 2026-09-11 |
+
+## d) TOTALLY FUCKED UP
+
+Radical honesty: **nothing in the tree is broken** — build, vet, lint (0 issues), race ×10, and both erraudit hard gates pass on the final state. The fucked-up items are adjacent:
+
+| Item | Severity | Detail | Mitigation |
+| --- | --- | --- | --- |
+| `agentic_fetch` tool is broken in this environment | Medium (process) | Fails with `json: cannot unmarshal string into Go value of type apierror.Error` on every call — same failure class the LNA TODO already recorded. External-claim verification (a project gate) currently depends on hand-rolled workarounds. | Workarounds proven this session: raw `mdn/content` via `gh api`, spec text via `download`+grep, compat data via `gh api` on `mdn/browser-compat-data`. Fix or report the tool itself. |
+| Git history does not tell this session's story | Medium (process) | The CSRF security-contract change shipped under daemon "heuristic" messages (`4cb44a0`, `fd77ed1`, `73cfe4e`) — the known commit-per-task lesson cannot apply because explicit commits are not authorized by default. | Known tradeoff (AGENTS.md). If history matters for security-relevant changes, see question g3. |
+| First `question`-tool call wasted | Low | Malformed arguments (missing/invalid `type`) → error round trip. | Careful schema use; no user impact. |
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Ship the hardening trio with the change, not after it** — mutation-check + coverage probe + fuzz smoke are cheap (≈30 min total) and are exactly what the LNA polish item codifies; doing them in-session removes a follow-up class entirely.
+2. **Confirm interpretation before code on security-contract changes** — when an owner ruling is a principle rather than a pick ("?!"), one yes/no exchange ("B1 + opt-out — proceed?") converts ambiguity into a recorded, confirmed decision. The falsifiable §9 write-up is the fallback, not the first choice.
+3. **Write the raw-extraction verification patterns down once** — `gh api repos/<o>/<r>/contents/<path>` for raw markdown, `download` + grep for large specs, `mdn/browser-compat-data` JSON for version claims. This session proved all three; they belong in a reference (skill or AGENTS.md note) so the next `agentic_fetch` outage costs nothing.
+4. **Design-doc sketches should be updated to final shape** when the implementation deviates structurally (here: inline check → shared helper + `InvalidateCSRFCookie` wiring). Otherwise the next reader implements the sketch.
+5. **Daemon-vs-verification race** — final `treefmt` state was uncommitted at session end twice. End-of-session step: `git status` + wait-for-daemon before declaring done, or run `nix fmt` earlier (before the last code edit).
+
+## f) Up to 50 things we should get done next (brainstorm, ranked by impact — HARVEST input; most backlog items are TODO_LIST fuel)
+
+| # | Task | Impact | Effort | Category |
+| --- | --- | --- | --- | --- |
+| 1 | HARVEST this report into TODO_LIST/ROADMAP (docs-health) so section f doesn't die here | Critical | S | Process |
+| 2 | Mutation-check the 6 new CSRF tests: bypass `withSecureFallback()` in `CSRFMiddleware`/`InvalidateCSRFCookie` → fallback tests must fail | High | S | Quality |
+| 3 | Coverage probe: new `withSecureFallback` branch under `-race -coverprofile`; document any gap in FEATURES per the coverage methodology | High | S | Quality |
+| 4 | Cut v1.2.0 per RELEASE.md (three behavioral deltas + two additive fields staged; all gates green) — owner-gated timing | High | M | Release |
+| 5 | Smoke-fuzz `FuzzCSRFMiddleware_OriginHeaders` + `FuzzCSRFMiddleware_TokenValidation` 30–60s post-change (nightly covers the rest) | High | S | Quality |
+| 6 | Decide+pin LNA header behavior on denied-origin preflights (test + field-doc sentence, or suppress) — needs owner posture ruling | High | S-M | Feature |
+| 7 | Verify LNA header contract against live Chrome/spec docs using the proven gh/download workarounds | High | S-M | Documentation |
+| 8 | Run `server_timing` sub-module gate (`go test -race ./... && golangci-lint run`) for completeness | Medium | S | Quality |
+| 9 | Full `nix flake check` (treefmt verification included) — not run this session | Medium | S | Quality |
+| 10 | Resolve the standing gzip-on-absent-Accept-Encoding owner ruling (go-error-family issue #4 thread) | High | S | Decision |
+| 11 | Confirm the B1+opt-out interpretation of the ruling (see g3) — if the intended default was the Lax fallback, flip `withSecureFallback` + migration note + tests | High | S-M | Decision |
+| 12 | Update design-note §7 sketch to the final helper-based implementation shape (add `InvalidateCSRFCookie` wiring) | Low | S | Documentation |
+| 13 | Audit `CSRFResponseHeaderMiddleware` for cookie-writing paths and pin "cannot emit cookies" with a test if untested | Medium | S | Quality |
+| 14 | Add "verbatim, no fallback" warning to `ConfigureNosurfHandler` doc comment (direct-use contract) | Medium | S | Documentation |
+| 15 | SECURITY.md: add one sentence on the fallback posture (file currently has zero CSRF/SameSite mentions) | Medium | S | Documentation |
+| 16 | README CSRF prose: short "SameSite=None fallback" paragraph next to the config table | Medium | S | Documentation |
+| 17 | `Example*` demonstrating the fallback (testableexamples-compliant with `// Output:`) | Low | S | Documentation |
+| 18 | LNA documentation polish (Example with Output, README fence, Max-Age × preflight-caching note) | Medium | M | Documentation |
+| 19 | LNA verification polish (mutation checks, coverage probe, LNA fuzz seed, sub-module gate) | Medium | M | Quality |
+| 20 | httpspec opt-in LNA preflight spec via `WithExtraSpecs` | Medium | M | Feature |
+| 21 | Export `csrf.trusted_origin_invalid` as an exported `Code` constant (consumers match via string today; 2026-09-14 standing question) | Medium | S | Feature |
+| 22 | Re-run `architecture-review` post-v1.1 (last run predates ETag extraction, keyed limiter, compose, attestation defense, LNA, fallback) | High | L | Quality |
+| 23 | Extract compression into `go-compression`: refresh the plan's line-by-line inventory first (writerPool refactor invalidated it), then phased execution | Medium | L | Feature |
+| 24 | Promote `captureCSRFConstructorLogs` to `testutil_test.go` when a second multi-record constructor-log test appears | Low | S | Cleanup |
+| 25 | Cross-reference DECISION_LOG 2026-08-08 row → 2026-09-15 refinement row (one-pointer edit, keeps the contract story navigable) | Low | S | Documentation |
+| 26 | Run `scripts/check-changelog-links.sh` + markdownlint on the new/edited docs explicitly (buildflow catches it detect-only; make it deterministic) | Low | S | Quality |
+| 27 | httpspec discovery docs-site page (blocked on website-launch effort) | Low | L | Documentation |
+| 28 | Post-v1.1/v2.0 discussion: `ValidateCSRF` returns `*httptest.ResponseRecorder` from a production API | Low | L | Feature/v2 |
+| 29 | Post-v1.1/v2.0 discussion: `MiddlewareFunc` vs `Middleware` alias split | Low | L | Feature/v2 |
+| 30 | Typed `MiddlewareStack` names (additive type + overload candidate) | Medium | M | Feature |
+| 31 | Pool-contract hardening: `(nil, nil)` factory probe in `compress_pool.go`, `acquire` factory param on pooled path, `release` provenance check | Medium | M | Quality |
+| 32 | Write the external-claim raw-extraction patterns (gh api contents / download+grep / compat-data JSON) into a reference so the next `agentic_fetch` outage is free | Medium | S | Process |
+| 33 | Report/fix the `agentic_fetch` json-unmarshal failure (environment tooling) | Medium | S | Process |
+| 34 | Add a `SameSite=None` fallback mention to the nosurf-wrapping bullet's HTMX helpers area of AGENTS.md only if another session reports confusion (avoid doc growth without signal) | Low | S | Documentation |
+| 35 | Verify the daemon landed the final treefmt state; leave tree clean at session end | Low | S | Cleanup |
+
+(Stopped at 35: the remaining gap to 50 has no genuine items — padding would violate the "specific or ROADMAP" rule. Items 1, 4, 6, 7, 10, 11 are the decision-critical ones.)
+
+## g) Top 3 questions I can NOT figure out myself
+
+1. **Did I read your ruling correctly?** "Good defaults + Config options (Operators know) + power to the applications?!" is now shipped as: default = `SameSite=None` falls back to `Secure=true` (NOT to the `Lax` default), `AllowInsecureSameSiteNone` opts out, `Validate()` unchanged. If you intended the "good default" to be the **Lax fallback** (B2), the shipped default flips — one word from you and I'll rework `withSecureFallback`, the tests, and the migration note. I tried to disambiguate from the design analysis itself (B1 preserves intent, B2 strips it) but the "?!" left genuine ambiguity about *which* default you call "good".
+2. **When should v1.2.0 be cut?** Three behavioral deltas + two additive fields are staged with a complete migration doc and green gates. I cannot decide release timing. Cut now (each delta ages in the migration doc, not in production) or batch with the LNA work?
+3. **May I commit explicitly — at least for security-contract changes?** The CSRF contract change shipped under daemon "heuristic" messages, so `git log` cannot tell a future reader that a security default changed, why, and under which ruling. If you authorize explicit per-task commits for security-relevant work (the 2026-09-13 go-paperless lesson), history carries the story; otherwise I keep relying on the daemon and the status/design docs.
+
+---
+
+_Prepared 2026-09-15 07:00 CEST. Point-in-time snapshot — annotate, don't rewrite. Section (f) awaits docs-health HARVEST; report left for the auto-commit daemon per the no-manual-commits contract._
