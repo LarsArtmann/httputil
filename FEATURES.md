@@ -96,6 +96,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `TranslateCSRFHeaders` for HTMX-style header forwarding.
 - `isTrustedProxy` for secure `X-Forwarded-Proto` handling.
 - `CSRFConfig.Validate()` enforces secure defaults (`SameSite=None` requires `Secure`).
+- `SameSite=None` without `Secure` falls back to `Secure=true` at construction (browsers refuse to store the cookie); `AllowInsecureSameSiteNone` opts out for legacy-client deployments.
 - Domain-level `TrustedOrigins` allowlist and trusted-proxy CIDR allowlists. `TrustedOrigins` entries must be well-formed `scheme://host` origins (`Validate` rejects others via `csrf.trusted_origin_invalid`); runtime parsing is all-or-nothing, mirroring `nosurf.StaticOrigins` — one unparseable entry falls back to same-origin-only validation (fail-closed).
 
 ### Server-Timing

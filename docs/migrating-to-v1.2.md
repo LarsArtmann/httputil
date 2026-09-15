@@ -1,9 +1,10 @@
 # Migrating to httputil v1.2 (behavior changes)
 
-The next minor release (v1.2.0) changes the behavior of two existing
-mechanisms. No exported signature changes; both deltas are visible only
-through error classification results and CSRF config validation. Read this
-if you use `CSRFConfig.TrustedOrigins` or route retry decisions through
+The next minor release (v1.2.0) changes the behavior of three existing
+mechanisms. No exported signature changes; the deltas are visible only
+through error classification results, CSRF config validation, and the CSRF
+cookie's attributes. Read this if you use `CSRFConfig.TrustedOrigins`,
+configure `SameSite=None`, or route retry decisions through
 `errorfamily.Classify`/`IsRetryable` on the stdlib sentinels
 `http.ErrNoCookie`/`http.ErrNoLocation`.
 
@@ -49,6 +50,32 @@ SLO routing treats `IsRetryable(err)` on these sentinels as retryable —
 such requests now land in the non-retryable path, which is the intended
 correction.
 
+## CSRF `SameSite=None` without `Secure` falls back to `Secure=true`
+
+**Before (v1.1.x):** `CSRFMiddleware` honored `SameSite: SameSiteNoneMode`
+combined with `Secure: false` verbatim (after logging the
+`csrf_samesite_insecure` validation error). Current browsers ignore such
+cookies entirely (rfc6265bis §5.7), so the CSRF cookie never persisted and
+every state-changing browser request failed validation — the
+misconfiguration was already self-announcing, not a silent downgrade.
+
+**After (v1.2.0):** the constructor keeps the `SameSite=None` intent but
+forces `Secure=true`, logging the fallback (code `csrf_samesite_insecure`).
+`InvalidateCSRFCookie` applies the same fallback so the deletion cookie
+matches. `Validate()` is unchanged and still reports the combination as
+invalid.
+
+**What to do:**
+
+- HTTPS deployments (direct or TLS-terminated behind a proxy): no action —
+  the fallback makes the configured cross-site cookie actually work.
+- Plain-HTTP deployments: runtime behavior is unchanged (the cookie was
+  already unstorable in enforcing browsers), but set `Secure: true` or drop
+  `SameSite=None` to clear the construction log.
+- Deployments that must keep the insecure cookie verbatim (legacy clients
+  that ignore the Secure requirement): set
+  `AllowInsecureSameSiteNone: true`.
+
 ## Also in this release (additive, no action required)
 
 - **`CORSConfig.AllowPrivateNetwork`** (default `false`): opt-in support
@@ -56,3 +83,7 @@ correction.
   check — the middleware-generated preflight 204 carries
   `Access-Control-Allow-Private-Network: true` when enabled. See the
   CHANGELOG entry for the exact grant semantics.
+- **`CSRFConfig.AllowInsecureSameSiteNone`** (default `false`): opts out of
+  the CSRF `SameSite=None` fallback above, keeping the insecure cookie
+  verbatim. No action required unless you serve legacy clients that ignore
+  the Secure requirement.

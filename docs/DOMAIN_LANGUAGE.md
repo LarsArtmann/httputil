@@ -366,6 +366,7 @@ Invariants and policies that the library enforces.
 - `CSRFMiddleware` wraps `justinas/nosurf` and applies to all non-safe methods (POST, PUT, DELETE, PATCH)
 - GET, HEAD, OPTIONS, and TRACE requests are exempt from CSRF validation
 - `CSRFConfig.Validate()` rejects insecure configurations (`SameSite=None` requires `Secure=true`)
+- `CSRFMiddleware` falls back to `Secure=true` when configured with `SameSite=None` without `Secure` (current browsers refuse to store such cookies, so every state-changing browser request would otherwise fail); `AllowInsecureSameSiteNone` opts out for legacy-client deployments
 - `TrustedOrigins` explicitly allows cross-domain origins for CSRF validation; entries must be well-formed `scheme://host` origins, and parsing is all-or-nothing — one unparseable entry falls back to same-origin-only validation (fail-closed, mirroring `nosurf.StaticOrigins`)
 - `TrustedProxies` defines CIDR ranges of reverse proxies that may set `X-Forwarded-Proto`
 - `AllowPlaintextBypass` permits plaintext HTTP origin for local development (insecure; off by default)
