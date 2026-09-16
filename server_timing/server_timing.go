@@ -431,6 +431,9 @@ func ServerTimingMiddlewareWhen(pred func(*http.Request) bool) Middleware {
 
 			wrapped, r2 := WrapServerTiming(w, r)
 			next.ServeHTTP(wrapped, r2)
+			// ServeMux stamps the matched pattern on the forked request;
+			// propagate it back so outer pattern readers (otelhttp) see the route.
+			r.Pattern = r2.Pattern
 		})
 	}
 }

@@ -28,6 +28,10 @@ func ClientIPMiddleware(next http.Handler) http.Handler {
 		ip := ClientIP(r)
 		ctx := WithClientIP(r.Context(), ip)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		// ServeMux stamps the matched pattern on the forked request;
+		// propagate it back so outer pattern readers (otelhttp) see the route.
+		forked := r.WithContext(ctx)
+		next.ServeHTTP(w, forked)
+		r.Pattern = forked.Pattern
 	})
 }

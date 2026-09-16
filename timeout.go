@@ -15,7 +15,11 @@ func Timeout(duration time.Duration) Middleware {
 			ctx, cancel := context.WithTimeout(req.Context(), duration)
 			defer cancel()
 
-			next.ServeHTTP(resp, req.WithContext(ctx))
+			// ServeMux stamps the matched pattern on the forked request;
+			// propagate it back so outer pattern readers (otelhttp) see the route.
+			forked := req.WithContext(ctx)
+			next.ServeHTTP(resp, forked)
+			req.Pattern = forked.Pattern
 		})
 	}
 }

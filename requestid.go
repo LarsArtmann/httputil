@@ -79,7 +79,11 @@ func RequestID(cfg RequestIDConfig) Middleware {
 			resp.Header().Set(cfg.ResponseHeader, requestID)
 
 			ctx := context.WithValue(req.Context(), requestIDKey{}, requestID)
-			next.ServeHTTP(resp, req.WithContext(ctx))
+			// ServeMux stamps the matched pattern on the forked request;
+			// propagate it back so outer pattern readers (otelhttp) see the route.
+			forked := req.WithContext(ctx)
+			next.ServeHTTP(resp, forked)
+			req.Pattern = forked.Pattern
 		})
 	}
 }
