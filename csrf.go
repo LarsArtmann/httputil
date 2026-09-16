@@ -544,6 +544,16 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 // The constructor therefore falls back to Secure=true for that combination
 // and logs the change; AllowInsecureSameSiteNone keeps the insecure cookie
 // for legacy-client deployments. Validate reports the combination either way.
+//
+// Known limitation (pattern propagation): this middleware delegates to
+// justinas/nosurf, which forks the request INTERNALLY (addNosurfContext →
+// r.WithContext) and does not copy the matched ServeMux pattern back onto
+// the caller's request. Route readers OUTSIDE the CSRF middleware (otelhttp,
+// metrics aggregating on r.Pattern) see an empty Pattern for CSRF-wrapped
+// routes. Fixing it requires nosurf-side propagation — not possible from
+// this package without wrapping nosurf's internals. CSRF is not in any
+// default middleware stack, so the default appkit wiring is unaffected
+// (verified 2026-09-16; context: LarsArtmann/go-appkit otel pattern work).
 func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	validateConfig("CSRFConfig", cfg.Validate())
 

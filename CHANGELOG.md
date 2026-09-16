@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Documented
+
+- `CSRFMiddleware`: known limitation documented — nosurf forks the request
+  internally and does not propagate the matched ServeMux pattern back, so
+  route readers outside the CSRF middleware (otelhttp, pattern-based
+  metrics) see an empty `r.Pattern` for CSRF-wrapped routes. Unfixable from
+  this package without wrapping nosurf internals; no default stack impact
+  (CSRF is opt-in everywhere).
+
 ## [1.2.0] - 2026-09-16
 
 ### Added
