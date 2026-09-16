@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-16
+
 ### Added
 
 - **`CORSConfig.AllowPrivateNetwork`** (`cors.go`): opt-in support for Chrome's Private Network Access / Local Network Access (LNA) preflight check. When true, the middleware-generated preflight response carries `Access-Control-Allow-Private-Network: true`, which Chrome requires before a page from a less-private address space (public internet, private LAN) may fetch subresources that resolve to a more-private one (LAN, localhost) — without the header, every such asset dies browser-side with \"blocked by CORS policy: Permission was denied for this request to access the `local` address space\" and the server never sees the request at all. The header is set only on the preflight 204 (never on actual requests, never with `OptionsPassthrough`, where the handler owns the preflight) and is sent unconditionally rather than echoed from the request header, so a Chrome-side change to the request signal cannot silently break it. Default `false`: enabling it is an explicit decision to grant cross-origin pages reach into a more-private address space. Closes the CORS blocker from the dnsblockd adoption analysis (33-project fleet consumer).
@@ -573,7 +575,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/larsartmann/httputil/compare/v1.1.1...v1.2.0
 [1.1.0]: https://github.com/larsartmann/httputil/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/larsartmann/httputil/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/larsartmann/httputil/compare/v0.12.0...v1.0.0
