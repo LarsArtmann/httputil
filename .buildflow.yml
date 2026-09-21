@@ -1,9 +1,12 @@
 # BuildFlow configuration — see https://github.com/larsartmann/buildflow
-# go-auto-upgrade suggests converting manual loops to samber/lo helpers
-# (lo.Reduce, lo.SliceToMap). This repository forbids samber/lo: the
-# depguard allowlist in .golangci.yml admits only $gostd, this module, and
-# the four documented external dependencies. Adding the dependency would
-# fail golangci-lint immediately. Run the step explicitly when wanted:
+# go-auto-upgrade: policy skip (retested 2026-09-22 against gau v0.6.2).
+# This repository forbids samber/lo: the depguard allowlist in .golangci.yml
+# admits only $gostd, this module, and the four documented external
+# dependencies. gau's dependency gate now correctly skips the import-adding
+# rewrites (lo not in go.mod), so a run is a green no-op emitting only
+# suggestion warnings (lo.Reduce / lo.SliceToMap / lo.FromPtrOr advice) —
+# noise against a standing dependency policy. Run the step explicitly when
+# wanted:
 #   buildflow -s go-auto-upgrade
 skip_steps:
   - go-auto-upgrade
