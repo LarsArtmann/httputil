@@ -138,7 +138,11 @@ func ExampleRequestID() {
 
 func ExampleSecurityHeaders() {
 	cfg := DefaultSecurityHeadersConfig()
-	handler := SecurityHeaders(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
+	handler := SecurityHeaders(
+		cfg,
+	)(
+		http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}),
+	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
@@ -217,15 +221,24 @@ func ExampleCSRFMiddleware() {
 }
 
 func ExampleCSRFTokenFormField() {
-	handler := CSRFMiddleware(CSRFConfig{})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `<form method="post">`+CSRFTokenFormField(r)+`</form>`)
-	}))
+	handler := CSRFMiddleware(
+		CSRFConfig{},
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, `<form method="post">`+CSRFTokenFormField(r)+`</form>`)
+		}),
+	)
 
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 	body := rec.Body.String()
-	fmt.Println(strings.HasPrefix(body, `<form method="post"><input type="hidden" name="csrf_token" value="`))
+	fmt.Println(
+		strings.HasPrefix(
+			body,
+			`<form method="post"><input type="hidden" name="csrf_token" value="`,
+		),
+	)
 	fmt.Println(strings.HasSuffix(body, `"></form>`))
 
 	// Output:
@@ -234,9 +247,13 @@ func ExampleCSRFTokenFormField() {
 }
 
 func ExampleCSRFTokenHXHeaders() {
-	handler := CSRFMiddleware(CSRFConfig{})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "<body "+CSRFTokenHXHeaders(r)+">")
-	}))
+	handler := CSRFMiddleware(
+		CSRFConfig{},
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, "<body "+CSRFTokenHXHeaders(r)+">")
+		}),
+	)
 
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))

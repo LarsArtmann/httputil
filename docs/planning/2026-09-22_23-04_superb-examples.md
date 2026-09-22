@@ -16,44 +16,44 @@ API have no examples anywhere.
 
 ## Pareto Breakdown
 
-| Slice | Delivers | Content |
-| ----- | -------- | ------- |
+| Slice | Delivers | Content                                                                                                                                     |
+| ----- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1%    | 51%      | Inline the invisible test helpers (`newNoOpHandler`, `newWriteStatusHandler`, `newPanicHandler`) so all 25 root examples are self-contained |
-| 4%    | 64%      | + `server_timing` examples on its own pkg.go.dev page |
-| 20%   | 80%      | + `etagmetrics` example, + CSRF token-flow examples |
-| 100%  | 100%     | + error-routing examples (`DomainOf`/`InDomain`), CHANGELOG + AGENTS.md sync, full verification gates, commit + push |
+| 4%    | 64%      | + `server_timing` examples on its own pkg.go.dev page                                                                                       |
+| 20%   | 80%      | + `etagmetrics` example, + CSRF token-flow examples                                                                                         |
+| 100%  | 100%     | + error-routing examples (`DomainOf`/`InDomain`), CHANGELOG + AGENTS.md sync, full verification gates, commit + push                        |
 
 ## Task Plan
 
 ### Comprehensive tasks (10-30 min each)
 
-| # | Task | Impact | Effort | Customer value |
-| - | ---- | ------ | ------ | -------------- |
-| 1 | Root examples self-contained | High | Low | Every example copy-pasteable from pkg.go.dev |
-| 2 | `server_timing` example suite | High | Low | Sub-module page teaches its 3 usage paths |
-| 3 | `etagmetrics` example | Medium | Low | New module gets a zero-to-counter walkthrough |
-| 4 | CSRF token-flow examples | High | Low | The #1 CSRF consumer question answered in godoc |
-| 5 | Error-routing examples | Medium | Low | Headline error model demonstrated |
-| 6 | Docs sync (CHANGELOG, AGENTS.md) | Low | Low | Convention codified, change recorded |
-| 7 | Verification gates (fmt, lint, race) | High | Medium | Zero regressions across 3 modules |
-| 8 | Commit + push | Medium | Low | Work lands with a detailed message |
+| # | Task                                 | Impact | Effort | Customer value                                  |
+| - | ------------------------------------ | ------ | ------ | ----------------------------------------------- |
+| 1 | Root examples self-contained         | High   | Low    | Every example copy-pasteable from pkg.go.dev    |
+| 2 | `server_timing` example suite        | High   | Low    | Sub-module page teaches its 3 usage paths       |
+| 3 | `etagmetrics` example                | Medium | Low    | New module gets a zero-to-counter walkthrough   |
+| 4 | CSRF token-flow examples             | High   | Low    | The #1 CSRF consumer question answered in godoc |
+| 5 | Error-routing examples               | Medium | Low    | Headline error model demonstrated               |
+| 6 | Docs sync (CHANGELOG, AGENTS.md)     | Low    | Low    | Convention codified, change recorded            |
+| 7 | Verification gates (fmt, lint, race) | High   | Medium | Zero regressions across 3 modules               |
+| 8 | Commit + push                        | Medium | Low    | Work lands with a detailed message              |
 
 ### Micro tasks (≤12 min each)
 
-| # | Task | Verify |
-| - | ---- | ------ |
-| 1.1 | Inline 6 helper call sites in `example_test.go` | `go test -run Example .` green; no helper refs remain |
-| 2.1 | `ExampleNewServerTiming` (deterministic wire format) | module example test |
-| 2.2 | `ExampleServerTimingMiddleware` + `ExampleWrapServerTiming` | module example test |
-| 3.1 | `ExampleAttach` in `etagmetrics` | module example test |
-| 4.1 | `ExampleCSRFTokenFormField` | root example test |
-| 4.2 | `ExampleCSRFTokenHXHeaders` | root example test |
-| 5.1 | `ExampleDomainOf` + `ExampleInDomain` via `CORSConfig.Validate` | root example test |
-| 6.1 | CHANGELOG `[Unreleased]` entry; AGENTS.md example-convention note | link check n/a (no new links) |
-| 7.1 | `golangci-lint fmt` in all 3 modules | clean diff after fmt |
-| 7.2 | `golangci-lint run` in all 3 modules | 0 issues |
-| 7.3 | `go test -race ./...` in all 3 modules | all green |
-| 8.1 | Detailed commit, push | `git status` clean |
+| #   | Task                                                              | Verify                                                |
+| --- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| 1.1 | Inline 6 helper call sites in `example_test.go`                   | `go test -run Example .` green; no helper refs remain |
+| 2.1 | `ExampleNewServerTiming` (deterministic wire format)              | module example test                                   |
+| 2.2 | `ExampleServerTimingMiddleware` + `ExampleWrapServerTiming`       | module example test                                   |
+| 3.1 | `ExampleAttach` in `etagmetrics`                                  | module example test                                   |
+| 4.1 | `ExampleCSRFTokenFormField`                                       | root example test                                     |
+| 4.2 | `ExampleCSRFTokenHXHeaders`                                       | root example test                                     |
+| 5.1 | `ExampleDomainOf` + `ExampleInDomain` via `CORSConfig.Validate`   | root example test                                     |
+| 6.1 | CHANGELOG `[Unreleased]` entry; AGENTS.md example-convention note | link check n/a (no new links)                         |
+| 7.1 | `golangci-lint fmt` in all 3 modules                              | clean diff after fmt                                  |
+| 7.2 | `golangci-lint run` in all 3 modules                              | 0 issues                                              |
+| 7.3 | `go test -race ./...` in all 3 modules                            | all green                                             |
+| 8.1 | Detailed commit, push                                             | `git status` clean                                    |
 
 ## Execution Graph
 
@@ -101,16 +101,16 @@ graph TD
 
 All planned steps completed and verified:
 
-| Step | Result |
-| ---- | ------ |
-| 1.1 Inline helpers | 6 examples self-contained; 0 helper refs remain; examples green |
-| 2.1-2.2 server_timing | 3 examples, all green; wire-format output fully deterministic |
-| 3.1 etagmetrics | Completed, then invalidated by the parallel migration (see incident) |
-| 4.1-4.2 CSRF | `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` green |
-| 5.1 Error routing | `ExampleDomainOf`, `ExampleInDomain` green |
-| 6.1 Docs | CHANGELOG `[Unreleased]` Added entry; AGENTS.md "Example Conventions" |
-| 7.1-7.3 Gates | `golangci-lint fmt` clean; lint 0 issues (root, server_timing); `go test -race` green (root, httpspec, server_timing) |
-| 8.1 Commit + push | Done |
+| Step                  | Result                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| 1.1 Inline helpers    | 6 examples self-contained; 0 helper refs remain; examples green                                                       |
+| 2.1-2.2 server_timing | 3 examples, all green; wire-format output fully deterministic                                                         |
+| 3.1 etagmetrics       | Completed, then invalidated by the parallel migration (see incident)                                                  |
+| 4.1-4.2 CSRF          | `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` green                                                        |
+| 5.1 Error routing     | `ExampleDomainOf`, `ExampleInDomain` green                                                                            |
+| 6.1 Docs              | CHANGELOG `[Unreleased]` Added entry; AGENTS.md "Example Conventions"                                                 |
+| 7.1-7.3 Gates         | `golangci-lint fmt` clean; lint 0 issues (root, server_timing); `go test -race` green (root, httpspec, server_timing) |
+| 8.1 Commit + push     | Done                                                                                                                  |
 
 Out-of-scope fixes made en route (each verified):
 

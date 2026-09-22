@@ -7,7 +7,7 @@
 1. **Decision analysis** — 3-option table (subpackage / sub-module / status quo), verdict A (`go-etag/metrics`, zero new release machinery), owner-approved.
 2. **Plan** — `go-etag/docs/planning/2026-09-22_23-25_move-etagmetrics-into-go-etag-metrics.md`: pareto breakdown (1%/4%/20%), medium + fine task tables, mermaid execution graph, risks, rollback, verification gates; execution record appended post-run.
 3. **go-etag `metrics/` package** — `metrics.go` (`Attach`, `Counters`, `Snapshot`, `HitRatio`), `doc.go` (go-etag-native stance, no httputil references), respects the 5-package architecture and in-module import style.
-4. **HitRatio bug found & fixed** — shipped v1.3.0 formula `NM/(Gen+NM)` double-counted every 304 (`On304` fires *in addition to* `OnETagGenerated`); corrected to `NM/Gen` with the adopted-tag (`SkipIfPresent`) caveat documented and pinned by `TestHitRatio_AdoptedTag304DoesNotCountAsGenerated`.
+4. **HitRatio bug found & fixed** — shipped v1.3.0 formula `NM/(Gen+NM)` double-counted every 304 (`On304` fires _in addition to_ `OnETagGenerated`); corrected to `NM/Gen` with the adopted-tag (`SkipIfPresent`) caveat documented and pinned by `TestHitRatio_AdoptedTag304DoesNotCountAsGenerated`.
 5. **Tests** — 7 race-clean tests (hook counting, chaining, overflow contract, ratio semantics incl. zero-before-events), 2 benchmarks (hook overhead ~9 ns/op over hook-less baseline), GoDoc `ExampleAttach` with `// Output:` (the daemon contributed this file mid-move; carried over).
 6. **go-etag gates** — `go test -race ./...` green ×5 packages; `golangci-lint run` **0 issues**; formatter applied; bench sanity run.
 7. **go-etag docs** — README (metrics subsection under Observability Hooks), CHANGELOG `[Unreleased]` Added incl. provenance + formula fix, FEATURES (new metrics section), AGENTS.md (five packages, `metrics → server` leaf rule, HitRatio non-obvious-behavior entry), ROADMAP (server-side observability complete).
@@ -29,7 +29,7 @@
 1. **go-etag `v0.5.0` tag** — deferred deliberately (paste said commit+push only); consumers currently need a master pseudo-version.
 2. **httputil release decision** — v1.3.1 patch (removal + correction-of-record) vs fold into v1.4.0.
 3. **httputil `docs/planning/` pointer** — the plan lives only in go-etag; linked from CHANGELOG but no pointer doc in httputil's planning dir.
-4. **go-etag go-directive reconciliation** — v0.4.0 *tag* requires `go 1.27.1` while master `go.mod` says `1.27` (noticed during research; never reported or fixed). Pre-dates this session.
+4. **go-etag go-directive reconciliation** — v0.4.0 _tag_ requires `go 1.27.1` while master `go.mod` says `1.27` (noticed during research; never reported or fixed). Pre-dates this session.
 5. **LSP/gopls restart** — editor diagnostics still reference the deleted `etagmetrics` (stale cache); CLI gates are the authority, but the LSP noise remains.
 
 ## d) TOTALLY FUCKED UP (all self-inflicted, all recovered)
@@ -53,6 +53,7 @@
 ## f) Up to 50 things to get done next (30 real ones, sorted by impact)
 
 **go-etag release & hygiene (highest impact):**
+
 1. Tag `v0.5.0` via the release runbook (CHANGELOG cut + link defs, prerelease gates, annotated tag, push, CI-green wait).
 2. Verify module proxy + pkg.go.dev serve `go-etag/metrics`; smoke `go get` in a scratch consumer.
 3. Reconcile the go directive (tag 1.27.1 vs master 1.27) and update AGENTS.md's toolchain note to match reality.

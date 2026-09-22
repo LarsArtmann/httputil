@@ -18,11 +18,13 @@ func ExampleNewServerTiming() {
 }
 
 func ExampleServerTimingMiddleware() {
-	handler := ServerTimingMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		stop := MeasureServerTiming(r.Context(), "db")
-		stop()
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := ServerTimingMiddleware()(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			stop := MeasureServerTiming(r.Context(), "db")
+			stop()
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
