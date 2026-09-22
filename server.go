@@ -176,6 +176,8 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 			WriteTimeout:                 cfg.WriteTimeout,
 			IdleTimeout:                  cfg.IdleTimeout,
 			MaxHeaderBytes:               0,
+			MaxHeaderValueCount:          0,
+			DisableClientPriority:        false,
 			TLSNextProto:                 nil,
 			ConnState:                    nil,
 			ErrorLog:                     nil,
