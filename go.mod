@@ -1,15 +1,13 @@
 module github.com/larsartmann/httputil
 
-go 1.26.7
+go 1.27.1
 
-require github.com/larsartmann/go-error-family v0.10.1
-
-require golang.org/x/time v0.16.0
-
-require github.com/justinas/nosurf v1.2.0
-
-require github.com/larsartmann/httputil/server_timing v1.0.1
-
-require github.com/larsartmann/go-etag v0.3.1
+require (
+	github.com/justinas/nosurf v1.2.0
+	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-etag v0.4.0
+	github.com/larsartmann/httputil/server_timing v1.0.1
+	golang.org/x/time v0.16.0
+)
 
 replace github.com/larsartmann/httputil/server_timing => ./server_timing
