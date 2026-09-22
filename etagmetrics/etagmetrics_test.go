@@ -93,8 +93,8 @@ func TestAttach_CountsBufferOverflow(t *testing.T) {
 		t.Fatalf("expected streamed 200, got %d", rec.Code)
 	}
 
-	if rec.Header().Get("ETag") != "" {
-		t.Fatal("expected no ETag on overflowed streamed response")
+	if rec.Header().Get("ETag") == "" {
+		t.Fatal("expected ETag computed from partial buffer on overflowed response")
 	}
 
 	got := counters.Snapshot()
@@ -102,8 +102,8 @@ func TestAttach_CountsBufferOverflow(t *testing.T) {
 		t.Fatalf("expected BufferOverflows=1, got %+v", got)
 	}
 
-	if got.Generated != 0 {
-		t.Fatalf("expected Generated=0 on streamed response, got %+v", got)
+	if got.Generated != 1 {
+		t.Fatalf("expected Generated=1 (tag from partial buffer at flush), got %+v", got)
 	}
 }
 
