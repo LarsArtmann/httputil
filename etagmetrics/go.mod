@@ -1,6 +1,6 @@
 module github.com/larsartmann/httputil/etagmetrics
 
-go 1.27.1
+go 1.27
 
 require github.com/larsartmann/go-etag v0.4.0
 

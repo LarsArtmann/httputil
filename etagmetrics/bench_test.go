@@ -26,9 +26,13 @@ func BenchmarkETagMetricsHookOverhead(b *testing.B) {
 }
 
 func BenchmarkETagPlainNoHooks(b *testing.B) {
-	handler := etag.New(etag.DefaultETagConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("benchmark payload"))
-	}))
+	handler := etag.New(
+		etag.DefaultETagConfig(),
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("benchmark payload"))
+		}),
+	)
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	b.ReportAllocs()
