@@ -27,7 +27,10 @@ func ExampleClientIP() {
 
 func ExampleCORS() {
 	cfg := DefaultCORSConfig()
-	handler := CORS(cfg)(newNoOpHandler())
+	apiHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprintln(w, "api response")
+	})
+	handler := CORS(cfg)(apiHandler)
 
 	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "http://example.com")
@@ -50,7 +53,7 @@ func ExampleChain() {
 		}
 	}
 
-	handler := newNoOpHandler()
+	handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
 
 	chain := Chain(handler, wrapper("first"), wrapper("second"))
 	rec := httptest.NewRecorder()
@@ -77,7 +80,10 @@ func ExampleNewResponseRecorder() {
 
 func ExampleCompression() {
 	cfg := CompressionConfig{MinSize: 1, Level: -2}
-	handler := Compression(cfg)(newWriteStatusHandler("hello world"))
+	helloHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("hello world"))
+	})
+	handler := Compression(cfg)(helloHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Accept-Encoding", "gzip")
@@ -131,7 +137,7 @@ func ExampleRequestID() {
 
 func ExampleSecurityHeaders() {
 	cfg := DefaultSecurityHeadersConfig()
-	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	handler := SecurityHeaders(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
@@ -145,7 +151,9 @@ func ExampleSecurityHeaders() {
 
 func ExampleRecovery() {
 	logger := slog.New(slog.DiscardHandler)
-	handler := Recovery(logger)(newPanicHandler("test panic"))
+	handler := Recovery(logger)(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		panic("test panic")
+	}))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
@@ -253,7 +261,10 @@ func ExampleKeyedRateLimiterMiddleware() {
 }
 
 func Example_conditionalRequests() {
-	handler := etag.New(etag.DefaultETagConfig())(newWriteStatusHandler("hello world"))
+	helloHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("hello world"))
+	})
+	handler := etag.New(etag.DefaultETagConfig())(helloHandler)
 
 	// First request: the middleware computes and sets the ETag header.
 	rec := httptest.NewRecorder()
