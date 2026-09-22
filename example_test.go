@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"time"
 
 	etag "github.com/larsartmann/go-etag/server"
@@ -213,6 +214,36 @@ func ExampleCSRFMiddleware() {
 	fmt.Println(rec.Code)
 
 	// Output: 200
+}
+
+func ExampleCSRFTokenFormField() {
+	handler := CSRFMiddleware(CSRFConfig{})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `<form method="post">`+CSRFTokenFormField(r)+`</form>`)
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	body := rec.Body.String()
+	fmt.Println(strings.HasPrefix(body, `<form method="post"><input type="hidden" name="csrf_token" value="`))
+	fmt.Println(strings.HasSuffix(body, `"></form>`))
+
+	// Output:
+	// true
+	// true
+}
+
+func ExampleCSRFTokenHXHeaders() {
+	handler := CSRFMiddleware(CSRFConfig{})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "<body "+CSRFTokenHXHeaders(r)+">")
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	fmt.Println(strings.HasPrefix(rec.Body.String(), `<body hx-headers='`))
+
+	// Output: true
 }
 
 func ExampleServerTimingMiddleware() {
@@ -550,4 +581,29 @@ func ExampleMiddlewareFunc_Then() {
 	fmt.Println(rec.Code, rec.Body.String(), rec.Header().Get("X-Trace"))
 
 	// Output: 200 ok abc
+}
+
+func ExampleDomainOf() {
+	cfg := DefaultCORSConfig()
+	cfg.MaxAge = -1
+
+	err := cfg.Validate()
+	if err != nil {
+		domain, ok := DomainOf(err)
+		fmt.Println(domain, ok)
+	}
+
+	// Output: cors true
+}
+
+func ExampleInDomain() {
+	cfg := DefaultCORSConfig()
+	cfg.MaxAge = -1
+
+	err := cfg.Validate()
+	if err != nil && InDomain(err, Domain("cors")) {
+		fmt.Println("fix the CORS configuration, then retry")
+	}
+
+	// Output: fix the CORS configuration, then retry
 }
