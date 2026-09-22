@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Removed
+
+- **`etagmetrics` sub-module** — moved to go-etag as the `metrics` package ([`github.com/larsartmann/go-etag/metrics`](https://github.com/larsartmann/go-etag/tree/main/metrics); design record: [go-etag `docs/planning/2026-09-22_23-25_move-etagmetrics-into-go-etag-metrics.md`](https://github.com/larsartmann/go-etag/blob/main/docs/planning/2026-09-22_23-25_move-etagmetrics-into-go-etag-metrics.md)). The adapter counts go-etag's own hooks, so it belongs next to them: it was the only thing forcing this repo to track go-etag v0.4.0 (root pins v0.3.1), every hook-signature change in go-etag required a PR here, and nobody adopting go-etag would look in httputil for its metrics helper. Migration: swap the import — `github.com/larsartmann/httputil/etagmetrics` → `github.com/larsartmann/go-etag/metrics`; `Attach`/`Counters`/`Snapshot` are unchanged (the `HitRatio` formula is corrected there, see Fixed). The v1.3.0 tag keeps the old copy immutable, as always.
+
+### Fixed
+
+- **`HitRatio()` double-counted every 304** (correction of record for v1.3.0's `etagmetrics`): the shipped formula was `NotModified / (Generated + NotModified)`, but go-etag's `On304` fires *in addition to* `OnETagGenerated` for computed tags — so `Generated` alone already counts every tag-computing response and adding `NotModified` counted each 304 twice (a fresh GET plus a conditional 304 reported 1/3 instead of 1/2). The corrected `NotModified / Generated` ships in go-etag's `metrics` package, with a documented caveat that 304s on handler-adopted tags (`SkipIfPresent`) fire `On304` without `OnETagGenerated` and can push the ratio above 1. The frozen v1.3.0 copy is unaffected by policy (tags are never retagged).
+
 ### Documented
 
 - `CSRFMiddleware`: known limitation documented — nosurf forks the request

@@ -300,24 +300,7 @@ handler := etag.New(etag.DefaultETagConfig())(mux)
 
 For domain types (`etag.ETag`, `etag.ParseETag`, `etag.MatchesIfNoneMatch`, etc.), import go-etag directly. `etag.New` returns `func(http.Handler) http.Handler`, which composes directly with `Chain` and `MiddlewareStack`.
 
-### ETag Metrics
-
-The [etagmetrics](https://github.com/larsartmann/httputil/tree/main/etagmetrics) sub-module turns go-etag's observability hooks (`OnETagGenerated`, `On304`, `OnBufferOverflow`) into atomic counters with a cache hit-ratio accessor — without clobbering hooks you already installed:
-
-```go
-import (
-    "github.com/larsartmann/go-etag/server"
-    "github.com/larsartmann/httputil/etagmetrics"
-)
-
-cfg, counters := etagmetrics.Attach(etag.DefaultETagConfig())
-handler := etag.New(cfg)(mux)
-
-// elsewhere:
-slog.Info("etag cache", "hit_ratio", counters.HitRatio())
-```
-
-The counters are plain `atomic.Int64` fields; exposition format (Prometheus, OpenTelemetry, slog) stays consumer-owned.
+Ready-made counters for go-etag's observability hooks (`OnETagGenerated`, `On304`, `OnBufferOverflow`) live in go-etag itself: [`github.com/larsartmann/go-etag/metrics`](https://github.com/larsartmann/go-etag/tree/main/metrics) (`metrics.Attach(cfg)` returns the config plus atomic counters with a `HitRatio()` accessor). The package moved out of this repo (it shipped here briefly as the `etagmetrics` sub-module in v1.3.0) to live next to the hooks it counts.
 
 ### HTTP Server
 

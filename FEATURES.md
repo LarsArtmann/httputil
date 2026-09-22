@@ -24,7 +24,6 @@ _Updated: 2026-09-15 — CSRF `SameSite=None` fallback (+ `AllowInsecureSameSite
 | MaxBodySize         | `maxbodysize.go`                       | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes   | `ExampleMaxBodySize`                | `BenchmarkMaxBodySize`                                 | `FuzzMaxBodySize`      |
 | Metrics             | `metrics.go`                           | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface   | Yes   | `ExampleMetrics`                    | `BenchmarkMetricsMiddleware*`                          | —                      |
 | Server-Timing       | `server_timing/server_timing.go`       | —                                                             | Yes   | `ExampleServerTimingMiddleware`     | `BenchmarkServerTiming*`                               | `FuzzServerTiming*`    |
-| ETag Metrics        | `etagmetrics/etagmetrics.go`           | —                                                             | Yes   | —                                   | `BenchmarkETagMetrics*`                                | —                      |
 | CSRF                | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`                             | `FuzzCSRF*` (6)        |
 | KeyedRateLimit      | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`                           | —                      |
 | Decompression       | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | `ExampleDecompression`              | `BenchmarkDecompression*`                              | `FuzzDecompression`    |
@@ -110,13 +109,6 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `RecordServerTiming`, `WithServerTiming`, `ServerTimingFromContext` for handler-internal recording.
 - CRLF-injection-safe header values (sanitized via `escapeQuotedString` and CRLF replacement).
 - Hijacker, Flusher, Pusher delegation via `delegatingWriter`.
-
-### ETag Metrics
-
-- `etagmetrics` sub-module: turns go-etag v0.4.0's `OnETagGenerated` / `On304` / `OnBufferOverflow` hooks into atomic counters (`Counters`) with `HitRatio()` and `Snapshot()`.
-- `Attach(cfg)` preserves pre-existing hooks (they run after counting), so consumer instrumentation and these counters coexist.
-- Metric-agnostic by design: exposition format (Prometheus, OpenTelemetry, slog) stays consumer-owned.
-- Verified overflow contract: overflowed responses stream without an ETag (`OnBufferOverflow` fires, `OnETagGenerated` does not) — pinned by test.
 
 ### Query Parameter Helpers
 
