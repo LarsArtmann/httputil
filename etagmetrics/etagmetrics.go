@@ -19,8 +19,7 @@ type Counters struct {
 	// with 304 Not Modified.
 	NotModified atomic.Int64
 	// BufferOverflows counts OnBufferOverflow events: one per response whose
-	// body exceeded MaxBufferSize and was switched to streaming (the partial
-	// buffer still gets a tag at flush time).
+	// body exceeded MaxBufferSize and was streamed without an ETag.
 	BufferOverflows atomic.Int64
 }
 
