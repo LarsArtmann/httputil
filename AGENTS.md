@@ -235,6 +235,15 @@ Codified 2026-08-30 (source: `06-12:f.6` — "test names must match what they as
 - **Every "0 means X" config claim gets an execution-probe test** (2026-08-30 rule): two consecutive sessions found documented zero-value semantics that were false (`MaxDecompressionSize: 0` "disables" — it selects the 16 MiB default; `MaxBytes: 0` "unlimited" — it rejects any non-empty body). When documenting a zero-value special case, pin it with a test that executes the behavior (`TestMaxBodySize_ZeroLimitRejectsNonEmptyBody` is the pattern).
 - **Fuzz invariants over line coverage for response-transforming code** (2026-08-30 rule): 96.9% line coverage missed the compression exact-fill duplication bug; a decode-and-compare round-trip invariant found it in seconds. Every component that transforms response bytes gets a gunzip-and-compare (or equivalent) invariant in its fuzz target. Reference decoders inside fuzz targets must be bounded (`io.LimitReader`) so corrupt input cannot OOM the runner.
 
+### Example Conventions
+
+Codified 2026-09-22 (superb-examples pass; plan: `docs/planning/2026-09-22_23-04_superb-examples.md`):
+
+- **Examples are self-contained.** An `Example*` function must not reference `testutil_test.go` helpers (`newNoOpHandler`, `newWriteStatusHandler`, `newPanicHandler`) — unexported symbols from other test files are invisible on pkg.go.dev, making the example uncopy-pasteable. Inline handler doubles as local closures instead.
+- **Deterministic outputs over raw prints.** Random values (tokens, request IDs, durations) are asserted via boolean probes or deterministic prefixes (`strings.HasPrefix`), never printed raw; a fully deterministic `// Output:` (like `ExampleNewServerTiming`'s wire-format walkthrough) beats a non-empty assertion when achievable.
+- **Each Go module carries its own examples** in `example_test.go` — per-module examples attach to that module's pkg.go.dev page (the `server_timing` examples live in `server_timing/`, not root).
+- **Headline features get end-to-end examples against real entry points** — e.g. CSRF token rendering through `CSRFMiddleware` output, error routing through `CORSConfig.Validate`, not synthetic error values.
+
 ### Coverage Methodology
 
 Coverage is measured per module with `go test -race -coverprofile` (race detector on — the race build exercises different paths than the plain build); the two module percentages are reported separately (httputil vs httpspec), never averaged. Sub-100% functions are not chased to 100%: each remaining gap is individually documented in FEATURES.md with the reason it stays uncovered (kernel-level fault injection, unit-only-reachable internal paths, nosurf-internal branches). A gap without a documented reason is a bug in the docs, not a pass.

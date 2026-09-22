@@ -96,3 +96,50 @@ graph TD
 - **No API changes, no new dependencies.** Test-file-only additions;
   depguard allowlist untouched; sub-modules keep their zero-dep
   (server_timing) / single-dep (etagmetrics) profiles.
+
+## Execution Outcome (2026-09-22 23:59)
+
+All planned steps completed and verified:
+
+| Step | Result |
+| ---- | ------ |
+| 1.1 Inline helpers | 6 examples self-contained; 0 helper refs remain; examples green |
+| 2.1-2.2 server_timing | 3 examples, all green; wire-format output fully deterministic |
+| 3.1 etagmetrics | Completed, then invalidated by the parallel migration (see incident) |
+| 4.1-4.2 CSRF | `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` green |
+| 5.1 Error routing | `ExampleDomainOf`, `ExampleInDomain` green |
+| 6.1 Docs | CHANGELOG `[Unreleased]` Added entry; AGENTS.md "Example Conventions" |
+| 7.1-7.3 Gates | `golangci-lint fmt` clean; lint 0 issues (root, server_timing); `go test -race` green (root, httpspec, server_timing) |
+| 8.1 Commit + push | Done |
+
+Out-of-scope fixes made en route (each verified):
+
+- `server.go`: `http.Server` literal missing the new Go 1.27 fields
+  `MaxHeaderValueCount` / `DisableClientPriority` (exhaustruct_v5 failure
+  under the 1.27 toolchain; invisible under the local go1.26.7 default).
+  Both set to their zero-value defaults — behavior unchanged.
+- `etagmetrics/go.mod`: `go 1.27` → `go 1.27.1` (go-etag v0.4.0 requires
+  ≥ 1.27.1; the module was unbuildable from a clean checkout as shipped
+  in v1.3.0). Superseded by the module's removal below.
+
+## Incident Appendix: etagmetrics Converged Migration
+
+At 23:23, ~20 minutes into this session, an unidentified process began
+moving the `etagmetrics/` directory to the system trash
+(`~/.local/share/Trash`), ~90 seconds after each restore, twice. The
+auto-commit daemon then committed the deletion (ca3ec3f). This session
+restored the directory twice (one restoration itself landed as 965b213)
+before the cause surfaced: a **parallel session** was migrating the
+module into `github.com/larsartmann/go-etag` as its `metrics` package —
+documented in 6654e4c (dependabot entry drop), 3288807
+(README/FEATURES/CHANGELOG), completed as go-etag ab9b08e, and cleaned
+up here as 362c4ce ("remove resurrected etagmetrics ghost").
+
+Resolution: this session stopped restoring, verified the migration's
+landing state, and removed its own re-add. The `ExampleAttach` example
+written here was carried over verbatim into
+`go-etag/metrics/example_test.go` by the parallel session — the example
+value survived the move. Lesson recorded: before restoring "vanished"
+work, check for a parallel writer (non-heuristic commit messages, repo
+doc changes) — two agents restoring/deleting the same directory for ~20
+minutes is the failure signature.
