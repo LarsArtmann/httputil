@@ -15,6 +15,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   this package without wrapping nosurf internals; no default stack impact
   (CSRF is opt-in everywhere).
 
+## [1.3.0] - 2026-09-22
+
+### Added
+
+- **`etagmetrics` sub-module** (`etagmetrics/`): turns go-etag v0.4.0's observability hooks (`OnETagGenerated`, `On304`, `OnBufferOverflow`) into ready-made atomic counters for cache hit-ratio and buffer-overflow monitoring. `Attach(cfg)` installs counting hooks on a copy of the consumer's `etag.ETagConfig` and returns the modified config plus a `*Counters`; hooks already present on the config are preserved and run after the counting hooks, so consumer instrumentation (Prometheus exporter, slog logger) and these counters coexist on one config. `HitRatio()` derives the 304 share of tag-computing responses; `Snapshot()` copies the values. Metric-agnostic by design — exposition format stays consumer-owned, mirroring the package's zero-logging stance. Includes a verified overflow-contract test (overflowed responses stream without an ETag; `OnETagGenerated` does not fire) and hook-overhead benchmarks (`BenchmarkETagMetricsHookOverhead` vs a hook-less baseline).
+
+### Changed
+
+- **`go-error-family` v0.10.0 → v0.10.1** (patch-level dependency refresh).
+
 ## [1.2.0] - 2026-09-16
 
 ### Added
@@ -43,6 +53,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Documentation-only:** `ValidateCSRF` now documents that it mutates the caller's request in place (the `Sec-Fetch-Site` plaintext-bypass fill, the `X-Csrf-Token` header translation including the form parse for custom field names), that nosurf's own token/reason never reach the caller's request, and that "already validated" is inferred from nosurf token presence with no validation-marker context flag (re-validation re-runs the full check; a marker flag would require either a signature change or `*r` reassignment — both declined).
 
 - **Documentation-only, per the CHANGELOG freeze policy:** the pushed, immutable `v1.1.0` tag predates the reference-link definitions for its heading (`[1.1.0]:` compare link added; `[Unreleased]` retargeted to `v1.1.0...HEAD`), so the tag's CI run failed the CHANGELOG link check. Release content itself is unaffected.
+
+## [1.1.1] - 2026-09-11
+
+### Documented
+
+- **Backfilled note (docs-only tag):** v1.1.1 shipped documentation and repository-hygiene changes only — no library code changed between v1.1.0 and v1.1.1. This section was missing when the tag was cut (the release predates the changelog-section gate); it is recorded here so the version ladder is complete. Consumers may upgrade v1.1.0 → v1.2.0 directly.
 
 ## [1.1.0] - 2026-09-11
 

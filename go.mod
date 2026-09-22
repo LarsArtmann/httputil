@@ -2,7 +2,7 @@ module github.com/larsartmann/httputil
 
 go 1.26.7
 
-require github.com/larsartmann/go-error-family v0.10.0
+require github.com/larsartmann/go-error-family v0.10.1
 
 require golang.org/x/time v0.16.0
 
