@@ -148,6 +148,81 @@ func TestCORSSpecs_FailWithoutVaryOnDynamicOrigin(t *testing.T) {
 	t.Fatal("SpecNameCORSVaryOrigin not found in CORSSpecs")
 }
 
+// newLNAAwareHandler answers LNA-shaped preflights the way a handler wrapped
+// in LNA-enabled CORS middleware does: 204 No Content with
+// Access-Control-Allow-Private-Network: true. Used to test PrivateNetworkSpecs.
+func newLNAAwareHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
+			w.Header().Set("Access-Control-Allow-Private-Network", "true")
+			w.WriteHeader(http.StatusNoContent)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+func findPrivateNetworkSpec() (Spec, bool) {
+	for _, spec := range PrivateNetworkSpecs() {
+		if spec.Name == SpecNameCORSPrivateNetworkPreflight {
+			return spec, true
+		}
+	}
+
+	return Spec{}, false
+}
+
+func TestPrivateNetworkSpecs_PassWithLNAHandler(t *testing.T) {
+	t.Parallel()
+
+	spec, ok := findPrivateNetworkSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSPrivateNetworkPreflight not found in PrivateNetworkSpecs")
+	}
+
+	if result := spec.Check(newLNAAwareHandler()); !result.OK {
+		t.Errorf("spec should pass against an LNA-enabled preflight handler: %s", result.Message)
+	}
+}
+
+func TestPrivateNetworkSpecs_FailWithoutHeader(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	spec, ok := findPrivateNetworkSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSPrivateNetworkPreflight not found in PrivateNetworkSpecs")
+	}
+
+	if result := spec.Check(handler); result.OK {
+		t.Errorf("expected LNA preflight spec to fail when the header is omitted")
+	}
+}
+
+func TestPrivateNetworkSpecs_FailOnNon204Preflight(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Access-Control-Allow-Private-Network", "true")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	spec, ok := findPrivateNetworkSpec()
+	if !ok {
+		t.Fatal("SpecNameCORSPrivateNetworkPreflight not found in PrivateNetworkSpecs")
+	}
+
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected LNA preflight spec to fail on a 200 preflight")
+	}
+}
+
 // findOriginMatchesRequestedSpec returns the origin-matching CORS spec.
 func findOriginMatchesRequestedSpec() (Spec, bool) {
 	for _, spec := range CORSSpecs() {

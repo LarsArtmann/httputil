@@ -3,6 +3,8 @@ package httpspec
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 )
 
 func ExampleExpectStatus() {
@@ -74,4 +76,44 @@ func ExampleFail() {
 	fmt.Println(result)
 
 	// Output: something went wrong
+}
+
+// ExampleRun shows the building block Run executes for every specification.
+// Run itself spawns subtests and needs a *testing.T, so it is called from a
+// test function, not from an example:
+//
+//	func TestAPIHandler(t *testing.T) {
+//		httpspec.Run(t, apiHandler, httpspec.WithExtraSpecs(httpspec.CORSSpecs()...))
+//	}
+//
+// Run validates the standard HTTP conventions (routing, methods, headers,
+// security) against the handler in parallel subtests, and [WithExtraSpecs]
+// composes the optional families (CORS, rate limits, private network
+// preflights) into the same run.
+func ExampleRun() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprintln(w, "hello")
+	})
+
+	spec := Spec{
+		Name:     "index greets the client",
+		Category: CategoryHeaders,
+		Check: func(h http.Handler) Result {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			rec := httptest.NewRecorder()
+			h.ServeHTTP(rec, req)
+
+			if !strings.Contains(rec.Body.String(), "hello") {
+				return Fail("body %q does not contain hello", rec.Body.String())
+			}
+
+			return Pass()
+		},
+	}
+
+	fmt.Println(spec.Check(handler))
+
+	// Output: passed
 }

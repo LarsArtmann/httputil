@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -11,6 +12,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	etag "github.com/larsartmann/go-etag/server"
 	servertiming "github.com/larsartmann/httputil/server_timing"
@@ -623,4 +626,257 @@ func ExampleInDomain() {
 	}
 
 	// Output: fix the CORS configuration, then retry
+}
+
+func ExampleChain_composition() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprintln(w, "ok")
+	})
+
+	// Chain applies middlewares in declaration order (first = outermost), so
+	// Recovery outermost catches panics from everything inside it.
+	handler := Chain(
+		mux,
+		Recovery(slog.New(slog.DiscardHandler)),
+		RequestID(DefaultRequestIDConfig()),
+		CORS(DefaultCORSConfig()),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/api", nil)
+	req.Header.Set("Origin", "https://example.com")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Code)
+	fmt.Println(rec.Body.String() == "ok\n")
+	fmt.Println(rec.Header().Get("X-Request-ID") != "")
+	fmt.Println(rec.Header().Get("Access-Control-Allow-Origin"))
+
+	// Output:
+	// 200
+	// true
+	// true
+	// *
+}
+
+func ExampleChain_nonceSecurityHeaders() {
+	const staticCSP = "default-src 'self'"
+
+	staticCfg := DefaultSecurityHeadersConfig()
+	staticCfg.ContentSecurityPolicy = staticCSP
+
+	nonceCfg := DefaultNonceConfig()
+	nonceCfg.CSPBuilder = RecommendedCSPWithNonce
+
+	// Nonce inner to SecurityHeaders: both write Content-Security-Policy on
+	// the request path, so the nonce-bearing policy overwrites the static one.
+	handler := Chain(
+		http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}),
+		SecurityHeaders(staticCfg),
+		Nonce(nonceCfg),
+	)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	fmt.Println(strings.Contains(csp, "'nonce-"))
+	fmt.Println(csp == staticCSP)
+
+	// Output:
+	// true
+	// false
+}
+
+func ExampleCORS_privateNetwork() {
+	cfg := DefaultCORSConfig()
+	cfg.AllowPrivateNetwork = true
+
+	handler := CORS(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	// A Chrome Local Network Access preflight: OPTIONS with the request
+	// headers Chrome sends before fetching a more-private subresource. The
+	// middleware-generated preflight answers 204 and carries the LNA header;
+	// actual requests never do.
+	req := httptest.NewRequest(http.MethodOptions, "/", nil)
+	req.Header.Set("Origin", "https://public.example.com")
+	req.Header.Set("Access-Control-Request-Method", http.MethodGet)
+	req.Header.Set("Access-Control-Allow-Private-Network", "true")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Code)
+	fmt.Println(rec.Header().Get("Access-Control-Allow-Private-Network"))
+
+	// Output:
+	// 204
+	// true
+}
+
+func ExampleKeyedRateLimiterMiddleware_maxKeys() {
+	cfg := KeyedRateLimiterConfig{
+		Limit:        1,
+		Window:       time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		MaxKeys:      1,
+	}
+
+	handler := KeyedRateLimiterMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	request := func(remoteAddr string) int {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = remoteAddr
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		return rec.Code
+	}
+
+	fmt.Println(request("10.0.0.1:1000"))
+	fmt.Println(request("10.0.0.1:1000"))
+	fmt.Println(request("10.0.0.2:1000"))
+	fmt.Println(request("10.0.0.1:1000"))
+
+	// Output:
+	// 200
+	// 429
+	// 200
+	// 200
+}
+
+func ExampleDecompression_maxSize() {
+	var compressed bytes.Buffer
+
+	zw := gzip.NewWriter(&compressed)
+
+	_, _ = zw.Write([]byte("17 bytes payload"))
+	_ = zw.Close()
+
+	request := func(cfg DecompressionConfig, report func(n int, err error)) {
+		handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			body, err := io.ReadAll(r.Body)
+			report(len(body), err)
+		}))
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed.Bytes()))
+		req.Header.Set("Content-Encoding", "gzip")
+		handler.ServeHTTP(httptest.NewRecorder(), req)
+	}
+
+	// The MaxDecompressionSize zero value selects the 16 MiB default; there
+	// is no unlimited option.
+	request(DecompressionConfig{}, func(n int, err error) {
+		fmt.Println(n, err == nil)
+	})
+
+	// A tiny limit trips bomb protection: the read fails once the
+	// decompressed body exceeds it.
+	request(DecompressionConfig{MaxDecompressionSize: 5}, func(_ int, err error) {
+		fmt.Println(err != nil)
+	})
+
+	// Output:
+	// 16 true
+	// true
+}
+
+func ExampleErrCSRFInvalid() {
+	// Context clones keep matching their sentinel — errors.Is matches by code
+	// and family — so handlers can classify rejections precisely.
+	rejection := ErrCSRFInvalid.WithContext("path", "/login")
+	fmt.Println(errors.Is(rejection, ErrCSRFInvalid))
+
+	// Plain wrapping composes with the same sentinel.
+	err := fmt.Errorf("posting /login: %w", rejection)
+	fmt.Println(errors.Is(err, ErrCSRFInvalid))
+
+	// Output:
+	// true
+	// true
+}
+
+func ExampleInDomain_retryDecision() {
+	cfg := DefaultCORSConfig()
+	cfg.MaxAge = -1
+
+	err := cfg.Validate()
+
+	domain, ok := DomainOf(err)
+	fmt.Println(ok, domain)
+
+	// Rejection-family errors are never retryable: retrying the same input
+	// cannot succeed, so fix the configuration instead.
+	fmt.Println(errorfamily.Classify(err).IsRetryable())
+
+	// Output:
+	// true cors
+	// false
+}
+
+func ExampleClientIP_trust() {
+	// ClientIP reads X-Forwarded-For blindly. Here the header is
+	// attacker-set and the real peer is 203.0.113.7; only trust the header
+	// behind a reverse proxy that strips or overwrites it.
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("X-Forwarded-For", "9.9.9.9")
+	req.RemoteAddr = "203.0.113.7:4444"
+
+	fmt.Println(ClientIP(req))
+
+	// Output: 9.9.9.9
+}
+
+func ExampleNewResponseRecorder_unwritten() {
+	rec := NewResponseRecorder(httptest.NewRecorder())
+
+	// Status reports 0 before any WriteHeader call; WroteHeader distinguishes
+	// "no status set" from a real status of 0.
+	fmt.Println(rec.Status(), rec.WroteHeader())
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	fmt.Println(rec.Status(), rec.WroteHeader())
+
+	// Output:
+	// 0 false
+	// 204 true
+}
+
+func ExampleCompression_absentEncoding() {
+	build := func(policy AbsentEncodingPolicy) http.Handler {
+		cfg := CompressionConfig{MinSize: 1, AbsentEncoding: policy}
+
+		return Compression(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("hello world"))
+		}))
+	}
+
+	// A request without Accept-Encoding, served by both policies.
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	// Default (AbsentEncodingIdentity): serve uncompressed.
+	rec := httptest.NewRecorder()
+	build(AbsentEncodingIdentity).ServeHTTP(rec, req)
+	fmt.Printf("%q\n", rec.Header().Get("Content-Encoding"))
+
+	// AbsentEncodingFirstConfigured: restore the pre-v1.2 behavior and pick
+	// the highest-priority configured encoding anyway.
+	rec2 := httptest.NewRecorder()
+	build(AbsentEncodingFirstConfigured).ServeHTTP(rec2, req)
+	fmt.Println(rec2.Header().Get("Content-Encoding"))
+
+	// Output:
+	// ""
+	// gzip
 }
