@@ -122,9 +122,9 @@ cd server_timing && go test -race ./... && golangci-lint run
 nix run .#bench
 
 # Clone-detection baseline (re-measured 2026-09-23, art-dupl 0.7.0-81ce00b,
-# see Accepted Code Duplication): -t 5 shows 0 groups; -t 2 shows the 3
-# accepted production micro-pairs; -t 1 adds the Middleware alias pair and
-# the scripts/doc-snippet-refs if-err pair — anything NEW is a finding.
+# see Accepted Code Duplication): -t 2 shows 0 groups; -t 1 shows the
+# Middleware alias pair and the scripts/doc-snippet-refs if-err pair —
+# anything NEW is a finding.
 art-dupl --sort total-tokens -t 1 --type-aware .
 art-dupl --sort total-tokens -t 2 --type-aware .
 
@@ -281,16 +281,14 @@ There are **0 active warnings** across ~70 linters. Site-specific suppressions i
 
 ## Accepted Code Duplication
 
-Baseline re-measured 2026-09-23 (art-dupl 0.7.0-81ce00b, `--type-aware --sort total-tokens .`, default filters): **0 shown groups at `-t 5`**; `-t 2` shows three production micro-pairs (accepted, listed below); `-t 1` additionally shows the `Middleware` alias pair and the `scripts/doc-snippet-refs` `if err != nil` pair (standalone stdlib script, idiomatic shape). The earlier "0 groups at `-t 2..25`" claim no longer reproduces with current tooling — treat the lists below as the accepted set, and anything NEW at these thresholds as a finding. Intentional clones that remain:
+Baseline re-measured 2026-09-23 after the extraction pass that cleared the former production micro-pairs (art-dupl 0.7.0-81ce00b, `--type-aware --sort total-tokens .`, default filters): **0 shown groups at `-t 2`**; `-t 1` shows the `Middleware` alias pair and the `scripts/doc-snippet-refs` `if err != nil` pair (test files are auto-excluded by the tool, so the two test-file pairs below do not appear) — anything NEW at these thresholds is a finding. Intentional clones that remain:
 
 - **`Middleware` in `recorder.go` and `server_timing/middleware.go`** — identical `type Middleware = func(http.Handler) http.Handler` aliases across the module boundary. Both are aliases to the same underlying type (no drift risk), the signature is the stdlib middleware idiom (frozen by definition), and every extraction is worse: server_timing importing root is a module cycle that breaks its stdlib-only zero-dep guarantee, a third shared module adds release machinery for one line, and aliasing root's `Middleware` to `servertiming.Middleware` couples the foundational library type to an optional sub-module.
 - **`mw1`/`mw2` in `stack_test.go`** — the integer label is intrinsic to the order-assertion test.
 - **`newTypedBodyHandler` in both `testutil_test.go` and `httpspec/handlers_test.go`** — the root package cannot import `httpspec` (dependency direction).
-- **`flushHeader()` + `wrote = true` prologue in `server_timing/server_timing.go`** — the 2-line implicit-WriteHeader prologue appears in both `WriteHeader` and `Write`; a shared helper would wrap 2 statements in a call boundary around the stdlib ResponseWriter idiom.
-- **`out.TrustedProxiesCIDR = nil; return out` in `csrf.go` (`withParsedTrustedProxies`)** — the two failure exits ARE the documented all-or-nothing parse contract (mirror of nosurf `StaticOrigins` wholesale failure); resetting to nil is the contract, extraction adds no meaning.
-- **`skipEntrySeparators` / `findEntryEnd` scan loops in `compression_negotiator.go`** — the same 4-line `for pos < len(header)` skeleton over different predicates; they are already the named extraction, and a predicate-closure scanner would obscure a hot parse path.
+- **`if err != nil` pair in `scripts/doc-snippet-refs/main.go`** — standalone stdlib script, idiomatic shape.
 
-Non-test duplication was extracted (compress-write error wrapping → `compressWriteError`; default-OK header write → `responseWrapper.writeDefaultOK()`; Hijack plain-mode switch → `beginPlainResponse()`).
+Non-test duplication was extracted (compress-write error wrapping → `compressWriteError`; default-OK header write → `responseWrapper.writeDefaultOK()`; Hijack plain-mode switch → `beginPlainResponse()`; the server_timing implicit-WriteHeader prologue merged into the idempotent `flushHeader()`, deleting the redundant `wrote` flag — it always equaled `injected`; the `withParsedTrustedProxies` failure exits reduced to plain returns — the prologue's `TrustedProxiesCIDR = nil` already guarantees the all-or-nothing empty list; the Accept-Encoding scan loops unified behind `advanceWhile` with named `isEntrySeparator`/`isEntryContent` predicates, zero allocs).
 
 ## Additional Active Linters Worth Knowing
 

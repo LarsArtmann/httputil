@@ -1,6 +1,6 @@
 module github.com/larsartmann/httputil
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/justinas/nosurf v1.2.0
