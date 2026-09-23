@@ -30,7 +30,7 @@ User pasted an erraudit analysis (Total Violations: 61 — 1 CRITICAL, 58 ERROR,
 1. **erraudit version alignment** — the newer build that produced the paste is neither installed nor located; gates not re-run against it.
 2. **CHANGELOG `[Unreleased]` decision** for the doc-snippet-refs fix (scripts-only change; policy unclear).
 3. **Consolidation of erraudit-residual documentation** — the topic now lives in three places: Commands block verdict (new), BuildFlow "Residual detect-only findings" bullet, and the Non-Obvious Behaviors honest-silence paragraph.
-4. **HARVEST of this report's next-up list into TODO_LIST/ROADMAP** — deferred pending user instruction (user scoped this session to reporting).
+4. ~~**HARVEST of this report's next-up list into TODO_LIST/ROADMAP** — deferred pending user instruction (user scoped this session to reporting).~~ done (docs-health pass 2026-09-23, harvest executed — open items routed to TODO_LIST/ROADMAP)
 
 ## d) TOTALLY FUCKED UP
 
@@ -61,7 +61,7 @@ Nothing destructive. Two honest own-goals:
 10. Evaluate `erraudit nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (careful: nolintlint fragility precedent with gosec).
 11. Triage the gopls `stdversion` warnings seen in diagnostics (jsonv2 experiment APIs vs go1.26 files) — config noise or real.
 12. CI workflow comment documenting why `migrating-to-keyed-rate-limiter.md` is outside checker scope.
-13. Run docs-health HARVEST for this list once the user confirms.
+13. ~~Run docs-health HARVEST for this list once the user confirms.~~ done (docs-health pass 2026-09-23, harvest executed — open items routed to TODO_LIST/ROADMAP)
 14. Verify the daemon-committed root binary is a deterministic rebuild of current source.
 15. Check pre-commit.sh vs CI parity for doc-snippet-refs scope (CI runs it; pre-commit scope unverified).
 

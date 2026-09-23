@@ -20,7 +20,7 @@
 
 1. **External verification of the Chrome LNA header contract** — `agentic_fetch` failed twice (sub-agent API error); proceeded on strong local evidence (dnsblockd `server/cors.go` cites Chromium's `cors_url_loader_private_network_access_unittest.cc` and pins the real browser error string). Remaining: one web check against current Chrome LNA docs/spec. Effort: S. Blocker: tool failure, not knowledge.
 2. **"Pre-existing findings" verified by classification, not by baseline diff** — I grepped finding output instead of running buildflow on a pre-change worktree (daemon commits make in-place stashing risky). Solid but not airtight. Effort: S (temp worktree).
-3. **dnsblockd unblock** — the feature exists at HEAD, but dnsblockd pins the flake input by tag (`?ref=refs/tags/v1.1.1`): **the blocker is only lifted for consumers once a release tag is cut.** Not cut this session.
+3. ~~**dnsblockd unblock** — the feature exists at HEAD, but dnsblockd pins the flake input by tag (`?ref=refs/tags/v1.1.1`): **the blocker is only lifted for consumers once a release tag is cut.** Not cut this session.~~ done at `9b9e032`
 
 ## c) NOT STARTED
 
@@ -29,8 +29,8 @@
 3. **httpspec LNA preflight spec** — `CORSSpecs()` ships 5 specs; an opt-in LNA spec would fit. Considered during the sweep, deferred (scope).
 4. **`Example*` function + README usage snippet for the feature** — `testableexamples` would demand `// Output:`; not written.
 5. **Fuzz seed for the LNA-shaped preflight** — the bool is static so value is low; not done.
-6. **`server_timing` sub-module tests** — not run this session (change cannot affect it; separate module, no import).
-7. **Release cut** bundling `[Unreleased]` (2 behavior changes + this feature) with migration notes — existing TODO_LIST item, now three entries deep.
+6. ~~**`server_timing` sub-module tests** — not run this session (change cannot affect it; separate module, no import).~~ done (ran with the v1.2.0/v1.3.0 release batteries — RELEASE.md covers the sub-module gates)
+7. ~~**Release cut** bundling `[Unreleased]` (2 behavior changes + this feature) with migration notes — existing TODO_LIST item, now three entries deep.~~ done at `9b9e032`
 8. **dnsblockd P1/P2/P3 migrations** — other repo; P1 unblocked by this session only after a tag exists, and its own sequencing note says wait for the go-datastar session to go quiet.
 
 ## d) TOTALLY FUCKED UP!
@@ -54,7 +54,7 @@
 
 | #  | Task                                                                                                                                                                                                                           | Impact           | Effort | Category      |
 | -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ------ | ------------- |
-| 1  | Cut next release (tag) with `[Unreleased]`: AllowPrivateNetwork + TrustedOrigins + error-classification changes, with the migration-note callout (existing TODO item) — the only thing standing between dnsblockd and adoption | Critical         | M      | Release       |
+| ~~1~~  | ~~Cut next release (tag) with `[Unreleased]`: AllowPrivateNetwork + TrustedOrigins + error-classification changes, with the migration-note callout (existing TODO item) — the only thing standing between dnsblockd and adoption~~ done at `9b9e032` | ~~Critical~~ | ~~M~~ | ~~Release~~ |
 | 2  | Decide + pin LNA-on-denied-origin preflight behavior (test + field-doc sentence; current behavior is defensible)                                                                                                               | Medium           | S      | Feature       |
 | 3  | Verify the LNA header contract against live Chrome/spec documentation (web check failed this session)                                                                                                                          | Medium           | S      | Documentation |
 | 4  | httpspec: opt-in LNA preflight spec in `CORSSpecs()`                                                                                                                                                                           | Medium           | S      | Feature       |
@@ -64,11 +64,11 @@
 | 8  | dnsblockd P3: CSRF migration as its own change with full gate + Chromium E2E smoke                                                                                                                                             | High (dnsblockd) | L      | Migration     |
 | 9  | `Example*` with `// Output:` for AllowPrivateNetwork (testableexamples-compliant)                                                                                                                                              | Low              | S      | Documentation |
 | 10 | README usage snippet for LNA (doc-snippet-refs-checked fence)                                                                                                                                                                  | Low              | S      | Documentation |
-| 11 | Coverage probe: confirm cors_private_network_test.go covers the new branch ~100% under `-race -coverprofile`                                                                                                                   | Low              | S      | Quality       |
-| 12 | Run `server_timing` sub-module gates (`cd server_timing && go test -race ./... && golangci-lint run`) for completeness                                                                                                         | Low              | S      | Quality       |
+| ~~11~~ | ~~Coverage probe: confirm cors_private_network_test.go covers the new branch ~100% under `-race -coverprofile`~~ done — verified 2026-09-23 — cors.go at 100% function coverage under -race -coverprofile (fresh profile) | ~~Low~~ | ~~S~~ | ~~Quality~~ |
+| ~~12~~ | ~~Run `server_timing` sub-module gates (`cd server_timing && go test -race ./... && golangci-lint run`) for completeness~~ done — ran with the v1.2.0/v1.3.0 release batteries — RELEASE.md covers the sub-module gates | ~~Low~~ | ~~S~~ | ~~Quality~~ |
 | 13 | Add an LNA-shaped fuzz seed to the CORS fuzz target (preflight request shape)                                                                                                                                                  | Low              | S      | Quality       |
 | 14 | Document Max-Age × LNA preflight-caching interplay in the field doc                                                                                                                                                            | Low              | S      | Documentation |
-| 15 | Pre-release `docs-health` pass over living docs (cadence: before each tag)                                                                                                                                                     | Medium           | M      | Documentation |
+| ~~15~~ | ~~Pre-release `docs-health` pass over living docs (cadence: before each tag)~~ done (docs-health pass 2026-09-23, docs-health pass executed (and the 2026-09-15_10-28 pass ran pre-v1.2.0)) | ~~Medium~~ | ~~M~~ | ~~Documentation~~ |
 | 16 | Close the ROADMAP correlation-ID open question once the owner rules                                                                                                                                                            | Medium           | S      | Decision      |
 | 17 | Annotate dnsblockd's adoption analysis "CORS blocker resolved upstream" (dnsblockd-session action)                                                                                                                             | Low              | S      | Documentation |
 | 18 | Owner decision: explicit-commit policy for feature work vs daemon heuristic commits                                                                                                                                            | Low              | S      | Process       |
@@ -77,7 +77,7 @@
 
 ## g) Questions I cannot answer myself
 
-1. **Release timing:** cut `v1.2.0` now so tag-pinned consumers (dnsblockd pins `v1.1.1`) can adopt `AllowPrivateNetwork`, or accumulate more `[Unreleased]` work first? I cannot weigh your release cadence preference against the two pending behavior-change migration notes.
+1. ~~**Release timing:** cut `v1.2.0` now so tag-pinned consumers (dnsblockd pins `v1.1.1`) can adopt `AllowPrivateNetwork`, or accumulate more `[Unreleased]` work first? I cannot weigh your release cadence preference against the two pending behavior-change migration notes.~~ done (resolved — v1.2.0 cut 2026-09-16 (tag 9b9e032 lineage), v1.3.0 followed 2026-09-22)
 2. **Correlation-ID ownership:** should httputil grow it in `RequestIDConfig` (standardizes the fleet's `X-Correlation-ID` convention) or is the 15-line consumer wrapper the intended pattern? Both are defensible; it is a scope/ownership ruling only you can make.
 3. **LNA on denied origins:** when `DenyUnmatched` withholds `Access-Control-Allow-Origin`, should the preflight still advertise `Access-Control-Allow-Private-Network: true` (current behavior — browser fails at ACAO anyway) or suppress it (stricter posture, one extra condition)? This is a security-posture judgment, not a technical unknown.
 
