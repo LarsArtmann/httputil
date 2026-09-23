@@ -58,6 +58,30 @@ func newRateLimitedHandler() http.Handler {
 	})
 }
 
+// findSpec returns the spec with the given name from specs, if present.
+func findSpec(specs []Spec, name string) (Spec, bool) {
+	for _, spec := range specs {
+		if spec.Name == name {
+			return spec, true
+		}
+	}
+
+	return Spec{}, false
+}
+
+// lookupSpec returns the spec with the given name from specs and fails the
+// test when the collection does not contain it.
+func lookupSpec(t *testing.T, specs []Spec, name string) Spec {
+	t.Helper()
+
+	spec, found := findSpec(specs, name)
+	if !found {
+		t.Fatalf("spec %q not found", name)
+	}
+
+	return spec
+}
+
 func TestCORSSpecs_PassWithProperHeaders(t *testing.T) {
 	t.Parallel()
 
@@ -81,20 +105,11 @@ func TestCORSSpecs_FailWithoutAllowOrigin(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	found := false
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSAllowOrigin)
 
-	for _, spec := range CORSSpecs() {
-		if spec.Name == SpecNameCORSAllowOrigin {
-			found = true
-			result := spec.Check(handler)
-			if result.OK {
-				t.Errorf("expected CORS spec to fail without Allow-Origin")
-			}
-		}
-	}
-
-	if !found {
-		t.Fatal("SpecNameCORSAllowOrigin not found in CORSSpecs")
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected CORS spec to fail without Allow-Origin")
 	}
 }
 
@@ -107,20 +122,12 @@ func TestCORSSpecs_FailWildcardWithCredentials(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range CORSSpecs() {
-		if spec.Name != SpecNameCORSWildcardNoCredentials {
-			continue
-		}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSWildcardNoCredentials)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected wildcard+credentials spec to fail")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected wildcard+credentials spec to fail")
 	}
-
-	t.Fatal("SpecNameCORSWildcardNoCredentials not found in CORSSpecs")
 }
 
 func TestCORSSpecs_FailWithoutVaryOnDynamicOrigin(t *testing.T) {
@@ -132,20 +139,12 @@ func TestCORSSpecs_FailWithoutVaryOnDynamicOrigin(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range CORSSpecs() {
-		if spec.Name != SpecNameCORSVaryOrigin {
-			continue
-		}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSVaryOrigin)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected Vary: Origin spec to fail without Vary header")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected Vary: Origin spec to fail without Vary header")
 	}
-
-	t.Fatal("SpecNameCORSVaryOrigin not found in CORSSpecs")
 }
 
 // newLNAAwareHandler answers LNA-shaped preflights the way a handler wrapped
@@ -164,23 +163,10 @@ func newLNAAwareHandler() http.Handler {
 	})
 }
 
-func findPrivateNetworkSpec() (Spec, bool) {
-	for _, spec := range PrivateNetworkSpecs() {
-		if spec.Name == SpecNameCORSPrivateNetworkPreflight {
-			return spec, true
-		}
-	}
-
-	return Spec{}, false
-}
-
 func TestPrivateNetworkSpecs_PassWithLNAHandler(t *testing.T) {
 	t.Parallel()
 
-	spec, ok := findPrivateNetworkSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSPrivateNetworkPreflight not found in PrivateNetworkSpecs")
-	}
+	spec := lookupSpec(t, PrivateNetworkSpecs(), SpecNameCORSPrivateNetworkPreflight)
 
 	if result := spec.Check(newLNAAwareHandler()); !result.OK {
 		t.Errorf("spec should pass against an LNA-enabled preflight handler: %s", result.Message)
@@ -194,10 +180,7 @@ func TestPrivateNetworkSpecs_FailWithoutHeader(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	spec, ok := findPrivateNetworkSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSPrivateNetworkPreflight not found in PrivateNetworkSpecs")
-	}
+	spec := lookupSpec(t, PrivateNetworkSpecs(), SpecNameCORSPrivateNetworkPreflight)
 
 	if result := spec.Check(handler); result.OK {
 		t.Errorf("expected LNA preflight spec to fail when the header is omitted")
@@ -212,10 +195,7 @@ func TestPrivateNetworkSpecs_FailOnNon204Preflight(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	spec, ok := findPrivateNetworkSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSPrivateNetworkPreflight not found in PrivateNetworkSpecs")
-	}
+	spec := lookupSpec(t, PrivateNetworkSpecs(), SpecNameCORSPrivateNetworkPreflight)
 
 	result := spec.Check(handler)
 	if result.OK {
@@ -223,26 +203,12 @@ func TestPrivateNetworkSpecs_FailOnNon204Preflight(t *testing.T) {
 	}
 }
 
-// findOriginMatchesRequestedSpec returns the origin-matching CORS spec.
-func findOriginMatchesRequestedSpec() (Spec, bool) {
-	for _, spec := range CORSSpecs() {
-		if spec.Name == SpecNameCORSOriginMatchesRequested {
-			return spec, true
-		}
-	}
-
-	return Spec{}, false
-}
-
 func TestCORSSpecs_PassWhenOriginReflected(t *testing.T) {
 	t.Parallel()
 
 	handler := newCORSAwareHandler(corsSpecOrigin)
 
-	spec, ok := findOriginMatchesRequestedSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
-	}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSOriginMatchesRequested)
 
 	if result := spec.Check(handler); !result.OK {
 		t.Errorf(
@@ -260,10 +226,7 @@ func TestCORSSpecs_PassWhenOriginWildcardStatic(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	spec, ok := findOriginMatchesRequestedSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
-	}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSOriginMatchesRequested)
 
 	if result := spec.Check(handler); !result.OK {
 		t.Errorf("spec should pass for a static wildcard ACAO: %s", result.Message)
@@ -277,10 +240,7 @@ func TestCORSSpecs_PassWhenOriginDenied(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	spec, ok := findOriginMatchesRequestedSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
-	}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSOriginMatchesRequested)
 
 	if result := spec.Check(handler); !result.OK {
 		t.Errorf("spec should pass when the origin is denied (no ACAO): %s", result.Message)
@@ -295,10 +255,7 @@ func TestCORSSpecs_FailWhenOriginHardcoded(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	spec, ok := findOriginMatchesRequestedSpec()
-	if !ok {
-		t.Fatal("SpecNameCORSOriginMatchesRequested not found in CORSSpecs")
-	}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSOriginMatchesRequested)
 
 	if result := spec.Check(handler); result.OK {
 		t.Error("spec should fail when a response authorizes an origin the client did not request")
@@ -357,20 +314,12 @@ func TestRateLimitSpecs_FailOnInvalidRetryAfter(t *testing.T) {
 		}
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitHeaderOnReject {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitHeaderOnReject)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected spec to fail with non-integer Retry-After")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected spec to fail with non-integer Retry-After")
 	}
-
-	t.Fatal("SpecNameRateLimitHeaderOnReject not found in RateLimitSpecs")
 }
 
 func TestVaryContainsToken_SingleTokenMatch(t *testing.T) {
@@ -502,20 +451,12 @@ func TestCORSSpecs_FailOnInvalidCredentials(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range CORSSpecs() {
-		if spec.Name != SpecNameCORSAllowCredentials {
-			continue
-		}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSAllowCredentials)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected credentials spec to fail with invalid value")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected credentials spec to fail with invalid value")
 	}
-
-	t.Fatal("SpecNameCORSAllowCredentials not found in CORSSpecs")
 }
 
 func TestCORSSpecs_PassWithoutCredentialsHeader(t *testing.T) {
@@ -527,20 +468,12 @@ func TestCORSSpecs_PassWithoutCredentialsHeader(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range CORSSpecs() {
-		if spec.Name != SpecNameCORSAllowCredentials {
-			continue
-		}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSAllowCredentials)
 
-		result := spec.Check(handler)
-		if !result.OK {
-			t.Errorf("expected credentials spec to pass when header is absent")
-		}
-
-		return
+	result := spec.Check(handler)
+	if !result.OK {
+		t.Errorf("expected credentials spec to pass when header is absent")
 	}
-
-	t.Fatal("SpecNameCORSAllowCredentials not found in CORSSpecs")
 }
 
 func TestRateLimitSpecs_FailOn429WithoutRetryAfter(t *testing.T) {
@@ -560,20 +493,12 @@ func TestRateLimitSpecs_FailOn429WithoutRetryAfter(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitRetryAfter {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitRetryAfter)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected retry-after spec to fail on 429 without Retry-After")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected retry-after spec to fail on 429 without Retry-After")
 	}
-
-	t.Fatal("SpecNameRateLimitRetryAfter not found in RateLimitSpecs")
 }
 
 func TestRateLimitSpecs_FailOnNegativeRetryAfter(t *testing.T) {
@@ -594,20 +519,12 @@ func TestRateLimitSpecs_FailOnNegativeRetryAfter(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitHeaderOnReject {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitHeaderOnReject)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected header spec to fail on negative Retry-After")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected header spec to fail on negative Retry-After")
 	}
-
-	t.Fatal("SpecNameRateLimitHeaderOnReject not found in RateLimitSpecs")
 }
 
 func TestRateLimitSpecs_PassOn429WithoutRetryAfterForHeaderCheck(t *testing.T) {
@@ -627,20 +544,12 @@ func TestRateLimitSpecs_PassOn429WithoutRetryAfterForHeaderCheck(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitHeaderOnReject {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitHeaderOnReject)
 
-		result := spec.Check(handler)
-		if !result.OK {
-			t.Errorf("expected header spec to pass when Retry-After is absent: %s", result.Message)
-		}
-
-		return
+	result := spec.Check(handler)
+	if !result.OK {
+		t.Errorf("expected header spec to pass when Retry-After is absent: %s", result.Message)
 	}
-
-	t.Fatal("SpecNameRateLimitHeaderOnReject not found in RateLimitSpecs")
 }
 
 func TestRateLimitSpecs_FailOnInvalidHintHeaders(t *testing.T) {
@@ -652,20 +561,12 @@ func TestRateLimitSpecs_FailOnInvalidHintHeaders(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitHintHeadersOnAllow {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitHintHeadersOnAllow)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected hint spec to fail with invalid X-RateLimit-Limit")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected hint spec to fail with invalid X-RateLimit-Limit")
 	}
-
-	t.Fatal("SpecNameRateLimitHintHeadersOnAllow not found in RateLimitSpecs")
 }
 
 func TestRateLimitSpecs_FailOnNegativeHintHeader(t *testing.T) {
@@ -676,20 +577,12 @@ func TestRateLimitSpecs_FailOnNegativeHintHeader(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitHintHeadersOnAllow {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitHintHeadersOnAllow)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected hint spec to fail with negative X-RateLimit-Remaining")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected hint spec to fail with negative X-RateLimit-Remaining")
 	}
-
-	t.Fatal("SpecNameRateLimitHintHeadersOnAllow not found in RateLimitSpecs")
 }
 
 func TestCORSSpecs_VaryPassOnWildcardOrigin(t *testing.T) {
@@ -700,20 +593,12 @@ func TestCORSSpecs_VaryPassOnWildcardOrigin(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range CORSSpecs() {
-		if spec.Name != SpecNameCORSVaryOrigin {
-			continue
-		}
+	spec := lookupSpec(t, CORSSpecs(), SpecNameCORSVaryOrigin)
 
-		result := spec.Check(handler)
-		if !result.OK {
-			t.Errorf("expected Vary spec to pass with wildcard origin: %s", result.Message)
-		}
-
-		return
+	result := spec.Check(handler)
+	if !result.OK {
+		t.Errorf("expected Vary spec to pass with wildcard origin: %s", result.Message)
 	}
-
-	t.Fatal("SpecNameCORSVaryOrigin not found in CORSSpecs")
 }
 
 func TestRateLimitSpecs_FailOnInvalidResetHeader(t *testing.T) {
@@ -724,18 +609,10 @@ func TestRateLimitSpecs_FailOnInvalidResetHeader(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	for _, spec := range RateLimitSpecs() {
-		if spec.Name != SpecNameRateLimitHintHeadersOnAllow {
-			continue
-		}
+	spec := lookupSpec(t, RateLimitSpecs(), SpecNameRateLimitHintHeadersOnAllow)
 
-		result := spec.Check(handler)
-		if result.OK {
-			t.Errorf("expected hint spec to fail with invalid X-RateLimit-Reset")
-		}
-
-		return
+	result := spec.Check(handler)
+	if result.OK {
+		t.Errorf("expected hint spec to fail with invalid X-RateLimit-Reset")
 	}
-
-	t.Fatal("SpecNameRateLimitHintHeadersOnAllow not found in RateLimitSpecs")
 }
