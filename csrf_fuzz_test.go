@@ -425,15 +425,15 @@ func FuzzCSRFTokenHTMLFormatters(f *testing.F) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil).
 			WithContext(WithCSRFToken(context.Background(), token))
 
-		hx := CSRFTokenHXHeaders(req)
+		hxHeaders := CSRFTokenHXHeaders(req)
 		meta := CSRFTokenHTMLMeta(req)
 		field := CSRFTokenFormField(req)
 
 		if token == "" {
-			if hx != "" || meta != "" || field != "" {
+			if hxHeaders != "" || meta != "" || field != "" {
 				t.Errorf(
 					"empty token renders hx=%q meta=%q field=%q, want all empty",
-					hx, meta, field,
+					hxHeaders, meta, field,
 				)
 			}
 
@@ -452,13 +452,15 @@ func FuzzCSRFTokenHTMLFormatters(f *testing.F) {
 
 		const hxPrefix = `hx-headers='`
 
-		if !strings.HasPrefix(hx, hxPrefix) || !strings.HasSuffix(hx, `'`) {
-			t.Errorf("hx-headers output %q is not a single-quoted attribute", hx)
+		if !strings.HasPrefix(hxHeaders, hxPrefix) || !strings.HasSuffix(hxHeaders, `'`) {
+			t.Errorf("hx-headers output %q is not a single-quoted attribute", hxHeaders)
 
 			return
 		}
 
-		body := html.UnescapeString(strings.TrimSuffix(strings.TrimPrefix(hx, hxPrefix), `'`))
+		body := html.UnescapeString(
+			strings.TrimSuffix(strings.TrimPrefix(hxHeaders, hxPrefix), `'`),
+		)
 
 		var decoded map[string]string
 		if err := json.Unmarshal([]byte(body), &decoded); err != nil {
