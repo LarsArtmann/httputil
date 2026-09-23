@@ -385,6 +385,11 @@ func (c CSRFConfig) withSecureFallback() CSRFConfig {
 }
 
 // ConfigureNosurfHandler applies CSRFConfig settings to a nosurf handler.
+// The configuration is applied verbatim, with no fallback: unlike
+// [CSRFMiddleware], a SameSite=None + Secure=false combination is passed
+// through as-is, which current browsers refuse to store (rfc6265bis §5.7).
+// Reproduce the Secure fallback CSRFMiddleware performs before calling this
+// if you need the hardened behavior.
 func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 	//nolint:gosec,exhaustruct_v5 // HttpOnly=false required for double-submit
 	cookie := http.Cookie{
@@ -872,7 +877,9 @@ func TranslateCSRFHeaders(r *http.Request, cfg CSRFConfig) {
 
 // CSRFResponseHeaderMiddleware returns HTTP middleware that automatically sets
 // the X-Csrf-Token response header on every request. This eliminates the need
-// for individual handlers to manually set the token.
+// for individual handlers to manually set the token. The middleware only ever
+// writes a response header; it cannot emit cookies (the token must come from a
+// wrapping CSRFMiddleware).
 //
 // Place this AFTER CSRFMiddleware in the chain so the token is already in context.
 func CSRFResponseHeaderMiddleware(next http.Handler) http.Handler {

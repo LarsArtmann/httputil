@@ -14,7 +14,6 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-
 	etag "github.com/larsartmann/go-etag/server"
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
@@ -879,4 +878,19 @@ func ExampleCompression_absentEncoding() {
 	// Output:
 	// ""
 	// gzip
+}
+
+func ExampleCSRFConfig_sameSiteFallback() {
+	// SameSite=None without Secure produces a cookie current browsers refuse
+	// to store (rfc6265bis §5.7), so cookie-writing paths fall back to
+	// Secure=true while keeping the None intent. The deletion cookie here is
+	// emitted as if configured with Secure: true.
+	rec := httptest.NewRecorder()
+	InvalidateCSRFCookie(rec, CSRFConfig{SameSite: http.SameSiteNoneMode, Secure: false})
+
+	cookies := rec.Result().Cookies()
+
+	fmt.Println(cookies[0].Name, cookies[0].Secure, cookies[0].SameSite == http.SameSiteNoneMode)
+
+	// Output: csrf_token true true
 }

@@ -119,6 +119,23 @@ func TestCSRFResponseHeaderMiddleware_SetsHeader(t *testing.T) {
 	}
 }
 
+func TestCSRFResponseHeaderMiddleware_NeverEmitsCookies(t *testing.T) {
+	t.Parallel()
+
+	handler := CSRFResponseHeaderMiddleware(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if cookies := rec.Result().Cookies(); len(cookies) != 0 {
+		t.Errorf("CSRFResponseHeaderMiddleware emitted cookies: %v", cookies)
+	}
+}
+
 func TestCSRFTokenFromContext_EmptyWhenNotSet(t *testing.T) {
 	t.Parallel()
 
