@@ -19,6 +19,9 @@ func FuzzServerTimingHeaderValue(f *testing.F) {
 	f.Add("name\"with\"quotes", "desc\\with\\backslashes", int64(999))
 	f.Add("a", strings.Repeat("x", 1000), int64(-1))
 	f.Add("x\ry\nz", "inject\r\nheader", int64(42))
+	f.Add("0", `"`, int64(1014)) // regression: escaped quote inside desc (issue #24)
+	f.Add("q", `\"`, int64(0))   // backslash before quote must not escape the delimiter
+	f.Add("q", `\\`, int64(0))   // escaped-backslash pair stays inside the quoted-string
 
 	f.Fuzz(func(t *testing.T, name, desc string, durNanos int64) {
 		st := &ServerTiming{}
@@ -32,11 +35,30 @@ func FuzzServerTimingHeaderValue(f *testing.F) {
 			t.Errorf("HeaderValue contains CRLF: %q", val)
 		}
 
-		// Must be a valid RFC 7230 token for the metric name (sanitized)
-		// and valid quoted-string for the description (escaped)
-		// Basic sanity: no unescaped quotes in description portion
-		if strings.Count(val, `"`)%2 != 0 {
-			t.Errorf("HeaderValue has unbalanced quotes: %q", val)
+		// Must be a valid RFC 7230 quoted-string overall: every double quote
+		// is either a desc delimiter or part of an escaped quoted-pair
+		// (`\"`, `\\`). A raw quote-parity count is wrong — a correctly
+		// escaped quote makes the raw count odd while the string stays
+		// well-formed (2026-09-23 nightly, issue #24).
+		inQuotes, escaped := false, false
+		for i := range val {
+			c := val[i]
+			if escaped {
+				escaped = false
+
+				continue
+			}
+
+			switch c {
+			case '\\':
+				escaped = true
+			case '"':
+				inQuotes = !inQuotes
+			}
+		}
+
+		if inQuotes {
+			t.Errorf("HeaderValue has unterminated quoted-string: %q", val)
 		}
 	})
 }
