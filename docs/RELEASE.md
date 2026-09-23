@@ -57,6 +57,10 @@ Compare against the previous release. Investigate any regression exceeding 10%.
 
 Then refresh the recorded baseline in `docs/benchmarks.md` (3s × 5 protocol) so the doc reflects the release being cut. Note provenance for any row measured with a different harness or protocol than the rest.
 
+### 6.5. Scripts and examples review sweep
+
+Re-review `scripts/` and every `Example*` function — a prior pass claiming "clean" is not a substitute (the 2026-09-15 re-run found three real findings despite one). Check that examples still compile against the current API, their `// Output:` blocks are deterministic, and `scripts/` gates referenced by CI still exist and pass.
+
 ## Release-Time Steps
 
 ### 7. Update CHANGELOG.md
