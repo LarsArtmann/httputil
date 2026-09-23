@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - **`HitRatio()` double-counted every 304** (correction of record for v1.3.0's `etagmetrics`): the shipped formula was `NotModified / (Generated + NotModified)`, but go-etag's `On304` fires *in addition to* `OnETagGenerated` for computed tags — so `Generated` alone already counts every tag-computing response and adding `NotModified` counted each 304 twice (a fresh GET plus a conditional 304 reported 1/3 instead of 1/2). The corrected `NotModified / Generated` ships in go-etag's `metrics` package, with a documented caveat that 304s on handler-adopted tags (`SkipIfPresent`) fire `On304` without `OnETagGenerated` and can push the ratio above 1. The frozen v1.3.0 copy is unaffected by policy (tags are never retagged).
+- **`server.go` builds clean under Go 1.27 lint** (`server.go`): the `http.Server` struct literal now sets `MaxHeaderValueCount: 0, DisableClientPriority: false` — `exhaustruct_v5` only flags the incomplete literal once the 1.27 toolchain's net/http adds those fields. Root `golangci-lint run` back to 0 issues (was 1).
 
 ### Documented
 

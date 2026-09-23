@@ -1,14 +1,14 @@
 # httputil
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
-[![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8)](https://go.dev)
+[![Go Version](https://img.shields.io/badge/Go-1.27+-00ADD8)](https://go.dev)
 ![Coverage](https://img.shields.io/badge/coverage-97.2%25-green)
 ![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
 Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag composition), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
-Minimal footprint — four dependencies (`go-error-family` + `go-etag` same-author, `golang.org/x/time`, `justinas/nosurf`). Pure stdlib `net/http`. Go 1.26+.
+Minimal footprint — four dependencies (`go-error-family` + `go-etag` same-author, `golang.org/x/time`, `justinas/nosurf`). Pure stdlib `net/http`. Go 1.27+ (the `go` directive requires 1.27.1+ since go-etag v0.5.0).
 
 ## Install
 
