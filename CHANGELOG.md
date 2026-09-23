@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Godoc examples overhaul** (`example_test.go`, `server_timing/example_test.go`): every example on pkg.go.dev is now self-contained — the six root examples that referenced unexported test helpers (`newNoOpHandler`, `newWriteStatusHandler`, `newPanicHandler`) inline their handler doubles as local closures, so readers can copy-paste any example without invisible dependencies. New examples close the remaining coverage gaps: the `server_timing` sub-module gains its own example file (deterministic wire-format walkthrough via `ExampleNewServerTiming`, plus `ExampleServerTimingMiddleware` and `ExampleWrapServerTiming`); the CSRF token helpers are demonstrated end-to-end through real middleware output (`ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders`); and the error-taxonomy routing API is shown against a real validator (`ExampleDomainOf`, `ExampleInDomain` driven by `CORSConfig.Validate`). All 40 examples across the root package, `httpspec`, and `server_timing` execute in the test suite with verified `// Output:` blocks.
 
+### Changed
+
+- **go-etag v0.3.1 → v0.5.0; the minimum Go version is now 1.27.1** (`go.mod`, `go.work`, CI matrix, README badge): go-etag v0.5.0 (the release carrying the `metrics` package that replaced this repo's `etagmetrics` sub-module) declares `go >= 1.27.1`, so the module directive, the workspace, CI's toolchain matrix, and the README version claim move to Go 1.27.1+. The go-etag API httputil consumes (error-code registration via `RegisterErrorClassifications`) is unchanged. Post-v1.3.0 master briefly carried the dependency bump together with a `go 1.27` directive — a state no stock toolchain selection could resolve (an auto-commit daemon casualty that reverted the directive half of the coordinated change); this restores the consistent floor.
+
 ### Removed
 
 - **`etagmetrics` sub-module** — moved to go-etag as the `metrics` package ([`github.com/larsartmann/go-etag/metrics`](https://github.com/larsartmann/go-etag/tree/main/metrics); design record: [go-etag `docs/planning/2026-09-22_23-25_move-etagmetrics-into-go-etag-metrics.md`](https://github.com/larsartmann/go-etag/blob/main/docs/planning/2026-09-22_23-25_move-etagmetrics-into-go-etag-metrics.md)). The adapter counts go-etag's own hooks, so it belongs next to them: it was the only thing forcing this repo to track go-etag v0.4.0 (root pins v0.3.1), every hook-signature change in go-etag required a PR here, and nobody adopting go-etag would look in httputil for its metrics helper. Migration: swap the import — `github.com/larsartmann/httputil/etagmetrics` → `github.com/larsartmann/go-etag/metrics`; `Attach`/`Counters`/`Snapshot` are unchanged (the `HitRatio` formula is corrected there, see Fixed). The v1.3.0 tag keeps the old copy immutable, as always.
@@ -613,8 +617,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/larsartmann/httputil/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/larsartmann/httputil/compare/v1.1.1...v1.2.0
+[1.1.1]: https://github.com/larsartmann/httputil/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/larsartmann/httputil/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/larsartmann/httputil/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/larsartmann/httputil/compare/v0.12.0...v1.0.0
