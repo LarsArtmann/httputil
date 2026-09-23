@@ -1519,3 +1519,263 @@ func TestCSRFMiddleware_TrustedProxyDoesNotExcuseDifferentHost(t *testing.T) {
 		t.Errorf("ErrorHandler error = %v, want ErrCSRFAttestationConflict", captured)
 	}
 }
+
+func TestCSRFConfig_Validate_TrustedOriginMailtoURL(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{"mailto:csrf@trusted.example"}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for an opaque mailto: origin")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+func TestCSRFConfig_Validate_TrustedOriginDataURL(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{"data:text/html,hello"}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for an opaque data: origin")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+func TestCSRFConfig_Validate_MaxAgeNegativeChainsToConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{MaxAge: -time.Second}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for a negative MaxAge")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+func TestCSRFConfig_Validate_UnsafeOriginEmptyChainsToConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{""}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for an empty trusted origin")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+func TestCSRFConfig_Validate_UnsafeOriginWildcardChainsToConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedOrigins: []string{"*"}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for a wildcard trusted origin")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+func TestCSRFConfig_Validate_EmptyProxyEntryChainsToConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{""}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for an empty trusted proxy entry")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+func TestCSRFConfig_Validate_InvalidCIDRChainsToConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"not-a-cidr/999"}}
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want rejection for an invalid CIDR")
+	}
+
+	if !errors.Is(err, ErrCSRFConfig) {
+		t.Errorf("Validate() error = %v, want ErrCSRFConfig in the cause chain", err)
+	}
+}
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestCSRFMiddleware_BrokenTrustedOriginsLogsFallback(t *testing.T) {
+	records := captureCSRFConstructorLogs(t, func() {
+		CSRFMiddleware(CSRFConfig{TrustedOrigins: []string{"https://broken.example/%zz"}})
+	})
+
+	found := false
+
+	for _, record := range records {
+		code, _ := record["code"].(string)
+		if record["level"] == "ERROR" && code == "csrf.trusted_origin_invalid" {
+			found = true
+
+			break
+		}
+	}
+
+	if !found {
+		t.Errorf(
+			"records = %v, want an ERROR record with code csrf.trusted_origin_invalid: the same-origin-only fallback must be loudly logged",
+			records,
+		)
+	}
+}
+
+func TestValidateCSRF_ReInvocationIsIdempotent(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+
+	ok1, rec1 := ValidateCSRF(req, CSRFConfig{})
+	ok2, rec2 := ValidateCSRF(req, CSRFConfig{})
+
+	if ok1 {
+		t.Fatal("first ValidateCSRF call on a token-less request = true, want false")
+	}
+
+	if ok1 != ok2 {
+		t.Errorf("second call ok = %v, want %v (re-validation must be idempotent)", ok2, ok1)
+	}
+
+	if rec1.Code != rec2.Code {
+		t.Errorf(
+			"second call status = %d, want %d (re-validation must be idempotent)",
+			rec2.Code, rec1.Code,
+		)
+	}
+
+	if rec1.Code != http.StatusForbidden {
+		t.Errorf("status = %d, want 403", rec1.Code)
+	}
+}
+
+func TestValidateCSRF_TranslatesCustomHeaderName(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{HeaderName: "X-Csrf-Custom"}
+
+	mw := CSRFMiddleware(cfg)
+
+	token, cookie := CSRFTestToken(mw)
+	if token == "" {
+		t.Fatal("CSRFTestToken returned empty token")
+	}
+
+	if cookie == nil {
+		t.Fatal("CSRFTestToken returned nil cookie")
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	req.Header.Set("X-Csrf-Custom", token)
+	req.AddCookie(cookie)
+
+	ok, rec := ValidateCSRF(req, cfg)
+	if !ok {
+		t.Fatalf(
+			"ValidateCSRF with a custom header name = false (status %d), want the translated header to validate",
+			rec.Code,
+		)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_NoTrustedProxies(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "10.0.0.1:8443"
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	if got := forwardedProtoFromTrustedProxy(req, CSRFConfig{}); got != "" {
+		t.Errorf("forwardedProtoFromTrustedProxy = %q, want \"\" with no trusted proxies configured", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_UntrustedRemote(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.1"}}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "203.0.113.7:4444"
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "" {
+		t.Errorf("forwardedProtoFromTrustedProxy = %q, want \"\" for an untrusted remote", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_EmptyHeader(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.1"}}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "10.0.0.1:8443"
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "" {
+		t.Errorf("forwardedProtoFromTrustedProxy = %q, want \"\" when the header is absent", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_NonHTTPScheme(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.1"}}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "10.0.0.1:8443"
+	req.Header.Set("X-Forwarded-Proto", "ftp")
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "" {
+		t.Errorf("forwardedProtoFromTrustedProxy = %q, want \"\" for a non-HTTP(s) scheme", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_HTTPSFirstHop(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.1"}}
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "10.0.0.1:8443"
+	req.Header.Set("X-Forwarded-Proto", "HTTPS, http")
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "https" {
+		t.Errorf("forwardedProtoFromTrustedProxy = %q, want \"https\" (first hop, normalized)", got)
+	}
+}
+
+func TestRequestScheme_TLSConnection(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.TLS = &tls.ConnectionState{}
+
+	if got := requestScheme(req, CSRFConfig{}); got != "https" {
+		t.Errorf("requestScheme = %q, want \"https\" for a locally TLS-terminated request", got)
+	}
+}

@@ -523,6 +523,8 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `DenyUnmatched`       | `bool`     | `true`                                                 | Withhold `Allow-Origin` for origins not in `AllowedOrigins` (secure by default) |
 | `AllowPrivateNetwork` | `bool`     | `false`                                                | Answer Chrome Local Network Access preflights (preflight responses only)        |
 
+`AllowPrivateNetwork` is independent of origin matching: a denied-origin preflight (`DenyUnmatched`, no `Allow-Origin`) still carries the header — the browser already fails that response at the missing `Allow-Origin`, so no capability is granted. Note the `MaxAge` interplay: browsers cache preflight results (including the LNA grant) for `Access-Control-Max-Age` seconds, so lowering `MaxAge` also shortens how long an LNA allowance survives a config rollback.
+
 ### `ResponseRecorder` methods
 
 | Method             | Returns                                | Description                                            |
@@ -582,6 +584,8 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `AllowPlaintextBypass`      | `bool`          | `false`            | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)                                                                            |
 | `AllowInsecureSameSiteNone` | `bool`          | `false`            | Keep `SameSite=None` without `Secure` instead of the `Secure=true` fallback (legacy clients only; browsers refuse to store the cookie)            |
 | `ErrorHandler`              | `ErrorHandler`  | `nil` (403 + body) | Custom handler for CSRF validation failures                                                                                                       |
+
+When `SameSite` is `None` and `Secure` is false, `CSRFMiddleware` (and `InvalidateCSRFCookie`) fall back to `Secure=true` at construction instead of honoring the combination verbatim: rfc6265bis §5.7 makes such cookies unstorable in current browsers, so the previously-honored misconfiguration meant every state-changing browser request failed CSRF validation. The fallback keeps the `None` intent (cross-site cookies still work on HTTPS deployments), logs `csrf_samesite_insecure`, and is skipped verbatim with `AllowInsecureSameSiteNone: true` for legacy-client deployments. `ConfigureNosurfHandler` applies no fallback — it is the verbatim low-level configurator.
 
 ### `MetricsConfig` fields
 
