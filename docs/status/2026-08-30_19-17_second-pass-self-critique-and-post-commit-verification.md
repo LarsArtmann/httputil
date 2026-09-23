@@ -67,7 +67,7 @@
 13. `CompressionConfig.Level = 0` semantics alignment.
 14. go-compression extraction (live plan; trigger: go-datastar SSE).
 15. CI release workflow (tag → build → GitHub Release; `go vet` both modules).
-16. go-error-family upstream proposal (verify-before-filing first).
+16. ~~go-error-family upstream proposal (verify-before-filing first).~~ done (filed 2026-09-15 as go-error-family#5)
 17. `architecture-review` re-run.
 18. Convert the 6 remaining legacy table-driven test files (or amend the convention once).
 19. `docs/benchmarks.md` re-measure (~10 changed benches, 3s×5) + stale `b.ResetTimer` audit.

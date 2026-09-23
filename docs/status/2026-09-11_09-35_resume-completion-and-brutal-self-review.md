@@ -72,22 +72,22 @@ The resumed session completed 8 of 9 tracked tasks; the ninth (v1.1.0 tag cut) i
 
 ## b) PARTIALLY DONE
 
-1. **nightly-fuzz full run** — in progress (13m31s at last check); step 1/25 verified; remaining 24 steps run the same anchored discipline but are unobserved until the ~2 h run completes.
-2. **Docs freshness** — AGENTS.md fully reconciled, but no systematic docs-health VERIFY pass ran this session; the `etag_test.go` find proves hand-checked-only docs still hide drift. README/FEATURES/ROADMAP spot-checks passed.
-3. **`[Unreleased]` CHANGELOG hygiene** — content is complete and accurate, but has duplicated `### Added`/`### Changed` headers; needs a pre-tag reorganization into single sections.
-4. **server_timing sub-module** — build verified via flake standalone check; its `go test -race` not explicitly re-run this session (code untouched since last green).
-5. **erraudit `--type-aware` advisory pass** — the two enforcing gates ran green in prerelease; the advisory-only full pass (~30 known-correct sentinel matches) not re-run.
+~~1. **nightly-fuzz full run** — in progress (13m31s at last check); step 1/25 verified; remaining 24 steps run the same anchored discipline but are unobserved until the ~2 h run completes.~~ done (observed green — no crashers; #7/#8 stayed closed)
+~~2. **Docs freshness** — AGENTS.md fully reconciled, but no systematic docs-health VERIFY pass ran this session; the `etag_test.go` find proves hand-checked-only docs still hide drift. README/FEATURES/ROADMAP spot-checks passed.~~ done (docs-health pass 2026-09-15 ran the full VERIFY; renewed 2026-09-23)
+~~3. **`[Unreleased]` CHANGELOG hygiene** — content is complete and accurate, but has duplicated `### Added`/`### Changed` headers; needs a pre-tag reorganization into single sections.~~ done (fixed at the v1.1.0 cut — single Added/Changed/Fixed/Removed blocks)
+~~4. **server_timing sub-module** — build verified via flake standalone check; its `go test -race` not explicitly re-run this session (code untouched since last green).~~ done (re-run since — release batteries and the 2026-09-23 pass cover the sub-module)
+~~5. **erraudit `--type-aware` advisory pass** — the two enforcing gates ran green in prerelease; the advisory-only full pass (~30 known-correct sentinel matches) not re-run.~~ done (re-measured 2026-09-15 — 45 sentinels / 41 test-side; AGENTS.md updated)
    ~~6. **Owner question ②** — resolved by execution (review passes re-run clean), but the 09-05 status report is not yet annotated with that answer (docs-health ANNOTATE territory).~~ annotated 2026-09-15 (docs-health pass); the underlying 're-run clean' claim was itself superseded — the 2026-09-15 re-run found and fixed 3 findings (docs/status/2026-09-15_06-14 a2–a6).
 
 ## c) NOT STARTED
 
-1. **v1.1.0 tag cut** — owner-blocked (question ① + ③); master is now in a tag-ready state: all gates green, pushed, CHANGELOG current.
+1. ~~**v1.1.0 tag cut** — owner-blocked (question ① + ③); master is now in a tag-ready state: all gates green, pushed, CHANGELOG current.~~ done at `ae0a46d`
 2. **go-compression extraction** — deferred post-v1.1 by decision; plan inventory refresh is a precondition.
 3. **docs-site / website-launch** — httpspec discovery page et al.
 4. **architecture-review re-run** — post-v1.1 scope.
-5. **go-error-family upstream issue filing** — verified draft waiting; owner action.
-6. **`withParsedTrustedProxies` export decision** — conditional, trigger not fired.
-7. **Full docs-health VERIFY/ANNOTATE cycle** for the 09-05 report + monthly cadence.
+5. ~~**go-error-family upstream issue filing** — verified draft waiting; owner action.~~ done (filed 2026-09-15 as go-error-family#5)
+6. ~~**`withParsedTrustedProxies` export decision** — conditional, trigger not fired.~~ done (decided 2026-09-15 — stays unexported; zero public importers, trigger not fired (DECISION_LOG))
+7. ~~**Full docs-health VERIFY/ANNOTATE cycle** for the 09-05 report + monthly cadence.~~ done (done — the 2026-09-15 docs-health pass annotated 09-05; this 2026-09-23 pass renews the cycle)
 
 ## d) TOTALLY FUCKED UP
 
@@ -113,35 +113,35 @@ Nothing rose to "fucked up" — no data loss, no broken master, no re-tagging. T
 
 **Release-critical (this week)**
 
-1. Owner ruling: cut **v1.1.0** now vs after nightly-fuzz full green (question ①).
-2. Watch nightly-fuzz run 34574182326 to completion; triage any crasher; close any auto-filed false positive.
-3. Reorganize `[Unreleased]` CHANGELOG to single Added/Changed/Fixed sections; retitle to `[1.1.0]` at tag time.
-4. At tag: run RELEASE.md steps 7-16 (GitHub release, pkg.go.dev propagation, `go get` verification, badge).
+1. ~~Owner ruling: cut **v1.1.0** now vs after nightly-fuzz full green (question ①).~~ done (resolved — v1.1.0 cut 2026-09-11 after the gates went green (tag ae0a46d))
+2. ~~Watch nightly-fuzz run 34574182326 to completion; triage any crasher; close any auto-filed false positive.~~ done (observed green — no crashers; auto-filed issues stayed closed)
+3. ~~Reorganize `[Unreleased]` CHANGELOG to single Added/Changed/Fixed sections; retitle to `[1.1.0]` at tag time.~~ done (done at the v1.1.0 cut — single sections; retitled [1.1.0])
+4. ~~At tag: run RELEASE.md steps 7-16 (GitHub release, pkg.go.dev propagation, `go get` verification, badge).~~ done (done — RELEASE.md steps executed for v1.1.0)
 5. Add `doc-snippet-refs` step to prerelease-check.sh (CI parity).
    ~~6. Annotate the 09-05 status report: question ② answered (passes re-run clean); ① resolution once ruled.~~ done 2026-09-15 (docs-health pass annotated the 09-05 report's question-② and ③ items; the ② answer was revised — the 09-15 re-run found 3 findings).
 6. Triage incoming Dependabot PRs (weekly cadence is live).
 
 **Owner decisions pending**
-8. CSRF security-degrading config: log-only vs remediate (question ③) → then implement the ruling.
-9. Issue #4 ruling: negotiate gzip for absent `Accept-Encoding` (RFC 7231) or keep documented current behavior; either retire the issue or convert to spec'd work.
+8. ~~CSRF security-degrading config: log-only vs remediate (question ③) → then implement the ruling.~~ done (resolved 2026-09-15 — owner ruling; B1 fallback + AllowInsecureSameSiteNone shipped in v1.2.0)
+9. ~~Issue #4 ruling: negotiate gzip for absent `Accept-Encoding` (RFC 7231) or keep documented current behavior; either retire the issue or convert to spec'd work.~~ done (resolved 2026-09-15 — owner instructed the identity default; AbsentEncoding shipped in v1.2.0; issue closed)
 
 **Post-v1.1 recorded review findings (from the HTML report, all in TODO_LIST)**
-10. Unify the two `TrustedOrigins` parsers with tests.
-11. Reclassify `http.ErrNoCookie`/`ErrNoLocation` (Transient→Rejection) + fix `ErrCodeHijackFailed` doc/WayOut mismatch; own changelog entry.
-12. Document `ValidateCSRF` caller-request mutation; consider context flag.
-13. `nosurf.StaticOrigins` failure: fail-closed design pass (TrustedProxies-style).
-14. CSRF remediation implementation (depends on #8).
+10. ~~Unify the two `TrustedOrigins` parsers with tests.~~ done (done 2026-09-14 — parseTrustedOrigin is the single parse point (17-14/18-14 reports))
+11. ~~Reclassify `http.ErrNoCookie`/`ErrNoLocation` (Transient→Rejection) + fix `ErrCodeHijackFailed` doc/WayOut mismatch; own changelog entry.~~ done at `9b9e032`
+12. ~~Document `ValidateCSRF` caller-request mutation; consider context flag.~~ done (done — shipped as the v1.2.0 documentation-only Fixed entry (ValidateCSRF mutation contract documented))
+13. ~~`nosurf.StaticOrigins` failure: fail-closed design pass (TrustedProxies-style).~~ done (done — shipped in v1.2.0 as the all-or-nothing fail-closed parsing)
+14. ~~CSRF remediation implementation (depends on #8).~~ done (done — shipped in v1.2.0 (withSecureFallback + opt-out))
 15. v2.0 ledger: `ValidateCSRF` result type, `MiddlewareFunc` canonicalization.
 16. Additive: typed `MiddlewareStack` names (type + overload).
 17. Pool-contract hardening: `(nil,nil)` probe, factory-param divergence, release provenance (next pool touch).
 
 **Docs & docs-health**
-18. Full docs-health VERIFY pass over living docs with the mechanical stale-symbol grep (the etag_test.go class-hunt).
-19. Document `MiddlewareETag` as composition seam (FEATURES one-liner).
+18. ~~Full docs-health VERIFY pass over living docs with the mechanical stale-symbol grep (the etag_test.go class-hunt).~~ done (docs-health pass 2026-09-23, full VERIFY with mechanical sweeps (etagmetrics/vendor/etag.go greps) executed)
+19. ~~Document `MiddlewareETag` as composition seam (FEATURES one-liner).~~ done (present — FEATURES.md documents MiddlewareETag as the go-etag composition seam)
 20. docs-site launch (website-launch skill): httpspec page, spec-runner example, discovery push.
-21. File the verified go-error-family conditional-request issue (owner repo).
+21. ~~File the verified go-error-family conditional-request issue (owner repo).~~ done (filed 2026-09-15 as go-error-family#5)
 22. architecture-review re-run post-v1.1 (compose API, XFP trust model, removals in scope).
-23. Monthly docs-health cadence: schedule next VERIFY before v1.2 planning.
+23. ~~Monthly docs-health cadence: schedule next VERIFY before v1.2 planning.~~ done (cadence held — full passes ran 2026-09-15 and 2026-09-23)
 24. AGENTS.md size watch (docs-health budget) — next pass likely crosses the line again.
 25. DOMAIN_LANGUAGE: add "generation-swapped ring", "attestation conflict", "trusted proxy" entries if missing.
 
@@ -152,37 +152,37 @@ Nothing rose to "fucked up" — no data loss, no broken master, no re-tagging. T
 29. Consider `go-workflow-auditlog`-style sibling for Server-Timing if third consumer appears (ROADMAP fuel only).
 
 **Testing & tooling**
-30. Unit tests for `doc-snippet-refs` (fixture fences + golden findings) — currently 0%; decide if it stays intentionally untested or earns a suite.
+30. ~~Unit tests for `doc-snippet-refs` (fixture fences + golden findings) — currently 0%; decide if it stays intentionally untested or earns a suite.~~ done (decided — intentionally untested per v1.1.0 (the CI drift check is its verification; CHANGELOG [1.1.0]))
 31. benchstat regression gate in CI (pin the 3s×5 protocol output; fail on >N% regression).
 32. Fuzz corpus expansion: real-world odd `Accept-Encoding`/`Origin` seeds from issue trackers.
 33. Weekly (not per-push) `-race -count=10` stress workflow to cut CI minutes without losing the timing-race net.
-34. server_timing `-race` into prerelease-check.sh explicitly (parity with root module).
+34. ~~server_timing `-race` into prerelease-check.sh explicitly (parity with root module).~~ done (present — prerelease-check.sh runs server_timing vet + race + lint explicitly)
 35. Property test for the fence parser (weird markdown: nested fences, CRLF, no-trailing-newline).
-36. Coverage-gap audit: confirm every sub-100% function still has its FEATURES reason (docs-health owns).
+36. ~~Coverage-gap audit: confirm every sub-100% function still has its FEATURES reason (docs-health owns).~~ done (docs-health pass 2026-09-23, FEATURES gap section re-verified against a fresh -race -coverprofile (code.go trio now 100%))
 
 **Ecosystem & consumers**
 37. go-datastar SSE trigger check for go-compression timing.
 38. httpspec zero-public-importers: outreach/discovery plan decision (README + example landed; page pending).
-39. Post-tag: monitor pkg.go.dev + first external `go get`.
-40. GitHub Release notes for v1.1.0 drafted from CHANGELOG (freeze policy: no retro-edits after).
-41. Public README claim sweep post-removal: "four external dependencies" wording vs go-etag-stays reality (AGENTS fixed; README unverified for this phrasing).
+39. ~~Post-tag: monitor pkg.go.dev + first external `go get`.~~ done (done for v1.1.0 — pkg.go.dev verified in the 2026-09-15 docs-health pass (a12))
+40. ~~GitHub Release notes for v1.1.0 drafted from CHANGELOG (freeze policy: no retro-edits after).~~ done (done — v1.1.0 GitHub release published from the frozen section)
+41. ~~Public README claim sweep post-removal: "four external dependencies" wording vs go-etag-stays reality (AGENTS fixed; README unverified for this phrasing).~~ done (verified 2026-09-23 — README says four dependencies; accurate)
 
 **Hygiene & process**
 42. Fix the two-`t.TempDir()` nit in the TLS test (one dir, two Join calls).
 43. `TestServerShutdownReturnsErrorOnContextExpiry`: replace raw `&Server{httpServer:...}` literal with a helper that survives future invariant fields.
 44. gopls `stdversion` warnings: revisit when Go 1.27 + stable json/v2 land (DECISION_LOG row exists).
-45. `.gitignore` vendor/ entry: keep (guard against stray `go mod vendor`); verify in next hygiene pass.
+45. ~~`.gitignore` vendor/ entry: keep (guard against stray `go mod vendor`); verify in next hygiene pass.~~ done (verified 2026-09-23 — .gitignore keeps the vendor/ guard line, documented in AGENTS.md)
 46. Auto-daemon commit messages: consider enforcing conventional prefixes for daemon commits too (commit-lint only gates PRs today).
-47. Status-report archive policy: move fully-resolved `docs/status/` reports to `archived/` once their questions are answered.
+47. ~~Status-report archive policy: move fully-resolved `docs/status/` reports to `archived/` once their questions are answered.~~ done (adopted — AGENTS.md Doc-Freshness documents the archive policy; executed in the 2026-09-15 and 2026-09-23 passes)
 48. nightly-fuzz: add a run-summary step (single job-summary line: targets × crashers) so "is it green" is one glance.
 49. Consider `workflow_dispatch` inputs (target-subset, fuzztime) on nightly-fuzz for cheaper verification dispatches.
 50. Retire or finish the two `//nolint:makezero` sites if a modernize release makes append idioms equivalent (low priority, lint-hygiene).
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF (3)
 
-1. **v1.1.0 timing:** cut the tag **now** (master pushed, all nine gates green, review passes clean) or **after** the full nightly-fuzz run goes green (~2 h)? Tags are permanent, so this is purely your risk call: ship on green gates, or ship on green gates _plus_ a full 2-hour fuzz soak.
+1. ~~**v1.1.0 timing:** cut the tag **now** (master pushed, all nine gates green, review passes clean) or **after** the full nightly-fuzz run goes green (~2 h)? Tags are permanent, so this is purely your risk call: ship on green gates, or ship on green gates _plus_ a full 2-hour fuzz soak.~~ done (resolved — v1.1.0 cut 2026-09-11 (tag ae0a46d))
 2. **CSRF security-degrading config** (carried, still blocks TODO Medium #1): keep validate-and-log as final (documented 2026-08-08 decision), or spend the design pass to remediate dangerous combos (`SameSite=None` + `Secure=false` etc.) to secure defaults in v1.1.x/v1.2? ~~Answered 2026-09-15: remediate — B1 fallback + `AllowInsecureSameSiteNone` opt-out shipped (DECISION_LOG 2026-09-15).~~
-3. **Issue #4** (open since 2026-08-29): "Compression negotiates gzip for an absent `Accept-Encoding` header (RFC 7231 says identity)" — keep the current documented server-priority behavior, or align with the RFC reading and return identity when no header is present? Your ruling either retires the issue or converts it into a spec'd (behavior-changing) task.
+3. ~~**Issue #4** (open since 2026-08-29): "Compression negotiates gzip for an absent `Accept-Encoding` header (RFC 7231 says identity)" — keep the current documented server-priority behavior, or align with the RFC reading and return identity when no header is present? Your ruling either retires the issue or converts it into a spec'd (behavior-changing) task.~~ done (resolved 2026-09-15 — identity default instructed, AbsentEncoding shipped in v1.2.0, issue closed)
 
 ---
 

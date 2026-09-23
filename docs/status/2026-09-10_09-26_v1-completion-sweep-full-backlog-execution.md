@@ -43,9 +43,9 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 
 ## b) PARTIALLY DONE
 
-1. **v1.0.0 push** — tag + release-prep commit are local; `git push origin master && git push origin v1.0.0`, proxy/pkg.go.dev propagation, `go get` verification (docs/RELEASE.md §15) remain. Deliberate: push requires explicit owner action.
+1. ~~**v1.0.0 push** — tag + release-prep commit are local; `git push origin master && git push origin v1.0.0`, proxy/pkg.go.dev propagation, `go get` verification (docs/RELEASE.md §15) remain. Deliberate: push requires explicit owner action.~~ done (pushed — v1.0.0 out 2026-09-10/11; pkg.go.dev verified later (10-28 pass a12))
 2. **Full-code-review re-run** — recorded as DUE in TODO_LIST (this sweep landed substantial code; the item's own rule says re-run before v1.0), but NOT executed. The tag exists locally without it; the honest recommendation recorded there is review-then-push.
-3. **Upstream issue filing** — draft verified and saved, but the issue is not filed (owner repo, owner action; gh auth untested for it).
+3. ~~**Upstream issue filing** — draft verified and saved, but the issue is not filed (owner repo, owner action; gh auth untested for it).~~ done (filed 2026-09-15 as go-error-family#5)
 4. **Test-helper consolidation** — `reserveFreePort` deleted, `waitForTLS` relocated + upgraded, `waitForListenerAddr` added; but `waitForServerStart` (timeout-heuristic) is now arguably redundant with `waitForListenerAddr` and its existing callers were NOT migrated. Consolidation is ~80% done.
 5. **`docs/architecture-reference.md` freshness** — the three rows I knew changed were refreshed (code.go, compress_pool.go, server.go), but the table was verified 2026-08-30 and this session's other new files (fuzz/bench files, nonce additions, compose API surface details) were not exhaustively re-inventoried.
 6. ~~**AGENTS.md slimming** — under budget, but compression cost some nuance (a few sections are now summaries pointing at the reference doc), and the docs-health skill was not re-run to validate the new structure against its rubric.~~ done (v1.0.0 sweep: AGENTS.md 58.5 KB to 29.3 KiB via the docs/architecture-reference.md split; 30.1 KiB on 2026-09-11 (a hair over the 30 KB flag line))
@@ -53,7 +53,7 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 
 ## c) NOT STARTED
 
-1. **full-code-review execution** (see b2) — the single biggest open quality gate before push.
+1. ~~**full-code-review execution** (see b2) — the single biggest open quality gate before push.~~ done (cut and pushed 2026-09-10/11 — the v1.0.0 tag shipped; v1.0.1 followed)
 2. **Filing the go-error-family issue** (draft ready).
 3. **go-compression extraction execution** (deferred by decision, preconditions recorded).
 4. **Local govulncheck run** — CI does it and the flake has the app, but I never ran it in-session against the release commit.

@@ -90,7 +90,7 @@ The consumer imported `httputil.Middleware` (the type) for their hand-rolled `No
 
 | Priority | Improvement                                                          | Effort    |
 | -------- | -------------------------------------------------------------------- | --------- |
-| High     | Add documentation example: "per-route CSP override with fixed nonce" | 15 min    |
-| Medium   | Add `RouteCSP(path string, builder func(string) string) Middleware`  | 30 min    |
-| Medium   | Add structured `CSP` type with `WithNonce()` / `Render()`            | 1-2 hours |
-| Low      | Add `ValidateCSP(policy string) error` helper                        | 30 min    |
+| ~~High     | Add documentation example: "per-route CSP override with fixed nonce" | 15 min    |~~ → parked in ROADMAP (CSP nonce extensions batch: per-route nonce injection), revisit on demand
+| ~~Medium   | Add `RouteCSP(path string, builder func(string) string) Middleware`  | 30 min    |~~ → parked in ROADMAP (same batch)
+| ~~Medium   | Add structured `CSP` type with `WithNonce()` / `Render()`            | 1-2 hours |~~ → **Won't implement —** not adopted in the v1.0.0 sweep; revisit only on a real consumer demand signal
+| ~~Low      | Add `ValidateCSP(policy string) error` helper                        | 30 min    |~~ → **Won't implement —** not adopted in the v1.0.0 sweep; revisit only on a real consumer demand signal

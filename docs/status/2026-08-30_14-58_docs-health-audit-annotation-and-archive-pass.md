@@ -89,7 +89,7 @@
 9. Decide `CompressionConfig.Level = 0` semantics (Validate vs constructor vs docs).
 10. Extract response compression into `go-compression` (plan live, trigger: go-datastar SSE).
 11. CI release workflow (tag → build → GitHub Release; include `go vet` both modules).
-12. go-error-family upstream proposal (run `verify-before-filing` first).
+12. ~~go-error-family upstream proposal (run `verify-before-filing` first).~~ done (filed 2026-09-15 as go-error-family#5 (after verify-before-filing gates were re-run))
 13. `architecture-review` re-run (predates ETag extraction + adapter + keyed limiter).
 14. Convert the remaining legacy table-driven tests (6 files) or amend the convention.
 15. Refresh `docs/benchmarks.md` rows for the ~10 changed benches (3s×5) + stale `b.ResetTimer` audit.
@@ -107,9 +107,9 @@
 25. `TestChain_RecoveryErrAbortHandler_ThroughStack`.
 26. Negotiator wire-format fuzz target + multistream doc note (merges item 4 if done together).
 27. flake.nix benchmark-protocol app (one-command 3s×5 baseline).
-28. Nightly fuzz: crash issue-template step (workflow now covers all 23 targets — the remaining gap is failure visibility).
+28. ~~Nightly fuzz: crash issue-template step (workflow now covers all 23 targets — the remaining gap is failure visibility).~~ done (failure visibility landed — the workflow auto-files labeled bug issues; the run-summary step remains open (10-28 report f43))
 29. govulncheck for `server_timing` in CI.
-30. Commit-lint CI step + CI/release tooling extras (Go coverage checker, pre-release script).
+30. ~~Commit-lint CI step + CI/release tooling extras (Go coverage checker, pre-release script).~~ done (shipped in v1.0.0 — check-commit-lint.sh + CI commit-lint job + coverage-threshold + prerelease-check (CHANGELOG [1.0.0]))
 31. Go version pinning alignment (`go.work` 1.26.5 vs CI `1.26.x` vs local 1.26.7).
 32. dprint availability in the dev environment (see item 2 — may close it).
 33. Test-helper hygiene trio (bench_batch_test.go dissolution, TLS wait-helper consolidation, Ed25519 cert).
