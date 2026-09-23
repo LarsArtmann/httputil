@@ -48,6 +48,27 @@ func TestCORS_Preflight_PrivateNetworkOmitted_ByDefault(t *testing.T) {
 	}
 }
 
+func TestCORS_Preflight_PrivateNetworkHeaderSent_OnDeniedOrigin(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultCORSConfig()
+	cfg.AllowPrivateNetwork = true
+	cfg.AllowedOrigins = []string{"https://allowed.example.com"}
+
+	inner := newNoOpHandler()
+	rec := newRecorder()
+
+	CORS(cfg)(inner).ServeHTTP(rec, newPrivateNetworkPreflight())
+
+	assertStatus(t, rec, http.StatusNoContent)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf("Allow-Origin = %q, want absent (origin denied)", got)
+	}
+
+	assertHeader(t, rec, "Access-Control-Allow-Private-Network", "true")
+}
+
 func TestCORS_ActualRequest_PrivateNetworkOmitted_WhenConfigured(t *testing.T) {
 	t.Parallel()
 

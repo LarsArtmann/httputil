@@ -34,7 +34,10 @@ type CORSConfig struct {
 	// never with OptionsPassthrough (there the handler owns the preflight), and
 	// it is sent unconditionally rather than echoed from the request so the
 	// behavior cannot silently break if Chrome changes its request-side
-	// signal. Default false: enabling it grants cross-origin pages permission
+	// signal. It is also independent of origin matching: a denied-origin
+	// preflight (DenyUnmatched, no ACAO) still carries the header — the
+	// browser already fails that response at the missing ACAO, so no
+	// capability is granted. Default false: enabling it grants cross-origin pages permission
 	// to reach this origin from a less-private network, which is an explicit
 	// security decision.
 	AllowPrivateNetwork bool
