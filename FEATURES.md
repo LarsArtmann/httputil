@@ -198,7 +198,7 @@ Measured 2026-09-23 with `go test -race -coverprofile`: **97.5%** (`httputil`, l
 
 **Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 
-**New middleware (CSRF, Server-Timing, KeyedRateLimit, TLS):**
+**Middleware and server internals (CSRF, rate limiter, server, compression, ID generator):**
 
 - `csrf.go:734 requestScheme` — 80.0%. The `r.TLS != nil` HTTPS branch needs a TLS request fixture.
 - `csrf.go:755 forwardedProtoFromTrustedProxy` — 75.0%. The untrusted-remote, empty-header, and non-http(s)-proto early returns need XFP fixtures with a configured trusted proxy (current tests exercise the no-proxy and trusted-proxy happy paths).

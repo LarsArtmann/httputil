@@ -39,13 +39,13 @@ Quick counts: **3 Critical / 4 Medium-High / 8 Medium / 3 Low findings — 20 of
 
 | # | Item                                                | Done                                                                                                                             | Open                                                                                                                                                               |
 | - | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1 | **Nightly-fuzz end-to-end confirmation**            | Fix is local-verified (seed + 45s fuzz + race suite)                                                                             | The workflow itself was **not re-dispatched**; first green-eligible run is tonight 03:05 UTC. The 09-05 lesson ("re-dispatch and confirm step 1") was not executed |
-| 2 | **Coverage honesty after the CSRF fallback work**   | The 07-00 session's 6 tests + `withSecureFallback` branch shipped; my erraudit/fuzz gates green                                  | Per-module race-profile re-measure (97.2/98.6 baseline) not re-run — ticketed in the TODO hardening-trio item                                                      |
-| 3 | **erraudit advisory baseline re-check** (18-14 f19) | Both enforcing gates exit 0 this session                                                                                         | The `--type-aware` 44/40 advisory re-count not re-measured (no new sentinels this session, so risk ≈ 0)                                                            |
+| ~~1~~ | ~~**Nightly-fuzz end-to-end confirmation**~~ done — observed green — nightly runs since the fix reported no health-encoding crashers; #9-#13 stayed closed | ~~Fix is local-verified (seed + 45s fuzz + race suite)~~ | ~~The workflow itself was **not re-dispatched**; first green-eligible run is tonight 03:05 UTC. The 09-05 lesson ("re-dispatch and confirm step 1") was not executed~~ |
+| ~~2~~ | ~~**Coverage honesty after the CSRF fallback work**~~ done (docs-health pass 2026-09-23, re-measured — 97.5% httputil / 99.1% httpspec; FEATURES + README refreshed) | ~~The 07-00 session's 6 tests + `withSecureFallback` branch shipped; my erraudit/fuzz gates green~~ | ~~Per-module race-profile re-measure (97.2/98.6 baseline) not re-run — ticketed in the TODO hardening-trio item~~ |
+| ~~3~~ | ~~**erraudit advisory baseline re-check** (18-14 f19)~~ done — re-measured 2026-09-15 — 45 sentinels / 41 test-side advisories; AGENTS.md documents the +1-per-added-sentinel growth rule | ~~Both enforcing gates exit 0 this session~~ | ~~The `--type-aware` 44/40 advisory re-count not re-measured (no new sentinels this session, so risk ≈ 0)~~ |
 | 4 | **buildflow pipeline**                              | Direct tool runs covered everything buildflow would run (markdownlint, lychee-class link check via changelog-links, lint, tests) | No full `--build-mode dev` run this session (documented expected-nonzero findings gate; docs-only session)                                                         |
-| 5 | **README edits × doc-snippet-refs**                 | All three README edits are prose/badge/table cells, no Go fences touched                                                         | The checker itself was not re-run — cheap, should be habitual after any README touch                                                                               |
+| ~~5~~ | ~~**README edits × doc-snippet-refs**~~ done (docs-health pass 2026-09-23, doc-snippet-refs run over the README edits at pass end) | ~~All three README edits are prose/badge/table cells, no Go fences touched~~ | ~~The checker itself was not re-run — cheap, should be habitual after any README touch~~ |
 | 6 | **MD060 table-style question**                      | Evidence completed (formatter can't align; hand-padding unmaintainable); findings inventoried; ticketed with sources             | The ruling itself is owner-gated; DECISION_LOG rows 32–33, README:580, and my annotation-lengthened rows stay misaligned until then                                |
-| 7 | **The annotated reports**                           | Questions ②/③ and executed items resolved inline                                                                                 | Each report still carries genuinely-open f-items — correctly unmarked, now routed to TODO_LIST                                                                     |
+| ~~7~~ | ~~**The annotated reports**~~ done — steady state by design — open items stay unmarked and TODO_LIST-tracked; re-verified in the 2026-09-23 pass | ~~Questions ②/③ and executed items resolved inline~~ | ~~Each report still carries genuinely-open f-items — correctly unmarked, now routed to TODO_LIST~~ |
 
 ## c) NOT STARTED (owner-gated or queued; all live in TODO_LIST with sources)
 
@@ -90,17 +90,17 @@ Nothing shipped broken — all gates green, tree clean, no code regressions (the
 
 | # | Task                                                                                                                    | Impact | Effort |
 | - | ----------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1 | Watch tonight's nightly-fuzz run (03:05 UTC) — first green-eligible run after the oracle fix; close the loop on b1      | High   | S      |
-| 2 | Re-dispatch `nightly-fuzz.yml` via `workflow_dispatch` instead of waiting for the schedule                              | High   | S      |
-| 3 | Run `scripts/doc-snippet-refs` over README after this session's prose edits (b5)                                        | Medium | S      |
-| 4 | Per-module race-profile coverage re-measure post-CSRF-fallback; refresh FEATURES if ticked (b2)                         | Medium | S      |
-| 5 | erraudit `--type-aware` advisory re-count (44/40 baseline) after the oracle change (b3)                                 | Low    | S      |
+| ~~1~~ | ~~Watch tonight's nightly-fuzz run (03:05 UTC) — first green-eligible run after the oracle fix; close the loop on b1~~ done — observed green — no health-encoding crashers in nightly runs since | ~~High~~ | ~~S~~ |
+| ~~2~~ | ~~Re-dispatch `nightly-fuzz.yml` via `workflow_dispatch` instead of waiting for the schedule~~ done — outcome achieved via the scheduled runs — green since; no manual re-dispatch was needed | ~~High~~ | ~~S~~ |
+| ~~3~~ | ~~Run `scripts/doc-snippet-refs` over README after this session's prose edits (b5)~~ done (docs-health pass 2026-09-23, doc-snippet-refs gate at pass end) | ~~Medium~~ | ~~S~~ |
+| ~~4~~ | ~~Per-module race-profile coverage re-measure post-CSRF-fallback; refresh FEATURES if ticked (b2)~~ done (docs-health pass 2026-09-23, 97.5% / 99.1%; FEATURES + README refreshed) | ~~Medium~~ | ~~S~~ |
+| ~~5~~ | ~~erraudit `--type-aware` advisory re-count (44/40 baseline) after the oracle change (b3)~~ done — re-measured 2026-09-15 — 45/41, AGENTS.md updated | ~~Low~~ | ~~S~~ |
 | 6 | Mutation-check the 6 new CSRF fallback tests (hardening trio item — the only third not covered by this session's gates) | High   | S      |
-| 7 | Push master (2 commits: docs pass + oracle fix) — owner-gated                                                           | High   | S      |
+| ~~7~~ | ~~Push master (2 commits: docs pass + oracle fix) — owner-gated~~ done — pushed — origin/master current through v1.3.0+ (verified 2026-09-23) | ~~High~~ | ~~S~~ |
 
 **TODO_LIST High/Medium (already sourced — do not duplicate here)**
 
-8. Cut v1.2.0 (RELEASE.md runbook, now including step 12.5).
+8. ~~Cut v1.2.0 (RELEASE.md runbook, now including step 12.5).~~ done at `9b9e032`
 9. Confirm the B1+opt-out interpretation of the 2026-09-15 ruling (flips the default if wrong).
 10. LNA: denied-origin pin → httpspec spec → docs polish → verification polish → Chrome-docs web pass.
 11. Release-engineering batch: `release.yml` CI gate; lychee gates; dev-mode lychee no-op.
@@ -111,17 +111,17 @@ Nothing shipped broken — all gates green, tree clean, no code regressions (the
 
 **Owner decisions pending**
 
-16. Issue #4: gzip on absent Accept-Encoding.
+16. ~~Issue #4: gzip on absent Accept-Encoding.~~ done (resolved 2026-09-15 — owner instructed the identity default; AbsentEncoding shipped in v1.2.0; issue closed)
 17. `csrf.trusted_origin_invalid` export policy.
 18. MD060 ruling + buildflow result-cache purge.
-19. v1.2.0 release timing (now vs after the LNA batch).
+19. ~~v1.2.0 release timing (now vs after the LNA batch).~~ done (resolved — v1.2.0 cut 2026-09-16; v1.3.0 followed 2026-09-22)
 20. Explicit-commit policy for security-relevant work (git history still can't tell the CSRF-fallback story).
 21. The 04-30 g3 open question: banner+convention as terminal state for the ~2,300-marker archived corpus, or a per-item pass (~half day).
 
 **Docs-health cadence / hygiene**
 
 22. Next monthly docs-health cycle (~2026-10-15): re-VERIFY coverage numbers, advisory counts, and the TODO_LIST harvest state.
-23. Re-check that tonight's CHANGELOG `[Unreleased]` entries survive the next release cut intact (freeze policy).
+23. ~~Re-check that tonight's CHANGELOG `[Unreleased]` entries survive the next release cut intact (freeze policy).~~ done (held — the v1.2.0 and v1.3.0 cuts preserved their sections correctly under the freeze policy)
 24. Annotate + archive the 2026-09-15 reports once their f-items resolve (the reports now carry 19/6/4/3/9/8/8 markers; the remaining opens are TODO_LIST-tracked).
 25. Decide the status-doc table style once (feeds MD060 everywhere — 4 reports still carry aligned-style tables the formatter can't produce).
 26. SECURITY.md: consider documenting the attestation-conflict defense (it documents fallback but not the 403 defense added in v1.0.0).
@@ -150,14 +150,14 @@ Nothing shipped broken — all gates green, tree clean, no code regressions (the
 46. BuildFlow S64 (fs-state in cache keys) — upstream, other repo.
 47. Dev-mode lychee no-op: flake devShell vs BuildFlow loud-fallback (owner's call, one line either side).
 48. `Validate()` complexity near the cyclop ceiling — extract the TrustedProxies loop at the next gate addition.
-49. FEATURES "New middleware" coverage header rename (carried 17-14 f20).
+49. ~~FEATURES "New middleware" coverage header rename (carried 17-14 f20).~~ done (done 2026-09-23 — FEATURES coverage section renamed to Middleware and server internals)
 50. Next full-code-review scheduling decision (last: 2026-09-11; substantial code has landed since: LNA, fallback, oracle fix).
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
 1. **Did we read the 2026-09-15 ruling correctly?** "Good defaults + config options + power to the applications" shipped as: `SameSite=None` without `Secure` falls back to **`Secure=true`** (preserving cross-site intent), with `AllowInsecureSameSiteNone` opting out verbatim. If the intended "good default" was the **`Lax` fallback** (stripping cross-site intent instead), say so and I'll flip `withSecureFallback`, the tests, and the migration note in one change. The shipped default is live on master, so this is the highest-leverage one-word answer in the backlog.
 2. **MD060 table style — rule it once?** Standardize on the **single-space compact style** (hand-writable, formatter-stable; the LNA report and TODO_LIST already use it) and record it in AGENTS.md, or add **MD060 to the judged-disable list** like the 20 rules disabled 2026-09-11? Either way: purge the buildflow result-cache rows so the findings stop replaying (7-day TTL). Four docs currently carry misaligned tables awaiting this answer.
-3. **Push now, and when does v1.2.0 land?** Master is 2 commits ahead (docs-health pass + the fuzz-oracle fix that closes #9–#13). Push immediately, or batch with the v1.2.0 cut? And for the cut itself: now (dnsblockd's tag-pinned adoption is waiting; migration doc complete) or after the LNA hardening batch lands so the release carries the fully-pinned feature?
+3. ~~**Push now, and when does v1.2.0 land?** Master is 2 commits ahead (docs-health pass + the fuzz-oracle fix that closes #9–#13). Push immediately, or batch with the v1.2.0 cut? And for the cut itself: now (dnsblockd's tag-pinned adoption is waiting; migration doc complete) or after the LNA hardening batch lands so the release carries the fully-pinned feature?~~ done (resolved — pushed; v1.2.0 cut 2026-09-16, v1.3.0 2026-09-22)
 
 ---
 
