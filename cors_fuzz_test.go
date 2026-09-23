@@ -104,3 +104,67 @@ func FuzzCORSOriginEcho(f *testing.F) {
 		}
 	})
 }
+
+// FuzzCORSPreflightPrivateNetwork fuzzes preflight and actual-request shapes
+// against the AllowPrivateNetwork and OptionsPassthrough switches and pins the
+// LNA header contract: Access-Control-Allow-Private-Network is present exactly
+// when the middleware short-circuits a preflight (OPTIONS, no passthrough) with
+// AllowPrivateNetwork enabled — never on actual requests, never with
+// passthrough (there the handler owns the preflight), and independent of
+// origin matching (a denied origin still carries it; the browser fails that
+// response at the missing ACAO first).
+func FuzzCORSPreflightPrivateNetwork(f *testing.F) {
+	f.Add(http.MethodOptions, http.MethodGet, "true", true, false)
+	f.Add(http.MethodOptions, http.MethodGet, "", true, false)
+	f.Add(http.MethodOptions, http.MethodGet, "true", false, false)
+	f.Add(http.MethodGet, http.MethodGet, "true", true, false)
+	f.Add(http.MethodPost, "", "", true, false)
+	f.Add(http.MethodOptions, "", "true", true, true)
+	f.Add(http.MethodPut, http.MethodDelete, "yes", true, false)
+
+	f.Fuzz(func(t *testing.T, method, reqMethod, reqLNA string, allowPN, passthrough bool) {
+		if !isValidHTTPToken(method) {
+			t.Skip("invalid HTTP method token")
+		}
+
+		cfg := CORSConfig{
+			AllowedOrigins:      []string{"https://allowed.example.com"},
+			AllowedMethods:      []string{http.MethodGet},
+			AllowedHeaders:      []string{},
+			ExposedHeaders:      []string{},
+			MaxAge:              0,
+			OptionsPassthrough:  passthrough,
+			DenyUnmatched:       true,
+			AllowPrivateNetwork: allowPN,
+		}
+
+		handler := CORS(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest(method, "/", nil)
+		req.Header.Set("Origin", "https://public.example.com")
+
+		if reqMethod != "" {
+			req.Header.Set("Access-Control-Request-Method", reqMethod)
+		}
+
+		if reqLNA != "" {
+			req.Header.Set("Access-Control-Allow-Private-Network", reqLNA)
+		}
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		shortCircuit := method == http.MethodOptions && !passthrough
+		want := allowPN && shortCircuit
+		got := rec.Header().Get("Access-Control-Allow-Private-Network") != ""
+
+		if got != want {
+			t.Errorf(
+				"LNA header present = %v, want %v (method %s, allowPrivateNetwork %v, passthrough %v)",
+				got, want, method, allowPN, passthrough,
+			)
+		}
+	})
+}

@@ -1,6 +1,9 @@
 package httputil
 
 import (
+	"context"
+	"encoding/json/v2"
+	"html"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -399,6 +402,73 @@ func FuzzCSRFMiddleware_OriginHeaders(f *testing.F) {
 
 		if !wantConflict && rec.Code == 0 {
 			t.Errorf("consistent request (%s, Origin %q): no status set", method, origin)
+		}
+	})
+}
+
+// FuzzCSRFTokenHTMLFormatters verifies the template-formatting helpers
+// (hx-headers attribute, HTML meta tag, hidden form field) render any context
+// token without crashing, and pin the token-less contract: with no token in
+// context every helper returns "" (the path every template hits when no CSRF
+// middleware ran upstream). The hx-headers payload must round-trip: HTML-
+// unescaping the attribute body yields JSON carrying the exact token, so a
+// quote-bearing token can never terminate the attribute early.
+func FuzzCSRFTokenHTMLFormatters(f *testing.F) {
+	f.Add("")
+	f.Add("masked-token-value")
+	f.Add(`"quoted" & <escaped>`)
+	f.Add("tok\r\nInjected: 1")
+	f.Add("</script><script>alert(1)</script>")
+	f.Add(strings.Repeat("x", 4096))
+
+	f.Fuzz(func(t *testing.T, token string) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil).
+			WithContext(WithCSRFToken(context.Background(), token))
+
+		hx := CSRFTokenHXHeaders(req)
+		meta := CSRFTokenHTMLMeta(req)
+		field := CSRFTokenFormField(req)
+
+		if token == "" {
+			if hx != "" || meta != "" || field != "" {
+				t.Errorf(
+					"empty token renders hx=%q meta=%q field=%q, want all empty",
+					hx, meta, field,
+				)
+			}
+
+			return
+		}
+
+		escaped := html.EscapeString(token)
+
+		if !strings.Contains(meta, escaped) {
+			t.Errorf("meta tag %q does not contain the escaped token %q", meta, escaped)
+		}
+
+		if !strings.Contains(field, escaped) {
+			t.Errorf("form field %q does not contain the escaped token %q", field, escaped)
+		}
+
+		const hxPrefix = `hx-headers='`
+
+		if !strings.HasPrefix(hx, hxPrefix) || !strings.HasSuffix(hx, `'`) {
+			t.Errorf("hx-headers output %q is not a single-quoted attribute", hx)
+
+			return
+		}
+
+		body := html.UnescapeString(strings.TrimSuffix(strings.TrimPrefix(hx, hxPrefix), `'`))
+
+		var decoded map[string]string
+		if err := json.Unmarshal([]byte(body), &decoded); err != nil {
+			t.Errorf("hx-headers attribute body %q does not decode as JSON: %v", body, err)
+
+			return
+		}
+
+		if got := decoded[DefaultCSRFHeaderName]; got != token {
+			t.Errorf("hx-headers round-trip token = %q, want %q", got, token)
 		}
 	})
 }
