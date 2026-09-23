@@ -4,13 +4,13 @@
 > When an idea is refined into bounded work, it moves to [TODO_LIST.md](TODO_LIST.md).
 > Completed work is recorded in [CHANGELOG.md](CHANGELOG.md).
 
-_Updated: 2026-09-15._
+_Updated: 2026-09-23._
 
 ## Current Position
 
-**v1.1.0 shipped 2026-09-11** (tag `ae0a46d`, pushed, GitHub release published): the deprecated `TokenBucketLimiter`/`RateLimit()` API and the `httputil.ETag()` adapter are removed, the concurrent `MiddlewareStack`, the `Server` double-start guard, and the CSRF XFP trust model landed, and the nightly-fuzz sweep is fully anchored. The frozen surface is defined in [`docs/v1-stability.md`](docs/v1-stability.md): 18 middlewares, the composition API (`Compose`, `MiddlewareFunc.Then`, `MiddlewareStack.Middleware`), `Server.ListenerAddr`/`StartTLS`, the typed error model, the httpspec suite (19 standard + 8 opt-in specs), 26 nightly fuzz targets, ~70 linters at 0 issues, 97.2% (httputil) / 98.6% (httpspec) race-enabled coverage.
+**v1.3.0 shipped 2026-09-22**, on the heels of **v1.2.0 (2026-09-16)**. v1.2.0 delivered `CORSConfig.AllowPrivateNetwork` (Chrome Local Network Access), the `AbsentEncoding` identity default (issue #4), TrustedOrigins fail-closed parsing, the `ErrNoCookie`/`ErrNoLocation` → Rejection reclassification, the CSRF `SameSite=None` → `Secure=true` fallback (+ `AllowInsecureSameSiteNone`), and request-pattern propagation back through forking middleware. v1.3.0 added the `etagmetrics` sub-module (go-etag observability-hook counters) and the go-error-family v0.10.1 refresh. The API-stability promise from v1.0 holds: the frozen surface is defined in [`docs/v1-stability.md`](docs/v1-stability.md) — 15 root middlewares plus the Server-Timing sub-module and go-etag composition, the composition API (`Compose`, `MiddlewareFunc.Then`, `MiddlewareStack.Middleware`), `Server.ListenerAddr`/`StartTLS`, the typed error model, the httpspec suite (19 standard + 8 opt-in specs), 25 nightly fuzz targets, ~70 linters at 0 issues, 97.5% (httputil) / 99.1% (httpspec) race-enabled coverage (measured 2026-09-23).
 
-**The next release (v1.2.0) is staged, not cut:** `[Unreleased]` carries three behavioral deltas (TrustedOrigins all-or-nothing parsing + `Validate` rejection, `ErrNoCookie`/`ErrNoLocation` → Rejection, the CSRF `SameSite=None` → `Secure=true` fallback) plus two additive fields (`AllowPrivateNetwork`, `AllowInsecureSameSiteNone`), with [docs/migrating-to-v1.2.md](docs/migrating-to-v1.2.md) complete. Timing is owner-gated (TODO_LIST High).
+**`[Unreleased]` — next release decision owner-gated (v1.3.1 patch vs v1.4.0 minor, TODO_LIST High):** the `etagmetrics` sub-module moved to go-etag as [`github.com/larsartmann/go-etag/metrics`](https://github.com/larsartmann/go-etag/tree/main/metrics) (its `HitRatio()` double-count corrected there; correction-of-record in our CHANGELOG), the Godoc examples overhaul made all 40 examples self-contained (30 root, 7 httpspec, 3 server_timing), `server.go` builds clean under Go 1.27 lint, and go-etag v0.5.0 raises the module floor to Go 1.27.1 (CI matrix + README badge aligned; the `go` directive was repaired 2026-09-23 after an auto-commit daemon casualty left master briefly unbuildable).
 
 ## v1.0 — shipped (2026-09-10, pushed 2026-09-11)
 
@@ -36,6 +36,14 @@ Decisions taken on the way to v1.0:
 - **Idempotency-key middleware** — Stripe-style `Idempotency-Key` middleware is a legitimate httputil-shaped concern, but deferred to post-v1.0 to avoid scope creep against the API freeze. If pursued, define a native `IdempotencyStore` interface (Get/Save with TTL) rather than importing `go-idempotency` — its Store only dedupes keys (seen/not-seen), not the response body needed to replay a prior result. The `ResponseRecorder` captures status/headers/body but is not designed as a replay primitive; a separate cache type would be needed. See `docs/status/archived/2026-08-07_08-39_dependency-review-go-retry-go-idempotency.md`.
 - **Server shutdown-drain semantics** — `Shutdown()` currently resets `started`/listener when `Serve` returns (mid-drain), so a `Start` issued during the drain window can succeed while the old server is still finishing in-flight handlers. Pre-existing and documented; deciding whether `Shutdown` should block until the Serve goroutine fully exits (e.g. `sync.WaitGroup`) is an API-contract call with real tradeoffs. Sources: `2026-09-11_09-01` g1/f1/f5.
 - **StartupHandler warmup primitive** — designed, not scheduled: a tiny readiness-warmup handler shape (Kubernetes `readinessProbe` × "first request warms caches") worked through and parked so the idea survives without pressuring the frozen API. Full shape: [docs/planning/archived/2026-08-29_21-40-startup-handler-and-etag-cache-docs.md](docs/planning/archived/2026-08-29_21-40-startup-handler-and-etag-cache-docs.md).
+
+## Open questions
+
+Owner decisions pending; not actionable tasks (they route here from status reports, never TODO_LIST):
+
+- **Which process moved directories to the system trash during the 2026-09-22/23 etagmetrics migration, and is it sanctioned?** Inotify caught `MOVED_FROM` twice ~90 s after each restore; the ps snapshot at event time matched `project-discovery-daemon` (unconfirmed). If unknown, it silently "deletes" work-in-progress and will bite every future session that stages untracked files. Sources: docs/status/2026-09-23_00-04_superb g3/d1, docs/status/2026-09-23_00-04_etagmetrics d1.
+- **Preferred commit flow in daemon-active windows** — detailed HEREDOC messages get swept into heuristic auto-commits before they can land (twice on 2026-09-23; one already pushed, unamendable without force-push). Accept heuristic history with narrative in docs (current de facto), commit+push immediately per verified unit, or a sanctioned daemon-coordination mechanism? Sources: docs/status/2026-09-23_00-04_superb g2, docs/status/2026-09-23_00-04_etagmetrics b1/e2.
+- **go-etag's canonical `go` directive** — the v0.4.0/v0.5.0 tags require `go 1.27.1` while that repo's master `go.mod` said `go 1.27` (the exact drift class that briefly broke this repo post-v1.3.0). Needs reconciliation in that repo. Source: docs/status/2026-09-23_00-04_etagmetrics g2/c4.
 
 ## Dependency policy
 

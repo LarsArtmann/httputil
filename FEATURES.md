@@ -2,13 +2,13 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-09-15 — CSRF `SameSite=None` fallback (+ `AllowInsecureSameSiteNone`) and CORS `AllowPrivateNetwork` swept in. Coverage re-measured with race detection 2026-09-14: 97.2% (`httputil`, library packages), 98.6% (`httpspec`)._
+_Updated: 2026-09-23 — docs-health sweep: v1.2.0/v1.3.0 releases folded in, the removed `httputil.ETag()` adapter row deleted (v1.1.0), counts recomputed from the repo (40 examples, 48 benchmarks / 58 rows, 25 fuzz targets), coverage re-measured with race detection: 97.5% (`httputil`, library packages), 99.1% (`httpspec`)._
 
 ---
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (18 middlewares)
+### Core Middleware Suite (15 middlewares + the ResponseRecorder utility)
 
 | Middleware          | File                                   | Config Type                                                   | Tests | Examples                            | Benchmarks                                             | Fuzz                   |
 | ------------------- | -------------------------------------- | ------------------------------------------------------------- | ----- | ----------------------------------- | ------------------------------------------------------ | ---------------------- |
@@ -27,8 +27,9 @@ _Updated: 2026-09-15 — CSRF `SameSite=None` fallback (+ `AllowInsecureSameSite
 | CSRF                | `csrf.go`                              | `CSRFConfig` + `Validate()`                                   | Yes   | `ExampleCSRFMiddleware`             | `BenchmarkCSRFMiddleware*`                             | `FuzzCSRF*` (6)        |
 | KeyedRateLimit      | `ratelimit_keyed.go`                   | `KeyedRateLimiterConfig` + `Validate()`                       | Yes   | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*`                           | —                      |
 | Decompression       | `decompression.go`                     | `DecompressionConfig` + `Validate()`, bomb protection         | Yes   | `ExampleDecompression`              | `BenchmarkDecompression*`                              | `FuzzDecompression`    |
-| ETag _(deprecated)_ | `etag.go` (adapter)                    | `etag.ETagConfig` (from go-etag)                              | Yes   | `ExampleETag`                       | `BenchmarkETagAdapterOverhead` (zero-cost passthrough) | —                      |
 | CSP Nonce           | `nonce.go`                             | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders       | Yes   | `ExampleNonce`                      | `BenchmarkNonce*`                                      | `FuzzNonce`            |
+
+ETag conditional requests are not a row above since v1.1.0: the adapter was removed, and the middleware composes directly from [`go-etag`](https://github.com/larsartmann/go-etag) (`etag.New`), named in stacks via the surviving `MiddlewareETag` constant.
 
 Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware`) in `recorder.go`/`compose.go`, `MiddlewareFunc.Then()` for value-level chaining, and `MiddlewareStack.Middleware()` to nest a stack as a single middleware.
 
@@ -56,7 +57,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 - All middleware constructors call `cfg.Validate()` at startup via a shared `validateConfig(name, err)` helper in `recorder.go` (new in v0.11.0).
 - Invalid configs are logged via `slog.Error` and fall back to default values — the validate-and-log pattern, not validate-and-abort.
-- Previously only `CSRFMiddleware` and `Nonce` validated at construction; `Compression`, `CORS`, `SecurityHeaders`, `Decompression`, `MaxBodySize`, `RequestID`, `RateLimit`, and `KeyedRateLimiterMiddleware` now do too.
+- Previously only `CSRFMiddleware` and `Nonce` validated at construction; `Compression`, `CORS`, `SecurityHeaders`, `Decompression`, `MaxBodySize`, `RequestID`, and `KeyedRateLimiterMiddleware` now do too.
 
 ### CORS Security
 
@@ -157,6 +158,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `docs/v1-stability.md` — v1.0 frozen API surface.
 - `docs/DOMAIN_LANGUAGE.md` — domain glossary.
 - `docs/migrating-to-keyed-rate-limiter.md` — deprecation migration guide.
+- `docs/migrating-to-v1.2.md` — v1.2.0 behavioral-change migration guide.
 - `docs/integrations/` — extensibility examples (brotli/zstd, redis, prometheus, samber/do, huma, compose bundles).
 - `docs/architecture-reference.md` — file-by-file export tables, error-classification table, lint profile.
 - `docs/RELEASE.md` (runbook) + `scripts/prerelease-check.sh` — the documented, automated release gates.
@@ -166,9 +168,9 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.2% statement coverage** (`httputil`, library packages), **98.6%** (`httpspec`) — measured 2026-09-14 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate).
+- `go test -race ./...` passes across the full suite with **97.5% statement coverage** (`httputil`, library packages), **99.1%** (`httpspec`) — measured 2026-09-23 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate).
 - 25 fuzz targets (23 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns + exact-allowlist origin echo), Compression (round-trip gunzip-and-compare invariant + writer state machine + Accept-Encoding wire format), MaxBodySize (limit contract), RequestID, ClientIP, `ParseUintQuery`, `HealthResponse` encoding, Server-Timing (header value + middleware), ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), and CSRF (6 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). All 25 targets run 5 minutes each in the nightly fuzz workflow.
-- 49 top-level benchmark functions (58 result rows counting `b.Run` sub-benchmarks) and 30 example functions across `httputil` + `httpspec` (`server_timing` has none).
+- 48 top-level benchmark functions (58 result rows counting `b.Run` sub-benchmarks) and 40 example functions across the three modules — 30 root (incl. the health/queryparam examples), 7 `httpspec`, 3 `server_timing` (added 2026-09-23, all self-contained per the Example Conventions; every one executes with a verified `// Output:` block).
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
@@ -192,11 +194,9 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-09-14 with `go test -race -coverprofile`: **97.2%** (`httputil`, library packages; 97.5% combined across both modules), **98.6%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Measured 2026-09-23 with `go test -race -coverprofile`: **97.5%** (`httputil`, library packages), **99.1%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
 
-**Typed error model (`code.go`):**
-
-- `code.go:45 Code.Conflict`, `code.go:65 Code.Orchestration`, `code.go:72 Code.WrapRejection` — 0%. Exported constructor methods kept for `Code` API completeness (every family has a constructor); not yet exercised by any test. Tracked in TODO_LIST (the v1.0 sweep added `WrapConflict`/`WrapOrchestration` tests, these three remain).
+**Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 
 **New middleware (CSRF, Server-Timing, KeyedRateLimit, TLS):**
 
@@ -222,15 +222,7 @@ Measured 2026-09-14 with `go test -race -coverprofile`: **97.2%** (`httputil`, l
 - `httpspec/httpspec.go:317 parsedMediaType` — 75.0%. Malformed Content-Type branches.
 - `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Structured-syntax-suffix branches (`+json`/`+xml`) exercised only via the suffix test matrix.
 
-**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths or error-injection-only branches. The deleted `crypto/rand` error guards (nonce, ID-generator refill) left the profile entirely in the v1.0.0 panic-free pass. Closing what remains would require either (a) kernel-level fault injection, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project. The three 0% `Code` constructors are API-completeness, not defensive paths — they are tracked in TODO_LIST for direct tests.
-
----
-
-## PLANNED
-
-### v1.1.0 stabilization (shipped 2026-09-11)
-
-- ~~**v1.1.0** — remove the deprecated `TokenBucketLimiter`/`RateLimit()` and the `httputil.ETag()` adapter per the migration guide~~ done 2026-09-11 (removed on master, recorded in CHANGELOG [1.1.0]; the v1.0.0 drift shipped as v1.0.1 and both tags are pushed).
+**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths or error-injection-only branches. The deleted `crypto/rand` error guards (nonce, ID-generator refill) left the profile entirely in the v1.0.0 panic-free pass. Closing what remains would require either (a) kernel-level fault injection, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
 
 ---
 
