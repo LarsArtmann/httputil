@@ -78,6 +78,7 @@
               pkgs.trash-cli
               pkgs.d2
               pkgs.dprint
+              pkgs.lychee
             ];
 
             shellHook = ''
