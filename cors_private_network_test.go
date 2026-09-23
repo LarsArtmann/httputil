@@ -52,6 +52,8 @@ func TestCORS_Preflight_PrivateNetworkHeaderSent_OnDeniedOrigin(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultCORSConfig()
+	cfg.AllowAllOrigins = false
+	cfg.DenyUnmatched = true
 	cfg.AllowPrivateNetwork = true
 	cfg.AllowedOrigins = []string{"https://allowed.example.com"}
 
