@@ -20,17 +20,17 @@
 
 ## b) PARTIALLY DONE
 
-1. **Commit-message hygiene** — the paste demanded VERY DETAILED messages for all work; five content commits were absorbed by the auto-commit daemon with generic messages (`ca3ec3f`, `3288807`, `33914f1`, `5ae86e0`, `5b2d21e`) because I edited and waited instead of committing per verified unit. The rationale lives in the plan doc + 3 deliberate commits, but history itself is generic. Unfixable without rewriting history (forbidden).
+1. ~~**Commit-message hygiene** — the paste demanded VERY DETAILED messages for all work; five content commits were absorbed by the auto-commit daemon with generic messages (`ca3ec3f`, `3288807`, `33914f1`, `5ae86e0`, `5b2d21e`) because I edited and waited instead of committing per verified unit. The rationale lives in the plan doc + 3 deliberate commits, but history itself is generic. Unfixable without rewriting history (forbidden).~~ **Won't implement — history is immutable, rewriting is forbidden — rationale lives in the plan doc + 3 deliberate commits; accepted as policy.**
 2. **Benchmark evidence trail** — CHANGELOG cites "~9 ns/op measured" but no `-count=6 -benchmem` baseline artifact was saved under `go-etag/reports/bench/` (repo convention for cited numbers); only a `-count=1` sanity run exists.
 3. **Documented gate list incompletely run in go-etag** — ran race + lint; did NOT run standalone `go vet`, the documented `erraudit` command, a `-race -count=10` soak, or a coverage measurement for `metrics/`.
 
 ## c) NOT STARTED
 
-1. **go-etag `v0.5.0` tag** — deferred deliberately (paste said commit+push only); consumers currently need a master pseudo-version.
+1. ~~**go-etag `v0.5.0` tag** — deferred deliberately (paste said commit+push only); consumers currently need a master pseudo-version.~~ done (go-etag v0.5.0 was tagged and is consumed here (go.mod v0.5.0, verified 2026-09-23))
 2. **httputil release decision** — v1.3.1 patch (removal + correction-of-record) vs fold into v1.4.0.
-3. **httputil `docs/planning/` pointer** — the plan lives only in go-etag; linked from CHANGELOG but no pointer doc in httputil's planning dir.
+3. ~~**httputil `docs/planning/` pointer** — the plan lives only in go-etag; linked from CHANGELOG but no pointer doc in httputil's planning dir.~~ done (pointer doc created — docs/planning/2026-09-23_etagmetrics-moved-to-go-etag-pointer.md)
 4. **go-etag go-directive reconciliation** — v0.4.0 _tag_ requires `go 1.27.1` while master `go.mod` says `1.27` (noticed during research; never reported or fixed). Pre-dates this session.
-5. **LSP/gopls restart** — editor diagnostics still reference the deleted `etagmetrics` (stale cache); CLI gates are the authority, but the LSP noise remains.
+5. ~~**LSP/gopls restart** — editor diagnostics still reference the deleted `etagmetrics` (stale cache); CLI gates are the authority, but the LSP noise remains.~~ done (LSP restarted in the 2026-09-23 docs-health pass; CLI gates remain the authority)
 
 ## d) TOTALLY FUCKED UP (all self-inflicted, all recovered)
 
@@ -54,7 +54,7 @@
 
 **go-etag release & hygiene (highest impact):**
 
-1. Tag `v0.5.0` via the release runbook (CHANGELOG cut + link defs, prerelease gates, annotated tag, push, CI-green wait).
+1. ~~Tag `v0.5.0` via the release runbook (CHANGELOG cut + link defs, prerelease gates, annotated tag, push, CI-green wait).~~ done (go-etag v0.5.0 tagged; consumed by this repo (go.mod, verified 2026-09-23))
 2. Verify module proxy + pkg.go.dev serve `go-etag/metrics`; smoke `go get` in a scratch consumer.
 3. Reconcile the go directive (tag 1.27.1 vs master 1.27) and update AGENTS.md's toolchain note to match reality.
 4. Save `reports/bench/2026-09-23_metrics-hook-overhead.txt` (`-count=6 -benchmem`).
@@ -70,18 +70,18 @@
 
 **httputil:**
 14. Release decision: v1.3.1 patch vs v1.4.0 minor for the removal + correction-of-record.
-15. Add a `docs/planning/` pointer to the go-etag plan file.
-16. `docs-health` sweep before the next tag (policy: living docs verified pre-tag).
+15. ~~Add a `docs/planning/` pointer to the go-etag plan file.~~ done (pointer doc created — docs/planning/2026-09-23_etagmetrics-moved-to-go-etag-pointer.md)
+16. ~~`docs-health` sweep before the next tag (policy: living docs verified pre-tag).~~ done (docs-health pass 2026-09-23, this docs-health pass)
 17. Full `buildflow --build-mode dev` run; confirm only documented policy-rejected residuals.
-18. `go.sum` hygiene: root requires only go-etag v0.3.1.
-19. Restart gopls; confirm the etagmetrics diagnostics die.
+18. ~~`go.sum` hygiene: root requires only go-etag v0.3.1.~~ done (superseded — root deliberately pins go-etag v0.5.0 now (2026-09-23); single go-etag require verified)
+19. ~~Restart gopls; confirm the etagmetrics diagnostics die.~~ done (LSP restarted in the 2026-09-23 docs-health pass)
 20. Verify CI green on the pushed master commits (both repos).
-21. TODO_LIST harvest from this report (docs-health HARVEST).
+21. ~~TODO_LIST harvest from this report (docs-health HARVEST).~~ done (docs-health pass 2026-09-23, harvest executed into TODO_LIST/ROADMAP)
 
 **Fleet / process:**
 22. Identify the auto-commit daemon's mechanism (tiny-agents?) and its pause/skip procedure for destructive ops.
 23. Document the deletion-resurrection failure mode + the immediate-commit protocol in both AGENTS.md files.
-24. Document BuildFlow's ghost-module enumeration behavior in httputil AGENTS.md (it lints a deleted directory; `BUILDFLOW_NO_RESULT_CACHE=1` does not help).
+24. ~~Document BuildFlow's ghost-module enumeration behavior in httputil AGENTS.md (it lints a deleted directory; `BUILDFLOW_NO_RESULT_CACHE=1` does not help).~~ done (ghost-module enumeration note added to AGENTS.md BuildFlow section 2026-09-23)
 25. Fleet grep: did anything ever consume `httputil/etagmetrics` as a pseudo-version (go.sum sweep across `~/projects`)?
 26. BuildFlow candidate: a module-inventory consistency check (go.work vs dependabot vs flake vs workflows) to catch dead module references like the dependabot entry automatically.
 

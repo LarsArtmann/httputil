@@ -30,7 +30,7 @@
 
 ## c) NOT STARTED (carried from 06-16 report §f/§g)
 
-The 18-item ranked list in the 06-16 report stands. Status updates on its §g questions: (1) `fail_on` — **landed** (BuildFlow AGENTS.md gotcha #154 documents it; daemon commits `23b2849b4`/`802bbbcbb`); global binary still stale (`env/binary-freshness`: binary `984dac6` < HEAD `72e1a08` → now even further behind) — rebuild + `cp result/bin/buildflow ~/.local/bin/buildflow` when convenient. (2) dev-mode lychee silent no-op — still open. (3) detect-only findings baseline — still open (this run: 216 findings).
+The 18-item ranked list in the 06-16 report stands. Status updates on its §g questions: (1) `fail_on` — **landed** (BuildFlow AGENTS.md gotcha #154 documents it; daemon commits `23b2849b4`/`802bbbcbb`); global binary still stale (`env/binary-freshness`: binary `984dac6` < HEAD `72e1a08` → now even further behind) — rebuild + `cp result/bin/buildflow ~/.local/bin/buildflow` when convenient. *(2026-09-23: the stale-binary trap is documented in AGENTS.md BuildFlow Pipeline; binary freshness remains an env concern, not a repo item.)* (2) dev-mode lychee silent no-op — still open *(2026-09-23: routed to TODO_LIST Release-engineering follow-ups).* (3) detect-only findings baseline — ~~still open (this run: 216 findings)~~ *resolved 2026-09-15: the documented stance in AGENTS.md BuildFlow Pipeline — full dev runs are expected to exit non-zero on the findings gate; only NEW finding classes are breakage.*
 
 ## d) MISSTEPS
 
