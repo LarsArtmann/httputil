@@ -204,13 +204,20 @@ func (n *negotiator) fallbackToIdentity() (string, float64, bool) {
 	return "", 0, false
 }
 
-// skipEntrySeparators advances past leading whitespace and commas.
-func skipEntrySeparators(header string, pos int) int {
-	for pos < len(header) && isEntrySeparator(header[pos]) {
+// advanceWhile moves pos forward over header bytes while bytes remain and
+// keep accepts each byte. Shared scan skeleton for the Accept-Encoding
+// position helpers.
+func advanceWhile(header string, pos int, keep func(byte) bool) int {
+	for pos < len(header) && keep(header[pos]) {
 		pos++
 	}
 
 	return pos
+}
+
+// skipEntrySeparators advances past leading whitespace and commas.
+func skipEntrySeparators(header string, pos int) int {
+	return advanceWhile(header, pos, isEntrySeparator)
 }
 
 // isEntrySeparator reports whether b is a whitespace or comma character
@@ -221,11 +228,13 @@ func isEntrySeparator(b byte) bool {
 
 // findEntryEnd advances pos to the next comma or end of header.
 func findEntryEnd(header string, pos int) int {
-	for pos < len(header) && header[pos] != ',' {
-		pos++
-	}
+	return advanceWhile(header, pos, isEntryContent)
+}
 
-	return pos
+// isEntryContent reports whether b belongs to an entry, i.e. anything but
+// the comma that ends an Accept-Encoding entry.
+func isEntryContent(b byte) bool {
+	return b != ','
 }
 
 // trimRightWhitespace returns the end position of header[start:end]

@@ -312,20 +312,15 @@ type serverTimingWriter struct {
 	st       *ServerTiming
 	start    time.Time
 	injected bool
-	wrote    bool
 }
 
 func (w *serverTimingWriter) WriteHeader(code int) {
 	w.flushHeader()
-	w.wrote = true
 	w.delegatingWriter.WriteHeader(code)
 }
 
 func (w *serverTimingWriter) Write(b []byte) (int, error) {
-	if !w.wrote {
-		w.flushHeader()
-		w.wrote = true
-	}
+	w.flushHeader()
 
 	return w.delegatingWriter.Write(b) //nolint:wrapcheck // delegate to underlying ResponseWriter
 }

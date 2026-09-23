@@ -88,9 +88,9 @@ The consumer imported `httputil.Middleware` (the type) for their hand-rolled `No
 
 ## Recommendation
 
-| Priority | Improvement                                                          | Effort    |
-| -------- | -------------------------------------------------------------------- | --------- |
-| ~~High~~     | ~~Add documentation example: "per-route CSP override with fixed nonce"~~ → parked in ROADMAP (CSP nonce extensions batch: per-route nonce injection) | ~~15 min~~    |
-| ~~Medium~~   | ~~Add `RouteCSP(path string, builder func(string) string) Middleware`~~ → parked in ROADMAP (same batch) | ~~30 min~~    |
-| ~~Medium~~   | ~~Add structured `CSP` type with `WithNonce()` / `Render()`~~ → **Won't implement —** not adopted in the v1.0.0 sweep; revisit only on a real consumer demand signal | ~~1-2 hours~~ |
-| ~~Low~~      | ~~Add `ValidateCSP(policy string) error` helper~~ → **Won't implement —** not adopted in the v1.0.0 sweep; revisit only on a real consumer demand signal | ~~30 min~~    |
+| Priority   | Improvement                                                                                                                                                          | Effort        |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| ~~High~~   | ~~Add documentation example: "per-route CSP override with fixed nonce"~~ → parked in ROADMAP (CSP nonce extensions batch: per-route nonce injection)                 | ~~15 min~~    |
+| ~~Medium~~ | ~~Add `RouteCSP(path string, builder func(string) string) Middleware`~~ → parked in ROADMAP (same batch)                                                             | ~~30 min~~    |
+| ~~Medium~~ | ~~Add structured `CSP` type with `WithNonce()` / `Render()`~~ → **Won't implement —** not adopted in the v1.0.0 sweep; revisit only on a real consumer demand signal | ~~1-2 hours~~ |
+| ~~Low~~    | ~~Add `ValidateCSP(policy string) error` helper~~ → **Won't implement —** not adopted in the v1.0.0 sweep; revisit only on a real consumer demand signal             | ~~30 min~~    |

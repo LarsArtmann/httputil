@@ -344,16 +344,12 @@ func (c CSRFConfig) withParsedTrustedProxies() CSRFConfig {
 
 	for _, p := range c.TrustedProxies {
 		if p == "" {
-			out.TrustedProxiesCIDR = nil
-
 			return out
 		}
 
 		if strings.Contains(p, "/") {
 			_, ipnet, err := net.ParseCIDR(p)
 			if err != nil {
-				out.TrustedProxiesCIDR = nil
-
 				return out
 			}
 

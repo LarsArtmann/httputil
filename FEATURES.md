@@ -10,24 +10,24 @@ _Updated: 2026-09-23 — docs-health sweep: v1.2.0/v1.3.0 releases folded in, th
 
 ### Core Middleware Suite (15 middlewares + the ResponseRecorder utility)
 
-| Middleware  | File                                                          | Config Type                 | Tests                       | Examples                                                    | Benchmarks                             | Fuzz                |
+| Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz |
 |-------------|---------------------------------------------------------------|-----------------------------|-----------------------------|-------------------------------------------------------------|----------------------------------------|---------------------|--------------------|--------------------|------------------------------|------------------------------------------------------------|---------------------------------------------------------------|-------------------------------------------------------------|----------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------|-------------------------------------------------------|---------------------------------------------------------|
-| CORS        | `cors.go`                                                     | `CORSConfig` + `Validate()` | Yes                         | `ExampleCORS`                                               | `BenchmarkCORS`                        | `FuzzCORS*` (4)     |
-| ClientIP    | `clientip.go`, `context.go`                                   | —                           | Yes                         | `ExampleClientIP`                                           | `BenchmarkClientIP`                    | `FuzzClientIP`      |
-| RequestID   | `requestid.go`, `id_generator.go`                             | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes                         | `ExampleRequestID`                                          | `BenchmarkRequestID`                   | `FuzzRequestID`     |
-| SecurityHeaders | `security.go`                                                 | `SecurityHeadersConfig` + `Validate()` | Yes                         | `ExampleSecurityHeaders`                                    | `BenchmarkSecurityHeaders`             | —                   |
-| Recovery    | `recovery.go`                                                 | `*slog.Logger`              | Yes                         | `ExampleRecovery`                                           | `BenchmarkRecovery`                    | —                   |
-| Timeout     | `timeout.go`                                                  | `time.Duration`             | Yes                         | `ExampleTimeout`                                            | `BenchmarkTimeout`                     | —                   |
-| Logging     | `logging.go`                                                  | `*slog.Logger`              | Yes                         | `ExampleLogging`                                            | `BenchmarkLogging`                     | —                   |
-| ResponseRecorder | `recorder.go`                                                 | —                           | Yes                         | `ExampleNewResponseRecorder`                                | `BenchmarkResponseRecorder`            | —                   |
-| Compression | `compression.go`, `compress_writer.go`                        | `CompressionConfig` + `Validate()`, `WriterFactory` plugin | Yes                         | `ExampleCompression`                                        | `BenchmarkCompression*`                | `FuzzCompression*` (3) |
-| MaxBodySize | `maxbodysize.go`                                              | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes                         | `ExampleMaxBodySize`                                        | `BenchmarkMaxBodySize`                 | `FuzzMaxBodySize`   |
-| Metrics     | `metrics.go`                                                  | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes                         | `ExampleMetrics`                                            | `BenchmarkMetricsMiddleware*`          | —                   |
-| Server-Timing | `server_timing/server_timing.go`                              | —                           | Yes                         | `ExampleServerTimingMiddleware`                             | `BenchmarkServerTiming*`               | `FuzzServerTiming*` |
-| CSRF        | `csrf.go`                                                     | `CSRFConfig` + `Validate()` | Yes                         | `ExampleCSRFMiddleware`, `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` | `BenchmarkCSRFMiddleware*`             | `FuzzCSRF*` (6)     |
-| KeyedRateLimit | `ratelimit_keyed.go`                                          | `KeyedRateLimiterConfig` + `Validate()` | Yes                         | `ExampleKeyedRateLimiterMiddleware`                         | `BenchmarkKeyedRateLimiter*`           | —                   |
-| Decompression | `decompression.go`                                            | `DecompressionConfig` + `Validate()`, bomb protection | Yes                         | `ExampleDecompression`                                      | `BenchmarkDecompression*`              | `FuzzDecompression` |
-| CSP Nonce   | `nonce.go`                                                    | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes                         | `ExampleNonce`                                              | `BenchmarkNonce*`                      | `FuzzNonce`         |
+| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS*` (4) |
+| ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` |
+| RequestID | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` |
+| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — |
+| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — |
+| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — |
+| Logging | `logging.go` | `*slog.Logger` | Yes | `ExampleLogging` | `BenchmarkLogging` | — |
+| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — |
+| Compression | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin | Yes | `ExampleCompression` | `BenchmarkCompression*` | `FuzzCompression*` (3) |
+| MaxBodySize | `maxbodysize.go` | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes | `ExampleMaxBodySize` | `BenchmarkMaxBodySize` | `FuzzMaxBodySize` |
+| Metrics | `metrics.go` | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes | `ExampleMetrics` | `BenchmarkMetricsMiddleware*` | — |
+| Server-Timing | `server_timing/server_timing.go` | — | Yes | `ExampleServerTimingMiddleware` | `BenchmarkServerTiming*` | `FuzzServerTiming*` |
+| CSRF | `csrf.go` | `CSRFConfig` + `Validate()` | Yes | `ExampleCSRFMiddleware`, `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` | `BenchmarkCSRFMiddleware*` | `FuzzCSRF*` (6) |
+| KeyedRateLimit | `ratelimit_keyed.go` | `KeyedRateLimiterConfig` + `Validate()` | Yes | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*` | — |
+| Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | `ExampleDecompression` | `BenchmarkDecompression*` | `FuzzDecompression` |
+| CSP Nonce | `nonce.go` | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes | `ExampleNonce` | `BenchmarkNonce*` | `FuzzNonce` |
 
 ETag conditional requests are not a row above since v1.1.0: the adapter was removed, and the middleware composes directly from [`go-etag`](https://github.com/larsartmann/go-etag) (`etag.New`), named in stacks via the surviving `MiddlewareETag` constant.
 
