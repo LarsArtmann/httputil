@@ -246,7 +246,9 @@ func (c CSRFConfig) path() string {
 // construction time.)
 func (c CSRFConfig) Validate() error {
 	if c.MaxAge < 0 {
-		return errCSRFMaxAgeNegative.WithContextAny("max_age", c.MaxAge)
+		return errCSRFMaxAgeNegative.
+			WithCause(ErrCSRFConfig).
+			WithContextAny("max_age", c.MaxAge)
 	}
 
 	if c.SameSite == http.SameSiteNoneMode && !c.Secure {
