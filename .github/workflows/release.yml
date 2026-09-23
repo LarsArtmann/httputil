@@ -15,7 +15,7 @@ env:
   GOEXPERIMENT: jsonv2
   # setup-go's manifest lags new Go patches; pin the toolchain via Go
   # itself so govulncheck scans a stdlib with current security fixes.
-  GOTOOLCHAIN: go1.26.7
+  GOTOOLCHAIN: go1.27.1
 
 jobs:
   release:

@@ -35,7 +35,7 @@
           ...
         }:
         let
-          goPkg = pkgs.go_1_26;
+          goPkg = pkgs.go_1_27;
 
           # benchstat is not packaged in nixpkgs; pin it from the Go module
           # proxy's source so benchmark comparisons use a fixed tool version.
