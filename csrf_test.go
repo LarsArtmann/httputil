@@ -1710,7 +1710,10 @@ func TestForwardedProtoFromTrustedProxy_NoTrustedProxies(t *testing.T) {
 	req.Header.Set("X-Forwarded-Proto", "https")
 
 	if got := forwardedProtoFromTrustedProxy(req, CSRFConfig{}); got != "" {
-		t.Errorf("forwardedProtoFromTrustedProxy = %q, want \"\" with no trusted proxies configured", got)
+		t.Errorf(
+			"forwardedProtoFromTrustedProxy = %q, want \"\" with no trusted proxies configured",
+			got,
+		)
 	}
 }
 

@@ -60,7 +60,24 @@
             projectRootFile = "go.mod";
             programs = {
               gofumpt.enable = true;
-              goimports.enable = true;
+              goimports = {
+                enable = true;
+                # goimports shells out to `go` for import resolution. In the
+                # sandboxed treefmt check there is no network, so the default
+                # GOTOOLCHAIN=auto fails trying to download the toolchain the
+                # go 1.27.1 directive names. Wrap it: GOTOOLCHAIN=local plus
+                # go_1_27 on PATH satisfies the directive without any
+                # download.
+                package = pkgs.writeShellApplication {
+                  name = "goimports";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    export GOTOOLCHAIN=local
+                    export GOCACHE="''${GOCACHE:-$TMPDIR/goimports-cache}"
+                    exec ${pkgs.gotools}/bin/goimports "$@"
+                  '';
+                };
+              };
               golines.enable = true;
               nixfmt.enable = true;
             };

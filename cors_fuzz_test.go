@@ -163,7 +163,11 @@ func FuzzCORSPreflightPrivateNetwork(f *testing.F) {
 		if got != want {
 			t.Errorf(
 				"LNA header present = %v, want %v (method %s, allowPrivateNetwork %v, passthrough %v)",
-				got, want, method, allowPN, passthrough,
+				got,
+				want,
+				method,
+				allowPN,
+				passthrough,
 			)
 		}
 	})

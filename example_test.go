@@ -725,9 +725,13 @@ func ExampleKeyedRateLimiterMiddleware_maxKeys() {
 		MaxKeys:      1,
 	}
 
-	handler := KeyedRateLimiterMiddleware(cfg)(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	handler := KeyedRateLimiterMiddleware(
+		cfg,
+	)(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
 
 	request := func(remoteAddr string) int {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -760,10 +764,14 @@ func ExampleDecompression_maxSize() {
 	_ = zw.Close()
 
 	request := func(cfg DecompressionConfig, report func(n int, err error)) {
-		handler := Decompression(cfg)(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-			body, err := io.ReadAll(r.Body)
-			report(len(body), err)
-		}))
+		handler := Decompression(
+			cfg,
+		)(
+			http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				body, err := io.ReadAll(r.Body)
+				report(len(body), err)
+			}),
+		)
 
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(compressed.Bytes()))
 		req.Header.Set("Content-Encoding", "gzip")

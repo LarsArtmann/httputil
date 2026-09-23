@@ -51,8 +51,6 @@ jobs:
           fail: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  lint:
-
       - name: Doc snippet symbol check
         run: go run ./scripts/doc-snippet-refs README.md docs/integrations/*.md
 
