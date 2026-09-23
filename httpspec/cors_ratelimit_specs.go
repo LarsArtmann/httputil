@@ -41,6 +41,10 @@ const (
 	SpecNameRateLimitHintHeadersOnAllow = "successful responses may include X-RateLimit-* hints"
 )
 
+// SpecNameCORSPrivateNetworkPreflight identifies the Local Network Access
+// preflight spec (returned by [PrivateNetworkSpecs]) for use with [SkipSpec].
+const SpecNameCORSPrivateNetworkPreflight = "private network preflights should return 204 with Access-Control-Allow-Private-Network: true"
+
 // CORSSpecs returns CORS behavior specs that can be composed into a spec run
 // via [WithExtraSpecs]. These specs verify the CORS headers set by a handler
 // conform to spec — they assume the handler intends to serve cross-origin
@@ -103,6 +107,27 @@ func RateLimitSpecs() []Spec {
 			Name:     SpecNameRateLimitHintHeadersOnAllow,
 			Category: CategoryHeaders,
 			Check:    rateLimitHintHeadersOnAllowCheck(),
+		},
+	}
+}
+
+// PrivateNetworkSpecs returns the opt-in Local Network Access (LNA) preflight
+// spec, composed into a spec run via [WithExtraSpecs]. Chrome's Private
+// Network Access / Local Network Access check requires the preflight response
+// to carry Access-Control-Allow-Private-Network: true before a page from a
+// less-private address space (public internet, private LAN) may fetch
+// subresources that resolve to a more-private one (LAN, localhost).
+//
+// Opt-in by design: a deployment that has not deliberately enabled LNA (e.g.
+// httputil's CORSConfig.AllowPrivateNetwork) intentionally omits the header,
+// and this spec would fail. Compose it only when the deployment grants the
+// capability.
+func PrivateNetworkSpecs() []Spec {
+	return []Spec{
+		{
+			Name:     SpecNameCORSPrivateNetworkPreflight,
+			Category: CategorySecurity,
+			Check:    corsPrivateNetworkPreflightCheck(),
 		},
 	}
 }
@@ -241,6 +266,40 @@ func corsOriginMatchesRequestedCheck() Check {
 			corsSpecOrigin,
 			acao,
 		)
+	}
+}
+
+// corsPrivateNetworkPreflightCheck sends a preflight shaped like Chrome's
+// Local Network Access check (OPTIONS with Origin, Access-Control-Request-Method,
+// and the Access-Control-Allow-Private-Network request header) and requires a
+// 204 No Content response carrying Access-Control-Allow-Private-Network: true.
+func corsPrivateNetworkPreflightCheck() Check {
+	return func(handler http.Handler) Result {
+		req := mustRequest(http.MethodOptions, "/")
+		req.Header.Set("Origin", corsSpecOrigin)
+		req.Header.Set("Access-Control-Request-Method", http.MethodGet)
+		req.Header.Set("Access-Control-Allow-Private-Network", "true")
+
+		rec := serve(handler, req)
+
+		if rec.Code != http.StatusNoContent {
+			return Fail(
+				"LNA preflight (OPTIONS with Origin, Access-Control-Request-Method, and "+
+					"Access-Control-Allow-Private-Network) returned %d, want 204 No Content; "+
+					"Chrome aborts the fetch when the preflight is not a successful response",
+				rec.Code,
+			)
+		}
+
+		if got := rec.Header().Get("Access-Control-Allow-Private-Network"); got != "true" {
+			return Fail(
+				"LNA preflight response sets Access-Control-Allow-Private-Network = %q, want \"true\"; "+
+					"Chrome's Local Network Access check blocks the request without it",
+				got,
+			)
+		}
+
+		return Pass()
 	}
 }
 
