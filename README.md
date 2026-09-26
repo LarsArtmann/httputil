@@ -300,7 +300,7 @@ handler := etag.New(etag.DefaultETagConfig())(mux)
 
 For domain types (`etag.ETag`, `etag.ParseETag`, `etag.MatchesIfNoneMatch`, etc.), import go-etag directly. `etag.New` returns `func(http.Handler) http.Handler`, which composes directly with `Chain` and `MiddlewareStack`.
 
-Ready-made counters for go-etag's observability hooks (`OnETagGenerated`, `On304`, `OnBufferOverflow`) live in go-etag itself: [`github.com/larsartmann/go-etag/metrics`](https://github.com/larsartmann/go-etag/tree/main/metrics) (`metrics.Attach(cfg)` returns the config plus atomic counters with a `HitRatio()` accessor). The package moved out of this repo (it shipped here briefly as the `etagmetrics` sub-module in v1.3.0) to live next to the hooks it counts.
+Ready-made counters for go-etag's observability hooks (`OnETagGenerated`, `On304`, `OnBufferOverflow`) live in go-etag itself: [`github.com/larsartmann/go-etag/metrics`](https://github.com/larsartmann/go-etag/tree/master/metrics) (`metrics.Attach(cfg)` returns the config plus atomic counters with a `HitRatio()` accessor). The package moved out of this repo (it shipped here briefly as the `etagmetrics` sub-module in v1.3.0) to live next to the hooks it counts.
 
 ### HTTP Server
 
