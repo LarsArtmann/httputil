@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [1.4.0] - 2026-09-26
+
+### Added
+
 - **`httpspec.PrivateNetworkSpecs`** (`httpspec/cors_ratelimit_specs.go`): opt-in Local Network Access preflight spec (`SpecNameCORSPrivateNetworkPreflight`) for `WithExtraSpecs` — sends a Chrome LNA-shaped preflight (OPTIONS + Origin + `Access-Control-Request-Method` + `Access-Control-Allow-Private-Network`) and requires a 204 carrying `Access-Control-Allow-Private-Network: true`. Opt-in by design: compose it only when the deployment deliberately grants the capability (e.g. `CORSConfig.AllowPrivateNetwork`).
 - **Godoc examples overhaul** (`example_test.go`, `server_timing/example_test.go`): every example on pkg.go.dev is now self-contained — the six root examples that referenced unexported test helpers (`newNoOpHandler`, `newWriteStatusHandler`, `newPanicHandler`) inline their handler doubles as local closures, so readers can copy-paste any example without invisible dependencies. New examples close the remaining coverage gaps: the `server_timing` sub-module gains its own example file (deterministic wire-format walkthrough via `ExampleNewServerTiming`, plus `ExampleServerTimingMiddleware` and `ExampleWrapServerTiming`); the CSRF token helpers are demonstrated end-to-end through real middleware output (`ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders`); and the error-taxonomy routing API is shown against a real validator (`ExampleDomainOf`, `ExampleInDomain` driven by `CORSConfig.Validate`). All 40 examples across the root package, `httpspec`, and `server_timing` execute in the test suite with verified `// Output:` blocks.
 
