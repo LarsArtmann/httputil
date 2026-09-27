@@ -124,3 +124,34 @@ func TestMetricsConfigValidateAcceptsValidConfig(t *testing.T) {
 		t.Errorf("expected nil for valid config, got %v", err)
 	}
 }
+
+// TestMetrics_NilRecorderServesWithoutRecording pins the validate-and-log
+// fallback for the one config field the constructor cannot default: a nil
+// Recorder is logged at construction and the middleware serves requests
+// without recording, instead of panicking on the first request.
+func TestMetrics_NilRecorderServesWithoutRecording(t *testing.T) {
+	t.Parallel()
+
+	served := false
+
+	handler := Metrics(DefaultMetricsConfig())(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			served = true
+
+			w.WriteHeader(http.StatusTeapot)
+		}),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !served {
+		t.Error("downstream handler was not served with a nil Recorder")
+	}
+
+	if rec.Code != http.StatusTeapot {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusTeapot)
+	}
+}

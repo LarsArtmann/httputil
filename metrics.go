@@ -51,7 +51,14 @@ func (c MetricsConfig) Validate() error {
 // Metrics returns middleware that records request metrics via the configured
 // [MetricsRecorder]. The middleware wraps the handler with a
 // [ResponseRecorder] to capture the status code.
+//
+// A nil Recorder is invalid; per the validate-and-log contract the
+// constructor logs the misconfiguration and still builds a working
+// middleware that serves requests without recording, instead of panicking
+// on the first request.
 func Metrics(cfg MetricsConfig) Middleware {
+	validateConfig("MetricsConfig", cfg.Validate())
+
 	pathFunc := cfg.PathFunc
 	if pathFunc == nil {
 		pathFunc = func(r *http.Request) string {
@@ -59,8 +66,18 @@ func Metrics(cfg MetricsConfig) Middleware {
 		}
 	}
 
+	recorder := cfg.Recorder
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if recorder == nil {
+				// Nil recorder was already logged at construction; serving
+				// without recording is the documented fallback.
+				next.ServeHTTP(w, r)
+
+				return
+			}
+
 			start := time.Now()
 			rec := NewResponseRecorder(w)
 
@@ -71,7 +88,7 @@ func Metrics(cfg MetricsConfig) Middleware {
 				status = http.StatusOK
 			}
 
-			cfg.Recorder.Record(r.Method, pathFunc(r), status, time.Since(start))
+			recorder.Record(r.Method, pathFunc(r), status, time.Since(start))
 		})
 	}
 }
