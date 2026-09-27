@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code. Completed work lives in [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]` and the frozen version sections); rejected ideas live in [ROADMAP.md](ROADMAP.md) Non-goals; process decisions live in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
-_Updated: 2026-09-23 (evening sweep: high/medium/low execution pass — CI-green verification, nightly-fuzz crash #24 fixed+closed, CSRF fallback hardening trio, example gap batch, httpspec LNA preflight spec, CSRF docs+test-depth batches, LNA docs+verification polish, release-engineering trio, go-etag ecosystem verification, fleet etagmetrics sweep clean, LNA spec churn confirmed and recorded; done items deleted per the delete-done rule, residuals below)._
+_Updated: 2026-09-27 (2026-09-27 full-code review added one Post-v1.1 item — `Chain`/`Compose` nil-entry hardening; prior sweep 2026-09-23: high/medium/low execution pass — CI-green verification, nightly-fuzz crash #24 fixed+closed, CSRF fallback hardening trio, example gap batch, httpspec LNA preflight spec, CSRF docs+test-depth batches, LNA docs+verification polish, release-engineering trio, go-etag ecosystem verification, fleet etagmetrics sweep clean, LNA spec churn confirmed and recorded; done items deleted per the delete-done rule, residuals below)._
 
 ---
 
@@ -34,6 +34,7 @@ _Updated: 2026-09-23 (evening sweep: high/medium/low execution pass — CI-green
 - [ ] **`MiddlewareFunc` vs `Middleware` alias split** — inline literals silently lack `.Then`; making `MiddlewareFunc` canonical deprecates the core alias → v2.0 discussion. (Review finding 7.)
 - [ ] **Typed `MiddlewareStack` names** — `Add` takes untyped `string` names despite the `Middleware*` constant set; typed names are an additive candidate (new type + overload). `Build`-without-validate is documented and relied upon. (Review finding 8.)
 - [ ] **Pool-contract hardening** — `compress_pool.go` probe doesn't check a `(nil, nil)` factory return, `acquire`'s factory parameter is ignored on the pooled path, `release` has no provenance check. Internal-contract hardening for the pool's next touch. (Review finding 9.)
+- [ ] **`Chain`/`Compose` nil-entry hardening** — a `nil` in the variadic list defers the panic to serve time, while `MiddlewareFunc.Then(nil)` wires a diagnosable 500-stub; symmetric treatment (skip vs stub) is a frozen-API semantics discussion → v2.0 material. (2026-09-27 review observation 1.)
 
 ---
 

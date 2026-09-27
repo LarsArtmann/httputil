@@ -8,11 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Zero-value `MiddlewareStack` usability is now pinned** (`stack_test.go`): `TestMiddlewareStackZeroValueUsable` exercises `Add`/`Build`/`Names`/`Validate` on a stack declared without `NewMiddlewareStack` — the Go-idiomatic zero value works by design (the atomic snapshot pointer handles the never-stored state), and the test keeps a future refactor from silently breaking it.
 
 ### Fixed
 
-- Nothing yet.
+- **`Metrics()` now honors the validate-and-log contract** (`metrics.go`): it was the only middleware constructor that never called `validateConfig`, so a nil-`Recorder` config constructed silently and nil-panicked on the first request — contradicting the library's never-panics-by-design directive. The constructor now logs the misconfiguration and the middleware serves requests without recording (the documented fallback for configs that have no default), pinned by `TestMetrics_NilRecorderServesWithoutRecording`.
+
+### Documented
+
+- **Package doc no longer advertises the removed ETag adapter** (`doc.go`): the "ETag conditional requests via the go-etag adapter" claim survived the v1.1.0 adapter removal; the doc now states the real contract — `RegisterErrorClassifications` registers the go-etag error-code superset, and conditional-request handling lives in the separate go-etag module.
+- **Coverage registry refreshed post-v1.4.0** (`FEATURES.md`): re-measured 2026-09-27 with race detection (97.9% `httputil` library packages / 99.1% `httpspec` / 100% `server_timing`); the 2026-09-23 CSRF test batch closed the `requestScheme`, `forwardedProtoFromTrustedProxy`, and `ValidateCSRF` gaps, and the sub-100% registry now carries current line numbers and percentages (12 entries, was 15).
+- **Findings-gate residual classes completed** (`AGENTS.md`): flake-meta-checker (deliberate meta-less flake) and jscpd (the two per-module `.golangci.yml` files) documented as policy-accepted alongside branching-flow, erraudit, and go-structure-linter, with the triage rule that anything outside the named classes is new breakage.
 
 ## [1.4.0] - 2026-09-26
 
