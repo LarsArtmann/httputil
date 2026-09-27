@@ -370,9 +370,9 @@ func WrapServerTiming(w http.ResponseWriter, r *http.Request) (http.ResponseWrit
 	st := NewServerTiming()
 	ctx := WithServerTiming(r.Context(), st)
 	wrapped := &serverTimingWriter{
-		delegatingWriter: delegatingWriter{ResponseWriter: w},
-		st:               st,
-		start:            time.Now(),
+		ResponseWriter: w,
+		st:             st,
+		start:          time.Now(),
 	}
 
 	return wrapped, r.WithContext(ctx)

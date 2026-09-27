@@ -769,9 +769,9 @@ func TestServerTimingWriter_FlushHeaderIdempotent(t *testing.T) {
 
 	st := NewServerTiming()
 	w := &serverTimingWriter{
-		delegatingWriter: delegatingWriter{ResponseWriter: httptest.NewRecorder()},
-		st:               st,
-		start:            time.Now(),
+		ResponseWriter: httptest.NewRecorder(),
+		st:             st,
+		start:          time.Now(),
 	}
 
 	w.flushHeader()

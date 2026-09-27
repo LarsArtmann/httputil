@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>Pareto Plan — Full Code Review post-v1.4.0 (httputil)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -828,9 +828,9 @@
   <body>
     <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>FULL-CODE-REVIEW PLAN</span>
+      <span>2026-09-27</span>
+      <span>httputil · post-v1.4.0</span>
     </div>
 
     <div class="layout">
@@ -839,10 +839,11 @@
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#findings">Findings</a>
-          <a href="#issues">Issue Cards</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#plan">Plan</a>
+          <a href="#tiers">Pareto Tiers</a>
+          <a href="#tasks">Task Table</a>
+          <a href="#gates">Verification Gates</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#plan">Execution Order</a>
         </nav>
       </aside>
 
@@ -855,10 +856,11 @@
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Pareto Execution Plan</div>
+          <h1>Full Code Review — post-v1.4.0</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            Third full-review pass over the httputil fleet library (28K LOC, 120 Go files):
+            delta-first Pareto order, fix-on-sight discipline, verified gates.
           </p>
         </div>
 
@@ -867,10 +869,11 @@
           <h3>Contents</h3>
           <ul>
             <li><a href="#summary">Summary</a></li>
-            <li><a href="#findings">Findings</a></li>
-            <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
-            <li><a href="#plan">Plan</a></li>
+            <li><a href="#tiers">Pareto Tiers</a></li>
+            <li><a href="#tasks">Task Table</a></li>
+            <li><a href="#gates">Verification Gates</a></li>
+            <li><a href="#graph">Execution Graph</a></li>
+            <li><a href="#plan">Execution Order</a></li>
           </ul>
         </nav>
 
@@ -878,68 +881,65 @@
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
+            <div class="stat-value">14</div>
+            <div class="stat-label">Planned Tasks</div>
           </div>
           <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
-            <div class="stat-label">Critical</div>
+            <div class="stat-value">1%</div>
+            <div class="stat-label">→ 51% value: v1.4.0 delta</div>
           </div>
           <div class="stat-card stat-warn">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+            <div class="stat-value">4%</div>
+            <div class="stat-label">→ 64% value: full prod pass</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">20%</div>
+            <div class="stat-label">→ 80% value: tests + gates + report</div>
           </div>
-        </div>
-
-        <!-- Findings as Cards -->
-        <h2 id="findings"><span class="num">01</span>Findings</h2>
-
-        <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
         </div>
 
         <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
+          <h4>Baseline facts (verified before planning)</h4>
+          <p>
+            Git tree clean at <code>869ce33</code> (v1.4.0 released). Last full review:
+            2026-09-11. Since then: etagmetrics removal, Godoc examples overhaul,
+            server.go Go-1.27 exhaustruct fix, go-etag v0.5.0 / Go 1.27.1 floor, LNA spec.
+            Documented policy-rejected residuals exist (branching-flow, erraudit honest-silence)
+            — only NEW finding classes count as breakage.
+          </p>
         </div>
 
-        <!-- Issue Cards -->
-        <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
+        <!-- Pareto Tiers -->
+        <h2 id="tiers"><span class="num">01</span>Pareto Tiers</h2>
 
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
+          <span class="severity severity-critical">1% → 51%</span>
+          <h3>Delta review: everything changed since the 2026-09-11 review</h3>
+          <div class="where">server.go · example_test.go · httpspec LNA spec · csrf.go fallback · docs sync</div>
           <p>
-            Describe the problem and cite the code or behavior that proves it.
+            New defects hide in new code. Review the v1.4.0 and superb-examples changes
+            file-by-file before touching anything stable.
           </p>
-          <div class="callout callout-solution">
-            <strong>Fix</strong>
-            State the concrete recommended action.
-          </div>
         </div>
 
         <div class="issue issue-important">
-          <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
+          <span class="severity severity-important">4% → 64%</span>
+          <h3>Full production pass with the architect checklist</h3>
+          <div class="where">~40 root files · httpspec · server_timing · scripts</div>
           <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
+            Type safety, error-model consistency, concurrency, naming, split brains,
+            duplication baseline (art-dupl -t 1 = exactly one accepted pair), 350-line limit.
           </p>
         </div>
 
         <div class="issue issue-nice">
-          <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
+          <span class="severity severity-nice">20% → 80%</span>
+          <h3>Test structure, verified gates, report, harvest</h3>
+          <div class="where">*_test.go suite · buildflow · TODO_LIST.md · docs/reviews/</div>
           <p>
-            Minor documentation gaps or future-proofing suggestions go here.
+            Conventions compliance (t.Parallel, name=claim, fuzz invariants, benchmark reset
+            rule), re-run every gate after fixes, write the styled HTML report, harvest
+            unfixed findings into TODO_LIST.md.
           </p>
         </div>
 
@@ -955,57 +955,86 @@
           </div>
         </div>
 
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
+        <!-- Task Table -->
+        <h2 id="tasks"><span class="num">02</span>Task Table</h2>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
+              <th>Tier</th>
+              <th>Task</th>
+              <th>Verify</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
-            </tr>
+            <tr><td>1</td><td><span class="badge badge-high">Gate</span></td><td>Baseline: buildflow dev-mode + go test -race, record verdicts</td><td>exit codes vs documented residuals</td></tr>
+            <tr><td>2</td><td><span class="badge badge-critical">1%</span></td><td>Delta review: files changed since 2026-09-11 (v1.4.0 + examples + LNA)</td><td>architect checklist per file</td></tr>
+            <tr><td>3</td><td><span class="badge badge-critical">1%</span></td><td>Docs-sync check: architecture-reference, FEATURES vs current exports</td><td>spot-check tables</td></tr>
+            <tr><td>4</td><td><span class="badge badge-high">4%</span></td><td>Core plumbing: recorder, chain/compose, stack, context, code, errors</td><td>checklist + art-dupl baseline</td></tr>
+            <tr><td>5</td><td><span class="badge badge-high">4%</span></td><td>Server lifecycle: server, health, timeout, recovery, logging, wrapper</td><td>checklist</td></tr>
+            <tr><td>6</td><td><span class="badge badge-high">4%</span></td><td>Security: cors, security, csrf, nonce, clientip, headers, hex</td><td>checklist + trust-model notes</td></tr>
+            <tr><td>7</td><td><span class="badge badge-high">4%</span></td><td>Compression family: compression*, compress_*, decompression</td><td>checklist + pool contract</td></tr>
+            <tr><td>8</td><td><span class="badge badge-high">4%</span></td><td>Utilities: maxbodysize, ratelimit_keyed, requestid, id_generator, queryparam, metrics, capabilities</td><td>checklist</td></tr>
+            <tr><td>9</td><td><span class="badge badge-high">4%</span></td><td>httpspec + server_timing + scripts</td><td>checklist</td></tr>
+            <tr><td>10</td><td><span class="badge badge-low">20%</span></td><td>Test-suite structural review (conventions, races, fuzz invariants)</td><td>AGENTS.md conventions</td></tr>
+            <tr><td>11</td><td><span class="badge badge-low">20%</span></td><td>Fix on sight; re-run all gates</td><td>buildflow + race + lint green</td></tr>
+            <tr><td>12</td><td><span class="badge badge-low">20%</span></td><td>HTML review report at docs/reviews/ (kit template)</td><td>cross-ref prior reviews</td></tr>
+            <tr><td>13</td><td><span class="badge badge-low">20%</span></td><td>HARVEST unfixed findings into TODO_LIST.md</td><td>docs-health discipline</td></tr>
           </tbody>
         </table>
 
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
-        </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
+        <!-- Verification Gates -->
+        <h2 id="gates">Verification Gates</h2>
+        <div class="card card-problem">
+          <h4>Known, documented residuals are NOT failures</h4>
+          <p>
+            buildflow dev-mode exits non-zero by policy (branching-flow, erraudit
+            honest-silence). Triage rule: only NEW finding classes or failed fixable
+            steps are breakage. go test -race must be green; golangci-lint must stay at
+            0 issues; art-dupl -t 2 = 0 groups, -t 1 = exactly the documented pair.
+          </p>
         </div>
 
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
+        <!-- Execution Graph -->
+        <h2 id="graph">Execution Graph</h2>
+        <div style="max-width:720px"><?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 540 1162"><svg class="d2-598811657 d2-svg" width="540" height="1162" viewBox="-101 -101 540 1162"><rect x="-101" y="-101" width="540" height="1162" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-598811657 .text-bold {
+	font-family: "d2-598811657-font-bold";
+}
+@font-face {
+	font-family: d2-598811657-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-598811657 .text-italic {
+	font-family: "d2-598811657-font-italic";
+}
+@font-face {
+	font-family: d2-598811657-font-italic;
+	src: url("data:application/font-woff;base64,d09GRgABAAAAAAdcAAoAAAAADDAAARhRAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgW1SVeGNtYXAAAAFUAAAAWAAAAFgBAgGAZ2x5ZgAAAawAAAG/AAAB1J+niadoZWFkAAADbAAAADYAAAA2G7Ur2mhoZWEAAAOkAAAAJAAAACQLeAiqaG10eAAAA8gAAAAYAAAAGArzAOJsb2NhAAAD4AAAAA4AAAAOAgIBnG1heHAAAAPwAAAAIAAAACAAHgD2bmFtZQAABBAAAAMrAAAIMgntVzNwb3N0AAAHPAAAACAAAAAg/8YAMgADAeEBkAAFAAACigJY//EASwKKAlgARAFeADIBIwAAAgsFAwMEAwkCBCAAAHcAAAADAAAAAAAAAABBREJPAAEAIP//Au7/BgAAA9gBESAAAZMAAAAAAeYClAAAACAAAwAAAAEAAwABAAAADAAEAEwAAAAMAAgAAgAEAC0AZQBuAHIAdf//AAAALQBlAG4AcgB1////2P+c/5T/kf+PAAEAAAAAAAAAAAAAAAAABQABAAIAAwAEAAB4nEyQT2sTQRiH33dnOpPYRNtudjcbk67NbJI2bIPNNDuVmIRaQ6OJUIv/UCvm0IMi4gcQqj35AXrRk0elH8KLBxG8iQhCT5pLBCH04sGJLFXoF3h+z/ODCfABjMfGHhCIwymYAQtAmnOESKWEQ2SpJDhXJdPk/i5+2H1F127/mH/9O/Do+vO33Z/39429P4/w2dbOjr7zYnv75nCoy/hlCABgQGF8iO9wBBkoADj5Ym25aciqbVspxueYbctqqBzGiAzD2nKxKPLs+40Hi927Z9XqbGJCv4+fWSvnzjmzuasvxwaZWRC1e4mH/faTzaCyUc3Kk62NgjstLQ8Lk+lkdsm7DggeAH7FEaSjDsllGMqqbaU4EWa0IvKME6/f4nRhs9KsxZq985R2sp1KGweX/KXVFc/XHzFIpZPdckW/iTqOmE9xBFPHmA4v/mdN0lxv0bVOT2X8ntfAwVbQiF+Mter6EyCsjA/xFw7A/fdAqExJGLNSUbwpiVCCsf1GSGnzSoPSTm49aPf6rRidv5a4oKY9E0P92XQjHbylM5eFPHIScIAn0AUCoJTkIvEteVCvA8BfAAAA//8DAKZPYTAAAAEAAAABGFExtR0JXw889QABA+gAAAAA2F2gzAAAAADdZi83/r3+3QgdA8kAAgADAAIAAAAAAAAAAQAAA9j+7wAACED+vf28CB0D6ADC/9EAAAAAAAAAAAAAAAYCdAAkAeEAJQINAB8BVgAfAhAAOAErACMAAAAuAGgAkgCwANwA6gAAAAEAAAAGAIwADABmAAcAAQAAAAAAAAAAAAAAAAAEAAN4nJyU3W4aVxSFP2KgTf8uKitybqxzmUrO4EZxlMRX4zpWRkWQMqQ/UlVpgDEgYGbEDDjOE/S6b9G3yFUfo09R9bramw1hIqtWUBRrDWf/rLP22gfY51/2qFTvAn/Vl4YrHNZ/NnyHL+pNw3uc1T8zXOWo9rfhGoPaW8N1HtQ6hj/hXfUPw5/yuPqb4bscVC8Mf86j6r7hL/cc/xj+ise8W+EKPOV3wxUOyAzfYZ9fDe9xD6tZqXKPY8M1vubQcJ1DoMuYgiljEoY4LhkzZMGcmJyQmDljLokZ4AjwmVLorwmRIsfwxl8jQgrmRFpxRIFjSsiUiJyRVXyrWSmvtKP0mSuSbj4FIyJ6mjEhIsGRMiQlIWaidQoKMp7ToEFOX/lmFOR45IyZ4pEyZ0iDNhc06TJiTI7jQisJs5CUSwquiLS/swhRpk9MQm6sFiQMlKdTfrFmBzRxtMk0drtys1ThCMePmi3cJMbxLZ7+d1vMyn3XbCKWqqdo2GOqPK90giNVXPr6/KC44DluJ33KTG7XaKDsZNZjeix0/jI/yRMmCc4d4BOqg0J3H8eZfgeEqshPBHR5SZvXdPXbp0MHnxZdAl5obpsOju9o0+JcMwLFq7MLdUyLX3B8T6AxUjs2fURz+XpDZu4W7uIMuceMTLdAZiz3F+fHO01YdigtuSNXV/R1jyRS9kBUkT2LGJorMnXFTLVceyM3/QbmCDktdLbvz2UblrZ76y2+JtUddiyMk0xuxei2qXofeOZK/3lEDEjpaUSflBkNCq71bq+IWDDFca4+fqlbUuBvcqTPtbokZqYMAhKtMyfTv5H5JjTu/ZLvnb0lsnkz3dHJ5la7dJHKydaMXqt667PQVI63JtCwqaaWIxOWyqubivcl2ivxD9X9ub5uKQ8JtK5Msn/jK3DMM044ZaRdpHrCcnMmr4REnKoCE2KNkjfzjWr1CI8TPJ5wwgnPePKBlms2zvi4Ep/t/j7nnNHm9NbbrGLbnPGiVO3/O/+pbI/1Po6Hm6+nO0/zwUe49huOSu9mR18D2aClVXu/HS0iZsLFHWxr4e7j/QcAAP//AwByoVFAAAADAAD/9QAA/84AMgAAAAAAAAAAAAAAAAAAAAAAAAAA");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-598811657 .fill-N1{fill:#0A0F25;}
+		.d2-598811657 .fill-N2{fill:#676C7E;}
+		.d2-598811657 .fill-N7{fill:#FFFFFF;}
+		.d2-598811657 .fill-B1{fill:#0D32B2;}
+		.d2-598811657 .fill-B6{fill:#F7F8FE;}
+		.d2-598811657 .stroke-B1{stroke:#0D32B2;}
+		.d2-598811657 .stroke-B2{stroke:#0D32B2;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><g class="R2F0ZXM="><g class="shape" ><rect x="30" y="0" width="186" height="82" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="123" y="38.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="123" dy="0">Baseline gates</tspan><tspan x="123" dy="18.5">buildflow dev + race</tspan></text></g><g class="RGVsdGE="><g class="shape" ><rect x="78" y="182" width="260" height="82" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="208" y="220.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="208" dy="0">1%: v1.4.0 delta files</tspan><tspan x="208" dy="18.5">server.go, examples, LNA spec</tspan></text></g><g class="UHJvZA=="><g class="shape" ><rect x="100" y="364" width="216" height="82" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="208" y="402.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="208" dy="0">4%: full production pass</tspan><tspan x="208" dy="18.5">~40 root files + subpkgs</tspan></text></g><g class="VGVzdHM="><g class="shape" ><rect x="92" y="546" width="233" height="82" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="208.5" y="584.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="208.5" dy="0">20%: test structure review</tspan><tspan x="208.5" dy="18.5">race, name=claim, fuzz</tspan></text></g><g class="Rml4ZXM="><g class="shape" ><rect x="2" y="728" width="243" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="123.5" y="766.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Fix on sight + re-verify gates</text></g><g class="UmVwb3J0"><g class="shape" ><rect x="0" y="894" width="246" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="123" y="932.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">HTML report + TODO harvest</text></g><g class="KEdhdGVzIC0mZ3Q7IERlbHRhKVswXQ=="><marker id="mk-d2-598811657-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 162.36982 83.457255 C 198.600006 122 208 142 208 178" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-598811657-3488378134)" mask="url(#d2-598811657)" /></g><g class="KERlbHRhIC0mZ3Q7IFByb2QpWzBd"><path d="M 208 266 C 208 304 208 324 208 360" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-598811657-3488378134)" mask="url(#d2-598811657)" /></g><g class="KFByb2QgLSZndDsgVGVzdHMpWzBd"><path d="M 208 448 C 208 486 208 506 208 542" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-598811657-3488378134)" mask="url(#d2-598811657)" /></g><g class="KFRlc3RzIC0mZ3Q7IEZpeGVzKVswXQ=="><path d="M 208 630 C 208 668 197.800003 688 159.856291 725.199714" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-598811657-3488378134)" mask="url(#d2-598811657)" /></g><g class="KEZpeGVzIC0mZ3Q7IFJlcG9ydClbMF0="><path d="M 123 796 C 123 834 123 854 123 890" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-598811657-3488378134)" mask="url(#d2-598811657)" /></g><g class="KEZpeGVzIC0mZ3Q7IEdhdGVzKVswXQ=="><path d="M 87.571837 726.599875 C 48.199001 688 38 659.799988 38 632.5 C 38 605.200012 38 568.799988 38 541.5 C 38 514.200012 38 477.799988 38 450.5 C 38 423.200012 38 386.799988 38 359.5 C 38 332.200012 38 295.799988 38 268.5 C 38 241.199997 47.400002 122 82.26036 84.914511" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-598811657-3488378134)" mask="url(#d2-598811657)" /><text x="38" y="412" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">re-run</text></g><mask id="d2-598811657" maskUnits="userSpaceOnUse" x="-101" y="-101" width="540" height="1162">
+<rect x="-101" y="-101" width="540" height="1162" fill="white"></rect>
+<rect x="16" y="396" width="44" height="21" fill="black"></rect>
+</mask></svg></svg>
+</div>
 
         <!-- Numbered Steps -->
         <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
@@ -1024,9 +1053,39 @@
           </div>
         </div>
 
+        <!-- Execution Order -->
+        <h2 id="plan"><span class="num">03</span>Execution Order</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Gates first</h4>
+            <p>Never review on top of an unknown-red baseline; establish truth before judgment.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Delta before stable</h4>
+            <p>The 1% that changed since the last review carries most of the new-defect probability.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Fix on sight, verify immediately</h4>
+            <p>Every fix re-runs the gates before the next file — no debt piles up unverified.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Report + harvest, then wait</h4>
+            <p>Findings become durable TODO_LIST items; the report is a point-in-time snapshot.</p>
+          </div>
+        </div>
+
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
+          Generated 2026-09-27 &middot; Pareto plan for the post-v1.4.0 full code review &middot; claims verified against the tree at 869ce33
         </footer>
       </main>
     </div>
