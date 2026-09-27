@@ -72,6 +72,49 @@ func TestMiddlewareStackAddAndBuild(t *testing.T) {
 	}
 }
 
+// TestMiddlewareStackZeroValueUsable pins the Go-idiomatic zero value: a
+// MiddlewareStack declared without NewMiddlewareStack must Add, Build, and
+// report Names/Validate exactly like a constructed one — the atomic snapshot
+// pointer handles the never-stored state.
+func TestMiddlewareStackZeroValueUsable(t *testing.T) {
+	t.Parallel()
+
+	var stack MiddlewareStack
+
+	if got := stack.Names(); len(got) != 0 {
+		t.Errorf("Names() on zero-value stack = %v, want empty", got)
+	}
+
+	if err := stack.Validate(); err != nil {
+		t.Errorf("Validate() on zero-value stack = %v, want nil", err)
+	}
+
+	served := false
+
+	err := stack.Add(MiddlewareRequestID, func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			served = true
+
+			next.ServeHTTP(w, r)
+		})
+	})
+	if err != nil {
+		t.Fatalf("Add on zero-value stack: %v", err)
+	}
+
+	handler := stack.Build(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	handler.ServeHTTP(rec, req)
+
+	if !served {
+		t.Error("middleware added to a zero-value stack did not serve")
+	}
+}
+
 func TestMiddlewareStackRejectsDuplicateNames(t *testing.T) {
 	t.Parallel()
 
