@@ -29,7 +29,7 @@ The dedup command is complete: all three `-t 2` clone groups are extracted, `art
 2. Read the full failure summary of the format run (11 failed steps) instead of moving on after confirming the tree was sane.
 3. Verify the directive's location before sed; one command, both files.
 4. Run a 30s fuzz smoke on the negotiator/server_timing fuzz targets — the scan path changed and `go test` only exercises seed corpora.
-5. Check `git log` for daemon commits *between* my steps earlier — I only noticed `a0123fc` because the blob hashes swapped sides in a diff, which was luck, not process.
+5. Check `git log` for daemon commits _between_ my steps earlier — I only noticed `a0123fc` because the blob hashes swapped sides in a diff, which was luck, not process.
 
 ### What could I still improve?
 
@@ -134,7 +134,7 @@ Ordered: incident fallout first, then verification depth, then known project thr
 18. 30s fuzz smoke: server_timing fuzz targets (the `flushHeader` merge path).
 19. Full documented benchmark protocol (`nix run .#bench`, 3s×5) to give `advanceWhile` a recorded baseline before anyone ships it.
 20. Re-run the erraudit real gates (`legacy_as`, `stdlib_constructor --enforce-go-error-family`) — expected clean (no error-code changes), but the gates are cheap and the advisory counts in AGENTS.md (45 sentinels) must not drift silently.
-21. Add a mutation-style test pinning `withParsedTrustedProxies`' all-or-nothing contract (assert TrustedProxiesCIDR is nil after one bad entry *and* that the failure exits return the config copy unchanged) so no future refactor "restores" the semantics.
+21. Add a mutation-style test pinning `withParsedTrustedProxies`' all-or-nothing contract (assert TrustedProxiesCIDR is nil after one bad entry _and_ that the failure exits return the config copy unchanged) so no future refactor "restores" the semantics.
 22. Re-run art-dupl at `-t 1`/`-t 2` after the next code-touching session; anything new at those thresholds is a finding per the refreshed baseline.
 23. Grep docs for stale clone-baseline claims ("-t 5", "3 accepted", "0 groups at `-t 2..25`") outside AGENTS.md and correct any survivors.
 24. Verify `docs/architecture-reference.md` needs no update (no exported symbols changed this session — advanceWhile and friends are unexported; confirm the export tables agree).
@@ -182,4 +182,4 @@ Ordered: incident fallout first, then verification depth, then known project thr
 
 ---
 
-*Point-in-time snapshot. Baseline claims measured at `c7670a7`. Stale by design the moment the tree moves; docs-health ANNOTATE/HARVEST owns bringing this current.*
+_Point-in-time snapshot. Baseline claims measured at `c7670a7`. Stale by design the moment the tree moves; docs-health ANNOTATE/HARVEST owns bringing this current._
