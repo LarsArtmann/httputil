@@ -9,10 +9,10 @@
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
 
-    systems.url = "github:nix-systems/default";
-
-    treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
+    # go-standard (flakeModules.go-standard) composes treefmt-nix + systems
+    # internally — this repo no longer declares them as direct inputs.
+    go-nix-helpers = {
+      url = "github:LarsArtmann/go-nix-helpers";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -23,45 +23,75 @@
       flake-parts,
       ...
     }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = import inputs.systems;
+    let
+      # benchstat is not packaged in nixpkgs; pin it from the Go module
+      # proxy's source so benchmark comparisons use a fixed tool version.
+      # Shared between the devShell and packages.benchstat — same arguments,
+      # same derivation.
+      mkBenchstat =
+        pkgs:
+        pkgs.buildGoModule rec {
+          pname = "benchstat";
+          version = "0.0.0-20260908200009-22c9c6c9d4da";
 
-      imports = [ inputs.treefmt-nix.flakeModule ];
+          src = pkgs.fetchFromGitHub {
+            owner = "golang";
+            repo = "perf";
+            rev = "22c9c6c9d4da6248aedbc79f02ecedcd59f8f5f2";
+            hash = "sha256-RSiI5I92l9bMWxTbHNKhcti4OKj8kD9yFxeHaWQJiFU=";
+          };
+
+          subPackages = [ "cmd/benchstat" ];
+
+          vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
+        };
+    in
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [ inputs.go-nix-helpers.flakeModules.go-standard ];
+
+      go-standard = {
+        pname = "httputil";
+        description = "HTTP utilities for Go";
+        goPkgAttr = "go_1_27";
+        vendorHash = "sha256-4eUAfeA9s4/Y5Fm7yWQhBKQ2EDWZHk5OiMn/mBURnr4=";
+        # Library repo: the package exists so the ROOT module compiles;
+        # tests run via apps.test (race), not in checkPhase.
+        enableCheck = false;
+        enableTestCheck = false;
+        enableGofumpt = true;
+        enableGoimports = true;
+        enableNixfmt = true;
+        devShellExtraPackages = pkgs: [
+          (mkBenchstat pkgs)
+          pkgs.gofumpt
+          pkgs.golines
+          pkgs.gotools
+          pkgs.trash-cli
+          pkgs.d2
+          pkgs.dprint
+          pkgs.lychee
+        ];
+        devShellHook = ''
+          echo "httputil dev shell — $(go version)"
+          echo "  diagrams: d2 $(d2 --version 2>/dev/null || echo '?') — layout engine: elk (docs/architecture-understanding/*.d2)"
+        '';
+      };
 
       perSystem =
         {
-          config,
           pkgs,
           ...
         }:
         let
           goPkg = pkgs.go_1_27;
-
-          # benchstat is not packaged in nixpkgs; pin it from the Go module
-          # proxy's source so benchmark comparisons use a fixed tool version.
-          benchstat = pkgs.buildGoModule rec {
-            pname = "benchstat";
-            version = "0.0.0-20260908200009-22c9c6c9d4da";
-
-            src = pkgs.fetchFromGitHub {
-              owner = "golang";
-              repo = "perf";
-              rev = "22c9c6c9d4da6248aedbc79f02ecedcd59f8f5f2";
-              hash = "sha256-RSiI5I92l9bMWxTbHNKhcti4OKj8kD9yFxeHaWQJiFU=";
-            };
-
-            subPackages = [ "cmd/benchstat" ];
-
-            vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
-          };
         in
         {
+          # golines on top of go-standard's enabled programs
+          # (gofumpt/goimports/nixfmt).
           treefmt = {
             projectRootFile = "go.mod";
             programs = {
-              gofumpt.enable = true;
               goimports = {
-                enable = true;
                 # goimports shells out to `go` for import resolution. In the
                 # sandboxed treefmt check there is no network, so the default
                 # GOTOOLCHAIN=auto fails trying to download the toolchain the
@@ -79,36 +109,12 @@
                 };
               };
               golines.enable = true;
-              nixfmt.enable = true;
             };
           };
 
-          devShells.default = pkgs.mkShellNoCC {
-            packages = [
-              goPkg
-              benchstat
-              pkgs.golangci-lint
-              pkgs.gofumpt
-              pkgs.golines
-              pkgs.gotools
-              pkgs.govulncheck
-              pkgs.trash-cli
-              pkgs.d2
-              pkgs.dprint
-              pkgs.lychee
-            ];
-
-            shellHook = ''
-              echo "httputil dev shell — $(go version)"
-              echo "  diagrams: d2 $(d2 --version 2>/dev/null || echo '?') — layout engine: elk (docs/architecture-understanding/*.d2)"
-            '';
-          };
-
-          packages.benchstat = benchstat;
+          packages.benchstat = mkBenchstat pkgs;
 
           checks = {
-            format = config.treefmt.build.check self;
-
             # The sub-module must build standalone (GOWORK=off, network off):
             # it is a separate Go module that consumers can adopt without the
             # workspace, and its zero-dependency claim is only proven when the
@@ -128,6 +134,9 @@
                 '';
           };
 
+          # All bespoke apps survive verbatim; go-standard's generic
+          # default/test/lint apps are mkDefault, so these win where names
+          # collide.
           apps = {
             test = {
               type = "app";

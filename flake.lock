@@ -20,6 +20,50 @@
         "type": "github"
       }
     },
+    "flake-parts_2": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "go-nix-helpers",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788450739,
+        "narHash": "sha256-glZLQlzIn1fXH6PazR2iUmTo7kzzyYSshrWhLS9TqCU=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "31729ca8cbdb4fa927b34e5f4353e6a83f39e993",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "go-nix-helpers": {
+      "inputs": {
+        "flake-parts": "flake-parts_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": "systems",
+        "treefmt-nix": "treefmt-nix"
+      },
+      "locked": {
+        "lastModified": 1790742660,
+        "narHash": "sha256-0A3XPG+KNJKTeWG1G49BDcXtaoDG2Z5TYcaS/0O0hT8=",
+        "owner": "LarsArtmann",
+        "repo": "go-nix-helpers",
+        "rev": "a15d7266bb1c96d91978f05d3177187e04f72de2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LarsArtmann",
+        "repo": "go-nix-helpers",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1790578696,
@@ -39,9 +83,8 @@
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs",
-        "systems": "systems",
-        "treefmt-nix": "treefmt-nix"
+        "go-nix-helpers": "go-nix-helpers",
+        "nixpkgs": "nixpkgs"
       }
     },
     "systems": {
@@ -62,6 +105,7 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
+          "go-nix-helpers",
           "nixpkgs"
         ]
       },
