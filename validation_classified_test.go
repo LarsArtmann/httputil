@@ -437,9 +437,10 @@ func TestDecompressionCloseFailedClassified(t *testing.T) {
 func TestCSRFValidationErrorsClassifiedWithCauseChain(t *testing.T) {
 	t.Parallel()
 
-	cfg := CSRFConfig{}
-	cfg.SameSite = 4 // http.SameSiteNoneMode
-	cfg.Secure = false
+	cfg := CSRFConfig{
+		SameSite: 4, // http.SameSiteNoneMode
+		Secure:   false,
+	}
 
 	err := cfg.Validate()
 
@@ -463,9 +464,10 @@ func TestCSRFValidationErrorsClassifiedWithCauseChain(t *testing.T) {
 func TestCSRFUnsafeOriginCarriesContext(t *testing.T) {
 	t.Parallel()
 
-	cfg := CSRFConfig{}
-	cfg.Secure = true
-	cfg.TrustedOrigins = []string{"*"}
+	cfg := CSRFConfig{
+		Secure:         true,
+		TrustedOrigins: []string{"*"},
+	}
 
 	err := cfg.Validate()
 
@@ -486,9 +488,10 @@ func TestCSRFUnsafeOriginCarriesContext(t *testing.T) {
 func TestCSRFInvalidCIDRClassified(t *testing.T) {
 	t.Parallel()
 
-	cfg := CSRFConfig{}
-	cfg.Secure = true
-	cfg.TrustedProxies = []string{"not-a-cidr/"}
+	cfg := CSRFConfig{
+		Secure:         true,
+		TrustedProxies: []string{"not-a-cidr/"},
+	}
 
 	err := cfg.Validate()
 
