@@ -54,6 +54,13 @@ type KeyExtractor func(r *http.Request) string
 
 // KeyExtractorFromRemoteAddr returns a KeyExtractor that uses the request's
 // RemoteAddr as the rate-limit key.
+//
+// Caveat: RemoteAddr includes the client port, so the key is per TCP
+// connection, not per client. HTTP connection pooling and churn (every new
+// connection = a fresh bucket) make the effective budget much larger than
+// the configured Limit; a client that opens a connection per request is
+// effectively unlimited. For per-client-IP budgets use
+// [KeyExtractorFromClientIP] instead.
 func KeyExtractorFromRemoteAddr() KeyExtractor {
 	return func(r *http.Request) string {
 		return r.RemoteAddr
