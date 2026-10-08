@@ -27,7 +27,7 @@ cross-origin entry.
 
 | Consumer | TrustedProxies | TrustedOrigins | TLS-terminated deploy |
 |---|---|---|---|
-| cqrs-htmx `setup` default | nil | nil | bundle consumers behind a proxy hit the 403 wall the moment they enable CSRF |
+| cqrs-htmx `setup` default | nil | nil | bundle consumers behind a proxy hit the 403 wall the moment they enable CSRF (nil default at `setup/bundle.go:140`) |
 | timesheets (server.go:195) | none | none | yes (dashboard product) |
 | games/SEC (middleware.go:14) | none | none | unknown, likely behind nginx |
 | Zlota44 (server.go:86) | loopback only | none | covered only if the TLS front is on-host |

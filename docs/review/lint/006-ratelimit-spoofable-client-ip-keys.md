@@ -32,7 +32,7 @@ the honest version).
   comment that correctly states the spoofing caveat — the knowledge is
   documented in the code and the spoofable extractor ships anyway, with
   no `TrustedProxies`-style gate.
-- **browser-history** `api/middleware.go:166`: comment claims the
+- **browser-history** `api/middleware.go:168`: comment claims the
   fallback "is proxy-aware (X-Forwarded-For / X-Real-IP) so it works
   correctly behind nginx/Docker" — misleading: it is proxy-*trusting*,
   not proxy-aware; the auth-endpoint limiter (:199) inherits the same

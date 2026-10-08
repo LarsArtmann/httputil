@@ -19,7 +19,7 @@ are attacker-chosen in the relevant deployments) and sets neither
 | DiscordSync | `internal/api/server.go:244` | comment claims "TTL/MaxKeys/callbacks default to zero-value production defaults" — false: zero `MaxKeys` means unbounded, zero `TTL` means no lazy eviction |
 | storbi | `internal/middleware/middleware.go:143` | full struct literal with explicit `TTL: 0, MaxKeys: 0` — the zeros are load-bearing and wrong |
 | SwettySwipperWeb | `services/api/middleware.go:112-126` | login, vote, import limiters |
-| games/SEC | `server/middleware.go:40` | player/user/IP extractor, no caps |
+| games/SEC | `server/middleware.go:44` | player/user/IP extractor, no caps |
 | Standup-Killer | `api/server.go:142` | `WithRateLimit` option |
 | artmann-technologies-website | `cmd/.../middleware.go:186` | contact-form limiter (`exhaustruct` nolint implies the fields are unset) |
 

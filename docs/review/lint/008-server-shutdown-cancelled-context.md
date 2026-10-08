@@ -10,8 +10,8 @@
 
 ### testing and reports — shutdown with an already-cancelled context
 
-`testing/internal/server/server.go:52` and the copy-paste twin
-`reports/app/internal/server/server.go:88`:
+`testing/internal/server/server.go:54` and the copy-paste twin
+`reports/app/internal/server/server.go:76`:
 
 ```go
 errChan := s.httpServer.Start()
@@ -39,7 +39,7 @@ exactly that, with comments explaining the order of operations.
 
 ### AI-Speed-Test — no shutdown handling at all
 
-`cmd/dashboard/main.go:1022`: `return <-server.Start()` blocks on the
+`cmd/dashboard/main.go:1027`: `return <-server.Start()` blocks on the
 error channel forever; SIGTERM kills the process with in-flight
 requests outstanding. Low impact for a local dashboard, but it is
 copied as an example of httputil server usage.

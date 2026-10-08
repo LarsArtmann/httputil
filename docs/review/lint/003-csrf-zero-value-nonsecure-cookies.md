@@ -27,7 +27,7 @@ separate zero-value duplicate exists at `CV/internal/di/handlers.go:381`
 (`csrfCookie := httputil.CSRFConfig{}` for `InvalidateCSRFCookie`), so
 the cookie name/path/Secure of issuance and invalidation can drift.
 
-### cqrs-htmx setup bundle default (`cqrs-htmx/setup/bundle.go:135`)
+### cqrs-htmx setup bundle default (`cqrs-htmx/setup/bundle.go:140`)
 
 ```go
 // The configuration comes from [Config.CSRF]; the default (nil) matches the
