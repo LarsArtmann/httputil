@@ -6,9 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [1.4.2] - 2026-10-08
+
 ### Added
 
 - **Zero-value `MiddlewareStack` usability is now pinned** (`stack_test.go`): `TestMiddlewareStackZeroValueUsable` exercises `Add`/`Build`/`Names`/`Validate` on a stack declared without `NewMiddlewareStack` — the Go-idiomatic zero value works by design (the atomic snapshot pointer handles the never-stored state), and the test keeps a future refactor from silently breaking it.
+- **`server_timing` carries its LICENSE** — the nested module's license file now ships in the repo so license scanners resolve it.
 
 ### Fixed
 
@@ -16,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Documented
 
+- **`KeyExtractorFromRemoteAddr` per-connection caveat documented** (`ratelimit_keyed.go`): `RemoteAddr` includes the client port, so the key is per TCP connection, not per client — connection churn hands each new connection a fresh bucket, making the effective budget much larger than the configured `Limit` (a client that opens a connection per request is effectively unlimited); per-client-IP budgets want `KeyExtractorFromClientIP`, and the migration pointer now lives on the extractor itself.
 - **Package doc no longer advertises the removed ETag adapter** (`doc.go`): the "ETag conditional requests via the go-etag adapter" claim survived the v1.1.0 adapter removal; the doc now states the real contract — `RegisterErrorClassifications` registers the go-etag error-code superset, and conditional-request handling lives in the separate go-etag module.
 - **`decompression.go` dead-branch comment corrected**: the unreachable `default:` switch case claimed `Encodings` is "user-extensible" while `Validate` accepts only gzip and deflate; the comment now states the true contract (defensive dead code, passthrough remains the failure mode if a third encoding is ever added without a case).
 - **`Metrics` added to the AGENTS.md validate-and-log constructor list**: the documented enumeration of constructors calling `Validate()` at construction omitted `Metrics` — accurate until the Fixed entry above closed the gap; the list now matches the code.
