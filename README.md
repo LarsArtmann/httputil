@@ -387,7 +387,7 @@ Plaintext-HTTP origin bypass: requests with no `Origin`/`Referer`/`Sec-Fetch-Sit
 
 ### Server-Timing
 
-W3C Server-Timing header with per-request sub-metrics. Lives in the `server_timing` sub-module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`).
+W3C Server-Timing header with per-request sub-metrics. Lives in the `server_timing` sub-module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`), which is MIT-licensed and has its own [README](server_timing/README.md).
 
 ```go
 import "github.com/larsartmann/httputil/server_timing"

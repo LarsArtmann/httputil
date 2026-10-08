@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Changed
+
+- **`server_timing` license switched from Proprietary to MIT** (`server_timing/LICENSE`): the nested module is now redistributable, so pkg.go.dev renders its documentation and README on the module page (previously "License: UNKNOWN — documentation not displayed due to license restrictions"; effective from the next `server_timing` tag, since pkg.go.dev indexes per tagged release). The root `httputil` module stays Proprietary.
+
+### Added
+
+- **`server_timing/README.md`**: the sub-module's own end-user page — install, quick start, how-it-works, feature overview, and the measure-before-response-commit gotcha — as the rendered overview on pkg.go.dev's module page and GitHub directory view.
 
 ## [1.4.2] - 2026-10-08
 
