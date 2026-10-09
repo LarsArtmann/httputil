@@ -102,6 +102,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOEXPERIMENT: jsonv2
+      # The pinned golangci-lint (v2.13.2) cannot read the export data of Go
+      # releases newer than its build toolchain (go1.27.2's "export data
+      # version 5 is greater than maximum supported version 4"). Pin the
+      # toolchain like the test job so the linter can typecheck the stdlib.
+      GOTOOLCHAIN: go1.27.1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
