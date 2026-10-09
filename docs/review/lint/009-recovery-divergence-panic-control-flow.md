@@ -35,7 +35,7 @@ signaling:
    (`github.com/larsartmann/httputil`, which the same repo also imports
    directly in `internal/api/middleware/common.go`). Two different
    `httputil.` qualifiers in one repo — the recovery code type-asserts
-   the *local* `HTTPError`, and future readers will conflate the two.
+   the _local_ `HTTPError`, and future readers will conflate the two.
 
 ## Why it is wrong
 

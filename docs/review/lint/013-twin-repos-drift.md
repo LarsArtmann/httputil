@@ -8,11 +8,11 @@
 
 ## The twins
 
-| Pair | Shared surface | Divergence risk already realized |
-|---|---|---|
-| e-invoicing / ksef-sandbox | `internal/http` middleware + server wiring (CORS wildcard, hand-rolled Recovery — LINT-002/012) | any fix must land twice; the CORS finding applies to both today |
-| crm / crm-exec-stage | `internal/identity/identity.go` setup (CSRF `Secure: true` wiring — the *correct* pattern) | the good pattern equally must be maintained twice |
-| cqrs-htmx / ci-siblings | the whole framework + usermgmt limiters | ci-siblings frozen at httputil v1.2.0 with `KeyExtractorFromRemoteAddr`; cqrs-htmx moved on |
+| Pair                       | Shared surface                                                                                  | Divergence risk already realized                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| e-invoicing / ksef-sandbox | `internal/http` middleware + server wiring (CORS wildcard, hand-rolled Recovery — LINT-002/012) | any fix must land twice; the CORS finding applies to both today                             |
+| crm / crm-exec-stage       | `internal/identity/identity.go` setup (CSRF `Secure: true` wiring — the _correct_ pattern)      | the good pattern equally must be maintained twice                                           |
+| cqrs-htmx / ci-siblings    | the whole framework + usermgmt limiters                                                         | ci-siblings frozen at httputil v1.2.0 with `KeyExtractorFromRemoteAddr`; cqrs-htmx moved on |
 
 ## Why it is wrong
 

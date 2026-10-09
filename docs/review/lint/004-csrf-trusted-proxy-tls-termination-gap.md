@@ -25,13 +25,13 @@ cross-origin entry.
 
 ## What the consumers do
 
-| Consumer | TrustedProxies | TrustedOrigins | TLS-terminated deploy |
-|---|---|---|---|
-| cqrs-htmx `setup` default | nil | nil | bundle consumers behind a proxy hit the 403 wall the moment they enable CSRF (nil default at `setup/bundle.go:140`) |
-| timesheets (server.go:195) | none | none | yes (dashboard product) |
-| games/SEC (middleware.go:14) | none | none | unknown, likely behind nginx |
-| Zlota44 (server.go:86) | loopback only | none | covered only if the TLS front is on-host |
-| CV (middleware_chain.go:144) | none | config origins | saved by TrustedOrigins exact-match, not by design |
+| Consumer                     | TrustedProxies | TrustedOrigins | TLS-terminated deploy                                                                                               |
+| ---------------------------- | -------------- | -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| cqrs-htmx `setup` default    | nil            | nil            | bundle consumers behind a proxy hit the 403 wall the moment they enable CSRF (nil default at `setup/bundle.go:140`) |
+| timesheets (server.go:195)   | none           | none           | yes (dashboard product)                                                                                             |
+| games/SEC (middleware.go:14) | none           | none           | unknown, likely behind nginx                                                                                        |
+| Zlota44 (server.go:86)       | loopback only  | none           | covered only if the TLS front is on-host                                                                            |
+| CV (middleware_chain.go:144) | none           | config origins | saved by TrustedOrigins exact-match, not by design                                                                  |
 
 Contrast with the consumers that solved it: InboxClean
 (`forwarderTrustCIDRs` from the app-wide forwarder trust boundary),

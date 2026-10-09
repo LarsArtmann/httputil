@@ -7,22 +7,22 @@
 
 ## Filings
 
-| # | Filing | Severity | Consumers |
-|---|---|---|---|
-| 001 | [CORS wildcard origin echo + `AllowCredentials`](001-cors-credentials-wildcard-echo.md) | High | GmbH, blog |
-| 002 | [CORS allow-all configs on production APIs](002-cors-allow-all-configs.md) | Medium | ksef-sandbox, e-invoicing, storbi, ChastityAPI, sales-landing-page, middleware-showcase example |
-| 003 | [Zero-value `CSRFConfig` (non-Secure cookies) in production paths](003-csrf-zero-value-nonsecure-cookies.md) | High/Medium | CV (logic bug), cqrs-htmx setup default, games/SEC, timesheets, Zlota44, GmbH (absent) |
-| 004 | [CSRF behind TLS termination without `TrustedProxies`](004-csrf-trusted-proxy-tls-termination-gap.md) | Medium | cqrs-htmx setup, timesheets, games/SEC, Zlota44 (partial), CV (partial) |
-| 005 | [Rate limiters without `MaxKeys`/`TTL` (unbounded key growth)](005-ratelimit-unbounded-key-growth.md) | Medium | cqrs-htmx (+ci-siblings), DiscordSync, storbi, SwettySwipperWeb, games/SEC, Standup-Killer, artmann |
-| 006 | [Rate-limit keys from spoofable client-IP headers](006-ratelimit-spoofable-client-ip-keys.md) | High | SwettySwipperWeb (vote guard), cqrs-htmx usermgmt, browser-history, DiscordSync, storbi, games/SEC, Standup-Killer, ci-siblings (RemoteAddr side) |
-| 007 | [`ClientIP` for security decisions / trusted log fields](007-clientip-untrusted-header-consumers.md) | Medium/Low | games/KeyCountdown, Rolls-Royce, DiscordSync, cqrs-htmx requestmeta, dynamic-markdown-site |
-| 008 | [Shutdown paths that cancel themselves or never drain](008-server-shutdown-cancelled-context.md) | Medium | testing, reports, AI-Speed-Test, overview, github-local-sync |
-| 009 | [Custom `Recovery` divergence + panic-driven control flow](009-recovery-divergence-panic-control-flow.md) | Medium | Rolls-Royce-mtuGoHelpCenter-golang |
-| 010 | [`Nonce` composed outside `SecurityHeaders`](010-nonce-securityheaders-ordering.md) | Low | crush-daily, bank-sync |
-| 011 | [Stale httputil pins (v1.2.0–v1.4.1 of v1.4.2)](011-stale-httputil-versions.md) | Medium | CV, games/SEC, index, ci-siblings, 6× v1.4.0, 28× v1.4.1 |
-| 012 | [Hand-rolled middleware twins (incl. broken PapDashboard CORS)](012-hand-rolled-middleware-parallels.md) | Low | PapDashboard, ksef-sandbox/e-invoicing, german-business-contract-automation, dynamic-markdown-site |
-| 013 | [Twin repositories drifting independently](013-twin-repos-drift.md) | Low | e-invoicing↔ksef-sandbox, crm↔crm-exec-stage, cqrs-htmx↔ci-siblings |
-| 014 | [Nonce'd HTML without `Cache-Control: no-store`](014-nonce-response-caching.md) | Low | cqrs-htmx adminui/dashboardui, ChastityAPI dashboard, crush-daily, timesheets |
+| #   | Filing                                                                                                       | Severity    | Consumers                                                                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 001 | [CORS wildcard origin echo + `AllowCredentials`](001-cors-credentials-wildcard-echo.md)                      | High        | GmbH, blog                                                                                                                                        |
+| 002 | [CORS allow-all configs on production APIs](002-cors-allow-all-configs.md)                                   | Medium      | ksef-sandbox, e-invoicing, storbi, ChastityAPI, sales-landing-page, middleware-showcase example                                                   |
+| 003 | [Zero-value `CSRFConfig` (non-Secure cookies) in production paths](003-csrf-zero-value-nonsecure-cookies.md) | High/Medium | CV (logic bug), cqrs-htmx setup default, games/SEC, timesheets, Zlota44, GmbH (absent)                                                            |
+| 004 | [CSRF behind TLS termination without `TrustedProxies`](004-csrf-trusted-proxy-tls-termination-gap.md)        | Medium      | cqrs-htmx setup, timesheets, games/SEC, Zlota44 (partial), CV (partial)                                                                           |
+| 005 | [Rate limiters without `MaxKeys`/`TTL` (unbounded key growth)](005-ratelimit-unbounded-key-growth.md)        | Medium      | cqrs-htmx (+ci-siblings), DiscordSync, storbi, SwettySwipperWeb, games/SEC, Standup-Killer, artmann                                               |
+| 006 | [Rate-limit keys from spoofable client-IP headers](006-ratelimit-spoofable-client-ip-keys.md)                | High        | SwettySwipperWeb (vote guard), cqrs-htmx usermgmt, browser-history, DiscordSync, storbi, games/SEC, Standup-Killer, ci-siblings (RemoteAddr side) |
+| 007 | [`ClientIP` for security decisions / trusted log fields](007-clientip-untrusted-header-consumers.md)         | Medium/Low  | games/KeyCountdown, Rolls-Royce, DiscordSync, cqrs-htmx requestmeta, dynamic-markdown-site                                                        |
+| 008 | [Shutdown paths that cancel themselves or never drain](008-server-shutdown-cancelled-context.md)             | Medium      | testing, reports, AI-Speed-Test, overview, github-local-sync                                                                                      |
+| 009 | [Custom `Recovery` divergence + panic-driven control flow](009-recovery-divergence-panic-control-flow.md)    | Medium      | Rolls-Royce-mtuGoHelpCenter-golang                                                                                                                |
+| 010 | [`Nonce` composed outside `SecurityHeaders`](010-nonce-securityheaders-ordering.md)                          | Low         | crush-daily, bank-sync                                                                                                                            |
+| 011 | [Stale httputil pins (v1.2.0–v1.4.1 of v1.4.2)](011-stale-httputil-versions.md)                              | Medium      | CV, games/SEC, index, ci-siblings, 6× v1.4.0, 28× v1.4.1                                                                                          |
+| 012 | [Hand-rolled middleware twins (incl. broken PapDashboard CORS)](012-hand-rolled-middleware-parallels.md)     | Low         | PapDashboard, ksef-sandbox/e-invoicing, german-business-contract-automation, dynamic-markdown-site                                                |
+| 013 | [Twin repositories drifting independently](013-twin-repos-drift.md)                                          | Low         | e-invoicing↔ksef-sandbox, crm↔crm-exec-stage, cqrs-htmx↔ci-siblings                                                                               |
+| 014 | [Nonce'd HTML without `Cache-Control: no-store`](014-nonce-response-caching.md)                              | Low         | cqrs-htmx adminui/dashboardui, ChastityAPI dashboard, crush-daily, timesheets                                                                     |
 
 ## Cross-filing rules
 

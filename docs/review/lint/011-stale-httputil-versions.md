@@ -22,7 +22,7 @@
   pin; ci-siblings still ships the RemoteAddr extractor (LINT-006).
 - **v1.4.0 route-pattern propagation regression fixes and httpspec
   LNA spec** (the pattern-propagation fix itself is in v1.2.0, so the
-  v1.2.0 pins are covered for that one; the *middleware-showcase*
+  v1.2.0 pins are covered for that one; the _middleware-showcase_
   examples and otel-based consumers pinned below v1.2.0 would not be,
   and the v0.12.0 testdata pin inside ci-siblings predates it).
 - **v1.3.0 `etagmetrics`** (moved to go-etag v0.5.0) and the **Go

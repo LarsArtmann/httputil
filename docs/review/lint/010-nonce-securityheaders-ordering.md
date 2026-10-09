@@ -27,7 +27,7 @@ httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
 ```
 
 Chain semantics put the first entry outermost, so in both repos the
-nonce-bearing CSP is written *before* `SecurityHeaders` runs inner.
+nonce-bearing CSP is written _before_ `SecurityHeaders` runs inner.
 
 ## Why it is wrong (and why only "latent")
 

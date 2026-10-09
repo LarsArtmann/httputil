@@ -12,16 +12,16 @@ Every limiter below keys on client IP (see LINT-006 for why those keys
 are attacker-chosen in the relevant deployments) and sets neither
 `MaxKeys` nor `TTL`:
 
-| Consumer | Site | Note |
-|---|---|---|
-| cqrs-htmx | `usermgmt/http.go:118` `newLimiterFromConfig` | six limiters: register, import, TOTP, verification, webauthn, oauth |
-| ci-siblings | mirror of the above at `.../usermgmt/http.go:118` | plus uses `KeyExtractorFromRemoteAddr` (v1.2.0 shape) |
-| DiscordSync | `internal/api/server.go:244` | comment claims "TTL/MaxKeys/callbacks default to zero-value production defaults" — false: zero `MaxKeys` means unbounded, zero `TTL` means no lazy eviction |
-| storbi | `internal/middleware/middleware.go:143` | full struct literal with explicit `TTL: 0, MaxKeys: 0` — the zeros are load-bearing and wrong |
-| SwettySwipperWeb | `services/api/middleware.go:112-126` | login, vote, import limiters |
-| games/SEC | `server/middleware.go:44` | player/user/IP extractor, no caps |
-| Standup-Killer | `api/server.go:142` | `WithRateLimit` option |
-| artmann-technologies-website | `cmd/.../middleware.go:187` | contact-form limiter (`exhaustruct` nolint implies the fields are unset) |
+| Consumer                     | Site                                              | Note                                                                                                                                                        |
+| ---------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| cqrs-htmx                    | `usermgmt/http.go:118` `newLimiterFromConfig`     | six limiters: register, import, TOTP, verification, webauthn, oauth                                                                                         |
+| ci-siblings                  | mirror of the above at `.../usermgmt/http.go:118` | plus uses `KeyExtractorFromRemoteAddr` (v1.2.0 shape)                                                                                                       |
+| DiscordSync                  | `internal/api/server.go:244`                      | comment claims "TTL/MaxKeys/callbacks default to zero-value production defaults" — false: zero `MaxKeys` means unbounded, zero `TTL` means no lazy eviction |
+| storbi                       | `internal/middleware/middleware.go:143`           | full struct literal with explicit `TTL: 0, MaxKeys: 0` — the zeros are load-bearing and wrong                                                               |
+| SwettySwipperWeb             | `services/api/middleware.go:112-126`              | login, vote, import limiters                                                                                                                                |
+| games/SEC                    | `server/middleware.go:44`                         | player/user/IP extractor, no caps                                                                                                                           |
+| Standup-Killer               | `api/server.go:142`                               | `WithRateLimit` option                                                                                                                                      |
+| artmann-technologies-website | `cmd/.../middleware.go:187`                       | contact-form limiter (`exhaustruct` nolint implies the fields are unset)                                                                                    |
 
 Positive in-fleet contrasts: browser-history sets `MaxKeys: 10000/1000`
 (api/middleware.go:171, 199); CV sets per-profile `MaxKeys` constants

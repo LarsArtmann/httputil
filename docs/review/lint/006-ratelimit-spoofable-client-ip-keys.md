@@ -34,7 +34,7 @@ the honest version).
   no `TrustedProxies`-style gate.
 - **browser-history** `api/middleware.go:168`: comment claims the
   fallback "is proxy-aware (X-Forwarded-For / X-Real-IP) so it works
-  correctly behind nginx/Docker" — misleading: it is proxy-*trusting*,
+  correctly behind nginx/Docker" — misleading: it is proxy-_trusting_,
   not proxy-aware; the auth-endpoint limiter (:199) inherits the same
   key, so brute-force throttling on WebAuthn ceremonies is bypassable
   the same way.
@@ -43,12 +43,12 @@ the honest version).
 
 ## The in-fleet correct patterns (copy these)
 
-| Consumer | Pattern |
-|---|---|
-| CV (`platform/middleware/ratelimit.go:41`) | `trustedProxyKeyExtractor`: forwarded headers honored only for `httpx.SetTrustedProxies` CIDRs, falls back to RemoteAddr host so the key is never empty |
-| artmann-technologies-website (`middleware.go:172`) | `trustedProxyEnabled()` gate choosing ClientIP vs stripped-host RemoteAddr, with the port-strip rationale documented and rehearsal-tested |
-| nsfw-classifier (`command/server/server.go:511`) | explicit `--behind-proxy` flag choosing the extractor |
-| webphone (`internal/server/server.go:109`) | RemoteAddr-host key with a written flip rule to switch to FromClientIP once the stack proves XFF sanitization |
+| Consumer                                           | Pattern                                                                                                                                                 |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CV (`platform/middleware/ratelimit.go:41`)         | `trustedProxyKeyExtractor`: forwarded headers honored only for `httpx.SetTrustedProxies` CIDRs, falls back to RemoteAddr host so the key is never empty |
+| artmann-technologies-website (`middleware.go:172`) | `trustedProxyEnabled()` gate choosing ClientIP vs stripped-host RemoteAddr, with the port-strip rationale documented and rehearsal-tested               |
+| nsfw-classifier (`command/server/server.go:511`)   | explicit `--behind-proxy` flag choosing the extractor                                                                                                   |
+| webphone (`internal/server/server.go:109`)         | RemoteAddr-host key with a written flip rule to switch to FromClientIP once the stack proves XFF sanitization                                           |
 
 ## Fix
 
