@@ -54,27 +54,27 @@ Nothing catastrophic shipped. Honest near-misses, all caught or zero-impact:
 
 ## f) Things we should get done next (session-derived, priority order)
 
-1. Owner answers g/2 (version number) → cut the `server_timing` release: `scripts/prerelease-check.sh`, CHANGELOG section + link definitions, `[Unreleased]` retarget, annotated tag.
-2. Post-tag: verify pkg.go.dev module page (MIT badge, README rendered, docs visible) and `go get` resolution; request re-index if the proxy lags.
+1. ~~Owner answers g/2 (version number) → cut the `server_timing` release: `scripts/prerelease-check.sh`, CHANGELOG section + link definitions, `[Unreleased]` retarget, annotated tag.~~ done at `19f6a91`
+2. ~~Post-tag: verify pkg.go.dev module page (MIT badge, README rendered, docs visible) and `go get` resolution; request re-index if the proxy lags.~~ done — proxy indexed both tags at 19f6a91 + clean-dir go get/compile verified 2026-10-09; pkg.go.dev page render follows its index sync
 3. ~~Sweep repo docs for stale server_timing license claims (`grep -ri 'proprietary\|license' FEATURES.md SECURITY.md CONTRIBUTING.md docs/ ROADMAP.md` + website copy if any).~~ done at `2a3294f`
 4. ~~Run `buildflow -s markdown-lint` and the lychee link step over the new README (and the root README edit).~~ done — buildflow markdown-lint + lychee both green 2026-10-09 (165 md files covered)
 5. ~~Run a docs-health VERIFY pass (cross-file consistency) covering the license fact.~~ done — docs-health VERIFY pass 2026-10-09 — zero-dep, go 1.27 directive, tag date, badge/LICENSE cross-checks confirmed
 6. ~~Mechanically verify license classification (go-licenses / licensecheck) if tooling is available in the flake.~~ done — byte-identical (1069 B) to fleet-canonical MIT (go-etag LICENSE, holder line included)
-7. Decide the **root module** license question (g/1) — 18 importers currently get zero docs on pkg.go.dev.
-8. If root goes MIT: root LICENSE swap, README badge Proprietary→MIT, AGENTS.md bullet, CHANGELOG, SECURITY.md licensing-contact line, then a root release.
+7. ~~Decide the **root module** license question (g/1) — 18 importers currently get zero docs on pkg.go.dev.~~ done — answered — root went MIT (owner decision 2026-10-09), shipped in v1.5.0
+8. ~~If root goes MIT: root LICENSE swap, README badge Proprietary→MIT, AGENTS.md bullet, CHANGELOG, SECURITY.md licensing-contact line, then a root release.~~ done — follow-through landed in v1.5.0 — LICENSE swap, README badge, AGENTS.md bullet, CHANGELOG; SECURITY.md carried no licensing line
 9. ~~Check CI workflows for any license/badge assertions that the MIT switch could affect.~~ done — .github has no license/badge assertions (grep clean 2026-10-09)
 10. ~~Consider whether the root README's "License" section (line 780) should mention the split explicitly (root Proprietary, server_timing MIT) to prevent consumer confusion.~~ done at `2a3294f`
 11. ~~Consider a server_timing badge/coverage line fed by a standing gate rather than a hand-edited number (or keep it badge-free — current state).~~ **NOT-DO — keep badge-free — hand-maintained numbers rot, FEATURES.md standing measurement owns coverage.**
 12. ~~ROADMAP [Unreleased] note: add the license-split fact if it belongs there at release time.~~ **NOT-DO — CHANGELOG [Unreleased] owns the split fact and freezes at tag — ROADMAP is vision, not a changelog.**
 13. ~~Optional: docs/architecture-reference.md — decide once whether non-Go files (README/LICENSE) get code-map rows; currently Go-only by design (likely NOT-DO).~~ **NOT-DO — code map is Go-exports-only by design — README/LICENSE get no rows.**
-14. After release: confirm the `server_timing` go directive (1.27) still aligns with the workspace floor (1.27.1 via go-etag v0.5.0) at tag time.
+14. ~~After release: confirm the `server_timing` go directive (1.27) still aligns with the workspace floor (1.27.1 via go-etag v0.5.0) at tag time.~~ done — go 1.27 directive clears the workspace floor — prerelease-check.sh green, CI green on the tag commit
 15. ~~Session-hygiene: none of this session's items are in TODO_LIST yet — docs-health HARVEST this report when convenient (items 1–8 above are the actionable subset).~~ done — harvested 2026-10-09 — release + root-license items now in TODO_LIST
 
 ## g) Questions I can NOT figure out myself
 
-1. **Should the root `httputil` module also go MIT?** (Or stay Proprietary?) The root's pkg.go.dev page is completely dark — no docs, no README — for its 18 known importers. That's a business/licensing call only you can make; technically the swap is 30 minutes of work plus a release.
-2. **Which version for the `server_timing` release: `v1.0.2` (patch) or `v1.1.0` (minor)?** The license change is a non-breaking relaxation; semver tolerates either. Repo convention so far used minor bumps for visible changes — your call.
-3. **Is "Lars Artmann" the correct copyright-holder legal form for the MIT notice** (vs. an entity/company name)? I mirrored the prior proprietary LICENSE's holder line.
+1. ~~**Should the root `httputil` module also go MIT?** (Or stay Proprietary?) The root's pkg.go.dev page is completely dark — no docs, no README — for its 18 known importers. That's a business/licensing call only you can make; technically the swap is 30 minutes of work plus a release.~~ done — answered 2026-10-09 — root went MIT too (owner), shipped in v1.5.0
+2. ~~**Which version for the `server_timing` release: `v1.0.2` (patch) or `v1.1.0` (minor)?** The license change is a non-breaking relaxation; semver tolerates either. Repo convention so far used minor bumps for visible changes — your call.~~ done — answered 2026-10-09 — v1.0.2 (patch), tagged with v1.5.0 at 19f6a91
+3. ~~**Is "Lars Artmann" the correct copyright-holder legal form for the MIT notice** (vs. an entity/company name)? I mirrored the prior proprietary LICENSE's holder line.~~ done — answered 2026-10-09 — keep "Lars Artmann" (byte-identical to all 88 fleet MIT LICENSEs)
 
 ---
 
