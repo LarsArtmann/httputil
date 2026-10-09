@@ -33,18 +33,18 @@
 
 ## b) PARTIALLY DONE
 
-1. **Binary freshness** — the binary matches the tree _as of my rebuild_ (`984dac6`), but concurrent in-flight work landed in BuildFlow afterwards (`bcc60a687`, `29f9c20cc` + uncommitted `fail_on` feature files). By my own documented "stale-binary trap", the global binary is already one feature behind. One `nix build . && cp` refresh pending the moment that work settles (see g/1).
+~~1. **Binary freshness** — the binary matches the tree _as of my rebuild_ (`984dac6`), but concurrent in-flight work landed in BuildFlow afterwards (`bcc60a687`, `29f9c20cc` + uncommitted `fail_on` feature files). By my own documented "stale-binary trap", the global binary is already one feature behind. One `nix build . && cp` refresh pending the moment that work settles (see g/1).~~ → tracked: BuildFlow ZCC9 (installed-binary rollout timing)
 2. **`buildflow dev` full-mode link checking** — the dev-mode log shows the lychee step falling back to `nix develop -c` and then failing with `exec: lychee: not found` (plus a markdownlint eval-cache "busy" warning, marked ignored). Steps still counted success. So the individual `markdown-lint`/lychee verifications are solid, but inside a full dev run the link check may be silently no-opping. Root cause not yet chased (is lychee missing from the httputil devShell, or is BuildFlow's fallback broken?). See e/3, g/2.
 3. **Detect-only noise ledger** — the decision to keep opinion findings visible is documented in AGENTS.md, but there is no machine-readable sign-off (config/ledger) that marks the ~180 residual findings as reviewed. Every future run summary will re-print them and every future session must re-read AGENTS.md to know they're intentional. Half-solved by documentation only.
 
 ## c) NOT STARTED
 
-1. **`skip_steps` single-step-mode false warning fix** (BuildFlow) — `-s <step>` warns skip entries "match no registered tool" because `detectUnknownSkipTools` runs against the step-filtered registry, not the full one. Prior session flagged it as a candidate upstream fix; this session did not touch it.
-2. **`nix run .#reinstall` gap** (BuildFlow) — it refreshes only `./result` while the doctor's own stale-binary warning tells users to run it. The app should either install to the real global location or the doctor's advice should match reality. I hit this trap personally; fixing the tool was out of this session's scope.
-3. **buildflow DB VACUUM** (1.09 GB, prior session's note) — not touched, not re-measured.
-4. **`go-licenses` missing from PATH** (doctor info) — lives in BuildFlow's devShell; not surfaced into the httputil flow.
-5. **BuildFlow `execution` module tidy drift** (`dave/dst` v0.27.4 → v0.28.0 indirect) — pre-existing, noticed, deliberately not fixed: an indirect bump cascades into vendor + vendorHash + rebuild in the user's tool repo and wasn't mine to churn. Flagged only.
-6. **server_timing sub-module gates this session** — not re-run (prior session verified; nothing this session touched Go code anywhere). The full dev run's `test-coverage` exercises root + httpspec + scripts/coverage-threshold, not the separate server_timing module.
+~~1. **`skip_steps` single-step-mode false warning fix** (BuildFlow) — `-s <step>` warns skip entries "match no registered tool" because `detectUnknownSkipTools` runs against the step-filtered registry, not the full one. Prior session flagged it as a candidate upstream fix; this session did not touch it.~~ NOT-DO — one-time env warning, benign, flake rewritten since
+~~2. **`nix run .#reinstall` gap** (BuildFlow) — it refreshes only `./result` while the doctor's own stale-binary warning tells users to run it. The app should either install to the real global location or the doctor's advice should match reality. I hit this trap personally; fixing the tool was out of this session's scope.~~ → tracked: BuildFlow issue #35 + ZCC9
+~~3. **buildflow DB VACUUM** (1.09 GB, prior session's note) — not touched, not re-measured.~~ → tracked: BuildFlow P8 machine queue
+~~4. **`go-licenses` missing from PATH** (doctor info) — lives in BuildFlow's devShell; not surfaced into the httputil flow.~~ → tracked: BuildFlow P8 env queue
+~~5. **BuildFlow `execution` module tidy drift** (`dave/dst` v0.27.4 → v0.28.0 indirect) — pre-existing, noticed, deliberately not fixed: an indirect bump cascades into vendor + vendorHash + rebuild in the user's tool repo and wasn't mine to churn. Flagged only.~~ NOT-DO — tidy deliberately deferred (BuildFlow P8)
+~~6. **server_timing sub-module gates this session** — not re-run (prior session verified; nothing this session touched Go code anywhere). The full dev run's `test-coverage` exercises root + httpspec + scripts/coverage-threshold, not the separate server_timing module.~~ done 2026-09-11 — v1.1.0 gates + flake server-timing-standalone check + RELEASE.md protocol
 
 ## d) TOTALLY FUCKED UP
 
@@ -70,32 +70,32 @@ Nothing destructive. Honest missteps, ranked:
 
 1. Chase the dev-mode lychee no-op: is lychee in the httputil devShell? Fix flake or BuildFlow fallback (see g/2).
 2. Re-run `buildflow -s lychee` after any devShell change; pin the 301-link/0-error baseline somewhere checkable.
-3. Consider a findings sign-off ledger (or buildflow config) marking the ~180 reviewed detect-only findings so run summaries stop re-printing them (see g/3).
-4. Add `buildflow --build-mode dev` (exit 0) as an explicit item in `scripts/prerelease-check.sh` or docs/RELEASE.md gates, if desired.
+~~3. Consider a findings sign-off ledger (or buildflow config) marking the ~180 reviewed detect-only findings so run summaries stop re-printing them (see g/3).~~ done 2026-09-15 — keep-visible stance documented (06-41 c2/g3)
+~~4. Add `buildflow --build-mode dev` (exit 0) as an explicit item in `scripts/prerelease-check.sh` or docs/RELEASE.md gates, if desired.~~ NOT-DO — optional idea never wanted; full dev runs are the documented composition
 5. server_timing: run its own gates (`cd server_timing && go test -race ./... && golangci-lint run`) at least once before the next tag; not exercised this session.
 6. TODO_LIST/FEATURES pass via `docs-health` before the next version tag (monthly cadence is due).
 7. Decide whether `[Unreleased]` is ready to cut as v1.0.2 (CHANGELOG now has real Added/Changed/Fixed content).
-8. Consider a CI workflow that runs `buildflow --fail-on-findings` on the _signed-off_ baseline only (depends on f/3).
+~~8. Consider a CI workflow that runs `buildflow --fail-on-findings` on the _signed-off_ baseline only (depends on f/3).~~ NOT-DO — gated on the BuildFlow G19 user decision
 9. The `nix flake show` JSON parse warning inside buildflow's nix-steps ("no decodable JSON object found in 0 bytes") — one-time investigation; likely env-specific, currently benign.
 
 **BuildFlow — follow-ups from what this session touched**
-10. Rebuild + re-copy the global binary once the in-flight `fail_on` work lands (see g/1).
+~~10. Rebuild + re-copy the global binary once the in-flight `fail_on` work lands (see g/1).~~ → tracked: BuildFlow ZCC9
 11. Fix `detectUnknownSkipTools` to compute against the full tool registry, killing the single-step-mode false warning (prior session's finding, still open).
-12. Make `#reinstall` actually reinstall the global binary (or rename it + fix doctor's advice).
-13. Make missing-tool detect steps loud (warn/fail) instead of silent success — the lychee class.
-14. Add the `execution` module tidy (`dave/dst` indirect bump) to BuildFlow's own housekeeping (needs vendor + vendorHash refresh + rebuild in one go).
-15. VACUUM the buildflow DB (1.09 GB) during a quiet window.
-16. Consider a buildflow regression test for `#reinstall`'s contract (result vs global install) so the trap can't regress.
+~~12. Make `#reinstall` actually reinstall the global binary (or rename it + fix doctor's advice).~~ → tracked: BuildFlow issue #35
+~~13. Make missing-tool detect steps loud (warn/fail) instead of silent success — the lychee class.~~ done in effect — BuildFlow fail-safe parsers + noise sink shipped 2026-10-05/06; lychee now in devShell
+~~14. Add the `execution` module tidy (`dave/dst` indirect bump) to BuildFlow's own housekeeping (needs vendor + vendorHash refresh + rebuild in one go).~~ NOT-DO — deferred (see the execution-module row)
+~~15. VACUUM the buildflow DB (1.09 GB) during a quiet window.~~ → tracked: BuildFlow P8
+~~16. Consider a buildflow regression test for `#reinstall`'s contract (result vs global install) so the trap can't regress.~~ NOT-DO — superseded: BuildFlow shipped its own mutation-verified regression tests
 
 **Process**
-17. Adopt "mutation-verify every regression test" as a written convention in BuildFlow's AGENTS.md (it's already practice in httputil's testing conventions).
+~~17. Adopt "mutation-verify every regression test" as a written convention in BuildFlow's AGENTS.md (it's already practice in httputil's testing conventions).~~ → tracked: BuildFlow AGENTS (upstream convention)
 18. Session handoff summaries should include exact CLI invocations that were verified, not paraphrased command names.
 
 ## g) QUESTIONS (cannot resolve myself)
 
-1. **The uncommitted `fail_on` feature in `~/projects/BuildFlow`** (`domain/config/fail_on.go`, `internal/cli/fail_on_gate.go`, `config/materialize.go`, `.github/dependabot.yml` modified) — that's not my work and I left it strictly untouched. Is it yours in-flight? Once it lands: want me to run its gates, rebuild, and re-copy the global binary (one command chain), or is another session owning that?
-2. **Dev-mode lychee fallback policy:** the httputil flake's devShell doesn't provide `lychee` (BuildFlow's `nix develop -c` fallback then fails silently-ish). Should lychee be added to the httputil devShell, or is this BuildFlow's provider fallback to fix (or a BuildFlow devShell dependency to add)? Both are one-line fixes; they're just in different repos with different owners.
-3. **Standing-warnings endstate:** keep the ~180 policy-rejected detect-only findings visible in every run forever (current decision), or freeze them once into a reviewed-baseline/ledger so future summaries show only _new_ findings? The second needs a small config/ledger mechanism in BuildFlow (or a docs/ ledger + convention here).
+~~1. **The uncommitted `fail_on` feature in `~/projects/BuildFlow`** (`domain/config/fail_on.go`, `internal/cli/fail_on_gate.go`, `config/materialize.go`, `.github/dependabot.yml` modified) — that's not my work and I left it strictly untouched. Is it yours in-flight? Once it lands: want me to run its gates, rebuild, and re-copy the global binary (one command chain), or is another session owning that?~~ done — fail_on landed; httputil-side policy resolved (06-41 g1)
+~~2. **Dev-mode lychee fallback policy:** the httputil flake's devShell doesn't provide `lychee` (BuildFlow's `nix develop -c` fallback then fails silently-ish). Should lychee be added to the httputil devShell, or is this BuildFlow's provider fallback to fix (or a BuildFlow devShell dependency to add)? Both are one-line fixes; they're just in different repos with different owners.~~ done — lychee in devShell + CI gate; BuildFlow parser hardened
+~~3. **Standing-warnings endstate:** keep the ~180 policy-rejected detect-only findings visible in every run forever (current decision), or freeze them once into a reviewed-baseline/ledger so future summaries show only _new_ findings? The second needs a small config/ledger mechanism in BuildFlow (or a docs/ ledger + convention here).~~ done 2026-09-15 — keep-visible stance documented
 
 ---
 

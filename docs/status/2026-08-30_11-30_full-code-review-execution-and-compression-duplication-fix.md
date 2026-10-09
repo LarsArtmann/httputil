@@ -106,13 +106,13 @@ Also honest: **the exact-fill duplication bug survived because I reviewed `write
 25. ~~Consider skipping pool Get for non-resettable factories (currently one wasted allocation per request).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (writerPool construction-time probe))
 26. ~~Decide on `Server.Addr()` exposing the resolved port (":0" pain bitten twice in tests).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (shipped as Server.ListenerAddr))
 27. ~~Sweep `errors.As` remnants (erraudit gate is green, but confirm zero `legacy_as` stays green post-v1.0 refactor).~~ done (v1.0.0 sweep final verification: both erraudit real gates exit 0)
-28. LSP hygiene: restart stale clients when diagnostics contradict the toolchain (two sessions of ghost warnings).
+~~28. LSP hygiene: restart stale clients when diagnostics contradict the toolchain (two sessions of ghost warnings).~~ NOT-DO — agent-environment process lesson, not repo work
 29. ~~dprint acquisition for markdown formatting verification.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (pkgs.dprint in the devShell))
 30. ~~Annotate this session's report + the morning's report with hash markers after commit.~~ done (resolved by the 2026-08-30 docs-health annotation pass)
 
 **Bigger rocks (pre-existing TODO_LIST)**
-31. Re-run the `architecture-review` skill (pre-ETag-extraction staleness).
-32. go-compression extraction per the existing Pareto plan.
+~~31. Re-run the `architecture-review` skill (pre-ETag-extraction staleness).~~ → tracked: TODO_LIST Medium (re-run architecture-review post-v1.1)
+~~32. go-compression extraction per the existing Pareto plan.~~ → tracked: TODO_LIST Medium (go-compression extraction)
 33. ~~CI release workflow (tag → build → GitHub Release).~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (release.yml both modules))
 34. ~~go-error-family upstream proposal (run verify-before-filing first).~~ done (v1.0.0 sweep: verified draft saved; filing is an owner action)
 35. ~~Roadmap.md refresh against post-review reality.~~ done (ROADMAP refreshed 2026-08-30)
@@ -130,13 +130,13 @@ Also honest: **the exact-fill duplication bug survived because I reviewed `write
 47. ~~Add the two new fuzz invariants to FEATURES "testing" inventory.~~ done (FEATURES fuzz inventory verified current 2026-09-11 (26 targets listed))
 48. ~~Consider a `make`-free task runner entry in flake.nix for the documented benchmark protocol (3s×5) so doc refreshes are one command.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (nix run .#bench))
 49. ~~Post-v1.0: revisit `KeyExtractor` returning "" semantics (exempt vs shared-bucket) — the two configs read differently; confirm docs are unambiguous.~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (docs verified unambiguous; no change needed))
-50. Schedule the next full-code-review (the report is a snapshot; per skill, use docs-health ANNOTATE when bringing it current).
+~~50. Schedule the next full-code-review (the report is a snapshot; per skill, use docs-health ANNOTATE when bringing it current).~~ done 2026-09-11 + 2026-09-27 — full-code reviews ran (docs/reviews/)
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
-1. **Commit strategy:** the tree holds two large sessions of work (morning backlog pass + this review, 65 files). One commit, or split into logical commits (backlog execution / review fixes / docs)? And do you want the historical status reports' dated markers upgraded to hash markers as part of it?
-2. **CSRF boundary decision:** if reading the nosurf source confirms it trusts client-supplied `Sec-Fetch-Site`, should httputil strip that header from incoming requests before nosurf sees it (breaking for anyone legitimately... sending it? browsers set it and servers can't trust it either way), or is documentation-only acceptable for v1.0?
-3. **Your v1.0 bar:** is "CSRF trust model verified + deprecated API removed + this review's fixes in" sufficient to cut v1.0, or do you require the architecture-review re-run and/or go-compression extraction first?
+~~1. **Commit strategy:** the tree holds two large sessions of work (morning backlog pass + this review, 65 files). One commit, or split into logical commits (backlog execution / review fixes / docs)? And do you want the historical status reports' dated markers upgraded to hash markers as part of it?~~ done — mass-commit accepted as `f916278`
+~~2. **CSRF boundary decision:** if reading the nosurf source confirms it trusts client-supplied `Sec-Fetch-Site`, should httputil strip that header from incoming requests before nosurf sees it (breaking for anyone legitimately... sending it? browsers set it and servers can't trust it either way), or is documentation-only acceptable for v1.0?~~ done 2026-09-10 — rejected: `ErrCSRFAttestationConflict` shipped (04-03 a2)
+~~3. **Your v1.0 bar:** is "CSRF trust model verified + deprecated API removed + this review's fixes in" sufficient to cut v1.0, or do you require the architecture-review re-run and/or go-compression extraction first?~~ done 2026-09-10 — v1.0.0 cut; v1.5.0 shipped 2026-10-09
 
 ---
 
