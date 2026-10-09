@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Nightly-fuzz issue reporting switched to one rolling issue, auto-closed on the first green run** (owner decision 2026-10-09) — a failed nightly comments on (or creates) a single open `nightly-fuzz`-labeled issue, deriving failing targets from the corpus files a crash leaves under `testdata/fuzz/`; the previous per-night filer opened 27 issues in 24 days, every one a re-report of four already-fixed harness/invariant classes or an infra false positive — zero real production bugs.
 - **`server_timing` tags now get GitHub Release objects** (owner decision 2026-10-09) — the Release workflow's tag trigger includes `server_timing/v*`, so a coordinated cut (one commit, both tags, one push) produces both objects automatically; `server_timing/v1.0.2` was backfilled from its existing tag.
 
+### Documented
+
+- **`csrf.max_age_negative` is cause-chained to `ErrCSRFConfig`** (`csrf.go`): the negative-`MaxAge` validation error carries `WithCause(ErrCSRFConfig)` so `errors.Is(err, ErrCSRFConfig)` matches — aligning it with the legacy CSRF config codes' backward-compatibility contract. The chaining shipped in the v1.2.0/v1.3.0 window without its own changelog entry; recorded here as correction of record.
+
 ## [1.5.0] - 2026-10-09
 
 ### Changed
