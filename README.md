@@ -780,3 +780,5 @@ nix flake check             # Nix flake validation
 ## License
 
 Proprietary — see [LICENSE](LICENSE). Contact `git@lars.software` for licensing inquiries.
+
+Exception: the [`server_timing`](server_timing/) sub-module is a separate Go module licensed under [MIT](server_timing/LICENSE), with its own [README](server_timing/README.md).

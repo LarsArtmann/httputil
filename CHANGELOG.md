@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **`server_timing` license switched from Proprietary to MIT** (`server_timing/LICENSE`): the nested module is now redistributable, so pkg.go.dev renders its documentation and README on the module page (previously "License: UNKNOWN — documentation not displayed due to license restrictions"; effective from the next `server_timing` tag, since pkg.go.dev indexes per tagged release). The root `httputil` module stays Proprietary.
+- **Split licensing stated at every consumer decision point** — the root README's License section now names the `server_timing` MIT exception explicitly, and CONTRIBUTING.md routes contributions to the license of the module they land in (both previously assumed a single project-wide license).
 
 ### Added
 

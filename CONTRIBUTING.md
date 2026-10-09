@@ -88,4 +88,4 @@ See [docs/RELEASE.md](docs/RELEASE.md) for the full release runbook.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the same terms as the project (see LICENSE).
+By contributing, you agree that your contributions will be licensed under the terms of the module they land in: the root `httputil` module is Proprietary ([LICENSE](LICENSE)); the [`server_timing`](server_timing/) sub-module is [MIT](server_timing/LICENSE).
