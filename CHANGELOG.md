@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`GOEXPERIMENT=jsonv2` dropped from all four CI workflows and the documented erraudit commands** — `encoding/json/v2` is standard (non-experimental) in Go 1.27, so the flag is a no-op there (the shipped opt-out is now `nojsonv2`); the full test suite and all three erraudit gates verified exit-identical without it, completing the 2026-09-11 DECISION_LOG plan (`go.mod` had already moved to `go 1.27`). Also clears the standing gopls `stdversion` warnings the decision had accepted as noise.
+
 ## [1.5.0] - 2026-10-09
 
 ### Changed

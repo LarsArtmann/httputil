@@ -14,8 +14,6 @@ jobs:
     name: Fuzz (long run)
     runs-on: ubuntu-latest
     env:
-      # The root package imports experiment-gated encoding/json/v2.
-      GOEXPERIMENT: jsonv2
       # go.work requires >= 1.27; pin the exact toolchain like ci.yml does,
       # so the nightly can never fall behind the workspace floor (the
       # 2026-10-05..10-09 "crash" streak was exactly this: go 1.26.8 +

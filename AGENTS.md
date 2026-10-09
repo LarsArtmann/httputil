@@ -102,9 +102,12 @@ nix flake check            # Full flake gates (includes treefmt verification)
 # do NOT migrate either): 45 `sentinel_concrete_type` — the load-bearing
 # `*errorfamily.Error` sentinels, +1 per added sentinel; and 41 test-side
 # `errors.Is` advisories — all correct sentinel matches.
-GOEXPERIMENT=jsonv2 erraudit lint ./... --type-aware --enforce-go-error-family
-GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as
-GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
+# (GOEXPERIMENT=jsonv2 prefix dropped 2026-10-09: encoding/json/v2 is
+# standard since Go 1.27, the flag is a no-op there; all three gates
+# verified exit-identical without it.)
+erraudit lint ./... --type-aware --enforce-go-error-family
+erraudit lint ./... --type legacy_as
+erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
 # Review verdict 2026-09-11 for a full `erraudit . --enforce-samber-oops
 # --enforce-generic-return --no-suppress` run (61 findings; newer erraudit
 # builds): 43 sentinel_concrete_type — REJECTED, the concrete
