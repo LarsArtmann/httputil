@@ -126,3 +126,14 @@ These won't surprise you on every edit, but may trigger on specific patterns:
 
 ```
 ```
+
+## Accepted Code Duplication
+
+Clone baseline re-measured 2026-09-23 (art-dupl 0.7.0-81ce00b, `--type-aware`): **0 shown groups at `-t 2`**; `-t 1` shows exactly the two pairs below (test files are auto-excluded by the tool) — anything NEW at these thresholds is a finding. Intentional clones that remain:
+
+- **`Middleware` in `recorder.go` and `server_timing/middleware.go`** — identical `type Middleware = func(http.Handler) http.Handler` aliases across the module boundary. Both alias the same underlying type (no drift risk), the signature is the stdlib middleware idiom (frozen by definition), and every extraction is worse: server_timing importing root is a module cycle that breaks its stdlib-only zero-dep guarantee, a third shared module adds release machinery for one line, and aliasing root's `Middleware` into servertiming couples the foundational library type to an optional sub-module.
+- **`mw1`/`mw2` in `stack_test.go`** — the integer label is intrinsic to the order-assertion test.
+- **`newTypedBodyHandler` in both `testutil_test.go` and `httpspec/handlers_test.go`** — the root package cannot import `httpspec` (dependency direction).
+- **`if err != nil` pair in `scripts/doc-snippet-refs/main.go`** — standalone stdlib script, idiomatic shape.
+
+Non-test duplication was extracted in the 2026-09-23 pass (compress-write error wrapping → `compressWriteError`; default-OK header write → `responseWrapper.writeDefaultOK()`; Hijack plain-mode switch → `beginPlainResponse()`; the server_timing implicit-WriteHeader prologue merged into the idempotent `flushHeader()`, deleting the redundant `wrote` flag; `withParsedTrustedProxies` failure exits reduced to plain returns; the Accept-Encoding scan loops unified behind `advanceWhile` with `isEntrySeparator`/`isEntryContent` predicates, zero allocs).
