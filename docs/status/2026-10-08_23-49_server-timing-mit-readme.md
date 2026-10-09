@@ -24,17 +24,17 @@
 
 ## b) PARTIALLY DONE
 
-1. **License switch verification** — the MIT text is canonical, but I never ran an actual license classifier (go-licensechecker / go-licenses) against it; detection is asserted, not proven. And pkg.go.dev rendering cannot be observed until a new tag exists.
-2. **Docs consistency** — the four in-repo touchpoints (LICENSE, README, AGENTS.md, CHANGELOG, root README) are coherent, but I did NOT sweep the wider doc set (FEATURES.md, SECURITY.md, CONTRIBUTING.md, docs/v1-stability.md, docs/RELEASE.md, any website copy) for stale proprietary-license claims about server_timing. No `lychee` link check and no `buildflow -s markdown-lint` run on the new README either — link validity was judged by pattern-matching root README conventions.
-3. **Release enablement** — everything is staged for the license+README to become visible on pkg.go.dev, but the enabling tag was not cut (owner gate: version number; see g).
+~~1. **License switch verification** — the MIT text is canonical, but I never ran an actual license classifier (go-licensechecker / go-licenses) against it; detection is asserted, not proven. And pkg.go.dev rendering cannot be observed until a new tag exists.~~ done 2026-10-09 — MIT text verified byte-identical (1069 B) to fleet-canonical (15-39 §a.3); pkg.go.dev render-verified on both pages (2026-10-09_16-36 §a.4)
+~~2. **Docs consistency** — the four in-repo touchpoints (LICENSE, README, AGENTS.md, CHANGELOG, root README) are coherent, but I did NOT sweep the wider doc set (FEATURES.md, SECURITY.md, CONTRIBUTING.md, docs/v1-stability.md, docs/RELEASE.md, any website copy) for stale proprietary-license claims about server_timing. No `lychee` link check and no `buildflow -s markdown-lint` run on the new README either — link validity was judged by pattern-matching root README conventions.~~ done at `2a3294f` — repo-wide stale-license sweep (15-39 §a.2) + markdown-lint/lychee green over 165 md files (15-39 §a.4)
+~~3. **Release enablement** — everything is staged for the license+README to become visible on pkg.go.dev, but the enabling tag was not cut (owner gate: version number; see g).~~ done at `19f6a91` — v1.5.0 + server_timing/v1.0.2 coordinated cut
 
 ## c) NOT STARTED
 
-1. The `server_timing/vX.Y.Z` release tag itself (+ CHANGELOG section, link-definition additions, [Unreleased] retarget, `scripts/prerelease-check.sh`).
-2. Repo-wide stale-license-claim sweep.
-3. buildflow markdown-lint / markdown-links (lychee) on the new files.
-4. Post-tag pkg.go.dev verification (module page renders README + docs, license shows MIT).
-5. Any root-module license decision follow-through (root pkg.go.dev page stays dark until then).
+~~1. The `server_timing/vX.Y.Z` release tag itself (+ CHANGELOG section, link-definition additions, [Unreleased] retarget, `scripts/prerelease-check.sh`).~~ done at `19f6a91`
+~~2. Repo-wide stale-license-claim sweep.~~ done at `2a3294f`
+~~3. buildflow markdown-lint / markdown-links (lychee) on the new files.~~ done 2026-10-09 — both steps green (15-39 §a.4)
+~~4. Post-tag pkg.go.dev verification (module page renders README + docs, license shows MIT).~~ done 2026-10-09 — both module pages render MIT + README + docs (2026-10-09_16-36 §a.4)
+~~5. Any root-module license decision follow-through (root pkg.go.dev page stays dark until then).~~ done 2026-10-09 — root went MIT (owner), shipped in v1.5.0
 
 ## d) TOTALLY FUCKED UP!
 
