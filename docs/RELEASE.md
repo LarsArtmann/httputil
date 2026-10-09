@@ -102,12 +102,13 @@ Verify the signature:
 git tag -v vX.Y.Z
 ```
 
-### 12. Push
+### 12. Push (master and tags in ONE command)
 
 ```bash
-git push origin master
-git push origin vX.Y.Z
+git push origin master vX.Y.Z server_timing/vX.Y.Z
 ```
+
+Push master and ALL release tags together, never sequentially. The CHANGELOG's new `[X.Y.Z]:` compare links and the retargeted `[Unreleased]:` reference the tag being created — if master lands first, its CI run fails the lychee link check on compare URLs whose tags do not exist yet (the exact mechanism behind the v1.4.2 red release run: master pushed at 18:57, tag links unresolvable until the tag ref landed).
 
 ### 12.5. Wait for CI green on the exact tag commit
 
