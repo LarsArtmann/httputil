@@ -280,7 +280,9 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ExpectHTML`                | Additive | Added post-v0.10.0                |
 | `ExpectVaryContains`        | Additive | Added post-v0.10.0                |
 | `ExpectNotModifiedWithETag` | Additive | Added post-v0.10.0                |
-| `SpecName*` constants (18)  | Frozen   | String values are part of the API |
+| `SpecName*` constants       | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`) |
+| `CORSSpecs` / `RateLimitSpecs` | Frozen | Pre-v1.0 opt-in spec bundles | 
+| `PrivateNetworkSpecs`       | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec) |
 
 ### Standard Specs (Additive)
 

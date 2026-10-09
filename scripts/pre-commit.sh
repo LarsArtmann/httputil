@@ -4,9 +4,9 @@
 # Fails the commit if any lint issues are found.
 set -euo pipefail
 
-STAGED_GO_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
+STAGED_GO_CHANGES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
 
-if [ -z "$STAGED_GO_FILES" ]; then
+if [ -z "$STAGED_GO_CHANGES" ]; then
 	exit 0
 fi
 
