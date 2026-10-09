@@ -127,7 +127,7 @@ Nothing shipped broken — all gates green, tree clean, no code regressions (the
 26. SECURITY.md: consider documenting the attestation-conflict defense (it documents fallback but not the 403 defense added in v1.0.0).
 27. Sweep archived/ for further stale prose citations like the idempotency-bullet path (backtick paths are invisible to lychee).
 28. Consider a `docs/status/` INDEX decision again only if archive count grows past ~120 (rejected 2026-09-11; count now ~90).
-29. Verify the LICENSE question on pkg.go.dev ("License: UNKNOWN" + godoc suppressed) — is Proprietary + unrendered godoc the intended public face?
+29. ~~Verify the LICENSE question on pkg.go.dev ("License: UNKNOWN" + godoc suppressed) — is Proprietary + unrendered godoc the intended public face?~~ done — answered 2026-10-08 — server_timing went MIT (owner decision), root stays Proprietary as accepted tradeoff; see docs/status/2026-10-08_23-49_server-timing-mit-readme.md
 30. Keep `MiddlewareETag` seam doc in sync with Dependabot's go-etag bumps (standing).
 
 **Tracked elsewhere (restated for completeness, not re-ticketed)**

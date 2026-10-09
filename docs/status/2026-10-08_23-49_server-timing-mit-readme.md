@@ -56,19 +56,19 @@ Nothing catastrophic shipped. Honest near-misses, all caught or zero-impact:
 
 1. Owner answers g/2 (version number) → cut the `server_timing` release: `scripts/prerelease-check.sh`, CHANGELOG section + link definitions, `[Unreleased]` retarget, annotated tag.
 2. Post-tag: verify pkg.go.dev module page (MIT badge, README rendered, docs visible) and `go get` resolution; request re-index if the proxy lags.
-3. Sweep repo docs for stale server_timing license claims (`grep -ri 'proprietary\|license' FEATURES.md SECURITY.md CONTRIBUTING.md docs/ ROADMAP.md` + website copy if any).
-4. Run `buildflow -s markdown-lint` and the lychee link step over the new README (and the root README edit).
-5. Run a docs-health VERIFY pass (cross-file consistency) covering the license fact.
-6. Mechanically verify license classification (go-licenses / licensecheck) if tooling is available in the flake.
+3. ~~Sweep repo docs for stale server_timing license claims (`grep -ri 'proprietary\|license' FEATURES.md SECURITY.md CONTRIBUTING.md docs/ ROADMAP.md` + website copy if any).~~ done at `2a3294f`
+4. ~~Run `buildflow -s markdown-lint` and the lychee link step over the new README (and the root README edit).~~ done — buildflow markdown-lint + lychee both green 2026-10-09 (165 md files covered)
+5. ~~Run a docs-health VERIFY pass (cross-file consistency) covering the license fact.~~ done — docs-health VERIFY pass 2026-10-09 — zero-dep, go 1.27 directive, tag date, badge/LICENSE cross-checks confirmed
+6. ~~Mechanically verify license classification (go-licenses / licensecheck) if tooling is available in the flake.~~ done — byte-identical (1069 B) to fleet-canonical MIT (go-etag LICENSE, holder line included)
 7. Decide the **root module** license question (g/1) — 18 importers currently get zero docs on pkg.go.dev.
 8. If root goes MIT: root LICENSE swap, README badge Proprietary→MIT, AGENTS.md bullet, CHANGELOG, SECURITY.md licensing-contact line, then a root release.
-9. Check CI workflows for any license/badge assertions that the MIT switch could affect.
-10. Consider whether the root README's "License" section (line 780) should mention the split explicitly (root Proprietary, server_timing MIT) to prevent consumer confusion.
-11. Consider a server_timing badge/coverage line fed by a standing gate rather than a hand-edited number (or keep it badge-free — current state).
-12. ROADMAP [Unreleased] note: add the license-split fact if it belongs there at release time.
-13. Optional: docs/architecture-reference.md — decide once whether non-Go files (README/LICENSE) get code-map rows; currently Go-only by design (likely NOT-DO).
+9. ~~Check CI workflows for any license/badge assertions that the MIT switch could affect.~~ done — .github has no license/badge assertions (grep clean 2026-10-09)
+10. ~~Consider whether the root README's "License" section (line 780) should mention the split explicitly (root Proprietary, server_timing MIT) to prevent consumer confusion.~~ done at `2a3294f`
+11. ~~Consider a server_timing badge/coverage line fed by a standing gate rather than a hand-edited number (or keep it badge-free — current state).~~ **NOT-DO — keep badge-free — hand-maintained numbers rot, FEATURES.md standing measurement owns coverage.**
+12. ~~ROADMAP [Unreleased] note: add the license-split fact if it belongs there at release time.~~ **NOT-DO — CHANGELOG [Unreleased] owns the split fact and freezes at tag — ROADMAP is vision, not a changelog.**
+13. ~~Optional: docs/architecture-reference.md — decide once whether non-Go files (README/LICENSE) get code-map rows; currently Go-only by design (likely NOT-DO).~~ **NOT-DO — code map is Go-exports-only by design — README/LICENSE get no rows.**
 14. After release: confirm the `server_timing` go directive (1.27) still aligns with the workspace floor (1.27.1 via go-etag v0.5.0) at tag time.
-15. Session-hygiene: none of this session's items are in TODO_LIST yet — docs-health HARVEST this report when convenient (items 1–8 above are the actionable subset).
+15. ~~Session-hygiene: none of this session's items are in TODO_LIST yet — docs-health HARVEST this report when convenient (items 1–8 above are the actionable subset).~~ done — harvested 2026-10-09 — release + root-license items now in TODO_LIST
 
 ## g) Questions I can NOT figure out myself
 
