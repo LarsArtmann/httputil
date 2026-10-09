@@ -42,7 +42,7 @@
 
 ## d) TOTALLY FUCKED UP!
 
-1. **I corrupted 11 table rows in `2026-09-15_07-00` with a hand-rolled Python line rebuild, and the auto-commit daemon committed the corruption** (`8d27705`, 21:18) before I noticed. My rebuild wrote empty `| ` lines; my first recovery attempt then asserted against the already-corrupt HEAD. Recovered correctly from `a0123fc`, but the corrupt intermediate is permanent history and two daemon windows got burned on a file I was mid-surgery on. Root cause: line-position surgery on a table whose cell count I hadn't verified (row 33 had 4 cells, not 2).
+1. **I corrupted 11 table rows in `2026-09-15_07-00` with a hand-rolled Python line rebuild, and the auto-commit daemon committed the corruption** (`8d27705`, 21:18) before I noticed. My rebuild wrote empty `|` lines; my first recovery attempt then asserted against the already-corrupt HEAD. Recovered correctly from `a0123fc`, but the corrupt intermediate is permanent history and two daemon windows got burned on a file I was mid-surgery on. Root cause: line-position surgery on a table whose cell count I hadn't verified (row 33 had 4 cells, not 2).
 2. **The annotate-status-items script mangles `| N |`-style table rows** — strikes land as a `~~|` prefix (`~~| 50     | Schedule…`) instead of striking cells, and I applied it across three files before running check-rows, so 29 rows were mangled simultaneously. Worse, my first two repair attempts used the wrong regex shape (fixed 0, fixed 0) and an intervening dprint pass shifted line numbers, so I was debugging against a moving file. All 29 repaired and gated, but this was three failure classes stacked: tool bug × no immediate verification × regex-from-memory.
 3. **My own sweep introduced 481 markdown-lint findings** (MD060/MD055/MD056 — unaligned struck tables) discovered only when I finally ran the linter; the repo had been at 0. dprint repaired alignment, but "leave the tree lint-clean" was broken for most of the session.
 4. **First sub-agent dispatch: 5 parallel agents, all failed on the usage limit** — the user had to instruct "retry 1 at a time". Batch 4 then hit a rate limit and I inserted unrelated work before retrying instead of simply retrying. Cost: serial dispatch was the plan that worked all along.
@@ -81,4 +81,4 @@
 
 ---
 
-*Point-in-time snapshot. Annotate, don't rewrite, when this goes stale.*
+_Point-in-time snapshot. Annotate, don't rewrite, when this goes stale._
