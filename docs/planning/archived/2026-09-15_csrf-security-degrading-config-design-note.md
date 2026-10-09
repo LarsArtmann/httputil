@@ -105,7 +105,9 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 
 _Implemented shape differs from this sketch (post-implementation correction, 2026-09-15): the check lives in a shared `withSecureFallback(cfg)` helper used by both `CSRFMiddleware` and `InvalidateCSRFCookie` (so the deletion cookie matches the remediated one), the remediation log carries the structured `csrf_samesite_insecure` code, and the additive `CSRFConfig.AllowInsecureSameSiteNone` opt-out bypasses the fallback verbatim. See `csrf.go` and the CHANGELOG `[Unreleased]` entries._
 
-## 8. Decision ask (owner, question ③)
+## 8. Decision ask
+
+_~~Decision pending.~~ Resolved 2026-09-15: the owner selected B1 (§9); shipped in v1.2.0 (`withSecureFallback` + `AllowInsecureSameSiteNone`). The residual interpretation question (B1 vs Lax default) is tracked in TODO_LIST Medium. (docs-health annotation 2026-10-09.)_ (owner, question ③)
 
 1. **A** — keep log-only verbatim; close the TODO as a documented decision.
 2. **B1** (recommended) — constructor forces `Secure=true` for the combo; ship in v1.2.0 with the migration note.

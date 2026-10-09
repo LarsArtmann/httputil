@@ -1,6 +1,6 @@
 # Pointer — `etagmetrics` moved to go-etag as `metrics`
 
-_2026-09-23. This is a routing note, not a plan: the full design + execution
+_2026-09-23. ~~Move pending.~~ **Complete** — `etagmetrics` removed in v1.4.0, live as `go-etag/metrics` with corrected `HitRatio()` (verified 2026-10-09, docs-health annotation). This is a routing note, not a plan: the full design + execution
 record lives in the go-etag repo._
 
 The `etagmetrics` sub-module (added in this repo's v1.3.0, 2026-09-22) was

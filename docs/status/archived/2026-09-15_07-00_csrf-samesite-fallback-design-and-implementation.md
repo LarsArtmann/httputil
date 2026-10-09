@@ -30,7 +30,7 @@
 
 | Item                                        | Works now                                                                                                                                                                                     | Open                                                                                                                                                                                                             | Effort |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 
+| ~~**Hardening pass for the shipped fallback**~~ | Behavior is pinned by 6 tests, suite green ×10 under race                                                                                                                                     | done 2026-09-15 — mutation checks, coverage probe, smoke-fuzz, sub-module gate, flake check all executed (a3) | S      |
 | ~~**v1.2.0 release**~~                      | ~~All three behavioral deltas + two additive fields are staged, migration doc complete, gates green~~ done at `9b9e032` — v1.2.0 cut 2026-09-16 and pushed, CI green per RELEASE.md step 12.5 | ~~The cut itself (RELEASE.md runbook) not started — release timing is owner-gated~~                                                                                                                              | ~~M~~  |
 | ~~**Tree cleanliness**~~                    | ~~All substantive work daemon-committed; `git log 46c9070..73cfe4e` holds the session~~                                                                                                       | ~~The final treefmt reformat of `csrf_test.go` was still uncommitted at report time (daemon raced); verify it lands~~ confirmed landed 2026-09-15 (tree clean; `csrf_test.go` final state on master)             | ~~S~~  |
 
@@ -38,15 +38,15 @@
 
 | Item                                                                                                                                                                                                                                           | Why not started                                                                                     |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 
-| 
-| 
-| 
-| 
-| 
-| 
-| 
-| 
+| ~~Pin LNA header behavior on denied-origin preflights (test vs suppress)~~ | done 2026-09-23 — denied-origin pinned by test + field doc; posture question tracked in TODO_LIST |
+| ~~httpspec opt-in LNA preflight spec (`WithExtraSpecs` pattern)~~ | done — PrivateNetworkSpecs() shipped (a7) |
+| ~~Verify LNA header contract against live Chrome/spec docs~~ | done 2026-09-23 — AGENTS.md spec-churn note records the PNA/LNA state |
+| ~~LNA documentation polish (Example, README fence, Max-Age × caching note)~~ | done — Example + README fence + Max-Age note landed (a6/a9) |
+| ~~LNA verification polish (mutation checks, coverage probe, fuzz seed, sub-module gate)~~ | done — mutation checks + coverage probe + fuzz seed + sub-module gate executed (a3/a8) |
+| ~~Re-run `architecture-review` post-v1.1~~ | → tracked — TODO_LIST Medium (architecture-review re-run) |
+| ~~Extract compression into `go-compression`~~ | → tracked — TODO_LIST Medium (go-compression extraction) |
+| ~~httpspec discovery docs-site page~~ | → tracked — TODO_LIST Low (httpspec docs-site page) |
+| ~~Post-v1.1 frozen-API items (ValidateCSRF recorder type, `MiddlewareFunc` split — v2.0; typed stack names, pool hardening)~~ | → tracked — TODO_LIST Post-v1.1 section |
 | ~~Resolve the standing gzip-on-absent-Accept-Encoding ruling (go-error-family issue #4 thread)~~ done 2026-09-15 — owner instructed identity default; `AbsentEncoding` implemented and shipped in v1.2.0; issue closed with root-cause comment | ~~Owner question, standing since 2026-09-11~~                                                       |
 
 ## d) TOTALLY FUCKED UP

@@ -1,5 +1,7 @@
 # 2026-09-22 23:04 — Superb Examples
 
+_~~Execution pending.~~ **Shipped in v1.4.0** (2026-09-26): every example self-contained per the conventions; outcome table below verified against the tree 2026-10-09 (docs-health annotation)._
+
 ## Goal
 
 Make the package examples superb: every example on pkg.go.dev is
