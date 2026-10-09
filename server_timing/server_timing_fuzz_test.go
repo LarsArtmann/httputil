@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -69,6 +70,8 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 	f.Add("GET", "/api/users")
 	f.Add("", "")
 	f.Add(strings.Repeat("A", 500), strings.Repeat("/", 100))
+	f.Add("GET", "0")
+	f.Add("GET", "/%")
 
 	f.Fuzz(func(t *testing.T, method, path string) {
 		handler := ServerTimingMiddleware()(
@@ -101,6 +104,13 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 			t.Skip("invalid HTTP method token")
 		}
 
+		// httptest.NewRequest also panics on targets that are neither
+		// path-absolute, absolute URLs, nor "*" (url.ParseRequestURI rejects
+		// e.g. "0") — the 2026-09-30 nightly-fuzz crash #31.
+		if !isFuzzableTarget(path) {
+			t.Skip("invalid request target")
+		}
+
 		r := httptest.NewRequest(method, path, nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
@@ -128,6 +138,19 @@ func isFuzzableMethod(s string) bool {
 	}
 
 	return true
+}
+
+// isFuzzableTarget reports whether s is a request target safe to pass to
+// httptest.NewRequest, which panics on any target url.ParseRequestURI
+// rejects (e.g. "0" — not path-absolute — or "/%" — invalid URL escape).
+func isFuzzableTarget(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	_, err := url.ParseRequestURI(s)
+
+	return err == nil
 }
 
 // TestServerTimingNilReceiver ensures nil-receiver pattern is a safe no-op.
