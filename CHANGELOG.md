@@ -19,6 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **`server_timing/README.md`**: the sub-module's own end-user page — install, quick start, how-it-works, feature overview, and the measure-before-response-commit gotcha — as the rendered overview on pkg.go.dev's module page and GitHub directory view.
 
+### Fixed
+
+- **`FuzzServerTimingMiddleware` harness no longer panics on adversarial fuzz inputs** (`server_timing/server_timing_fuzz_test.go`): `httptest.NewRequest` re-parses `"METHOD target HTTP/1.0"` via `http.ReadRequest` and panics on non-token methods (`"`) and unparseable targets (`0`, `/%`) — the 2026-09-30 nightly-fuzz "crash" (#31) was this harness defect, not middleware behavior. Inputs are now filtered exactly as `ReadRequest` would reject them and pinned as seeds (19.4M-exec local replay: clean).
+- **CI green again after three independent master breakages** — the missing `[1.4.2]` CHANGELOG link definition + stale `[Unreleased]` target (`e70820f`), the Lint job's missing toolchain pin once go1.27.2's export-data version outpaced the pinned golangci-lint v2.13.2 (`8a592ab`), and the nightly-fuzz workflow's go 1.26 pin, which `go.work`'s ≥ 1.27 floor rejected before any fuzzing ran — nine false "crash" issues (#32–#40) closed as infra.
+
 ### Documented
 
 - **Correction of record for `v1.4.1`**: that tag (2026-10-03) shipped without a CHANGELOG section; its diff vs v1.4.0 is infra/docs-only (nix module migration, GitHub-Actions dependency bumps, the 2026-09-27 full-code-review report) with no library changes. Relatedly, the v1.4.2 release commit lacked the `[1.4.2]` link definition and left `[Unreleased]` targeting v1.3.0, failing the CHANGELOG link check on every master CI run from 2026-10-08 (fixed in `e70820f`); the missing v1.4.2 GitHub Release was created from this cycle.
