@@ -24,18 +24,18 @@
 
 ## b) PARTIALLY DONE
 
-1. **pkg.go.dev render verification** — proxy + consumer resolution verified; the actual page render (MIT badge, README, docs) still 404 at session end (index sync lag, ~30 min typical). The CHANGELOG claim is mechanism-verified (MIT + tag exists) but render-unconfirmed.
-2. **`a0503a1` (annotations + TODO_LIST closeout)** — committed locally, **unpushed** (origin 1 behind); no CI run on it. Caught by this self-review, not by the release flow.
-3. **RELEASE.md gate 6 (benchmark baseline doc)** — gates ran green, but `docs/benchmarks.md` not refreshed (header still "Measured 2026-09-11"); defensible for a zero-production-code-change release, yet stale against the runbook cadence since v1.4.0.
+~~1. **pkg.go.dev render verification** — proxy + consumer resolution verified; the actual page render (MIT badge, README, docs) still 404 at session end (index sync lag, ~30 min typical). The CHANGELOG claim is mechanism-verified (MIT + tag exists) but render-unconfirmed.~~ done 2026-10-09 — render-verified on both module pages (2026-10-09_16-36 §a.4)
+~~2. **`a0503a1` (annotations + TODO_LIST closeout)** — committed locally, **unpushed** (origin 1 behind); no CI run on it. Caught by this self-review, not by the release flow.~~ done 2026-10-09 — daemon pushed it; CI green (2026-10-09_16-36 §a.1)
+~~3. **RELEASE.md gate 6 (benchmark baseline doc)** — gates ran green, but `docs/benchmarks.md` not refreshed (header still "Measured 2026-09-11"); defensible for a zero-production-code-change release, yet stale against the runbook cadence since v1.4.0.~~ done 2026-10-09 — docs/benchmarks.md re-measured under Go 1.27.1 and rewritten
 4. **RELEASE.md step 9 (historical-report sweep)** — license-themed open claims annotated; not an exhaustive open-claims sweep.
 
 ## c) NOT STARTED
 
-1. pkg.go.dev post-sync visual confirmation (+ `/fetch` trigger if needed).
-2. golangci-lint version bump (first release built with go1.27.2) to retire the exact-Go-pin workaround.
-3. Nightly-fuzz issue dedupe (9 duplicate issues over 9 days is the failure signature).
+~~1. pkg.go.dev post-sync visual confirmation (+ `/fetch` trigger if needed).~~ done 2026-10-09 — see 2026-10-09_16-36 §a.4
+~~2. golangci-lint version bump (first release built with go1.27.2) to retire the exact-Go-pin workaround.~~ done 2026-10-09 — v2.14.0 + exact pins retired (owner §g1; CHANGELOG [Unreleased], DECISION_LOG)
+~~3. Nightly-fuzz issue dedupe (9 duplicate issues over 9 days is the failure signature).~~ done 2026-10-09 — rolling one-issue policy in nightly-fuzz.yml (owner §g2)
 4. FEATURES.md freshness pass — `_Updated: 2026-09-27` header predates v1.4.x/v1.5.0; server_timing README/LICENSE not inventoried.
-5. Coverage-badge freshness check (CI computes it but `contents: read` prevents committing; may need a local `update-coverage-badge.sh` run).
+~~5. Coverage-badge freshness check (CI computes it but `contents: read` prevents committing; may need a local `update-coverage-badge.sh` run).~~ done 2026-10-09 — badge 97.5→98.1 (2026-10-09_16-36 §a.8)
 6. Coordination with the parallel lint-audit session — `docs/review/lint/011-stale-httputil-versions.md` is likely affected by v1.5.0's existence.
 7. /tmp scratch cleanup (release-verify module, nightly log zip+dir, close-comment drafts).
 
@@ -58,28 +58,28 @@
 
 ## f) Things we should get done next (priority order)
 
-1. **Push `a0503a1`** and confirm CI green on it.
-2. **Verify pkg.go.dev renders both pages post-sync** (MIT badge, README, docs visible; hit `/fetch` if the page stalls).
+~~1. **Push `a0503a1`** and confirm CI green on it.~~ done 2026-10-09 — daemon pushed; CI green (2026-10-09_16-36 §a.1)
+~~2. **Verify pkg.go.dev renders both pages post-sync** (MIT badge, README, docs visible; hit `/fetch` if the page stalls).~~ done 2026-10-09 — see 2026-10-09_16-36 §a.4
 3. **Coordinate with the parallel lint-audit session** — `docs/review/lint/011-stale-httputil-versions.md` needs v1.5.0 context (consumers can now bump to a MIT-licensed, fully-documented version).
-4. **Coverage-badge freshness** — compare CI's coverage artifact vs README badge; run `update-coverage-badge.sh` locally if drifted.
-5. **golangci-lint bump evaluation** — first release built with go1.27.2 retires the exact-Go-pin workaround in both workflows (fleet-wide: BuildFlow pins lint versions too).
-6. **Nightly-fuzz issue dedupe** — search-open-before-create (or a rolling issue + auto-close-on-green); 9 duplicates in 9 days is the signature.
-7. **FEATURES.md freshness pass** — v1.4.x/v1.5.0 rows (server_timing README + LICENSE/MIT facts), refresh `_Updated_` header.
-8. **docs/benchmarks.md refresh** — per gate-6 cadence (`nix run .#bench`, 3s×5 protocol).
+~~4. **Coverage-badge freshness** — compare CI's coverage artifact vs README badge; run `update-coverage-badge.sh` locally if drifted.~~ done 2026-10-09 — see 2026-10-09_16-36 §a.8
+~~5. **golangci-lint bump evaluation** — first release built with go1.27.2 retires the exact-Go-pin workaround in both workflows (fleet-wide: BuildFlow pins lint versions too).~~ done 2026-10-09 — v2.14.0 verified clean and executed (owner §g1; DECISION_LOG 2026-10-09)
+~~6. **Nightly-fuzz issue dedupe** — search-open-before-create (or a rolling issue + auto-close-on-green); 9 duplicates in 9 days is the signature.~~ done 2026-10-09 — rolling policy shipped (owner §g2)
+~~7. **FEATURES.md freshness pass** — v1.4.x/v1.5.0 rows (server_timing README + LICENSE/MIT facts), refresh `_Updated_` header.~~ done 2026-10-09 — see 2026-10-09_16-36 §a.9
+~~8. **docs/benchmarks.md refresh** — per gate-6 cadence (`nix run .#bench`, 3s×5 protocol).~~ done 2026-10-09 — rewritten from three protocol passes (load-resistant best-pass; flate note)
 9. **CI guard for the nightly-vs-floor skew** — a fail-fast check comparing go.work's floor with the nightly's pinned Go would have caught the 9-day breakage on day one.
-10. **AGENTS.md size reduction** — doctor warns 297 > 220 lines; move CI-workflow detail into RELEASE.md, keep AGENTS pointers.
+~~10. **AGENTS.md size reduction** — doctor warns 297 > 220 lines; move CI-workflow detail into RELEASE.md, keep AGENTS pointers.~~ done 2026-10-09 — 299→217 lines (2026-10-09_16-36 §a.9)
 11. **Watch the first green nightly post-fix** — all 26 targets re-exercise for the first time since 2026-09-30; triage anything new.
-12. **Add the Go-pin bump ritual to RELEASE.md pre-tag checklist** — the exact-pin must be right BEFORE tagging (workflow frozen at tag; the v1.5.0 Release run died on exactly this).
-13. **docs-health HARVEST this report** — f-items 1–11 are the actionable subset.
-14. **/tmp scratch cleanup** via `trash`.
-15. **Optional: GitHub Release object for `server_timing/v1.0.2`** (currently tags-only by precedent).
-16. **Optional: ROADMAP note** that the relicensing shipped (only if ROADMAP carries license-vision items — none found in the sweep).
+~~12. **Add the Go-pin bump ritual to RELEASE.md pre-tag checklist** — the exact-pin must be right BEFORE tagging (workflow frozen at tag; the v1.5.0 Release run died on exactly this).~~ done 2026-10-09 — RELEASE.md gate 6.6 (2026-10-09_16-36 §a.7); reworded post-un-pin same day
+~~13. **docs-health HARVEST this report** — f-items 1–11 are the actionable subset.~~ done 2026-10-09 — both 2026-10-09 reports harvested into TODO_LIST (jsonv2 item deleted)
+~~14. **/tmp scratch cleanup** via `trash`.~~ done 2026-10-09 — trashed
+~~15. **Optional: GitHub Release object for `server_timing/v1.0.2`** (currently tags-only by precedent).~~ done 2026-10-09 — server_timing/v1.0.2 Release object created (owner §g3)
+~~16. **Optional: ROADMAP note** that the relicensing shipped (only if ROADMAP carries license-vision items — none found in the sweep).~~ NOT-DO — ROADMAP carried no license-vision items (verified in this report's own sweep)
 
 ## g) Questions I can NOT figure out myself
 
-1. **golangci-lint pin strategy:** bump to the first release built with go1.27.2 now (removes the brittle exact-Go-patch pins from both workflows), or keep v2.13.2 + exact pins until a feature-relevant golangci release? This ripples fleet-wide (BuildFlow's own lint pins).
-2. **Nightly-fuzz issue policy:** switch to deduplicated/rolling issue reporting (one open issue per underlying failure, auto-closed on a green run), or keep one-issue-per-night with a triage label?
-3. **`server_timing` release surface:** keep tags-only (current precedent — the sub-module has never had a GitHub Release object), or start cutting release objects for sub-module tags too?
+~~1. **golangci-lint pin strategy:** bump to the first release built with go1.27.2 now (removes the brittle exact-Go-patch pins from both workflows), or keep v2.13.2 + exact pins until a feature-relevant golangci release? This ripples fleet-wide (BuildFlow's own lint pins).~~ answered 2026-10-09: bump to v2.14.0 + retire exact pins — executed (CHANGELOG [Unreleased])
+~~2. **Nightly-fuzz issue policy:** switch to deduplicated/rolling issue reporting (one open issue per underlying failure, auto-closed on a green run), or keep one-issue-per-night with a triage label?~~ answered 2026-10-09: rolling one-issue policy — executed in nightly-fuzz.yml
+~~3. **`server_timing` release surface:** keep tags-only (current precedent — the sub-module has never had a GitHub Release object), or start cutting release objects for sub-module tags too?~~ answered 2026-10-09: cut Release objects — trigger added, v1.0.2 backfilled
 
 ---
 
