@@ -67,6 +67,7 @@ _No open high-priority items — the v1.5.0 / server_timing v1.0.2 coordinated r
 - [ ] **Compression test/doc batch** — fuzz the `AbsentEncodingFirstConfigured` identity-policy branch; dedupe the `newLargePlainTextBody()` fixture (×11); sweep all fuzz oracles for Go-normalization vs ABNF; post the issue #4 follow-up comment (replace the dangling daemon hash); pin art-dupl in flake.nix. Sources: docs/status/2026-09-15_17-04 f3/f6/f7/f8, docs/status/2026-09-23_16-22 f3.
 - [ ] **server_timing + limiter examples** — `ExampleMeasureWithDesc` + nil-safe `ServerTimingFromContext` example; `EvictionTTL` eviction example. Sources: docs/status/2026-09-23_00-04_superb c6/f17–f18/b9/f26.
 - [ ] **External micro-hygiene** — d2-syntax skill reference fix (`border-dashed` → `stroke-dash`, 4th deferral); go-etag stale worktree cleanup; `~/.local/share/Trash` etagmetrics copies. Sources: docs/status/2026-09-10_06-09 c5/f4/f19, docs/status/2026-09-11_04-30 f41, docs/status/2026-09-23_13-26 c6/f22.
+- [ ] **Session follow-ups (2026-10-09 docs-health audit)** — strike 21-46 §a5 as superseded; a standing archive-count gate (README claim vs directory); record the check-rows scope boundary (FULLY-DONE tables exempt) in AGENTS.md; report the annotate-status-items `| N |`-table mangling defect to the skill repo; owner ruling on bulk-striking the 24 KEEP files (docs/status/2026-10-09_22-11 g.1). Source: docs/status/2026-10-09_22-11 f.5/b.1/c.2.
 
 ## Post-v1.1 (frozen-API or v2.0 material — recorded, not fixed, in the 2026-09-11 full-code review)
 
