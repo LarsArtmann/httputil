@@ -72,6 +72,7 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 	f.Add(strings.Repeat("A", 500), strings.Repeat("/", 100))
 	f.Add("GET", "0")
 	f.Add("GET", "/%")
+	f.Add("\"", "/")
 
 	f.Fuzz(func(t *testing.T, method, path string) {
 		handler := ServerTimingMiddleware()(
@@ -123,7 +124,9 @@ func FuzzServerTimingMiddleware(f *testing.F) {
 }
 
 // isFuzzableMethod reports whether s is a valid HTTP token safe to pass to
-// httptest.NewRequest, which panics on invalid methods.
+// httptest.NewRequest, which parses "METHOD target HTTP/1.0" via
+// http.ReadRequest and panics when the method is not an RFC 7230 token
+// (e.g. the separator character "\"").
 func isFuzzableMethod(s string) bool {
 	if s == "" {
 		return false
@@ -135,17 +138,32 @@ func isFuzzableMethod(s string) bool {
 		if c <= ' ' || c >= 0x7F {
 			return false
 		}
+
+		switch c {
+		case '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=', '{', '}':
+			return false
+		}
 	}
 
 	return true
 }
 
 // isFuzzableTarget reports whether s is a request target safe to pass to
-// httptest.NewRequest, which panics on any target url.ParseRequestURI
-// rejects (e.g. "0" — not path-absolute — or "/%" — invalid URL escape).
+// httptest.NewRequest, which re-parses "METHOD target HTTP/1.0" via
+// http.ReadRequest and panics when that fails: targets with spaces or
+// control characters break the request-line field split, and targets
+// url.ParseRequestURI rejects ("0", "/%") fail the URI parse.
 func isFuzzableTarget(s string) bool {
 	if s == "" {
 		return false
+	}
+
+	for i := range len(s) {
+		c := s[i]
+
+		if c <= ' ' || c == 0x7F {
+			return false
+		}
 	}
 
 	_, err := url.ParseRequestURI(s)
