@@ -9,7 +9,14 @@ permissions:
   contents: write
 
 env:
-  GO_VERSION: "1.27.x"
+  # Exact patch, not 1.27.x: golangci-lint forces GOTOOLCHAIN=local
+  # internally, so a newer Go patch that bumps stdlib export data past
+  # the pinned golangci-lint's build toolchain (go1.27.2 vs v2.13.2,
+  # 2026-10-09) fails the Lint step regardless of the GOTOOLCHAIN pin
+  # below — the v1.5.0 tag's Release run failed exactly there. Bump
+  # together with GOLANGCI_LINT_VERSION. The workflow file is frozen at
+  # the tag, so this pin must be correct BEFORE tagging.
+  GO_VERSION: "1.27.1"
   GOLANGCI_LINT_VERSION: v2.13.2
   # The root package imports experiment-gated encoding/json/v2.
   GOEXPERIMENT: jsonv2
