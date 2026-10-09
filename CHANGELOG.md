@@ -6,14 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-09
+
 ### Changed
 
-- **`server_timing` license switched from Proprietary to MIT** (`server_timing/LICENSE`): the nested module is now redistributable, so pkg.go.dev renders its documentation and README on the module page (previously "License: UNKNOWN — documentation not displayed due to license restrictions"; effective from the next `server_timing` tag, since pkg.go.dev indexes per tagged release). The root `httputil` module stays Proprietary.
-- **Split licensing stated at every consumer decision point** — the root README's License section now names the `server_timing` MIT exception explicitly, and CONTRIBUTING.md routes contributions to the license of the module they land in (both previously assumed a single project-wide license).
+- **Root module license switched from Proprietary to MIT** (`LICENSE`): the module is now redistributable, so pkg.go.dev renders its documentation and README for the ~18 known importers (previously "License: UNKNOWN — documentation not displayed due to license restrictions"; effective from the v1.5.0 tag, since pkg.go.dev indexes per tagged release). Owner decision 2026-10-09.
+- **`server_timing` license switched from Proprietary to MIT** (`server_timing/LICENSE`): the nested module is now redistributable, so pkg.go.dev renders its documentation and README on the module page (previously "License: UNKNOWN — documentation not displayed due to license restrictions"; effective from the `server_timing/v1.0.2` tag, since pkg.go.dev indexes per tagged release).
+- **License state stated at every consumer decision point** — the root README's License section and CONTRIBUTING.md now name both modules' MIT license explicitly (they previously described the project as single-license, with the root README claiming Proprietary).
+- **Root module now requires `server_timing v1.0.2`** (`go.mod`, coordinated with this release): consumers resolving `httputil@v1.5.0` from the module proxy fetch the MIT-licensed sub-module version.
 
 ### Added
 
 - **`server_timing/README.md`**: the sub-module's own end-user page — install, quick start, how-it-works, feature overview, and the measure-before-response-commit gotcha — as the rendered overview on pkg.go.dev's module page and GitHub directory view.
+
+### Documented
+
+- **Correction of record for `v1.4.1`**: that tag (2026-10-03) shipped without a CHANGELOG section; its diff vs v1.4.0 is infra/docs-only (nix module migration, GitHub-Actions dependency bumps, the 2026-09-27 full-code-review report) with no library changes. Relatedly, the v1.4.2 release commit lacked the `[1.4.2]` link definition and left `[Unreleased]` targeting v1.3.0, failing the CHANGELOG link check on every master CI run from 2026-10-08 (fixed in `e70820f`); the missing v1.4.2 GitHub Release was created from this cycle.
 
 ## [1.4.2] - 2026-10-08
 
@@ -654,7 +662,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/larsartmann/httputil/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/larsartmann/httputil/compare/v1.4.1...v1.4.2
 [1.4.0]: https://github.com/larsartmann/httputil/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/larsartmann/httputil/compare/v1.2.0...v1.3.0

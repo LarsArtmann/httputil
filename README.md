@@ -4,7 +4,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.27+-00ADD8)](https://go.dev)
 ![Coverage](https://img.shields.io/badge/coverage-97.5%25-green)
 ![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)
-[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag composition), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
 
@@ -779,6 +779,4 @@ nix flake check             # Nix flake validation
 
 ## License
 
-Proprietary — see [LICENSE](LICENSE). Contact `git@lars.software` for licensing inquiries.
-
-Exception: the [`server_timing`](server_timing/) sub-module is a separate Go module licensed under [MIT](server_timing/LICENSE), with its own [README](server_timing/README.md).
+MIT — see [LICENSE](LICENSE). The [`server_timing`](server_timing/) sub-module is MIT-licensed as well, with its own [LICENSE](server_timing/LICENSE) and [README](server_timing/README.md).
