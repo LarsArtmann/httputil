@@ -11,13 +11,14 @@ import (
 // avoid the compression cost on tiny payloads, then streaming the remainder
 // through a pluggable compression factory.
 //
-// It delegates to a WriterFactory supplied at construction time. The factory
-// pattern supports gzip, deflate, brotli, zstd, or any custom encoding.
+// It delegates to the WriterFactory owned by its per-encoding writer pool; the
+// pool and the factory are bound together at middleware-construction time.
+// The factory pattern supports gzip, deflate, brotli, zstd, or any custom
+// encoding.
 type compressWriter struct {
 	responseWrapper
 
 	encoding    string
-	factory     WriterFactory
 	pool        *writerPool
 	minSize     int
 	skipTypes   []string
@@ -46,7 +47,6 @@ func newCompressWriter(
 	resp http.ResponseWriter,
 	minSize int,
 	encoding string,
-	factory WriterFactory,
 	pool *writerPool,
 	skipTypes []string,
 ) *compressWriter {
@@ -55,7 +55,6 @@ func newCompressWriter(
 	return &compressWriter{
 		responseWrapper: newResponseWrapper(resp),
 		encoding:        encoding,
-		factory:         factory,
 		pool:            pool,
 		minSize:         minSize,
 		skipTypes:       skipTypes,

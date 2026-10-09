@@ -301,13 +301,10 @@ func Compression(cfg CompressionConfig) Middleware {
 
 			resp.Header().Add(headerVary, headerAcceptEncoding)
 
-			factory := cfg.WriterFactories[encoding]
-
 			writer := newCompressWriter(
 				resp,
 				cfg.MinSize,
 				encoding,
-				factory,
 				neg.poolFor(encoding),
 				skipTypes,
 			)

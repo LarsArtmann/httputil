@@ -8,7 +8,7 @@ func (w *compressWriter) startCompression() error {
 	// negotiator and keyed by encoding name). Resettable factories recycle a
 	// pooled writer Reset to our real writer; non-resettable factories build
 	// a fresh writer directly, skipping the wasted pooled allocation.
-	writer, err := w.pool.acquire(w.ResponseWriter, w.factory)
+	writer, err := w.pool.acquire(w.ResponseWriter)
 	if err != nil {
 		return codeCompressWriteFailed.WrapTransient(
 			err,

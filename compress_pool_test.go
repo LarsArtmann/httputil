@@ -5,14 +5,15 @@ import (
 	"compress/gzip"
 	"errors"
 	"io"
+	"strings"
 	"sync"
 	"testing"
 )
 
 // newPoisonedWriterPool returns a writerPool whose probe reports resettable
-// but whose pool yields nonWriter values, forcing the pool type-assertion
-// failure path in acquire deterministically (no reliance on sync.Pool
-// retention).
+// but whose pool yields bare nonWriter values, forcing the wrapper
+// type-assertion failure path in acquire deterministically (no reliance on
+// sync.Pool retention).
 func newPoisonedWriterPool() *writerPool {
 	return &writerPool{
 		pool:       &sync.Pool{New: func() any { return &nonWriter{} }},
@@ -20,8 +21,40 @@ func newPoisonedWriterPool() *writerPool {
 	}
 }
 
+// newMarkerWriterPool returns a resettable writerPool whose pool yields
+// pooledWriter wrappers around fresh markerPoolWriter values owned by the
+// pool, making the pooled acquire path deterministic in tests (no reliance on
+// sync.Pool retention). factory is only reachable if the pooled path is
+// broken; tests pass a must-not-call factory to pin that invariant.
+func newMarkerWriterPool(factory WriterFactory) *writerPool {
+	var pool *writerPool
+
+	pool = &writerPool{
+		factory: factory,
+		pool: &sync.Pool{
+			New: func() any {
+				return &pooledWriter{owner: pool, writer: &markerPoolWriter{}}
+			},
+		},
+		resettable: true,
+	}
+
+	return pool
+}
+
+// newDirectWriterPool returns a non-resettable writerPool bound to factory,
+// for exercising acquire's direct path without newWriterPool's construction
+// probe (which panics on factories that fail or return nil).
+func newDirectWriterPool(factory WriterFactory) *writerPool {
+	return &writerPool{
+		factory:    factory,
+		pool:       &sync.Pool{},
+		resettable: false,
+	}
+}
+
 // errFactoryMustNotBeCalled signals an acquire path that must never reach
-// the caller-supplied factory.
+// the pool's factory.
 var errFactoryMustNotBeCalled = errors.New("factory must not be called")
 
 // plainWriteCloser is a minimal io.WriteCloser without Reset support,
@@ -51,15 +84,14 @@ func TestWriterPool_NonResettableFactory_SkipsPool(t *testing.T) {
 
 	var calls int
 
-	factory := countingPlainFactory(&calls)
-	pool := newWriterPool(factory) // construction probe: one call
+	pool := newWriterPool(countingPlainFactory(&calls)) // construction probe: one call
 
-	first, err := pool.acquire(io.Discard, factory)
+	first, err := pool.acquire(io.Discard)
 	if err != nil {
 		t.Fatalf("first acquire() error = %v, want nil", err)
 	}
 
-	second, err := pool.acquire(io.Discard, factory)
+	second, err := pool.acquire(io.Discard)
 	if err != nil {
 		t.Fatalf("second acquire() error = %v, want nil", err)
 	}
@@ -85,26 +117,28 @@ func (w *markerPoolWriter) Reset(dst io.Writer) { w.Writer = dst }
 
 // TestWriterPool_ResettableFactory_AcquireUsesPool verifies that a resettable
 // writerPool resolves acquire through the sync.Pool (its New) rather than the
-// caller-supplied factory.
+// pool's own factory, and that the returned writer is the pool-owned wrapper.
 func TestWriterPool_ResettableFactory_AcquireUsesPool(t *testing.T) {
 	t.Parallel()
 
-	pool := &writerPool{
-		pool:       &sync.Pool{New: func() any { return &markerPoolWriter{} }},
-		resettable: true,
-	}
-
-	writer, err := pool.acquire(io.Discard, func(io.Writer) (io.WriteCloser, error) {
+	pool := newMarkerWriterPool(func(io.Writer) (io.WriteCloser, error) {
 		t.Error("factory called on the resettable (pooled) acquire path")
 
 		return nil, errFactoryMustNotBeCalled
 	})
+
+	writer, err := pool.acquire(io.Discard)
 	if err != nil {
 		t.Fatalf("acquire() error = %v, want nil", err)
 	}
 
-	if _, ok := writer.(*markerPoolWriter); !ok {
-		t.Errorf("acquire returned %T, want *markerPoolWriter from the pool", writer)
+	wrapper, ok := writer.(*pooledWriter)
+	if !ok {
+		t.Fatalf("acquire returned %T, want a *pooledWriter from the pool", writer)
+	}
+
+	if _, ok := wrapper.writer.(*markerPoolWriter); !ok {
+		t.Errorf("pool writer = %T, want *markerPoolWriter from the pool", wrapper.writer)
 	}
 }
 
@@ -114,15 +148,12 @@ func TestWriterPool_ResettableFactory_AcquireUsesPool(t *testing.T) {
 func TestWriterPool_Release_NonResettable_IsNotStored(t *testing.T) {
 	t.Parallel()
 
-	pool := &writerPool{
-		pool:       &sync.Pool{New: func() any { return &markerPoolWriter{} }},
-		resettable: true,
-	}
+	pool := newMarkerWriterPool(nil)
 
 	released := &plainWriteCloser{Writer: io.Discard}
 	pool.release(released)
 
-	writer, err := pool.acquire(io.Discard, nil)
+	writer, err := pool.acquire(io.Discard)
 	if err != nil {
 		t.Fatalf("acquire() error = %v, want nil", err)
 	}
@@ -132,18 +163,52 @@ func TestWriterPool_Release_NonResettable_IsNotStored(t *testing.T) {
 	}
 }
 
+// TestWriterPool_Release_ForeignWrapper_IsNotStored verifies the release
+// provenance check: a pooledWriter owned by a different pool is dropped
+// instead of stored, so it cannot poison this pool's writer population.
+func TestWriterPool_Release_ForeignWrapper_IsNotStored(t *testing.T) {
+	t.Parallel()
+
+	poolA := newMarkerWriterPool(nil)
+	poolB := newMarkerWriterPool(nil)
+
+	foreign, err := poolA.acquire(io.Discard)
+	if err != nil {
+		t.Fatalf("poolA acquire() error = %v, want nil", err)
+	}
+
+	poolB.release(foreign)
+
+	writer, err := poolB.acquire(io.Discard)
+	if err != nil {
+		t.Fatalf("poolB acquire() error = %v, want nil", err)
+	}
+
+	wrapper, ok := writer.(*pooledWriter)
+	if !ok {
+		t.Fatalf("poolB acquire returned %T, want a *pooledWriter", writer)
+	}
+
+	if wrapper == foreign {
+		t.Error("poolB acquire returned the foreign wrapper dropped into it, want a poolB-native writer")
+	}
+
+	if wrapper.owner != poolB {
+		t.Errorf("poolB acquire returned a wrapper owned by %p, want poolB (%p)", wrapper.owner, poolB)
+	}
+}
+
 // TestWriterPool_Acquire_ResetsWriterToDestination proves the recycled writer
 // is actually Reset to the caller's destination: the probe writer is bound to
 // io.Discard, so without the Reset the destination buffer would stay empty.
 func TestWriterPool_Acquire_ResetsWriterToDestination(t *testing.T) {
 	t.Parallel()
 
-	factory := GzipWriterFactory(gzip.DefaultCompression)
-	pool := newWriterPool(factory)
+	pool := newWriterPool(GzipWriterFactory(gzip.DefaultCompression))
 
 	var buf bytes.Buffer
 
-	writer, err := pool.acquire(&buf, factory)
+	writer, err := pool.acquire(&buf)
 	if err != nil {
 		t.Fatalf("acquire() error = %v, want nil", err)
 	}
@@ -193,5 +258,122 @@ func TestWriterPool_ProbeDetectsResettableWriters(t *testing.T) {
 	passthroughPool := newWriterPool(passthroughFactory)
 	if passthroughPool.resettable {
 		t.Error("passthrough writer pool resettable = true, want false")
+	}
+}
+
+// TestWriterPool_ProbeNilWriter_PanicsAtConstruction covers the (nil, nil)
+// probe branch in newWriterPool: a factory that returns neither a writer nor
+// an error is an unrecoverable factory-contract violation, so construction
+// panics instead of silently building a pool that fails every request.
+func TestWriterPool_ProbeNilWriter_PanicsAtConstruction(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("newWriterPool did not panic on a (nil, nil) factory return")
+		}
+
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, "nil writer") {
+			t.Errorf("panic value = %v, want a factory nil-writer message", r)
+		}
+	}()
+
+	_ = newWriterPool(func(io.Writer) (io.WriteCloser, error) { return nil, nil })
+}
+
+// TestWriterPool_RefillNilWriter_PanicsOnAcquire covers the nil-writer branch
+// of the pool refill constructor: a factory that passes the probe (resettable
+// writer) but later returns (nil, nil) panics inside the wrapped-Get path
+// instead of handing a nil writer to a request.
+func TestWriterPool_RefillNilWriter_PanicsOnAcquire(t *testing.T) {
+	t.Parallel()
+
+	var calls int
+
+	factory := func(io.Writer) (io.WriteCloser, error) {
+		calls++
+		if calls == 1 {
+			return &markerPoolWriter{}, nil
+		}
+
+		return nil, nil
+	}
+
+	pool := newWriterPool(factory)
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("acquire did not panic on a nil writer from the pool refill")
+		}
+
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, "nil writer") {
+			t.Errorf("panic value = %v, want a factory nil-writer message", r)
+		}
+	}()
+
+	_, _ = pool.acquire(io.Discard)
+}
+
+// TestWriterPool_DirectPathNilWriter_ReturnsClassifiedError covers the
+// nil-writer guard on acquire's direct (non-pooled) path: a factory that
+// passes the probe (non-resettable writer) but later returns (nil, nil)
+// surfaces the classified pool-contract error instead of a nil writer.
+func TestWriterPool_DirectPathNilWriter_ReturnsClassifiedError(t *testing.T) {
+	t.Parallel()
+
+	var calls int
+
+	factory := func(io.Writer) (io.WriteCloser, error) {
+		calls++
+		if calls == 1 {
+			return &plainWriteCloser{Writer: io.Discard}, nil
+		}
+
+		return nil, nil
+	}
+
+	pool := newWriterPool(factory)
+
+	writer, err := pool.acquire(io.Discard)
+	if writer != nil {
+		t.Errorf("acquire writer = %v, want nil", writer)
+	}
+
+	if !errors.Is(err, errUnexpectedPoolType) {
+		t.Errorf("errors.Is(err, errUnexpectedPoolType) = false, want true")
+	}
+
+	assertClassified(t, err, errorfamily.Infrastructure, false)
+}
+
+// TestWriterPool_Acquire_NonResettablePooledElement_ReturnsClassifiedError
+// covers the inner-resettable assertion in acquire: a pooled element wrapping
+// a writer that lost resettable support surfaces the classified pool-contract
+// error instead of a nil-interface Reset panic.
+func TestWriterPool_Acquire_NonResettablePooledElement_ReturnsClassifiedError(t *testing.T) {
+	t.Parallel()
+
+	var pool *writerPool
+
+	pool = &writerPool{
+		pool: &sync.Pool{
+			New: func() any {
+				return &pooledWriter{owner: pool, writer: &plainWriteCloser{Writer: io.Discard}}
+			},
+		},
+		resettable: true,
+	}
+
+	writer, err := pool.acquire(io.Discard)
+	if writer != nil {
+		t.Errorf("acquire writer = %v, want nil", writer)
+	}
+
+	if !errors.Is(err, errUnexpectedPoolType) {
+		t.Errorf("errors.Is(err, errUnexpectedPoolType) = false, want true")
 	}
 }

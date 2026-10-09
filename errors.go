@@ -415,9 +415,9 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		WayOut: "Leave Encodings empty to decompress both supported encodings.",
 	},
 	string(codeCompressionPoolTypeUnexpected): {
-		What:   "Compression writer pool returned an unexpected type",
-		Why:    "A writer pool yielded an element of type {pool_element_type} that does not satisfy io.WriteCloser; the pool and the WriterFactory disagree on the writer type.",
-		Fix:    "This is a bug in a custom WriterFactory: ensure the factory always returns an io.WriteCloser.",
+		What:   "Compression writer pool returned an unexpected writer",
+		Why:    "The pool yielded an element of type {pool_element_type} that violates the writer contract (not an io.WriteCloser, foreign to this pool, or a nil writer returned by the factory); the pool and the WriterFactory disagree on the writer type.",
+		Fix:    "This is a bug in a custom WriterFactory: ensure the factory always returns a non-nil io.WriteCloser.",
 		WayOut: "Use DefaultWriterFactories() or report the bug to the factory author.",
 	},
 }
