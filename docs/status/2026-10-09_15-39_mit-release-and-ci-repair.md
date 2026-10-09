@@ -27,7 +27,7 @@
 ~~1. **pkg.go.dev render verification** — proxy + consumer resolution verified; the actual page render (MIT badge, README, docs) still 404 at session end (index sync lag, ~30 min typical). The CHANGELOG claim is mechanism-verified (MIT + tag exists) but render-unconfirmed.~~ done 2026-10-09 — render-verified on both module pages (2026-10-09_16-36 §a.4)
 ~~2. **`a0503a1` (annotations + TODO_LIST closeout)** — committed locally, **unpushed** (origin 1 behind); no CI run on it. Caught by this self-review, not by the release flow.~~ done 2026-10-09 — daemon pushed it; CI green (2026-10-09_16-36 §a.1)
 ~~3. **RELEASE.md gate 6 (benchmark baseline doc)** — gates ran green, but `docs/benchmarks.md` not refreshed (header still "Measured 2026-09-11"); defensible for a zero-production-code-change release, yet stale against the runbook cadence since v1.4.0.~~ done 2026-10-09 — docs/benchmarks.md re-measured under Go 1.27.1 and rewritten
-4. **RELEASE.md step 9 (historical-report sweep)** — license-themed open claims annotated; not an exhaustive open-claims sweep.
+~~4. **RELEASE.md step 9 (historical-report sweep)** — license-themed open claims annotated; not an exhaustive open-claims sweep.~~ done 2026-10-09 — the repo-wide sweeps landed (15-39 §a.2, 16-36 §a.2) and the 2026-10-09 docs-health AUDIT covers the wider doc set
 
 ## c) NOT STARTED
 
@@ -37,7 +37,7 @@
 4. FEATURES.md freshness pass — `_Updated: 2026-09-27` header predates v1.4.x/v1.5.0; server_timing README/LICENSE not inventoried.
 ~~5. Coverage-badge freshness check (CI computes it but `contents: read` prevents committing; may need a local `update-coverage-badge.sh` run).~~ done 2026-10-09 — badge 97.5→98.1 (2026-10-09_16-36 §a.8)
 6. Coordination with the parallel lint-audit session — `docs/review/lint/011-stale-httputil-versions.md` is likely affected by v1.5.0's existence.
-7. /tmp scratch cleanup (release-verify module, nightly log zip+dir, close-comment drafts).
+~~7. /tmp scratch cleanup (release-verify module, nightly log zip+dir, close-comment drafts).~~ done 2026-10-09 — trashed in the 16-36/17-41 /tmp sweeps (16-36 §a.12, 17-41 §a.12)
 
 ## d) TOTALLY FUCKED UP!
 

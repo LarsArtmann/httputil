@@ -7,7 +7,7 @@
 **Superseded baselines:** the 2026-08-29, 2026-09-10, and 2026-09-11 tables are historical. Key notes on the 2026-10-09 numbers vs 2026-09-11 (Go 1.26.7): Go 1.27 changed `compress/flate`'s encoded output, so `BenchmarkCompression` produces different bytes now — compression re-measured 2.2x faster (7,874 → 3,527 ns), while `Decompression/deflate` decodes the new output ~24% slower and `Decompression/gzip` ~19% faster; these three rows measure a different codec output than the 1.26-era table did. Small-allocation-heavy paths got broadly faster under the 1.27 runtime (handler trio 668–853 → 579–786 ns; `Recovery` 97 → 66 ns; `Timeout` 728 → 456 ns). `BenchmarkServerTiming_MiddlewareDisabledPassthrough` dropped 273 → 105 ns — that is the `flushHeader()` merge (implicit-WriteHeader prologue dedup), not the runtime. `BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck` is new since the last table (the origin-attestation defense); it logs one WARN per op, which makes its runs intrinsically noisy — silencing that log is a tracked TODO.
 
 | Benchmark                                                      | ns/op  | B/op   | allocs/op |
-|----------------------------------------------------------------|--------|--------|-----------|
+| -------------------------------------------------------------- | ------ | ------ | --------- |
 | BenchmarkGenerateTimeOrderedID                                 | 91.98  | 41     | 1         |
 | BenchmarkGenerateTimeOrderedIDParallel                         | 86.01  | 41     | 1         |
 | BenchmarkIDGeneratorRefillSwap (≈17.3 ns/ID amortized)         | 4,431  | 2304   | 1         |
@@ -61,7 +61,7 @@
 ### `httpspec` (3s×5, own module; ran in one short window — treat ±25% deltas vs 2026-09-11 as load noise)
 
 | Benchmark                            | ns/op  | B/op | allocs/op |
-|--------------------------------------|--------|------|-----------|
+| ------------------------------------ | ------ | ---- | --------- |
 | BenchmarkCheckServesRequest          | 440.1  | 1048 | 11        |
 | BenchmarkCheck/index_not_404         | 892.8  |      |           |
 | BenchmarkCheck/body_has_content_type | 728.3  |      |           |
@@ -72,14 +72,14 @@
 
 ### `server_timing` (3s×5, own module)
 
-| Benchmark                                           | ns/op  | B/op | allocs/op |
-|-----------------------------------------------------|--------|------|-----------|
-| BenchmarkServerTiming_DisabledOverhead              | 3.976  |      |           |
-| BenchmarkServerTiming_EnabledMeasure                | 140.2  |      |           |
-| BenchmarkServerTiming_EnabledMeasureViaContext      | 140.8  |      |           |
-| BenchmarkServerTiming_Record                        | 80.11  |      |           |
-| BenchmarkServerTiming_HeaderValue                   | 321    |      |           |
-| BenchmarkServerTiming_MiddlewareDisabledPassthrough | 104.9  |      |           |
+| Benchmark                                           | ns/op | B/op | allocs/op |
+| --------------------------------------------------- | ----- | ---- | --------- |
+| BenchmarkServerTiming_DisabledOverhead              | 3.976 |      |           |
+| BenchmarkServerTiming_EnabledMeasure                | 140.2 |      |           |
+| BenchmarkServerTiming_EnabledMeasureViaContext      | 140.8 |      |           |
+| BenchmarkServerTiming_Record                        | 80.11 |      |           |
+| BenchmarkServerTiming_HeaderValue                   | 321   |      |           |
+| BenchmarkServerTiming_MiddlewareDisabledPassthrough | 104.9 |      |           |
 
 ## Reading this baseline
 
