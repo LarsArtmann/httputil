@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **`GOEXPERIMENT=jsonv2` dropped from all four CI workflows and the documented erraudit commands** — `encoding/json/v2` is standard (non-experimental) in Go 1.27, so the flag is a no-op there (the shipped opt-out is now `nojsonv2`); the full test suite and all three erraudit gates verified exit-identical without it, completing the 2026-09-11 DECISION_LOG plan (`go.mod` had already moved to `go 1.27`). Also clears the standing gopls `stdversion` warnings the decision had accepted as noise.
+- **golangci-lint bumped to v2.14.0; exact-Go-patch pins retired** (owner decision 2026-10-09) — v2.14.0 is built with go1.27.0 and lints this repo clean (0 issues) under the go1.27.2 toolchain, the exact export-data combination that broke the pinned v2.13.2; the setup-go pins in ci.yml's Lint job and release.yml's `GO_VERSION` return to `1.27.x`, and RELEASE.md gate 6.6 now guards the golangci-version-vs-current-Go-patch check directly.
+- **Nightly-fuzz issue reporting switched to one rolling issue, auto-closed on the first green run** (owner decision 2026-10-09) — a failed nightly comments on (or creates) a single open `nightly-fuzz`-labeled issue, deriving failing targets from the corpus files a crash leaves under `testdata/fuzz/`; the previous per-night filer opened 27 issues in 24 days, every one a re-report of four already-fixed harness/invariant classes or an infra false positive — zero real production bugs.
+- **`server_timing` tags now get GitHub Release objects** (owner decision 2026-10-09) — the Release workflow's tag trigger includes `server_timing/v*`, so a coordinated cut (one commit, both tags, one push) produces both objects automatically; `server_timing/v1.0.2` was backfilled from its existing tag.
 
 ## [1.5.0] - 2026-10-09
 

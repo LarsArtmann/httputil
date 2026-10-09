@@ -101,10 +101,41 @@ jobs:
       - name: Fuzz negotiator wire format
         run: go test -run='^$' -fuzz '^FuzzNegotiatorWireFormat$' -fuzztime 300s .
 
-      - name: File issue on fuzz crash
-        if: failure()
+      # Rolling-issue policy (owner decision 2026-10-09): ONE open issue
+      # tracks the currently-failing nightly; a green run auto-closes it.
+      # The previous per-night filer filed 27 issues in 24 days holding
+      # zero real production bugs — every real failure was a re-report of
+      # an already-fixed class. The failing targets are derived from the
+      # new corpus files a crashing target leaves under testdata/fuzz/
+      # (infra failures write none, which is itself the signature).
+      - name: Roll up fuzz result (rolling issue)
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          gh issue create             --title "nightly fuzz: crash detected $(date -u +%Y-%m-%d)"             --body "A nightly fuzz target failed. The fuzzing engine writes failing inputs to testdata/fuzz/** in the job checkout (paths in the run log). Run: ${RUN_URL}"             --label "bug" || echo "::warning::issue creation failed; see run log"
+          set -eu
+          gh label create nightly-fuzz --description "Rolling nightly-fuzz failure tracker" --color d73a4a 2>/dev/null || true
+          if [ "$JOB_STATUS" = "success" ]; then
+            for n in $(gh issue list --label nightly-fuzz --state open --json number --jq '.[].number'); do
+              gh issue close "$n" --reason completed \
+                --comment "Closed automatically: tonight's nightly-fuzz run is green. ${RUN_URL}" \
+                || echo "::warning::failed to close issue #${n}"
+            done
+            exit 0
+          fi
+          targets=$(git status --porcelain --untracked-files=all -- '*testdata/fuzz/*' \
+            | awk '{print $NF}' | sed -E 's#.*/testdata/fuzz/([^/]+)/.*#\1#' | sort -u)
+          if [ -n "$targets" ]; then
+            body="Failing target(s): $(echo "$targets" | tr '\n' ' ')(new corpus files under testdata/fuzz/ — root cause lives in the run log). Run: ${RUN_URL}"
+          else
+            body="Nightly failed with no new corpus files — likely infra, not a fuzz find. Run: ${RUN_URL}"
+          fi
+          n=$(gh issue list --label nightly-fuzz --state open --json number --jq 'first(.[].number)')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body "$body" || echo "::warning::failed to comment on issue #${n}"
+          else
+            gh issue create --title "nightly fuzz: open failure" --body "$body" --label nightly-fuzz \
+              || echo "::warning::issue creation failed; see run log"
+          fi

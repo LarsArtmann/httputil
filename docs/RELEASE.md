@@ -63,7 +63,7 @@ Re-review `scripts/` and every `Example*` function — a prior pass claiming "cl
 
 ### 6.6. Workflow pins vs current Go patch
 
-The Release workflow is **frozen at the tag** — a pin that is already stale ships a red Release run (the v1.5.0 run died on exactly this: its `GO_VERSION` predated the Go patch whose export data the pinned `GOLANGCI_LINT_VERSION` could not read). Before tagging, check that `.github/workflows/release.yml`'s `GO_VERSION` + `GOLANGCI_LINT_VERSION` and ci.yml's Lint-job setup-go pin still cover the current Go patch: a new Go patch whose export-data version outpaces the pinned golangci-lint needs BOTH bumped (they move together) in the same change, BEFORE the tag. golangci-lint forces `GOTOOLCHAIN=local` internally, so job-env `GOTOOLCHAIN` pins never reach the linter — only exact setup-go/`GO_VERSION` pins work.
+The Release workflow is **frozen at the tag** — a pin that is already stale ships a red Release run (the v1.5.0 run died on exactly this: its `GO_VERSION` predated the Go patch whose export data the pinned `GOLANGCI_LINT_VERSION` could not read). Before tagging, confirm the pinned `GOLANGCI_LINT_VERSION` (ci.yml Lint job + release.yml env, v2.14.0 since 2026-10-09) still lints the repo clean under the CURRENT Go patch: golangci-lint is built against one Go toolchain and chokes when a newer patch bumps stdlib export data past it (v2.13.2 vs go1.27.2, 2026-10-09; v2.14.0, built with go1.27.0, verified clean under the 1.27.2 toolchain). If it fails, bump golangci-lint BEFORE the tag. golangci-lint forces `GOTOOLCHAIN=local` internally, so job-env `GOTOOLCHAIN` pins never reach the linter — that is why the exact-Go-pin workaround existed and why the golangci version is the pin that matters.
 
 ## Release-Time Steps
 
@@ -126,13 +126,15 @@ The v1.1.0 tag shipped red on the docs-only link check (2026-09-11) because this
 
 ### 13. Create GitHub Release
 
-Extract the CHANGELOG section for this version as release notes:
+The Release workflow auto-creates the object on tag push (it re-runs every gate on the exact tag commit first). If it must be created or healed by hand, extract the CHANGELOG section for this version as release notes:
 
 ```bash
 gh release create vX.Y.Z --notes "$(awk '/^## \[X.Y.Z\]/{f=1} f{print} /^## \[/{if(f&&!first){exit}; first=1}' CHANGELOG.md)"
 ```
 
 Or write custom notes for major releases.
+
+Sub-module tags get Release objects too (owner decision 2026-10-09): the workflow's tag trigger includes `server_timing/v*`, so a coordinated cut — ONE commit, both tags, one push — produces both objects automatically. Auto-generated notes for a sub-module tag list the whole-repo diff; curate afterwards by extracting the sub-module bullets from the coordinated CHANGELOG section.
 
 ### 14. Verify the release
 

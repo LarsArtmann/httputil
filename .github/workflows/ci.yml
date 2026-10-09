@@ -101,16 +101,16 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          # Exact patch, not 1.27.x: golangci-lint forces GOTOOLCHAIN=local
-          # internally, so a newer patch (1.27.2 bumped the stdlib
-          # export-data version past what the pinned v2.13.2 can read)
-          # breaks this job regardless of job-env pins. Bump this together
-          # with the golangci-lint version below.
-          go-version: "1.27.1"
+          # No exact patch pin: the pinned golangci-lint below is built with
+          # go1.27.0 and reads current 1.27.x stdlib export data (verified
+          # 2026-10-09 under a go1.27.2 toolchain). Revisit only if a newer
+          # Go patch again outpaces the pinned golangci-lint (RELEASE.md
+          # gate 6.6 is that ritual).
+          go-version: "1.27.x"
 
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.13.2
+          version: v2.14.0
           args: --timeout=5m
 
       # A .golangci.yml edit once shipped 13 findings because CI's older
