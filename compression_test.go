@@ -260,7 +260,6 @@ func TestCompression_Hijack_SetsPlainMode(t *testing.T) {
 		newHijackRecorder(),
 		cfg.MinSize,
 		encodingGzip,
-		GzipWriterFactory(cfg.Level),
 		newWriterPool(GzipWriterFactory(cfg.Level)),
 		nil,
 	)

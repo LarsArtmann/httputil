@@ -24,7 +24,6 @@ func newTestCompressWriter() *compressWriter {
 		newRecorder(),
 		defaultCompressionMinSize,
 		encodingGzip,
-		passthroughFactory,
 		newWriterPool(passthroughFactory),
 		nil,
 	)
@@ -171,7 +170,6 @@ func TestCompressWriter_ExactMinSizeWrite_IsNotDuplicated(t *testing.T) {
 		rec,
 		8,
 		encodingGzip,
-		factory,
 		newWriterPool(factory),
 		nil,
 	)
@@ -281,9 +279,9 @@ func (*failingResponseRecorder) Write([]byte) (int, error) {
 }
 
 // erroringFactory is a WriterFactory that always returns an error, exercising
-// the fresh-writer creation error path in startCompression. It must only be
-// used as the compressWriter.factory field, never as a pool source (the pool's
-// New panics on factory errors).
+// the direct-path (non-pooled) factory error branch in acquire. It must only
+// be bound to a writerPool via a direct literal (newDirectWriterPool), never
+// through newWriterPool (the construction probe panics on factory errors).
 var erroringFactory = WriterFactory(func(io.Writer) (io.WriteCloser, error) {
 	return nil, errMockCompressWriteFailed
 })
@@ -324,7 +322,6 @@ func TestCompressWriter_StreamWriteError(t *testing.T) {
 		newRecorder(),
 		1,
 		encodingGzip,
-		factory,
 		newWriterPool(factory),
 		nil,
 	)
@@ -345,7 +342,6 @@ func TestCompressWriter_FlushPlainBufferedWriteError(t *testing.T) {
 		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
 		defaultCompressionMinSize,
 		encodingGzip,
-		passthroughFactory,
 		newWriterPool(passthroughFactory),
 		nil,
 	)
@@ -367,7 +363,6 @@ func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
 		&failingResponseRecorder{ResponseRecorder: httptest.NewRecorder()},
 		defaultCompressionMinSize,
 		encodingGzip,
-		passthroughFactory,
 		newWriterPool(passthroughFactory),
 		nil,
 	)
@@ -381,8 +376,8 @@ func TestCompressWriter_CloseBufferedWriteError(t *testing.T) {
 }
 
 // TestCompressWriter_StartCompression_FreshFactoryError verifies that a
-// fresh-writer factory error (reached when the pooled writer is not resettable)
-// surfaces a classified error.
+// factory error on acquire's direct (non-pooled) path surfaces a classified
+// error.
 func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
 	t.Parallel()
 
@@ -390,8 +385,7 @@ func TestCompressWriter_StartCompression_FreshFactoryError(t *testing.T) {
 		newRecorder(),
 		defaultCompressionMinSize,
 		encodingGzip,
-		erroringFactory,
-		newWriterPool(passthroughFactory),
+		newDirectWriterPool(erroringFactory),
 		nil,
 	)
 	compressWriter.WriteHeader(http.StatusOK)
@@ -416,7 +410,6 @@ func TestCompressWriter_StartCompression_BufferedWriteError(t *testing.T) {
 		newRecorder(),
 		1,
 		encodingGzip,
-		factory,
 		newWriterPool(factory),
 		nil,
 	)
@@ -470,7 +463,6 @@ func TestCompressWriter_FlushInPlainMode(t *testing.T) {
 		rec,
 		defaultCompressionMinSize,
 		encodingGzip,
-		passthroughFactory,
 		newWriterPool(passthroughFactory),
 		nil,
 	)

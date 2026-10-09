@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // newPoisonedWriterPool returns a writerPool whose probe reports resettable
