@@ -1,7 +1,7 @@
 # DenyUnmatched Default-Flip Evaluation
 
 **Date:** 2026-07-29
-**Status:** Recommended for v0.7.0 — **YES, flip the default**
+**Status:** ~~Recommended for v0.7.0 — **YES, flip the default**~~ **done — flipped in v0.7.0** (`DefaultCORSConfig` sets `DenyUnmatched: true`; see FEATURES.md). Annotation 2026-10-09: the recommendation below is implemented history.
 
 ## Problem
 

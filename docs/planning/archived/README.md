@@ -1,8 +1,8 @@
 # Archived Planning Notes
 
-Closed history: design notes, execution plans, and routing pointers whose work is DECIDED and SHIPPED (or filed upstream), annotated non-destructively before the move. Active plans stay in `docs/planning/`.
+Closed history: design notes, execution plans, and routing pointers whose work is DECIDED and SHIPPED (or filed upstream), annotated non-destructively before the move. Active plans stay in `docs/planning/`. (This index is a manifest, not a report — the `~~` completeness gate applies to the archived reports themselves.)
 
-**Snapshot count: 14** (verified 2026-10-09 against the directory listing).
+**Snapshot count: 14 notes + this index = 15 files (verified 2026-10-09 against the directory listing).**
 
 ## 2026-10-09 bulk-archive manifest (docs-health AUDIT)
 

@@ -85,7 +85,7 @@ An auto-git-commit daemon commits continuously; unexpected commits are expected,
 
 ### Session-Tail Discipline (recurring lesson: 2026-10-09 ×2)
 
-Before declaring a session done: confirm the last commit is pushed (`git log origin/master..master` empty), CI green on that exact head, and the tree clean. The tail is where daemon/parallel-writer races bite (the `a0503a1` and `eccd453` incidents). Never pipe release-critical commands through filters that eat errors or exit codes — redirect to a file and read `$?` from the command, not the pipe.
+Before declaring a session done: confirm the last commit is pushed (`git log origin/master..master` empty), CI green on that exact head, and the tree clean. The tail is where daemon/parallel-writer races bite (the 2026-10-09 unpushed-annotation and unwatched-tail-commit incidents). Never pipe release-critical commands through filters that eat errors or exit codes — redirect to a file and read `$?` from the command, not the pipe.
 
 ### Doc-Freshness Cadence
 

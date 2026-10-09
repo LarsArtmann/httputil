@@ -1,8 +1,8 @@
 # Archived Status Reports
 
-Closed history: every report here was annotated to full resolution (inline `~~item~~ done at <hash>` / routed / NOT-DO verdicts on every open item) before being moved via `git mv`. Per the docs-health model, archived files are not re-opened during HARVEST/VERIFY/AUDIT — they hold zero open items. Two `.html` files here are rendered twins of annotated `.md` siblings and carry no separate annotation.
+Closed history: every report here was annotated to full resolution (inline `~~item~~ done at <hash>` / routed / NOT-DO verdicts on every open item) before being moved via `git mv`. Per the docs-health model, archived files are not re-opened during HARVEST/VERIFY/AUDIT — they hold zero open items. The one `.html` file here is a rendered twin of an annotated `.md` sibling and carries no separate annotation.
 
-**Snapshot count: 79** (verified 2026-10-09 against the directory listing).
+**Snapshot count: 79 reports + this index = 80 files (verified 2026-10-09 against the directory listing).**
 
 ## 2026-10-09 bulk-archive manifest (docs-health AUDIT)
 
