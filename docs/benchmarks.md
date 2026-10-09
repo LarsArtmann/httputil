@@ -6,62 +6,62 @@
 
 **Superseded baselines:** the 2026-08-29, 2026-09-10, and 2026-09-11 tables are historical. Key notes on the 2026-10-09 numbers vs 2026-09-11 (Go 1.26.7): Go 1.27 changed `compress/flate`'s encoded output, so `BenchmarkCompression` produces different bytes now — compression re-measured 2.2x faster (7,874 → 3,527 ns), while `Decompression/deflate` decodes the new output ~24% slower and `Decompression/gzip` ~19% faster; these three rows measure a different codec output than the 1.26-era table did. Small-allocation-heavy paths got broadly faster under the 1.27 runtime (handler trio 668–853 → 579–786 ns; `Recovery` 97 → 66 ns; `Timeout` 728 → 456 ns). `BenchmarkServerTiming_MiddlewareDisabledPassthrough` dropped 273 → 105 ns — that is the `flushHeader()` merge (implicit-WriteHeader prologue dedup), not the runtime. `BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck` is new since the last table (the origin-attestation defense); it logs one WARN per op, which makes its runs intrinsically noisy — silencing that log is a tracked TODO.
 
-| Benchmark                                             | ns/op  | B/op | allocs/op |
-| ----------------------------------------------------- | ------ | ---- | --------- |
-| BenchmarkGenerateTimeOrderedID                        | 91.98  | 41   | 1         |
-| BenchmarkGenerateTimeOrderedIDParallel                | 86.01  | 41   | 1         |
-| BenchmarkIDGeneratorRefillSwap (≈17.3 ns/ID amortized) | 4,431  | 2304 | 1         |
-| BenchmarkIDGeneratorRefillRawRandRead (baseline; ≈16.1 ns/ID) | 4,117 | 0 | 0 |
-| BenchmarkCSRFMiddleware_PlainHTTPNosurf               | 1,570  | 2,336 | 23      |
-| BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck  | 4,220  | 2,655 | 33      |
-| BenchmarkKeyedRateLimiterConfigValidate               | 2.089  | 0    | 0         |
-| BenchmarkServerConfigValidateWithTLS                  | 2.07   | 0    | 0         |
-| BenchmarkKeyedRateLimiterMiddleware                   | 174.8  | 208  | 4         |
-| BenchmarkKeyedRateLimiter_MaxKeysChurn (fresh key per op) † | 620 |   |           |
-| BenchmarkChain                                        | 3,091  |      |           |
-| BenchmarkClientIP                                     | 43.57  | 32   | 1         |
-| BenchmarkCodeRejectionConstruction                    | 77.55  |      |           |
-| BenchmarkSentinelCloneWithContext                     | 112.7  |      |           |
-| BenchmarkWrapTransientWithCause                       | 95.32  |      |           |
-| BenchmarkDomainOf                                     | 10.76  |      |           |
-| BenchmarkInDomain                                     | 10.71  |      |           |
-| BenchmarkCompression ‡                                | 3,527  | 2,167 | 12       |
-| BenchmarkCompressionNegotiator/singleToken            | 7.581  | 0    | 0         |
-| BenchmarkCompressionNegotiator/browserMulti †         | 127.9  | 0    | 0         |
-| BenchmarkCompressionNegotiator/qvalues                | 57.47  | 0    | 0         |
-| BenchmarkCompressionNegotiator/emptyHeader            | 2.002  | 0    | 0         |
-| BenchmarkCORS                                         | 409.2  | 592  | 9         |
-| BenchmarkMaxBodySize (4 KiB body, full read)          | 1,517  | 5,429 | 15       |
-| BenchmarkDecompression/gzip ‡                         | 8,017  | 45,837 | 14      |
-| BenchmarkDecompression/deflate ‡                      | 11,867 | 45,134 | 13      |
-| BenchmarkDecompression/passthrough                    | 125.5  | 224  | 5         |
-| BenchmarkHealthHandler                                | 579.2  | 1,042 | 12       |
-| BenchmarkLiveHandler                                  | 786.4  | 1,042 | 12       |
-| BenchmarkReadyHandler                                 | 688.7  | 1,042 | 12       |
-| BenchmarkMetricsMiddleware                            | 171.4  | 240  | 5         |
-| BenchmarkMetricsMiddlewareWithBody                    | 164.5  | 304  | 6         |
-| BenchmarkMetricsMiddlewareWithCustomPath              | 147.4  | 240  | 5         |
-| BenchmarkLogging                                      | 911.9  |      |           |
-| BenchmarkNonce                                        | 577.4  |      |           |
-| BenchmarkGenerateNonce                                | 114.9  |      |           |
-| BenchmarkNonceAttr                                    | 49.15  |      |           |
-| BenchmarkParseUintQuery                               | 188.5  | 432  | 4         |
-| BenchmarkResponseRecorder                             | 519.5  | 1,008 | 9        |
-| BenchmarkHTTPRequestConstruction/httptestNewRequest   | 1,649  | 5,104 | 9        |
-| BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext | 1,729 | 5,105 | 9 |
-| BenchmarkHTTPRequestConstruction/httpNewRequestWithContext | 197.1 | 512 | 3       |
-| BenchmarkRecovery                                     | 65.6   |      |           |
-| BenchmarkRequestID                                    | 461.8  |      |           |
-| BenchmarkSecurityHeaders                              | 230.8  |      |           |
-| BenchmarkTimeout                                      | 456.1  |      |           |
-| BenchmarkCompose/Construct (3 no-op middlewares, one-time) | 4.936 | 0 | 0     |
-| BenchmarkCompose/Serve (same stack, steady state)     | 99.54  | 208  | 4         |
-| BenchmarkMiddlewareStack_Middleware (3 entries, per apply) | 6.415 | 0 | 0    |
+| Benchmark                                                      | ns/op  | B/op   | allocs/op |
+|----------------------------------------------------------------|--------|--------|-----------|
+| BenchmarkGenerateTimeOrderedID                                 | 91.98  | 41     | 1         |
+| BenchmarkGenerateTimeOrderedIDParallel                         | 86.01  | 41     | 1         |
+| BenchmarkIDGeneratorRefillSwap (≈17.3 ns/ID amortized)         | 4,431  | 2304   | 1         |
+| BenchmarkIDGeneratorRefillRawRandRead (baseline; ≈16.1 ns/ID)  | 4,117  | 0      | 0         |
+| BenchmarkCSRFMiddleware_PlainHTTPNosurf                        | 1,570  | 2,336  | 23        |
+| BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck           | 4,220  | 2,655  | 33        |
+| BenchmarkKeyedRateLimiterConfigValidate                        | 2.089  | 0      | 0         |
+| BenchmarkServerConfigValidateWithTLS                           | 2.07   | 0      | 0         |
+| BenchmarkKeyedRateLimiterMiddleware                            | 174.8  | 208    | 4         |
+| BenchmarkKeyedRateLimiter_MaxKeysChurn (fresh key per op) †    | 620    |        |           |
+| BenchmarkChain                                                 | 3,091  |        |           |
+| BenchmarkClientIP                                              | 43.57  | 32     | 1         |
+| BenchmarkCodeRejectionConstruction                             | 77.55  |        |           |
+| BenchmarkSentinelCloneWithContext                              | 112.7  |        |           |
+| BenchmarkWrapTransientWithCause                                | 95.32  |        |           |
+| BenchmarkDomainOf                                              | 10.76  |        |           |
+| BenchmarkInDomain                                              | 10.71  |        |           |
+| BenchmarkCompression ‡                                         | 3,527  | 2,167  | 12        |
+| BenchmarkCompressionNegotiator/singleToken                     | 7.581  | 0      | 0         |
+| BenchmarkCompressionNegotiator/browserMulti †                  | 127.9  | 0      | 0         |
+| BenchmarkCompressionNegotiator/qvalues                         | 57.47  | 0      | 0         |
+| BenchmarkCompressionNegotiator/emptyHeader                     | 2.002  | 0      | 0         |
+| BenchmarkCORS                                                  | 409.2  | 592    | 9         |
+| BenchmarkMaxBodySize (4 KiB body, full read)                   | 1,517  | 5,429  | 15        |
+| BenchmarkDecompression/gzip ‡                                  | 8,017  | 45,837 | 14        |
+| BenchmarkDecompression/deflate ‡                               | 11,867 | 45,134 | 13        |
+| BenchmarkDecompression/passthrough                             | 125.5  | 224    | 5         |
+| BenchmarkHealthHandler                                         | 579.2  | 1,042  | 12        |
+| BenchmarkLiveHandler                                           | 786.4  | 1,042  | 12        |
+| BenchmarkReadyHandler                                          | 688.7  | 1,042  | 12        |
+| BenchmarkMetricsMiddleware                                     | 171.4  | 240    | 5         |
+| BenchmarkMetricsMiddlewareWithBody                             | 164.5  | 304    | 6         |
+| BenchmarkMetricsMiddlewareWithCustomPath                       | 147.4  | 240    | 5         |
+| BenchmarkLogging                                               | 911.9  |        |           |
+| BenchmarkNonce                                                 | 577.4  |        |           |
+| BenchmarkGenerateNonce                                         | 114.9  |        |           |
+| BenchmarkNonceAttr                                             | 49.15  |        |           |
+| BenchmarkParseUintQuery                                        | 188.5  | 432    | 4         |
+| BenchmarkResponseRecorder                                      | 519.5  | 1,008  | 9         |
+| BenchmarkHTTPRequestConstruction/httptestNewRequest            | 1,649  | 5,104  | 9         |
+| BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext | 1,729  | 5,105  | 9         |
+| BenchmarkHTTPRequestConstruction/httpNewRequestWithContext     | 197.1  | 512    | 3         |
+| BenchmarkRecovery                                              | 65.6   |        |           |
+| BenchmarkRequestID                                             | 461.8  |        |           |
+| BenchmarkSecurityHeaders                                       | 230.8  |        |           |
+| BenchmarkTimeout                                               | 456.1  |        |           |
+| BenchmarkCompose/Construct (3 no-op middlewares, one-time)     | 4.936  | 0      | 0         |
+| BenchmarkCompose/Serve (same stack, steady state)              | 99.54  | 208    | 4         |
+| BenchmarkMiddlewareStack_Middleware (3 entries, per apply)     | 6.415  | 0      | 0         |
 
 ### `httpspec` (3s×5, own module; ran in one short window — treat ±25% deltas vs 2026-09-11 as load noise)
 
 | Benchmark                            | ns/op  | B/op | allocs/op |
-| ------------------------------------ | ------ | ---- | --------- |
+|--------------------------------------|--------|------|-----------|
 | BenchmarkCheckServesRequest          | 440.1  | 1048 | 11        |
 | BenchmarkCheck/index_not_404         | 892.8  |      |           |
 | BenchmarkCheck/body_has_content_type | 728.3  |      |           |
@@ -73,7 +73,7 @@
 ### `server_timing` (3s×5, own module)
 
 | Benchmark                                           | ns/op  | B/op | allocs/op |
-| --------------------------------------------------- | ------ | ---- | --------- |
+|-----------------------------------------------------|--------|------|-----------|
 | BenchmarkServerTiming_DisabledOverhead              | 3.976  |      |           |
 | BenchmarkServerTiming_EnabledMeasure                | 140.2  |      |           |
 | BenchmarkServerTiming_EnabledMeasureViaContext      | 140.8  |      |           |
