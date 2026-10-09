@@ -83,6 +83,10 @@ An auto-git-commit daemon commits continuously; unexpected commits are expected,
 
 **Parallel-writer protocol (2026-09-23 restore-war lesson):** parallel agent sessions run in this fleet; "vanished files" can be another writer's deliberate removal. Before restoring anything, `git log --format='%h %s' -10` and scan for NON-heuristic messages touching that path (reasoned message = deliberate act; `chore: auto-commit N file(s)` = the daemon). Deletions get an immediate deliberate commit (the daemon resurrects deleted paths); version-directive downgrades contradicting a dependency's `go` requirement are daemon casualties — verify against the tag and restore. Never cite daemon heuristic commits in external artifacts — reference CHANGELOG sections, tags, or deliberate commits.
 
+### Session-Tail Discipline (recurring lesson: 2026-10-09 ×2)
+
+Before declaring a session done: confirm the last commit is pushed (`git log origin/master..master` empty), CI green on that exact head, and the tree clean. The tail is where daemon/parallel-writer races bite (the `a0503a1` and `eccd453` incidents). Never pipe release-critical commands through filters that eat errors or exit codes — redirect to a file and read `$?` from the command, not the pipe.
+
 ### Doc-Freshness Cadence
 
 Living docs (`TODO_LIST.md`, `FEATURES.md`, `ROADMAP.md`, `CHANGELOG.md`) are verified via the `docs-health` skill before each version tag and at least monthly. Historical `docs/status/` reports get inline `~~item~~ done at <hash>` annotations when read; fully-resolved reports move to `<dir>/archived/` via `git mv` (`a)` FULLY DONE tables, `d)`/`e)` sections, and session timelines are historical records and are never struck). The archived-completeness gate (`grep -rLn '~~'` must print nothing) applies to `.md` files only — two archived `.html` reports are rendered twins of annotated `.md` siblings in the same directory and need no separate annotation. Files referenced by living docs stay in place. Struck-done TODO_LIST items are deleted at each docs-health rebuild (completed work lives in CHANGELOG), not accumulated.
