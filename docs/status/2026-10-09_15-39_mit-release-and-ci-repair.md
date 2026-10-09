@@ -83,4 +83,4 @@
 
 ---
 
-*Point-in-time snapshot. Annotate, don't rewrite, when this goes stale.*
+_Point-in-time snapshot. Annotate, don't rewrite, when this goes stale._
