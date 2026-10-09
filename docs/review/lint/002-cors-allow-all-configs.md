@@ -4,7 +4,7 @@
 - **Severity:** Medium (ksef-sandbox, e-invoicing, storbi, ChastityAPI), Info (sales-landing-page, middleware-showcase example)
 - **Status:** Open
 - **Consumers:** ksef-sandbox, e-invoicing, storbi, ChastityAPI, sales-landing-page/cloud-run, cqrs-htmx `examples/middleware-showcase`
-- **Ground truth:** `cors.go` `resolveOrigin()` — origin matching is exact-string or `*.suffix` wildcard patterns (`matchWildcardOrigin`, cors.go:197); `DefaultCORSConfig()` (cors.go:48) is an allow-all dev default
+- **Ground truth:** `cors.go` `resolveOrigin()` — origin matching is exact-string or `*.suffix` wildcard patterns (`matchWildcardOrigin`, cors.go:198); `DefaultCORSConfig()` (cors.go:48) is an allow-all dev default
 
 ## What the consumers do
 

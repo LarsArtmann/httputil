@@ -12,14 +12,14 @@
 instead of `httputil.Recovery`, and pairs it with panic-based error
 signaling:
 
-1. **`http.ErrAbortHandler` is swallowed** (error.go:55-77): the
+1. **`http.ErrAbortHandler` is swallowed** (error.go:55-66): the
    deferred recover converts every panic into a JSON 500, including the
    sentinel `net/http`'s server uses to abort a connection silently.
    The stdlib contract (and httputil's deliberate re-panic) exists so
    aborted hijacked/streamed connections do not get a second,
    corrupting write. The custom recovery writes a response body onto
    connections the server contract says are abandoned.
-2. **Panic strings are echoed to clients** (error.go:74-77): a panic
+2. **Panic strings are echoed to clients** (error.go:63-64): a panic
    carrying a `string` becomes `{"error": <that string>}` with status
    500 — internal error text, file paths, or user input embedded in
    `panic(...)` calls flow straight into the response body.

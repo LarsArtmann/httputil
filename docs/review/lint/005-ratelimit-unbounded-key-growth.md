@@ -21,7 +21,7 @@ are attacker-chosen in the relevant deployments) and sets neither
 | SwettySwipperWeb | `services/api/middleware.go:112-126` | login, vote, import limiters |
 | games/SEC | `server/middleware.go:44` | player/user/IP extractor, no caps |
 | Standup-Killer | `api/server.go:142` | `WithRateLimit` option |
-| artmann-technologies-website | `cmd/.../middleware.go:186` | contact-form limiter (`exhaustruct` nolint implies the fields are unset) |
+| artmann-technologies-website | `cmd/.../middleware.go:187` | contact-form limiter (`exhaustruct` nolint implies the fields are unset) |
 
 Positive in-fleet contrasts: browser-history sets `MaxKeys: 10000/1000`
 (api/middleware.go:171, 199); CV sets per-profile `MaxKeys` constants
