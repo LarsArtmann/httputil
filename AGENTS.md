@@ -5,7 +5,7 @@
 The non-obvious rules that cause immediate lint failures. Read before writing any code.
 
 - **Allowed dependencies (`depguard`)**: `$gostd`, this module root + subpackages (explicit `github.com/larsartmann/httputil` + `/**` entries — `$module` does not expand in depguard v2.12.2), `…/httputil/server_timing` (explicit — `/**` does not match separate go.mod modules), `github.com/larsartmann/go-error-family`, `github.com/larsartmann/go-etag` (adapter removed v1.1.0; dep stays for its error-code registration), `golang.org/x/time`, `github.com/justinas/nosurf`. Nothing else.
-- **`exhaustruct_v5`**: populate EVERY field of every struct literal (relaxed in test files). Settings keys `enforce-patterns`/`ignore-patterns`; struct tags NOT honored — use `//nolint:exhaustruct_v5`.
+- **`exhaustruct_v5`**: populate EVERY field of every struct literal (relaxed in test files; stdlib `os/exec.Cmd` ignored via config). Settings keys `enforce-patterns`/`ignore-patterns`; struct tags NOT honored — use `//nolint:exhaustruct_v5`.
 - **`err113`**: no inline `errors.New()`/`fmt.Errorf()` sentinels. Pattern: `const codeFoo = Code("foo.failure")` + package-level `var errFoo = codeFoo.Rejection("message")`, return `errFoo.WithContext(...)`/`WithCause(...)` clones (With* copies — safe).
 - **`wsl_v5`**: blank lines before `return`, after declarations, around control flow — run `golangci-lint fmt` after editing; manual whitespace will likely be wrong.
 - **`nonamedreturns`**: no named returns in signatures.
@@ -208,13 +208,9 @@ Coverage is measured per module with `go test -race -coverprofile` (race detecto
 - **Shared test helpers** in `testutil_test.go`: `newNoOpHandler()`, `newCountingHandler()`, `newTestRequest()`, `newRecorder()`
 - **Test files split by middleware** — each middleware has its own `*_test.go`; chain integration in `chain_test.go`; the full file map lives in [docs/architecture-reference.md](docs/architecture-reference.md). Server-Timing tests/benchmarks/fuzz live in the `server_timing` sub-module.
 
-### Test File Lint Relaxations
-
-In `_test.go` files: `exhaustruct_v5`, `testpackage`, `gochecknoglobals`, `funlen`, `cyclop`, `goconst`, `unused` are suppressed.
-
 ## Pre-Existing Lint Warnings
 
-There are **0 active warnings** across ~70 linters. Site-specific suppressions: `//nolint:makezero` on pre-allocated direct-index writes (`recorder.go`, `stack.go`, `nonce.go`, `id_generator*`); `varnamelen` ignores `w`, `r`, `n`, `rw`; `noctx` in test files excluded via `.golangci.yml`. Other active linters worth knowing: `wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero`, `modernize`, `nolintlint` — per-linter detail in [docs/architecture-reference.md](docs/architecture-reference.md) (lint profile).
+There are **0 active warnings** across ~70 linters. Site-specific suppressions: `//nolint:makezero` on pre-allocated direct-index writes (`recorder.go`, `stack.go`, `nonce.go`, `id_generator*`); `varnamelen` ignores `w`, `r`, `n`, `rw`; `noctx` in test files excluded via `.golangci.yml`. In `_test.go` files generally: `exhaustruct_v5`, `testpackage`, `gochecknoglobals`, `funlen`, `cyclop`, `goconst`, `unused` are suppressed. Other active linters worth knowing: `wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero`, `modernize`, `nolintlint` — per-linter detail in [docs/architecture-reference.md](docs/architecture-reference.md) (lint profile).
 
 ## Accepted Code Duplication
 

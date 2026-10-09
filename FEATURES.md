@@ -223,6 +223,11 @@ Measured 2026-09-27 with `go test -race -coverprofile`: **97.9%** (`httputil`, l
 
 ---
 
+## Distribution & Licensing
+
+- **Both modules are MIT** — root `LICENSE` since v1.5.0, `server_timing/LICENSE` since v1.0.2 (owner decisions 2026-10-08/09; holder "Lars Artmann"). pkg.go.dev renders README and full documentation for both module pages (verified 2026-10-09; visibility is per-tag — it began with those tags).
+- **`server_timing/README.md`** — the sub-module's own end-user page (install, quick start, the measure-before-write gotcha), rendered on pkg.go.dev's module page and the GitHub directory view (added in the v1.5.0 cycle, shipped at `server_timing/v1.0.2`).
+
 ## WORTH CONSIDERING
 
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
