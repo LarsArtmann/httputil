@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil.svg)](https://pkg.go.dev/github.com/larsartmann/httputil)
 [![Go Version](https://img.shields.io/badge/Go-1.27+-00ADD8)](https://go.dev)
-![Coverage](https://img.shields.io/badge/coverage-97.5%25-green)
+![Coverage](https://img.shields.io/badge/coverage-98.1%25-green)
 ![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -756,7 +756,7 @@ This project maintains strict quality standards enforced in CI:
 | ---------------- | ------------------------------------------ | ------------------------------------------------ |
 | Tests            | `go test -race -count=1 ./...`             | Passing                                          |
 | Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
-| Coverage         | `go test -coverprofile=coverage.out ./...` | 97.5% httputil / 99.1% httpspec (threshold: 95%) |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 98.0% httputil / 98.6% httpspec (threshold: 95%) |
 | Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
 | Vet              | `go vet ./...`                             | Clean                                            |
 | Vulnerabilities  | `govulncheck ./...`                        | None found                                       |
