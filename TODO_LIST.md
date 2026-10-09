@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code. Completed work lives in [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]` and the frozen version sections); rejected ideas live in [ROADMAP.md](ROADMAP.md) Non-goals; process decisions live in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
-_Updated: 2026-10-09 (docs-health AUDIT pass: harvest of the two unharvested reports — docs/status/2026-10-09_02-29 §f and docs/status/2026-10-09_17-49 §f — plus the 17-41 †/benchstat follow-ups). Prior sweeps: post-Go-1.27-review 2026-10-09; post-release v1.5.0._
+_Updated: 2026-10-09 (docs-health AUDIT pass: harvest of the two unharvested reports — docs/status/2026-10-09_02-29 §f and docs/status/2026-10-09_17-49 §f — plus the 17-41 †/benchstat follow-ups; verification sweep of all non-archived 2026-0* docs feeding the grouped batches below; 11 fully-resolved reports annotated inline and moved to `archived/`). Prior sweeps: post-Go-1.27-review 2026-10-09; post-release v1.5.0._
 
 ---
 
