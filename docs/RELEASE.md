@@ -61,6 +61,10 @@ Then refresh the recorded baseline in `docs/benchmarks.md` (3s × 5 protocol) so
 
 Re-review `scripts/` and every `Example*` function — a prior pass claiming "clean" is not a substitute (the 2026-09-15 re-run found three real findings despite one). Check that examples still compile against the current API, their `// Output:` blocks are deterministic, and `scripts/` gates referenced by CI still exist and pass.
 
+### 6.6. Workflow pins vs current Go patch
+
+The Release workflow is **frozen at the tag** — a pin that is already stale ships a red Release run (the v1.5.0 run died on exactly this: its `GO_VERSION` predated the Go patch whose export data the pinned `GOLANGCI_LINT_VERSION` could not read). Before tagging, check that `.github/workflows/release.yml`'s `GO_VERSION` + `GOLANGCI_LINT_VERSION` and ci.yml's Lint-job setup-go pin still cover the current Go patch: a new Go patch whose export-data version outpaces the pinned golangci-lint needs BOTH bumped (they move together) in the same change, BEFORE the tag. golangci-lint forces `GOTOOLCHAIN=local` internally, so job-env `GOTOOLCHAIN` pins never reach the linter — only exact setup-go/`GO_VERSION` pins work.
+
 ## Release-Time Steps
 
 ### 7. Update CHANGELOG.md
