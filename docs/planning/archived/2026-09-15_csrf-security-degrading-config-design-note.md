@@ -10,7 +10,7 @@
 ## 1. The finding
 
 > Validate-and-log continues on security-degrading config (e.g. `SameSite=None` + `Secure=false`) instead of remediating to secure defaults.
-> — [docs/reviews/2026-09-11_08-59_full-code-review.html](../reviews/2026-09-11_08-59_full-code-review.html), finding 2 (major)
+> — [docs/reviews/2026-09-11_08-59_full-code-review.html](../../reviews/2026-09-11_08-59_full-code-review.html), finding 2 (major)
 
 The review recorded rather than fixed it: changing the validate-and-log contract touches a documented decision and needs this design pass.
 
@@ -73,7 +73,7 @@ Rejected in design: the config model is static, per-request cookie-attribute swi
 ## 6. Release mechanics (any B variant)
 
 - Runtime behavior change **within unchanged signatures** → v1.2.0 minor, exactly like the two deltas already staged there (`docs/v1-stability.md:293`).
-- `CHANGELOG.md` `[Unreleased]` Changed entry + a section in [docs/migrating-to-v1.2.md](../migrating-to-v1.2.md).
+- `CHANGELOG.md` `[Unreleased]` Changed entry + a section in [docs/migrating-to-v1.2.md](../../migrating-to-v1.2.md).
 - Docs sweep in the same change: `AGENTS.md` CSRF bullets, `docs/DOMAIN_LANGUAGE.md:368` and `:424`, `FEATURES.md:98`, `SECURITY.md`, and the `errorTemplates` Fix wording for `csrf_samesite_insecure` (`errors.go`) — template text should say the constructor falls back and how to get the intended behavior.
 - Adjacent doc-comment correction (same change): `CSRFConfig.Secure` "auto-detected from request scheme" claim (`csrf.go:149`) is false — nothing auto-detects (verified: `ConfigureNosurfHandler` uses `cfg.Secure` verbatim; nosurf's `IsTLS` hook is inert in v1.2.0).
 
