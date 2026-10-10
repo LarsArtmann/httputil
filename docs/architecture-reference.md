@@ -127,8 +127,15 @@ These won't surprise you on every edit, but may trigger on specific patterns:
 - `noinlineerr` — forbids `if err := ...; err != nil` inline style; requires separate assignment
 - `tparallel` — enforces `t.Parallel()` and prefers `t.Cleanup` over `defer`
 
-```
-```
+### Branching-flow residual baseline
+
+`branching-flow all . --format markdown` findings are policy-rejected accepted design, not debt. Row-level census (branching-flow 0.6.4/60a9108, 2026-10-10): [docs/review/lint/branching-flow-baseline-2026-10-10.md](review/lint/branching-flow-baseline-2026-10-10.md). Future triage is a delta check — re-run and diff against that file; anything NEW is a finding, existing rows are accepted. Per-class verdicts:
+
+- **Phantom Type, 21 rows** — 13 `transpose` rows mirror stdlib signatures (`httptest.NewRequest(method, target)`, `ListenAndServeTLS(certFile, keyFile)`, Server-Timing name/description vocabulary); 8 `collision` rows are `trim`-class name collisions (a named first parameter flowing into an `input` second parameter of an index/parse helper). Both patterns accepted.
+- **Panic Conditions, 20 rows** — every index-out-of-range row is provably bounded: insertion-sort parallel-slice invariants (`compression_negotiator.go`, `language.go`), the `trim` loop guard (`compression_qvalue.go`), and the `container/heap` `Less`/`Swap` interface contract (`ratelimit_keyed.go`) — do NOT add bounds checks to heap methods. The 1 explicit-panic row is `httpspec.go`'s unexported `mustRequest` test helper (the never-panic policy covers the public API surface, not test scaffolding).
+- **Duplicate Type, 1 group of 6 rows** — empty context-marker structs (`clientIPKey`, `csrfKey`, `languageKey`, `nonceKey`, `requestIDKey`, `serverTimingKey`) are intentional marker/brand types.
+- **Flag Parameter, 1 row** — the "bool parameter is not last" claim miscounts the variadic: `runSpecs.parallel` IS the last named parameter, already split into the public `Run`/`RunSerial` pair.
+- **All other sections: 0 rows** (Strong ID, Boolean Blindness, Composition Anti-Patterns, Composition Mixins, Split-Brain Interface, Context Propagation, Naked Return, Interface Completion, samber/do, samber/ro).
 
 ## Accepted Code Duplication
 
