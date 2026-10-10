@@ -302,6 +302,19 @@ func assertSliceEqual(t *testing.T, got, want []string) {
 	}
 }
 
+// newTestGetRequest returns a GET request for url via
+// http.NewRequestWithContext, for test clients that take a *http.Request.
+func newTestGetRequest(t *testing.T, url string) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		t.Fatalf("http.NewRequestWithContext: %v", err)
+	}
+
+	return req
+}
+
 // waitForTLS blocks until the TLS server at addr completes a handshake with
 // cfg, failing the test on a startup error from errChan or if the deadline
 // elapses. Prefer passing the resolved address from Server.ListenerAddr so a
@@ -310,6 +323,10 @@ func waitForTLS(t *testing.T, errChan <-chan error, addr string, cfg *tls.Config
 	t.Helper()
 
 	deadline := time.Now().Add(3 * time.Second)
+	dialer := &tls.Dialer{
+		NetDialer: &net.Dialer{Timeout: 100 * time.Millisecond},
+		Config:    cfg,
+	}
 
 	for time.Now().Before(deadline) {
 		select {
@@ -318,12 +335,7 @@ func waitForTLS(t *testing.T, errChan <-chan error, addr string, cfg *tls.Config
 		default:
 		}
 
-		conn, err := tls.DialWithDialer(
-			&net.Dialer{Timeout: 100 * time.Millisecond},
-			"tcp",
-			addr,
-			cfg,
-		)
+		conn, err := dialer.DialContext(context.Background(), "tcp", addr)
 		if err == nil {
 			_ = conn.Close()
 

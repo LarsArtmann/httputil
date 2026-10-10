@@ -21,7 +21,9 @@ func ExampleExpectStatus() {
 }
 
 func ExampleExpectNotStatus() {
-	handler := newStatusOnlyHandler(http.StatusOK)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	check := ExpectNotStatus(http.MethodGet, "/", http.StatusInternalServerError)
 	result := check(handler)
@@ -44,7 +46,9 @@ func ExampleExpectHeader() {
 }
 
 func ExampleExpectHeaderAbsent() {
-	handler := newStatusOnlyHandler(http.StatusOK)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	check := ExpectHeaderAbsent(http.MethodGet, "/", "X-Powered-By")
 	result := check(handler)
@@ -114,6 +118,36 @@ func ExampleRun() {
 	}
 
 	fmt.Println(spec.Check(handler))
+
+	// Output: passed
+}
+
+func ExampleExpectVaryContains() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Vary", "Accept-Encoding")
+		_, _ = w.Write([]byte("compressed representation"))
+	})
+
+	check := ExpectVaryContains(http.MethodGet, "/", "Accept-Encoding")
+	fmt.Println(check(handler))
+
+	// Output: passed
+}
+
+func ExampleExpectNotModifiedWithETag() {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-None-Match") == `"v1"` {
+			w.WriteHeader(http.StatusNotModified)
+
+			return
+		}
+
+		w.Header().Set("ETag", `"v1"`)
+		_, _ = w.Write([]byte("resource"))
+	})
+
+	check := ExpectNotModifiedWithETag(http.MethodGet, "/", `"v1"`)
+	fmt.Println(check(handler))
 
 	// Output: passed
 }

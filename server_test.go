@@ -342,7 +342,7 @@ func TestServerServesRequests(t *testing.T) {
 		t.Fatal("listener address did not resolve after Start")
 	}
 
-	resp, err := http.Get("http://" + listenAddr + "/")
+	resp, err := http.DefaultClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/"))
 	if err != nil {
 		t.Fatalf("GET http://%s/: %v", listenAddr, err)
 	}
@@ -374,9 +374,9 @@ func TestServerServesRequests(t *testing.T) {
 func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
 	t.Parallel()
 
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
-		t.Fatalf("net.Listen: %v", err)
+		t.Fatalf("net.ListenConfig.Listen: %v", err)
 	}
 
 	blockCh := make(chan struct{})
@@ -407,7 +407,7 @@ func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
 
 	go func() {
 		client := &http.Client{Timeout: 30 * time.Second}
-		resp, err := client.Get("http://" + addr + "/")
+		resp, err := client.Do(newTestGetRequest(t, "http://"+addr+"/"))
 		if err == nil {
 			_ = resp.Body.Close()
 		}
@@ -583,7 +583,7 @@ func TestServerStartTLSServesHTTPSWithSelfSignedCert(t *testing.T) {
 	client := &http.Client{
 		Transport: &http.Transport{TLSClientConfig: clientTLS, ForceAttemptHTTP2: false},
 	}
-	resp, err := client.Get("https://" + listenAddr + "/")
+	resp, err := client.Do(newTestGetRequest(t, "https://"+listenAddr+"/"))
 	if err != nil {
 		t.Fatalf("HTTPS request failed: %v", err)
 	}
@@ -717,7 +717,7 @@ func TestServer_Start_EphemeralAddr_ListenerAddrResolvesPort(t *testing.T) {
 		t.Errorf("resolved port = 0, want the OS-assigned ephemeral port")
 	}
 
-	resp, err := http.Get("http://" + listenAddr + "/")
+	resp, err := http.DefaultClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/"))
 	if err != nil {
 		t.Fatalf("request to resolved address failed: %v", err)
 	}
@@ -805,7 +805,7 @@ func TestServer_StartTLS_ListenerClearedOnCertFailure(t *testing.T) {
 func TestServer_Start_RestartableAfterBindFailure(t *testing.T) {
 	t.Parallel()
 
-	blocker, err := net.Listen("tcp", "127.0.0.1:0")
+	blocker, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -844,7 +844,7 @@ func TestServer_Start_RestartableAfterBindFailure(t *testing.T) {
 		t.Fatal("ListenerAddr after retry Start = not listening, want resolved address")
 	}
 
-	resp, err := http.Get("http://" + addr.String())
+	resp, err := http.DefaultClient.Do(newTestGetRequest(t, "http://"+addr.String()))
 	if err != nil {
 		t.Fatalf("GET after retry Start = %v, want 200 response", err)
 	}
@@ -917,7 +917,7 @@ func TestServer_StartTLS_RestartableAfterCertFailure(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	blocker, err := net.Listen("tcp", "127.0.0.1:0")
+	blocker, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -994,7 +994,7 @@ func TestServer_StartTLS_RestartableAfterCertFailure(t *testing.T) {
 		},
 	}
 
-	resp, err := client.Get("https://" + addr.String())
+	resp, err := client.Do(newTestGetRequest(t, "https://"+addr.String()))
 	if err != nil {
 		t.Fatalf("GET after retry StartTLS = %v, want 200 response", err)
 	}
