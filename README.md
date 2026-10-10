@@ -484,7 +484,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 ## API
 
 | Function                          | Signature                                                             | Purpose                                                                       |
-| --------------------------------  | --------------------------------------------------------------------- | ----------------------------------------------------------------------        |
+| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `CORS`                            | `func(CORSConfig) func(http.Handler) http.Handler`                    | CORS middleware factory                                                       |
 | `DefaultCORSConfig`               | `func() CORSConfig`                                                   | Permissive dev config (allows all origins)                                    |
 | `ClientIP`                        | `func(*http.Request) string`                                          | Extract client IP from proxied request                                        |

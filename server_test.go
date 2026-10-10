@@ -860,6 +860,52 @@ func TestServer_Start_RestartableAfterBindFailure(t *testing.T) {
 	}
 }
 
+func TestServer_StartTLS_TwiceFailsSecondStart(t *testing.T) {
+	t.Parallel()
+
+	certPEM, keyPEM := newSelfSignedCert(t)
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "cert.pem")
+	keyPath := filepath.Join(dir, "key.pem")
+	if err := os.WriteFile(certPath, certPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(keyPath, keyPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	errChan := srv.StartTLS(certPath, keyPath)
+
+	select {
+	case startErr := <-errChan:
+		t.Fatalf("first StartTLS delivered error %v, want successful serving", startErr)
+	case <-time.After(3 * time.Second):
+	}
+
+	secondErr := <-srv.StartTLS(certPath, keyPath)
+
+	if !errors.Is(secondErr, errServerAlreadyStarted) {
+		t.Errorf("second StartTLS error = %v, want errServerAlreadyStarted", secondErr)
+	}
+
+	if _, ok := srv.ListenerAddr(); !ok {
+		t.Error("ListenerAddr after rejected second StartTLS = not listening, want still listening")
+	}
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		t.Errorf("Shutdown = %v, want nil", err)
+	}
+}
+
 func TestServer_StartTLS_RestartableAfterCertFailure(t *testing.T) {
 	t.Parallel()
 

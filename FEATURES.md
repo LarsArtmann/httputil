@@ -196,7 +196,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%** (`httputil`, library packages), **98.6%** (`httpspec`); race-mode 2026-09-27 measured 97.9% / 99.1%. The remaining sub-100% functions are documented defensive code paths. (`ratelimit_keyed_trusted.go`, landed after that artifact, measured 100% locally under `-race` on 2026-10-10.)
+Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%** (`httputil`, library packages), **98.6%** (`httpspec`); race-mode 2026-09-27 measured 97.9% / 99.1%. The remaining sub-100% functions are documented defensive code paths. (Post-artifact additions measured locally: `ratelimit_keyed_trusted.go` 100%, `server.go` Start 97.6% / StartTLS 100%, root total 98.5% — 2026-10-10.)
 
 **Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 
@@ -207,8 +207,8 @@ Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%**
 - `ratelimit_keyed.go:207 buildKeyedRateLimiter` — 93.1%. Defensive config validation edge.
 - `ratelimit_keyed.go:327 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
 - `ratelimit_keyed.go:391 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
-- `server.go:202 Start` — 94.4%. Listener-close failure branch.
-- `server.go:251 StartTLS` — 72.2%. Listen-failure error branch (requires port-conflict injection).
+- `server.go:210 Start` — 97.6% (2026-10-10 lifecycle batch: bind-failure restart path covered). Remaining: the non-shutdown Serve-error send (242-243) — forcing an accept failure needs the unexported listener handle, not injectable from tests.
+- `server.go:266 StartTLS` — 100% (was 72.2%; the 2026-10-10 lifecycle batch added the port-conflict listen-failure injection, cert-failure restart, and StartTLS-twice tests).
 - `compression.go:255 Compression` — 95.8%. Constructor warning path for an invalid custom level.
 - `decompression.go:107 Decompression` — 87.9%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
 - `id_generator.go:129 drawRandomBytes` — 86.7%. Short-read loop branch (kernel-level fault injection).
