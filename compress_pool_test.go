@@ -142,6 +142,18 @@ func TestWriterPool_ResettableFactory_AcquireUsesPool(t *testing.T) {
 	if _, ok := wrapper.writer.(*markerPoolWriter); !ok {
 		t.Errorf("pool writer = %T, want *markerPoolWriter from the pool", wrapper.writer)
 	}
+
+	// A pooled wrapper must always satisfy writeCloseFlusher (Flush by
+	// delegation); a wrapped writer without flush support gets the no-op
+	// branch, mirroring nopFlushCloser.
+	flusher, ok := writer.(writeCloseFlusher)
+	if !ok {
+		t.Fatal("pooled writer does not satisfy writeCloseFlusher, want delegation Flush")
+	}
+
+	if err := flusher.Flush(); err != nil {
+		t.Errorf("Flush() on a pooled writer without flush support error = %v, want nil", err)
+	}
 }
 
 // TestWriterPool_Release_NonResettable_IsNotStored verifies that releasing a
@@ -282,7 +294,47 @@ func TestWriterPool_ProbeNilWriter_PanicsAtConstruction(t *testing.T) {
 		}
 	}()
 
+	//nolint:nilnil // deliberately returns (nil, nil): the factory-contract violation under test
 	_ = newWriterPool(func(io.Writer) (io.WriteCloser, error) { return nil, nil })
+}
+
+// errRefillFactoryFailed signals a refill-time factory error in tests of the
+// pool refill constructor's panic branch.
+var errRefillFactoryFailed = errors.New("refill factory failed")
+
+// TestWriterPool_RefillFactoryError_PanicsOnAcquire covers the factory-error
+// branch of the pool refill constructor: a factory that passes the probe but
+// later fails panics inside the wrapped-Get path instead of handing a broken
+// writer to a request.
+func TestWriterPool_RefillFactoryError_PanicsOnAcquire(t *testing.T) {
+	t.Parallel()
+
+	var calls int
+
+	factory := func(io.Writer) (io.WriteCloser, error) {
+		calls++
+		if calls == 1 {
+			return &markerPoolWriter{}, nil
+		}
+
+		return nil, errRefillFactoryFailed
+	}
+
+	pool := newWriterPool(factory)
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("acquire did not panic on a factory error from the pool refill")
+		}
+
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, "writer factory failed") {
+			t.Errorf("panic value = %v, want a factory failure message", r)
+		}
+	}()
+
+	_, _ = pool.acquire(io.Discard)
 }
 
 // TestWriterPool_RefillNilWriter_PanicsOnAcquire covers the nil-writer branch
@@ -300,6 +352,7 @@ func TestWriterPool_RefillNilWriter_PanicsOnAcquire(t *testing.T) {
 			return &markerPoolWriter{}, nil
 		}
 
+		//nolint:nilnil // deliberately returns (nil, nil): the factory-contract violation under test
 		return nil, nil
 	}
 
@@ -320,6 +373,34 @@ func TestWriterPool_RefillNilWriter_PanicsOnAcquire(t *testing.T) {
 	_, _ = pool.acquire(io.Discard)
 }
 
+// TestWriterPool_Acquire_ForeignElement_ReturnsClassifiedError covers the
+// owner assertion in acquire: an element whose wrapper names a different
+// pool surfaces the classified pool-contract error instead of being handed
+// to a request.
+func TestWriterPool_Acquire_ForeignElement_ReturnsClassifiedError(t *testing.T) {
+	t.Parallel()
+
+	foreignOwner := newMarkerWriterPool(nil)
+
+	pool := &writerPool{
+		pool: &sync.Pool{
+			New: func() any {
+				return &pooledWriter{owner: foreignOwner, writer: &markerPoolWriter{}}
+			},
+		},
+		resettable: true,
+	}
+
+	writer, err := pool.acquire(io.Discard)
+	if writer != nil {
+		t.Errorf("acquire writer = %v, want nil", writer)
+	}
+
+	if !errors.Is(err, errUnexpectedPoolType) {
+		t.Errorf("errors.Is(err, errUnexpectedPoolType) = false, want true")
+	}
+}
+
 // TestWriterPool_DirectPathNilWriter_ReturnsClassifiedError covers the
 // nil-writer guard on acquire's direct (non-pooled) path: a factory that
 // passes the probe (non-resettable writer) but later returns (nil, nil)
@@ -335,6 +416,7 @@ func TestWriterPool_DirectPathNilWriter_ReturnsClassifiedError(t *testing.T) {
 			return &plainWriteCloser{Writer: io.Discard}, nil
 		}
 
+		//nolint:nilnil // deliberately returns (nil, nil): the factory-contract violation under test
 		return nil, nil
 	}
 
