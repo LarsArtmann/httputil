@@ -310,6 +310,32 @@ func ExampleKeyedRateLimiterMiddleware() {
 	// Output: 200
 }
 
+func ExampleNewKeyedRateLimiter() {
+	limiter := NewKeyedRateLimiter(KeyedRateLimiterConfig{
+		Limit:        100,
+		Window:       time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		MaxKeys:      2,
+	})
+
+	handler := limiter.Middleware()(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	for _, remote := range []string{"10.0.0.1:1000", "10.0.0.1:2000", "10.0.0.1:3000"} {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = remote
+		handler.ServeHTTP(httptest.NewRecorder(), req)
+	}
+
+	// MaxKeys caps the tracked buckets: with the third distinct key the
+	// oldest-accessed bucket (10.0.0.1:1000) is evicted, keeping the memory
+	// footprint bounded no matter how many clients appear.
+	fmt.Println(limiter.ActiveKeys())
+
+	// Output: 2
+}
+
 func Example_conditionalRequests() {
 	helloHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("hello world"))

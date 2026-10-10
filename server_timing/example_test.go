@@ -1,9 +1,11 @@
 package servertiming
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"time"
 )
 
@@ -53,4 +55,26 @@ func ExampleWrapServerTiming() {
 	// Output:
 	// 200 ok
 	// true
+}
+
+func ExampleServerTiming_MeasureWithDesc() {
+	st := NewServerTiming()
+
+	stop := st.MeasureWithDesc("db", "Main query")
+	stop()
+
+	// The duration is wall-clock, so only the stable prefix is asserted.
+	fmt.Println(strings.HasPrefix(st.HeaderValue(), `db;desc="Main query";dur=`))
+
+	// Output: true
+}
+
+func ExampleServerTimingFromContext() {
+	// Outside the middleware no collector is present: the lookup returns nil,
+	// and every method on the nil *ServerTiming is a no-op, so handlers can
+	// record without nil checks.
+	fmt.Println(ServerTimingFromContext(context.Background()) == nil)
+	RecordServerTiming(context.Background(), "db", "", 0)
+
+	// Output: true
 }
