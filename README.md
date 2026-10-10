@@ -329,6 +329,8 @@ Default timeouts match production recommendations:
 - `WriteTimeout`: 30s
 - `IdleTimeout`: 60s
 
+> **Stdlib pass-through boundary:** `ServerConfig` wraps the common timeouts and TLS settings; other `http.Server` knobs (for example Go 1.27's new `MaxHeaderValueCount` request-header cap) are not exposed — construct a plain `http.Server` when you need one.
+
 ### Health Checks
 
 Standard Kubernetes-compatible health handlers.
