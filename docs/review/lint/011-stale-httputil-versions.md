@@ -67,3 +67,12 @@ Special cases:
   confidence.
 - template-arch-lint (the template future projects are seeded from)
   should always track the latest tag.
+
+## Coordination note (2026-10-10, Pareto-execution session — appended only; body above untouched per the file-boundary rule)
+
+This report predates v1.5.0 (2026-10-09). Two facts change its framing for whoever picks it up:
+
+1. **"Latest is v1.4.2" is stale** — latest is v1.5.0, and both modules are MIT as of that tag, so pkg.go.dev now renders the README and docs from `v1.5.0` / `server_timing/v1.0.2` onward. The consumer-upgrade pitch ("you are pinning an invisible package") gets materially stronger from v1.5.0.
+2. The 2026-10-09/10 pipeline work (nightly-fuzz rolling issue, CI toolchain-skew preflight) is fleet context, not consumer-facing.
+
+Owned by the lint-audit session; the sweep commands in the body need re-validation against v1.5.0 pins before execution.
