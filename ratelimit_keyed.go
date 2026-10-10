@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"container/heap"
+	"math"
 	"net/http"
 	"strconv"
 	"sync"
@@ -25,9 +26,10 @@ const (
 // errKeyedLimitZero and friends are classified as Rejection: an invalid
 // rate-limit config is unacceptable input.
 const (
-	codeRatelimitKeyedLimitZero   = Code("ratelimit.keyed_limit_zero")
-	codeRatelimitKeyedWindowZero  = Code("ratelimit.keyed_window_zero")
-	codeRatelimitKeyedTTLNegative = Code("ratelimit.keyed_ttl_negative")
+	codeRatelimitKeyedLimitZero     = Code("ratelimit.keyed_limit_zero")
+	codeRatelimitKeyedWindowZero    = Code("ratelimit.keyed_window_zero")
+	codeRatelimitKeyedTTLNegative   = Code("ratelimit.keyed_ttl_negative")
+	codeRatelimitKeyedBurstTooLarge = Code("ratelimit.keyed_burst_too_large")
 )
 
 var (
@@ -39,6 +41,9 @@ var (
 	)
 	errKeyedTTLNegative = codeRatelimitKeyedTTLNegative.Rejection(
 		"KeyedRateLimiterConfig.TTL must not be negative",
+	)
+	errKeyedBurstTooLarge = codeRatelimitKeyedBurstTooLarge.Rejection(
+		"KeyedRateLimiterConfig.Burst must not exceed math.MaxInt32",
 	)
 )
 
@@ -138,6 +143,8 @@ func DefaultKeyedRateLimiterConfig() KeyedRateLimiterConfig {
 // only fields that fail validation are those whose zero values would break
 // rate calculation: Limit (must be > 0) and Window (must be > 0), and
 // TTL (must not be negative; zero is valid and defaults to 10 minutes).
+// Burst above math.MaxInt32 is rejected: the bucket size is converted to a
+// signed int for golang.org/x/time/rate, which overflows on 32-bit platforms.
 func (c KeyedRateLimiterConfig) Validate() error {
 	if c.Limit == 0 {
 		return errKeyedLimitZero
@@ -149,6 +156,10 @@ func (c KeyedRateLimiterConfig) Validate() error {
 
 	if c.TTL < 0 {
 		return errKeyedTTLNegative.WithContextAny("ttl", c.TTL)
+	}
+
+	if c.Burst > math.MaxInt32 {
+		return errKeyedBurstTooLarge.WithContextAny("burst", c.Burst)
 	}
 
 	return nil
@@ -193,7 +204,9 @@ func NewKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 // using a token bucket per key.
 //
 // If the rate limit is exceeded the middleware responds with 429 Too Many
-// Requests and a Retry-After header in seconds.
+// Requests and a Retry-After header in seconds. The default value is the
+// configured Window in whole seconds (truncated); custom RejectionHandler
+// and OnRejected callbacks receive the same string.
 //
 // Tokens are consumed at admission: the decision is instantaneous and request
 // cancellation does not refund the consumed budget.

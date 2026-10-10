@@ -303,6 +303,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Set TTL to zero (keep idle keys forever) or a positive duration.",
 		WayOut: "Leave TTL at zero for small, bounded key populations.",
 	},
+	string(codeRatelimitKeyedBurstTooLarge): {
+		What:   "Rate limit burst exceeds the platform integer range",
+		Why:    "KeyedRateLimiterConfig.Burst is {burst}; the bucket size is converted to a signed int internally, and values above math.MaxInt32 overflow on 32-bit platforms.",
+		Fix:    "Set Burst to at most math.MaxInt32 (2147483647).",
+		WayOut: "Leave Burst unset to default it to Limit.",
+	},
 	string(codeRatelimitTrustedProxyCIDRInvalid): {
 		What:   "Trusted proxy CIDR is invalid",
 		Why:    "The trusted-proxy set contains {cidr}, which failed CIDR parsing: {parse_error}.",

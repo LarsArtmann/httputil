@@ -22,6 +22,7 @@ const (
 	MiddlewareKeyedRateLimit  = "keyed-rate-limit"
 	MiddlewareETag            = "etag"
 	MiddlewareNonce           = "nonce"
+	MiddlewareLanguage        = "language"
 )
 
 // Error codes for MiddlewareStack construction, classified as Rejection.
@@ -46,6 +47,9 @@ var (
 // MiddlewareStack collects named middleware entries, validates their ordering,
 // and builds the final handler chain. It prevents accidental duplication and
 // enforces that [MiddlewareRecovery] is outermost when present.
+//
+// The zero value is an empty stack ready for [MiddlewareStack.Add];
+// [NewMiddlewareStack] exists for explicitness at call sites.
 //
 // Add is safe to call concurrently with reads (Names, Validate, Build, and the
 // middleware returned by Middleware): every read observes an immutable

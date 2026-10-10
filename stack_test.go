@@ -266,3 +266,32 @@ func TestMiddlewareStack_ConcurrentAddAndRead_RaceFree(t *testing.T) {
 		t.Errorf("len(Names()) = %d, want %d (no Add may be lost)", got, writers*iterations)
 	}
 }
+
+func TestMiddlewareStack_ZeroValueUsable(t *testing.T) {
+	t.Parallel()
+
+	var stack MiddlewareStack
+
+	err := stack.Add(MiddlewareETag, func(next http.Handler) http.Handler { return next })
+	if err != nil {
+		t.Fatalf("Add on zero-value stack: %v", err)
+	}
+
+	names := stack.Names()
+	if len(names) != 1 || names[0] != MiddlewareETag {
+		t.Errorf("Names() = %v, want [%s]", names, MiddlewareETag)
+	}
+
+	if err := stack.Validate(); err != nil {
+		t.Errorf("Validate() = %v, want nil", err)
+	}
+
+	rec := httptest.NewRecorder()
+	stack.Build(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+}

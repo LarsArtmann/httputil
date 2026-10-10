@@ -3,6 +3,7 @@ package httputil
 import (
 	"errors"
 	"fmt"
+	"math"
 	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
@@ -415,6 +416,39 @@ func TestKeyedRateLimiterConfigValidate_NonPositiveWindow(t *testing.T) {
 
 	if !errors.Is(err, errKeyedWindowZero) {
 		t.Errorf("Validate() error = %v, want errKeyedWindowZero", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_BurstAboveInt32Max(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: time.Minute,
+		Burst:  math.MaxInt32 + 1,
+	}
+
+	err := cfg.Validate()
+	if err == nil {
+		t.Fatal("Validate() error = nil, want error for Burst above math.MaxInt32")
+	}
+
+	if !errors.Is(err, errKeyedBurstTooLarge) {
+		t.Errorf("Validate() error = %v, want errKeyedBurstTooLarge", err)
+	}
+}
+
+func TestKeyedRateLimiterConfigValidate_BurstAtInt32MaxAccepted(t *testing.T) {
+	t.Parallel()
+
+	cfg := KeyedRateLimiterConfig{
+		Limit:  10,
+		Window: time.Minute,
+		Burst:  math.MaxInt32,
+	}
+
+	if err := cfg.Validate(); err != nil {
+		t.Errorf("Validate() error = %v, want nil for Burst at the int32 boundary", err)
 	}
 }
 

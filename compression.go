@@ -3,6 +3,7 @@ package httputil
 import (
 	"compress/flate"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -59,6 +60,19 @@ const (
 	// known to decompress every response.
 	AbsentEncodingFirstConfigured
 )
+
+// String returns the stable lowercase policy name for diagnostics and logs;
+// unknown values render as AbsentEncodingPolicy(N).
+func (p AbsentEncodingPolicy) String() string {
+	switch p {
+	case AbsentEncodingIdentity:
+		return "identity"
+	case AbsentEncodingFirstConfigured:
+		return "first-configured"
+	default:
+		return fmt.Sprintf("AbsentEncodingPolicy(%d)", int(p))
+	}
+}
 
 // CompressionConfig holds configuration for response compression.
 //

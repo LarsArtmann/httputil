@@ -12,6 +12,22 @@ import (
 	"testing"
 )
 
+func TestAbsentEncodingPolicyString(t *testing.T) {
+	t.Parallel()
+
+	if got := AbsentEncodingIdentity.String(); got != "identity" {
+		t.Errorf("got = %q, want %q", got, "identity")
+	}
+
+	if got := AbsentEncodingFirstConfigured.String(); got != "first-configured" {
+		t.Errorf("got = %q, want %q", got, "first-configured")
+	}
+
+	if got := AbsentEncodingPolicy(42).String(); got != "AbsentEncodingPolicy(42)" {
+		t.Errorf("got = %q, want %q", got, "AbsentEncodingPolicy(42)")
+	}
+}
+
 func TestCompression_NoAcceptEncoding(t *testing.T) {
 	t.Parallel()
 

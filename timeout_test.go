@@ -94,3 +94,34 @@ func TestTimeout_DeadlineBeforeHandlerStarts(t *testing.T) {
 		t.Errorf("context error = %v, want %v", ctxErr, context.DeadlineExceeded)
 	}
 }
+
+func TestTimeout_NegativeDurationExpiresContextImmediately(t *testing.T) {
+	t.Parallel()
+
+	mw := Timeout(-1 * time.Second)
+
+	var ctxErr error
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxErr = r.Context().Err()
+		w.WriteHeader(http.StatusOK)
+	})
+
+	rec := httptest.NewRecorder()
+	mw(handler).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if !errors.Is(ctxErr, context.DeadlineExceeded) {
+		t.Errorf(
+			"context error = %v, want %v (a negative duration yields an already-expired context)",
+			ctxErr,
+			context.DeadlineExceeded,
+		)
+	}
+
+	if rec.Code != http.StatusOK {
+		t.Errorf(
+			"status = %d, want %d (Timeout passes the handler response through; it never writes its own status)",
+			rec.Code,
+			http.StatusOK,
+		)
+	}
+}
