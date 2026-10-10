@@ -78,7 +78,7 @@ func TestLanguage_CookieLegBeatsHeader(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
-	req.AddCookie(&http.Cookie{Name: "lang", Value: "en"})
+	req.AddCookie(&http.Cookie{Name: "lang", Value: "en", Secure: true, HttpOnly: true, SameSite: http.SameSiteLaxMode})
 	req.Header.Set("Accept-Language", "de")
 
 	Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
