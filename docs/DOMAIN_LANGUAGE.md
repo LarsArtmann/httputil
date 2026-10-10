@@ -436,7 +436,7 @@ All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retrya
 Patterns consumers and contributors should follow.
 
 | Convention              | Description                                                                                                                                                                                                        |
-| ----------------------  | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Middleware signature    | Always `func(http.Handler) http.Handler` — the Go standard library convention                                                                                                                                      |
 | Middleware type alias   | `type Middleware = func(http.Handler) http.Handler` in `recorder.go` (a true alias — identical to the plain function type, so `server_timing`'s alias composes with `Chain`/`MiddlewareStack` without conversions) |
 | Classified errors       | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification                                                                                                                          |

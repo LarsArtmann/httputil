@@ -252,7 +252,7 @@ The gated alternative is additive:
 | `MiddlewareStack.Middleware` | Additive |
 | `Compose`                    | Additive |
 | `MiddlewareFunc`             | Additive |
-| `Middleware*` constants (14) | Frozen   |
+| `Middleware*` constants (15) | Frozen   |
 
 ### Query Parsing (Frozen at v1.0)
 

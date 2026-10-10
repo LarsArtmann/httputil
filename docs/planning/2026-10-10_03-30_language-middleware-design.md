@@ -109,6 +109,12 @@ table).
   noise but correct). Documented guidance, not machinery.
 - **Recovery** — unchanged: still outermost when present
   (`MiddlewareStack.Validate` untouched).
+- **Django precedence corroboration (verified first-hand 2026-10-10,
+  docs.djangoproject.com "How Django discovers language preference"):**
+  LocaleMiddleware resolves URL language prefix → `django_language`
+  cookie → `Accept-Language` → `LANGUAGE_CODE` fallback — the same shape
+  as the recommended chain (path/cookie legs outrank the header, default
+  tag last), including the base-language fallback (`de-at` serves `de`).
 
 ## Vary composition (T07)
 
@@ -117,7 +123,12 @@ the add when any existing `Vary` value already lists the token
 (comma-aware, case-insensitive; zero allocations on the common empty-Vary
 path). Chained with `Compression`, the response carries two Vary lines
 (`Accept-Encoding` from compression, `Accept-Language` from Language) —
-RFC 9110 §12.5.5-valid, and both major CDN families combine fields.
+the two lines are one list-based field under RFC 9110 §5.2 (§12.5.5
+defines Vary), and the CDN second-source pass (2026-10-10) verified:
+Cloudflare documents per-Vary-header cache keys and defers to RFC 9111
+combination semantics; Fastly supports Vary per spec and recommends the
+comma-joined single line — neither documents an explicit line-merge
+guarantee, which §5.2 makes unnecessary for conformant recipients.
 Compression keeps its shipped plain-Add contract; this middleware is the
 composing citizen. **ETag caveat (documented in README + integrations):**
 validators are per-representation — an ETag computed before language

@@ -378,6 +378,9 @@
       .severity-nice {
         background: var(--solution);
       }
+      .severity-ok {
+        background: var(--solution);
+      }
 
       /* --- Inline badges (used in tables) --- */
       .badge {
@@ -962,8 +965,10 @@
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">D1 &middot; Blocking</span>
+          <span class="severity severity-ok">RULED</span>
           <h3>Home of negotiation</h3>
-          <div class="where">httputil ROADMAP &sect;42 &times; go-appkit planning doc &sect;Module sketch</div>
+          <div class="where">httputil ROADMAP &sect;42 &times; go-appkit planning doc &sect;Module sketch
+          <p><strong>RULED 2026-10-10 (owner order "GET SHIT DONE", plan recommendations adopted): negotiation once in httputil core; appkit keeps the content lane, parked on demand evidence (T02: N=1).</strong></p></div>
           <p>
             httputil core middleware (<code>Language()</code>, zero-dep,
             KeyExtractor/Nonce precedents) vs a new appkit
@@ -977,8 +982,10 @@
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">D2 &middot; Blocking</span>
+          <span class="severity severity-ok">RULED</span>
           <h3>Vary semantics</h3>
-          <div class="where">mirrors the open AbsentEncodingFirstConfigured lifecycle question</div>
+          <div class="where">mirrors the open AbsentEncodingFirstConfigured lifecycle question
+          <p><strong>RULED 2026-10-10: RFC-strict default (always emit Vary: Accept-Language) with DisableVary opt-out — shipped.</strong></p></div>
           <p>
             Always emit <code>Vary: Accept-Language</code> when chained
             (RFC-strict, CDN-safe even with URL/cookie extraction) vs only when
@@ -989,8 +996,10 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">D3 &middot; Important</span>
+          <span class="severity severity-ok">RULED</span>
           <h3>Matcher default vs dependency policy</h3>
-          <div class="where">httputil go.mod &times; x/text CLDR matching</div>
+          <div class="where">httputil go.mod &times; x/text CLDR matching
+          <p><strong>RULED 2026-10-10: zero-dep exact-then-primary matcher, TagMatcher plugin hatch; escape-hatch docs shipped (docs/integrations/x-text.md).</strong></p></div>
           <p>
             Zero-dep primary-subtag default (policy-conformant; reproduces
             T49&rsquo;s proven semantics but misroutes pt/zh script classes
@@ -1003,8 +1012,10 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">D4 &middot; Important</span>
+          <span class="severity severity-ok">RULED</span>
           <h3>406 behavior + confidence exposure</h3>
-          <div class="where">config axes, not yet designed</div>
+          <div class="where">config axes, not yet designed
+          <p><strong>RULED 2026-10-10: no 406, no confidence exposure in v1 — unmatched candidates fall through to the default tag. Non-goal recorded in ROADMAP §42.</strong></p></div>
           <p>
             Do q=0-only / no-match requests default silently, or does a
             RejectOnNoMatch axis exist (and in which error family)? Is the
@@ -1015,8 +1026,10 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">D5 &middot; Important</span>
+          <span class="severity severity-ok">RULED</span>
           <h3>Cookbook canonical shape</h3>
-          <div class="where">go-appkit report Q3</div>
+          <div class="where">go-appkit report Q3
+          <p><strong>RULED 2026-10-10: sperrmuell shape is the worked example (real config landed in sperrmuell-direct /api/*); EN-canonical global-SaaS documented as a config variant.</strong></p></div>
           <p>
             German-canonical-unprefixed + <code>/en</code> (sperrmuell&rsquo;s
             proven SEO shape) as the worked example, or also an EN-canonical
@@ -1027,8 +1040,10 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">D6 &middot; Important</span>
+          <span class="severity severity-ok">RULED</span>
           <h3>Cross-repo authority</h3>
-          <div class="where">httputil report g3 &times; go-appkit report Q2</div>
+          <div class="where">httputil report g3 &times; go-appkit report Q2
+          <p><strong>RULED 2026-10-10: cross-repo authority granted and exercised — sperrmuell-direct /api/* header fix + T70 TODO row landed, all 7 verify gates green.</strong></p></div>
           <p>
             May a session write into sperrmuell-direct&rsquo;s TODO_LIST and
             patch its <code>/api/*</code> headers (T03/T04)? Both sessions

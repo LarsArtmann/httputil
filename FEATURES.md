@@ -10,26 +10,26 @@ _Updated: 2026-10-10 — counts recomputed from the repo (53 examples — 42 roo
 
 ### Core Middleware Suite (16 middlewares + the ResponseRecorder utility)
 
-| Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz |  |
+| Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz | |
 | ------------- | --------------------------------------------------------------- | ----------------------------- | ----------------------------- | ------------------------------------------------------------- | ---------------------------------------- | --------------------- | -------------------- | -------------------- | ------------------------------ | ------------------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
-| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS*` (4) |  |
-| ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` |  |
-| RequestID | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` |  |
-| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — |  |
-| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — |  |
-| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — |  |
-| Logging | `logging.go` | `*slog.Logger`; `LoggingFromContext` (context-resolved logger + fallback) | Yes | `ExampleLogging` | `BenchmarkLogging` | — |  |
-| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — |  |
-| Compression | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin; `Range` requests pass through uncompressed | Yes | `ExampleCompression` | `BenchmarkCompression*` | `FuzzCompression*` (3) |  |
-| MaxBodySize | `maxbodysize.go` | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes | `ExampleMaxBodySize` | `BenchmarkMaxBodySize` | `FuzzMaxBodySize` |  |
-| Metrics | `metrics.go` | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes | `ExampleMetrics` | `BenchmarkMetricsMiddleware*` | — |  |
-| Server-Timing | `server_timing/server_timing.go` | — | Yes | `ExampleServerTimingMiddleware` | `BenchmarkServerTiming*` | `FuzzServerTiming*` |  |
-| CSRF | `csrf.go` | `CSRFConfig` + `Validate()` (incl. `BootLogUntrustedForwardedProto` boot-warning opt-in) | Yes | `ExampleCSRFMiddleware`, `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` | `BenchmarkCSRFMiddleware*` | `FuzzCSRF*` (6) |  |
-| KeyedRateLimit | `ratelimit_keyed.go` | `KeyedRateLimiterConfig` + `Validate()` | Yes | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*` | — |  |
-| TrustedClientIP | `ratelimit_keyed_trusted.go` | `TrustedProxySet` via `ParseTrustedProxies()`, `KeyExtractorFromTrustedClientIP()` (additive, v1.5-cycle) | — | — | — | `FuzzTrustedProxySetClientIP` |  |
-| Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | `ExampleDecompression` | `BenchmarkDecompression*` | `FuzzDecompression` |  |
-| CSP Nonce | `nonce.go` | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes | `ExampleNonce` | `BenchmarkNonce*` | `FuzzNonce` |  |
-| Language | `language.go` | `LanguageConfig` + `Validate()`, pluggable extractors + `TagMatcher` | Yes | `ExampleLanguage` | — | `FuzzParseAcceptLanguage` |  |
+| CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS*` (4) | |
+| ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` | |
+| RequestID | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` | |
+| SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — | |
+| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — | |
+| Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — | |
+| Logging | `logging.go` | `*slog.Logger`; `LoggingFromContext` (context-resolved logger + fallback) | Yes | `ExampleLogging` | `BenchmarkLogging` | — | |
+| ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — | |
+| Compression | `compression.go`, `compress_writer.go` | `CompressionConfig` + `Validate()`, `WriterFactory` plugin; `Range` requests pass through uncompressed | Yes | `ExampleCompression` | `BenchmarkCompression*` | `FuzzCompression*` (3) | |
+| MaxBodySize | `maxbodysize.go` | `MaxBodySizeConfig` + `Validate()`, `MaxBodySizeMiddleware()` | Yes | `ExampleMaxBodySize` | `BenchmarkMaxBodySize` | `FuzzMaxBodySize` | |
+| Metrics | `metrics.go` | `MetricsConfig` + `Validate()`, `MetricsRecorder` interface | Yes | `ExampleMetrics` | `BenchmarkMetricsMiddleware*` | — | |
+| Server-Timing | `server_timing/server_timing.go` | — | Yes | `ExampleServerTimingMiddleware` | `BenchmarkServerTiming*` | `FuzzServerTiming*` | |
+| CSRF | `csrf.go` | `CSRFConfig` + `Validate()` (incl. `BootLogUntrustedForwardedProto` boot-warning opt-in) | Yes | `ExampleCSRFMiddleware`, `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` | `BenchmarkCSRFMiddleware*` | `FuzzCSRF*` (6) | |
+| KeyedRateLimit | `ratelimit_keyed.go` | `KeyedRateLimiterConfig` + `Validate()` | Yes | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*` | — | |
+| TrustedClientIP | `ratelimit_keyed_trusted.go` | `TrustedProxySet` via `ParseTrustedProxies()`, `KeyExtractorFromTrustedClientIP()` (additive, v1.5-cycle) | — | — | — | `FuzzTrustedProxySetClientIP` | |
+| Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | `ExampleDecompression` | `BenchmarkDecompression*` | `FuzzDecompression` | |
+| CSP Nonce | `nonce.go` | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes | `ExampleNonce` | `BenchmarkNonce*` | `FuzzNonce` | |
+| Language | `language.go` | `LanguageConfig` + `Validate()`, pluggable extractors + `TagMatcher` | Yes | `ExampleLanguage` | — | `FuzzParseAcceptLanguage` | |
 
 ETag conditional requests are not a row above since v1.1.0: the adapter was removed, and the middleware composes directly from [`go-etag`](https://github.com/larsartmann/go-etag) (`etag.New`), named in stacks via the surviving `MiddlewareETag` constant.
 
