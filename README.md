@@ -242,9 +242,15 @@ Logs each request with method, path, status, duration, and client IP.
 handler := httputil.Logging(slog.Default())(mux)
 ```
 
+For per-request loggers (per tenant, per trace), resolve the logger from the request context instead; requests whose context carries no logger fall back to the given logger, and requests with neither are served without a log line:
+
+```go
+handler := httputil.LoggingFromContext(slog.Default(), LoggerFromContext)(mux)
+```
+
 ### Response Compression
 
-Transparent response compression negotiated from the client's `Accept-Encoding` header. Supports gzip and deflate out of the box, respects RFC 7231 q-values, and leaves small responses, non-2xx statuses, and already-encoded responses uncompressed. Requests without an `Accept-Encoding` header are served uncompressed by default (minimal clients and probes may not decompress); set `AbsentEncoding: httputil.AbsentEncodingFirstConfigured` to restore the pre-v1.2 behavior of compressing for header-less clients. `Vary: Accept-Encoding` is added to every response — compressed or not — so shared caches key on the negotiation instead of serving a compressed representation to a client that cannot decode it.
+Transparent response compression negotiated from the client's `Accept-Encoding` header. Supports gzip and deflate out of the box, respects RFC 7231 q-values, and leaves small responses, non-2xx statuses, and already-encoded responses uncompressed. Requests without an `Accept-Encoding` header are served uncompressed by default (minimal clients and probes may not decompress); set `AbsentEncoding: httputil.AbsentEncodingFirstConfigured` to restore the pre-v1.2 behavior of compressing for header-less clients. `Vary: Accept-Encoding` is added to every response — compressed or not — so shared caches key on the negotiation instead of serving a compressed representation to a client that cannot decode it. Requests carrying a `Range` header always pass through uncompressed — byte-offset responses must be the verbatim representation, so compressing them would break range semantics.
 
 ```go
 handler := httputil.Compression(httputil.DefaultCompressionConfig())(mux)
@@ -502,6 +508,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Recovery`                        | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                                                                |
 | `Timeout`                         | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                                                  |
 | `Logging`                         | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                                                    |
+| `LoggingFromContext`              | `func(*slog.Logger, func(context.Context) *slog.Logger) Middleware`   | Request logging with the logger resolved per request from context             |
 | `MaxBodySize`                     | `func(int64) func(http.Handler) http.Handler`                         | Request body size limit                                                       |
 | `Compression`                     | `func(CompressionConfig) func(http.Handler) http.Handler`             | Negotiated response compression                                               |
 | `DefaultCompressionConfig`        | `func() CompressionConfig`                                            | gzip/deflate defaults                                                         |
@@ -604,21 +611,22 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 
 ### `CSRFConfig` fields
 
-| Field                       | Type            | Default            | Description                                                                                                                                       |
-| --------------------------- | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CookieName`                | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                                                                                           |
-| `HeaderName`                | `string`        | `"X-Csrf-Token"`   | Request header containing the CSRF token (canonical MIME spelling; header names are case-insensitive on the wire)                                 |
-| `FieldName`                 | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                                                                                                |
-| `MaxAge`                    | `time.Duration` | `24h`              | Cookie max age                                                                                                                                    |
-| `Secure`                    | `bool`          | `false`            | Sets the Secure flag on the cookie (set `true` in production; with `SameSite=None` the constructor falls back to `Secure=true`)                   |
-| `SameSite`                  | `http.SameSite` | `SameSiteLaxMode`  | SameSite attribute on the cookie                                                                                                                  |
-| `Domain`                    | `string`        | `""` (host-only)   | Cookie domain                                                                                                                                     |
-| `Path`                      | `string`        | `"/"`              | Cookie path                                                                                                                                       |
-| `TrustedOrigins`            | `[]string`      | `nil`              | Origins allowed for cross-domain CSRF (each must be a `scheme://host` origin; parsing is all-or-nothing — one bad entry means no trusted origins) |
-| `TrustedProxies`            | `[]string`      | `nil`              | IP/CIDR of reverse proxies that may strip origin headers                                                                                          |
-| `AllowPlaintextBypass`      | `bool`          | `false`            | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)                                                                            |
-| `AllowInsecureSameSiteNone` | `bool`          | `false`            | Keep `SameSite=None` without `Secure` instead of the `Secure=true` fallback (legacy clients only; browsers refuse to store the cookie)            |
-| `ErrorHandler`              | `ErrorHandler`  | `nil` (403 + body) | Custom handler for CSRF validation failures                                                                                                       |
+| Field                            | Type            | Default            | Description                                                                                                                                       |
+| ---------------------------      | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CookieName`                     | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                                                                                           |
+| `HeaderName`                     | `string`        | `"X-Csrf-Token"`   | Request header containing the CSRF token (canonical MIME spelling; header names are case-insensitive on the wire)                                 |
+| `FieldName`                      | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                                                                                                |
+| `MaxAge`                         | `time.Duration` | `24h`              | Cookie max age                                                                                                                                    |
+| `Secure`                         | `bool`          | `false`            | Sets the Secure flag on the cookie (set `true` in production; with `SameSite=None` the constructor falls back to `Secure=true`)                   |
+| `SameSite`                       | `http.SameSite` | `SameSiteLaxMode`  | SameSite attribute on the cookie                                                                                                                  |
+| `Domain`                         | `string`        | `""` (host-only)   | Cookie domain                                                                                                                                     |
+| `Path`                           | `string`        | `"/"`              | Cookie path                                                                                                                                       |
+| `TrustedOrigins`                 | `[]string`      | `nil`              | Origins allowed for cross-domain CSRF (each must be a `scheme://host` origin; parsing is all-or-nothing — one bad entry means no trusted origins) |
+| `TrustedProxies`                 | `[]string`      | `nil`              | IP/CIDR of reverse proxies that may strip origin headers                                                                                          |
+| `AllowPlaintextBypass`           | `bool`          | `false`            | Allow plaintext-HTTP origin bypass for all non-TLS requests (insecure)                                                                            |
+| `BootLogUntrustedForwardedProto` | `bool`          | `false`            | Opt-in boot warning when `TrustedProxies` is empty (XFP trust path silently inactive behind a TLS-terminating proxy)                              |
+| `AllowInsecureSameSiteNone`      | `bool`          | `false`            | Keep `SameSite=None` without `Secure` instead of the `Secure=true` fallback (legacy clients only; browsers refuse to store the cookie)            |
+| `ErrorHandler`                   | `ErrorHandler`  | `nil` (403 + body) | Custom handler for CSRF validation failures                                                                                                       |
 
 When `SameSite` is `None` and `Secure` is false, `CSRFMiddleware` (and `InvalidateCSRFCookie`) fall back to `Secure=true` at construction instead of honoring the combination verbatim: rfc6265bis §5.7 makes such cookies unstorable in current browsers, so the previously-honored misconfiguration meant every state-changing browser request failed CSRF validation. The fallback keeps the `None` intent (cross-site cookies still work on HTTPS deployments), logs `csrf_samesite_insecure`, and is skipped verbatim with `AllowInsecureSameSiteNone: true` for legacy-client deployments. `ConfigureNosurfHandler` applies no fallback — it is the verbatim low-level configurator.
 
