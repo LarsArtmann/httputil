@@ -221,116 +221,108 @@ func TestSecurityHeaders_CustomHeadersEmptyMap(t *testing.T) {
 	}
 }
 
-func TestSecurityHeaders_ContentTypeOptionsPrecedence(t *testing.T) {
+func TestSecurityHeaders_ContentTypeOptionsExplicitOverridesNosniffBool(t *testing.T) {
 	t.Parallel()
 
-	t.Run("explicit value overrides nosniff bool", func(t *testing.T) {
-		t.Parallel()
+	cfg := SecurityHeadersConfig{
+		ContentTypeNosniff: true,
+		ContentTypeOptions: "nosniff; sandbox",
+	}
 
-		cfg := SecurityHeadersConfig{
-			ContentTypeNosniff: true,
-			ContentTypeOptions: "nosniff; sandbox",
-		}
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
-		handler := SecurityHeaders(cfg)(newNoOpHandler())
-		req := newTestRequest(http.MethodGet, "/", "")
-		rec := newRecorder()
+	handler.ServeHTTP(rec, req)
 
-		handler.ServeHTTP(rec, req)
-
-		assertHeader(t, rec, "X-Content-Type-Options", "nosniff; sandbox")
-	})
-
-	t.Run("explicit value without nosniff bool", func(t *testing.T) {
-		t.Parallel()
-
-		cfg := SecurityHeadersConfig{
-			ContentTypeOptions: "nosniff",
-		}
-
-		handler := SecurityHeaders(cfg)(newNoOpHandler())
-		req := newTestRequest(http.MethodGet, "/", "")
-		rec := newRecorder()
-
-		handler.ServeHTTP(rec, req)
-
-		assertHeader(t, rec, "X-Content-Type-Options", "nosniff")
-	})
-
-	t.Run("nosniff bool only", func(t *testing.T) {
-		t.Parallel()
-
-		cfg := SecurityHeadersConfig{
-			ContentTypeNosniff: true,
-		}
-
-		handler := SecurityHeaders(cfg)(newNoOpHandler())
-		req := newTestRequest(http.MethodGet, "/", "")
-		rec := newRecorder()
-
-		handler.ServeHTTP(rec, req)
-
-		assertHeader(t, rec, "X-Content-Type-Options", "nosniff")
-	})
+	assertHeader(t, rec, "X-Content-Type-Options", "nosniff; sandbox")
 }
 
-func TestSecurityHeaderSkip_SuppressesHeaders(t *testing.T) {
+func TestSecurityHeaders_ContentTypeOptionsExplicitValueWithoutNosniffBool(t *testing.T) {
 	t.Parallel()
 
-	t.Run("suppresses ContentTypeOptions even with nosniff bool", func(t *testing.T) {
-		t.Parallel()
+	cfg := SecurityHeadersConfig{
+		ContentTypeOptions: "nosniff",
+	}
 
-		cfg := SecurityHeadersConfig{
-			ContentTypeNosniff: true,
-			ContentTypeOptions: SecurityHeaderSkip,
-		}
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
-		handler := SecurityHeaders(cfg)(newNoOpHandler())
-		req := newTestRequest(http.MethodGet, "/", "")
-		rec := newRecorder()
+	handler.ServeHTTP(rec, req)
 
-		handler.ServeHTTP(rec, req)
+	assertHeader(t, rec, "X-Content-Type-Options", "nosniff")
+}
 
-		if got := rec.Header().Get("X-Content-Type-Options"); got != "" {
-			t.Errorf("X-Content-Type-Options = %q, want empty (suppressed)", got)
-		}
-	})
+func TestSecurityHeaders_ContentTypeOptionsNosniffBoolOnly(t *testing.T) {
+	t.Parallel()
 
-	t.Run("suppresses FrameOptions", func(t *testing.T) {
-		t.Parallel()
+	cfg := SecurityHeadersConfig{
+		ContentTypeNosniff: true,
+	}
 
-		cfg := SecurityHeadersConfig{
-			FrameOptions: SecurityHeaderSkip,
-		}
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
-		handler := SecurityHeaders(cfg)(newNoOpHandler())
-		req := newTestRequest(http.MethodGet, "/", "")
-		rec := newRecorder()
+	handler.ServeHTTP(rec, req)
 
-		handler.ServeHTTP(rec, req)
+	assertHeader(t, rec, "X-Content-Type-Options", "nosniff")
+}
 
-		if got := rec.Header().Get("X-Frame-Options"); got != "" {
-			t.Errorf("X-Frame-Options = %q, want empty (suppressed)", got)
-		}
-	})
+func TestSecurityHeaderSkip_SuppressesContentTypeOptionsEvenWithNosniffBool(t *testing.T) {
+	t.Parallel()
 
-	t.Run("suppresses ReferrerPolicy", func(t *testing.T) {
-		t.Parallel()
+	cfg := SecurityHeadersConfig{
+		ContentTypeNosniff: true,
+		ContentTypeOptions: SecurityHeaderSkip,
+	}
 
-		cfg := SecurityHeadersConfig{
-			ReferrerPolicy: SecurityHeaderSkip,
-		}
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
 
-		handler := SecurityHeaders(cfg)(newNoOpHandler())
-		req := newTestRequest(http.MethodGet, "/", "")
-		rec := newRecorder()
+	handler.ServeHTTP(rec, req)
 
-		handler.ServeHTTP(rec, req)
+	if got := rec.Header().Get("X-Content-Type-Options"); got != "" {
+		t.Errorf("X-Content-Type-Options = %q, want empty (suppressed)", got)
+	}
+}
 
-		if got := rec.Header().Get("Referrer-Policy"); got != "" {
-			t.Errorf("Referrer-Policy = %q, want empty (suppressed)", got)
-		}
-	})
+func TestSecurityHeaderSkip_SuppressesFrameOptions(t *testing.T) {
+	t.Parallel()
+
+	cfg := SecurityHeadersConfig{
+		FrameOptions: SecurityHeaderSkip,
+	}
+
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("X-Frame-Options"); got != "" {
+		t.Errorf("X-Frame-Options = %q, want empty (suppressed)", got)
+	}
+}
+
+func TestSecurityHeaderSkip_SuppressesReferrerPolicy(t *testing.T) {
+	t.Parallel()
+
+	cfg := SecurityHeadersConfig{
+		ReferrerPolicy: SecurityHeaderSkip,
+	}
+
+	handler := SecurityHeaders(cfg)(newNoOpHandler())
+	req := newTestRequest(http.MethodGet, "/", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Referrer-Policy"); got != "" {
+		t.Errorf("Referrer-Policy = %q, want empty (suppressed)", got)
+	}
 }
 
 func TestSecurityHeadersConfig_Validate_AcceptsSecurityHeaderSkip(t *testing.T) {
