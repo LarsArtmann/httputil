@@ -1,1 +1,2 @@
-de-AT,de;q=0.9,en;q=0.8
+go test fuzz v1
+string("de-AT,de;q=0.9,en;q=0.8")

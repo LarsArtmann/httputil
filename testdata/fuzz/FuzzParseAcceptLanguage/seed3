@@ -1,1 +1,2 @@
-*,de;q=0,en;q=0.001
+go test fuzz v1
+string("*,de;q=0,en;q=0.001")
