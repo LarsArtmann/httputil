@@ -1,6 +1,3 @@
-this derivation will be built:
-  /nix/store/f1kzysp3lh2qqic9zbaivizh231mhn2a-run-bench.drv
-building '/nix/store/f1kzysp3lh2qqic9zbaivizh231mhn2a-run-bench.drv'...
 goos: linux
 goarch: amd64
 pkg: github.com/larsartmann/httputil
@@ -265,5 +262,3 @@ BenchmarkTimeout-32                                                       	 7186
 BenchmarkTimeout-32                                                       	 8202549	       450.7 ns/op
 BenchmarkTimeout-32                                                       	 7871959	       456.7 ns/op
 BenchmarkTimeout-32                                                       	 7615729	       494.4 ns/op
-PASS
-ok  	github.com/larsartmann/httputil	960.330s

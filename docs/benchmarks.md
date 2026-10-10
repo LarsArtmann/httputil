@@ -2,7 +2,7 @@
 
 **Measured:** 2026-10-09 (all three modules, first re-measure since the Go 1.27 move) · **Method:** `go test -run='^$' -bench . -benchtime=3s -count=5` (or `nix run .#bench`; GOWORK=off, flake-pinned Go 1.27.1 linux/amd64, 32 threads) · **Statistical note:** `-count=5` gives a distribution per benchmark; compare against it with `benchstat` (pinned in the flake: `nix run .#benchstat old.txt new.txt`), not single runs.
 
-**Load note (read before comparing):** the machine shares load with a parallel session; ns/op on allocation-heavy rows inflated 1.5–3x whenever a load spike coincided (verified with in-run detector rows: `ReadyHandler` measured 689 ns in a quiet window and 1,547 ns in a loaded one, same binary). Each benchmark therefore ran up to three 3s×5 passes this day (two full-suite runs plus one targeted re-run of load-suspect rows), and the table reports the best pass value — the load-resistant estimator. Allocation counts (`B/op`, `allocs/op`) are load-stable and can be trusted as-is. Rows marked † never caught a fully quiet window; ‡ marks the flate rows, which are not comparable to the Go 1.26 baseline at all (below).
+**Load note (read before comparing):** the machine shares load with a parallel session; ns/op on allocation-heavy rows inflated 1.5–3x whenever a load spike coincided (verified with in-run detector rows: `ReadyHandler` measured 689 ns in a quiet window and 1,547 ns in a loaded one, same binary). Each benchmark therefore ran up to three 3s×5 passes this day (two full-suite runs plus one targeted re-run of load-suspect rows), and the table reports the best pass value — the load-resistant estimator. Allocation counts (`B/op`, `allocs/op`) are load-stable and can be trusted as-is. The two † rows (`MaxKeysChurn`, `Negotiator/browserMulti`) caught their quiet window on 2026-10-10 and the flag is retired; ‡ marks the flate rows, which are not comparable to the Go 1.26 baseline at all (below). A raw benchstat-format baseline (`docs/benchmarks.bench.txt`, full root-module 3s×5) is committed; CI posts a `benchstat` comparison against it into the job summary (informational — CI runners are too noisy to gate on).
 
 **Superseded baselines:** the 2026-08-29, 2026-09-10, and 2026-09-11 tables are historical. Key notes on the 2026-10-09 numbers vs 2026-09-11 (Go 1.26.7): Go 1.27 changed `compress/flate`'s encoded output, so `BenchmarkCompression` produces different bytes now — compression re-measured 2.2x faster (7,874 → 3,527 ns), while `Decompression/deflate` decodes the new output ~24% slower and `Decompression/gzip` ~19% faster; these three rows measure a different codec output than the 1.26-era table did. Small-allocation-heavy paths got broadly faster under the 1.27 runtime (handler trio 668–853 → 579–786 ns; `Recovery` 97 → 66 ns; `Timeout` 728 → 456 ns). `BenchmarkServerTiming_MiddlewareDisabledPassthrough` dropped 273 → 105 ns — that is the `flushHeader()` merge (implicit-WriteHeader prologue dedup), not the runtime. `BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck` is new since the last table (the origin-attestation defense); it originally logged one WARN per op, making runs intrinsically noisy — the benchmark now swaps `slog` to a discard handler for its run (restored via `b.Cleanup`), so current numbers are clean.
 
@@ -17,7 +17,7 @@
 | BenchmarkKeyedRateLimiterConfigValidate                        | 2.089  | 0      | 0         |
 | BenchmarkServerConfigValidateWithTLS                           | 2.07   | 0      | 0         |
 | BenchmarkKeyedRateLimiterMiddleware                            | 174.8  | 208    | 4         |
-| BenchmarkKeyedRateLimiter_MaxKeysChurn (fresh key per op) †    | 620    |        |           |
+| BenchmarkKeyedRateLimiter_MaxKeysChurn (fresh key per op)      | 460.5  |        |           |
 | BenchmarkChain                                                 | 3,091  |        |           |
 | BenchmarkClientIP                                              | 43.57  | 32     | 1         |
 | BenchmarkCodeRejectionConstruction                             | 77.55  |        |           |
@@ -27,7 +27,7 @@
 | BenchmarkInDomain                                              | 10.71  |        |           |
 | BenchmarkCompression ‡                                         | 3,527  | 2,167  | 12        |
 | BenchmarkCompressionNegotiator/singleToken                     | 7.581  | 0      | 0         |
-| BenchmarkCompressionNegotiator/browserMulti †                  | 127.9  | 0      | 0         |
+| BenchmarkCompressionNegotiator/browserMulti                    | 73.71  | 0      | 0         |
 | BenchmarkCompressionNegotiator/qvalues                         | 57.47  | 0      | 0         |
 | BenchmarkCompressionNegotiator/emptyHeader                     | 2.002  | 0      | 0         |
 | BenchmarkCORS                                                  | 409.2  | 592    | 9         |
@@ -66,17 +66,17 @@ best-of-5 reported, same estimator as the load note above). The 584 B/op
 is dominated by the query/URL parse on the reused harness request —
 allocation counts are the trustworthy signal, ns/op the noisy one.
 
-### `httpspec` (3s×5, own module; ran in one short window — treat ±25% deltas vs 2026-09-11 as load noise)
+### `httpspec` (3s×5, own module; re-measured in a quiet window 2026-10-10 — the 2026-10-09 one-short-window caveat is retired)
 
 | Benchmark                            | ns/op  | B/op | allocs/op |
 | ------------------------------------ | ------ | ---- | --------- |
-| BenchmarkCheckServesRequest          | 440.1  | 1048 | 11        |
-| BenchmarkCheck/index_not_404         | 892.8  |      |           |
-| BenchmarkCheck/body_has_content_type | 728.3  |      |           |
-| BenchmarkCheck/expect_status         | 648.5  |      |           |
-| BenchmarkCheck/unknown_path_404      | 1,304  |      |           |
-| BenchmarkCheck/no_leaked_internals   | 1,085  |      |           |
-| BenchmarkCheck/long_url_handled      | 35,242 |      |           |
+| BenchmarkCheckServesRequest          | 425.2  | 1048 | 11        |
+| BenchmarkCheck/index_not_404         | 699.8  |      |           |
+| BenchmarkCheck/body_has_content_type | 676.3  |      |           |
+| BenchmarkCheck/expect_status         | 594.9  |      |           |
+| BenchmarkCheck/unknown_path_404      | 1,342  |      |           |
+| BenchmarkCheck/no_leaked_internals   | 1,216  |      |           |
+| BenchmarkCheck/long_url_handled      | 41,508 |      |           |
 
 ### `server_timing` (3s×5, own module)
 
