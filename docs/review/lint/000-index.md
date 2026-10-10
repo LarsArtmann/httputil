@@ -40,3 +40,14 @@ Reviewed at call-site level and found to use httputil within documented semantic
 cd ~/projects/project-dependency-graph && GOTOOLCHAIN=auto go run . who-uses github.com/larsartmann/httputil --dir ~/projects --direct-only=false
 cd ~/projects && rg -l -g '*.go' -g '!**/vendor/**' '"github.com/larsartmann/httputil"' .
 ```
+
+The pipeline is now code: `scripts/consumer-audit/run-audit.sh` automates the
+inventory → pins → corpus → pattern-grep steps and scaffolds a report.
+
+## Verification log
+
+- **2026-10-10 — the three open claims from the audit session are closed:**
+  1. *overview's `s.rateLimit` definition* — located: `overview/internal/server/middleware.go:60`, a hand-rolled `golang.org/x/time/rate` limiter (one global bucket, `rate.Every(10s)`/burst 1, 429 error page). It is not an httputil limiter; no httputil rate-limit misuse.
+  2. *storbi's `MaxRequestBodySize` constant value* — checked: `storbi/internal/middleware/middleware.go:35` = `1 << 20` (1 MiB), wired via `httputil.MaxBodySize` at :75. Documented semantics, correct usage; no filing change.
+  3. *GmbH's cookie-setting site* — resolved negative: GmbH's Go server sets NO cookies anywhere (`http.Cookie{`/`SetCookie`/`SameSite`: zero non-vendor hits); auth is header-based JWT (`server/app/server.go:302`, `server/infrastructure/auth/middleware.go:14`). The SameSite/zero-value-cookie class is vacuous for GmbH; filing 003's "GmbH (absent)" entry is confirmed and strengthened.
+

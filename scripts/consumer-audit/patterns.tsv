@@ -1,0 +1,23 @@
+# name<TAB>regex — one pattern per filing class (docs/review/lint/001-014)
+# 001 CORS wildcard origin echo + AllowCredentials
+cors-wildcard-echo	AllowAllOrigins.*true|AllowedOrigins.*\*
+# 002 CORS allow-all on production APIs
+cors-allow-all	DenyUnmatched\s*:\s*false|DefaultCORSConfig\(\)
+# 003 zero-value CSRFConfig (non-Secure cookies)
+csrf-zero-value	CSRFMiddleware\(CSRFConfig\{
+# 004 CSRF behind TLS termination without TrustedProxies
+csrf-no-trusted-proxy	CSRFConfig\{(?s).*?\}
+# 005 rate limiters without MaxKeys/TTL
+ratelimit-unbounded	KeyedRateLimiterConfig\{
+# 006 rate-limit keys from spoofable client-IP headers
+ratelimit-spoofable-keys	KeyExtractorFromClientIP|KeyExtractorFromTrustedClientIP
+# 007 ClientIP for security decisions
+clientip-security	ClientIP\(|ClientIPMiddleware\(
+# 008 shutdown paths that cancel themselves
+shutdown-cancelled-ctx	Shutdown\(context\.Background\(\)\)
+# 010 Nonce composed outside SecurityHeaders
+nonce-ordering	Nonce\(
+# 012 hand-rolled middleware twins
+hand-rolled-twins	func\s*\(\s*next\s+http\.Handler\)\s+http\.Handler
+# 014 nonce'd HTML without Cache-Control: no-store
+nonce-no-store	Cache-Control
