@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -20,16 +21,25 @@ import (
 // the decoded bytes would be body+body and the byte comparison would fail
 // instead of silently passing on the first member.
 func FuzzCompression(f *testing.F) {
-	f.Add([]byte("hello world"), "gzip", "")
-	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate", "")
-	f.Add([]byte(""), "", "")
-	f.Add([]byte("range passthrough"), "gzip", "bytes=0-4")
-	f.Add([]byte("range passthrough"), "", "bytes=-5")
+	f.Add([]byte("hello world"), "gzip", "", false)
+	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate", "", false)
+	f.Add([]byte(""), "", "", false)
+	f.Add([]byte("range passthrough"), "gzip", "bytes=0-4", false)
+	f.Add([]byte("range passthrough"), "", "bytes=-5", false)
+	f.Add([]byte(strings.Repeat("a", 2048)), "", "", true)
+	f.Add([]byte(strings.Repeat("a", 2048)), "gzip", "", true)
 
 	cfg := DefaultCompressionConfig()
+	legacyCfg := DefaultCompressionConfig()
+	legacyCfg.AbsentEncoding = AbsentEncodingFirstConfigured
 
-	f.Fuzz(func(t *testing.T, body []byte, acceptEncoding, rangeHeader string) {
-		handler := Compression(cfg)(http.HandlerFunc(func(
+	f.Fuzz(func(t *testing.T, body []byte, acceptEncoding, rangeHeader string, absentFirst bool) {
+		activeCfg := cfg
+		if absentFirst {
+			activeCfg = legacyCfg
+		}
+
+		handler := Compression(activeCfg)(http.HandlerFunc(func(
 			resp http.ResponseWriter,
 			req *http.Request,
 		) {
@@ -38,7 +48,10 @@ func FuzzCompression(f *testing.F) {
 		}))
 
 		req := newTestRequest(http.MethodGet, "/", "")
-		req.Header.Set(headerAcceptEncoding, acceptEncoding)
+
+		if acceptEncoding != "" {
+			req.Header.Set(headerAcceptEncoding, acceptEncoding)
+		}
 
 		if rangeHeader != "" {
 			req.Header.Set(headerRange, rangeHeader)
@@ -62,6 +75,12 @@ func FuzzCompression(f *testing.F) {
 					len(body),
 				)
 			}
+
+			return
+		}
+
+		if acceptEncoding == "" {
+			assertHeaderlessAbsentEncoding(t, rec, body, absentFirst)
 
 			return
 		}
@@ -90,6 +109,47 @@ func FuzzCompression(f *testing.F) {
 			}
 		}
 	})
+}
+
+// assertHeaderlessAbsentEncoding pins the AbsentEncoding invariant for
+// header-less requests: compression happens exactly under the legacy
+// FirstConfigured policy, and only for bodies above the MinSize threshold;
+// compressed bytes must round-trip.
+func assertHeaderlessAbsentEncoding(t *testing.T, rec *httptest.ResponseRecorder, body []byte, absentFirst bool) {
+	t.Helper()
+
+	if len(body) <= defaultCompressionMinSize {
+		return
+	}
+
+	gotCE := rec.Header().Get(headerContentEncoding)
+	if absentFirst && gotCE != encodingGzip {
+		t.Fatalf("AbsentEncodingFirstConfigured header-less Content-Encoding = %q, want gzip", gotCE)
+	}
+
+	if !absentFirst && gotCE != "" {
+		t.Fatalf("AbsentEncodingIdentity header-less Content-Encoding = %q, want empty", gotCE)
+	}
+
+	if gotCE != encodingGzip {
+		return
+	}
+
+	gzipDecoder, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("gzip.NewReader on header-less compressed response: %v", err)
+	}
+
+	defer func() { _ = gzipDecoder.Close() }()
+
+	decoded, err := io.ReadAll(gzipDecoder)
+	if err != nil {
+		t.Fatalf("gzip decode of header-less compressed response: %v", err)
+	}
+
+	if !bytes.Equal(decoded, body) {
+		t.Errorf("header-less round-trip mismatch: decoded %d bytes, want %d", len(decoded), len(body))
+	}
 }
 
 func BenchmarkCompression(b *testing.B) {

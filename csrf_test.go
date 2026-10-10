@@ -1839,3 +1839,182 @@ func TestCSRFMiddleware_BootLogSilentByDefault(t *testing.T) {
 		}
 	}
 }
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestCSRFMiddleware_SchemeLessTrustedOrigin_LogsAndNeverGrantsTrust(t *testing.T) {
+	// No t.Parallel: swaps the process-global slog default (AGENTS rule).
+	records := captureCSRFConstructorLogs(t, func() {
+		_ = CSRFMiddleware(CSRFConfig{
+			Secure:         true,
+			TrustedOrigins: []string{"example.com"},
+		})(http.NotFoundHandler())
+	})
+
+	sawInvalid := false
+
+	for _, record := range records {
+		if code, _ := record["code"].(string); code == "csrf.trusted_origin_invalid" {
+			sawInvalid = true
+		}
+	}
+
+	if !sawInvalid {
+		t.Fatalf("no scheme://host rejection logged for scheme-less entry: %v", records)
+	}
+
+	mw := CSRFMiddleware(CSRFConfig{
+		Secure:         true,
+		TrustedOrigins: []string{"example.com"},
+	})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	req.Header.Set("Origin", "https://example.com")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Errorf(
+			"scheme-less origin grant: status = %d, want %d (origin must never be trusted)",
+			rec.Code,
+			http.StatusForbidden,
+		)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_UntrustedRemoteIgnored(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8"}}.withParsedTrustedProxies()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "192.0.2.1:5555"
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "" {
+		t.Errorf("untrusted remote proto = %q, want empty", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_EmptyHeaderReturnsEmpty(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8"}}.withParsedTrustedProxies()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "10.0.0.5:443"
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "" {
+		t.Errorf("empty header proto = %q, want empty", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_NonHTTPProtoRejected(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8"}}.withParsedTrustedProxies()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "10.0.0.5:443"
+	req.Header.Set("X-Forwarded-Proto", "ftp")
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "" {
+		t.Errorf("non-http(s) proto = %q, want empty", got)
+	}
+}
+
+func TestForwardedProtoFromTrustedProxy_CaseAndFirstHop(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8"}}.withParsedTrustedProxies()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "10.0.0.5:443"
+	req.Header.Set("X-Forwarded-Proto", "HTTPS")
+
+	if got := forwardedProtoFromTrustedProxy(req, cfg); got != "https" {
+		t.Errorf("case-normalized proto = %q, want https", got)
+	}
+
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2.RemoteAddr = "10.0.0.5:443"
+	req2.Header.Set("X-Forwarded-Proto", "https, http")
+
+	if got := forwardedProtoFromTrustedProxy(req2, cfg); got != "https" {
+		t.Errorf("first-hop proto = %q, want https", got)
+	}
+}
+
+func TestRequestScheme_TLSAndForwardedBranches(t *testing.T) {
+	t.Parallel()
+
+	cfg := CSRFConfig{}.withParsedTrustedProxies()
+
+	plain := httptest.NewRequest(http.MethodGet, "/", nil)
+	plain.RemoteAddr = "192.0.2.1:5555"
+
+	if got := requestScheme(plain, cfg); got != "http" {
+		t.Errorf("plain request scheme = %q, want http", got)
+	}
+
+	tlsReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	tlsReq.TLS = &tls.ConnectionState{}
+
+	if got := requestScheme(tlsReq, cfg); got != "https" {
+		t.Errorf("TLS request scheme = %q, want https", got)
+	}
+
+	proxyCfg := CSRFConfig{TrustedProxies: []string{"10.0.0.0/8"}}.withParsedTrustedProxies()
+	behindProxy := httptest.NewRequest(http.MethodGet, "/", nil)
+	behindProxy.RemoteAddr = "10.0.0.5:443"
+	behindProxy.Header.Set("X-Forwarded-Proto", "https")
+
+	if got := requestScheme(behindProxy, proxyCfg); got != "https" {
+		t.Errorf("trusted XFP scheme = %q, want https", got)
+	}
+}
+
+func TestCSRFTokenHXHeaders_NoToken(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	headers := CSRFTokenHXHeaders(req)
+	if len(headers) != 0 {
+		t.Errorf("HX headers for token-less request = %v, want empty", headers)
+	}
+
+	if got := CSRFTokenFormField(req); got != "" {
+		t.Errorf("form field for token-less request = %q, want empty", got)
+	}
+}
+
+func TestCSRFMiddleware_LowercaseMethodTreatedUnsafe(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{Secure: true})
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Method = "post"
+	req.RemoteAddr = "127.0.0.1:1234"
+	req.Header.Set("Origin", "https://evil.com")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Errorf(
+			"lowercase %q with contradicted attestation: status = %d, want %d (unsafe-method set is case-consistent)",
+			"post",
+			rec.Code,
+			http.StatusForbidden,
+		)
+	}
+}

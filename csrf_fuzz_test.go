@@ -474,3 +474,110 @@ func FuzzCSRFTokenHTMLFormatters(f *testing.F) {
 		}
 	})
 }
+
+// FuzzCSRFMiddleware_XFPAttestation pins the X-Forwarded-Proto trust path's
+// interaction with the attestation check: behind a trusted loopback proxy the
+// client-facing scheme comes from XFP, so an https Origin plus a same-origin
+// attestation must pass exactly when XFP says https (or the origin itself is
+// already the plaintext scheme), and must stay a 403 conflict otherwise.
+func FuzzCSRFMiddleware_XFPAttestation(f *testing.F) {
+	f.Add(http.MethodPost, "https://example.com", "same-origin", "https")
+	f.Add(http.MethodPost, "https://example.com", "same-origin", "")
+	f.Add(http.MethodPost, "https://example.com", "same-origin", "http")
+	f.Add(http.MethodPost, "https://example.com", "same-origin", "FTP")
+	f.Add(http.MethodPost, "https://evil.com", "same-origin", "https")
+	f.Add(http.MethodGet, "https://example.com", "same-origin", "https")
+	f.Add(http.MethodPost, "", "", "https")
+	f.Add(http.MethodPost, "http://example.com", "same-origin", "")
+	f.Add(http.MethodPost, "https://example.com", "cross-site", "http")
+	f.Add(http.MethodPost, "null", "same-origin", "https")
+
+	f.Fuzz(func(t *testing.T, method, origin, secFetchSite, xfp string) {
+		if method == "" {
+			method = http.MethodGet
+		}
+
+		if !isValidHTTPToken(method) {
+			t.Skip("invalid HTTP method character")
+		}
+
+		if origin != "" && origin != "null" {
+			if u, err := url.Parse(origin); err != nil || u.Scheme == "" || u.Host == "" {
+				t.Skip("not a parseable scheme://host origin")
+			}
+		}
+
+		mw := CSRFMiddleware(CSRFConfig{
+			Secure:               true,
+			AllowPlaintextBypass: true,
+			TrustedProxies:       []string{"127.0.0.0/8", "::1/128"},
+		})
+
+		status := http.StatusTeapot
+		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			status = http.StatusOK
+		}))
+
+		req := httptest.NewRequest(method, "/", nil)
+		req.RemoteAddr = "127.0.0.1:1234"
+
+		if origin != "" {
+			req.Header.Set("Origin", origin)
+		}
+
+		if secFetchSite != "" {
+			req.Header.Set("Sec-Fetch-Site", secFetchSite)
+		}
+
+		if xfp != "" {
+			req.Header.Set("X-Forwarded-Proto", xfp)
+		}
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		switch rec.Code {
+		case http.StatusForbidden:
+			// Rejection is always an allowed outcome; verify the handler
+			// never ran behind it.
+			if status == http.StatusOK {
+				t.Error("handler ran behind a 403 response")
+			}
+		case http.StatusOK:
+			if status != http.StatusOK {
+				t.Error("200 response without the handler running")
+			}
+		default:
+			t.Errorf(
+				"unexpected status %d for method=%q origin=%q attestation=%q xfp=%q",
+				rec.Code,
+				method,
+				origin,
+				secFetchSite,
+				xfp,
+			)
+		}
+
+		// The core invariant: with an https origin, a same-origin
+		// attestation, and an unsafe method, the attestation-conflict
+		// rejection fires exactly when XFP is NOT honored as https — an
+		// honored attestation still 403s (no token), but with nosurf's
+		// token failure, not the conflict body.
+		if isUnsafeCSRFMethod(method) && secFetchSite == "same-origin" && origin == "https://example.com" {
+			xfpHonored := xfp == "https" || xfp == "HTTPS" || xfp == "https, http"
+			isConflict := strings.Contains(rec.Body.String(), "csrf.origin_attestation_conflict")
+
+			if xfpHonored && isConflict {
+				t.Errorf("xfp=%q honored as https: attestation conflict must not fire", xfp)
+			}
+
+			if !xfpHonored && !isConflict {
+				t.Errorf(
+					"xfp=%q not honored: https origin must be an attestation conflict (body: %s)",
+					xfp,
+					rec.Body.String(),
+				)
+			}
+		}
+	})
+}

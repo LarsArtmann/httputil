@@ -27,6 +27,19 @@ func newTrustedIPRequest(t *testing.T, remoteAddr, xff, xri string) *http.Reques
 	return req
 }
 
+// newTrustedProxySet returns the loopback-default set — the parse-error
+// contract has its own dedicated tests; the behavior tests just need a set.
+func newTrustedProxySet(t *testing.T) TrustedProxySet {
+	t.Helper()
+
+	set, err := ParseTrustedProxies(nil)
+	if err != nil {
+		t.Fatalf("ParseTrustedProxies(nil) = %v, want nil error", err)
+	}
+
+	return set
+}
+
 func TestParseTrustedProxies_EmptySubstitutesLoopbackDefault(t *testing.T) {
 	t.Parallel()
 
@@ -109,10 +122,7 @@ func TestTrustedProxySet_ClientIP_TrustedPeerHonorsXFF(t *testing.T) {
 func TestTrustedProxySet_ClientIP_ForgedLeftmostEntryIgnored(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "127.0.0.1:8443", "9.9.9.9, 203.0.113.7", "")
 
@@ -154,10 +164,7 @@ func TestTrustedProxySet_ClientIP_AllEntriesTrustedFallsBackToLeftmost(t *testin
 func TestTrustedProxySet_ClientIP_MalformedRightmostXFFDistrustsWholeHeader(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "127.0.0.1:8443", "203.0.113.7, garbage", "")
 
@@ -169,10 +176,7 @@ func TestTrustedProxySet_ClientIP_MalformedRightmostXFFDistrustsWholeHeader(t *t
 func TestTrustedProxySet_ClientIP_GarbageLeftOfUntrustedEntryIgnored(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "127.0.0.1:8443", "garbage, 203.0.113.7", "")
 
@@ -184,10 +188,7 @@ func TestTrustedProxySet_ClientIP_GarbageLeftOfUntrustedEntryIgnored(t *testing.
 func TestTrustedProxySet_ClientIP_XRIFallbackWhenNoXFF(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "127.0.0.1:8443", "", "203.0.113.7")
 
@@ -199,10 +200,7 @@ func TestTrustedProxySet_ClientIP_XRIFallbackWhenNoXFF(t *testing.T) {
 func TestTrustedProxySet_ClientIP_UnparseableXRIFallsBackToPeerHost(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "127.0.0.1:8443", "", "not-an-ip")
 
@@ -214,10 +212,7 @@ func TestTrustedProxySet_ClientIP_UnparseableXRIFallsBackToPeerHost(t *testing.T
 func TestTrustedProxySet_ClientIP_IPv6LoopbackPeerTrusted(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "[::1]:8443", "2001:db8::1", "")
 
@@ -229,10 +224,7 @@ func TestTrustedProxySet_ClientIP_IPv6LoopbackPeerTrusted(t *testing.T) {
 func TestTrustedProxySet_ClientIP_NeverReturnsEmptyForOddRemoteAddr(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	req := newTrustedIPRequest(t, "weird-addr", "203.0.113.7", "")
 
@@ -285,10 +277,7 @@ func TestTrustedProxySet_Contains_IPv4AndIPv6(t *testing.T) {
 func TestTrustedProxySet_KeyExtractor_MatchesClientIP(t *testing.T) {
 	t.Parallel()
 
-	set, err := ParseTrustedProxies(nil)
-	if err != nil {
-		t.Fatalf("ParseTrustedProxies = %v, want nil error", err)
-	}
+	set := newTrustedProxySet(t)
 
 	extractor := set.KeyExtractor()
 

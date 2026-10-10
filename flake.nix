@@ -45,6 +45,29 @@
 
           vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
         };
+
+      # art-dupl is not packaged in nixpkgs; pin the exact commit the clone
+      # baseline was measured with (docs/review/lint/branching-flow-baseline
+      # and the Accepted Code Duplication section cite 0.7.0-81ce00b) so
+      # clone-detection runs are reproducible across machines.
+      mkArtDupl =
+        pkgs:
+        # art-dupl's go.mod requires go >= 1.27; buildGoModule defaults to
+        # the nixpkgs default Go (1.26.8), which the sandbox pins via
+        # GOTOOLCHAIN=local — override the compiler, not the attrs.
+        (pkgs.buildGoModule.override { go = pkgs.go_1_27; }) rec {
+          pname = "art-dupl";
+          version = "0.7.0-81ce00b";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "LarsArtmann";
+            repo = "art-dupl";
+            rev = "81ce00b9b60e1d2e1a01b0fce7cd50cf537b1213";
+            hash = "sha256-KDDR2XSUnlO09zTryKBzRUghQM/jK+Zp5ZqI9FawW18=";
+          };
+
+          vendorHash = "sha256-DTAs2KGZPvhk1C1EpRRpNzyR3DDYD57d8JprcjPXFDQ=";
+        };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [ inputs.go-nix-helpers.flakeModules.go-standard ];
@@ -63,6 +86,7 @@
         enableNixfmt = true;
         devShellExtraPackages = pkgs: [
           (mkBenchstat pkgs)
+          (mkArtDupl pkgs)
           pkgs.gofumpt
           pkgs.golines
           pkgs.gotools
@@ -120,6 +144,7 @@
           };
 
           packages.benchstat = mkBenchstat pkgs;
+          packages.art-dupl = mkArtDupl pkgs;
 
           checks = {
             # The sub-module must build standalone (GOWORK=off, network off):
