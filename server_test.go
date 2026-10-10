@@ -382,14 +382,12 @@ func TestServerShutdownReturnsErrorOnContextExpiry(t *testing.T) {
 	blockCh := make(chan struct{})
 	handlerReached := make(chan struct{})
 
-	srv := &Server{
-		httpServer: &http.Server{
-			Handler: http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-				close(handlerReached)
-				<-blockCh
-			}),
-			ReadHeaderTimeout: 5 * time.Second,
-		},
+	srv, err := NewServer(DefaultServerConfig(), http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		close(handlerReached)
+		<-blockCh
+	}))
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
 	}
 
 	go func() {

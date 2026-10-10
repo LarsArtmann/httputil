@@ -18,6 +18,12 @@ import (
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
+// The middleware alias must stay identical across the module boundary — an
+// accepted duplication (docs/architecture-reference.md, Accepted Code
+// Duplication). This build-time assertion fails if either side ever becomes
+// a defined type, which would silently break cross-module composition.
+var _ Middleware = servertiming.Middleware(nil)
+
 // TestChain_CORSWithRecoveryAndLogging verifies that a CORS-preflight-relevant
 // request passes through a Recovery+Logging chain. The log and recovery
 // behaviors are asserted by their dedicated tests; this one pins the

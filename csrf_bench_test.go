@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,6 +39,14 @@ func BenchmarkCSRFMiddleware_PlainHTTPNosurf(b *testing.B) {
 // full nosurf rejection, so the row captures middleware overhead on
 // state-changing requests rather than the token-issuance GET path.
 func BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck(b *testing.B) {
+	// The measured path ends in the failure handler, which WARN-logs every
+	// rejected request; discard logs for the benchmark's duration so the
+	// numbers measure the check, not the logger. Not parallel: the swap is
+	// process-global (see AGENTS.md).
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.DiscardHandler))
+	b.Cleanup(func() { slog.SetDefault(previous) })
+
 	cfg := CSRFConfig{Secure: true, SameSite: http.SameSiteLaxMode}
 	mw := CSRFMiddleware(cfg)
 
