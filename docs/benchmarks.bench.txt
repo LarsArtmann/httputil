@@ -26,4 +26,15 @@ BenchmarkSentinelCloneWithContext-32                       	29088252	       128.
 BenchmarkSentinelCloneWithContext-32                       	27074067	       141.5 ns/op
 BenchmarkSentinelCloneWithContext-32                       	28699237	       129.3 ns/op
 BenchmarkWrapTransientWithCause-32                         	36210780	       160.3 ns/op
-BenchmarkWrapTransientWithCause-32                         	
+BenchmarkWrapTransientWithCause-32                         	19866686	       202.8 ns/op
+BenchmarkWrapTransientWithCause-32                         	32521458	       118.0 ns/op
+BenchmarkWrapTransientWithCause-32                         	32075528	       127.9 ns/op
+BenchmarkWrapTransientWithCause-32                         	34964185	       132.5 ns/op
+BenchmarkDomainOf-32                                       	171111423	        19.78 ns/op
+BenchmarkDomainOf-32                                       	305979202	        11.08 ns/op
+BenchmarkDomainOf-32                                       	335321311	        10.62 ns/op
+BenchmarkDomainOf-32                                       	346478917	        10.30 ns/op
+BenchmarkDomainOf-32                                       	355831898	        10.26 ns/op
+BenchmarkInDomain-32                                       	328649125	        10.55 ns/op
+BenchmarkInDomain-32                                       	335386250	        10.43 ns/op
+BenchmarkInDomain-32                                       	
