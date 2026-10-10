@@ -6,7 +6,7 @@
 ![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag composition), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag composition), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, content-language negotiation, configurable HTTP server, and standard health checks.
 
 Minimal footprint — four dependencies (`go-error-family` + `go-etag` same-author, `golang.org/x/time`, `justinas/nosurf`). Pure stdlib `net/http`. Go 1.27+ (the `go` directive requires 1.27.1+ since go-etag v0.5.0).
 
@@ -426,6 +426,19 @@ handler := rl.Middleware()(mux)
 
 Rejected requests receive `429 Too Many Requests` with a `Retry-After` header.
 
+### Content Language Negotiation
+
+Negotiates the response language from `Accept-Language` (or a query param, cookie, or URL path prefix) against the app's supported tags, then stamps `Content-Language` and `Vary: Accept-Language` and exposes the served tag to handlers via the request context:
+
+```go
+cfg := httputil.DefaultLanguageConfig()
+cfg.SupportedTags = []string{"en", "de"}
+
+handler := httputil.Language(cfg)(mux)
+```
+
+The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a `TagMatcher` for full BCP 47 matching via `golang.org/x/text`. Extractors compose with `LanguageExtractorChain` — the first extractor producing a supported tag wins, so a cookie or path-prefix leg can outrank the header.
+
 ### Error Classification
 
 `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):
@@ -481,6 +494,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 | `Decompression`                  | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection                           |
 | `DefaultDecompressionConfig`     | `func() DecompressionConfig`                                          | gzip/deflate defaults                                                  |
 | `KeyedRateLimiterMiddleware`     | `func(KeyedRateLimiterConfig) func(http.Handler) http.Handler`        | Per-key rate limiting with eviction                                    |
+| `Language`                       | `func(LanguageConfig) func(http.Handler) http.Handler`                | Content-language negotiation (Content-Language + Vary stamping)        |
 | `NewKeyedRateLimiter`            | `func(KeyedRateLimiterConfig) *KeyedRateLimiter`                      | Rate limiter with monitoring API                                       |
 | `DefaultKeyedRateLimiterConfig`  | `func() KeyedRateLimiterConfig`                                       | Default per-key rate limit config                                      |
 | `CSRFMiddleware`                 | `func(CSRFConfig) func(http.Handler) http.Handler`                    | CSRF protection middleware                                             |
@@ -663,7 +677,7 @@ Conventions:
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
-- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. The nightly fuzz workflow runs 25 of the repo's 27 fuzz targets at 5 minutes each in CI.
+- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. The nightly fuzz workflow runs 25 of the repo's 28 fuzz targets at 5 minutes each in CI.
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 

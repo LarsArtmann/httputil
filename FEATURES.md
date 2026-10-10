@@ -2,13 +2,13 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-10-09 — counts recomputed from the repo (52 examples — 41 root, 8 `httpspec`, 3 `server_timing`; 49 benchmark functions / 59 result rows; 27 fuzz targets — 25 root, 2 `server_timing`); coverage stated in both provenances (race-mode 97.9% / 99.1% of 2026-09-27; CI non-race 98.0% / 98.6%). Prior sweep 2026-09-27: coverage re-measured post-v1.4.0; the 2026-09-23 docs-health sweep folded in v1.2.0/v1.3.0 and deleted the removed `httputil.ETag()` adapter row (v1.1.0)._
+_Updated: 2026-10-10 — counts recomputed from the repo (53 examples — 42 root, 8 `httpspec`, 3 `server_timing`; 49 benchmark functions / 59 result rows; 28 fuzz targets — 26 root, 2 `server_timing`); coverage stated in both provenances (race-mode 97.9% / 99.1% of 2026-09-27; CI non-race 98.0% / 98.6%). Prior sweep 2026-09-27: coverage re-measured post-v1.4.0; the 2026-09-23 docs-health sweep folded in v1.2.0/v1.3.0 and deleted the removed `httputil.ETag()` adapter row (v1.1.0)._
 
 ---
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (15 middlewares + the ResponseRecorder utility)
+### Core Middleware Suite (16 middlewares + the ResponseRecorder utility)
 
 | Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz |
 |-------------|---------------------------------------------------------------|-----------------------------|-----------------------------|-------------------------------------------------------------|----------------------------------------|---------------------|--------------------|--------------------|------------------------------|------------------------------------------------------------|---------------------------------------------------------------|-------------------------------------------------------------|----------------------------------|-----------------------------------------------------------------------------------|-----------------------------------------|-------------------------------------------------------|---------------------------------------------------------|
@@ -28,6 +28,7 @@ _Updated: 2026-10-09 — counts recomputed from the repo (52 examples — 41 roo
 | KeyedRateLimit | `ratelimit_keyed.go` | `KeyedRateLimiterConfig` + `Validate()` | Yes | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*` | — |
 | Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | `ExampleDecompression` | `BenchmarkDecompression*` | `FuzzDecompression` |
 | CSP Nonce | `nonce.go` | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes | `ExampleNonce` | `BenchmarkNonce*` | `FuzzNonce` |
+| Language | `language.go` | `LanguageConfig` + `Validate()`, pluggable extractors + `TagMatcher` | Yes | `ExampleLanguage` | — | `FuzzParseAcceptLanguage` |
 
 ETag conditional requests are not a row above since v1.1.0: the adapter was removed, and the middleware composes directly from [`go-etag`](https://github.com/larsartmann/go-etag) (`etag.New`), named in stacks via the surviving `MiddlewareETag` constant.
 
@@ -170,7 +171,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `golangci-lint` with ~70 linters, 0 issues.
 - `go test -race ./...` passes across the full suite with **97.9% statement coverage** (`httputil`, library packages), **99.1%** (`httpspec`), **100%** (`server_timing`) — measured 2026-09-27 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate); the CI non-race artifact states 98.0% (`httputil`) / 98.6% (`httpspec`), the number the README quality-gates table carries.
 - 27 fuzz targets (25 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns + exact-allowlist origin echo + preflight Private-Network), Compression (round-trip gunzip-and-compare invariant + writer state machine + Accept-Encoding wire format), MaxBodySize (limit contract), RequestID, ClientIP, `ParseUintQuery`, `HealthResponse` encoding, ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), CSRF (6 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers) plus the token HTML formatters, and Server-Timing (header value + middleware). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). The nightly fuzz workflow runs 25 of the 27 at 5 minutes each (two newer targets — `FuzzCORSPreflightPrivateNetwork`, `FuzzCSRFTokenHTMLFormatters` — have no nightly step yet).
-- 49 top-level benchmark functions (59 result rows counting `b.Run` sub-benchmarks) and 52 example functions across the three modules — 41 root (incl. the health/queryparam examples), 8 `httpspec`, 3 `server_timing` (added 2026-09-23, all self-contained per the Example Conventions; every one executes with a verified `// Output:` block).
+- 49 top-level benchmark functions (59 result rows counting `b.Run` sub-benchmarks) and 53 example functions across the three modules — 42 root (incl. the health/queryparam examples), 8 `httpspec`, 3 `server_timing` (added 2026-09-23, all self-contained per the Example Conventions; every one executes with a verified `// Output:` block).
 - `go vet` clean.
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
