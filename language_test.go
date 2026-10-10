@@ -78,7 +78,15 @@ func TestLanguage_CookieLegBeatsHeader(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
-	req.AddCookie(&http.Cookie{Name: "lang", Value: "en", Secure: true, HttpOnly: true, SameSite: http.SameSiteLaxMode})
+	req.AddCookie(
+		&http.Cookie{
+			Name:     "lang",
+			Value:    "en",
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		},
+	)
 	req.Header.Set("Accept-Language", "de")
 
 	Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +163,11 @@ func TestLanguage_NilExtractorEntriesAreDropped(t *testing.T) {
 
 	Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := LanguageFromContext(r.Context()); got != "en" {
-			t.Errorf("negotiated tag = %q, want %q (nil entry must not poison the chain)", got, "en")
+			t.Errorf(
+				"negotiated tag = %q, want %q (nil entry must not poison the chain)",
+				got,
+				"en",
+			)
 		}
 	})).ServeHTTP(rec, req)
 }
@@ -169,7 +181,11 @@ func TestLanguage_ZeroValueConfigFallsBackToDefault(t *testing.T) {
 
 	Language(LanguageConfig{})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := LanguageFromContext(r.Context()); got != "en" {
-			t.Errorf("negotiated tag = %q, want %q (zero config must fall back to DefaultLanguageConfig)", got, "en")
+			t.Errorf(
+				"negotiated tag = %q, want %q (zero config must fall back to DefaultLanguageConfig)",
+				got,
+				"en",
+			)
 		}
 	})).ServeHTTP(rec, req)
 
@@ -440,7 +456,11 @@ func TestLanguageExtractorChain_FirstLegWithCandidatesWins(t *testing.T) {
 
 	tags, ok := chain(req)
 	if !ok || len(tags) != 1 || tags[0] != "it" {
-		t.Errorf("chain = (%v, %v), want ([it], true) — second leg must win, header must not run", tags, ok)
+		t.Errorf(
+			"chain = (%v, %v), want ([it], true) — second leg must win, header must not run",
+			tags,
+			ok,
+		)
 	}
 }
 
@@ -454,7 +474,11 @@ func TestLanguageExtractorChain_NilLegsAreSkipped(t *testing.T) {
 
 	tags, ok := chain(req)
 	if !ok || len(tags) != 1 || tags[0] != "de" {
-		t.Errorf("chain = (%v, %v), want ([de], true) — nil leg must not poison the chain", tags, ok)
+		t.Errorf(
+			"chain = (%v, %v), want ([de], true) — nil leg must not poison the chain",
+			tags,
+			ok,
+		)
 	}
 }
 
@@ -469,7 +493,11 @@ func TestParseAcceptLanguageCandidates_OrdersByWeightThenListedOrder(t *testing.
 	want := []string{"fr", "de", "en"}
 
 	if strings.Join(tags, ",") != strings.Join(want, ",") {
-		t.Errorf("candidates = %v, want %v (weight desc — fr defaults to q=1 — ties in listed order)", tags, want)
+		t.Errorf(
+			"candidates = %v, want %v (weight desc — fr defaults to q=1 — ties in listed order)",
+			tags,
+			want,
+		)
 	}
 }
 
@@ -508,7 +536,10 @@ func TestParseAcceptLanguageCandidates_MalformedQKeepsDefaultWeight(t *testing.T
 	}
 
 	if strings.Join(tags, ",") != "de,en" {
-		t.Errorf("candidates = %v, want [de en] (malformed q keeps default weight, listed order)", tags)
+		t.Errorf(
+			"candidates = %v, want [de en] (malformed q keeps default weight, listed order)",
+			tags,
+		)
 	}
 }
 
@@ -540,7 +571,11 @@ func TestLanguageMatcher_ExactBeatsPrimary(t *testing.T) {
 
 	supported, ok := matcher.match("de-AT")
 	if !ok || supported != "de-AT" {
-		t.Errorf("match(de-AT) = (%q, %v), want (de-AT, true) — exact match must beat primary", supported, ok)
+		t.Errorf(
+			"match(de-AT) = (%q, %v), want (de-AT, true) — exact match must beat primary",
+			supported,
+			ok,
+		)
 	}
 }
 
@@ -587,7 +622,10 @@ func TestLanguageConfig_ValidateRejectsInvalidTagCharset(t *testing.T) {
 
 	err := LanguageConfig{SupportedTags: []string{"de,en"}}.Validate()
 	if err == nil || !InDomain(err, Domain("language")) {
-		t.Errorf("Validate() = %v, want a language.* Rejection (comma is not a subtag character)", err)
+		t.Errorf(
+			"Validate() = %v, want a language.* Rejection (comma is not a subtag character)",
+			err,
+		)
 	}
 }
 
@@ -662,7 +700,11 @@ func TestLanguage_UnsupportedDefaultTagFallsBackToFirst(t *testing.T) {
 	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	if got := rec.Header().Get("Content-Language"); got != "de" {
-		t.Errorf("Content-Language = %q, want %q (unsupported default falls back to first supported)", got, "de")
+		t.Errorf(
+			"Content-Language = %q, want %q (unsupported default falls back to first supported)",
+			got,
+			"de",
+		)
 	}
 }
 

@@ -72,7 +72,11 @@ func FuzzParseAcceptLanguage(f *testing.F) {
 
 		rec := httptest.NewRecorder()
 
-		Language(cfg)(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})).ServeHTTP(rec, req)
+		Language(
+			cfg,
+		)(
+			http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+		).ServeHTTP(rec, req)
 
 		served := rec.Header().Get("Content-Language")
 		if served != "de" && served != "en" {
