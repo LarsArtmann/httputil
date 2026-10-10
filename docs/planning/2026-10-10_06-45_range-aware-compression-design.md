@@ -33,4 +33,3 @@ hand-rolled interplay bug the consumer audit caught in the fleet.
   control test proving compression still applies without `Range`, a fuzz
   seed with a `Range` header (oracle: passthrough identity), and a 206
   handler-status variant.
-
