@@ -49,7 +49,7 @@ Nothing destructive. Two honest own-goals:
 
 ## f) Next up (session-derived; honest list, not padded to 50)
 
-1. Locate/upgrade erraudit to the build that produced the report; re-run both gates; confirm the 43↔43 sentinel_concrete_type ↔ legacy_is mapping with the real binary.
+1. ~~Locate/upgrade erraudit to the build that produced the report; re-run both gates; confirm the 43↔43 sentinel_concrete_type ↔ legacy_is mapping with the real binary.~~ resolved 2026-10-10 (erraudit 1c6809a): both gates exit 0 on root AND server_timing; the current-build composition is 45 sentinel_concrete_type + 44 test-side `errors.Is` advisories (AGENTS.md erraudit block refreshed).
 2. Exhaustive 43-sentinel ↔ clone-site cross-reference; record the exact cloned/never-cloned split in AGENTS.md.
 3. Investigate advisory growth `~30 → 43` (git log around test/sentinel additions).
 4. Owner decision: root tracked binaries (`doc-snippet-refs`, `coverage-threshold`) — keep, or gitignore + build on demand.

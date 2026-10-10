@@ -44,10 +44,11 @@ nix flake check            # Full flake gates (includes treefmt verification)
 
 # erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops).
 # Real gates (exit 0 required): legacy_as + stdlib_constructor below.
-# --type-aware is ADVISORY-ONLY: ~45+1/sentinel `sentinel_concrete_type`
-# (the load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
+# --type-aware is ADVISORY-ONLY: ~45 `sentinel_concrete_type`
+# (measured 2026-10-10, erraudit 1c6809a: 45 in root, server_timing clean; the
+# load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites) and
-# ~41 test-side `errors.Is` matches (all correct) — verdict history:
+# ~44 test-side `errors.Is` matches (all correct) — verdict history:
 # docs/status/2026-09-11_10-03 and _13-49 (also the `_ =` honest-silence
 # discards and the scripts/ exemptions).
 # GOEXPERIMENT=jsonv2 prefix dropped 2026-10-09: json/v2 is standard in Go 1.27.
