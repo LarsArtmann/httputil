@@ -1,0 +1,127 @@
+# Status — i18n Consolidated-Plan Execution (T02–T18), 2026-10-10 04:07 CEST
+
+Session: single-session execution of
+`docs/planning/2026-10-10_02-48-SUPERB-i18n-consolidated-plan.html` after
+the owner green-light ("GET SHIT DONE — the WHOLE TODO LIST", interpreted
+as: the D1–D6 rulings are granted per the plan's own recommendations).
+Cross-repo work in sperrmuell-direct (T03/T04) and one verdict annotation
+in go-appkit (F08) landed in the same window. NOTHING from this session
+has been released; everything is working-tree/daemon-commit state.
+
+## a) FULLY DONE
+
+| ID | Item | Evidence |
+| -- | ---- | -------- |
+| a1 | **T01 decision gates adopted** — D1 negotiation-in-httputil, D2 RFC-strict Vary + opt-out, D3 zero-dep matcher + TagMatcher hatch, D4 no-406/no-confidence in v1, D5 sperrmuell cookbook shape, D6 cross-repo authority | design note §Rulings (`docs/planning/2026-10-10_03-30_language-middleware-design.md`) |
+| a2 | **T02 fleet demand sweep** — N≥4 repos with HTTP-level locale demand (sperrmuell-direct, go-website-template `internal/i18n`, artmann-technologies-website `i18n.Lang`, webphone Accept-Language fallback); only sperrmuell imports go-appkit → appkit content-lane trigger NOT fired (T22/T23 parked with evidence) | sweep verdict recorded in `~/projects/go-appkit/doc/planning/2026-10-09_i18n-module-research.md` §Fleet demand sweep verdict |
+| a3 | **T03 sperrmuell /api/\* header fix** — `withLanguageHeaders` middleware (Vary: Accept-Language Add + Content-Language from context) wired onto all six `/api/*` routes; `TestWithLanguageHeaders` (default/EN/DE/fr fallback); **ALL 7 sperrmuell verify-gates GREEN** (twice) | `cmd/server/locale.go`, `cmd/server/main.go`, `cmd/server/locale_test.go` in sperrmuell-direct |
+| a4 | **T04 sperrmuell TODO row T70** — trigger-gated x/text Matcher upgrade row (correctly scoped: NOT needed for {de,en}; fires on third locale with script classes), folded F22+F24; **plus** the tie-break question resolved as a pinning TEST (`TestParseAcceptLanguageTieBreakIsOrderStable`, first-wins was already implemented — test count 276→278, README/AGENTS canonical counts updated, gate 7 green) | sperrmuell `TODO_LIST.md` T70, `internal/i18n/i18n_test.go` |
+| a5 | **T05–T09 design note** — config/Validate/extractor-chain/matcher contract, ordering rules (Language outer-to-CSRF, CORS preflight guidance), Vary×Compression composition rule, error-domain list, honest-silence audit, recorded DEVIATION: extractor signature is `([]string, ok)` not `(string, ok)` — single-tag extractors cannot reach the header's second candidate (the gin precedence-bug class) | `docs/planning/2026-10-10_03-30_language-middleware-design.md` |
+| a6 | **T10–T12 `Language()` implemented** — `language.go`: LanguageConfig (SupportedTags/DefaultTag/Extractors/Matcher/DisableContentLanguage/DisableVary), DefaultLanguageConfig, Validate (4 Rejection codes), validate-and-log constructor with safe fallbacks, case-preserving precompiled matcher (exact-then-primary), 4 extractor built-ins + first-wins chain, WithLanguage/LanguageFromContext/LanguageFromRequest, Content-Language + dedupe-aware Vary writes | `language.go`, `headers.go` (+2 canonical header consts) |
+| a7 | **T13–T15 test suite** — 34 standalone tests (no tables, repo style): grammar (weight order, tie stability, q=0/wildcard drop, malformed-q default, >3 decimals, garbage), negotiation (path>header, cookie>header, query, no-match default, nil-chain, nil-entry drop), zero-value probes (zero config → DefaultLanguageConfig, Disable flags zero = headers ON, empty DefaultTag → first), mutation-relevant header assertions, case-preservation probe (zh-Hans served as declared), concurrency + `TestLanguage_ConcurrentUseUnderRace` | `language_test.go` |
+| a8 | **Fuzz with differential oracle** — `FuzzParseAcceptLanguage`: 7.02M execs / 45s clean; oracle is an independent strconv+sort.SliceStable reimplementation; fuzz found and fixed 3 real divergences: (1) oracle couldn't handle duplicate tags (rebuilt as differential), (2) control chars in candidate tags (parser now drops them — header-injection guard `containsControlChar`), (3) empty-fraction q (`"0."` = 0.0, shipped compression semantics) + sign/q>1 parity | `language_fuzz_test.go`; crashers committed as corpus `testdata/fuzz/FuzzParseAcceptLanguage/` (3 engine crashers + 3 curated seeds, proper `go test fuzz v1` format) |
+| a9 | **T16 benchmarks + docs** — BenchmarkLanguage (570 ns / 584 B / 8 allocs), BenchmarkLanguageHeaderOnly (424 ns), BenchmarkParseAcceptLanguageCandidates (103 ns / 176 B / 3 allocs); 3s×5 best-of-5 rows added to `docs/benchmarks.md` with provenance footnote | `language_bench_test.go`, docs/benchmarks.md |
+| a10 | **Gates (partial T17)** — `go build` ✓, `go vet` ✓, full `go test ./...` ✓, `go test -race -count=10` on all language tests ✓, **golangci-lint run: 0 issues** (~70 linters) | session shell history |
+
+## b) PARTIALLY DONE
+
+| ID | Item | What's missing |
+| -- | ---- | -------------- |
+| b1 | **T17 gates** | `nix fmt` / `nix flake check` and the art-dupl `-t 2` / `-t 1` re-measure not yet run; race stress was scoped to the language tests, not `-race -count=10 ./...` full-suite |
+| b2 | **T18 error-code sweep** | The four `language.*` codes exist and `Validate` returns them, but the sweep is not started: no `errorTemplates` entries, not in `allHTTputilErrorCodes`, no domain test coverage, FEATURES/README/arch-ref/v1-stability/AGENTS erraudit-count updates all pending — `TestEveryErrorCodeHasATemplate` currently only passes because the sweep hasn't been wired to fail (the codes are not yet in any asserted list; this is exactly the gap the sweep exists to close) |
+| b3 | **Design-note ↔ code drift risk** | Design note says "canonicalized (trimmed, lowercased)" for SupportedTags; final implementation case-PRESERVES the app's spelling and lowercases only comparisons — note §Zero-value and §Matching need one honest correction pass (behavior is better than the note, not worse) |
+| b4 | **T02 verdict in httputil's own artifacts** | Verdict recorded in go-appkit's doc; not yet reflected in httputil ROADMAP §42 or the consolidated-plan HTML (T27 harvest will fold it) |
+
+## c) NOT STARTED
+
+| ID | Item |
+| -- | ---- |
+| c1 | T18 remainder: errorTemplates entries, allHTTputilErrorCodes, domain test, FEATURES.md row, README + architecture-reference classification tables, v1-stability exported-identifier pass, AGENTS.md erraudit advisory (+4 sentinels) |
+| c2 | T19: docs/integrations/x-text.md (TagMatcher adapter example) + go-i18n.md wiring recipe |
+| c3 | T20: httpspec opt-in `Localizes` spec (Content-Language present, Vary correct) |
+| c4 | T21: example_test.go Example (deterministic Output, self-contained), stack-ordering docs, AGENTS.md Non-Obvious Behaviors entry |
+| c5 | T25: CHANGELOG [Unreleased] entry, v1-stability surface call, scripts/prerelease-check.sh run (tag/push stays owner-gated) |
+| c6 | T26: claim hardening (second source pass on "no library sets Content-Language/Vary", first-hand Django LocaleMiddleware precedence, gh-issues scan, x/text proxy-pin check) |
+| c7 | T27: docs-health HARVEST of both sessions' f-lists into TODO_LISTs + inline annotations on both status reports |
+| c8 | T24: sperrmuell migration onto `Language()` — correctly BLOCKED: needs a released httputil tag (sperrmuell consumes via module proxy); F96 dnsblockd needs-check same boat |
+| c9 | T22/T23: parked by evidence (a2) — correct non-start, documented, not debt |
+
+## d) TOTALLY FUCKED UP (all fixed in-session, listed for honesty)
+
+| ID | Incident | Resolution |
+| -- | -------- | ---------- |
+| d1 | **Formatter ate a nolint directive** — the 02:32 daemon `golangci-lint fmt` pass reflowed `compress_pool.go:47` and silently DROPPED the `//nolint:wrapcheck` directive, breaking the 0-issue baseline | Restored the directive verbatim (pure-delegation comment); lint back to 0. WATCH: any future `golangci-lint fmt` run may re-eat it — this is a recurring formatter×nolint trap, belongs in AGENTS.md |
+| d2 | **First fuzz-oracle was broken twice** — v1 oracle looked up weight per tag (breaks duplicate tags); v1 differential diverged on control chars, sign handling, q>1, and empty-fraction q | Rebuilt as a parity-exact differential oracle; fuzz now 7M execs clean. Lesson: the oracle must mirror the parser's LENIENT postures (malformed→default weight), not RFC-perfect behavior |
+| d3 | **Corpus seeds wrong format** — wrote raw strings; Go requires `go test fuzz v1` + typed literal | Rewrote all six files; engine crashers preserved as regression corpus |
+| d4 | **Test-authoring slips** — used `LanguageFromRequest(r.Context())` (wrong accessor), `DomainLanguage` (nonexistent const; convention is `Domain("language")`), one table-driven test (repo bans them), a self-wrapping middleware double-call, and `outer(Language(cfg)…)` type error (Middleware is a func, not Handler) | All fixed; suite green. Reminder: repo's no-table-driven + accessor-name conventions are load-bearing |
+| d5 | **Wrong expectations in two tests** (forgot `fr` defaults to q=1.0; assumed dedupe could see handler-added Vary that is written AFTER the middleware runs) | Corrected expectations and rebuilt the Vary-dedupe test around an outer-middleware simulation — which is the only shape that can exercise it |
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **AGENTS.md formatter trap entry**: `golangci-lint fmt` has now twice-class eaten trailing `//nolint:` directives when it reflows a call to multiple lines (d1). One-line doc note + consider a `check-skill-fanout`-style grep gate for "directive count regression" before fmt passes.
+2. **Canonical-facts gate in sperrmuell is a cross-repo citation trap**: any `docs/…` string in TODO_LIST is resolved LOCALLY and fails on cross-repo references (hit twice). The workaround (cite as "httputil-Repo: planning/…") is undocumented.
+3. **Extractor signature deviation must be propagated**: plan HTML + ROADMAP §42 still describe `(tag string, ok)`; the design note records the deviation but the plan artifact now misleads future readers.
+4. **Daemon hygiene**: this session had to verify three times whether working-tree changes were mine or the daemon's; the AGENTS "snapshot before --fix" rule extends to BEFORE ANY multi-step lint/fmt interaction.
+5. **Fuzz runtime budget**: 45s caught three real bugs; the nightly budget (much larger) should include this target in the rotation — worth an explicit `.github/workflows` check that FuzzParseAcceptLanguage is in the nightly matrix.
+6. **Benchmark harness realism**: BenchmarkLanguage's 584 B/op is dominated by httptest request internals; a `http.NewRequestWithContext`-free static-request harness (mirroring BenchmarkCompose/Serve) would measure only middleware cost.
+7. **Language vs Compression Vary composition**: current composition yields TWO Vary lines (RFC-legal); if the fleet later standardizes on single-line Vary, the dedupe helper `addVaryToken` is the seam — compression's plain Add is the shipped contract and was deliberately not touched.
+8. **D4 closure in writing**: no-406/no-confidence is decided in the design note; ROADMAP §42 should record it as a Non-goal so a future session doesn't relitigate it.
+
+## f) NEXT 50 (ordered: finish-the-train first, then docs, then consumers)
+
+1. T18: add 4 `errorTemplates` entries (language.tags_empty / tag_invalid / default_tag_unsupported / extractor_nil) to `errors.go`
+2. T18: add the 4 codes to `allHTTputilErrorCodes` in `errors_templates_test.go`
+3. T18: run `TestEveryErrorCodeHasATemplate` + domain-coverage test green
+4. T18: FEATURES.md inventory row for `Language()` (+ coverage-gap notes)
+5. T18: README middleware table + docs/architecture-reference.md error-classification rows
+6. T18: docs/v1-stability.md exported-identifier pass (Language, LanguageConfig, DefaultLanguageConfig, LanguageExtractor, TagMatcher, 4 extractor constructors, chain, WithLanguage/LanguageFromContext/LanguageFromRequest)
+7. T18: AGENTS.md erraudit advisory sentinel count +4 (45→49) + non-obvious-behavior stub
+8. b3: correct design note §Zero-value/§Matching to the case-preserving semantics actually shipped
+9. b4: fold the fleet-sweep verdict into ROADMAP §42 + mark the plan HTML's D-gates as RULED
+10. T17: `nix fmt` + `nix flake check`
+11. T17: art-dupl `-t 2` (expect 0 groups) and `-t 1` new-pair check vs the documented baseline
+12. T17: full `go test -race -count=10 ./...`
+13. T17: `GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as` and `--type stdlib_constructor --enforce-go-error-family` gates exit 0
+14. T17: `buildflow --build-mode dev` expected-findings composition check (no NEW classes)
+15. T19: write docs/integrations/x-text.md (language.NewMatcher adapter behind TagMatcher; pt/zh script-class motivation)
+16. T19: write docs/integrations/go-i18n.md (Localizer wiring recipe off LanguageFromContext)
+17. T20: httpspec `Localizes` opt-in spec (Content-Language present on GET, Vary lists Accept-Language, canonical-form check)
+18. T20: httpspec README/spec-count docs update (19+9 → +1)
+19. T21: `example_test.go` ExampleLanguage with deterministic `// Output:`
+20. T21: stack-ordering paragraph in README (Language outer-to-CSRF, inner-to-CORS)
+21. T21: AGENTS.md Non-Obvious Behaviors full entry (validate-and-log fallbacks, case preservation, Vary dedupe seam, no-406 ruling, ctl-char guard)
+22. T25: CHANGELOG [Unreleased] section (Added: Language middleware, headers.go consts, error domain)
+23. T25: v1-stability "frozen since v1.0 / additive in Unreleased" annotation
+24. T25: `scripts/prerelease-check.sh` full pass
+25. T25: STOP before tag/push — owner call (tag immutability policy)
+26. T26: re-verify "no surveyed Go i18n middleware sets Content-Language/Vary" against gin-contrib/i18n + echoi18n + kaptinlin current HEADs
+27. T26: Django LocaleMiddleware precedence — first-hand docs check (header vs cookie vs URL order)
+28. T26: gh issue search: httputil + go-appkit for i18n/language feature requests
+29. T26: verify x/text v0.42.0 + go-i18n v2.6.1 are the actual latest tags (module proxy, not docs)
+30. T26: x/text compile-at-go-1.27.1 scratch check before any integration doc pins a version
+31. T27: docs-health HARVEST — fold this session's f-list + the 2026-10-09 session's f-list into TODO_LIST.md rows
+32. T27: inline-annotate this status report + the 2026-10-09 22:32 report per the docs-health cadence
+33. T27: TODO_LIST rows: nightly-fuzz matrix check (e5), formatter-nolint gate (e1), benchmark harness realism (e6)
+34. T27: mark sperrmuell T70's "blocked on httputil release" linkage in both TODO_LISTs
+35. AGENTS.md: record the cross-repo citation workaround for sperrmuell's canonical-facts gate (e2)
+36. ROADMAP §42: record D4 as Non-goal (no 406, no confidence) + D1/D2/D3/D5 rulings with the design-note link
+37. ROADMAP §42: update the SPLIT-BRAIN clause to RULED status (appkit lane parked with sweep evidence)
+38. Consider: `LanguageWhen` route-conditional variant — only after a real consumer asks (watcher)
+39. Consider: expose matched-vs-default distinction in context (pair or struct) — only if a consumer needs it; string keeps v1 simple
+40. Consider: `AbsentEncoding`-style policy for empty Accept-Language under header-only configs (currently no-candidates → default tag; document as the one zero-value analog)
+41. Nightly fuzz workflow: add FuzzParseAcceptLanguage to the rotation list if it enumerates targets explicitly
+42. Docs: cookbook example for the sperrmuell shape (D5) — German canonical + /en with hreflang caveat pointer
+43. Docs: ETag-after-Language caveat into README composition section (design note has it; README needs one line)
+44. Check: `MiddlewareStack` name constant for the new middleware (MiddlewareLanguage) — decide whether to add one like the Nonce precedent
+45. Verify: `go doc` rendering of the language.go package comment (pkgsite sells this)
+46. Coverage pass: confirm language.go line coverage; document any gap next to FEATURES row (coverage methodology)
+47. Cross-repo: when httputil next releases, ping sperrmuell T24 migration + T70 upgrade row in its TODO_LIST
+48. Cross-repo: dnsblockd needs-check (F96) — one 15-min audit when the release exists
+49. Hygiene: compress_pool.go:47 nolint-directive regression check after every fmt pass (temporary watch item)
+50. Process: encode the "oracle must mirror lenient postures" lesson into the fuzz-invariants section of AGENTS.md testing conventions
+
+## g) QUESTIONS FOR THE OWNER
+
+1. **Tag discipline for this batch**: when the train finishes (T18–T21+T25 prep), do you want ONE coordinated minor release (v1.6.0 with `Language()` + httpspec `Localizes`, matching the v1.5.0 coordinated-push pattern), and do I create the local annotated tag myself or leave tag+push to you? (Tags are never re-cut, so I won't touch it without an explicit go.)
+2. **Vary single-line composition**: two Vary lines (Language + Compression) is RFC-legal and what ships today. Do you want the compression middleware migrated to the dedupe-aware single-line write in a follow-up (touches shipped v1.0-frozen behavior, additive in effect), or is multi-Vary the documented end state?
+3. **T26 scope on live web claims**: the survey claims (gin/echo middlewares set no Content-Language/Vary) were verified against docs/readme at research time. For the second pass, is fetching and grepping the current upstream HEADs enough, or do you want a pinned scratch-module build (clone + test) as the evidence bar before the claim goes into our docs?
