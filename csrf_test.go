@@ -1782,3 +1782,60 @@ func TestRequestScheme_TLSConnection(t *testing.T) {
 		t.Errorf("requestScheme = %q, want \"https\" for a locally TLS-terminated request", got)
 	}
 }
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestCSRFMiddleware_BootLogWarnsOnUntrustedForwardedProto(t *testing.T) {
+	// No t.Parallel: swaps the process-global slog default (AGENTS rule).
+	records := captureCSRFConstructorLogs(t, func() {
+		_ = CSRFMiddleware(CSRFConfig{
+			Secure:                         true,
+			BootLogUntrustedForwardedProto: true,
+		})(http.NotFoundHandler())
+	})
+
+	for _, record := range records {
+		msg, _ := record["msg"].(string)
+
+		if strings.Contains(msg, "X-Forwarded-Proto is ignored") {
+			return
+		}
+	}
+
+	t.Fatalf("no untrusted-XFP boot warning among %d records: %v", len(records), records)
+}
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestCSRFMiddleware_BootLogSilentWhenTrustedProxiesConfigured(t *testing.T) {
+	// No t.Parallel: swaps the process-global slog default (AGENTS rule).
+	records := captureCSRFConstructorLogs(t, func() {
+		_ = CSRFMiddleware(CSRFConfig{
+			Secure:                         true,
+			TrustedProxies:                 []string{"10.0.0.0/8"},
+			BootLogUntrustedForwardedProto: true,
+		})(http.NotFoundHandler())
+	})
+
+	for _, record := range records {
+		msg, _ := record["msg"].(string)
+
+		if strings.Contains(msg, "X-Forwarded-Proto is ignored") {
+			t.Fatalf("unexpected boot warning with TrustedProxies set: %v", record)
+		}
+	}
+}
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestCSRFMiddleware_BootLogSilentByDefault(t *testing.T) {
+	// No t.Parallel: swaps the process-global slog default (AGENTS rule).
+	records := captureCSRFConstructorLogs(t, func() {
+		_ = CSRFMiddleware(CSRFConfig{Secure: true})(http.NotFoundHandler())
+	})
+
+	for _, record := range records {
+		msg, _ := record["msg"].(string)
+
+		if strings.Contains(msg, "X-Forwarded-Proto is ignored") {
+			t.Fatalf("boot warning emitted without the opt-in flag: %v", record)
+		}
+	}
+}

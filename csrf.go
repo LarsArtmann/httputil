@@ -183,6 +183,15 @@ type CSRFConfig struct {
 	// Validate does not mutate the config. It may also be set directly.
 	TrustedProxiesCIDR []*net.IPNet
 
+	// BootLogUntrustedForwardedProto opts into one construction-time warning
+	// when TrustedProxies is empty: X-Forwarded-Proto is honored only from
+	// trusted proxies, so a deployment behind a TLS-terminating proxy that
+	// never lists the proxy silently gets no XFP trust path (its https
+	// Origin reads as a plaintext mismatch). The warning surfaces that
+	// combination at boot instead of at first CSRF failure. No effect when
+	// TrustedProxies is configured. Default: false.
+	BootLogUntrustedForwardedProto bool
+
 	// AllowPlaintextBypass grants the plaintext-HTTP origin bypass to ALL
 	// non-TLS requests when no TrustedProxies are configured.
 	// It is INSECURE for internet-facing plain-HTTP deployments.
@@ -590,6 +599,7 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 	cfg = cfg.withParsedTrustedProxies()
 
 	warnEmptyTrustedProxies(cfg)
+	warnUntrustedForwardedProto(cfg)
 
 	trustedOrigins := parseTrustedOriginURLs(cfg.TrustedOrigins)
 
@@ -636,6 +646,28 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 			handler.ServeHTTP(w, r)
 		})
 	}
+}
+
+// warnUntrustedForwardedProto emits the opt-in boot warning for the silent
+// XFP trust gap: X-Forwarded-Proto is honored only from TrustedProxies, so
+// a TLS-terminating proxy that is not listed leaves https origins reading
+// as plaintext mismatches with no signal until requests start failing.
+func warnUntrustedForwardedProto(cfg CSRFConfig) {
+	if !cfg.BootLogUntrustedForwardedProto {
+		return
+	}
+
+	if len(cfg.TrustedProxies) != 0 || len(cfg.TrustedProxiesCIDR) != 0 {
+		return
+	}
+
+	slog.Warn(
+		"httputil: CSRFConfig has no TrustedProxies — X-Forwarded-Proto is ignored, so behind a TLS-terminating proxy the https Origin reads as a plaintext mismatch",
+		slog.String(
+			"hint",
+			"list the proxy address/CIDR in TrustedProxies to activate the XFP trust path; set BootLogUntrustedForwardedProto=false to silence",
+		),
+	)
 }
 
 func warnEmptyTrustedProxies(cfg CSRFConfig) {
