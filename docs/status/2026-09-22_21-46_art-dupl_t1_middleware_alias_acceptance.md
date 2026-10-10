@@ -59,7 +59,7 @@ That is the complete list. Honest accounting: no Go code was touched, working tr
 2. **Run cheap doc gates immediately after doc edits.** markdownlint/treefmt on the touched file takes seconds; deferring them leaves "unverified" state (b1) for no benefit.
 3. **Check git state right after every edit.** The daemon pickup (`0679e81`) was verified this session but late; do it immediately so evidence is fresh.
 4. **Match skill guidance by default, deviate consciously.** The 3-line rationale vs 1-line skill guidance is defensible but should be a flagged decision, not an accident (b3).
-5. **Codify the art-dupl threshold policy.** Today's run proved `-t 1` finds residue the documented `-t 2..25` floor hides. Without a documented baseline, the next `-t 1` run will re-litigate this exact pair from scratch. Fix: record expected residue per threshold (pending Q2).
+5. ~~**Codify the art-dupl threshold policy.** Today's run proved `-t 1` finds residue the documented `-t 2..25` floor hides. Without a documented baseline, the next `-t 1` run will re-litigate this exact pair from scratch. Fix: record expected residue per threshold (pending Q2).~~ superseded-done 2026-10-10: AGENTS.md "Accepted Code Duplication" now records the exact threshold policy (`-t 2` = 0 groups, `-t 1` = the two accepted pairs, anything NEW is a finding) and art-dupl is pinned in flake.nix (`nix run .#art-dupl`).
 6. **Reconcile the Accepted-section wording.** Noticed while editing: the intro says "(test files auto-excluded)" and then lists test-file clones (`mw1`/`mw2`, `newTypedBodyHandler`) — the parenthetical applies only to the 0-groups claim, but the juxtaposition invites misreading. Small wording fix.
 
 ## f) TOP 25 NEXT TASKS (session-scoped, ranked by impact)
