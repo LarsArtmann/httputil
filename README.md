@@ -304,7 +304,7 @@ Ready-made counters for go-etag's observability hooks (`OnETagGenerated`, `On304
 
 ### HTTP Server
 
-A configurable `http.Server` wrapper with sensible timeout defaults and lifecycle helpers.
+A configurable `http.Server` wrapper with sensible timeout defaults and lifecycle helpers. Errors from `Start`/`StartTLS` arrive only after the failure is fully settled (listener closed, `ListenerAddr` reports not-listening), so restarting the same server after a failure is always safe; starting a listening server returns the classified `server.already_started` error instead of binding an orphan listener.
 
 ```go
 cfg := httputil.DefaultServerConfig()

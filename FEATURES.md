@@ -136,7 +136,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `ServerConfig` with `Validate()` — read, header, write, and idle timeout validation.
 - `DefaultServerConfig()` — production defaults (`:8080`, 10s/5s/30s/60s timeouts).
 - `NewServer()` wraps `http.Server` with lifecycle helpers.
-- `Start()` / `StartTLS()` bind via `net.Listen` first (bind errors are delivered immediately on the returned channel) and track the listener.
+- `Start()` / `StartTLS()` bind via `net.Listen` first (bind errors are delivered immediately on the returned channel) and track the listener. Error delivery implies full settlement: the listener is closed and `ListenerAddr()` reports `(nil, false)` before the error can be received, so restarting the same `Server` after any failure (or after `Shutdown()`) is safe; starting a listening server returns the classified `server.already_started` error and leaves it running.
 - `ListenerAddr()` returns the resolved address of the active listener (`"127.0.0.1:0"` → the real port), `(nil, false)` when not listening; cleared on successful `Shutdown()`.
 - `StartTLS(certFile, keyFile)` serves HTTPS with the validated `TLSConfig` (TLS 1.2+ enforced); in-memory certs work via `GetCertificate` with empty paths.
 - `Shutdown()` performs graceful shutdown respecting a context deadline.

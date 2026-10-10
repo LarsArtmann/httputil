@@ -871,6 +871,30 @@ func TestServer_StartTLS_RestartableAfterCertFailure(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
+	blocker, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tlsCfg := DefaultServerConfig()
+	tlsCfg.Addr = blocker.Addr().String()
+	srv.httpServer.Addr = tlsCfg.Addr
+
+	bindErr := <-srv.StartTLS("/nonexistent/cert.pem", "/nonexistent/key.pem")
+	if bindErr == nil {
+		t.Fatal("StartTLS on an occupied address delivered nil error")
+	}
+
+	if addr, ok := srv.ListenerAddr(); ok {
+		t.Errorf("ListenerAddr after StartTLS bind failure = (%v, true), want (nil, false)", addr)
+	}
+
+	if err := blocker.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	srv.httpServer.Addr = cfg.Addr
+
 	certErr := <-srv.StartTLS("/nonexistent/cert.pem", "/nonexistent/key.pem")
 	if certErr == nil {
 		t.Fatal("StartTLS with unreadable certificate files delivered nil error")
