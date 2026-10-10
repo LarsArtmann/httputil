@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>Pareto Plan — i18n Fleet Consolidation (httputil × go-appkit)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -826,207 +826,440 @@
     </style>
   </head>
   <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <!-- Full-bleed top bar -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>PARETO EXECUTION PLAN</span>
+      <span>2026-10-10 02:48 CEST</span>
+      <span>httputil &times; go-appkit i18n consolidation</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#findings">Findings</a>
-          <a href="#issues">Issue Cards</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#plan">Plan</a>
+          <a href="#pareto">Pareto Breakdown</a>
+          <a href="#decisions">Decision Gates</a>
+          <a href="#comprehensive">Comprehensive Plan</a>
+          <a href="#fine">Fine Breakdown</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#sources">Sources</a>
         </nav>
       </aside>
 
       <main class="main">
-        <!-- Hero -->
         <div class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Pareto Execution Plan</div>
+          <h1>i18n Fleet Plan &mdash; Consolidated</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            One plan from two independent research sessions (httputil 22:32,
+            go-appkit 22:39, both 2026-10-09): language negotiation, the
+            sperrmuell-direct consumer evidence, and the split-brain
+            consolidation &mdash; ranked by impact.
           </p>
         </div>
 
-        <!-- Inline TOC (alternative to sidebar; pick one) -->
         <nav class="toc">
           <h3>Contents</h3>
           <ul>
             <li><a href="#summary">Summary</a></li>
-            <li><a href="#findings">Findings</a></li>
-            <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
-            <li><a href="#plan">Plan</a></li>
+            <li><a href="#pareto">Pareto Breakdown</a></li>
+            <li><a href="#decisions">Decision Gates</a></li>
+            <li><a href="#comprehensive">Comprehensive Plan</a></li>
+            <li><a href="#fine">Fine Breakdown</a></li>
+            <li><a href="#graph">Execution Graph</a></li>
+            <li><a href="#sources">Sources</a></li>
           </ul>
         </nav>
 
-        <!-- Stats Dashboard -->
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
+            <div class="stat-value">63</div>
+            <div class="stat-label">Merged tasks (from ~100 raw)</div>
           </div>
           <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
-            <div class="stat-label">Critical</div>
+            <div class="stat-value">6</div>
+            <div class="stat-label">Owner rulings gating ~40 tasks</div>
           </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Live consumer bug (sperrmuell cache)</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">2</div>
+            <div class="stat-label">Sessions converged on findings</div>
           </div>
         </div>
-
-        <!-- Findings as Cards -->
-        <h2 id="findings"><span class="num">01</span>Findings</h2>
-
-        <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
+        <div class="callout callout-warning">
+          <strong>State of play</strong>
+          Both research sessions are DONE; nothing is implemented. Every build
+          task is gated on six owner rulings. One un-gated live bug exists
+          today: sperrmuell-direct&rsquo;s header-negotiated
+          <code>/api/quote</code> responses carry neither
+          <code>Content-Language</code> nor <code>Vary: Accept-Language</code>
+          &mdash; cache-incorrect under any shared cache.
         </div>
 
-        <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
-        </div>
+        <h2 id="pareto"><span class="num">01</span>Pareto Breakdown</h2>
 
-        <!-- Issue Cards -->
-        <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
-
-        <div class="issue issue-critical">
-          <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
-          <p>
-            Describe the problem and cite the code or behavior that proves it.
-          </p>
-          <div class="callout callout-solution">
-            <strong>Fix</strong>
-            State the concrete recommended action.
-          </div>
-        </div>
-
-        <div class="issue issue-important">
-          <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
-          <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
-          </p>
-        </div>
-
-        <div class="issue issue-nice">
-          <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
-          <p>
-            Minor documentation gaps or future-proofing suggestions go here.
-          </p>
-        </div>
-
-        <!-- Strengths -->
-        <h2>Strengths</h2>
-        <div class="strengths">
-          <div class="strength">
-            <div class="check">+</div>
-            <div class="text">
-              <strong>Specific strength</strong>
-              <span>Explain why it matters and what it enables.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
+        <h3>1% &rarr; 51%: Rule + fix (7 tasks, &asymp;4 h)</h3>
+        <p>
+          Two hours of owner decisions and one 30-minute bug fix determine
+          ~85% of the merged list&rsquo;s fate. Without the rulings, design and
+          implementation work in either repo risks building the duplicate both
+          planning docs already flagged.
+        </p>
         <table>
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
-            </tr>
+            <tr><th>#</th><th>Task</th><th>Effort</th><th>Unblocks</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
-            </tr>
+            <tr><td>T01</td><td>Owner rules D1&ndash;D6 (see Decision Gates)</td><td>30 min</td><td>~40 tasks</td></tr>
+            <tr><td>T02</td><td>Fleet demand sweep: <code>rg -il "i18n|locale"</code> across sibling repos &mdash; settles the unverified &ldquo;N=1 consumer&rdquo; claim behind the appkit demand gate</td><td>30 min</td><td>appkit gate, D1</td></tr>
+            <tr><td>T03</td><td>sperrmuell-direct: add <code>Vary: Accept-Language</code> + <code>Content-Language</code> to <code>/api/*</code>; run its verify-gates</td><td>30 min</td><td>kills the live bug</td></tr>
+            <tr><td>T04</td><td>sperrmuell-direct TODO row: x/text Matcher upgrade (pt/zh script classes) + q-value tie-break guard test</td><td>30 min</td><td>their correctness debt</td></tr>
+            <tr><td>T05</td><td>httputil design note: config, Validate, extractor chain, matcher contract</td><td>60 min</td><td>implementation train</td></tr>
+            <tr><td>T06</td><td>Ordering rules: Language vs CSRF (localized error pages want Language OUTER &mdash; contradicts sperrmuell&rsquo;s innermost withLocale) vs CORS preflight</td><td>45 min</td><td>API design</td></tr>
+            <tr><td>T07</td><td>Vary composition when chained with Compression (dedupe vs two Adds) + ETag/cache-key caveat</td><td>45 min</td><td>superb-default correctness</td></tr>
           </tbody>
         </table>
 
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
-        </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
+        <h3>4% &rarr; 64%: Build the httputil edge (add 10 tasks, &asymp;8 h)</h3>
+        <p>
+          T08&ndash;T17 implement <code>Language()</code> end-to-end with the
+          fleet&rsquo;s standard gates. This is the negotiation home per the
+          consolidation proposal (pending D1); the error domain and the
+          error-code sweep follow the documented adding-a-code workflow.
+        </p>
+
+        <h3>20% &rarr; 80%: Docs, integrations, consumers (add 10 tasks, &asymp;6 h)</h3>
+        <p>
+          T18&ndash;T27: integrations docs (x-text adapter, go-i18n wiring),
+          httpspec opt-in spec, examples, the appkit content lane when its
+          trigger fires, consumer migrations, release train, and the
+          docs-health harvest that folds both f-lists into the living
+          TODO_LISTs.
+        </p>
+
+        <h3>Everything else (the remaining ~20%)</h3>
+        <table>
+          <thead><tr><th>Cluster</th><th>Items</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>Verification hardening</td><td>second source pass on survey claims; first-hand Django LocaleMiddleware precedence check; gh-issues scan; x/text proxy pin check; templ-components SEOAlternate contract read</td><td>before any external citation or pin</td></tr>
+            <tr><td>Speculative / watcher</td><td>full ICU MessageFormat watcher (kaptinlin); date-localization note (no x/text/date exists); LanguageWhen route-conditional variant; otel locale attribute (default NO, privacy); SSE per-connection locale</td><td>on demand only</td></tr>
+            <tr><td>Process debt</td><td>date-first rule encoded (env header lied twice in one night); planning-dir index decision; AGENTS.md line-cap tradeoffs; quarterly demand-gate re-run</td><td>cheap hygiene windows</td></tr>
+            <tr><td>Non-goals to record</td><td>hreflang/Link alternates helper (app route-registry lane); Accept-Charset (dead header); closed locale enum in any library</td><td>next ROADMAP touch</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="decisions"><span class="num">02</span>Decision Gates (D1&ndash;D6)</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">D1 &middot; Blocking</span>
+          <h3>Home of negotiation</h3>
+          <div class="where">httputil ROADMAP &sect;42 &times; go-appkit planning doc &sect;Module sketch</div>
+          <p>
+            httputil core middleware (<code>Language()</code>, zero-dep,
+            KeyExtractor/Nonce precedents) vs a new appkit
+            <code>/i18n</code> module vs integration-doc-only. The appkit doc
+            already marks its own negotiation half SUPERSEDED-IN-WAITING.
+            Recommendation: negotiation once in httputil; appkit keeps the
+            content lane (Translator, MissingIn guards, Alternates, errorpages
+            seam) and reads httputil&rsquo;s context.
+          </p>
         </div>
 
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">D2 &middot; Blocking</span>
+          <h3>Vary semantics</h3>
+          <div class="where">mirrors the open AbsentEncodingFirstConfigured lifecycle question</div>
+          <p>
+            Always emit <code>Vary: Accept-Language</code> when chained
+            (RFC-strict, CDN-safe even with URL/cookie extraction) vs only when
+            the header leg can influence output (minimalist). Lean:
+            RFC-strict default with opt-out.
+          </p>
         </div>
 
-        <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
-        <div class="migration-step">
-          <div class="migration-num">1</div>
-          <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
-          </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">D3 &middot; Important</span>
+          <h3>Matcher default vs dependency policy</h3>
+          <div class="where">httputil go.mod &times; x/text CLDR matching</div>
+          <p>
+            Zero-dep primary-subtag default (policy-conformant; reproduces
+            T49&rsquo;s proven semantics but misroutes pt/zh script classes
+            &mdash; conceded in ROADMAP &sect;42) vs allowing
+            <code>golang.org/x/text</code> for Matcher-grade CLDR correctness.
+            The plugin escape hatch is the mitigation either way;
+            discoverability of the escape hatch is the open risk.
+          </p>
         </div>
-        <div class="migration-step">
-          <div class="migration-num">2</div>
-          <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
-          </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">D4 &middot; Important</span>
+          <h3>406 behavior + confidence exposure</h3>
+          <div class="where">config axes, not yet designed</div>
+          <p>
+            Do q=0-only / no-match requests default silently, or does a
+            RejectOnNoMatch axis exist (and in which error family)? Is the
+            negotiated confidence (x/text-style) exposed in context or only
+            the canonical tag?
+          </p>
         </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">D5 &middot; Important</span>
+          <h3>Cookbook canonical shape</h3>
+          <div class="where">go-appkit report Q3</div>
+          <p>
+            German-canonical-unprefixed + <code>/en</code> (sperrmuell&rsquo;s
+            proven SEO shape) as the worked example, or also an EN-canonical
+            global-SaaS shape? Affects defaults, example, docs depth. Lean:
+            sperrmuell shape as worked example; the other as a config variant.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">D6 &middot; Important</span>
+          <h3>Cross-repo authority</h3>
+          <div class="where">httputil report g3 &times; go-appkit report Q2</div>
+          <p>
+            May a session write into sperrmuell-direct&rsquo;s TODO_LIST and
+            patch its <code>/api/*</code> headers (T03/T04)? Both sessions
+            parked their most actionable consumer-side payoff on this ruling.
+          </p>
+        </div>
+
+        <h2 id="comprehensive"><span class="num">03</span>Comprehensive Plan (27 tasks, 30&ndash;100 min)</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Task</th><th>Track</th><th>Effort</th><th>Depends on</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>T01</td><td>Owner rules D1&ndash;D6</td><td>Gate</td><td>30 m</td><td>&mdash;</td></tr>
+            <tr><td>T02</td><td>Fleet demand sweep (settles N=1)</td><td>Verify</td><td>30 m</td><td>&mdash;</td></tr>
+            <tr><td>T03</td><td>sperrmuell /api/* Vary+Content-Language fix + verify-gates</td><td>Fix</td><td>30 m</td><td>D6</td></tr>
+            <tr><td>T04</td><td>sperrmuell Matcher-upgrade TODO row + tie-break guard test</td><td>Fix</td><td>30 m</td><td>D6</td></tr>
+            <tr><td>T05</td><td>httputil design note (config/Validate/chain/matcher contract)</td><td>Design</td><td>60 m</td><td>T01</td></tr>
+            <tr><td>T06</td><td>Ordering rules vs CSRF + CORS preflight</td><td>Design</td><td>45 m</td><td>T05</td></tr>
+            <tr><td>T07</td><td>Vary composition + ETag cache-key caveat</td><td>Design</td><td>45 m</td><td>T05</td></tr>
+            <tr><td>T08</td><td>Naming, exported surface, language.* error domain + sentinels list</td><td>Design</td><td>30 m</td><td>T05</td></tr>
+            <tr><td>T09</td><td>Matcher edge-case matrix + TagMatcher adapter signature</td><td>Design</td><td>60 m</td><td>T05, D3</td></tr>
+            <tr><td>T10</td><td>Implement: config, Validate, validate-and-log constructor, extractor built-ins + chain</td><td>Build</td><td>60 m</td><td>T05&ndash;T09</td></tr>
+            <tr><td>T11</td><td>Implement: precompiled matcher over compression_qvalue grammar, context accessors</td><td>Build</td><td>60 m</td><td>T10</td></tr>
+            <tr><td>T12</td><td>Implement: Content-Language + Vary writes, opt-outs, honest-silence rules</td><td>Build</td><td>45 m</td><td>T10, D2</td></tr>
+            <tr><td>T13</td><td>Tests 1: grammar + negotiation matrix (standalone, name=claim, t.Parallel)</td><td>Test</td><td>60 m</td><td>T11</td></tr>
+            <tr><td>T14</td><td>Tests 2: mutation-check preservation + zero-value execution probes</td><td>Test</td><td>45 m</td><td>T13</td></tr>
+            <tr><td>T15</td><td>FuzzParseAcceptLanguage + committed corpus seeds</td><td>Test</td><td>30 m</td><td>T13</td></tr>
+            <tr><td>T16</td><td>Benchmark + docs/benchmarks.md entry</td><td>Test</td><td>30 m</td><td>T11</td></tr>
+            <tr><td>T17</td><td>Gates: go test -race -count=10, golangci (~70, 0 issues), nix fmt, art-dupl re-measure</td><td>Gates</td><td>45 m</td><td>T14</td></tr>
+            <tr><td>T18</td><td>Error-code sweep: templates map, allHTTputilErrorCodes, domain test, FEATURES, README/arch-ref tables, erraudit note</td><td>Docs</td><td>60 m</td><td>T08, T12</td></tr>
+            <tr><td>T19</td><td>docs/integrations: x-text.md adapter + go-i18n.md wiring</td><td>Docs</td><td>45 m</td><td>T17</td></tr>
+            <tr><td>T20</td><td>httpspec opt-in Localizes spec (Content-Language + Vary contract)</td><td>Docs</td><td>30 m</td><td>T17</td></tr>
+            <tr><td>T21</td><td>Examples (deterministic Output) + stack ordering docs + AGENTS.md non-obvious behaviors</td><td>Docs</td><td>30 m</td><td>T17</td></tr>
+            <tr><td>T22</td><td>appkit/i18n content lane (Translator, MissingIn, Prefix, Alternates) &mdash; when trigger fires</td><td>Build</td><td>45 m</td><td>D1, T02</td></tr>
+            <tr><td>T23</td><td>errorpages.Config.Locale seam (independent additive train)</td><td>Build</td><td>30 m</td><td>D1</td></tr>
+            <tr><td>T24</td><td>sperrmuell migration onto Language() (replace hand-rolled parser + withLocale header leg)</td><td>Consumer</td><td>45 m</td><td>R after T17&ndash;T21</td></tr>
+            <tr><td>T25</td><td>Release train: CHANGELOG, v1-stability surface call, scripts/prerelease-check.sh</td><td>Release</td><td>30 m</td><td>T21</td></tr>
+            <tr><td>T26</td><td>Claim-hardening pass: second source pass, Django precedence first-hand, gh-issues scan, proxy pin check</td><td>Verify</td><td>30 m</td><td>&mdash;</td></tr>
+            <tr><td>T27</td><td>docs-health HARVEST both f-lists into TODO_LISTs; annotate both status reports</td><td>Process</td><td>30 m</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="fine"><span class="num">04</span>Fine Breakdown (&le;15 min each)</h2>
+
+        <h3>Gate &amp; verify cluster (16)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Task</th><th>Min</th></tr></thead>
+          <tbody>
+            <tr><td>F01</td><td>D1 home ruling</td><td>5</td></tr>
+            <tr><td>F02</td><td>D2 Vary ruling</td><td>5</td></tr>
+            <tr><td>F03</td><td>D3 matcher ruling (touches dependency policy + depguard allowlist)</td><td>5</td></tr>
+            <tr><td>F04</td><td>D4 406 + confidence ruling</td><td>5</td></tr>
+            <tr><td>F05</td><td>D5 cookbook shape ruling</td><td>5</td></tr>
+            <tr><td>F06</td><td>D6 cross-repo authority ruling</td><td>5</td></tr>
+            <tr><td>F07</td><td>Fleet sweep: rg i18n/locale across ~/projects siblings</td><td>10</td></tr>
+            <tr><td>F08</td><td>Record sweep verdict next to the appkit demand gate</td><td>5</td></tr>
+            <tr><td>F09</td><td>Second source pass on &ldquo;no library sets Content-Language/Vary&rdquo;</td><td>15</td></tr>
+            <tr><td>F10</td><td>Django LocaleMiddleware precedence: first-hand doc check</td><td>10</td></tr>
+            <tr><td>F11</td><td>gh-issues scan: upstream i18n requests in httputil/go-appkit</td><td>10</td></tr>
+            <tr><td>F12</td><td>x/text + go-i18n latest tags vs module proxy</td><td>10</td></tr>
+            <tr><td>F13</td><td>sperrmuell routes.go full read (RouteID/RoutePath registry)</td><td>15</td></tr>
+            <tr><td>F14</td><td>templ-components SEOAlternate contract read</td><td>10</td></tr>
+            <tr><td>F15</td><td>x/text v0.42.0 scratch-module compile at go 1.27.x floor</td><td>15</td></tr>
+            <tr><td>F16</td><td>Record date-first rule (env header lied 2&times; in one night)</td><td>5</td></tr>
+          </tbody>
+        </table>
+
+        <h3>sperrmuell fix cluster (8, needs D6)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Task</th><th>Min</th></tr></thead>
+          <tbody>
+            <tr><td>F17</td><td>Locate the API response writers (cmd/server quote/order handlers)</td><td>10</td></tr>
+            <tr><td>F18</td><td>Add Vary: Accept-Language + Content-Language to /api/* responses</td><td>10</td></tr>
+            <tr><td>F19</td><td>Locale_test coverage for both headers</td><td>10</td></tr>
+            <tr><td>F20</td><td>Run ./scripts/verify-gates.sh (7 gates, fail-fast)</td><td>5</td></tr>
+            <tr><td>F21</td><td>CHANGELOG entry in sperrmuell</td><td>5</td></tr>
+            <tr><td>F22</td><td>TODO row: ParseAcceptLanguage &rarr; language.NewMatcher (pt/zh classes)</td><td>10</td></tr>
+            <tr><td>F23</td><td>TODO row or test: q-value tie-break order-stability guard</td><td>10</td></tr>
+            <tr><td>F24</td><td>TODO row: zh-Hans/zh-Hant collapse note (ParseLocale ignores region)</td><td>5</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Design cluster (14, needs D1&ndash;D4)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Task</th><th>Min</th></tr></thead>
+          <tbody>
+            <tr><td>F25</td><td>Design note skeleton under docs/planning/</td><td>10</td></tr>
+            <tr><td>F26</td><td>LanguageConfig fields + zero-value semantics (each gets an execution-probe test claim)</td><td>15</td></tr>
+            <tr><td>F27</td><td>Validate() rules + validate-and-log fallbacks (mirror compression default-filling order)</td><td>15</td></tr>
+            <tr><td>F28</td><td>LanguageExtractor signature + nil rejection semantics</td><td>10</td></tr>
+            <tr><td>F29</td><td>Built-ins: FromAcceptHeader, FromQuery, FromCookie, FromPathPrefix</td><td>15</td></tr>
+            <tr><td>F30</td><td>LanguageExtractorChain: first-wins, empty-chain default, order = priority</td><td>10</td></tr>
+            <tr><td>F31</td><td>Matcher: canonicalization, *, q=0, empty header, tie-break by extraction order</td><td>15</td></tr>
+            <tr><td>F32</td><td>TagMatcher adapter signature + not-ok fallback</td><td>10</td></tr>
+            <tr><td>F33</td><td>CSRF ordering resolution (Language outer to CSRF for localized error pages? or per-handler negotiation)</td><td>15</td></tr>
+            <tr><td>F34</td><td>CORS preflight: skip negotiation on OPTIONS?</td><td>10</td></tr>
+            <tr><td>F35</td><td>Vary composition vs Compression: dedupe strategy chosen</td><td>15</td></tr>
+            <tr><td>F36</td><td>ETag interaction caveat text (validators shared across languages)</td><td>10</td></tr>
+            <tr><td>F37</td><td>language.* Domain + sentinel list + families (all Rejection?)</td><td>15</td></tr>
+            <tr><td>F38</td><td>Naming final pass: Language() vs Locale(), file name, exported identifier list</td><td>10</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Build + test cluster (34, needs design)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Task</th><th>Min</th></tr></thead>
+          <tbody>
+            <tr><td>F39</td><td>language.go: config struct + Validate + constructor via validateConfig</td><td>15</td></tr>
+            <tr><td>F40</td><td>Extractor built-ins implementation</td><td>15</td></tr>
+            <tr><td>F41</td><td>Chain implementation</td><td>10</td></tr>
+            <tr><td>F42</td><td>Precompiled matcher struct (config-time priority compile)</td><td>15</td></tr>
+            <tr><td>F43</td><td>Match logic over compression_qvalue grammar (reuse, no duplication)</td><td>15</td></tr>
+            <tr><td>F44</td><td>LanguageFromContext / WithLanguage context accessors</td><td>10</td></tr>
+            <tr><td>F45</td><td>Content-Language write + opt-out</td><td>10</td></tr>
+            <tr><td>F46</td><td>Vary write + opt-out + composition rule from F35</td><td>10</td></tr>
+            <tr><td>F47</td><td>writeCommittedBody-style honest-silence audit for header writes</td><td>10</td></tr>
+            <tr><td>F48&ndash;F53</td><td>Grammar tests: whitespace, casing, *, q=0, &gt;3 decimals, empty, garbage, multi-entry, tie order (6 tests)</td><td>30</td></tr>
+            <tr><td>F54&ndash;F58</td><td>Negotiation tests: chain order beats header, cookie beats header, path beats all, default fallback, canonical tag output (5 tests)</td><td>30</td></tr>
+            <tr><td>F59&ndash;F62</td><td>Zero-value execution probes: 0-limit analogues for Language config (4 tests)</td><td>20</td></tr>
+            <tr><td>F63&ndash;F65</td><td>Mutation-check tests: reorder extractors flips result; remove Vary write fails test; remove Content-Language fails test (3 tests)</td><td>25</td></tr>
+            <tr><td>F66</td><td>Concurrent-use test (constructor vs requests, -race)</td><td>10</td></tr>
+            <tr><td>F67</td><td>FuzzParseAcceptLanguage harness + bounded invariants</td><td>15</td></tr>
+            <tr><td>F68</td><td>Commit 3-5 corpus seeds</td><td>5</td></tr>
+            <tr><td>F69</td><td>BenchmarkLanguage + SetBytes sanity (implied B/s below memory bandwidth)</td><td>15</td></tr>
+            <tr><td>F70</td><td>go test -race -count=10 ./...</td><td>10</td></tr>
+            <tr><td>F71</td><td>golangci-lint run (0 issues) + fmt</td><td>10</td></tr>
+            <tr><td>F72</td><td>nix fmt + nix flake check</td><td>10</td></tr>
+            <tr><td>F73</td><td>art-dupl -t 2 re-measure (baseline: 0 groups) + -t 1 new-pair check</td><td>10</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Docs + integration cluster (25)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Task</th><th>Min</th></tr></thead>
+          <tbody>
+            <tr><td>F74</td><td>errorTemplates entries + errors_templates_test list + domain test</td><td>15</td></tr>
+            <tr><td>F75</td><td>FEATURES.md inventory row + coverage-gap notes</td><td>10</td></tr>
+            <tr><td>F76</td><td>README + docs/architecture-reference.md classification tables</td><td>15</td></tr>
+            <tr><td>F77</td><td>docs/v1-stability.md exported-identifier pass</td><td>10</td></tr>
+            <tr><td>F78</td><td>AGENTS.md erraudit sentinel-count advisory update (+N)</td><td>5</td></tr>
+            <tr><td>F79</td><td>docs/integrations/x-text.md (TagMatcher adapter example)</td><td>15</td></tr>
+            <tr><td>F80</td><td>docs/integrations/go-i18n.md (Localizer wiring recipe)</td><td>15</td></tr>
+            <tr><td>F81</td><td>httpspec Localizes spec (Content-Language present, Vary correct)</td><td>15</td></tr>
+            <tr><td>F82</td><td>example_test.go: self-contained deterministic Output example</td><td>15</td></tr>
+            <tr><td>F83</td><td>Chain/stack ordering docs (recommended position; CSRF resolution from F33)</td><td>10</td></tr>
+            <tr><td>F84</td><td>AGENTS.md Non-Obvious Behaviors entry</td><td>10</td></tr>
+            <tr><td>F85</td><td>CHANGELOG [Unreleased] entry</td><td>5</td></tr>
+            <tr><td>F86</td><td>scripts/prerelease-check.sh run + tag per docs/RELEASE.md</td><td>15</td></tr>
+            <tr><td>F87</td><td>appkit/i18n scaffold (go.mod, doc.go, README, lint union, go.work)</td><td>15</td></tr>
+            <tr><td>F88</td><td>NewTranslator over fs.FS + JSON unmarshal default</td><td>15</td></tr>
+            <tr><td>F89</td><td>T/S/Plural with visible fallback chain + slog</td><td>15</td></tr>
+            <tr><td>F90</td><td>MissingIn/AllKeys guard helpers</td><td>15</td></tr>
+            <tr><td>F91</td><td>Prefix + Alternates helpers (x-default)</td><td>15</td></tr>
+            <tr><td>F92</td><td>errorpages.Config.Locale seam</td><td>15</td></tr>
+            <tr><td>F93</td><td>sperrmuell migration: replace ParseAcceptLanguage call sites</td><td>15</td></tr>
+            <tr><td>F94</td><td>sperrmuell migration: withLocale header leg &rarr; extractor chain</td><td>15</td></tr>
+            <tr><td>F95</td><td>sperrmuell migration: Vary/Content-Language via middleware; delete local header code</td><td>15</td></tr>
+            <tr><td>F96</td><td>dnsblockd i18n-needs check (consumer-audit program)</td><td>15</td></tr>
+            <tr><td>F97</td><td>docs-health HARVEST: fold both f-lists into TODO_LISTs, annotate both status reports</td><td>15</td></tr>
+            <tr><td>F98</td><td>Quarterly demand-gate re-run reminder into ROADMAP open questions</td><td>5</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning">
+          <strong>Scope note</strong>
+          F01&ndash;F98 = 98 fine tasks from ~100 merged raw items; the merged
+          set deduped ~20 overlaps (both sessions&rsquo; sweeps, matcher items,
+          migration items). Everything speculative stays in the
+          &ldquo;Everything else&rdquo; table above &mdash; not enumerated as
+          fine tasks until a trigger fires.
+        </div>
+
+        <h2 id="graph"><span class="num">05</span>Execution Graph</h2>
+        <div class="diagram-svg">
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 991 1854"><svg class="d2-3669500617 d2-svg" width="991" height="1854" viewBox="-101 -121 991 1854"><rect x="-101" y="-121" width="991" height="1854" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-3669500617 .text {
+	font-family: "d2-3669500617-font-regular";
+}
+@font-face {
+	font-family: d2-3669500617-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-3669500617 .text-bold {
+	font-family: "d2-3669500617-font-bold";
+}
+@font-face {
+	font-family: d2-3669500617-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-3669500617 .fill-N1{fill:#0A0F25;}
+		.d2-3669500617 .fill-N7{fill:#FFFFFF;}
+		.d2-3669500617 .fill-B1{fill:#0D32B2;}
+		.d2-3669500617 .fill-B4{fill:#E3E9FD;}
+		.d2-3669500617 .fill-B5{fill:#EDF0FD;}
+		.d2-3669500617 .fill-B6{fill:#F7F8FE;}
+		.d2-3669500617 .stroke-B1{stroke:#0D32B2;}
+		.d2-3669500617 .stroke-B2{stroke:#0D32B2;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><g class="c3Vicw=="><g class="shape" ><rect x="106" y="20" width="309" height="158" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="260.5" y="7" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">subs</text></g><g class="Z2F0ZXM="><g class="shape" ><rect x="119" y="298" width="282" height="114" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="260" y="336.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="260" dy="0">D. Owner rulings x6</tspan><tspan x="260" dy="17.25">home | Vary | matcher | 406/conf</tspan><tspan x="260" dy="17.25">cookbook shape | cross-repo auth</tspan><tspan x="260" dy="17.25">(30 min, unblocks ~40 tasks)</tspan></text></g><g class="Zml4"><g class="shape" ><rect x="0" y="520" width="228" height="98" stroke="#ff6b6b" fill="#F7F8FE" class=" fill-B6" style="stroke-width:2;" /></g><text x="114" y="558.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="114" dy="0">F. sperrmuell /api/* fix</tspan><tspan x="114" dy="17.666667">Vary + Content-Language</tspan><tspan x="114" dy="17.666667">(live cache bug, needs D6)</tspan></text></g><g class="ZGVzaWdu"><g class="shape" ><rect x="288" y="512" width="236" height="114" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="406" y="550.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="406" dy="0">S. Design note language.go</tspan><tspan x="406" dy="17.25">+ ordering vs CSRF/CORS</tspan><tspan x="406" dy="17.25">+ Vary x Compression</tspan><tspan x="406" dy="17.25">+ error domain</tspan></text></g><g class="aW1wbA=="><g class="shape" ><rect x="292" y="726" width="229" height="98" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="406.5" y="764.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="406.5" dy="0">I. Implement Language()</tspan><tspan x="406.5" dy="17.666667">extractor chain + matcher</tspan><tspan x="406.5" dy="17.666667">+ context + headers</tspan></text></g><g class="cXVhbGl0eQ=="><g class="shape" ><rect x="262" y="924" width="288" height="98" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="406" y="962.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="406" dy="0">Q. Gates</tspan><tspan x="406" dy="17.666667">-race -count=10 | golangci | nix fmt</tspan><tspan x="406" dy="17.666667">| fuzz | bench | art-dupl</tspan></text></g><g class="ZG9jcw=="><g class="shape" ><rect x="289" y="1122" width="235" height="98" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="406.5" y="1160.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="406.5" dy="0">B. Error-code sweep + docs</tspan><tspan x="406.5" dy="17.666667">x-text.md | go-i18n.md</tspan><tspan x="406.5" dy="17.666667">| httpspec spec | examples</tspan></text></g><g class="cmVsZWFzZQ=="><g class="shape" ><rect x="293" y="1320" width="226" height="98" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="406" y="1358.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="406" dy="0">R. Release train</tspan><tspan x="406" dy="17.666667">CHANGELOG | v1-stability</tspan><tspan x="406" dy="17.666667">| prerelease-check.sh</tspan></text></g><g class="YXBwa2l0"><g class="shape" ><rect x="533" y="1518" width="256" height="114" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B2 fill-B6" style="stroke-width:2;stroke-dasharray:8.000000,7.892511;" /></g><text x="661" y="1556.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="661" dy="0">A. appkit/i18n content lane</tspan><tspan x="661" dy="17.25">Translator | MissingIn guards</tspan><tspan x="661" dy="17.25">| Alternates | errorpages seam</tspan><tspan x="661" dy="17.25">(trigger: demand + D1)</tspan></text></g><g class="bWlncmF0ZQ=="><g class="shape" ><rect x="231" y="1526" width="242" height="98" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B2 fill-B6" style="stroke-width:2;stroke-dasharray:8.000000,7.892511;" /></g><text x="352" y="1564.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="352" dy="0">M. Consumer migrations</tspan><tspan x="352" dy="17.666667">sperrmuell onto Language()</tspan><tspan x="352" dy="17.666667">| dnsblockd check</tspan></text></g><g class="Vg=="><g class="shape" ><rect x="643" y="1336" width="56" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="671" y="1374.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">V</text></g><g class="c3Vicy5W"><g class="shape" ><rect x="136" y="50" width="249" height="98" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="260.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="260.5" dy="0">V. Fleet demand sweep</tspan><tspan x="260.5" dy="17.666667">rg i18n/locale across siblings</tspan><tspan x="260.5" dy="17.666667">(2 min, settles N=1 vs N=k)</tspan></text></g><g class="KHN1YnMgLSZndDsgZ2F0ZXMpWzBd"><marker id="mk-d2-3669500617-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 260 180 C 260 234 260 258 260 294" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KGdhdGVzIC0mZ3Q7IGRlc2lnbilbMF0="><path d="M 339.611302 413.184781 C 392.399994 452 406 472 406 508" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KGRlc2lnbiAtJmd0OyBpbXBsKVswXQ=="><path d="M 406 628 C 406 666 406 686 406 722" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KGltcGwgLSZndDsgcXVhbGl0eSlbMF0="><path d="M 406 826 C 406 864 406 884 406 920" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KHF1YWxpdHkgLSZndDsgZG9jcylbMF0="><path d="M 406 1024 C 406 1062 406 1082 406 1118" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KGRvY3MgLSZndDsgcmVsZWFzZSlbMF0="><path d="M 406 1222 C 406 1260 406 1280 406 1316" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KGdhdGVzIC0mZ3Q7IGZpeClbMF0="><path d="M 180.388698 413.184781 C 127.599998 452 114 473.600006 114 516" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KHJlbGVhc2UgLSZndDsgYXBwa2l0KVswXQ=="><path d="M 484.183758 1419.079332 C 544.900024 1458 569.900024 1478 604.760361 1515.085488" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KHJlbGVhc2UgLSZndDsgbWlncmF0ZSlbMF0="><path d="M 378.049702 1419.759811 C 357.399994 1458 352 1479.599976 352 1522" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><g class="KFYgLSZndDsgYXBwa2l0KVswXQ=="><path d="M 671 1404 C 671 1454.800049 670 1478 666.398015 1514.019851" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3669500617-3488378134)" mask="url(#d2-3669500617)" /></g><mask id="d2-3669500617" maskUnits="userSpaceOnUse" x="-101" y="-121" width="991" height="1854">
+<rect x="-101" y="-121" width="991" height="1854" fill="white"></rect>
+
+</mask></svg></svg>
+
+        </div>
+
+        <h2 id="sources"><span class="num">06</span>Sources</h2>
+        <table>
+          <thead><tr><th>Claim basis</th><th>Artifact</th></tr></thead>
+          <tbody>
+            <tr><td>httputil session (this repo)</td><td>docs/status/2026-10-09_22-32_i18n-research-language-negotiation-session-status.md; ROADMAP &sect;42 + _Updated_ line</td></tr>
+            <tr><td>go-appkit session (sibling)</td><td>~/projects/go-appkit/doc/planning/2026-10-09_i18n-module-research.md (incl. SPLIT-BRAIN appendix); ~/projects/go-appkit/docs/status/2026-10-10_01-43_i18n-research-session-status.md</td></tr>
+            <tr><td>Consumer evidence</td><td>~/projects/sperrmuell-direct internal/i18n, internal/domain/locale.go, cmd/server/locale.go; its CHANGELOG 2026-10-08 i18n entries</td></tr>
+            <tr><td>Ecosystem</td><td>pkg.go.dev x/text/language; go-i18n v2.6.1; gin-contrib/i18n, itpey/echoi18n, kaptinlin/go-i18n survey; developers.google.com localized-versions</td></tr>
+            <tr><td>Series</td><td>docs/planning/2026-10-09_22-20_pareto-backlog-execution-plan.md (repo backlog &mdash; different scope; i18n items are NOT yet in TODO_LIST, they enter via T27 harvest)</td></tr>
+          </tbody>
+        </table>
 
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
+          Generated 2026-10-10 02:48 CEST &middot; Plan is a point-in-time
+          snapshot &mdash; the living backlog is TODO_LIST.md &middot; All
+          claims verified against the three source repos
         </footer>
       </main>
     </div>
@@ -1067,5 +1300,5 @@
         });
       })();
     </script>
-  </body>
+</body>
 </html>
