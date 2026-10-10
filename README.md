@@ -461,7 +461,7 @@ handler := httputil.Language(cfg)(mux)
 
 The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a `TagMatcher` for full BCP 47 matching via `golang.org/x/text`. Extractors compose with `LanguageExtractorChain` — the first extractor producing a supported tag wins, so a cookie or path-prefix leg can outrank the header.
 
-> **Ordering:** Place `Language` **outside** `CSRFMiddleware` (the 403 page can localize, which needs the language context resolved) and **inside** `CORS` (CORS must stay outermost to answer preflights). Declared tag spellings are preserved — `zh-Hans` is served as `zh-Hans`; only comparisons are case-insensitive.
+> **Ordering:** Place `Language` **outside** `CSRFMiddleware` (the 403 page can localize, which needs the language context resolved) and **inside** `CORS` (CORS must stay outermost to answer preflights). Declared tag spellings are preserved — `zh-Hans` is served as `zh-Hans`; only comparisons are case-insensitive. **ETag** must also sit inside (after) `Language`: an ETag computed before language selection would let a cache serve language A's body to language B's conditional request.
 
 ### Error Classification
 
@@ -484,6 +484,7 @@ The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a
 | `Compress`   | `compression.absent_encoding_invalid`       | Rejection      | No        | AbsentEncoding is not a known AbsentEncodingPolicy constant                                                   |
 | `Decompress` | `decompression.encoding_unrecognized`       | Rejection      | No        | Encodings entry other than gzip/deflate                                                                       |
 | `Decompress` | `decompression.encoding_duplicate`          | Rejection      | No        | Same encoding listed twice                                                                                    |
+| `Ratelimit`  | `ratelimit.*`                               | Rejection      | No        | KeyedRateLimiterConfig invalid (zero limit/window, negative TTL, Burst above math.MaxInt32)                   |
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 
@@ -612,7 +613,7 @@ Call `RegisterErrorClassifications()` at startup to enable classification of std
 ### `CSRFConfig` fields
 
 | Field                            | Type            | Default            | Description                                                                                                                                       |
-| ---------------------------      | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -------------------------------- | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CookieName`                     | `string`        | `"csrf_token"`     | Name of the CSRF cookie                                                                                                                           |
 | `HeaderName`                     | `string`        | `"X-Csrf-Token"`   | Request header containing the CSRF token (canonical MIME spelling; header names are case-insensitive on the wire)                                 |
 | `FieldName`                      | `string`        | `"csrf_token"`     | Form field name for the CSRF token                                                                                                                |

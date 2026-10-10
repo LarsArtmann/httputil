@@ -49,3 +49,14 @@ httputil handles untrusted HTTP input. Security-relevant behaviors:
 - **CSRF**: `SameSite=None` without `Secure` is remediated to `Secure=true` at construction (rfc6265bis-compliant browsers refuse to store the combination, so the cookie would silently never persist); `AllowInsecureSameSiteNone` opts out for legacy-client deployments only. The fallback logs with the `csrf_samesite_insecure` code — configs never weaken silently.
 - **CSRF origin-attestation defense**: the middleware cross-checks client-supplied `Sec-Fetch-Site: same-origin` attestations against the `Origin` header on unsafe methods — an attestation contradicted by a cross-origin, untrusted, or unparseable `Origin` is rejected with 403 (`csrf.origin_attestation_conflict`), closing the gap where a non-browser client could assert same-origin without a valid token path. `X-Forwarded-Proto` is honored for this check only from configured trusted proxies.
 - **Dependencies**: `go-error-family` (same author, zero transitive deps), `golang.org/x/time` (canonical Go rate-limit extension), `github.com/justinas/nosurf` (CSRF double-submit cookie — security-critical and complex to hand-roll), and `go-etag` (same author; error-code registration). No other third-party attack surface.
+
+## Security Practices
+
+How the codebase is engineered against untrusted input:
+
+- **Config validation at construction** — every middleware config runs `Validate()`; invalid values are logged with a classified error code and the constructor falls back to safe defaults where one exists (validate-and-log, never panic).
+- **Fail-loud trust boundaries** — misconfigured trust (CSRF `TrustedOrigins`, trusted-proxy CIDR sets) is rejected at construction with a `Rejection`-family error instead of silently narrowing who the middleware believes.
+- **Never-panic API surface** — panics are not used as error handling; wiring and configuration errors return classified errors.
+- **Fuzz oracles on wire-format parsers** — the Accept-Encoding q-value, Accept-Language, and CSRF attestation paths carry fuzz targets with round-trip/parity invariants; committed crashers stay as regression corpus.
+- **Bomb protection** — request decompression enforces a size cap; `MaxBodySize` bounds request bodies before handlers run.
+- **CI gates** — every push runs the test suite under `-race -shuffle=on`, a coverage threshold, and `golangci-lint` (~70 linters, 0-issue policy).

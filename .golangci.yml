@@ -244,13 +244,16 @@ linters:
           - cyclop
           - gocognit
           - goconst
-          - noctx
           - wsl_v5
           - noinlineerr
       - path: _test\.go
         text: unused
         linters:
           - unused
+      - path: _test\.go
+        text: httptest.NewRequest must not be called
+        linters:
+          - noctx
       - text: '"X-CSRF-Token" is not canonical'
         linters:
           - canonicalheader
