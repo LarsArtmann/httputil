@@ -283,7 +283,6 @@ func LanguageExtractorFromAcceptHeader() LanguageExtractor {
 type languagePreference struct {
 	tag    string
 	weight float64
-	order  int
 }
 
 // parseAcceptLanguageCandidates splits an Accept-Language header into
@@ -298,9 +297,9 @@ func parseAcceptLanguageCandidates(header string) ([]string, bool) {
 	entries := strings.Split(header, ",")
 	prefs := make([]languagePreference, 0, len(entries))
 
-	for i, entry := range entries {
-		if pref, ok := parseAcceptLanguageEntry(entry, i); ok {
-			prefs = append(prefs, pref)
+	for _, entry := range entries {
+		if tag, weight, ok := parseAcceptLanguageEntry(entry); ok {
+			prefs = append(prefs, languagePreference{tag: tag, weight: weight})
 		}
 	}
 
@@ -326,17 +325,18 @@ func parseAcceptLanguageCandidates(header string) ([]string, bool) {
 }
 
 // parseAcceptLanguageEntry parses one comma-separated Accept-Language
-// entry ("de" or "de;q=0.8") into its preference record. Wildcards and
+// entry ("de" or "de;q=0.8") into its tag and q-weight. Wildcards and
 // q=0 entries yield nothing; malformed q-values keep default weight.
-func parseAcceptLanguageEntry(entry string, order int) (languagePreference, bool) {
+func parseAcceptLanguageEntry(entry string) (string, float64, bool) {
 	tag, params, _ := strings.Cut(entry, ";")
 	tag = trim(tag)
 
 	if tag == "" || tag == "*" {
-		return languagePreference{}, false
+		return "", 0, false
 	}
 
 	weight := defaultQValue
+
 	if qPart, found := strings.CutPrefix(trim(params), qValuePrefix); found {
 		if parsed, err := parseQValue(qPart); err == nil {
 			weight = parsed
@@ -344,10 +344,10 @@ func parseAcceptLanguageEntry(entry string, order int) (languagePreference, bool
 	}
 
 	if weight <= 0 {
-		return languagePreference{}, false
+		return "", 0, false
 	}
 
-	return languagePreference{tag: tag, weight: weight, order: order}, true
+	return tag, weight, true
 }
 
 // LanguageExtractorFromQuery yields the tag in the given URL query
@@ -369,11 +369,16 @@ func LanguageExtractorFromQuery(param string) LanguageExtractor {
 func LanguageExtractorFromCookie(name string) LanguageExtractor {
 	return func(r *http.Request) ([]string, bool) {
 		cookie, err := r.Cookie(name)
-		if err != nil || trim(cookie.Value) == "" {
+		if err != nil {
 			return nil, false
 		}
 
-		return []string{cookie.Value}, true
+		value := trim(cookie.Value)
+		if value == "" {
+			return nil, false
+		}
+
+		return []string{value}, true
 	}
 }
 
