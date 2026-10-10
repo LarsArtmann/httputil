@@ -204,11 +204,17 @@ func TestWriterPool_Release_ForeignWrapper_IsNotStored(t *testing.T) {
 	}
 
 	if wrapper == foreign {
-		t.Error("poolB acquire returned the foreign wrapper dropped into it, want a poolB-native writer")
+		t.Error(
+			"poolB acquire returned the foreign wrapper dropped into it, want a poolB-native writer",
+		)
 	}
 
 	if wrapper.owner != poolB {
-		t.Errorf("poolB acquire returned a wrapper owned by %p, want poolB (%p)", wrapper.owner, poolB)
+		t.Errorf(
+			"poolB acquire returned a wrapper owned by %p, want poolB (%p)",
+			wrapper.owner,
+			poolB,
+		)
 	}
 }
 

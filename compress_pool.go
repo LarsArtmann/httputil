@@ -44,7 +44,9 @@ type pooledWriter struct {
 }
 
 func (pw *pooledWriter) Write(p []byte) (int, error) {
-	return pw.writer.Write(p) //nolint:wrapcheck // pure delegation; wrapping happens at the compressWriter choke points
+	return pw.writer.Write(
+		p,
+	)
 }
 
 func (pw *pooledWriter) Close() error {

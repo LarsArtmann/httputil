@@ -46,8 +46,8 @@ The remaining ~15.2k findings were detect-only warnings: markdown-lint 13,374 (8
 1. **AGENTS.md memory updates** — nothing recorded yet about: `.buildflow.yml` skip rationale, `.markdownlint.json` rule rationale, the workspace-vendor false-positive history, the archived-link-depth trap, `prerelease-check.sh`'s new `mapfile` shape, `apps.test-race` removal.
 2. **Remaining detect-only opinion findings** (188 in dry-run): `branching-flow` 80 (bool-fields-as-bitflags, single-implementer interface, httpspec `mustRequest` panic — all contradict documented repo decisions), `erraudit` 55 blank-identifier advisories (the documented "honest silence" discards), `go-structure-linter` 41 (root-package flat layout — explicitly decided; one claim "compiled binary tracked in git" was verified FALSE — `scripts/coverage-threshold/` is Go source, not a binary). None documented as accepted-rejections.
 3. **`go-mod-ignore-check` info finding** "directory vendor exists but is not ignored in go.mod" — dismissed without understanding what the tool actually wants there.
-~~4. **BuildFlow housekeeping items it self-reported**: 1.09 GB DB (VACUUM), `go-licenses` missing from PATH, 9 tools failing health check, stale binary.~~ → tracked: ~/projects/BuildFlow backlog (P8/ZCC9)
-5. **CHANGELOG [Unreleased] entry** for the doc/link/tooling fixes (shellcheck fixes, link repairs, lint configs are user-visible repo changes).
+   ~~4. **BuildFlow housekeeping items it self-reported**: 1.09 GB DB (VACUUM), `go-licenses` missing from PATH, 9 tools failing health check, stale binary.~~ → tracked: ~/projects/BuildFlow backlog (P8/ZCC9)
+4. **CHANGELOG [Unreleased] entry** for the doc/link/tooling fixes (shellcheck fixes, link repairs, lint configs are user-visible repo changes).
 
 ---
 
@@ -82,13 +82,13 @@ Nothing destructive. Two honest process fumbles:
 6. Add CHANGELOG [Unreleased] entries for the script/shellcheck/link/lint-config fixes.
 7. Decide + document the detect-only opinion tools: keep `branching-flow`/`go-structure-linter`/`erraudit` advisories visible, or skip/exclude the subsets that contradict decided policy (flat root package, honest-silence discards, defensive single-implementer interfaces).
 8. Understand or fix the `go-mod-ignore-check` info finding about vendor + go.mod ignore semantics (upstream doc/read of that check).
-~~9. Consider `--fail-on-findings` for CI once the residual warnings are curated — so regressions like the 35-file link break actually fail builds.~~ → tracked: BuildFlow G19 (user-gated)
-~~10. BuildFlow upstream candidates: (a) fix `detectUnknownSkipTools` scope in `-s` mode; (b) support `lo`-suggestion suppression per-repo without skipping the whole `go-auto-upgrade` step (keeps json v1→v2 detection alive); (c) teach `go-structure-linter` about "flat package is deliberate" via config.~~ mixed — (a) → tracked BuildFlow (detectUnknownSkipTools); (b) NOT-DO — go-auto-upgrade stays skipped (depguard ban); (c) done — flat-package rejection documented (AGENTS.md)
-11. VACUUM the 1.09 GB buildflow DB; add `go-licenses` to a devShell; investigate the 9 health-check-failed tools.
-~~12. Chase the 5 gopls `stdversion` warnings (`json.Marshal` "requires go1.27", file is go1.26) in csrf.go/health.go/tests — gopls stricter than the toolchain; confirm whether GOEXPERIMENT=jsonv2 makes them spurious.~~ done 2026-10-09 — GOEXPERIMENT dropped; residual gopls confirm tracked in TODO_LIST
-~~13. Add a CI/pre-commit lychee gate (links now at 0 — keep them there).~~ done — ci.yml lychee gate + devShell lychee
-~~14. Sweep for other generators that emit lintable output (badge scripts, coverage-threshold tool) and pin their output to the new configs.~~ done — badge generator+output fixed together (CHANGELOG [1.0.1])
-~~15. Docs-health VERIFY pass over this report's claims when convenient (items are fresh; nothing older than today).~~ done — passes 2026-09-15/23 + the 2026-10-09 AUDIT
+   ~~9. Consider `--fail-on-findings` for CI once the residual warnings are curated — so regressions like the 35-file link break actually fail builds.~~ → tracked: BuildFlow G19 (user-gated)
+   ~~10. BuildFlow upstream candidates: (a) fix `detectUnknownSkipTools` scope in `-s` mode; (b) support `lo`-suggestion suppression per-repo without skipping the whole `go-auto-upgrade` step (keeps json v1→v2 detection alive); (c) teach `go-structure-linter` about "flat package is deliberate" via config.~~ mixed — (a) → tracked BuildFlow (detectUnknownSkipTools); (b) NOT-DO — go-auto-upgrade stays skipped (depguard ban); (c) done — flat-package rejection documented (AGENTS.md)
+9. VACUUM the 1.09 GB buildflow DB; add `go-licenses` to a devShell; investigate the 9 health-check-failed tools.
+   ~~12. Chase the 5 gopls `stdversion` warnings (`json.Marshal` "requires go1.27", file is go1.26) in csrf.go/health.go/tests — gopls stricter than the toolchain; confirm whether GOEXPERIMENT=jsonv2 makes them spurious.~~ done 2026-10-09 — GOEXPERIMENT dropped; residual gopls confirm tracked in TODO_LIST
+   ~~13. Add a CI/pre-commit lychee gate (links now at 0 — keep them there).~~ done — ci.yml lychee gate + devShell lychee
+   ~~14. Sweep for other generators that emit lintable output (badge scripts, coverage-threshold tool) and pin their output to the new configs.~~ done — badge generator+output fixed together (CHANGELOG [1.0.1])
+   ~~15. Docs-health VERIFY pass over this report's claims when convenient (items are fresh; nothing older than today).~~ done — passes 2026-09-15/23 + the 2026-10-09 AUDIT
 
 ---
 

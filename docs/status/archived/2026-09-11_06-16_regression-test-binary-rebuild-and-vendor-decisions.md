@@ -70,13 +70,13 @@ Nothing destructive. Honest missteps, ranked:
 
 1. Chase the dev-mode lychee no-op: is lychee in the httputil devShell? Fix flake or BuildFlow fallback (see g/2).
 2. Re-run `buildflow -s lychee` after any devShell change; pin the 301-link/0-error baseline somewhere checkable.
-~~3. Consider a findings sign-off ledger (or buildflow config) marking the ~180 reviewed detect-only findings so run summaries stop re-printing them (see g/3).~~ done 2026-09-15 — keep-visible stance documented (06-41 c2/g3)
-~~4. Add `buildflow --build-mode dev` (exit 0) as an explicit item in `scripts/prerelease-check.sh` or docs/RELEASE.md gates, if desired.~~ NOT-DO — optional idea never wanted; full dev runs are the documented composition
-5. server_timing: run its own gates (`cd server_timing && go test -race ./... && golangci-lint run`) at least once before the next tag; not exercised this session.
-6. TODO_LIST/FEATURES pass via `docs-health` before the next version tag (monthly cadence is due).
-7. Decide whether `[Unreleased]` is ready to cut as v1.0.2 (CHANGELOG now has real Added/Changed/Fixed content).
-~~8. Consider a CI workflow that runs `buildflow --fail-on-findings` on the _signed-off_ baseline only (depends on f/3).~~ NOT-DO — gated on the BuildFlow G19 user decision
-9. The `nix flake show` JSON parse warning inside buildflow's nix-steps ("no decodable JSON object found in 0 bytes") — one-time investigation; likely env-specific, currently benign.
+   ~~3. Consider a findings sign-off ledger (or buildflow config) marking the ~180 reviewed detect-only findings so run summaries stop re-printing them (see g/3).~~ done 2026-09-15 — keep-visible stance documented (06-41 c2/g3)
+   ~~4. Add `buildflow --build-mode dev` (exit 0) as an explicit item in `scripts/prerelease-check.sh` or docs/RELEASE.md gates, if desired.~~ NOT-DO — optional idea never wanted; full dev runs are the documented composition
+3. server_timing: run its own gates (`cd server_timing && go test -race ./... && golangci-lint run`) at least once before the next tag; not exercised this session.
+4. TODO_LIST/FEATURES pass via `docs-health` before the next version tag (monthly cadence is due).
+5. Decide whether `[Unreleased]` is ready to cut as v1.0.2 (CHANGELOG now has real Added/Changed/Fixed content).
+   ~~8. Consider a CI workflow that runs `buildflow --fail-on-findings` on the _signed-off_ baseline only (depends on f/3).~~ NOT-DO — gated on the BuildFlow G19 user decision
+6. The `nix flake show` JSON parse warning inside buildflow's nix-steps ("no decodable JSON object found in 0 bytes") — one-time investigation; likely env-specific, currently benign.
 
 **BuildFlow — follow-ups from what this session touched**
 ~~10. Rebuild + re-copy the global binary once the in-flight `fail_on` work lands (see g/1).~~ → tracked: BuildFlow ZCC9
