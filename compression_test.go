@@ -779,3 +779,47 @@ func TestCompression_ZeroValueAbsentEncodingServesUncompressed(t *testing.T) {
 	assertStatus(t, rec, http.StatusOK)
 	assertUncompressedResponse(t, rec, strings.Repeat("a", defaultCompressionMinSize+1))
 }
+
+func TestCompression_RangeRequestPassesThroughUncompressed(t *testing.T) {
+	t.Parallel()
+
+	body := strings.Repeat("a", defaultCompressionMinSize+1)
+	handler := Compression(DefaultCompressionConfig())(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set(headerContentType, "text/plain")
+		w.WriteHeader(http.StatusPartialContent)
+		_, _ = w.Write([]byte(body))
+	}))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+	req.Header.Set(headerRange, "bytes=0-9")
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertStatus(t, rec, http.StatusPartialContent)
+
+	if got := rec.Header().Get(headerContentEncoding); got != "" {
+		t.Errorf("Content-Encoding on Range request = %q, want empty passthrough", got)
+	}
+
+	if got := rec.Body.String(); got != body {
+		t.Errorf("Range response body = %d bytes, want the verbatim %d-byte body", len(got), len(body))
+	}
+}
+
+func TestCompression_RangeHeaderOnlyCompressesWithoutIt(t *testing.T) {
+	t.Parallel()
+
+	handler := Compression(DefaultCompressionConfig())(newWriteLargeBodyHandler())
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assertHeader(t, rec, headerContentEncoding, encodingGzip)
+}

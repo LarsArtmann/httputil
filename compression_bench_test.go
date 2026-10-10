@@ -20,13 +20,15 @@ import (
 // the decoded bytes would be body+body and the byte comparison would fail
 // instead of silently passing on the first member.
 func FuzzCompression(f *testing.F) {
-	f.Add([]byte("hello world"), "gzip")
-	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate")
-	f.Add([]byte(""), "")
+	f.Add([]byte("hello world"), "gzip", "")
+	f.Add([]byte(strings.Repeat("a", 1024)), "gzip, deflate", "")
+	f.Add([]byte(""), "", "")
+	f.Add([]byte("range passthrough"), "gzip", "bytes=0-4")
+	f.Add([]byte("range passthrough"), "", "bytes=-5")
 
 	cfg := DefaultCompressionConfig()
 
-	f.Fuzz(func(t *testing.T, body []byte, acceptEncoding string) {
+	f.Fuzz(func(t *testing.T, body []byte, acceptEncoding, rangeHeader string) {
 		handler := Compression(cfg)(http.HandlerFunc(func(
 			resp http.ResponseWriter,
 			req *http.Request,
@@ -38,11 +40,31 @@ func FuzzCompression(f *testing.F) {
 		req := newTestRequest(http.MethodGet, "/", "")
 		req.Header.Set(headerAcceptEncoding, acceptEncoding)
 
+		if rangeHeader != "" {
+			req.Header.Set(headerRange, rangeHeader)
+		}
+
 		rec := newRecorder()
 
 		handler.ServeHTTP(rec, req)
 
 		assertStatus(t, rec, http.StatusOK)
+
+		if rangeHeader != "" {
+			if got := rec.Header().Get(headerContentEncoding); got != "" {
+				t.Fatalf("Range request Content-Encoding = %q, want empty passthrough", got)
+			}
+
+			if !bytes.Equal(rec.Body.Bytes(), body) {
+				t.Errorf(
+					"Range passthrough mismatch: got %d bytes, want the verbatim %d-byte body",
+					rec.Body.Len(),
+					len(body),
+				)
+			}
+
+			return
+		}
 
 		if got := rec.Header().Get(headerContentEncoding); got == encodingGzip {
 			gzipDecoder, err := gzip.NewReader(rec.Body)

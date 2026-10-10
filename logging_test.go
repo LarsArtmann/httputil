@@ -164,3 +164,107 @@ func TestLogging_EmitsWhenRequestContextCanceled(t *testing.T) {
 		t.Error("request log was dropped because the request context was canceled")
 	}
 }
+
+func TestLoggingFromContext_UsesRequestScopedLogger(t *testing.T) {
+	t.Parallel()
+
+	fallbackBuf := &bytes.Buffer{}
+	requestBuf := &bytes.Buffer{}
+	fallback := slog.New(slog.NewTextHandler(fallbackBuf, nil))
+	requestLogger := slog.New(slog.NewTextHandler(requestBuf, nil))
+
+	type ctxKey struct{}
+
+	handler := LoggingFromContext(fallback, func(ctx context.Context) *slog.Logger {
+		logger, _ := ctx.Value(ctxKey{}).(*slog.Logger)
+
+		return logger
+	})(newNoOpHandler())
+
+	req := newTestRequest(http.MethodGet, "/scoped", "")
+	req = req.WithContext(context.WithValue(req.Context(), ctxKey{}, requestLogger))
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if requestBuf.Len() == 0 {
+		t.Fatal("request-scoped logger received no output, want the request log line")
+	}
+
+	if !strings.Contains(requestBuf.String(), "path=/scoped") {
+		t.Errorf("request-scoped output missing path: %s", requestBuf.String())
+	}
+
+	if fallbackBuf.Len() != 0 {
+		t.Errorf("fallback logger received output %q, want none", fallbackBuf.String())
+	}
+}
+
+func TestLoggingFromContext_FallsBackWhenContextHasNoLogger(t *testing.T) {
+	t.Parallel()
+
+	fallbackBuf := &bytes.Buffer{}
+	fallback := slog.New(slog.NewTextHandler(fallbackBuf, nil))
+
+	handler := LoggingFromContext(fallback, func(context.Context) *slog.Logger {
+		return nil
+	})(newNoOpHandler())
+
+	req := newTestRequest(http.MethodGet, "/fallback", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !strings.Contains(fallbackBuf.String(), "path=/fallback") {
+		t.Errorf("fallback output missing request line: %s", fallbackBuf.String())
+	}
+}
+
+func TestLoggingFromContext_NilLoggersSkipsEmit(t *testing.T) {
+	t.Parallel()
+
+	called := false
+	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+
+		w.WriteHeader(http.StatusTeapot)
+	})
+
+	handler := LoggingFromContext(nil, nil)(inner)
+
+	req := newTestRequest(http.MethodGet, "/silent", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !called {
+		t.Error("inner handler not called when both loggers are nil")
+	}
+
+	if rec.Code != http.StatusTeapot {
+		t.Errorf("status = %d, want %d passthrough", rec.Code, http.StatusTeapot)
+	}
+}
+
+func TestLoggingFromContext_AttributesMatchLogging(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(buf, nil))
+
+	handler := LoggingFromContext(logger, nil)(newNoOpHandler())
+
+	req := newTestRequest(http.MethodGet, "/attrs", "")
+	req.RemoteAddr = "10.0.0.9:1234"
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	out := buf.String()
+
+	for _, want := range []string{"method=GET", "path=/attrs", "status=200", "client_ip="} {
+		if !strings.Contains(out, want) {
+			t.Errorf("log output missing %q: %s", want, out)
+		}
+	}
+}

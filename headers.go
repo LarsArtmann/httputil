@@ -8,6 +8,8 @@ const (
 	headerContentEncoding = "Content-Encoding"
 	headerContentLanguage = "Content-Language"
 	headerContentLength   = "Content-Length"
+	headerContentRange    = "Content-Range"
 	headerContentType     = "Content-Type"
+	headerRange           = "Range"
 	headerVary            = "Vary"
 )

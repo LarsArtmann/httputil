@@ -301,6 +301,17 @@ func Compression(cfg CompressionConfig) Middleware {
 
 			resp.Header().Add(headerVary, headerAcceptEncoding)
 
+			if req.Header.Get(headerRange) != "" {
+				// Range requests pass through uncompressed: compressing the
+				// full representation would contradict the client's byte-
+				// offset contract (a 206 body must be the requested range,
+				// and a 200 with Content-Range stripped would still hand
+				// the client bytes it cannot splice into a partial fetch).
+				next.ServeHTTP(resp, req)
+
+				return
+			}
+
 			writer := newCompressWriter(
 				resp,
 				cfg.MinSize,
