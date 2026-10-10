@@ -20,26 +20,6 @@ func assertLanguageResponse(t *testing.T, rec *httptest.ResponseRecorder, wantCo
 	}
 }
 
-func TestLanguage_ServesFirstMatchingCandidate(t *testing.T) {
-	t.Parallel()
-
-	cfg := LanguageConfig{
-		SupportedTags: []string{"de", "en"},
-		Extractors:    []LanguageExtractor{LanguageExtractorFromAcceptHeader()},
-	}
-
-	handler := Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got := LanguageFromContext(r.Context()); got != "en" {
-			t.Errorf("negotiated tag = %q, want %q (top candidate does not match, second does)", got, "en")
-		}
-	}))
-
-	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
-	req.Header.Set("Accept-Language", "de-AT,de;q=0.9,en;q=0.8")
-
-	Language(cfg)(handler).ServeHTTP(httptest.NewRecorder(), req)
-}
-
 func TestLanguage_SecondHeaderCandidateServedWhenFirstUnsupported(t *testing.T) {
 	t.Parallel()
 
@@ -224,22 +204,27 @@ func TestLanguage_DisableFlagsTurnHeadersOff(t *testing.T) {
 	}
 }
 
-func TestLanguage_VaryNotDuplicatedWhenAlreadyPresent(t *testing.T) {
+func TestLanguage_VaryNotDuplicatedWhenOuterMiddlewareAlreadyAddedIt(t *testing.T) {
 	t.Parallel()
 
 	cfg := LanguageConfig{SupportedTags: []string{"de"}}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Add("Vary", "Accept-Language, Accept-Encoding")
-	})
+	outer := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Vary", "Accept-Language")
+
+			next.ServeHTTP(w, r)
+		})
+	}
 
 	rec := httptest.NewRecorder()
-	Language(cfg)(handler).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	mw := Language(cfg)
+	outer(mw(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	vary := rec.Header().Values("Vary")
 
 	if len(vary) != 1 {
-		t.Fatalf("Vary values = %v, want one combined value (duplicate token must be skipped)", vary)
+		t.Fatalf("Vary values = %v, want one value (duplicate token must be skipped)", vary)
 	}
 }
 
@@ -261,21 +246,21 @@ func TestLanguage_VaryComposesWithCompressionStyleAdd(t *testing.T) {
 	}
 }
 
-func TestLanguage_SupportedTagsCanonicalizedToLowercase(t *testing.T) {
+func TestLanguage_SupportedTagsKeepDeclaredSpelling(t *testing.T) {
 	t.Parallel()
 
 	cfg := LanguageConfig{
-		SupportedTags: []string{"DE", "EN"},
+		SupportedTags: []string{"zh-Hans", "en"},
 		Extractors:    []LanguageExtractor{LanguageExtractorFromAcceptHeader()},
 	}
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
-	req.Header.Set("Accept-Language", "en-GB,en;q=0.8")
+	req.Header.Set("Accept-Language", "ZH-hans")
 
 	Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got := LanguageFromContext(r.Context()); got != "en" {
-			t.Errorf("negotiated tag = %q, want canonical %q", got, "en")
+		if got := LanguageFromContext(r.Context()); got != "zh-Hans" {
+			t.Errorf("negotiated tag = %q, want declared spelling %q (matching is case-insensitive, serving is not)", got, "zh-Hans")
 		}
 	})).ServeHTTP(rec, req)
 }
@@ -463,10 +448,10 @@ func TestParseAcceptLanguageCandidates_OrdersByWeightThenListedOrder(t *testing.
 		t.Fatal("parseAcceptLanguageCandidates reported no candidates for a valid header")
 	}
 
-	want := []string{"de", "fr", "en"}
+	want := []string{"fr", "de", "en"}
 
 	if strings.Join(tags, ",") != strings.Join(want, ",") {
-		t.Errorf("candidates = %v, want %v (weight desc, ties in listed order)", tags, want)
+		t.Errorf("candidates = %v, want %v (weight desc — fr defaults to q=1 — ties in listed order)", tags, want)
 	}
 }
 

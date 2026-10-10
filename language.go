@@ -3,6 +3,7 @@ package httputil
 import (
 	"context"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -192,61 +193,74 @@ func validLanguageTag(tag string) bool {
 
 // languageMatcher resolves candidate tags against the supported set: exact
 // case-insensitive match first, then primary-subtag match in supported
-// priority order. Precompiled at construction (compression-negotiator
+// priority order. The app's declared tag spelling is preserved for serving
+// ("zh-Hans" stays "zh-Hans" in Content-Language); comparison is
+// case-insensitive. Precompiled at construction (compression-negotiator
 // pattern) so the per-request path is table lookups only.
 type languageMatcher struct {
-	// supported are the canonical tags in priority order.
+	// supported are the tags in priority order, in the app's spelling.
 	supported []string
-	// primaries maps each tag's primary subtag to the first supported tag
-	// carrying it (e.g. "de" → "de-AT" when supported is ["de-AT", "en"]).
-	primaries map[string]string
+	// lowered caches the lowercase form of each supported entry, aligned
+	// with supported by index.
+	lowered []string
+	// primaries maps a lowercase primary subtag to the index of the first
+	// supported tag carrying it.
+	primaries map[string]int
 }
 
-// buildLanguageMatcher canonicalizes the supported set and precompiles the
-// primary-subtab table. Entries failing the charset guard are dropped;
-// a nil matcher is only returned when nothing survived (the constructor
-// then falls back to DefaultLanguageConfig).
+// buildLanguageMatcher trims the supported set and precompiles the
+// case-insensitive lookup tables. Entries failing the charset guard are
+// dropped; a nil matcher is only returned when nothing survived (the
+// constructor then falls back to DefaultLanguageConfig).
 func buildLanguageMatcher(tags []string) *languageMatcher {
 	supported := make([]string, 0, len(tags))
-	seen := make(map[string]bool, len(tags))
-	primaries := make(map[string]string, len(tags))
+	lowered := make([]string, 0, len(tags))
+	primaries := make(map[string]int, len(tags))
 
 	for _, tag := range tags {
-		canonical := strings.ToLower(trim(tag))
-		if !validLanguageTag(canonical) || seen[canonical] {
+		trimmed := trim(tag)
+		if !validLanguageTag(trimmed) {
 			continue
 		}
 
-		seen[canonical] = true
-		supported = append(supported, canonical)
-
-		primary, _, _ := strings.Cut(canonical, "-")
-		if _, exists := primaries[primary]; !exists {
-			primaries[primary] = canonical
+		lower := strings.ToLower(trimmed)
+		if slices.Contains(lowered, lower) {
+			continue
 		}
+
+		primary, _, _ := strings.Cut(lower, "-")
+		if _, exists := primaries[primary]; !exists {
+			primaries[primary] = len(supported)
+		}
+
+		supported = append(supported, trimmed)
+		lowered = append(lowered, lower)
 	}
 
 	if len(supported) == 0 {
 		return nil
 	}
 
-	return &languageMatcher{supported: supported, primaries: primaries}
+	return &languageMatcher{supported: supported, lowered: lowered, primaries: primaries}
 }
 
-// match resolves one candidate: exact match first, then primary subtag.
+// match resolves one candidate: exact case-insensitive match first, then
+// primary subtag. The served tag keeps the app's declared spelling.
 func (m *languageMatcher) match(tag string) (string, bool) {
 	candidate := strings.ToLower(trim(tag))
 
-	for _, supported := range m.supported {
-		if supported == candidate {
-			return supported, true
+	for i, lower := range m.lowered {
+		if lower == candidate {
+			return m.supported[i], true
 		}
 	}
 
 	primary, _, _ := strings.Cut(candidate, "-")
-	supported, ok := m.primaries[primary]
+	if idx, ok := m.primaries[primary]; ok {
+		return m.supported[idx], true
+	}
 
-	return supported, ok
+	return "", false
 }
 
 // LanguageExtractorChain bundles extractors into one: legs run in order
@@ -429,7 +443,7 @@ func Language(cfg LanguageConfig) Middleware {
 		matcher = buildLanguageMatcher(cfg.SupportedTags)
 	}
 
-	defaultTag := strings.ToLower(trim(cfg.DefaultTag))
+	defaultTag := trim(cfg.DefaultTag)
 	if defaultTag == "" {
 		defaultTag = matcher.supported[0]
 	} else if _, ok := matcher.match(defaultTag); !ok {
