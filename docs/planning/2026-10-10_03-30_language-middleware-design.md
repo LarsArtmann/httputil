@@ -79,10 +79,13 @@ func LanguageFromContext(ctx context.Context) string // "" when absent
 - `Disable*` flags inverted so the zero value keeps both headers ON — the
   bare-literal trap (`LanguageConfig{SupportedTags: …}` silently losing
   cache correctness) cannot happen.
-- Tag charset `[a-zA-Z0-9-]+` enforced (trim + lowercase canonicalization
-  at construction; commas/whitespace/CRLF are `language.tag_invalid`) —
+- Tag charset `[a-zA-Z0-9-]+` enforced (trim + charset validation at
+  construction; commas/whitespace/CRLF are `language.tag_invalid`) —
   the served tag is written into `Content-Language`, so the supported set
-  is a header-injection surface and is validated like one.
+  is a header-injection surface and is validated like one. Declared
+  spellings are preserved verbatim, not canonicalized to lowercase:
+  `zh-Hans` is served as `zh-Hans`. Duplicate detection is
+  case-insensitive (`EqualFold`) and keeps the first declared spelling.
 
 ### Matching (built-in)
 
@@ -91,6 +94,10 @@ Pass 1: exact case-insensitive full-tag match against `SupportedTags`
 supported tag whose primary subtag equals the candidate's. First match
 wins; none → default. The matcher is precompiled at construction
 (supported-primary table), mirroring the compression negotiator pattern.
+The negotiated value served to callers (context and `Content-Language`)
+is the declared spelling from `SupportedTags`, never a lowercased form —
+only comparisons are lowercased (precompiled `lowered` slice + primary
+table).
 
 ## Ordering rules (T06)
 
