@@ -435,14 +435,17 @@ All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retrya
 
 Patterns consumers and contributors should follow.
 
-| Convention             | Description                                                                                                                                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Middleware signature   | Always `func(http.Handler) http.Handler` — the Go standard library convention                                                                                                                                      |
-| Middleware type alias  | `type Middleware = func(http.Handler) http.Handler` in `recorder.go` (a true alias — identical to the plain function type, so `server_timing`'s alias composes with `Chain`/`MiddlewareStack` without conversions) |
-| Classified errors      | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification                                                                                                                          |
-| Config validation      | All config types implement `Validate() error` for startup checks                                                                                                                                                   |
-| `httputil` import name | Consumers import as `httputil`; no aliases needed                                                                                                                                                                  |
-| Allowed dependencies   | `go-error-family`, `golang.org/x/time`, `justinas/nosurf`, and `go-etag` are the only external dependencies (enforced by depguard)                                                                                 |
+| Convention              | Description                                                                                                                                                                                                        |
+| ----------------------  | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Middleware signature    | Always `func(http.Handler) http.Handler` — the Go standard library convention                                                                                                                                      |
+| Middleware type alias   | `type Middleware = func(http.Handler) http.Handler` in `recorder.go` (a true alias — identical to the plain function type, so `server_timing`'s alias composes with `Chain`/`MiddlewareStack` without conversions) |
+| Classified errors       | Errors from ResponseRecorder and CSRF use `go-error-family` for behavioral classification                                                                                                                          |
+| Config validation       | All config types implement `Validate() error` for startup checks                                                                                                                                                   |
+| `httputil` import name  | Consumers import as `httputil`; no aliases needed                                                                                                                                                                  |
+| Allowed dependencies    | `go-error-family`, `golang.org/x/time`, `justinas/nosurf`, and `go-etag` are the only external dependencies (enforced by depguard)                                                                                 |
+| Generation-swapped ring | The request-ID generator's immutable ring of ID buffers: full generations are published for readers while the next generation fills, and published buffers are never written again (race-free copies)              |
+| Attestation conflict    | A CSRF request whose `Sec-Fetch-Site: same-origin` attestation is contradicted by its `Origin` header; rejected with `csrf.origin_attestation_conflict`                                                            |
+| OWS                     | Optional whitespace (RFC 7230): spaces/tabs around list entries in headers such as `Accept-Encoding`; negotiation must trim it                                                                                     |
 
 ---
 

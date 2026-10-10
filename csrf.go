@@ -164,6 +164,10 @@ type CSRFConfig struct {
 	Path string
 
 	// TrustedOrigins configures origins allowed for cross-domain CSRF.
+	// Entries must be scheme://host origins; Validate rejects anything else
+	// (csrf.trusted_origin_invalid). Note: a wildcard host ("https://*")
+	// passes the shape gate but matches no real origin — dead config, not a
+	// bypass; list concrete origins instead.
 	// Default: nil (same-origin only)
 	TrustedOrigins []string
 
