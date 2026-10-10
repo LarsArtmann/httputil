@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Content-language negotiation middleware** (`Language`, `language.go`): negotiates a response tag from `Accept-Language` — or from query-parameter, cookie, and URL-path-prefix extractors composed via `LanguageExtractorChain` — against a configurable supported set; stamps `Content-Language` and `Vary: Accept-Language`, stores the served tag in the request context (`WithLanguage`/`LanguageFromContext`/`LanguageFromRequest`), and falls back by primary subtag through the built-in matcher (`de-AT` serves `de`) with a pluggable `TagMatcher` escape hatch for full BCP 47 matching. Validate-and-log constructor, `FuzzParseAcceptLanguage` oracle fuzz target, `ExampleLanguage`.
+
 ### Changed
 
 - **Writer-pool contract hardened** (`compress_pool.go`, 2026-09-11 full-code review finding 9): the pool now owns its `WriterFactory` (`acquire(dst)` no longer takes a factory parameter that the pooled path silently ignored), the construction probe and the pool refill panic on a `(nil, nil)` factory return (the documented factory-contract panic class inside `Recovery`'s envelope), the direct (non-pooled) path returns the classified `compression.pool_type_unexpected` error instead of letting a nil writer reach a request, and pooled elements carry owner provenance — `release` drops writers that did not come from this pool, so a foreign writer can never poison it. Internal contract hardening only; no API change.

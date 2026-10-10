@@ -21,7 +21,7 @@ User pasted an erraudit run: `erraudit ./... --type-aware --enforce-go-error-fam
 ## b) PARTIALLY DONE
 
 1. **Paste ↔ live-output sentinel-set equivalence is count + spot-check, not a full diff.** 45 = 45 with identical first 30 lines; the remaining 15 sentinel lines and all 44 test-side lines were not diffed line-by-line.
-2. **Doc-count refresh without root-causing the drift** (see d.1): the refreshed numbers are *measured* today and same-class-verified (all 44 test-side advisories verified as `_test.go` `errors.Is` advisories), but which changes grew the count 41 → 44 was not investigated, and what the old "`+1`" in `~45+1/sentinel` referred to is unknown (hypothesis recorded in the new text: server_timing — but today it measured clean, so the hypothesis is unconfirmed).
+2. **Doc-count refresh without root-causing the drift** (see d.1): the refreshed numbers are _measured_ today and same-class-verified (all 44 test-side advisories verified as `_test.go` `errors.Is` advisories), but which changes grew the count 41 → 44 was not investigated, and what the old "`+1`" in `~45+1/sentinel` referred to is unknown (hypothesis recorded in the new text: server_timing — but today it measured clean, so the hypothesis is unconfirmed).
 3. **Verdict-history grounding:** `2026-09-11_10-03` read in full; `_13-49` relied on via AGENTS.md's pointers only, not re-read this session.
 4. **Status-doc annotation cadence applied minimally:** f.1 struck; b.2 (server_timing verification, now partially closed by this session) and g.1 (which build produced the Sept paste) left for a deliberate docs-health pass rather than edited ad hoc.
 5. **Composition arithmetic of the paste:** cross-checked totals (45+11+4=60 ERROR, +2 WARNING=62 ✓) but did not machine-diff the paste's full 62-item list against a local `--no-suppress` reproduction; class/count equivalence plus spot-checks stood in.
@@ -39,9 +39,9 @@ User pasted an erraudit run: `erraudit ./... --type-aware --enforce-go-error-fam
 
 Nothing destructive; two honest own-goals, one of them a repeat offense:
 
-1. **Repeated the exact lesson the Sept report already codified (its d.2):** refreshed `~41` → `~44` (and dropped the unexplained `+1`) in AGENTS.md *without root-causing the drift first*. The Sept lesson is "exhaustive over sampled verification when a number is about to be written into living docs." Mitigations: the new numbers are today's measurement with build+date recorded inline, and same-class verification was done — but the *why* (which tests/sentinels moved the count) is an open item (f.1/f.2).
+1. **Repeated the exact lesson the Sept report already codified (its d.2):** refreshed `~41` → `~44` (and dropped the unexplained `+1`) in AGENTS.md _without root-causing the drift first_. The Sept lesson is "exhaustive over sampled verification when a number is about to be written into living docs." Mitigations: the new numbers are today's measurement with build+date recorded inline, and same-class verification was done — but the _why_ (which tests/sentinels moved the count) is an open item (f.1/f.2).
 2. **Skipped `nix fmt` for a docs-only change** despite the command block's explicit "run before the auto-commit daemon sees the tree" — and did not state the skip rationale in-session. The daemon may commit unformatted markdown; cheap discipline missed, not harm done.
-3. *(Micro, no external effect:* the in-head count of `compression.go` sentinels was initially miscounted (10 vs actual 9); self-corrected before any artifact was written — noted only because the Sept lesson demands honesty about verification quality.
+3. _(Micro, no external effect:_ the in-head count of `compression.go` sentinels was initially miscounted (10 vs actual 9); self-corrected before any artifact was written — noted only because the Sept lesson demands honesty about verification quality.
 
 ## e) WHAT WE SHOULD IMPROVE
 
@@ -62,7 +62,7 @@ Nothing destructive; two honest own-goals, one of them a repeat offense:
 5. Session-tail: confirm the daemon committed the doc edits + this report; verify `git log origin/master..master` empty and CI green on that head.
 6. Annotate 10-03 items b.2 and g.1 at the next docs-health pass (both now have session evidence).
 7. Add the one-line AGENTS.md note (Sept f.8, still open): audit mode (`erraudit ./...` + `--no-suppress`) intentionally lists policy-accepted patterns — its findings are not actionable; state exit-code expectations per erraudit command.
-8. Document the `scripts/` `stdlib_constructor` exemption *mechanism* in AGENTS.md (Sept f.7: analyze walks `scripts/`, lint exempts packages not importing go-error-family — re-verify with `go list` before writing).
+8. Document the `scripts/` `stdlib_constructor` exemption _mechanism_ in AGENTS.md (Sept f.7: analyze walks `scripts/`, lint exempts packages not importing go-error-family — re-verify with `go list` before writing).
 9. Evaluate `erraudit nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (Sept f.10; mind the nolintlint fragility precedent with gosec).
 10. Verify `--enforce-coded-errors` / `--enforce-deferred-close` semantics in 1c6809a (`erraudit --help`); document which enforced flags exist and their exit-code behavior.
 11. ~~Fix the `sentinel_concrete_type` fix-hint in erraudit itself: detect `.WithContext`/`.WithCause`/clone usage before suggesting the `error`-interface declaration (see e.7).~~ done 2026-10-10 (this session, follow-up pass): source-verified at erraudit @ 044e66b and filed as LarsArtmann/erraudit#10; the related `Err*`/`err*` guard asymmetry (44 test-side false positives) filed as #11. Drafts: `~/projects/erraudit/docs/drafts/2026-10-10_*.md`.
