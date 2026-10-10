@@ -110,6 +110,18 @@ jobs:
           set -o pipefail
           go test -bench=. -benchmem -count=1 -run='^$' ./... 2>&1 | tee bench.txt
 
+      - name: Benchstat vs committed baseline (informational)
+        run: |
+          go run golang.org/x/perf/cmd/benchstat@latest -format friendly docs/benchmarks.bench.txt bench.txt | tee benchstat.txt
+          if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+            {
+              echo "### benchstat vs committed baseline (CI runners are noisy; allocation columns are the trustworthy signal)"
+              echo '```'
+              cat benchstat.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Run govulncheck (root module)
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest

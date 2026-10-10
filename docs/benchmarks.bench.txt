@@ -1,0 +1,29 @@
+this derivation will be built:
+  /nix/store/f1kzysp3lh2qqic9zbaivizh231mhn2a-run-bench.drv
+building '/nix/store/f1kzysp3lh2qqic9zbaivizh231mhn2a-run-bench.drv'...
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/httputil
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkChain-32                                          	 1000000	      3242 ns/op
+BenchmarkChain-32                                          	 1000000	      3500 ns/op
+BenchmarkChain-32                                          	 1000000	      3220 ns/op
+BenchmarkChain-32                                          	 1104925	      3279 ns/op
+BenchmarkChain-32                                          	  995235	      4395 ns/op
+BenchmarkClientIP-32                                       	36241416	       117.1 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	29663488	       114.0 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	49332018	        79.74 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	63827185	        61.52 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	75431006	        64.84 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCodeRejectionConstruction-32                      	41197323	       130.6 ns/op
+BenchmarkCodeRejectionConstruction-32                      	23492380	       130.8 ns/op
+BenchmarkCodeRejectionConstruction-32                      	46592280	        85.88 ns/op
+BenchmarkCodeRejectionConstruction-32                      	46573363	        85.34 ns/op
+BenchmarkCodeRejectionConstruction-32                      	44700842	        91.04 ns/op
+BenchmarkSentinelCloneWithContext-32                       	26097092	       134.7 ns/op
+BenchmarkSentinelCloneWithContext-32                       	26292704	       133.3 ns/op
+BenchmarkSentinelCloneWithContext-32                       	29088252	       128.2 ns/op
+BenchmarkSentinelCloneWithContext-32                       	27074067	       141.5 ns/op
+BenchmarkSentinelCloneWithContext-32                       	28699237	       129.3 ns/op
+BenchmarkWrapTransientWithCause-32                         	36210780	       160.3 ns/op
+BenchmarkWrapTransientWithCause-32                         	
