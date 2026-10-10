@@ -148,7 +148,7 @@ func TestHTTPBehavior(t *testing.T) {
 }
 ```
 
-Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence, no injection-header reflection (a client-supplied `X-CSRF-Token`/probe header value must never be echoed back in a response header). Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
+Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence, no injection-header reflection (a client-supplied `X-CSRF-Token`/probe header value must never be echoed back in a response header). Opt-in spec families add targeted contract checks — `httpspec.LanguageSpecs()` pins that language-negotiating handlers stamp `Content-Language` and list `Accept-Language` in `Vary`. Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
 
 ```go
 httpspec.Run(t, handler,
@@ -709,7 +709,7 @@ Conventions:
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
-- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. The nightly fuzz workflow runs 25 of the repo's 28 fuzz targets at 5 minutes each in CI.
+- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. The nightly fuzz workflow runs 26 of the repo's 30 fuzz targets at 5 minutes each in CI.
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 

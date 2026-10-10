@@ -101,6 +101,9 @@ jobs:
       - name: Fuzz negotiator wire format
         run: go test -run='^$' -fuzz '^FuzzNegotiatorWireFormat$' -fuzztime 300s .
 
+      - name: Fuzz Accept-Language wire format
+        run: go test -run='^$' -fuzz '^FuzzParseAcceptLanguage$' -fuzztime 300s .
+
       # Rolling-issue policy (owner decision 2026-10-09): ONE open issue
       # tracks the currently-failing nightly; a green run auto-closes it.
       # The previous per-night filer filed 27 issues in 24 days holding

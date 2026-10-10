@@ -110,3 +110,35 @@
 ---
 
 _Arte in Aeternum_
+
+---
+
+## Addendum — 2026-10-10 09:56 CEST (cross-session doc-debt pass)
+
+Section b/f items resolved from a follow-up session (tree snapshot-verified
+before every edit; no parallel-writer collisions):
+
+- **b1/f2 DONE** — FEATURES recount with the methodology stated inline:
+  58 examples (43 root / 10 httpspec / 5 server_timing), 52 benchmark
+  functions / 62 result rows, 30 fuzz targets (28 root / 2 server_timing);
+  body bullet + header both updated; the fuzz bullet's stale "27 (25+2)"
+  and CSRF target-count enumeration fixed.
+- **b2/f3 DONE** — README httpspec section now names
+  `httpspec.LanguageSpecs()` with its two contract checks.
+- **b4/f4 DONE** — CHANGELOG [Unreleased] Documented bullet: RFC 9110 §5.2
+  vs §12.5.5 correction of record + CDN sub-claim narrowing + the two
+  ROADMAP Non-goals + D-gates RULED + report annotations + the recount +
+  the nightly addition.
+- **b5/f5 DONE** — docs/integrations/x-text.md gained the concrete
+  motivation pair (zh-TW → zh-CN script misrouting; pt-PT vs pt-BR
+  regional) in the Confidence-gating section.
+- **f6/c2 DONE** — `FuzzParseAcceptLanguage` added to the nightly-fuzz
+  rotation (was absent; now 26 of 30 targets at 5 minutes each); TODO_LIST
+  leftover row item (3) ticked. The four still-unrotated targets:
+  `FuzzCORSPreflightPrivateNetwork`, `FuzzCSRFTokenHTMLFormatters`,
+  `FuzzCSRFMiddleware_XFPAttestation`, `FuzzTrustedProxySetClientIP`.
+
+Still open (unchanged): b3 (middleware-survey HEAD re-scan — gated on the
+owner's evidence-bar answer), b6 (v1.6.0 tag/push — owner act), c1/c3/c4
+(routed TODO rows). Gates after the pass: `nix fmt` 0 changed,
+`doc-snippet-refs` all resolve, workflow YAML valid.

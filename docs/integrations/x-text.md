@@ -61,6 +61,8 @@ func main() {
 
 `Matcher.Match` always returns its best supported tag plus a `language.Confidence` (`Exact`, `High`, `Low`, `No`). `language.No` means nothing matched; returning `ok=false` in that branch makes the middleware fall through to the next candidate and finally `DefaultTag`. Accepting `Low` matches (the default in the example) is what enables mutual-intelligibility pairs; gate on `Exact`/`High` only if serving a low-confidence substitute is worse than serving the default.
 
+Why the script class is the motivating case: the built-in primary-subtag matcher cannot see script. A Traditional-Chinese reader sending `zh-TW` primary-matches a supported `zh-CN` and receives Simplified characters — same primary subtag, wrong script. With `zh-Hant` among the supported tags, x/text resolves `zh-TW`/`zh-HK` to `zh-Hant` (script-first matching is the matcher's default via `PreferSameScript`). Regional variants behave the same way: `pt-PT` primary-matches `pt-BR` and serves Brazilian conventions; with both declared, x/text keeps them exact.
+
 ## Keep the built-in extractor
 
 `LanguageExtractorFromAcceptHeader` already parses `Accept-Language` with q-value ordering, and the middleware iterates candidates until one resolves. Swapping the matcher is the only change most apps need. For whole-header matching in one step, x/text also offers `language.MatchStrings(matcher, r.Header.Get("Accept-Language"))`, which you can wrap as a custom `LanguageExtractor` returning the matched supported tag as a single candidate.
