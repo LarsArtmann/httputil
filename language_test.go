@@ -8,7 +8,11 @@ import (
 	"testing"
 )
 
-func assertLanguageResponse(t *testing.T, rec *httptest.ResponseRecorder, wantContentLanguage, wantVaryContains string) {
+func assertLanguageResponse(
+	t *testing.T,
+	rec *httptest.ResponseRecorder,
+	wantContentLanguage, wantVaryContains string,
+) {
 	t.Helper()
 
 	if got := rec.Header().Get("Content-Language"); got != wantContentLanguage {
@@ -178,7 +182,11 @@ func TestLanguage_ZeroValueDisableFlagsKeepHeadersOn(t *testing.T) {
 	cfg := LanguageConfig{SupportedTags: []string{"de"}}
 
 	rec := httptest.NewRecorder()
-	Language(cfg)(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	Language(
+		cfg,
+	)(
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	assertLanguageResponse(t, rec, "de", "Accept-Language")
 }
@@ -193,7 +201,11 @@ func TestLanguage_DisableFlagsTurnHeadersOff(t *testing.T) {
 	}
 
 	rec := httptest.NewRecorder()
-	Language(cfg)(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	Language(
+		cfg,
+	)(
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	if got := rec.Header().Get("Content-Language"); got != "" {
 		t.Errorf("Content-Language = %q, want empty (DisableContentLanguage)", got)
@@ -219,7 +231,9 @@ func TestLanguage_VaryNotDuplicatedWhenOuterMiddlewareAlreadyAddedIt(t *testing.
 
 	rec := httptest.NewRecorder()
 	mw := Language(cfg)
-	outer(mw(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	outer(
+		mw(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})),
+	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	vary := rec.Header().Values("Vary")
 
@@ -260,7 +274,11 @@ func TestLanguage_SupportedTagsKeepDeclaredSpelling(t *testing.T) {
 
 	Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := LanguageFromContext(r.Context()); got != "zh-Hans" {
-			t.Errorf("negotiated tag = %q, want declared spelling %q (matching is case-insensitive, serving is not)", got, "zh-Hans")
+			t.Errorf(
+				"negotiated tag = %q, want declared spelling %q (matching is case-insensitive, serving is not)",
+				got,
+				"zh-Hans",
+			)
 		}
 	})).ServeHTTP(rec, req)
 }
@@ -606,7 +624,11 @@ func TestLanguage_EmptyTagsConfigServesDefaultConfigLanguage(t *testing.T) {
 	t.Parallel()
 
 	rec := httptest.NewRecorder()
-	Language(LanguageConfig{SupportedTags: nil})(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	Language(
+		LanguageConfig{SupportedTags: nil},
+	)(
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	assertLanguageResponse(t, rec, "en", "Accept-Language")
 }
@@ -615,7 +637,11 @@ func TestLanguage_AllInvalidTagsFallBackToDefaultConfig(t *testing.T) {
 	t.Parallel()
 
 	rec := httptest.NewRecorder()
-	Language(LanguageConfig{SupportedTags: []string{"a,b", "c;d"}})(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	Language(
+		LanguageConfig{SupportedTags: []string{"a,b", "c;d"}},
+	)(
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	assertLanguageResponse(t, rec, "en", "Accept-Language")
 }
@@ -629,7 +655,11 @@ func TestLanguage_UnsupportedDefaultTagFallsBackToFirst(t *testing.T) {
 	}
 
 	rec := httptest.NewRecorder()
-	Language(cfg)(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	Language(
+		cfg,
+	)(
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
 	if got := rec.Header().Get("Content-Language"); got != "de" {
 		t.Errorf("Content-Language = %q, want %q (unsupported default falls back to first supported)", got, "de")
