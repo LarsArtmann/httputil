@@ -488,6 +488,8 @@ The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a
 
 Call `RegisterErrorClassifications()` at startup to enable classification of stdlib HTTP errors and register error message templates.
 
+Conditional-request outcomes have upstream classification guidance in [go-error-family](https://github.com/larsartmann/go-error-family) (README, "Conditional Requests"): 428 Precondition Required is a `Rejection` (an omitted precondition is incomplete input), 412 Precondition Failed is a `Conflict` via `NewConflict(...).WithHTTPStatus(412)` (a state clash — refresh and reapply), and 304 Not Modified is a success-path response, not an error — which is how the ETag middleware above produces it.
+
 ## API
 
 | Function                          | Signature                                                             | Purpose                                                                       |
