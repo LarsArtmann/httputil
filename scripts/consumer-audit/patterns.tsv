@@ -5,8 +5,8 @@ cors-wildcard-echo	AllowAllOrigins.*true|AllowedOrigins.*\*
 cors-allow-all	DenyUnmatched\s*:\s*false|DefaultCORSConfig\(\)
 # 003 zero-value CSRFConfig (non-Secure cookies)
 csrf-zero-value	CSRFMiddleware\(CSRFConfig\{
-# 004 CSRF behind TLS termination without TrustedProxies
-csrf-no-trusted-proxy	CSRFConfig\{(?s).*?\}
+# 004 CSRF behind TLS termination without TrustedProxies (human check: does each CSRFConfig literal set TrustedProxies?)
+csrf-config-literal	CSRFConfig\{
 # 005 rate limiters without MaxKeys/TTL
 ratelimit-unbounded	KeyedRateLimiterConfig\{
 # 006 rate-limit keys from spoofable client-IP headers

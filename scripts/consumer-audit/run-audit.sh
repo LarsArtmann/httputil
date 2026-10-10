@@ -32,7 +32,7 @@ mkdir -p "$OUT/patterns"
 while IFS=$'\t' read -r name pattern; do
 	[ -z "$name" ] && continue
 	case "$name" in \#*) continue ;; esac
-	(cd "$PROJECTS_DIR" && rg -n -g '*.go' -g '!**/vendor/**' -g '!**/testdata/**' -e "$pattern") \
+	(cd "$PROJECTS_DIR" && rg -n -g '*.go' -g '!**/vendor/**' -g '!**/testdata/**' -e "$pattern" < /dev/null) \
 		> "$OUT/patterns/$name.txt" || true
 	echo "  $name: $(wc -l < "$OUT/patterns/$name.txt") hits"
 done < "$(dirname "$0")/patterns.tsv"

@@ -7,14 +7,14 @@ cited data instead of a stale /tmp dump.
 
 ## The six steps
 
-| Step | What                                                | Automated |
-| ---- | --------------------------------------------------- | --------- |
-| 1    | who-uses inventory (direct + indirect consumers)    | yes       |
-| 2    | per-consumer httputil go.mod pins                   | yes       |
-| 3    | corpus of every `httputil.*` call site              | yes       |
-| 4    | pattern-pack greps per filing class                 | yes       |
-| 5    | report skeleton with the evidence paths             | yes       |
-| 6    | human per-pattern review against documented semantics | manual  |
+| Step | What                                                  | Automated |
+| ---- | ----------------------------------------------------- | --------- |
+| 1    | who-uses inventory (direct + indirect consumers)      | yes       |
+| 2    | per-consumer httputil go.mod pins                     | yes       |
+| 3    | corpus of every `httputil.*` call site                | yes       |
+| 4    | pattern-pack greps per filing class                   | yes       |
+| 5    | report skeleton with the evidence paths               | yes       |
+| 6    | human per-pattern review against documented semantics | manual    |
 
 ## Usage
 
