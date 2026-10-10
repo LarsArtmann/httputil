@@ -108,7 +108,14 @@
                   '';
                 };
               };
-              golines.enable = true;
+              # 120 must match .golangci.yml formatters.settings.golines
+              # max-len: treefmt's default is golines' built-in 100, and a
+              # diverging threshold makes `nix fmt` re-split lines that
+              # `golangci-lint run` accepts (the gates fight each other).
+              golines = {
+                enable = true;
+                maxLength = 120;
+              };
             };
           };
 
