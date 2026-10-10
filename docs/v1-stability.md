@@ -198,6 +198,24 @@ The gated alternative is additive:
 | `RecommendedCSPWithNonce` | Frozen   | New in v0.10.0 |
 | `ProductionCSPWithNonce`  | Frozen   | New in v0.10.0 |
 
+### Language Negotiation (Frozen at v1.0)
+
+| Symbol                              | Tier     | Notes         |
+| ----------------------------------- | -------- | ------------- |
+| `LanguageConfig`                    | Additive | New in v1.6.0 |
+| `DefaultLanguageConfig`             | Frozen   | New in v1.6.0 |
+| `Language`                          | Frozen   | New in v1.6.0 |
+| `LanguageExtractor`                 | Frozen   | New in v1.6.0 |
+| `LanguageExtractorChain`            | Frozen   | New in v1.6.0 |
+| `LanguageExtractorFromAcceptHeader` | Frozen   | New in v1.6.0 |
+| `LanguageExtractorFromQuery`        | Frozen   | New in v1.6.0 |
+| `LanguageExtractorFromCookie`       | Frozen   | New in v1.6.0 |
+| `LanguageExtractorFromPathPrefix`   | Frozen   | New in v1.6.0 |
+| `TagMatcher`                        | Frozen   | New in v1.6.0 |
+| `WithLanguage`                      | Frozen   | New in v1.6.0 |
+| `LanguageFromContext`               | Frozen   | New in v1.6.0 |
+| `LanguageFromRequest`               | Frozen   | New in v1.6.0 |
+
 ### Server-Timing (Frozen at v1.0)
 
 | Symbol                       | Tier     | Notes           |
