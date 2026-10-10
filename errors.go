@@ -377,6 +377,32 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		WayOut: "DefaultDecompressionConfig() ships a 16 MiB bomb-protection limit.",
 	},
 
+	// Language.
+	string(codeLanguageTagsEmpty): {
+		What:   "Language tag list is empty",
+		Why:    "LanguageConfig.SupportedTags lists no language tags, so there is nothing to negotiate or serve.",
+		Fix:    "List the served tags in priority order, e.g. SupportedTags: []string{\"en\", \"de\"}.",
+		WayOut: "DefaultLanguageConfig() serves {\"en\"} from the Accept-Language header.",
+	},
+	string(codeLanguageTagInvalid): {
+		What:   "Language tag contains invalid characters",
+		Why:    "LanguageConfig contains the tag {tag}; tags must be non-empty strings of [a-zA-Z0-9-] because the served tag is written into the Content-Language header, an injection surface.",
+		Fix:    "Use BCP 47 subtags built from letters, digits, and hyphens only, e.g. en, de-AT, zh-Hans.",
+		WayOut: "DefaultLanguageConfig() ships a valid tag set.",
+	},
+	string(codeLanguageDefaultUnsupported): {
+		What:   "Default language tag is not in the supported set",
+		Why:    "LanguageConfig.DefaultTag is {default_tag}, which is not listed in SupportedTags; the default would serve a language the app does not declare.",
+		Fix:    "Clear DefaultTag to serve SupportedTags[0], or add the tag to SupportedTags.",
+		WayOut: "DefaultLanguageConfig() leaves DefaultTag empty.",
+	},
+	string(codeLanguageExtractorNil): {
+		What:   "Language extractor is nil",
+		Why:    "LanguageConfig.Extractors contains a nil entry; a nil extractor would panic at request time instead of reporting the config mistake at construction.",
+		Fix:    "Remove the nil entry from Extractors.",
+		WayOut: "Leave Extractors nil or empty to negotiate every request to the default tag.",
+	},
+
 	// Runtime errors.
 	string(codeServerShutdownFailed): {
 		What:   "HTTP server shutdown failed",

@@ -88,8 +88,9 @@ type TagMatcher func(tag string) (supported string, ok bool)
 type LanguageConfig struct {
 	// SupportedTags lists the canonical language tags the app serves, in
 	// priority order — the first entry is the default when nothing matches.
-	// Tags are canonicalized (trimmed, lowercased) and must be non-empty
-	// subtags of [a-zA-Z0-9-]. Required.
+	// Tags must be non-empty subtags of [a-zA-Z0-9-]. The declared spelling
+	// is preserved for serving ("zh-Hans" stays "zh-Hans" in
+	// Content-Language); comparisons are case-insensitive. Required.
 	SupportedTags []string
 
 	// DefaultTag is served when no extractor yields a matching candidate.

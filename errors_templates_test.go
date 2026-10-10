@@ -76,6 +76,11 @@ var allHTTputilErrorCodes = []Code{
 	codeDecompressionEncodingDuplicate,
 
 	codeCSRFAttestationConflict,
+
+	codeLanguageTagsEmpty,
+	codeLanguageTagInvalid,
+	codeLanguageDefaultUnsupported,
+	codeLanguageExtractorNil,
 }
 
 // legacyErrorCodes are pre-taxonomy codes kept for backward compatibility.
