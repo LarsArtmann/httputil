@@ -116,6 +116,8 @@ Separate Go module (`github.com/larsartmann/httputil/server_timing`, package `se
 
 All classified errors implement `Coded`, `Classified`, `Contextual`, and `Retryable` from `go-error-family`. Consumers can use `errorfamily.Classify(err)` for retry/exit-code decisions and `httputil.InDomain(err, domain)` to route by failing component.
 
+Conditional-request outcomes (304/412/428) are covered by upstream classification guidance in go-error-family's README ("Conditional Requests", landed 2026-10-10 after its issue #5 was accepted): 428 = `Rejection` (omitted precondition is incomplete input), 412 = `NewConflict(...).WithHTTPStatus(412)` (state clash — refresh and reapply), 304 = success path (the ETag middleware's Not Modified responses carry no error classification).
+
 Context is attached where relevant (e.g., `status` on write errors).
 
 ## Additional Active Linters (lint profile)
