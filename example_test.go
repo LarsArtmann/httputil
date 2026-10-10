@@ -902,3 +902,27 @@ func ExampleCSRFConfig_sameSiteFallback() {
 
 	// Output: csrf_token true true
 }
+
+func ExampleLanguage() {
+	cfg := DefaultLanguageConfig()
+	cfg.SupportedTags = []string{"en", "de"}
+
+	handler := Language(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "negotiated=%s", LanguageFromContext(r.Context()))
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	req.Header.Set("Accept-Language", "de-DE,de;q=0.9,en;q=0.8")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	fmt.Println(rec.Header().Get("Content-Language"))
+	fmt.Println(rec.Header().Get("Vary"))
+	fmt.Print(rec.Body.String())
+
+	// Output:
+	// de
+	// Accept-Language
+	// negotiated=de
+}
