@@ -44,11 +44,11 @@ type pooledWriter struct {
 }
 
 func (pw *pooledWriter) Write(p []byte) (int, error) {
-	return pw.writer.Write(p)
+	return pw.writer.Write(p) //nolint:wrapcheck // pure delegation; wrapping happens at the compressWriter choke points
 }
 
 func (pw *pooledWriter) Close() error {
-	return pw.writer.Close()
+	return pw.writer.Close() //nolint:wrapcheck // pure delegation; wrapping happens at the compressWriter choke points
 }
 
 // Flush delegates to the wrapped writer when it supports flushing and is a
@@ -59,7 +59,7 @@ func (pw *pooledWriter) Flush() error {
 		return nil
 	}
 
-	return flusher.Flush()
+	return flusher.Flush() //nolint:wrapcheck // pure delegation; wrapping happens at the compressWriter choke points
 }
 
 // newWriterPool probes the factory once (bound to io.Discard) to decide
@@ -91,7 +91,7 @@ func newWriterPool(factory WriterFactory) *writerPool {
 
 	p := &writerPool{
 		factory:    factory,
-		pool:       &sync.Pool{},
+		pool:       &sync.Pool{New: nil}, // bound below, after p exists
 		resettable: resettable,
 	}
 	p.pool.New = p.newPooledWriter
@@ -138,23 +138,23 @@ func (p *writerPool) acquire(dst io.Writer) (io.WriteCloser, error) {
 
 	raw := p.pool.Get()
 
-	pw, ok := raw.(*pooledWriter)
+	wrapped, ok := raw.(*pooledWriter)
 	if !ok {
 		return nil, errUnexpectedPoolType.WithContextf("pool_element_type", "%T", raw)
 	}
 
-	if pw.owner != p {
+	if wrapped.owner != p {
 		return nil, errUnexpectedPoolType.WithContextf("pool_element_type", "%T", raw)
 	}
 
-	resettable, ok := pw.writer.(resettableWriter)
+	resettable, ok := wrapped.writer.(resettableWriter)
 	if !ok {
-		return nil, errUnexpectedPoolType.WithContextf("pool_element_type", "%T", pw.writer)
+		return nil, errUnexpectedPoolType.WithContextf("pool_element_type", "%T", wrapped.writer)
 	}
 
 	resettable.Reset(dst)
 
-	return pw, nil
+	return wrapped, nil
 }
 
 // release returns a pooled writer to the pool after a successful Close. Only
