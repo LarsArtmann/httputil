@@ -471,6 +471,7 @@ The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a
 | `CSRF`       | `csrf.max_age_negative`                     | Rejection      | No        | CSRFConfig.MaxAge is negative                                                                                 |
 | `CSRF`       | `csrf.trusted_origin_invalid`               | Rejection      | No        | TrustedOrigins entry is not a usable scheme://host origin                                                     |
 | `CORS`       | `cors.methods_empty`                        | Rejection      | No        | CORSConfig.AllowedMethods is empty                                                                            |
+| `Language`   | `language.*`                                | Rejection      | No        | LanguageConfig invalid (empty tags, invalid tag charset, unsupported default, nil extractor)                  |
 | `Compress`   | `compression.incompressible_prefix_invalid` | Rejection      | No        | IncompressibleTypes entry is empty or lacks a slash                                                           |
 | `Compress`   | `compression.absent_encoding_invalid`       | Rejection      | No        | AbsentEncoding is not a known AbsentEncodingPolicy constant                                                   |
 | `Decompress` | `decompression.encoding_unrecognized`       | Rejection      | No        | Encodings entry other than gzip/deflate                                                                       |

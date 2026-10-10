@@ -47,11 +47,12 @@ nix flake check            # Full flake gates (includes treefmt verification)
 # residuals bullet and the honest-silence paragraph point here; update this
 # block, not copies.
 # Real gates (exit 0 required): legacy_as + stdlib_constructor below.
-# --type-aware is ADVISORY-ONLY: ~45 `sentinel_concrete_type`
-# (measured 2026-10-10, erraudit 1c6809a: 45 in root, server_timing clean; the
+# --type-aware is ADVISORY-ONLY: ~50 `sentinel_concrete_type`
+# (re-measured 2026-10-10 after the language middleware added its 4 sentinels:
+# 50 in root, server_timing clean; the
 # load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites) and
-# ~44 test-side `errors.Is` matches (all correct) — verdict history:
+# ~47 test-side `errors.Is` matches (all correct) — verdict history:
 # docs/status/2026-09-11_10-03 and _13-49 (also the `_ =` honest-silence
 # discards and the scripts/ exemptions).
 # Upstream tool bugs filed 2026-10-10: LarsArtmann/erraudit#10 (the
