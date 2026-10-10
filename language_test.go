@@ -11,7 +11,7 @@ import (
 func assertLanguageResponse(
 	t *testing.T,
 	rec *httptest.ResponseRecorder,
-	wantContentLanguage, wantVaryContains string,
+	wantContentLanguage string,
 ) {
 	t.Helper()
 
@@ -19,8 +19,8 @@ func assertLanguageResponse(
 		t.Errorf("Content-Language = %q, want %q", got, wantContentLanguage)
 	}
 
-	if vary := rec.Header().Get("Vary"); !strings.Contains(vary, wantVaryContains) {
-		t.Errorf("Vary = %q, want it to contain %q", vary, wantVaryContains)
+	if vary := rec.Header().Get("Vary"); !strings.Contains(vary, "Accept-Language") {
+		t.Errorf("Vary = %q, want it to contain %q", vary, "Accept-Language")
 	}
 }
 
@@ -40,7 +40,7 @@ func TestLanguage_SecondHeaderCandidateServedWhenFirstUnsupported(t *testing.T) 
 		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(rec, req)
 
-	assertLanguageResponse(t, rec, "en", "Accept-Language")
+	assertLanguageResponse(t, rec, "en")
 }
 
 func TestLanguage_PathLegBeatsHeader(t *testing.T) {
@@ -173,7 +173,7 @@ func TestLanguage_ZeroValueConfigFallsBackToDefault(t *testing.T) {
 		}
 	})).ServeHTTP(rec, req)
 
-	assertLanguageResponse(t, rec, "en", "Accept-Language")
+	assertLanguageResponse(t, rec, "en")
 }
 
 func TestLanguage_ZeroValueDisableFlagsKeepHeadersOn(t *testing.T) {
@@ -188,7 +188,7 @@ func TestLanguage_ZeroValueDisableFlagsKeepHeadersOn(t *testing.T) {
 		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
 	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
-	assertLanguageResponse(t, rec, "de", "Accept-Language")
+	assertLanguageResponse(t, rec, "de")
 }
 
 func TestLanguage_DisableFlagsTurnHeadersOff(t *testing.T) {
@@ -630,7 +630,7 @@ func TestLanguage_EmptyTagsConfigServesDefaultConfigLanguage(t *testing.T) {
 		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
 	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
-	assertLanguageResponse(t, rec, "en", "Accept-Language")
+	assertLanguageResponse(t, rec, "en")
 }
 
 func TestLanguage_AllInvalidTagsFallBackToDefaultConfig(t *testing.T) {
@@ -643,7 +643,7 @@ func TestLanguage_AllInvalidTagsFallBackToDefaultConfig(t *testing.T) {
 		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
 	).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
 
-	assertLanguageResponse(t, rec, "en", "Accept-Language")
+	assertLanguageResponse(t, rec, "en")
 }
 
 func TestLanguage_UnsupportedDefaultTagFallsBackToFirst(t *testing.T) {

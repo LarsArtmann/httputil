@@ -95,7 +95,7 @@ func differentialAcceptLanguage(header string) []string {
 
 	var prefs []pref
 
-	for _, entry := range strings.Split(header, ",") {
+	for entry := range strings.SplitSeq(header, ",") {
 		tag, params, _ := strings.Cut(entry, ";")
 		tag = trim(tag)
 
@@ -166,32 +166,24 @@ func oracleEntryWeight(params string) (float64, bool) {
 // production parser accepts: integer part 0 or 1, optional dot plus 1-3
 // decimals, and no value above 1 (fraction on 1 must be zero).
 func oracleQGrammar(s string) bool {
-	dot := strings.IndexByte(s, '.')
-
-	intPart, frac := s, ""
-
-	if dot >= 0 {
-		intPart = s[:dot]
-
-		frac = s[dot+1:]
-	}
+	intPart, frac, _ := strings.Cut(s, ".")
 
 	if intPart != "0" && intPart != "1" {
 		return false
 	}
 
-	if dot >= 0 && len(frac) > 3 {
+	if len(frac) > 3 {
 		return false
 	}
 
-	for i := 0; i < len(frac); i++ {
+	for i := range len(frac) {
 		if frac[i] < '0' || frac[i] > '9' {
 			return false
 		}
 	}
 
 	if intPart == "1" && frac != "" {
-		for i := 0; i < len(frac); i++ {
+		for i := range len(frac) {
 			if frac[i] != '0' {
 				return false
 			}
