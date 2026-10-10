@@ -57,6 +57,14 @@
 | BenchmarkCompose/Construct (3 no-op middlewares, one-time)     | 4.936  | 0      | 0         |
 | BenchmarkCompose/Serve (same stack, steady state)              | 99.54  | 208    | 4         |
 | BenchmarkMiddlewareStack_Middleware (3 entries, per apply)     | 6.415  | 0      | 0         |
+| BenchmarkLanguage (path-miss + header hit, de/en) *            | 570.3  | 584    | 8         |
+| BenchmarkLanguageHeaderOnly *                                  | 423.7  | 584    | 8         |
+| BenchmarkParseAcceptLanguageCandidates *                       | 103.1  | 176    | 3         |
+
+\* Added 2026-10-10 with the `Language()` middleware (one 3s×5 pass;
+best-of-5 reported, same estimator as the load note above). The 584 B/op
+is dominated by the query/URL parse on the reused harness request —
+allocation counts are the trustworthy signal, ns/op the noisy one.
 
 ### `httpspec` (3s×5, own module; ran in one short window — treat ±25% deltas vs 2026-09-11 as load noise)
 
