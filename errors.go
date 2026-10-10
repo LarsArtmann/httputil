@@ -430,6 +430,11 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 // This registers a strict superset of go-etag's error templates and stdlib
 // classifications, so consumers need only call this once. Do not also call
 // etag.RegisterErrorClassifications.
+//
+// Deliberately NOT guarded by sync.Once: the underlying registry merges
+// classifications (map overwrite under a lock), so repeat calls are harmless
+// idempotent re-registrations and the call-once guidance is about intent,
+// not safety.
 func RegisterErrorClassifications() {
 	// ErrNoCookie and ErrNoLocation are Rejection: the named cookie or header
 	// location is deterministically absent, so an unchanged retry can never
