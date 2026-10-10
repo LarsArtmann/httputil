@@ -51,6 +51,9 @@ nix flake check            # Full flake gates (includes treefmt verification)
 # ~44 test-side `errors.Is` matches (all correct) — verdict history:
 # docs/status/2026-09-11_10-03 and _13-49 (also the `_ =` honest-silence
 # discards and the scripts/ exemptions).
+# Upstream tool bugs filed 2026-10-10: LarsArtmann/erraudit#10 (the
+# rewrite hint does not compile for the 29 cloned sentinels), #11 (the
+# legacy_is guard misses unexported err* sentinels — cause of the ~44).
 # GOEXPERIMENT=jsonv2 prefix dropped 2026-10-09: json/v2 is standard in Go 1.27.
 erraudit lint ./... --type-aware --enforce-go-error-family
 erraudit lint ./... --type legacy_as

@@ -4,7 +4,9 @@ package httputil
 // than per-file) so every middleware reads and writes the same names.
 const (
 	headerAcceptEncoding  = "Accept-Encoding"
+	headerAcceptLanguage  = "Accept-Language"
 	headerContentEncoding = "Content-Encoding"
+	headerContentLanguage = "Content-Language"
 	headerContentLength   = "Content-Length"
 	headerContentType     = "Content-Type"
 	headerVary            = "Vary"

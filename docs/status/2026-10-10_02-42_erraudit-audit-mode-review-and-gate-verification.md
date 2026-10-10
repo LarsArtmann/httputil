@@ -65,7 +65,7 @@ Nothing destructive; two honest own-goals, one of them a repeat offense:
 8. Document the `scripts/` `stdlib_constructor` exemption *mechanism* in AGENTS.md (Sept f.7: analyze walks `scripts/`, lint exempts packages not importing go-error-family — re-verify with `go list` before writing).
 9. Evaluate `erraudit nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (Sept f.10; mind the nolintlint fragility precedent with gosec).
 10. Verify `--enforce-coded-errors` / `--enforce-deferred-close` semantics in 1c6809a (`erraudit --help`); document which enforced flags exist and their exit-code behavior.
-11. Fix the `sentinel_concrete_type` fix-hint in erraudit itself: detect `.WithContext`/`.WithCause`/clone usage before suggesting the `error`-interface declaration (see e.7).
+11. ~~Fix the `sentinel_concrete_type` fix-hint in erraudit itself: detect `.WithContext`/`.WithCause`/clone usage before suggesting the `error`-interface declaration (see e.7).~~ done 2026-10-10 (this session, follow-up pass): source-verified at erraudit @ 044e66b and filed as LarsArtmann/erraudit#10; the related `Err*`/`err*` guard asymmetry (44 test-side false positives) filed as #11. Drafts: `~/projects/erraudit/docs/drafts/2026-10-10_*.md`.
 12. Owner decision: do `scripts/` tools want concrete error types (the 2 `generic_return` advisories), or is the advisory permanently ignored?
 13. Consolidate the now-four erraudit-residual doc locations into one canonical home + cross-references (Sept c.3, still open).
 14. Sweep the Sept 10-03 f-list against reality after today: f.1 closed (this session); f.2/f.7/f.8/f.10 still open — one-line status pass so the old report doesn't drift further from truth.
@@ -80,7 +80,7 @@ Nothing destructive; two honest own-goals, one of them a repeat offense:
 
 1. **Which erraudit build produced the pasted report — exactly the installed `1c6809a`, or a different/newer build?** If it differs, today's 45/44 counts may not be canonical for the installed tool and the AGENTS.md numbers would need a build-pinned caveat.
 2. **Do you want a guard against off-policy erraudit invocations** (a `scripts/erraudit-gates.sh` wrapper and/or an AGENTS.md audit-mode warning), or should audit-mode pastes continue to be triaged case-by-case as they arrive?
-3. **Should the `sentinel_concrete_type` fix-hint be fixed upstream in erraudit** (its "declare as the error interface" suggestion does not compile for the 23 `WithContext`/`WithCause` clone sites)? If erraudit is a fleet project you own, point me at its repo and I'll take it there.
+3. ~~**Should the `sentinel_concrete_type` fix-hint be fixed upstream in erraudit** (its "declare as the error interface" suggestion does not compile for the 23 `WithContext`/`WithCause` clone sites)? If erraudit is a fleet project you own, point me at its repo and I'll take it there.~~ answered 2026-10-10 (same session): repo located at `~/projects/erraudit` (private, LarsArtmann/erraudit), diagnosis source-verified, filed as #10 (+ #11 for the guard asymmetry).
 
 ---
 
