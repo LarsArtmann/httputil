@@ -70,7 +70,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 - `DefaultWriterFactoriesForLevel(level int)` returns a fresh default factory map (gzip + deflate + identity) at any compression level.
 - `Compression()` uses `cfg.Level` to build default factories when `WriterFactories` is empty — `Level` is no longer ignored.
-- Per-encoding `writerPool` (owned by the negotiator, one pool per encoding per `Compression` instance) reuses `gzip.Writer` and `flate.Writer` instances; a construction-time probe makes non-resettable custom factories skip the pool entirely (no wasted pooled allocation per request).
+- Per-encoding `writerPool` (owned by the negotiator, one pool per encoding per `Compression` instance) reuses `gzip.Writer` and `flate.Writer` instances; a construction-time probe makes non-resettable custom factories skip the pool entirely (no wasted pooled allocation per request). The pool owns exactly one factory, pooled elements carry owner provenance (`release` refuses foreign writers), and `(nil, nil)` factory returns are rejected — panics at construction/refill (factory-contract class), a classified `compression.pool_type_unexpected` error on the direct path.
 - Content-type deny-list skips incompressible formats (`image/`, `video/`, `audio/`, `application/gzip`, `application/zip`, `application/pdf`, etc.).
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
@@ -207,8 +207,6 @@ Measured 2026-09-27 with `go test -race -coverprofile`: **97.9%** (`httputil`, l
 - `ratelimit_keyed.go:384 evictOldestIfAtCapacity` — 90.9%. Stale-heap-mismatch continue branch.
 - `server.go:202 Start` — 97.6%. Listener-close failure branch.
 - `server.go:251 StartTLS` — 68.3%. Listen-failure error branch (requires port-conflict injection).
-- `compress_pool.go:44 newWriterPool` — 90.9%. Factory-probe error branch.
-- `compress_pool.go:73 acquire` — 93.8%. Pool-type-mismatch defensive branch.
 - `compression.go:255 Compression` — 98.0%. Constructor warning path for an invalid custom level.
 - `decompression.go:107 Decompression` — 84.0%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
 - `id_generator.go:129 drawRandomBytes` — 84.6%. Short-read loop branch (kernel-level fault injection).
