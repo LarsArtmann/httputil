@@ -339,13 +339,14 @@ func parseAcceptLanguageCandidates(header string) ([]string, bool) {
 }
 
 // parseAcceptLanguageEntry parses one comma-separated Accept-Language
-// entry ("de" or "de;q=0.8") into its tag and q-weight. Wildcards and
-// q=0 entries yield nothing; malformed q-values keep default weight.
+// entry ("de" or "de;q=0.8") into its tag and q-weight. Wildcards,
+// control characters in the tag, and q=0 entries yield nothing; malformed
+// q-values keep default weight.
 func parseAcceptLanguageEntry(entry string) (string, float64, bool) {
 	tag, params, _ := strings.Cut(entry, ";")
 	tag = trim(tag)
 
-	if tag == "" || tag == "*" {
+	if tag == "" || tag == "*" || containsControlChar(tag) {
 		return "", 0, false
 	}
 
@@ -362,6 +363,18 @@ func parseAcceptLanguageEntry(entry string) (string, float64, bool) {
 	}
 
 	return tag, weight, true
+}
+
+// containsControlChar reports whether s contains ASCII control characters
+// (which header writes must never carry).
+func containsControlChar(s string) bool {
+	for i := range len(s) {
+		if s[i] < 0x20 || s[i] == 0x7f {
+			return true
+		}
+	}
+
+	return false
 }
 
 // LanguageExtractorFromQuery yields the tag in the given URL query

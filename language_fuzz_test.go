@@ -3,15 +3,16 @@ package httputil
 import (
 	"net/http"
 	"net/http/httptest"
+	"sort"
+	"strconv"
 	"strings"
 	"testing"
 )
 
 // FuzzParseAcceptLanguage pins the parser's invariants over arbitrary
-// header bytes: candidates are never empty strings, never contain
-// separators that would smuggle extra entries, ordering is weight
-// non-increasing, and the full middleware path stays panic-free with the
-// negotiated tag charset-safe for the Content-Language header.
+// header bytes: candidates are never empty, never carry entry separators,
+// the ordering matches an independent differential oracle, and the full
+// middleware path stays panic-free with a charset-safe Content-Language.
 func FuzzParseAcceptLanguage(f *testing.F) {
 	seeds := []string{
 		"",
@@ -26,6 +27,7 @@ func FuzzParseAcceptLanguage(f *testing.F) {
 		"  de  ;  q=0.5  , en",
 		"de;q=-0.5",
 		"de;q=2",
+		"0;q=0.1,0,000",
 	}
 
 	for _, seed := range seeds {
@@ -45,8 +47,6 @@ func FuzzParseAcceptLanguage(f *testing.F) {
 			t.Fatal("ok=true with zero candidates")
 		}
 
-		prevWeight := 2.0
-
 		for i, tag := range tags {
 			if tag == "" {
 				t.Fatalf("candidate %d is empty for header %q", i, header)
@@ -55,19 +55,13 @@ func FuzzParseAcceptLanguage(f *testing.F) {
 			if strings.ContainsAny(tag, ",;") {
 				t.Fatalf("candidate %q contains an entry separator (header %q)", tag, header)
 			}
-
-			weight, found := candidateWeight(header, tag)
-			if found && weight > prevWeight+1e-9 {
-				t.Fatalf("candidates %v not in non-increasing weight order (header %q)", tags, header)
-			}
-
-			if found {
-				prevWeight = weight
-			}
 		}
 
-		// Full middleware path must stay panic-free and produce a
-		// charset-safe Content-Language value for any supported set.
+		want := differentialAcceptLanguage(header)
+		if strings.Join(tags, ",") != strings.Join(want, ",") {
+			t.Fatalf("candidates %v, want oracle %v (header %q)", tags, want, header)
+		}
+
 		cfg := LanguageConfig{
 			SupportedTags: []string{"de", "en"},
 			Extractors:    []LanguageExtractor{LanguageExtractorFromAcceptHeader()},
@@ -87,26 +81,122 @@ func FuzzParseAcceptLanguage(f *testing.F) {
 	})
 }
 
-// candidateWeight recovers the weight the parser assigned to tag by
-// re-walking the header entries (fuzz-oracle helper; bounded by the header
-// length the fuzz engine supplies).
-func candidateWeight(header, tag string) (float64, bool) {
+// differentialAcceptLanguage re-implements the candidate parse with an
+// independent mechanism for the numeric work (strconv.ParseFloat instead
+// of the production hand-rolled scanner) and returns the expected order.
+// Mirrors production semantics: OWS trim, control-char skip, q-grammar
+// subset (int part 0|1, <=3 decimals, optional sign, no q>1), malformed
+// q keeps default weight.
+func differentialAcceptLanguage(header string) []string {
+	type pref struct {
+		tag    string
+		weight float64
+	}
+
+	var prefs []pref
+
 	for _, entry := range strings.Split(header, ",") {
-		candidate, params, _ := strings.Cut(entry, ";")
-		if trim(candidate) != tag {
+		tag, params, _ := strings.Cut(entry, ";")
+		tag = trim(tag)
+
+		if tag == "" || tag == "*" || containsControlChar(tag) {
 			continue
 		}
 
-		weight := defaultQValue
-
-		if qPart, found := strings.CutPrefix(trim(params), qValuePrefix); found {
-			if parsed, err := parseQValue(qPart); err == nil {
-				weight = parsed
-			}
+		weight, known := oracleEntryWeight(params)
+		if !known {
+			weight = defaultQValue
 		}
 
-		return weight, true
+		if weight <= 0 {
+			continue
+		}
+
+		prefs = append(prefs, pref{tag: tag, weight: weight})
 	}
 
-	return 0, false
+	sort.SliceStable(prefs, func(i, j int) bool {
+		return prefs[i].weight > prefs[j].weight
+	})
+
+	tags := make([]string, 0, len(prefs))
+	for _, p := range prefs {
+		tags = append(tags, p.tag)
+	}
+
+	return tags
+}
+
+// oracleEntryWeight resolves the q-parameter via strconv. The bool result
+// reports whether the parameter was well-formed (false keeps default
+// weight, mirroring production's malformed-q posture).
+func oracleEntryWeight(params string) (float64, bool) {
+	rest, found := strings.CutPrefix(trim(params), qValuePrefix)
+	if !found {
+		return defaultQValue, false
+	}
+
+	s := rest
+
+	neg := strings.HasPrefix(s, "-")
+	switch {
+	case neg:
+		s = s[1:]
+	case strings.HasPrefix(s, "+"):
+		s = s[1:]
+	}
+
+	if !oracleQGrammar(s) {
+		return defaultQValue, false
+	}
+
+	value, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return defaultQValue, false
+	}
+
+	if neg {
+		value = -value
+	}
+
+	return value, true
+}
+
+// oracleQGrammar reports whether s is in the RFC 7231 q-value subset the
+// production parser accepts: integer part 0 or 1, optional dot plus 1-3
+// decimals, and no value above 1 (fraction on 1 must be zero).
+func oracleQGrammar(s string) bool {
+	dot := strings.IndexByte(s, '.')
+
+	intPart, frac := s, ""
+
+	if dot >= 0 {
+		intPart = s[:dot]
+
+		frac = s[dot+1:]
+	}
+
+	if intPart != "0" && intPart != "1" {
+		return false
+	}
+
+	if dot >= 0 && len(frac) > 3 {
+		return false
+	}
+
+	for i := 0; i < len(frac); i++ {
+		if frac[i] < '0' || frac[i] > '9' {
+			return false
+		}
+	}
+
+	if intPart == "1" && frac != "" {
+		for i := 0; i < len(frac); i++ {
+			if frac[i] != '0' {
+				return false
+			}
+		}
+	}
+
+	return true
 }
