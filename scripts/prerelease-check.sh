@@ -47,13 +47,25 @@ step "4/9 Tests with race detection (root + server_timing)"
 go test -race -count=1 ./... || fail "go test -race (root)"
 (cd server_timing && go test -race -count=1 ./...) || fail "go test -race (server_timing)"
 
+step "4b/9 Race stress (CI parity, -count=10)"
+# count=1 does not reliably surface timing-dependent races (the 2026-08-05
+# lesson: clean at count=1, failing 60% of -count=10 runs); CI runs this on
+# every push, so release parity is the point.
+go test -race -count=10 ./... || fail "go test -race -count=10 (root)"
+
 step "5/9 Lint (root + server_timing)"
 golangci-lint run ./... || fail "golangci-lint run (root)"
 (cd server_timing && golangci-lint run ./...) || fail "golangci-lint run (server_timing)"
 
+step "5b/9 Doc snippet symbol check (CI parity)"
+# Same command as ci.yml's "Doc snippet symbol check": README and the
+# docs/integrations snippets must reference symbols that still exist.
+go run ./scripts/doc-snippet-refs README.md docs/integrations/*.md ||
+	fail "doc-snippet-refs"
+
 step "6/9 erraudit gates"
-GOEXPERIMENT=jsonv2 erraudit lint ./... --type legacy_as || fail "erraudit legacy_as"
-GOEXPERIMENT=jsonv2 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family ||
+erraudit lint ./... --type legacy_as || fail "erraudit legacy_as"
+erraudit lint ./... --type stdlib_constructor --enforce-go-error-family ||
 	fail "erraudit stdlib_constructor"
 
 step "7/9 Coverage threshold (95%)"
