@@ -7,7 +7,7 @@
 ## a) FULLY DONE (each: implemented, gates run, bookkeeping written, pushed, CI green)
 
 | # | Task | Verification highlights |
-|---|------|-------------------------|
+| --- | --- | --- |
 | 1 | **Tail debt from the 08:05 report** | `golangci-lint run --timeout 5m` = 0 issues; fmt + nix fmt idempotent; `-race -count=10` (TrustedProxy/CSRF/Compression) ok; both real erraudit gates (`legacy_as`, `stdlib_constructor --enforce-go-error-family`) exit 0 (the type-aware exit-2 is the documented advisory composition); addendum appended to the 08-05 report |
 | 2 | **First consolidation + push** | 14 mixed daemon commits soft-reset → explicit-path task commits (`c80ab65` code, `f65aec6` docs) → push → CI SUCCESS (run 38030629769) |
 | 3 | **M10 — post-v1.4.0 residue batch (12 items)** | `AbsentEncodingPolicy.String()` + test; `KeyedRateLimiterConfig.Validate` rejects `Burst > math.MaxInt32` (new `ratelimit.keyed_burst_too_large` Rejection with the FULL ceremony: code, sentinel, errors.go template, completeness list, README classification row); keyed-limiter default Retry-After documented in godoc; `MiddlewareStack` zero-value documented + `TestMiddlewareStack_ZeroValueUsable` execution probe; `TestTimeout_NegativeDurationExpiresContextImmediately`; httpspec `ExampleExpectVaryContains` + `ExampleExpectNotModifiedWithETag` and two pre-existing examples made self-contained; `-shuffle=on` in both CI test steps; error-template/family consistency re-verified via the completeness tests; 3 items verified already-done and struck (invalid-gzip 400 test, M08 listener-occupation fixture, `scripts/coverage-threshold 95` CI gate); off-cycle `prerelease-check.sh`: **ALL GATES PASSED** |
@@ -63,6 +63,7 @@ M10 ✅ closed · M20 ✅ closed · M21 ✅ closed · M22 ✅ closed · M23 ✅ 
 ## f) NEXT (≤50, ordered)
 
 **Immediate debt / cheap wins:**
+
 1. Verify the parallel session's nightly-fuzz.yml change through one real nightly run (it is on origin; the rotation it documents has never executed).
 2. Implement the **nightly-vs-floor Go skew preflight** (Medium, missed twice) — fail-fast comparison of go.work's floor vs the nightly workflow's pinned toolchain.
 3. Skill-defect report: reproduce the annotate-status-items `| N |`-table mangling, then file (verify-before-filing + github-voice).
