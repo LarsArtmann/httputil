@@ -57,6 +57,18 @@ Compare against the previous release. Investigate any regression exceeding 10%.
 
 Then refresh the recorded baseline in `docs/benchmarks.md` (3s × 5 protocol) so the doc reflects the release being cut. Note provenance for any row measured with a different harness or protocol than the rest.
 
+### 6.7. server_timing sub-module drift check (coordinated cuts)
+
+For any release that moves the `server_timing` sub-module tag, verify all four surfaces describe the same code before tagging:
+
+```bash
+ls server_timing/*.go   # compare against the arch-ref server_timing table
+```
+
+- `docs/architecture-reference.md` server_timing table has a row for every file the directory contains (the 2026-10-10 audit found `example_test.go` and `pattern_propagation_test.go` shipping unlisted).
+- The root `CHANGELOG.md` section being cut documents the sub-module tag version (coordinated cuts tag both modules from one commit — see step 11).
+- `server_timing/README.md` matches the actual exports (`grep -c '^func [A-Z]' server_timing/*.go`).
+
 ### 6.5. Scripts and examples review sweep
 
 Re-review `scripts/` and every `Example*` function — a prior pass claiming "clean" is not a substitute (the 2026-09-15 re-run found three real findings despite one). Check that examples still compile against the current API, their `// Output:` blocks are deterministic, and `scripts/` gates referenced by CI still exist and pass.
@@ -157,6 +169,36 @@ go get github.com/larsartmann/httputil@vX.Y.Z
 go mod verify
 govulncheck ./...
 ```
+
+Then prove the published module actually builds and serves — the proxy can serve a tag whose source does not compile as a consumer module (workspace `replace` directives mask exactly this):
+
+```bash
+cd $(mktemp -d)
+cat > main.go <<'EOF'
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+
+	httputil "github.com/larsartmann/httputil"
+)
+
+func main() {
+	handler := httputil.Recovery(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "ok")
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", http.NoBody))
+	fmt.Println(rec.Code, rec.Body.String())
+}
+EOF
+go mod init consumer && go mod tidy && go mod edit -require=github.com/larsartmann/httputil@vX.Y.Z && go mod tidy && go run .
+```
+
+Expect `200 ok`. Substitute one middleware per capability the release touched (compression, CSRF, rate limiting need their configs) — the default probe exercises the module boundary, not every feature.
 
 ### 16. Clean up
 
