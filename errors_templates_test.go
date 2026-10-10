@@ -50,6 +50,7 @@ var allHTTputilErrorCodes = []Code{
 	codeRatelimitKeyedLimitZero,
 	codeRatelimitKeyedWindowZero,
 	codeRatelimitKeyedTTLNegative,
+	codeRatelimitTrustedProxyCIDRInvalid,
 
 	codeMaxBodySizeNegative,
 

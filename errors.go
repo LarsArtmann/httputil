@@ -303,6 +303,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Set TTL to zero (keep idle keys forever) or a positive duration.",
 		WayOut: "Leave TTL at zero for small, bounded key populations.",
 	},
+	string(codeRatelimitTrustedProxyCIDRInvalid): {
+		What:   "Trusted proxy CIDR is invalid",
+		Why:    "The trusted-proxy set contains {cidr}, which failed CIDR parsing: {parse_error}.",
+		Fix:    "Correct the entry to CIDR notation such as 10.0.0.0/8, or a bare IP such as 10.0.0.1.",
+		WayOut: "ParseTrustedProxies(nil) falls back to the loopback-only default set.",
+	},
 	// Per-middleware config.
 	string(codeMaxBodySizeNegative): {
 		What:   "Request body size limit is negative",

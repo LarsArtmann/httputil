@@ -26,6 +26,7 @@ _Updated: 2026-10-10 — counts recomputed from the repo (53 examples — 42 roo
 | Server-Timing | `server_timing/server_timing.go` | — | Yes | `ExampleServerTimingMiddleware` | `BenchmarkServerTiming*` | `FuzzServerTiming*` |
 | CSRF | `csrf.go` | `CSRFConfig` + `Validate()` | Yes | `ExampleCSRFMiddleware`, `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` | `BenchmarkCSRFMiddleware*` | `FuzzCSRF*` (6) |
 | KeyedRateLimit | `ratelimit_keyed.go` | `KeyedRateLimiterConfig` + `Validate()` | Yes | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*` | — |
+| TrustedClientIP | `ratelimit_keyed_trusted.go` | `TrustedProxySet` via `ParseTrustedProxies()`, `KeyExtractorFromTrustedClientIP()` (additive, v1.5-cycle) | — | — | — | `FuzzTrustedProxySetClientIP` |
 | Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | `ExampleDecompression` | `BenchmarkDecompression*` | `FuzzDecompression` |
 | CSP Nonce | `nonce.go` | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes | `ExampleNonce` | `BenchmarkNonce*` | `FuzzNonce` |
 | Language | `language.go` | `LanguageConfig` + `Validate()`, pluggable extractors + `TagMatcher` | Yes | `ExampleLanguage` | — | `FuzzParseAcceptLanguage` |
@@ -83,7 +84,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 - **Keyed rate limiting** via `KeyedRateLimiter` (new in v0.8.0) — O(log n) min-heap eviction, `MaxKeys` cap, lazy TTL eviction, `Retry-After` headers, and a monitoring API (`ActiveKeys()`). This is the recommended API going forward.
 - `EvictionTTL` field on `KeyedRateLimiterConfig` enables opt-in lazy eviction of idle buckets. Zero (default) preserves unbounded-growth behavior.
-- Pluggable `KeyExtractor` interface (`KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP`).
+- Pluggable `KeyExtractor` interface (`KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP`, and — new in the v1.5 cycle — `KeyExtractorFromTrustedClientIP(cidrs)`, which honors forwarded headers only from trusted-proxy CIDR peers; `ParseTrustedProxies` returns the reusable `TrustedProxySet` with `ClientIP`/`Contains` for guard and logging consumers).
 - Pluggable `RejectionHandler` for custom 429 responses.
 - Migration guide: `docs/migrating-to-keyed-rate-limiter.md`.
 
@@ -195,7 +196,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%** (`httputil`, library packages), **98.6%** (`httpspec`); race-mode 2026-09-27 measured 97.9% / 99.1%. The remaining sub-100% functions are documented defensive code paths:
+Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%** (`httputil`, library packages), **98.6%** (`httpspec`); race-mode 2026-09-27 measured 97.9% / 99.1%. The remaining sub-100% functions are documented defensive code paths. (`ratelimit_keyed_trusted.go`, landed after that artifact, measured 100% locally under `-race` on 2026-10-10.)
 
 **Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 

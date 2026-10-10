@@ -97,6 +97,20 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `ClientIPFromContext` | Frozen |
 | `WithClientIP`        | Frozen |
 
+### Trusted-Proxy Keying (Additive, v1.5 cycle)
+
+`ClientIP` trusts forwarded headers blindly (frozen behavior, documented).
+The gated alternative is additive:
+
+| Symbol                            | Tier     |
+| --------------------------------- | -------- |
+| `TrustedProxySet`                 | Additive |
+| `ParseTrustedProxies`             | Additive |
+| `TrustedProxySet.Contains`        | Additive |
+| `TrustedProxySet.ClientIP`        | Additive |
+| `TrustedProxySet.KeyExtractor`    | Additive |
+| `KeyExtractorFromTrustedClientIP` | Additive |
+
 ### Request ID (Frozen at v1.0)
 
 | Symbol                   | Tier   |
