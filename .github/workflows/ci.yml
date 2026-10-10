@@ -10,8 +10,45 @@ permissions:
   contents: read
 
 jobs:
+  preflight:
+    name: Toolchain skew preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Fail fast when a go.work/go.mod bump leaves a workflow's exact
+      # GOTOOLCHAIN pin behind: the 2026-10-05..09 nightly "crash" streak
+      # was exactly this skew (an older pinned toolchain rejected the
+      # go.work floor before any fuzzing ran, filing a false issue every
+      # night). Runs before test/lint; they wait for it via `needs`.
+      - name: Workflow GOTOOLCHAIN pins must satisfy the workspace floor
+        run: |
+          set -euo pipefail
+          floor=$({ cat go.work; find . -name go.mod -not -path './vendor/*' -exec cat {} +; } \
+            | awk '/^go /{print $2}' | sort -V | tail -1)
+          echo "Highest go directive across go.work/go.mod: go${floor}"
+          fail=0
+          for wf in .github/workflows/*.yml; do
+            pins=$(awk '/GOTOOLCHAIN: go[0-9]/{sub(/^.*GOTOOLCHAIN: /, ""); print}' "$wf" | sort -u)
+            if [ -z "$pins" ]; then
+              echo "${wf}: no exact GOTOOLCHAIN pin (nothing to check)"
+              continue
+            fi
+            for pin in $pins; do
+              version=${pin#go}
+              if [ "$(printf '%s\n%s\n' "$floor" "$version" | sort -V | tail -1)" != "$version" ]; then
+                echo "::error file=${wf}::${wf} pins GOTOOLCHAIN=${pin} but the go.work/go.mod floor is go${floor} — raise the pin, the runtime will reject the toolchain otherwise."
+                fail=1
+              else
+                echo "${wf}: GOTOOLCHAIN=${pin} satisfies go${floor}"
+              fi
+            done
+          done
+          exit $fail
+
   test:
     name: Test
+    needs: preflight
     runs-on: ubuntu-latest
     env:
       # setup-go's manifest lags new Go patches; pin the toolchain via Go
@@ -95,6 +132,7 @@ jobs:
 
   lint:
     name: Lint
+    needs: preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

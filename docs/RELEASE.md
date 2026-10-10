@@ -65,6 +65,8 @@ Re-review `scripts/` and every `Example*` function — a prior pass claiming "cl
 
 The Release workflow is **frozen at the tag** — a pin that is already stale ships a red Release run (the v1.5.0 run died on exactly this: its `GO_VERSION` predated the Go patch whose export data the pinned `GOLANGCI_LINT_VERSION` could not read). Before tagging, confirm the pinned `GOLANGCI_LINT_VERSION` (ci.yml Lint job + release.yml env, v2.14.0 since 2026-10-09) still lints the repo clean under the CURRENT Go patch: golangci-lint is built against one Go toolchain and chokes when a newer patch bumps stdlib export data past it (v2.13.2 vs go1.27.2, 2026-10-09; v2.14.0, built with go1.27.0, verified clean under the 1.27.2 toolchain). If it fails, bump golangci-lint BEFORE the tag. golangci-lint forces `GOTOOLCHAIN=local` internally, so job-env `GOTOOLCHAIN` pins never reach the linter — that is why the exact-Go-pin workaround existed and why the golangci version is the pin that matters.
 
+When bumping the `go` directive in `go.work`/`go.mod`, CI's **Toolchain skew preflight** job (ci.yml, runs before Test/Lint) is the automated gate for the related failure class: it fails the push when any workflow's exact `GOTOOLCHAIN: goX.Y.Z` pin is older than the highest `go` directive — the skew that produced the 2026-10-05..09 nightly false-crash streak.
+
 ## Release-Time Steps
 
 ### 7. Update CHANGELOG.md
