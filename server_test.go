@@ -801,3 +801,141 @@ func TestServer_StartTLS_ListenerClearedOnCertFailure(t *testing.T) {
 		t.Errorf("ListenerAddr after failed StartTLS = (%v, true), want (nil, false)", addr)
 	}
 }
+
+func TestServer_Start_RestartableAfterBindFailure(t *testing.T) {
+	t.Parallel()
+
+	blocker, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = blocker.Addr().String()
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	bindErr := <-srv.Start()
+	if bindErr == nil {
+		t.Fatal("Start on an occupied address delivered nil error")
+	}
+
+	if addr, ok := srv.ListenerAddr(); ok {
+		t.Errorf("ListenerAddr after bind failure = (%v, true), want (nil, false)", addr)
+	}
+
+	if err := blocker.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	errChan := srv.Start()
+
+	select {
+	case serveErr := <-errChan:
+		t.Fatalf("Start after bind failure delivered error %v, want successful serving", serveErr)
+	case <-time.After(3 * time.Second):
+	}
+
+	addr, ok := srv.ListenerAddr()
+	if !ok {
+		t.Fatal("ListenerAddr after retry Start = not listening, want resolved address")
+	}
+
+	resp, err := http.Get("http://" + addr.String())
+	if err != nil {
+		t.Fatalf("GET after retry Start = %v, want 200 response", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("retry Start status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		t.Errorf("Shutdown after retry = %v, want nil", err)
+	}
+}
+
+func TestServer_StartTLS_RestartableAfterCertFailure(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+
+	srv, err := NewServer(cfg, newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	certErr := <-srv.StartTLS("/nonexistent/cert.pem", "/nonexistent/key.pem")
+	if certErr == nil {
+		t.Fatal("StartTLS with unreadable certificate files delivered nil error")
+	}
+
+	if addr, ok := srv.ListenerAddr(); ok {
+		t.Errorf("ListenerAddr after failed StartTLS = (%v, true), want (nil, false)", addr)
+	}
+
+	certPEM, keyPEM := newSelfSignedCert(t)
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "cert.pem")
+	keyPath := filepath.Join(dir, "key.pem")
+	if err := os.WriteFile(certPath, certPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(keyPath, keyPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	block, _ := pem.Decode(certPEM)
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	caPool := x509.NewCertPool()
+	caPool.AddCert(cert)
+
+	errChan := srv.StartTLS(certPath, keyPath)
+
+	select {
+	case serveErr := <-errChan:
+		t.Fatalf("StartTLS retry delivered error %v, want successful serving", serveErr)
+	case <-time.After(3 * time.Second):
+	}
+
+	addr, ok := srv.ListenerAddr()
+	if !ok {
+		t.Fatal("ListenerAddr after retry StartTLS = not listening, want resolved address")
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    caPool,
+				ServerName: "localhost",
+			},
+		},
+	}
+
+	resp, err := client.Get("https://" + addr.String())
+	if err != nil {
+		t.Fatalf("GET after retry StartTLS = %v, want 200 response", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("retry StartTLS status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		t.Errorf("Shutdown after retry = %v, want nil", err)
+	}
+}

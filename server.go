@@ -199,6 +199,14 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 // It returns a channel that receives any non-shutdown error from Serve;
 // a bind failure (e.g. address already in use) is delivered immediately.
 // Use ListenerAddr to resolve ephemeral ports after a ":0" address.
+//
+// Error delivery implies full failure settlement: the listener is closed
+// and ListenerAddr reports false before the error can be received, so the
+// same Server can be started again after any failure (bind error, Serve
+// error) without re-creating it. Starting a server that is currently
+// listening returns the classified server.already_started error instead of
+// binding an untracked orphan listener; that rejection leaves the server
+// running and does not affect a later Start after Shutdown or a failure.
 func (srv *Server) Start() <-chan error {
 	errChan := make(chan error, 1)
 
@@ -240,11 +248,18 @@ func (srv *Server) Start() <-chan error {
 
 // StartTLS begins listening on the configured address for HTTPS in a
 // goroutine, using the certificate and key files at the given paths. The
-// server's TLSConfig (validated to enforce TLS 1.2+ when set) applies to the
-// listener. It returns a channel that receives any non-shutdown error from
-// Serve; a bind failure (e.g. address already in use) is delivered
+// server's TLSConfig (validated to enforce TLS 1.2+ when set) applies to
+// the listener. It returns a channel that receives any non-shutdown error
+// from Serve; a bind failure (e.g. address already in use) is delivered
 // immediately. Use ListenerAddr to resolve ephemeral ports after a ":0"
 // address.
+//
+// The same settlement guarantee as Start applies: a delivered error
+// (including a ServeTLS failure such as unreadable certificate files)
+// implies the listener is already closed and ListenerAddr reports false,
+// so retrying StartTLS on the same Server after a failure is safe. A
+// start while listening returns the classified server.already_started
+// error.
 //
 // With in-memory certificates, pass empty paths and set
 // TLSConfig.GetCertificate (or Certificates) on the ServerConfig instead.
