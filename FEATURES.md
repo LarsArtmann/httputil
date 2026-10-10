@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-10-10 — counts recomputed from the repo (53 examples — 42 root, 8 `httpspec`, 3 `server_timing`; 49 benchmark functions / 59 result rows; 28 fuzz targets — 26 root, 2 `server_timing`); coverage stated in both provenances (race-mode 97.9% / 99.1% of 2026-09-27; CI non-race 98.0% / 98.6%). Prior sweep 2026-09-27: coverage re-measured post-v1.4.0; the 2026-09-23 docs-health sweep folded in v1.2.0/v1.3.0 and deleted the removed `httputil.ETag()` adapter row (v1.1.0)._
+_Updated: 2026-10-10 — counts recomputed from the repo (53 examples — 42 root, 8 `httpspec`, 3 `server_timing`; 49 benchmark functions / 59 result rows; 28 fuzz targets — 26 root, 2 `server_timing`); coverage stated in both provenances (race-mode 97.9% / 99.1% of 2026-09-27; CI non-race 97.9% / 98.6% of 2026-10-10). Prior sweep 2026-09-27: coverage re-measured post-v1.4.0; the 2026-09-23 docs-health sweep folded in v1.2.0/v1.3.0 and deleted the removed `httputil.ETag()` adapter row (v1.1.0)._
 
 ---
 
@@ -195,26 +195,33 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Measured 2026-09-27 with `go test -race -coverprofile`: **97.9%** (`httputil`, library packages), **99.1%** (`httpspec`). The remaining sub-100% functions are documented defensive code paths:
+Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%** (`httputil`, library packages), **98.6%** (`httpspec`); race-mode 2026-09-27 measured 97.9% / 99.1%. The remaining sub-100% functions are documented defensive code paths:
 
 **Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 
-**Middleware and server internals (CSRF, rate limiter, server, compression, ID generator):**
+**Middleware, server, language, and ID-generator internals (non-race CI artifact):**
 
 - `csrf.go:914 CSRFTokenHXHeaders` — 85.7%. Token-less request branch and the `json.Marshal` error on `map[string]string` (practically unreachable).
-- `csrf.go:955 CSRFTestToken` — 96.4%. Internal nosurf error branches. (`requestScheme`, `forwardedProtoFromTrustedProxy`, and `ValidateCSRF` reached 100% with the 2026-09-23 CSRF test batch.)
-- `ratelimit_keyed.go:200 buildKeyedRateLimiter` — 95.5%. Defensive config validation edge.
-- `ratelimit_keyed.go:320 limiter` — 91.5%. RLock-hit-but-TTL-expired path (race condition).
-- `ratelimit_keyed.go:384 evictOldestIfAtCapacity` — 90.9%. Stale-heap-mismatch continue branch.
-- `server.go:202 Start` — 97.6%. Listener-close failure branch.
-- `server.go:251 StartTLS` — 68.3%. Listen-failure error branch (requires port-conflict injection).
-- `compression.go:255 Compression` — 98.0%. Constructor warning path for an invalid custom level.
-- `decompression.go:107 Decompression` — 84.0%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
-- `id_generator.go:129 drawRandomBytes` — 84.6%. Short-read loop branch (kernel-level fault injection).
+- `csrf.go:955 CSRFTestToken` — 92.9%. Internal nosurf error branches. (`requestScheme`, `forwardedProtoFromTrustedProxy`, and `ValidateCSRF` reached 100% with the 2026-09-23 CSRF test batch.)
+- `ratelimit_keyed.go:207 buildKeyedRateLimiter` — 93.1%. Defensive config validation edge.
+- `ratelimit_keyed.go:327 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
+- `ratelimit_keyed.go:391 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
+- `server.go:202 Start` — 94.4%. Listener-close failure branch.
+- `server.go:251 StartTLS` — 72.2%. Listen-failure error branch (requires port-conflict injection).
+- `compression.go:255 Compression` — 95.8%. Constructor warning path for an invalid custom level.
+- `decompression.go:107 Decompression` — 87.9%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
+- `id_generator.go:129 drawRandomBytes` — 86.7%. Short-read loop branch (kernel-level fault injection).
+- `language.go:167 supports` — 75.0%. Charset-reject and duplicate-entry branches of the built-in matcher.
+- `language.go:180 validLanguageTag` — 83.3%. Charset-guard reject branches.
+- `language.go:215 buildLanguageMatcher` — 94.4%. Invalid-tag skip branch.
+- `language.go:382 LanguageExtractorFromQuery` — 80.0%. Missing query-parameter branch.
+- `language.go:396 LanguageExtractorFromCookie` — 75.0%. Missing-cookie and malformed-cookie branches.
 
-**`httpspec` subpackage (separate module, 99.1%):**
+**`httpspec` subpackage (separate module, 98.6% non-race / 99.1% race):**
 
 - `httpspec/httpspec.go:235 runSpecs` — 88.2%. Internal option error paths.
+- `httpspec/httpspec.go:317 parsedMediaType` — 75.0%. Malformed media-type defensive branches.
+- `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Malformed content-type defensive branches.
 - `httpspec/httpspec.go:317 parsedMediaType` — 75.0%. Malformed Content-Type branches.
 - `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Structured-syntax-suffix branches (`+json`/`+xml`) exercised only via the suffix test matrix.
 
