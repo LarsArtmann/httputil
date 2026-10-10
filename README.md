@@ -455,6 +455,8 @@ handler := httputil.Language(cfg)(mux)
 
 The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a `TagMatcher` for full BCP 47 matching via `golang.org/x/text`. Extractors compose with `LanguageExtractorChain` — the first extractor producing a supported tag wins, so a cookie or path-prefix leg can outrank the header.
 
+> **Ordering:** Place `Language` **outside** `CSRFMiddleware` (the 403 page can localize, which needs the language context resolved) and **inside** `CORS` (CORS must stay outermost to answer preflights). Declared tag spellings are preserved — `zh-Hans` is served as `zh-Hans`; only comparisons are case-insensitive.
+
 ### Error Classification
 
 `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):

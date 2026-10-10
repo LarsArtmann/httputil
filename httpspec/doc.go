@@ -5,7 +5,7 @@
 // return 404, responses include Content-Type, HEAD and OPTIONS are handled,
 // and error responses do not leak internal details.
 //
-// The suite includes 18 standard specs covering routing, methods, headers,
+// The suite includes 19 standard specs covering routing, methods, headers,
 // and security. Each spec runs as a parallel subtest with a human-readable
 // name, producing output that reads like a behavior specification document:
 //
