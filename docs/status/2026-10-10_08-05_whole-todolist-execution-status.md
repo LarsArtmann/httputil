@@ -1,0 +1,97 @@
+# Execution status — whole-TODO-LIST run (2026-10-10, 05:16–08:05 CEST)
+
+**Date:** 2026-10-10 08:05 CEST (06:05 UTC) · **Scope:** this session only — the owner's "NOW GET SHIT DONE — the WHOLE TODO LIST" run on top of the earlier pareto-plan execution (reported in docs/status/2026-10-10_05-16). A parallel session shipped language-middleware follow-ups concurrently (httpspec language specs, i18n integration docs, ROADMAP/stack.go edits) and pushed to master mid-session, publishing my already-committed M08 work with it.
+
+**Headlines:** five macro-tasks closed with full verification (M07, M08, M11, M12, M14/M15/M16 as three smaller ones), M02 resolved by event (nightly green, zero open issues), M13 ~90%, and one honest failure at the tail: the final `golangci-lint run` **timed out**, so the very last refactors are lint-UNVERIFIED and unpushed (CI last green at `bef4bc2`, run 38027445511).
+
+## a) FULLY DONE (each: implemented, gates run, bookkeeping written)
+
+| # | Task | Verification highlights |
+|---|------|-------------------------|
+| 1 | **M07 — `KeyExtractorFromTrustedClientIP` / `TrustedProxySet`** (design note → code → tests → docs sweep) | 100% function coverage; `FuzzTrustedProxySetClientIP` (5M execs clean; it found a real never-empty contract gap — `RemoteAddr=":"` — now hardened); rightmost-untrusted walk supersedes CV's leftmost; loopback-default execution probe; fail-loud `ratelimit.trusted_proxy_cidr_invalid` Rejection registered (template + completeness list); erraudit NOT yet re-run (see d) |
+| 2 | **M08 — server lifecycle settlement guarantee** | godoc on `Start`/`StartTLS`; 3 new tests (restart-after-bind-failure, StartTLS port-conflict + cert-failure restart, StartTLS-twice); **StartTLS coverage 72.2% → 100%** by injecting the documented-untestable listen-failure branch; Start 97.6% with honest gap reason; README/FEATURES/arch-ref aligned |
+| 3 | **M12 — documentation-note batch** (6 items) | SECURITY.md attestation-defense bullet; arch-ref `server.already_started`/`stack.name_empty` classification rows; DOMAIN_LANGUAGE (generation-swapped ring, attestation conflict, OWS); `https://*` dead-config note on TrustedOrigins; AGENTS Sec-Fetch-Site example + one-line-nolint rule + buildflow×daemon consolidation protocol; benchmarks.md log-silencing note updated |
+| 4 | **M15 — `LoggingFromContext`** | shared `logRequest` emission helper (attribute drift impossible), fallback/nil semantics, 4 tests, README/FEATURES/arch-ref rows, CHANGELOG, TODO struck |
+| 5 | **M16 — CSRF boot warning** | `BootLogUntrustedForwardedProto` (opt-in, default off, zero behavior change); 3 slog-capture tests; docs swept |
+| 6 | **M14 — Range-aware compression guard** | `Range`-bearing requests pass through uncompressed (nginx parity), `Vary` unchanged; design note; byte-exact passthrough/control tests; fuzz `Range` parameter with passthrough invariant (corpus migrated); docs swept |
+| 7 | **M11 — CSRF test-depth batch** | scheme-less TrustedOrigins e2e (log + never-grants-trust), forwardedProto branch tests ×4, requestScheme TLS/XFP branches, HX token-less branch, lowercase-method pin; new `FuzzCSRFMiddleware_XFPAttestation` (20s clean) pinning conflict-exactly-when-XFP-unhonored |
+| 8 | **M19 — residual evidence extraction** (carried over, closed first) | arch-ref "Branching-flow residual baseline" subsection + AGENTS BuildFlow bullet trimmed to policy+pointers; CI green 38021358744 |
+| 9 | **M02 — nightly-fuzz rollup watch** | run 38019526663 completed SUCCESS 07:14 CEST; zero open `nightly-fuzz` issues; TODO struck |
+| 10 | **b3 — CHANGELOG infra entries** | the cycle's infra work (preflight job, prerelease gates, golines alignment, lint-green recovery) recorded in [Unreleased] |
+
+## b) PARTIALLY DONE
+
+1. **M13 — compression test/doc batch (~90%)**: identity-policy fuzz branch + Range param (done, corpus migrated twice for arity), issue #4 public comment fixed (daemon hash `1ab88cd` replaced with the v1.2.0 tag reference — the AGENTS external-artifact rule), art-dupl pinned in flake.nix (`buildGoModule.override { go = go_1_27; }`, vendor hash `DTAs2KG…`, builds, `nix run .#art-dupl` works, clone baseline re-verified **0 groups at -t 2** after collapsing 8 boilerplate blocks into `newTrustedProxySet`), fixture-dedup item found already satisfied (`newWriteLargeBodyHandler` shared), ABNF-vs-Go oracle audit verdict recorded (conformant at outcome level; two documented leniencies: sign chars neutralized, malformed-q keeps default weight). **Open tail:** the final lint run timed out AFTER the `newTrustedProxySet` no-arg simplification + `assertHeaderlessAbsentEncoding` extraction — those two refactors are test/fuzz-green but lint-unverified.
+2. **Push/CI state for this session's tail**: 13 unpushed daemon commits mix MY M11/M13 work with the parallel session's in-flight files (i18n status reports, ROADMAP.md, stack.go, language design-doc updates). Per the parallel-writer protocol I did **not** push; master CI is green at `bef4bc2` (run 38027445511, includes M08/M12/M14/M15/M16). Everything after that is local-only.
+3. **AGENTS.md memory hygiene**: the stale-binary paragraph (buildflow delivery moved to `~/.nix-profile`) was flagged in the previous report as pending — still not rewritten. New AGENTS content this session (trusted-extractor bullet, three lint/daemon notes) IS in.
+
+## c) NOT STARTED (unchanged scope, listed for completeness)
+
+M10 (post-v1.4.0 residue ×12), M20 (buildflow dry-run re-run, erraudit tooling hygiene, noctx-exclusion narrowing, darwin flake check), M21 (quiet-window bench re-measure † rows + benchstat CI mechanization), M22 (`scripts/consumer-audit/` + 3 unverified claims), M23 (corpus-hygiene sweep, t.Run cluster conversion), arch-ref full re-inventory, server_timing/limiter examples, external micro-hygiene (d2 skill ref, go-etag worktree, Trash copies), BuildFlow cross-repo batch (golangci v2.14.0 ripple + upstream issues), go-etag hygiene batch, session follow-ups (21-46 §a5 strike, archive-count gate, check-rows scope note, skill-defect report), AGENTS fact-loss audit, architecture-review re-run, `httptest.NewTestServer` evaluation, plus every §5 owner-gated item (LNA denied-origin posture, B1 ruling, go-compression extraction, httpspec docs-site, `csrf.trusted_origin_invalid` export, MD060 ruling, writeHealthBody, consumer fix-PRs, diagram embedding, v2.0 items).
+
+## d) TOTALLY FUCKED UP (all disclosed, none hidden)
+
+1. **The final lint run timed out and I was interrupted before following up** — `golangci-lint run` exceeded its 1-minute default while heavy jobs (fuzz, parallel tests) ran concurrently; the last two refactors are lint-UNVERIFIED. Tests and the 10s fuzz re-ran green, but the gate of record is red-by-timeout, not green. This is the session's only broken tail.
+2. **Misread a CI result as green when it was red.** My first background `gh run watch` of 38022775544 printed "✓ Complete job" in its tail and I recorded M07's CI as passing; the run had actually FAILED (a transient **503** from github.com on an external link in an *archived* doc — not my code, master green on 4 runs since). I found it only via a routine `gh run list` much later. Lesson: only trust `--json conclusion`.
+3. **Declared a task closed before its CI verdict existed** (same event): M07 was "done" on my side while its push was red for an unrelated reason. Verification ordering was wrong; consequence was contained, the process flaw is real.
+4. **Duplicate test declaration**: appended `TestValidateCSRF_TranslatesCustomHeaderName` without grepping first — f24 was already done; build failure cost a cycle. Same pattern almost hit three times more (forwardedProto/requestScheme tests pre-existed partially).
+5. **Fuzz/unit invariants written against assumed semantics, four times**: MalformedXFF expectation contradicted the rightmost-walk (garbage LEFT of an honest entry is correctly ignored); XFP fuzz expected "pass when honored" but a token-less unsafe request still 403s (nosurf token check) — invariant rewritten on the conflict-body discriminator; AbsentEncoding invariant ignored MinSize; plus the initial "abort on any garbage" reading. Each fix was a real semantics lesson, but four expectation bugs in one session means I wrote checks before re-reading the code.
+6. **Daemon races and consolidation risk**: two `nothing to commit` surprises; the M07/M08 work fragmented into heuristic commits, requiring `git reset --soft` consolidations. At one point the unpushed set contained the parallel session's **in-flight** files — I held the push correctly, but the margin was one `git add -A` away from publishing their WIP under my name.
+7. **Script hygiene**: a Python heredoc died at compile time (unterminated string) silently skipping all M15 doc edits; the naive table aligner crashed on code-fence pseudo-tables before becoming fence-aware; a GraphQL-vs-REST comment-ID 404; `fakeSha256` eval error instead of the literal placeholder SRI; a `git add csrf_test.md` typo.
+8. **Gates of record not re-run for M07's new error code**: the erraudit gates (legacy_as, stdlib_constructor) were never re-executed after registering `ratelimit.trusted_proxy_cidr_invalid`, and the AGENTS-mandated `-race -count=10` repeat was run for M07's tests but only `count=1` for M11/M13's new parallel tests. Both belong in the per-task checklist I claimed to follow.
+
+## e) IMPROVEMENTS
+
+1. **CI verdicts only via `gh run view --json conclusion`** — never infer from watch-tail cosmetics; a push isn't "verified" until its own run is green (and the failing job read, not just the conclusion).
+2. **Grep before adding**: `grep -c "func TestName("` is now step 0 of writing a test (and of striking a TODO row — two items this session were already done by prior sessions).
+3. **Write the truth table before the invariant**: layering matters (attestation gate THEN token gate); deriving expected outcomes from the layered contract first would have saved all four invariant rewrites.
+4. **Consolidation protocol that worked**: list files per unpushed commit → verify all-mine → soft-reset → explicit-path task commits → push → watch with exit-status → json-conclusion check. Encode as a script if the daemon keeps fragmenting.
+5. **Never `git add -A` when a parallel writer is live** (the 2026-09-23 lesson, nearly violated twice this session under time pressure).
+6. **Serialize heavy gates**: lint with `--timeout` headroom (or after fuzz runs finish) so a load spike can't masquerade as a broken gate.
+7. **Per-task gate checklist, enforced**: race suite → lint(0) → fmt-idempotent → markdownlint → lychee → erraudit (when codes changed) → `-race -count=10` (when parallel tests changed) → CHANGELOG → TODO strike → CI-green-on-push. M07/M11/M13 would have caught items 8 in d).
+8. **The fuzz-oracle pattern keeps paying**: it found a real contract gap (never-empty key), corrected my own wrong invariants, and pinned new behavior (Range passthrough, XFP conflict boundary) — keep leading with it for new logic.
+
+## f) NEXT (ordered, ≤50; start here next session)
+
+**Immediate debt (before anything else):**
+1. Re-run `golangci-lint run` (with `--timeout 5m`) on the tail refactors; fix anything it flags; then `-race -count=10` for M11/M13 tests and the three erraudit gates (new code shipped in M07).
+2. Quiescence-check the parallel session's files (`git log origin/master..HEAD` file lists stable ≥15 min) → consolidate the 13 mixed commits into mine-only explicit-path commits + leave theirs, push, CI-verify to green.
+3. CHANGELOG entry for the M11/M13 tail (batch entry exists for M13's body; the newTrustedProxySet/nestif refactors are covered by it — verify wording).
+
+**Then the macro-tasks in priority order:**
+4. M10 — post-v1.4.0 residue batch (12 micro-items: TestTimeout_NegativeDuration, invalid-gzip 400 direct test, ExpectVaryContains/ExpectNotModifiedWithETag examples, stack zero-value doc promotion, keyed-limiter default Retry-After doc, `int(p.burst)` 32-bit guard, AbsentEncodingPolicy.String(), errors.go consistency sweep, `-shuffle=on` in CI, StartTLS listener-occupation fixture, CI coverage-threshold cross-check, off-cycle prerelease run).
+5. M20 — buildflow `--dry-run` re-run (findings-gate composition), erraudit tooling hygiene, noctx-exclusion narrowing, darwin `--all-systems` acceptance.
+6. M23 — t.Run cluster conversion in security_test.go; corpus-hygiene sampling sweep.
+7. M22 — commit `scripts/consumer-audit/`; close the 3 unverified consumer-audit claims.
+8. M21 — quiet-window bench re-measure (four † rows + httpspec table); benchstat-vs-baseline CI step.
+9. arch-reference full re-inventory (export rows vs tree; my session added files — include them).
+10. server_timing + limiter examples (`ExampleMeasureWithDesc`, nil-safe `ServerTimingFromContext`, `EvictionTTL` example).
+11. `httptest.NewTestServer` (synctest) evaluation for Timeout tests.
+12. AGENTS.md fact-loss audit (independent fresh-eyes read of the 217-line file) + stale-binary paragraph rewrite.
+13. Session follow-ups: strike 21-46 §a5; archive-count gate; check-rows scope note in AGENTS; report the annotate-status `| N |` mangling defect; record the d2-syntax skill fix (`stroke-dash`).
+14. External micro-hygiene: go-etag stale worktree; `~/.local/share/Trash` etagmetrics copies.
+15. BuildFlow ripple: golangci-lint v2.14.0 into fleet lint pins (~/projects/BuildFlow, verify binary freshness after).
+16. BuildFlow upstream batch: format-normalize downgrade issue (enumerate the 11 failed steps first), repair-steps-dry proposal, module-inventory check, mutation-verify convention.
+17. go-etag hygiene batch (reports artifact, DOMAIN_LANGUAGE entries, drift-check, KeyHolderAI require).
+18. go-error-family#5: check upstream state; if accepted, write the "Conditional requests" docs section + sweep README/arch-ref.
+19. External-claim raw-extraction patterns → write into a durable reference.
+20. Architecture-review re-run (post-v1.5 tooling exists as a skill).
+21–50. Remaining §5 owner-gated items held in place (LNA posture, B1 ruling, go-compression extraction, docs-site, code export, MD060, writeHealthBody, consumer PRs, diagrams, v2.0 discussions, corpus bulk-strike ruling) — need owner decisions; do not execute without them.
+
+## g) QUESTIONS I CANNOT ANSWER MYSELF
+
+1. **Push protocol under the parallel writer** — my tail (13 daemon commits) mixes my M11/M13 work with the parallel session's in-flight i18n files. I held the push. Options: (a) I keep polling and push branch-atomic once their file set is quiet ≥15 min (what I did for M08, which their push then published); (b) you tell them to push and I follow after; (c) I push now accepting their WIP rides along. Which do you want as the standing rule?
+2. **The five uncovered `language.go` functions** (carried question from the 05:16 report, still unanswered) — close with tests here, leave documented in the coverage registry, or hand back to the language-middleware owning session?
+3. **Verification depth for this session's tail** — shall I re-run the full gate suite now (lint with timeout headroom, `-race -count=10`, erraudit gates) and push as one verification commit when quiescent, or do you want to review the unpushed set first?
+
+## h) ADDENDUM — tail debt cleared (08:19 CEST)
+
+The owner's follow-up ("Execute and Verify them one step at a time ... until everything works") resolved §g Q3: full verification, then push. Executed:
+
+- `golangci-lint run --timeout 5m`: **0 issues** — the two tail refactors (`newTrustedProxySet` no-arg, `assertHeaderlessAbsentEncoding`) are lint-verified; M13 is now 100%.
+- `golangci-lint fmt` + `nix fmt`: 0 files changed (fmt-idempotent).
+- `go test -race -count=10 -run 'TrustedProxy|CSRF|Compression'`: **ok** (the AGENTS-mandated repeat for M07/M11/M13's parallel tests).
+- erraudit: `--type legacy_as` **exit 0**, `--type stdlib_constructor --enforce-go-error-family` **exit 0** (the two real gates, now re-run after M07's new code); `--type-aware` exit 2 is the documented advisory-only composition (sentinel_concrete_type + test-side errors.Is — do-not-migrate policy).
+- §g Q1 resolved as option (a): consolidation publishes only explicit-path MY files (code/tests/corpus/flake.nix/CHANGELOG/TODO_LIST/this report); the parallel session's files (ROADMAP.md, stack.go `MiddlewareLanguage`, AGENTS.md's two new rules, README ETag-ordering sentence, v1-stability constants count, i18n reports/html) stay staged for their writer — their i18n-train completion report (prerelease 9/9 green, 08:17) indicates they are wrapping up and will push their own set.
+
+_Arte in Aeternum_
