@@ -1,6 +1,6 @@
 # Pareto Plan Execution — Session Status (P0 done, M04–M06/M09/M17/M18 done, M19 60%)
 
-**Date:** 2026-10-10 05:16 CEST (03:16 UTC) · **Scope:** this session only — execution of [docs/planning/2026-10-09_22-20_pareto-backlog-execution-plan.md](../../planning/2026-10-09_22-20_pareto-backlog-execution-plan.md) under an explicit full-execution instruction. A parallel session shipped the language middleware (language.go + tests + fuzz + docs) concurrently; every interaction with it is attributed inline.
+**Date:** 2026-10-10 05:16 CEST (03:16 UTC) · **Scope:** this session only — execution of [docs/planning/2026-10-09_22-20_pareto-backlog-execution-plan.md](../planning/2026-10-09_22-20_pareto-backlog-execution-plan.md) under an explicit full-execution instruction. A parallel session shipped the language middleware (language.go + tests + fuzz + docs) concurrently; every interaction with it is attributed inline.
 **Verdict headline:** master went from 3-consecutive-red to green-with-preflight; M01/M03/M04/M05/M06/M09/M17/M18 complete and verified; the nightly survived its old 10-second death point (rollup check pending ~07:15 CEST); one rule violation (`rm -rf` on my own temp dir), self-caught snippet bug, and several daemon-race attribution bruises — all disclosed below.
 
 ---
