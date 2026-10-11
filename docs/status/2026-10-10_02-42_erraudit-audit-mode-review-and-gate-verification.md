@@ -55,8 +55,8 @@ Nothing destructive; two honest own-goals, one of them a repeat offense:
 
 ## f) Next up (session-derived; honest list, not padded to 50)
 
-1. Root-cause the test-side advisory growth 41 → 44 (git log over test additions since the count was written 2026-10-09) before fully trusting the refreshed number.
-2. Root-cause the old "`+1`" in `~45+1/sentinel` (what the 2026-10-09 writer counted; check the 2026-10-10_02-15 pool-hardening session for a removed/merged sentinel).
+1. ~~Root-cause the test-side advisory growth 41 → 44 (git log over test additions since the count was written 2026-10-09) before fully trusting the refreshed number.~~ done 2026-10-11: the +3 are `errors.Is(err, errUnexpectedPoolType)` contract matches from the compress-pool hardening tests (e8e41fc, 7f4b3f1) — the f.2 hypothesis, confirmed.
+2. ~~Root-cause the old "`+1`" in `~45+1/sentinel` (what the 2026-10-09 writer counted; check the 2026-10-10_02-15 pool-hardening session for a removed/merged sentinel).~~ done 2026-10-11: an addition, not a removal/merge — `errTrustedProxyCIDRInvalid` (2539ab1, 10-10 06:04, trusted-proxy keying) landed 12 minutes before the 06:16 "50" measurement; 45 + 4 language + 1 = 50 reconciles exactly. Same-day follow-up +1: `errKeyedBurstTooLarge` (ab90d9f) → 51, ledger recorded in the AGENTS.md erraudit block.
 3. Run `nix fmt`; confirm treefmt is clean on the two edited docs (and fix if not).
 4. Markdown-lint the two edited docs (detect-only; fix anything real).
 5. Session-tail: confirm the daemon committed the doc edits + this report; verify `git log origin/master..master` empty and CI green on that head.
@@ -66,7 +66,7 @@ Nothing destructive; two honest own-goals, one of them a repeat offense:
 9. Evaluate `erraudit nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (Sept f.10; mind the nolintlint fragility precedent with gosec).
 10. Verify `--enforce-coded-errors` / `--enforce-deferred-close` semantics in 1c6809a (`erraudit --help`); document which enforced flags exist and their exit-code behavior.
 11. ~~Fix the `sentinel_concrete_type` fix-hint in erraudit itself: detect `.WithContext`/`.WithCause`/clone usage before suggesting the `error`-interface declaration (see e.7).~~ done 2026-10-10 (this session, follow-up pass): source-verified at erraudit @ 044e66b and filed as LarsArtmann/erraudit#10; the related `Err*`/`err*` guard asymmetry (44 test-side false positives) filed as #11. Drafts: `~/projects/erraudit/docs/drafts/2026-10-10_*.md`.
-12. Owner decision: do `scripts/` tools want concrete error types (the 2 `generic_return` advisories), or is the advisory permanently ignored?
+12. ~~Owner decision: do `scripts/` tools want concrete error types (the 2 `generic_return` advisories), or is the advisory permanently ignored?~~ answered 2026-10-11: permanently policy-rejected — both functions return idiomatic wrapped (`fmt.Errorf` `%w`) or sentinel errors across mixed concrete types; the suggested bespoke error types would drop `%w` semantics or add ceremony to standalone dev tools with zero typed-error consumers. Verdict recorded in the AGENTS.md erraudit block.
 13. Consolidate the now-four erraudit-residual doc locations into one canonical home + cross-references (Sept c.3, still open).
 14. Sweep the Sept 10-03 f-list against reality after today: f.1 closed (this session); f.2/f.7/f.8/f.10 still open — one-line status pass so the old report doesn't drift further from truth.
 15. Re-run the archived-completeness gate (`grep -rLn '~~' docs/status` → empty) after today's new strikethrough.

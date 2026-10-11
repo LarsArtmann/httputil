@@ -48,14 +48,18 @@ nix flake check --all-systems  # darwin accepted — evaluated + native checks p
 # residuals bullet and the honest-silence paragraph point here; update this
 # block, not copies.
 # Real gates (exit 0 required): legacy_as + stdlib_constructor below.
-# --type-aware is ADVISORY-ONLY: ~50 `sentinel_concrete_type`
-# (re-measured 2026-10-10 after the language middleware added its 4 sentinels:
-# 50 in root, server_timing clean; the
-# load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
+# --type-aware is ADVISORY-ONLY: 51 `sentinel_concrete_type`
+# (re-measured 2026-10-11, erraudit 1c6809a. Delta ledger: 45 at 02:42 → 50 at
+# 3ebc428 06:16 = +4 language-middleware sentinels + errTrustedProxyCIDRInvalid
+# (2539ab1) → 51 now = +errKeyedBurstTooLarge (ab90d9f). server_timing clean.
+# The load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites) and
-# ~47 test-side `errors.Is` matches (all correct) — verdict history:
-# docs/status/2026-09-11_10-03 and _13-49 (also the `_ =` honest-silence
-# discards and the scripts/ exemptions).
+# 49 test-side `errors.Is` matches (all correct; deltas root-caused: +3
+# pool-contract matches e8e41fc/7f4b3f1, +2 Burst/retry matches) — verdict
+# history: docs/status/2026-09-11_10-03 and _13-49 (also the `_ =`
+# honest-silence discards and the scripts/ exemptions; the 2
+# `enforce_generic_return` scripts/ advisories are policy-rejected 2026-10-11 —
+# standalone dev tools, idiomatic wrapped/sentinel returns, zero consumers).
 # Upstream tool bugs filed 2026-10-10: LarsArtmann/erraudit#10 (the
 # rewrite hint does not compile for the 29 cloned sentinels), #11 (the
 # legacy_is guard misses unexported err* sentinels — cause of the ~44).
