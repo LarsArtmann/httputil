@@ -58,28 +58,28 @@ Third occurrence of the same scenario: the user pasted an off-policy erraudit in
 
 ## f) Next up (session-derived; impact-ranked; HARVEST input — not padded to 50)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Script-diff the pasted 102-finding list against a local full-flag reproduction (close the repeat-offense gap for good) | High | S | Quality |
-| 2 | Push `68126ab` and verify CI green on that exact head (tail-discipline completion; owner action) | High | S | Process |
-| 3 | Sweep living docs for stale erraudit counts (`~50`/`~47`/`45` outside the canonical block); fix or cross-reference | Medium | S | Documentation |
-| 4 | Document the precise scripts/ lint-exemption mechanism + enforcement-flag asymmetry in AGENTS.md (one evidence-linked paragraph) | Medium | S | Documentation |
-| 5 | Verify `erraudit --help` semantics for `--enforce-coded-errors`/`--enforce-deferred-close`/`--disable-extensions`; document exit-code behavior per flag | Medium | S | Documentation |
-| 6 | Add the one-line audit-mode warning (accepted patterns listed intentionally; expected exit codes) to the AGENTS.md erraudit block | Medium | S | Documentation |
-| 7 | Decide + build `scripts/erraudit-gates.sh` (two real gates + advisory pass, explicit exit-code contract) — resolves 02-42 g.2 | Medium | S/M | Quality |
-| 8 | Move erraudit from `~/.local/bin` plain copy into the flake/home-manager with a pinned build (mirror the buildflow delivery fix; kills the stale-binary caveat) | Medium | M | Cleanup |
-| 9 | Adopt or reject the ledger convention: any new `errX` sentinel or `errors.Is`-carrying test updates the AGENTS.md erraudit ledger in the same change (see g.2) | Medium | S | Process |
-| 10 | Exhaustive 51-sentinel ↔ clone-site cross-reference; reconcile #10's "29 cloned sentinels" vs the 23-call-site measure; record the split in AGENTS.md | Low | M | Quality |
-| 11 | Sample-audit ~10 of the 49 test-side advisories per-item (turn inherited all-correct into evidenced all-correct) | Low | S | Quality |
-| 12 | Annotate 10-03 items b.2 and g.1 at the next docs-health pass (open since 02-42 f.6) | Low | S | Documentation |
-| 13 | Evaluate `nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (mind the nolintlint fragility precedent) | Low | M | Quality |
-| 14 | Consolidation cross-reference sweep: confirm the four erraudit-residual doc locations all point at the canonical AGENTS.md block (10-03 c.3 / 02-42 f.13 remainder) | Low | S | Documentation |
-| 15 | Reconcile the TODO_LIST row's "erraudit (51, advisory-class residual)" at 10-10 04:07 against the sentinel ledger (45@02:42 → 49/50 by 06:16 — 51 at 04:07 fits neither; what did buildflow count?) | Low | S | Documentation |
-| 16 | Third upstream erraudit issue candidate: enforcement flags bypassing the scripts/ lint package-exemption — intended? (verify against erraudit source before filing) | Low | M | Quality |
-| 17 | Re-run the archived-completeness gate after this report's new strikethroughs (`grep -rLn '~~'` over archived dirs must print nothing) | Low | S | Documentation |
-| 18 | Decide the CHANGELOG scope question for scripts-only changes (10-03 c.2/g.3, still undecided; informational — no scripts change occurred this session either) | Low | S | Process |
-| 19 | If the ledger convention is adopted: encode "new sentinel → ledger updated" as a check in `scripts/prerelease-check.sh` or the buildflow residuals comparison | Low | M | Quality |
-| 20 | ROADMAP fuel: erraudit `tree` could resolve errorfamily's runtime `WithCause`/`WithContext` cloning into hierarchy edges (package-level `%w` analysis can't see them by design) | Low | L | Feature |
+| #  | Task                                                                                                                                                                                                | Impact | Effort | Category      |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Script-diff the pasted 102-finding list against a local full-flag reproduction (close the repeat-offense gap for good)                                                                              | High   | S      | Quality       |
+| 2  | Push `68126ab` and verify CI green on that exact head (tail-discipline completion; owner action)                                                                                                    | High   | S      | Process       |
+| 3  | Sweep living docs for stale erraudit counts (`~50`/`~47`/`45` outside the canonical block); fix or cross-reference                                                                                  | Medium | S      | Documentation |
+| 4  | Document the precise scripts/ lint-exemption mechanism + enforcement-flag asymmetry in AGENTS.md (one evidence-linked paragraph)                                                                    | Medium | S      | Documentation |
+| 5  | Verify `erraudit --help` semantics for `--enforce-coded-errors`/`--enforce-deferred-close`/`--disable-extensions`; document exit-code behavior per flag                                             | Medium | S      | Documentation |
+| 6  | Add the one-line audit-mode warning (accepted patterns listed intentionally; expected exit codes) to the AGENTS.md erraudit block                                                                   | Medium | S      | Documentation |
+| 7  | Decide + build `scripts/erraudit-gates.sh` (two real gates + advisory pass, explicit exit-code contract) — resolves 02-42 g.2                                                                       | Medium | S/M    | Quality       |
+| 8  | Move erraudit from `~/.local/bin` plain copy into the flake/home-manager with a pinned build (mirror the buildflow delivery fix; kills the stale-binary caveat)                                     | Medium | M      | Cleanup       |
+| 9  | Adopt or reject the ledger convention: any new `errX` sentinel or `errors.Is`-carrying test updates the AGENTS.md erraudit ledger in the same change (see g.2)                                      | Medium | S      | Process       |
+| 10 | Exhaustive 51-sentinel ↔ clone-site cross-reference; reconcile #10's "29 cloned sentinels" vs the 23-call-site measure; record the split in AGENTS.md                                               | Low    | M      | Quality       |
+| 11 | Sample-audit ~10 of the 49 test-side advisories per-item (turn inherited all-correct into evidenced all-correct)                                                                                    | Low    | S      | Quality       |
+| 12 | Annotate 10-03 items b.2 and g.1 at the next docs-health pass (open since 02-42 f.6)                                                                                                                | Low    | S      | Documentation |
+| 13 | Evaluate `nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (mind the nolintlint fragility precedent)                                                                              | Low    | M      | Quality       |
+| 14 | Consolidation cross-reference sweep: confirm the four erraudit-residual doc locations all point at the canonical AGENTS.md block (10-03 c.3 / 02-42 f.13 remainder)                                 | Low    | S      | Documentation |
+| 15 | Reconcile the TODO_LIST row's "erraudit (51, advisory-class residual)" at 10-10 04:07 against the sentinel ledger (45@02:42 → 49/50 by 06:16 — 51 at 04:07 fits neither; what did buildflow count?) | Low    | S      | Documentation |
+| 16 | Third upstream erraudit issue candidate: enforcement flags bypassing the scripts/ lint package-exemption — intended? (verify against erraudit source before filing)                                 | Low    | M      | Quality       |
+| 17 | Re-run the archived-completeness gate after this report's new strikethroughs (`grep -rLn '~~'` over archived dirs must print nothing)                                                               | Low    | S      | Documentation |
+| 18 | Decide the CHANGELOG scope question for scripts-only changes (10-03 c.2/g.3, still undecided; informational — no scripts change occurred this session either)                                       | Low    | S      | Process       |
+| 19 | If the ledger convention is adopted: encode "new sentinel → ledger updated" as a check in `scripts/prerelease-check.sh` or the buildflow residuals comparison                                       | Low    | M      | Quality       |
+| 20 | ROADMAP fuel: erraudit `tree` could resolve errorfamily's runtime `WithCause`/`WithContext` cloning into hierarchy edges (package-level `%w` analysis can't see them by design)                     | Low    | L      | Feature       |
 
 ## g) Questions (cannot be answered from the repo)
 
