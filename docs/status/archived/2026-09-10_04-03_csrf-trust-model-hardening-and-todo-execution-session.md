@@ -41,19 +41,19 @@ All items verified against running code, not just claims. Each was test-covered 
 | ~~b2~~ | ~~**ID-generator `randBuf` race**~~ done — v1.0.0 sweep: generation-swapped ring landed; race eliminated; stress test under -race | ~~Found, root-caused, documented (AGENTS tradeoff bullet + new TODO_LIST item)~~                                                                               | ~~NOT fixed. A pointer-swap "quick fix" would reintroduce cross-generation slot duplication; needs a generation-stamped ring + stress test as a focused change~~                                                                                        |
 | ~~b3~~ | ~~**My own CHANGELOG accuracy**~~ done — self-corrected 2026-09-10 ~04:05 (seven, not six)                                        | ~~Written and committed via daemon~~                                                                                                                           | ~~First draft said "Six new tests" — actually **seven**. Self-caught during this report's fact-check and fixed (2026-09-10 ~04:05). Lesson: I published a numeric claim without recounting~~                                                            |
 | ~~b4~~ | ~~**README spec-count freshness**~~ done — self-corrected 2026-09-10 (README now says 19)                                         | ~~AGENTS.md updated 18→19~~                                                                                                                                    | ~~README line 140 still said "18 behavioral specs" — missed during the CSRF pass; caught during this report's fact-check and fixed~~                                                                                                                    |
-| b5     | **Fuzz coverage of the new CSRF path**                                                                                            | Existing `FuzzCSRFMiddleware_OriginHeaders` seeds the contradictory combo — but only as a **GET**, and the new rejection applies to unsafe methods only        | No fuzz target exercises the POST rejection path; no new corpus seeds added                                                                                                                                                                             |
+| ~~b5~~ | ~~**Fuzz coverage of the new CSRF path**~~ done — done — FuzzCSRFMiddleware_OriginHeaders + the XFPAttestation variant | ~~Existing `FuzzCSRFMiddleware_OriginHeaders` seeds the contradictory combo — but only as a **GET**, and the new rejection applies to unsafe methods only~~ | ~~No fuzz target exercises the POST rejection path; no new corpus seeds added~~ |
 | ~~b6~~ | ~~**Coverage numbers**~~ done — docs-health pass 2026-09-11: re-measured 97.4%/98.6%; FEATURES sub-100% list regenerated          | ~~All new code is test-covered~~                                                                                                                               | ~~FEATURES.md's 96.9% / 98.8% claims are now stale (new branches in csrf.go, compression.go, decompression.go, cors.go) — not re-measured per the coverage methodology~~                                                                                |
-| b7     | **Test-convention consistency**                                                                                                   | All 7 named legacy tables converted                                                                                                                            | Two `t.Run` subtest clusters in `security_test.go` (`ContentTypeOptionsPrecedence`, `SecurityHeaderSkip` ×3 each) and several elsewhere remain — arguably property-style groups, but the "decide once, apply consistently" decision didn't rule on them |
-| b8     | **erraudit full pass**                                                                                                            | Both real gates (legacy_as, stdlib_constructor) exit 0                                                                                                         | The full `--type-aware` advisory baseline (~30 known-correct `errors.Is` advisories) not re-run to confirm no drift                                                                                                                                     |
+| ~~b7~~ | **Test-convention consistency** → routed — TODO_LIST (t.Run cluster convert-or-accept row) | ~~All 7 named legacy tables converted~~ | ~~Two `t.Run` subtest clusters in `security_test.go` (`ContentTypeOptionsPrecedence`, `SecurityHeaderSkip` ×3 each) and several elsewhere remain — arguably property-style groups, but the "decide once, apply consistently" decision didn't rule on them~~ |
+| ~~b8~~ | ~~**erraudit full pass**~~ done — the erraudit ledger re-measured 2026-10-11 (51/49) | ~~Both real gates (legacy_as, stdlib_constructor) exit 0~~ | ~~The full `--type-aware` advisory baseline (~30 known-correct `errors.Is` advisories) not re-run to confirm no drift~~ |
 
 ## c) NOT STARTED
 
 Untouched from TODO_LIST (verified against the file at session end — these checkboxes are still open):
 
-1. Extract response compression into `go-compression` (Pareto plan exists; go-datastar trigger)
+1. Extract response compression into `go-compression` (Pareto plan exists; go-datastar trigger) → routed — TODO_LIST (go-compression extraction row)
 2. ~~CI release workflow (tag → build → GitHub Release, both modules)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
 3. ~~go-error-family upstream: conditional-request classification guidance (needs `verify-before-filing`)~~ done (v1.0.0 sweep: verified draft saved; filing remains an owner action)
-4. `architecture-review` re-run (stale: predates ETag extraction, keyed limiter, compose API, attestation defense)
+4. `architecture-review` re-run (stale: predates ETag extraction, keyed limiter, compose API, attestation defense) → routed — TODO_LIST (architecture-review post-v1.1 row)
 5. ~~Refresh `docs/benchmarks.md` rows for the 2026-08-30 bench changes (3s×5 protocol)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
 6. ~~`CSRFConfig.Validate` side-effect cleanup (pure Validate + parse step; post-v1.0 candidate)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (landed in v1.0.0 as the last cheap moment))
 7. ~~KeyedRateLimiter property test (heap/map consistency under churn) + MaxKeys-pressure benchmark~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
@@ -77,7 +77,7 @@ Untouched from TODO_LIST (verified against the file at session end — these che
 25. ~~`TestChain_DecompressionThenMaxBodySize` 417-as-signal assertion → read limiter error directly~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (asserts the classified sentinel directly))
 26. ~~Post-v1.0: `KeyExtractor` returning `""` semantics doc check~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (docs verified unambiguous, no change needed))
 27. ~~Integration-docs content refresh (samber/do, HTMX-ideas, Redis, Prometheus)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
-28. Schedule next `full-code-review`
+28. ~~Schedule next `full-code-review`~~ done — the 2026-09-27 full-code-review ran; this pass covers the residue
 29. ~~Re-mark deprecated `TokenBucketLimiter`/`RateLimit` for removal in the v1.0 CHANGELOG (part of the cut)~~ done (deprecation state documented in CHANGELOG [1.0.0] rows + v1-stability.md removal targeting; removal itself scheduled in the v1.1.0 batch (TODO_LIST))
 
 ## d) TOTALLY FUCKED UP
@@ -109,17 +109,17 @@ Nothing shipped broken — every change landed behind green gates, and the worki
 
 Sorted by impact; first ~10 are the real queue, the rest are the committed backlog + new discoveries (ROADMAP fuel — do not treat 50 as a sprint list).
 
-1. **Write the behavior-change migration note for the new CSRF 403** (`ErrCSRFAttestationConflict`) in `docs/migrating-*`/RELEASE.md before any release
+1. ~~**Write the behavior-change migration note for the new CSRF 403** (`ErrCSRFAttestationConflict`) in `docs/migrating-*`/RELEASE.md before any release~~ done — done — the 403 behavior + migration guidance documented in the v1.2/v1.3 batches
 2. ~~**Decide + cut v1.0** (go-release skill: CHANGELOG cut, tag, release, pkg.go.dev check)~~ done (v1.0.0 cut locally 2026-09-10 (tag 7a6d11b); push pending (TODO_LIST High))
 3. ~~**Remove deprecated `TokenBucketLimiter`/`RateLimit`** (plan T18) if v1.0 is to ship without them — decide order with #2~~ done (superseded: v1.0.0 shipped with the deprecated APIs; removal scheduled in the v1.1.0 stabilization batch (TODO_LIST))
 4. ~~**Re-measure coverage** (both modules, `-race -coverprofile`) and refresh FEATURES.md's 96.9%/98.8% claims~~ done (docs-health pass 2026-09-11: re-measured 97.4% httputil / 98.6% httpspec; FEATURES refreshed)
-5. **Fuzz the CSRF attestation path**: extend `FuzzCSRFMiddleware_OriginHeaders` with a method parameter (POST included) + corpus seeds for the contradictory combos
-6. **Re-run the full erraudit `--type-aware` advisory pass** and confirm the ~30-advisory baseline hasn't drifted
+5. ~~**Fuzz the CSRF attestation path**: extend `FuzzCSRFMiddleware_OriginHeaders` with a method parameter (POST included) + corpus seeds for the contradictory combos~~ done — done — FuzzCSRFMiddleware_OriginHeaders + the XFPAttestation variant
+6. ~~**Re-run the full erraudit `--type-aware` advisory pass** and confirm the ~30-advisory baseline hasn't drifted~~ done — ledger re-measured 2026-10-11 (51/49)
 7. ~~**Review `compose.go`/`MiddlewareFunc` API** (concurrent session's addition) before v1.0 API freeze — naming, docs, edge cases (empty bundle, nil handler)~~ done (folded into the scheduled pre-push full-code-review (TODO_LIST High))
-8. **Convert the remaining `t.Run` subtest clusters** (`security_test.go` ×2 groups; sweep for others) or formally amend the convention to allow behavior-group subtests
+8. **Convert the remaining `t.Run` subtest clusters** (`security_test.go` ×2 groups; sweep for others) or formally amend the convention to allow behavior-group subtests → routed — TODO_LIST (t.Run cluster convert-or-accept row)
 9. ~~**Fix `go.work`/CI Go version pinning** (1.26.5 vs 1.26.x vs 1.26.7)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (go.mod/go.work/CI converged on 1.26.7))
 10. ~~**Refresh `docs/benchmarks.md`** per the 3s×5 protocol + add a CSRF middleware bench row (covers e8)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (full 3s x 5 re-measure))
-11. Extract response compression into `go-compression` (Pareto plan ready)
+11. Extract response compression into `go-compression` (Pareto plan ready) → routed — TODO_LIST (go-compression extraction row)
 12. CI release workflow (tag → build → GitHub Release, `go vet` both modules)
 13. ~~go-error-family upstream: conditional-request classification proposal (`verify-before-filing` first)~~ done (v1.0.0 sweep: verified draft saved (docs/planning/2026-09-10_go-error-family-conditional-request-classification-issue-draft.md); filing is an owner action)
 14. ~~`architecture-review` re-run (post-ETag/keyed-limiter/compose/attestation)~~ done (tracked in TODO_LIST Low (architecture-review re-run post-v1.0))
@@ -146,19 +146,19 @@ Sorted by impact; first ~10 are the real queue, the rest are the committed backl
 35. ~~`TestChain_DecompressionThenMaxBodySize`: read the limiter error instead of treating 417 as the signal~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
 36. ~~`KeyExtractor` returning `""` — exempt vs shared-bucket doc disambiguation~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (docs verified unambiguous))
 37. ~~Integration-docs content refresh (samber/do, HTMX-ideas, Redis, Prometheus)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0])
-38. Schedule the next `full-code-review` (before v1.0 if substantial code lands)
+38. Schedule the next `full-code-review` (before v1.0 if substantial code lands) → routed — TODO_LIST (architecture-review post-v1.1 row)
 39. ~~Slim AGENTS.md below 30 KB (move file-export tables to `docs/`; NOTE today's session grew it — pay it down before it drifts again)~~ done (v1.0.0 sweep; CHANGELOG [1.0.0] (58.5 KB to 29.3 KiB))
-40. Consider Referer-based attestation contradiction (documented why only Origin today; needs browser-behavior evidence first)
-41. Decide whether client-sent `Sec-Fetch-Site` should be normalized/stripped on trusted-proxy plain HTTP (policy, currently documented-only)
-42. Verify `ErrCSRFAttestationConflict`/`csrf.max_age_negative` surface correctly through `RegisterErrorClassifications` docs/examples (template test covers it; consumer-facing example does not)
-43. Add the httpspec injection-reflection spec to the README's httpspec example block
+40. Consider Referer-based attestation contradiction (documented why only Origin today; needs browser-behavior evidence first) → routed — ROADMAP (CSRF hardening follow-ups: Referer-based attestation)
+41. Decide whether client-sent `Sec-Fetch-Site` should be normalized/stripped on trusted-proxy plain HTTP (policy, currently documented-only) → routed — ROADMAP (CSRF hardening follow-ups: Sec-Fetch-Site normalization policy)
+42. ~~Verify `ErrCSRFAttestationConflict`/`csrf.max_age_negative` surface correctly through `RegisterErrorClassifications` docs/examples (template test covers it; consumer-facing example does not)~~ done — done — the classification rows landed in arch-ref (2026-10-10)
+43. ~~Add the httpspec injection-reflection spec to the README's httpspec example block~~ done — done — the README httpspec block carries the injection-reflection spec
 44. ~~Update `FEATURES.md` error inventory with the 5 new codes (docs-health VERIFY)~~ done (docs-health pass 2026-09-11: FEATURES error inventory verified current (incompressible_prefix_invalid listed; csrf.* covered))
 45. ~~Add `docs/status/2026-09-10_03-41_composability-session-status.md` items to the harvest queue if its section (f) wasn't harvested~~ done (docs-health pass 2026-09-11: 03-41 items resolved via the sweep + this pass)
-46. Consider `http.NoBody`/nil-body fuzz coverage for the CSRF middleware (nosurf reads `PostFormValue` — multipart path is fuzz-touched only indirectly)
-47. `Compose` empty-list identity: add a doc-test/example (`ExampleCompose`) so the identity contract is executable documentation
-48. Decide deprecation timeline for `ETag()` adapter (marked deprecated; removal target unpinned)
+46. Consider `http.NoBody`/nil-body fuzz coverage for the CSRF middleware (nosurf reads `PostFormValue` — multipart path is fuzz-touched only indirectly) → routed — ROADMAP (CSRF hardening follow-ups: NoBody/nil-body fuzz)
+47. ~~`Compose` empty-list identity: add a doc-test/example (`ExampleCompose`) so the identity contract is executable documentation~~ done — done — ExampleCompose exists
+48. ~~Decide deprecation timeline for `ETag()` adapter (marked deprecated; removal target unpinned)~~ done — done — the adapter was removed in v1.1.0
 49. ~~Housekeeping: `/tmp/httputil-head` worktree from this session was removed — audit for other stale worktrees (`git worktree list`)~~ done (docs-health pass 2026-09-11: git worktree list shows only the main worktree)
-50. Post-v1.0: revisit `SetIsTLSFunc` interplay with `X-Forwarded-Proto` TLS-terminating proxies (nosurf's own doc suggests header-based detection; ours is `r.TLS != nil` — document the constraint for proxy deployments)
+50. Post-v1.0: revisit `SetIsTLSFunc` interplay with `X-Forwarded-Proto` TLS-terminating proxies (nosurf's own doc suggests header-based detection; ours is `r.TLS != nil` — document the constraint for proxy deployments) → routed — ROADMAP (CSRF hardening follow-ups: SetIsTLSFunc vs XFP)
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

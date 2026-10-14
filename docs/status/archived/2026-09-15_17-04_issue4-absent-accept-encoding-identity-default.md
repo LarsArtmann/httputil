@@ -97,7 +97,7 @@ time; master is 4 daemon commits ahead of origin (unpushed, owner-gated).
    exactly the class awaiting the owner table-style ruling (audit report
    g2). Not fixable without that ruling; single-space compact style would
    remove the class entirely.
-3. **Consumer follow-through (website guard retirement)** — the issue's
+3. **Consumer follow-through (website guard retirement)** — the issue's → routed — ROADMAP (website guard retirement question)
    consumer-impact note says artmann-technologies-website's guard wrapper
    can be retired; the migration doc and issue comment say so, but no
    cross-repo issue/PR exists yet (different repo; needs owner
@@ -115,16 +115,16 @@ time; master is 4 daemon commits ahead of origin (unpushed, owner-gated).
 
 All pre-existing, deliberately untouched per the single-issue scope:
 
-1. **Website guard-retirement issue** (see b3) — waiting on owner
+1. **Website guard-retirement issue** (see b3) — waiting on owner → routed — ROADMAP (website guard retirement question)
    authorization + v1.2.0 tag. Priority: Medium.
-2. **Bench before/after for the negotiator change** — waiting for the
+2. ~~**Bench before/after for the negotiator change** — waiting for the~~ done at `ae31e27`
    v1.2.0 release protocol where benchstat comparison happens anyway
    (hot-path impact is expected negligible: the new branch only executes
    for empty headers). Priority: Medium.
 3. ~~**Per-module coverage re-measure** — standing ticket from the audit~~ done (docs-health pass 2026-09-23, re-measured — 97.5% httputil / 99.1% httpspec, FEATURES+README refreshed)
    ~~session (post-CSRF-fallback); this session adds tested code that will~~
    ~~shift the httputil number again. Priority: Medium.~~
-4. **Audit-session owner rulings** (B1 CSRF default interpretation;
+4. **Audit-session owner rulings** (B1 CSRF default interpretation; → routed — TODO_LIST (B1 + MD060 + export rows)
    MD060 style + buildflow cache purge; push/v1.2.0 timing) — still open,
    unchanged this session. Priority: High (they gate the release).
 5. ~~**TODO_LIST batches** (release-engineering hardening, CSRF docs polish~~ done (all five batches re-verified and carried into the rebuilt TODO_LIST (2026-09-23))
@@ -213,23 +213,23 @@ M 30min-2hr, L >2hr). HARVEST note: items 1-16 are TODO_LIST-grade;
 2. ~~Watch tonight's 03:05 UTC nightly fuzz — first run over the fixed~~ done (observed green — no negotiator crashes in nightly runs since the fix)
    ~~negotiator oracle + new seed; re-dispatch or investigate if red.~~
    ~~— High / S / Quality.~~
-3. After push/tag: follow-up comment on issue #4 citing the deliberate
+3. ~~After push/tag: follow-up comment on issue #4 citing the deliberate~~ done — done — the comment cites the v1.2.0 tag (2026-10-10)
    commit or v1.2.0 tag, replacing the dangling daemon-hash reference.
    — Low / S / Documentation.
 4. ~~Run `scripts/prerelease-check.sh` on this tree — the 95% coverage gate~~ done (ran with the v1.2.0 release battery per RELEASE.md (tag CI green))
    ~~has not seen the new code+tests yet. — High / S / Quality.~~
 5. ~~Benchstat before/after for `Compression` (documented 3s×5 `nix run~~ **Won't implement — window closed — v1.2.0 shipped 2026-09-16; the pre-tag comparison window is gone.**
    ~~.#bench` protocol) pre-v1.2.0. — Medium / M / Quality.~~
-6. Second fuzz instance (or policy parameter) so `FuzzNegotiatorWireFormat`
+6. ~~Second fuzz instance (or policy parameter) so `FuzzNegotiatorWireFormat`~~ done — done — the corpus migrated + the Range parameter (2026-10-10)
    also exercises the new identity-policy branch (today's fuzz corpus only
    covers the legacy policy via `newTestNegotiator`). — Medium / S /
    Quality.
-7. Extract `newLargePlainTextBody()` test fixture (dedupe the repeated
+7. ~~Extract `newLargePlainTextBody()` test fixture (dedupe the repeated~~ done — done — newWriteLargeBodyHandler shared (2026-10-10)
    `strings.Repeat` body). — Low / S / Cleanup.
-8. Sweep all fuzz oracles for Go-normalization vs HTTP ABNF mismatches
+8. ~~Sweep all fuzz oracles for Go-normalization vs HTTP ABNF mismatches~~ done — done — the oracle audit verdict is recorded (2026-10-10)
    (`TrimSpace`/`ToLower`/`EqualFold` on header-like inputs) — the
    generalization of today's find. — High / M / Quality.
-9. File the artmann-technologies-website issue to retire the compression
+9. File the artmann-technologies-website issue to retire the compression → routed — ROADMAP (website guard retirement question)
    guard wrapper (after v1.2.0 tag exists to point at). — Medium / S /
    Cleanup (cross-repo, owner approval).
 10. ~~Re-measure per-module coverage (post-CSRF-fallback + this change) and~~ done (docs-health pass 2026-09-23, 97.5% httputil / 99.1% httpspec; FEATURES + README badge refreshed)
@@ -244,11 +244,11 @@ M 30min-2hr, L >2hr). HARVEST note: items 1-16 are TODO_LIST-grade;
 
 **v1.2.0 release (staged content + standing rulings):**
 
-13. Owner ruling: B1 interpretation of the CSRF `SameSite=None` fallback
+13. Owner ruling: B1 interpretation of the CSRF `SameSite=None` fallback → routed — TODO_LIST (B1+opt-out ruling row)
     default (audit report g1) — flip `withSecureFallback` + tests +
     migration note in one change if the B1 default was wrong.
     — High / S / Owner decision.
-14. Owner ruling: MD060 table style (compact vs aligned) + buildflow
+14. Owner ruling: MD060 table style (compact vs aligned) + buildflow → routed — TODO_LIST (MD060 ruling row)
     result-cache purge for the replaying MD060 rows (audit g2).
     — Medium / S / Owner decision.
 15. ~~Owner ruling: push now vs at release; cut v1.2.0 per RELEASE.md~~ done at `9b9e032`
@@ -259,36 +259,36 @@ M 30min-2hr, L >2hr). HARVEST note: items 1-16 are TODO_LIST-grade;
     ~~migration-doc link resolves. — High / S / Documentation.~~
 17. ~~Update ROADMAP "Current Position" wording if needed once v1.2.0 is~~ done (docs-health pass 2026-09-23, ROADMAP Current Position rewritten for v1.2.0 + v1.3.0)
     ~~cut (it currently says v1.2.0 staged). — Low / S / Documentation.~~
-18. Verify pkg.go.dev rendering for v1.2.0 after tagging (the v1.1.0
+18. ~~Verify pkg.go.dev rendering for v1.2.0 after tagging (the v1.1.0~~ done — done — pkg.go.dev render-verified for v1.5.0 (2026-10-09)
     pattern). — Low / S / Release.
-19. Decide `AbsentEncodingFirstConfigured` lifecycle: permanent knob or
+19. Decide `AbsentEncodingFirstConfigured` lifecycle: permanent knob or → routed — ROADMAP (AbsentEncodingFirstConfigured lifecycle question)
     pre-declared v2 removal? Record the answer in ROADMAP Non-goals +
     v1-stability notes. — High / S / Owner decision (see g1).
 
 **Standing TODO_LIST batches (pre-existing, still open):**
 
-20. Release-engineering: gate `release.yml` on CI success (workflow_run or
+20. ~~Release-engineering: gate `release.yml` on CI success (workflow_run or~~ done — done — v1.4.0 release-gate hardening
     single-publisher) so a red tag cannot publish silently.
     — High / M / Release.
-21. Add a lychee link gate to CI/pre-commit (links at 0 since 2026-09-11).
+21. ~~Add a lychee link gate to CI/pre-commit (links at 0 since 2026-09-11).~~ done — done — the v1.4.0 lychee gate
     — Medium / M / Quality.
-22. Fix the dev-mode lychee no-op (`exec: lychee: not found` via the nix
+22. ~~Fix the dev-mode lychee no-op (`exec: lychee: not found` via the nix~~ done — done — lychee in the devShell (v1.4.0)
     fallback counts as success). — Medium / S / Bug.
-23. CSRF docs polish batch (README SameSite=None prose, testable Example
+23. ~~CSRF docs polish batch (README SameSite=None prose, testable Example~~ done — done — the CSRF docs polish batch (2026-10-10)
     for the fallback, `ConfigureNosurfHandler` verbatim warning,
     `CSRFResponseHeaderMiddleware` cookie-path audit).
     — Medium / M / Documentation.
-24. CSRF test-depth batch (opaque-URL TrustedOrigins pins, broken-list
+24. ~~CSRF test-depth batch (opaque-URL TrustedOrigins pins, broken-list~~ done — done — the CSRF test-depth batch (2026-10-10)
     fallback-log assertion, `ValidateCSRF` idempotency, `needsTranslation`
     branch, `forwardedProtoFromTrustedProxy` branches, `requestScheme` TLS
     fixture, HX fuzz seed, `ErrCSRFConfig` chain asserts, CSRF benchmark
     row). — Medium / L / Quality.
-25. Owner question: export `csrf.trusted_origin_invalid` as an exported
+25. Owner question: export `csrf.trusted_origin_invalid` as an exported → routed — TODO_LIST (export csrf.trusted_origin_invalid row)
     `Code` constant? — Medium / S / Owner decision.
-26. go-error-family#5 follow-through (upstream "Conditional requests" docs
+26. ~~go-error-family#5 follow-through (upstream "Conditional requests" docs~~ done — done — upstream #5 closed + the httputil sweep
     section if accepted; then sweep README + classification tables).
     — Medium / M / Feature.
-27. Archived-corpus sampled audit (~2,300-marker debt, owner question from
+27. Archived-corpus sampled audit (~2,300-marker debt, owner question from → routed — owner bulk-strike ruling (TODO_LIST session follow-ups)
     04-30 g3). — Low / L / Documentation.
 
 **Ideas surfaced this session (ROADMAP fuel unless promoted):**
@@ -298,36 +298,36 @@ M 30min-2hr, L >2hr). HARVEST note: items 1-16 are TODO_LIST-grade;
     ~~free via `Run()`. — Low / M / Feature.~~
 29. ~~AGENTS.md one-liner: "never reference daemon commits in external~~ done (rule added to AGENTS.md Auto-Git-Commit Daemon section 2026-09-23)
     ~~artifacts" (from e2). — Low / S / Documentation.~~
-30. Negotiator: consider precomputing the empty-order guard —
+30. ~~Negotiator: consider precomputing the empty-order guard —~~ **Won't implement — not adopted — the guard cost is below measurement noise.**
     `buildNegotiator` with an empty factory map is a Validate-rejected
     state; the len(order)==0 branch is defensive-only (document or
     contract it). — Low / S / Quality.
-31. `nix flake check` on `--all-systems` (aarch64 warnings suppressed
+31. ~~`nix flake check` on `--all-systems` (aarch64 warnings suppressed~~ done — done — flake check --all-systems green (2026-10-10)
     today). — Low / M / Quality.
-32. buildflow full `--build-mode dev` run to confirm no NEW finding classes
+32. ~~buildflow full `--build-mode dev` run to confirm no NEW finding classes~~ done — done — the dry-run re-baseline (2026-10-10)
     from this change (expected non-zero on documented residuals only).
     — Medium / M / Quality.
 33. ~~README coverage badge re-verify after item 10's re-measure.~~ done (badge re-verified and updated to 97.5% (2026-09-23))
     ~~— Low / S / Documentation (conditional on 10).~~
-34. Consider committing the remaining fuzz-workflow expectation: nightly
+34. ~~Consider committing the remaining fuzz-workflow expectation: nightly~~ **Won't implement — superseded — the nightly rotation + rolling-issue workflow restructured this.**
     run count/health alerting so five consecutive reds (the #9-#13 class)
     auto-escalates instead of auto-filing only. — Medium / M / Quality.
-35. CHANGELOG: add the `AbsentEncodingPolicy` constants to the Changed
+35. ~~CHANGELOG: add the `AbsentEncodingPolicy` constants to the Changed~~ done — shipped — the policy is documented in the v1.2.0 CHANGELOG section
     bullet's code back-references if the owner wants API-level callouts
     (currently prose only). — Low / S / Documentation.
-36. Fuzz seed inventory: confirm every fuzz target has at least one
+36. ~~Fuzz seed inventory: confirm every fuzz target has at least one~~ done — every target carries in-code f.Add seeds; 5 carry committed corpus files
     committed regression seed (the negotiator one landed only today by
     accident of a failure; make it policy). — Low / M / Quality.
-37. Docs: single glossary entry for "OWS" with the SP/HTAB definition, so
+37. ~~Docs: single glossary entry for "OWS" with the SP/HTAB definition, so~~ done — done — the OWS glossary entry (2026-10-10)
     oracle comments can cite it instead of re-explaining.
     — Low / S / Documentation.
-38. Property test `TestNegotiator_Property_*` generators: add an explicit
+38. ~~Property test `TestNegotiator_Property_*` generators: add an explicit~~ **Won't implement — not adopted — the oracle postures are codified in AGENTS instead.**
     zero-entries case so the empty-order branch is property-covered too.
     — Low / S / Quality.
-39. CI: run `doc-snippet-refs` over docs/*.md (not just README +
+39. ~~CI: run `doc-snippet-refs` over docs/*.md (not just README +~~ done — done — doc-snippet-refs release-gating covers the docs (v1.4.0)
     integrations) if the owner wants migration docs drift-checked too.
     — Low / S / Quality (owner preference).
-40. Post-release: re-run the 33-project adoption sweep note for the new
+40. ~~Post-release: re-run the 33-project adoption sweep note for the new~~ **Won't implement — superseded — the 2026-10-09 consumer-audit program replaced the one-off sweep.**
     default (the CORS AllowPrivateNetwork entry came from dnsblockd; a
     header-less-client consumer survey would validate the identity
     default). — Low / L / Feature/ROADMAP.

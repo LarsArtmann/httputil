@@ -21,15 +21,15 @@ User pasted an erraudit analysis (Total Violations: 61 — 1 CRITICAL, 58 ERROR,
 
 ## b) PARTIALLY DONE
 
-1. **Sentinel clone-site cross-reference is sampled, not exhaustive.** 13 clone sites proven by grep; the full 43-flagged-sentinel list was not item-by-item mapped to cloned/never-cloned. The rejection stands regardless (documented pattern + compile break for a subset + no split-brain declaration styles), but the exact number of never-cloned sentinels is unknown.
-2. **Verification was scoped to the root module.** `server_timing` sub-module gates, `nix flake check`, and full `go vet ./...` were not run (change didn't touch them — habit gap, not necessity).
-3. **The 43 `legacy_is` advisories were class-verified** (rg count: all 43 are `legacy_is`, zero `context_loss`/`stdlib_constructor` mixed in), but per-sentinel correctness was not re-audited this session; it rests on the historical documented audit.
+1. ~~**Sentinel clone-site cross-reference is sampled, not exhaustive.** 13 clone sites proven by grep; the full 43-flagged-sentinel list was not item-by-item mapped to cloned/never-cloned. The rejection stands regardless (documented pattern + compile break for a subset + no split-brain declaration styles), but the exact number of never-cloned sentinels is unknown.~~ done — superseded — the erraudit ledger re-measured 2026-10-11 with root-caused deltas
+2. ~~**Verification was scoped to the root module.** `server_timing` sub-module gates, `nix flake check`, and full `go vet ./...` were not run (change didn't touch them — habit gap, not necessity).~~ done — run since — the per-module gates are green (2026-10-14)
+3. ~~**The 43 `legacy_is` advisories were class-verified** (rg count: all 43 are `legacy_is`, zero `context_loss`/`stdlib_constructor` mixed in), but per-sentinel correctness was not re-audited this session; it rests on the historical documented audit.~~ done — superseded by the 2026-10-11 ledger (51 sentinel / 49 test-side verdicts)
 
 ## c) NOT STARTED
 
-1. **erraudit version alignment** — the newer build that produced the paste is neither installed nor located; gates not re-run against it.
-2. **CHANGELOG `[Unreleased]` decision** for the doc-snippet-refs fix (scripts-only change; policy unclear).
-3. **Consolidation of erraudit-residual documentation** — the topic now lives in three places: Commands block verdict (new), BuildFlow "Residual detect-only findings" bullet, and the Non-Obvious Behaviors honest-silence paragraph.
+1. ~~**erraudit version alignment** — the newer build that produced the paste is neither installed nor located; gates not re-run against it.~~ done — resolved — the binary was located and the refresh caveat documented (row: erraudit tooling hygiene)
+2. **CHANGELOG `[Unreleased]` decision** for the doc-snippet-refs fix (scripts-only change; policy unclear). → routed — ROADMAP (CHANGELOG-granularity question)
+3. ~~**Consolidation of erraudit-residual documentation** — the topic now lives in three places: Commands block verdict (new), BuildFlow "Residual detect-only findings" bullet, and the Non-Obvious Behaviors honest-silence paragraph.~~ done at `5361480`
 4. ~~**HARVEST of this report's next-up list into TODO_LIST/ROADMAP** — deferred pending user instruction (user scoped this session to reporting).~~ done (docs-health pass 2026-09-23, harvest executed — open items routed to TODO_LIST/ROADMAP)
 
 ## d) TOTALLY FUCKED UP
@@ -50,20 +50,20 @@ Nothing destructive. Two honest own-goals:
 ## f) Next up (session-derived; honest list, not padded to 50)
 
 1. ~~Locate/upgrade erraudit to the build that produced the report; re-run both gates; confirm the 43↔43 sentinel_concrete_type ↔ legacy_is mapping with the real binary.~~ resolved 2026-10-10 (erraudit 1c6809a): both gates exit 0 on root AND server_timing; the current-build composition is 45 sentinel_concrete_type + 44 test-side `errors.Is` advisories (AGENTS.md erraudit block refreshed).
-2. Exhaustive 43-sentinel ↔ clone-site cross-reference; record the exact cloned/never-cloned split in AGENTS.md.
+2. ~~Exhaustive 43-sentinel ↔ clone-site cross-reference; record the exact cloned/never-cloned split in AGENTS.md.~~ done — superseded by the 2026-10-11 ledger (delta root-causing is the convention)
 3. Investigate advisory growth `~30 → 43` (git log around test/sentinel additions).
-4. Owner decision: root tracked binaries (`doc-snippet-refs`, `coverage-threshold`) — keep, or gitignore + build on demand.
-5. Decide whether the script fix gets a CHANGELOG `[Unreleased]` entry.
-6. Consolidate the three erraudit-residual doc locations into one canonical home + cross-references.
-7. One-line AGENTS.md note on analyze-vs-lint scope difference (analyze walks `scripts/`; lint exempts packages that don't import go-error-family) — prevents future report confusion.
-8. Make exit-code expectations explicit per erraudit command in AGENTS.md (`--type-aware` exits 2 by design; only two gates require 0).
-9. Tiny test for `exportedNames`' error path (assert message contains pkgPath).
-10. Evaluate `erraudit nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (careful: nolintlint fragility precedent with gosec).
-11. Triage the gopls `stdversion` warnings seen in diagnostics (jsonv2 experiment APIs vs go1.26 files) — config noise or real.
-12. CI workflow comment documenting why `migrating-to-keyed-rate-limiter.md` is outside checker scope.
+4. Owner decision: root tracked binaries (`doc-snippet-refs`, `coverage-threshold`) — keep, or gitignore + build on demand. → routed — ROADMAP (tracked root binaries question)
+5. Decide whether the script fix gets a CHANGELOG `[Unreleased]` entry. → routed — ROADMAP (CHANGELOG-granularity question)
+6. ~~Consolidate the three erraudit-residual doc locations into one canonical home + cross-references.~~ done at `5361480`
+7. ~~One-line AGENTS.md note on analyze-vs-lint scope difference (analyze walks `scripts/`; lint exempts packages that don't import go-error-family) — prevents future report confusion.~~ done — done — the analyze-vs-lint scope is the AGENTS Commands block verdict
+8. ~~Make exit-code expectations explicit per erraudit command in AGENTS.md (`--type-aware` exits 2 by design; only two gates require 0).~~ done — done — the AGENTS block separates real gates (exit 0) from advisory output
+9. ~~Tiny test for `exportedNames`' error path (assert message contains pkgPath).~~ **Won't implement — dev-tool internal; not adopted — scripts carry no test-policy change since.**
+10. ~~Evaluate `erraudit nolint-audit` + `//nolint:erraudit` on the 11 honest-silence sites (careful: nolintlint fragility precedent with gosec).~~ done — done — the //nolint:erraudit audit found zero sites needed repo-wide
+11. ~~Triage the gopls `stdversion` warnings seen in diagnostics (jsonv2 experiment APIs vs go1.26 files) — config noise or real.~~ done at `a10a8a2`
+12. ~~CI workflow comment documenting why `migrating-to-keyed-rate-limiter.md` is outside checker scope.~~ **Won't implement — cosmetic; not adopted — no scope confusion surfaced since.**
 13. ~~Run docs-health HARVEST for this list once the user confirms.~~ done (docs-health pass 2026-09-23, harvest executed — open items routed to TODO_LIST/ROADMAP)
-14. Verify the daemon-committed root binary is a deterministic rebuild of current source.
-15. Check pre-commit.sh vs CI parity for doc-snippet-refs scope (CI runs it; pre-commit scope unverified).
+14. ~~Verify the daemon-committed root binary is a deterministic rebuild of current source.~~ **Won't implement — superseded — the nix-store delivery is deterministic by construction (2026-10-10).**
+15. ~~Check pre-commit.sh vs CI parity for doc-snippet-refs scope (CI runs it; pre-commit scope unverified).~~ done — done — pre-commit parity verified (the same full-package lint gate)
 
 ## g) Questions (cannot be answered from the repo)
 

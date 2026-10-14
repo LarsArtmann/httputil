@@ -18,9 +18,9 @@
 
 ## b) PARTIALLY DONE
 
-1. **The 14:58 report's own f1–f5 loose ends remain open:** sampled audit of ~300 keyword-batch verdicts; dprint workaround attempt; `gh release view v0.6.1`; the two one-comment code docs (Hijack buffered-bytes semantics, gzip-multistream note); TODO_LIST tail trim. None started — I waited, as instructed.
+1. ~~**The 14:58 report's own f1–f5 loose ends remain open:** sampled audit of ~300 keyword-batch verdicts; dprint workaround attempt; `gh release view v0.6.1`; the two one-comment code docs (Hijack buffered-bytes semantics, gzip-multistream note); TODO_LIST tail trim. None started — I waited, as instructed.~~ done — superseded — the corpus-hygiene sweep (2026-10-10) + this pass
 2. **Dated-marker → hash upgrade is now possible but not done:** the morning/annotation markers citing "2026-08-30 pass" (no hash — nothing was committed then) can now cite `f916278`. Two prior sessions' worth of v-markers await this upgrade (prior f39).
-3. **Second-order verification of my batch work is still only partially designed:** I verified links, YAML, and counts; I have NOT yet sampled the keyword-rule verdicts themselves (the single biggest open quality question of the whole pass).
+3. ~~**Second-order verification of my batch work is still only partially designed:** I verified links, YAML, and counts; I have NOT yet sampled the keyword-rule verdicts themselves (the single biggest open quality question of the whole pass).~~ done — superseded by the later full-code-review passes
 
 ## c) NOT STARTED
 
@@ -50,52 +50,52 @@
 
 **New this pass (1–10)**
 
-1. Upgrade the dated "2026-08-30 pass" v-markers to `f916278` hash markers where a single commit can be cited (T14 policy: hash-for-changes). Now unblocked by the daemon commit. Effort: 30 min.
-2. Sample-audit ~30 keyword-batch verdicts in the May–June files; correct overclaims (carried f1 — still the top open quality item of the corpus pass).
-3. Attempt one dprint workaround (`nix run nixpkgs#dprint fmt` / devShell addition); format-check the ~50 files the two passes touched; also eyeball the nested-tilde line in `08-14_12-38` as rendered.
+1. ~~Upgrade the dated "2026-08-30 pass" v-markers to `f916278` hash markers where a single commit can be cited (T14 policy: hash-for-changes). Now unblocked by the daemon commit. Effort: 30 min.~~ done — resolved — frozen by rule (2026-10-10)
+2. ~~Sample-audit ~30 keyword-batch verdicts in the May–June files; correct overclaims (carried f1 — still the top open quality item of the corpus pass).~~ done — done — the corpus-hygiene sampled audit (2026-10-10)
+3. ~~Attempt one dprint workaround (`nix run nixpkgs#dprint fmt` / devShell addition); format-check the ~50 files the two passes touched; also eyeball the nested-tilde line in `08-14_12-38` as rendered.~~ **Won't implement — superseded — treefmt + the buildflow formatting steps own formatting.**
 4. ~~`gh release view v0.6.1`; annotate `18-16` f2 accordingly (one command, twice deferred).~~ done (docs-health pass 2026-09-11: gh release view v0.6.1 succeeds (created 2026-07-26); annotate 18-16 f2 accordingly)
 5. ~~Write the two one-comment code docs (Hijack buffered-bytes-dropped; gzip-multistream fuzz note).~~ done (done — Hijack buffered-bytes doc landed 04-03 a14; gzip-multistream note landed in the v1.0.0 sweep)
 6. ~~Trim TODO_LIST tail to ROADMAP batches (target ≤20 tracked items).~~ done (docs-health pass 2026-09-11: TODO_LIST rebuilt to 18 open items)
 7. ~~AGENTS.md surgery once g-Q3 is answered (A: table → docs/ pointer; B: compress in place; C: accept + DECISION_LOG row) — the 53 KB Critical finding stands.~~ done (v1.0.0 sweep: AGENTS.md 58.5 KB to 29.3 KiB via the docs/architecture-reference.md split (Option A))
-8. Push `master` + decide the commit-granularity policy going forward (g-Q2).
-9. Add "end-of-report `git status`/`git log -1` snapshot" to the status-report checklist in AGENTS.md (e.1 above).
-10. Where historical prose citations cluster densest (00-23, 05-10, 22-43 reference 3+ archived files each), consider a one-line "archived reports live in `docs/status/archived/`" pointer at the top of those files rather than rewriting citations.
+8. ~~Push `master` + decide the commit-granularity policy going forward (g-Q2).~~ done — pushed — CI green since
+9. ~~Add "end-of-report `git status`/`git log -1` snapshot" to the status-report checklist in AGENTS.md (e.1 above).~~ done — done — the AGENTS session-tail discipline (2026-10-09)
+10. ~~Where historical prose citations cluster densest (00-23, 05-10, 22-43 reference 3+ archived files each), consider a one-line "archived reports live in `docs/status/archived/`" pointer at the top of those files rather than rewriting citations.~~ **Won't implement — superseded — the archived-corpus policy settled (2026-10-10).**
 
 **Carried High/Medium from TODO_LIST (11–24)** — unchanged since 14:58, evidence-cited there and in TODO_LIST.md:
 11. v1.0 release decision → cut v1.0 (stabilization cycle, TokenBucketLimiter removal, admission-contract confirmation).
-12. CSRF `Sec-Fetch-Site` trust-model verification + boundary decision + possible httpspec injection-reflection spec.
-13. `CompressionConfig.Level = 0` semantics alignment.
-14. go-compression extraction (live plan; trigger: go-datastar SSE).
+12. ~~CSRF `Sec-Fetch-Site` trust-model verification + boundary decision + possible httpspec injection-reflection spec.~~ done — done — the trust model verified (AGENTS bullet)
+13. ~~`CompressionConfig.Level = 0` semantics alignment.~~ done — done — Level 0 semantics pinned
+14. go-compression extraction (live plan; trigger: go-datastar SSE). → routed — TODO_LIST (go-compression extraction row)
 15. CI release workflow (tag → build → GitHub Release; `go vet` both modules).
 16. ~~go-error-family upstream proposal (verify-before-filing first).~~ done (filed 2026-09-15 as go-error-family#5)
-17. `architecture-review` re-run.
-18. Convert the 6 remaining legacy table-driven test files (or amend the convention once).
-19. `docs/benchmarks.md` re-measure (~10 changed benches, 3s×5) + stale `b.ResetTimer` audit.
-20. T13 line-by-line test review batch.
+17. `architecture-review` re-run. → routed — TODO_LIST (architecture-review post-v1.1 row)
+18. Convert the 6 remaining legacy table-driven test files (or amend the convention once). → routed — TODO_LIST (t.Run cluster convert-or-accept row)
+19. ~~`docs/benchmarks.md` re-measure (~10 changed benches, 3s×5) + stale `b.ResetTimer` audit.~~ done — done — the committed baseline (ae31e27)
+20. ~~T13 line-by-line test review batch.~~ **Won't implement — superseded by the later review passes.**
 21. exhaustruct → exhaustruct_v5 migration + golangci upgrade path.
-22. `CSRFConfig.Validate` side-effect cleanup (post-v1.0).
-23. Config-validation hardening batch.
-24. dprint availability decision (devShell vs formalize `--no-verify`).
+22. ~~`CSRFConfig.Validate` side-effect cleanup (post-v1.0).~~ **Won't implement — no demand emerged.**
+23. ~~Config-validation hardening batch.~~ done — done — the constructor hardening shipped
+24. ~~dprint availability decision (devShell vs formalize `--no-verify`).~~ **Won't implement — superseded — treefmt owns formatting.**
 
 **Carried Low, selected (25–42)**
-25. Chain-level exact-fill regression test through full `Compression()`.
-26. KeyedRateLimiter property test + churn benchmark.
-27. CORS exact-origin allowlist fuzz invariant.
-28. `WrapConflict`/`WrapOrchestration` symmetry decision.
-29. Skip pool `Get` for non-resettable factories.
-30. `Server.Addr()` resolved-port variant.
-31. `TestChain_RecoveryErrAbortHandler_ThroughStack`.
-32. Negotiator wire-format fuzz (+ multistream doc note — merges with item 5 if done together).
-33. flake.nix benchmark-protocol app (3s×5 one-command).
-34. Nightly-fuzz crash issue-template step (coverage of all 23 targets is done; failure visibility remains).
-35. govulncheck for `server_timing` in CI.
-36. Commit-lint CI step + Go coverage checker + pre-release script.
-37. Go version pinning alignment (go.work 1.26.5 / CI 1.26.x / local 1.26.7).
-38. Test-helper hygiene trio (bench_batch dissolution, TLS helper consolidation, Ed25519 cert).
-39. MaxBodySize bench + fuzz; five missing Example functions.
-40. Nonce design decisions + nonce composition-test cluster.
-41. ID-generator refill benchmark.
-42. KeyExtractor `""` semantics (post-v1.0); integration-docs content refresh; schedule next full-code-review.
+25. ~~Chain-level exact-fill regression test through full `Compression()`.~~ done — done — the fuzz round-trip invariant
+26. ~~KeyedRateLimiter property test + churn benchmark.~~ done — done — the limiter heap invariants exist
+27. ~~CORS exact-origin allowlist fuzz invariant.~~ done — done — the CORS fuzz echo invariant
+28. ~~`WrapConflict`/`WrapOrchestration` symmetry decision.~~ **Won't implement — no demand emerged.**
+29. ~~Skip pool `Get` for non-resettable factories.~~ done — done — the pooling probe (FEATURES)
+30. ~~`Server.Addr()` resolved-port variant.~~ **Won't implement — not adopted — no consumer ask.**
+31. ~~`TestChain_RecoveryErrAbortHandler_ThroughStack`.~~ done — done — TestChain_RecoveryErrAbortHandler_ThroughStack exists
+32. ~~Negotiator wire-format fuzz (+ multistream doc note — merges with item 5 if done together).~~ done — done — the negotiator wire-format fuzz target exists
+33. ~~flake.nix benchmark-protocol app (3s×5 one-command).~~ done — done — nix run .#bench
+34. ~~Nightly-fuzz crash issue-template step (coverage of all 23 targets is done; failure visibility remains).~~ done — superseded — the rolling-issue workflow
+35. ~~govulncheck for `server_timing` in CI.~~ done — done — CI govulncheck
+36. ~~Commit-lint CI step + Go coverage checker + pre-release script.~~ done — done — commit-lint + coverage gate + prerelease script all exist
+37. ~~Go version pinning alignment (go.work 1.26.5 / CI 1.26.x / local 1.26.7).~~ done — done — the 1.27 alignment + preflight job
+38. ~~Test-helper hygiene trio (bench_batch dissolution, TLS helper consolidation, Ed25519 cert).~~ done — done — the helper consolidations landed
+39. ~~MaxBodySize bench + fuzz; five missing Example functions.~~ done — done — MaxBodySize bench/fuzz + the examples
+40. ~~Nonce design decisions + nonce composition-test cluster.~~ done — done — Nonce shipped
+41. ~~ID-generator refill benchmark.~~ done — done — the refill benchmark exists
+42. ~~KeyExtractor `""` semantics (post-v1.0); integration-docs content refresh; schedule next full-code-review.~~ done — done — the extractor semantics + refreshed docs
 
 _(Stops at 42 — identical rationale as 14:58: the rest are already in TODO_LIST.md and duplicating them here creates drift surface.)_
 

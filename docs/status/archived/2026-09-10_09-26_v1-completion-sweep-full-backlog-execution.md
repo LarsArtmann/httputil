@@ -44,25 +44,25 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 ## b) PARTIALLY DONE
 
 1. ~~**v1.0.0 push** — tag + release-prep commit are local; `git push origin master && git push origin v1.0.0`, proxy/pkg.go.dev propagation, `go get` verification (docs/RELEASE.md §15) remain. Deliberate: push requires explicit owner action.~~ done (pushed — v1.0.0 out 2026-09-10/11; pkg.go.dev verified later (10-28 pass a12))
-2. **Full-code-review re-run** — recorded as DUE in TODO_LIST (this sweep landed substantial code; the item's own rule says re-run before v1.0), but NOT executed. The tag exists locally without it; the honest recommendation recorded there is review-then-push.
+2. ~~**Full-code-review re-run** — recorded as DUE in TODO_LIST (this sweep landed substantial code; the item's own rule says re-run before v1.0), but NOT executed. The tag exists locally without it; the honest recommendation recorded there is review-then-push.~~ done — ran 2026-09-27 (the post-v1.4.0 full-code-review)
 3. ~~**Upstream issue filing** — draft verified and saved, but the issue is not filed (owner repo, owner action; gh auth untested for it).~~ done (filed 2026-09-15 as go-error-family#5)
-4. **Test-helper consolidation** — `reserveFreePort` deleted, `waitForTLS` relocated + upgraded, `waitForListenerAddr` added; but `waitForServerStart` (timeout-heuristic) is now arguably redundant with `waitForListenerAddr` and its existing callers were NOT migrated. Consolidation is ~80% done.
-5. **`docs/architecture-reference.md` freshness** — the three rows I knew changed were refreshed (code.go, compress_pool.go, server.go), but the table was verified 2026-08-30 and this session's other new files (fuzz/bench files, nonce additions, compose API surface details) were not exhaustively re-inventoried.
+4. ~~**Test-helper consolidation** — `reserveFreePort` deleted, `waitForTLS` relocated + upgraded, `waitForListenerAddr` added; but `waitForServerStart` (timeout-heuristic) is now arguably redundant with `waitForListenerAddr` and its existing callers were NOT migrated. Consolidation is ~80% done.~~ done — done — waitForListenerAddr is the sole form in the tree
+5. ~~**`docs/architecture-reference.md` freshness** — the three rows I knew changed were refreshed (code.go, compress_pool.go, server.go), but the table was verified 2026-08-30 and this session's other new files (fuzz/bench files, nonce additions, compose API surface details) were not exhaustively re-inventoried.~~ done at `f2291a0`
 6. ~~**AGENTS.md slimming** — under budget, but compression cost some nuance (a few sections are now summaries pointing at the reference doc), and the docs-health skill was not re-run to validate the new structure against its rubric.~~ done (v1.0.0 sweep: AGENTS.md 58.5 KB to 29.3 KiB via the docs/architecture-reference.md split; 30.1 KiB on 2026-09-11 (a hair over the 30 KB flag line))
 7. ~~**`docs/status/` annotation obligation** — I read `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` during upstream research (and grepped others) but did not annotate the stale claims I noticed in the one I read. The doc-freshness cadence calls reading-without-annotating a missed obligation — this was missed this session.~~ done (docs-health pass 2026-09-11: the etag gap-analysis report fully annotated (last open item f38 marked with the sweep evidence))
 
 ## c) NOT STARTED
 
 1. ~~**full-code-review execution** (see b2) — the single biggest open quality gate before push.~~ done (cut and pushed 2026-09-10/11 — the v1.0.0 tag shipped; v1.0.1 followed)
-2. **Filing the go-error-family issue** (draft ready).
-3. **go-compression extraction execution** (deferred by decision, preconditions recorded).
-4. **Local govulncheck run** — CI does it and the flake has the app, but I never ran it in-session against the release commit.
-5. **httpspec / server_timing benchmark baselines** — not re-measured this session (benchmarks.md explicitly scopes them out, but they have not been refreshed under the 3s×5 protocol at all).
-6. **erraudit `--type-aware` advisory review** — only the two real gates were re-run; the ~30-advisory full run was not re-checked post-changes.
-7. **Release workflow execution test** — release.yml changes are YAML-validated only; first real execution happens at push time.
-8. **Nightly fuzz crash-issue path** — the `gh issue create` step has never executed; the `bug` label's existence in the repo is unverified (fallback warning exists).
-9. **README v1.0 wording audit** — I fixed the redis doc's "removed at v1.0" claim but did not grep README / `docs/migrating-to-keyed-rate-limiter.md` / `docs/v1-stability.md` for the same stale phrasing.
-10. **docs/v1-stability.md reconciliation** — referenced in FEATURES.md; not checked against what v1.0.0 actually froze (ListenerAddr etc. are IN, deprecated APIs are still IN pending post-v1.0 removal).
+2. ~~**Filing the go-error-family issue** (draft ready).~~ done — upstream #5 closed implemented (2026-10-10)
+3. **go-compression extraction execution** (deferred by decision, preconditions recorded). → routed — TODO_LIST (go-compression extraction row)
+4. ~~**Local govulncheck run** — CI does it and the flake has the app, but I never ran it in-session against the release commit.~~ **Won't implement — CI runs govulncheck on every push; the local run is redundant.**
+5. ~~**httpspec / server_timing benchmark baselines** — not re-measured this session (benchmarks.md explicitly scopes them out, but they have not been refreshed under the 3s×5 protocol at all).~~ done — re-measured — the httpspec table (2026-10-10) + the committed root baseline
+6. ~~**erraudit `--type-aware` advisory review** — only the two real gates were re-run; the ~30-advisory full run was not re-checked post-changes.~~ done — the erraudit ledger re-measured 2026-10-11
+7. ~~**Release workflow execution test** — release.yml changes are YAML-validated only; first real execution happens at push time.~~ done — executed — the v1.4.x/v1.5.0 releases shipped through it
+8. ~~**Nightly fuzz crash-issue path** — the `gh issue create` step has never executed; the `bug` label's existence in the repo is unverified (fallback warning exists).~~ done — superseded — the rolling-issue workflow replaced it; exercised by real failures
+9. ~~**README v1.0 wording audit** — I fixed the redis doc's "removed at v1.0" claim but did not grep README / `docs/migrating-to-keyed-rate-limiter.md` / `docs/v1-stability.md` for the same stale phrasing.~~ done — done by the later living-docs passes (README verified 2026-10-14)
+10. ~~**docs/v1-stability.md reconciliation** — referenced in FEATURES.md; not checked against what v1.0.0 actually froze (ListenerAddr etc. are IN, deprecated APIs are still IN pending post-v1.0 removal).~~ done — current — checked in the 2026-10-14 pass
 
 ## d) TOTALLY FUCKED UP (own failures this session, all recovered)
 
@@ -94,66 +94,66 @@ Each item below was implemented AND verified (race detector, lint, erraudit, or 
 
 **Immediate — before pushing v1.0.0**
 
-1. Run the scheduled full-code-review over everything in the `[1.0.0]` section (the recorded gate).
+1. ~~Run the scheduled full-code-review over everything in the `[1.0.0]` section (the recorded gate).~~ done — ran 2026-09-27
 2. ~~Fix whatever that review finds; if anything lands, `git tag -d v1.0.0`, re-cut, re-verify.~~ obsolete — v1.0.0 reached origin before the fixes landed, and tags are immutable; the delta ships in v1.0.1 (CHANGELOG `[1.0.1]` records the contract as already-described-in-`[1.0.0]`)
-3. Run govulncheck locally on the release commit (both modules).
-4. Run the erraudit `--type-aware` advisory pass once over the post-sweep code (expect ~30 known test advisories; confirm no NEW ones).
+3. ~~Run govulncheck locally on the release commit (both modules).~~ **Won't implement — CI covers it on every push.**
+4. ~~Run the erraudit `--type-aware` advisory pass once over the post-sweep code (expect ~30 known test advisories; confirm no NEW ones).~~ done — the erraudit ledger re-measured 2026-10-11
 5. ~~Grep README + `docs/migrating-to-keyed-rate-limiter.md` + `docs/v1-stability.md` for "removed at v1.0"-class stale claims (only the redis doc was fixed).~~ done (docs-health pass 2026-09-11: README + migrating-doc + v1-stability grepped for stale v1.0 claims; v1-stability removal targets reworded post-v1.0)
 6. ~~Reconcile `docs/v1-stability.md` with what v1.0.0 actually froze (ListenerAddr/WrapConflict in; deprecated APIs still present pending removal).~~ done (docs-health pass 2026-09-11: ListenerAddr, Compose, MiddlewareFunc.Then, MiddlewareStack.Middleware, WrapConflict/Orchestration + attestation code added to v1-stability.md)
 7. ~~Verify the `bug` label exists for the nightly-fuzz issue step (or change the step's label).~~ done (docs-health pass 2026-09-11: gh label list confirms the bug label exists)
-8. Push: `git push origin master && git push origin v1.0.0` (owner action or explicit instruction).
-9. Watch the tag-triggered release.yml run end-to-end; fix anything the real environment surfaces.
-10. Post-push: `go get github.com/larsartmann/httputil@v1.0.0` + `go mod verify` from a scratch module; check pkg.go.dev.
+8. ~~Push: `git push origin master && git push origin v1.0.0` (owner action or explicit instruction).~~ done — pushed — v1.0.0 is live
+9. ~~Watch the tag-triggered release.yml run end-to-end; fix anything the real environment surfaces.~~ done — the release runs executed (v1.4.x/v1.5.0)
+10. ~~Post-push: `go get github.com/larsartmann/httputil@v1.0.0` + `go mod verify` from a scratch module; check pkg.go.dev.~~ done — proxy live; pkg.go.dev render-verified (2026-10-09)
 
 **Follow-ups from this session**
-11. File the go-error-family conditional-request issue from the verified draft.
-12. Finish helper consolidation: migrate `waitForServerStart` callers to `waitForListenerAddr` (or delete the heuristic helper).
-13. Re-inventory `docs/architecture-reference.md` tables file-by-file against HEAD (this session added 7+ files not in the tables).
-14. Add a docs-snippet compilation harness so integration-doc examples (compose-bundles etc.) are build-tested.
-15. Re-measure httpspec + server_timing benchmark baselines under the 3s×5 protocol.
+11. ~~File the go-error-family conditional-request issue from the verified draft.~~ done — upstream #5 closed implemented
+12. ~~Finish helper consolidation: migrate `waitForServerStart` callers to `waitForListenerAddr` (or delete the heuristic helper).~~ done — done — waitForListenerAddr is the sole form
+13. ~~Re-inventory `docs/architecture-reference.md` tables file-by-file against HEAD (this session added 7+ files not in the tables).~~ done at `f2291a0`
+14. ~~Add a docs-snippet compilation harness so integration-doc examples (compose-bundles etc.) are build-tested.~~ done — done — doc-snippet-refs release-gating (v1.4.0)
+15. ~~Re-measure httpspec + server_timing benchmark baselines under the 3s×5 protocol.~~ done — done — the httpspec table (2026-10-10) + the committed baseline
 16. ~~Annotate `docs/status/2026-08-06_23-33_etag-weak-comparison-fix-and-gap-analysis.md` (read, not annotated — missed obligation).~~ done (docs-health pass 2026-09-11: item f38 of that report marked done with the sweep evidence; file now fully resolved)
 17. ~~Run the docs-health skill over the new AGENTS.md / architecture-reference split to validate against the quality rubric.~~ done (docs-health pass 2026-09-11 (this pass executed the skill over the corpus; scores in the session report))
-18. Add tests for `scripts/coverage-threshold` (currently the only Go in the repo with 0% coverage, excluded from the gate for that reason).
-19. Investigate the gopls `stdversion` warnings (`json.MarshalWrite requires go1.27`) that shadowed the whole session — decide whether go.mod moves to 1.27 when json/v2 stabilizes.
-20. Add `benchstat` to the flake so the documented comparison workflow is executable.
-21. Consider uploading bench artifacts in CI (benchmarks.md claims "full raw data in CI artifacts"; the bench job currently uploads nothing).
-22. `KeyedRateLimiterMiddleware` measured 220 ns/op vs the doc's historical ~191 — sanity-check whether that is harness noise or a real regression from the sweep (property-test additions did not touch the hot path, so probably protocol difference; confirm with benchstat).
+18. ~~Add tests for `scripts/coverage-threshold` (currently the only Go in the repo with 0% coverage, excluded from the gate for that reason).~~ done — done — scripts/coverage-threshold has main_test.go
+19. ~~Investigate the gopls `stdversion` warnings (`json.MarshalWrite requires go1.27`) that shadowed the whole session — decide whether go.mod moves to 1.27 when json/v2 stabilizes.~~ done at `a10a8a2`
+20. ~~Add `benchstat` to the flake so the documented comparison workflow is executable.~~ done — done — CI posts the benchstat comparison
+21. ~~Consider uploading bench artifacts in CI (benchmarks.md claims "full raw data in CI artifacts"; the bench job currently uploads nothing).~~ done — superseded — the committed baseline IS the artifact (ae31e27)
+22. ~~`KeyedRateLimiterMiddleware` measured 220 ns/op vs the doc's historical ~191 — sanity-check whether that is harness noise or a real regression from the sweep (property-test additions did not touch the hot path, so probably protocol difference; confirm with benchstat).~~ done — settled — the baseline re-measured clean (2026-10-10)
 23. ~~Sweep TODO_LIST/ROADMAP for "v1.0" milestone references that now need marking done/re-baselined.~~ done (docs-health pass 2026-09-11: TODO_LIST rebuilt (completed items deleted to CHANGELOG))
 24. ~~Update ROADMAP: the v1.0 vision entry and the `Wait(ctx)` post-v1.0 path need their status text refreshed now that v1.0.0 exists.~~ done (docs-health pass 2026-09-11: ROADMAP Current Position + v1.0 section rewritten for the shipped v1.0.0)
-25. Re-run `nix flake check --all-systems` on a darwin host or accept the documented omission explicitly.
+25. ~~Re-run `nix flake check --all-systems` on a darwin host or accept the documented omission explicitly.~~ done — accepted — flake check --all-systems green (2026-10-10); darwin documented
 
 **Post-v1.0 stabilization release (v1.1.0 candidates)**
-26. Execute plan T18: remove deprecated `TokenBucketLimiter`/`RateLimit()` per the migration guide (one stabilization cycle after v1.0.0).
-27. Delete the deprecated `httputil.ETag()` adapter if its removal window also matured (check docs/v1-stability.md first).
-28. Remove `BenchmarkTokenBucketLimiter*` rows + redis integration-doc deprecation scaffolding when 26 lands.
-29. Refresh the go-error-family `require` to the latest patch before the first post-v1.0 release.
+26. ~~Execute plan T18: remove deprecated `TokenBucketLimiter`/`RateLimit()` per the migration guide (one stabilization cycle after v1.0.0).~~ done — shipped in v1.1.0
+27. ~~Delete the deprecated `httputil.ETag()` adapter if its removal window also matured (check docs/v1-stability.md first).~~ done — removed in v1.1.0
+28. ~~Remove `BenchmarkTokenBucketLimiter*` rows + redis integration-doc deprecation scaffolding when 26 lands.~~ done — removed in v1.1.0
+29. ~~Refresh the go-error-family `require` to the latest patch before the first post-v1.0 release.~~ done — the require rode the coordinated upgrades (v0.11.0 today)
 
 **Bigger items (planned/deferred)**
-30. go-compression extraction: precondition pass — refresh the plan's line-by-line inventory against post-sweep code (writerPool changed the picture).
-31. go-compression: owner setup (repo, remote, LICENSE/CI per the go-etag debt list), then execute the plan's phased commits.
-32. go-compression: go-datastar consumer wiring (README row + datastartest optional dep).
-33. Rate-limiter `Wait(ctx, key)` (ROADMAP post-v1.0 additive path) — design note already exists.
-34. CSRFConfig: revisit whether `withParsedTrustedProxies` should become exported post-v1.0 if external consumers need to construct the CIDR form themselves.
+30. go-compression extraction: precondition pass — refresh the plan's line-by-line inventory against post-sweep code (writerPool changed the picture). → routed — TODO_LIST (go-compression extraction row)
+31. go-compression: owner setup (repo, remote, LICENSE/CI per the go-etag debt list), then execute the plan's phased commits. → routed — TODO_LIST (go-compression extraction row)
+32. go-compression: go-datastar consumer wiring (README row + datastartest optional dep). → routed — TODO_LIST (go-compression extraction row)
+33. Rate-limiter `Wait(ctx, key)` (ROADMAP post-v1.0 additive path) — design note already exists. → routed — ROADMAP (rate-limiter Wait(ctx) idea)
+34. ~~CSRFConfig: revisit whether `withParsedTrustedProxies` should become exported post-v1.0 if external consumers need to construct the CIDR form themselves.~~ **Won't implement — no consumer demand; the frozen-API default held.**
 
 **Hygiene & tooling**
-35. Re-run the nightly-fuzz workflow manually (`workflow_dispatch`) to validate the crash-issue plumbing before the first scheduled run.
-36. Wire a coverage-badge refresh into the release runbook (the badge step exists in ci.yml only; release.yml does not run it).
-37. Make `prerelease-check.sh` accept `--skip-flake` for environments without nix (CI parity).
-38. Consider a `justfile`-free task table in README pointing at the flake apps (bench/test/lint/vet/coverage) so consumers discover them.
+35. ~~Re-run the nightly-fuzz workflow manually (`workflow_dispatch`) to validate the crash-issue plumbing before the first scheduled run.~~ done — superseded — the rolling-issue workflow; the nightly runs on schedule
+36. ~~Wire a coverage-badge refresh into the release runbook (the badge step exists in ci.yml only; release.yml does not run it).~~ done — done — the badge is mechanized in CI
+37. ~~Make `prerelease-check.sh` accept `--skip-flake` for environments without nix (CI parity).~~ **Won't implement — not adopted — CI has nix; parity held.**
+38. Consider a `justfile`-free task table in README pointing at the flake apps (bench/test/lint/vet/coverage) so consumers discover them. → routed — ROADMAP (README flake-app discovery table idea)
 39. ~~Update the coverage badge value if it still states the 2026-08-30 number (97.0% → 97.2%).~~ done (docs-health pass 2026-09-11: README badge + gates table updated to fresh race-measured 97.4%/98.6%)
 40. ~~Normalize `docs/status/` — run the docs-health pass: annotate struck items found during this sweep, archive fully-resolved reports via `git mv`.~~ done (docs-health pass 2026-09-11 (this pass: Sep/Aug reports annotated, resolved files archiving))
 41. ~~Fix the pre-existing CHANGELOG markdown quirk in the frozen `[1.0.0]` health bullet (embedded literal newline inside a code span) ONLY IF a correction policy for frozen sections is agreed — otherwise leave per the freeze rule and note it in `[Unreleased]`.~~ done (docs-health pass 2026-09-11: freeze policy honored; duplication + broken code span recorded in [Unreleased])
-42. Decide a tag-annotation convention for multi-module releases (single-tag-with-replace is the current, documented pattern — re-verify it against the multi-module reference after the first real consumer appears).
-43. Add `GOWORK=off` server_timing build to the flake checks (module-boundary script exists in CI; the flake check does not run it).
-44. Review `.golangci.yml` exclusions for test-file `noctx` now that `httptest.NewRequest`-with-context patterns exist (`newTestRequest`) — possibly narrowable.
+42. Decide a tag-annotation convention for multi-module releases (single-tag-with-replace is the current, documented pattern — re-verify it against the multi-module reference after the first real consumer appears). → routed — ROADMAP (multi-module tag-annotation convention)
+43. ~~Add `GOWORK=off` server_timing build to the flake checks (module-boundary script exists in CI; the flake check does not run it).~~ **Won't implement — not adopted — the module-boundary script + GOWORK=off verification cover it.**
+44. ~~Review `.golangci.yml` exclusions for test-file `noctx` now that `httptest.NewRequest`-with-context patterns exist (`newTestRequest`) — possibly narrowable.~~ done — done — the text-scoped exclusion (2026-10-10)
 
 **Ideas surfaced, not yet decided**
-45. Property-test the middleware stack ordering rules (Recovery-outermost) the way the limiter heap invariants are now tested.
-46. Add an execution-probe test for `ServeTLS` ALPN mutation (the h2-append behavior is documented in AGENTS; a test would pin it).
+45. Property-test the middleware stack ordering rules (Recovery-outermost) the way the limiter heap invariants are now tested. → routed — ROADMAP (stack-ordering property-test idea)
+46. Add an execution-probe test for `ServeTLS` ALPN mutation (the h2-append behavior is documented in AGENTS; a test would pin it). → routed — ROADMAP (ServeTLS ALPN probe idea)
 47. ~~Consider exporting `CSRFTestToken`-style deterministic helpers for Nonce if composition-test authors keep needing `WithNonce` scaffolding (currently declined — revisit only with a concrete second consumer).~~ **Won't implement — declined 2026-09-10 in the v1.0 sweep; WithNonce is the injection escape hatch, revisit only with a concrete second consumer.**
-48. Document the three-layer Go version policy (go.mod minimum / CI pin / local patch) in docs/RELEASE.md so the pin alignment rule survives sessions.
-49. Evaluate `go test -fuzz` corpus seeds committed for the three new targets (corpus only lands on failure; consider committing representative seeds for the CORS echo oracle).
-50. After the first post-sweep full-code-review: schedule the NEXT one (the cadence this item establishes is the real deliverable).
+48. ~~Document the three-layer Go version policy (go.mod minimum / CI pin / local patch) in docs/RELEASE.md so the pin alignment rule survives sessions.~~ **Won't implement — superseded — the go.work floor + the CI preflight document the policy.**
+49. ~~Evaluate `go test -fuzz` corpus seeds committed for the three new targets (corpus only lands on failure; consider committing representative seeds for the CORS echo oracle).~~ done — seeds committed for the fixed oracles
+50. ~~After the first post-sweep full-code-review: schedule the NEXT one (the cadence this item establishes is the real deliverable).~~ done — the cadence held — the 09-27 review + this pass
 
 ## g) QUESTIONS FOR THE OWNER (cannot decide myself)
 

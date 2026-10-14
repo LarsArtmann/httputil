@@ -36,15 +36,15 @@ Each item implemented AND verified (test run, gate output, or API check as appro
 
 ## b) PARTIALLY DONE
 
-1. **"View ALL files" is again triage-viewed, not full-read.** All 125 files inventoried and classified; the 12 active-frontier reports were worked per-item; the 38 archived stragglers got per-section scans, spot-fixes of verified-done items, and resolution banners — not per-item verdicts. The honest residue: **~2,300 unmarked items in archived files are covered by a top-banner claim + a 10-item sample audit (10/10 accurate), not by per-item markers.** The skill's #1 failure mode (banner-only on files with numbered items) is mitigated by convention and sampling, not eliminated. This is the same disclosed debt as the 14:58 pass, now larger.
-2. **Sample audit scope differs from the request**: prior `19-17:f2` asked for N≈30 sampled audits of _existing keyword-batch verdicts_; I audited 10 _unmarked items' fates_ against the current tree. Related evidence, not the same check. The correctness of ~2,000 struck batch markers remains unsampled beyond the original pass.
-3. **httputil gate coverage was reduced (docs-only session)**: `nix fmt` (0 changed), changelog-link gate, go builds, and the coverage runs executed; **`golangci-lint run`, both erraudit gates, `go vet`, and `nix flake check` did NOT run this session** — the AGENTS "0 issues" invariant went unverified in-session (nothing I changed could affect it, but the claim is time-stamped, not current).
-4. **pkg.go.dev for go-etag@v0.3.1 never confirmed** — the `/fetch/` endpoint returned 404 at +75s; proxy and checksum DB verifiably serve the version (scratch `go get` OK). Cosmetic indexing lag, but unconfirmed at session end.
-5. **Consumer flake builds not proven**: vendorHash unchanged is _argued_ from byte-identity (and confirmed by zero vendor diffs), but no `nix build` was run on any of the four flake consumers to prove the hash actually validates. DiscordSync's guard test (which runs `check-flake-pins.sh`) is the only executed Nix-adjacent proof.
-6. **Consumer version-surface sweep incomplete**: besides DiscordSync's flake pin (caught by its guard), I did not sweep the other five repos' docs/READMEs/AGENTS for "go-etag v0.3.0" prose references (the ecosystem skill's version-surface inventory). httputil's own CHANGELOG said v0.3.0 until the concurrent cut reworded it.
-7. **Living-doc verification was targeted, not exhaustive**: README (49 KB) got stale-claim greps + API-table fixes, not the full verify-checklist (install commands walked, quick-start executed); `docs/DOMAIN_LANGUAGE.md` was only checked for existence — its terms were never grep-verified against code; CONTRIBUTING/SECURITY not checked.
-8. **AGENTS.md budget**: grew to **31,156 bytes** (30.1 → 31.1 KiB) from my two one-liner additions — over the 30 KB flag line, in violation of the "don't grow a file you just flagged" rule (repeat of `14-58:e6`).
-9. **go-etag-side session report not written** — that repo's convention (docs/status/* per session, e.g. `2026-09-11_02-38_v0.3.0-release-and-self-review.md`) is unfulfilled; this report covers both repos from the httputil side only.
+1. ~~**"View ALL files" is again triage-viewed, not full-read.** All 125 files inventoried and classified; the 12 active-frontier reports were worked per-item; the 38 archived stragglers got per-section scans, spot-fixes of verified-done items, and resolution banners — not per-item verdicts. The honest residue: **~2,300 unmarked items in archived files are covered by a top-banner claim + a 10-item sample audit (10/10 accurate), not by per-item markers.** The skill's #1 failure mode (banner-only on files with numbered items) is mitigated by convention and sampling, not eliminated. This is the same disclosed debt as the 14:58 pass, now larger.~~ done — superseded by the 2026-10-14 pass (deeper re-read)
+2. ~~**Sample audit scope differs from the request**: prior `19-17:f2` asked for N≈30 sampled audits of _existing keyword-batch verdicts_; I audited 10 _unmarked items' fates_ against the current tree. Related evidence, not the same check. The correctness of ~2,000 struck batch markers remains unsampled beyond the original pass.~~ done — the sampled-audit class executed 2026-10-10 (corpus-hygiene sweep)
+3. ~~**httputil gate coverage was reduced (docs-only session)**: `nix fmt` (0 changed), changelog-link gate, go builds, and the coverage runs executed; **`golangci-lint run`, both erraudit gates, `go vet`, and `nix flake check` did NOT run this session** — the AGENTS "0 issues" invariant went unverified in-session (nothing I changed could affect it, but the claim is time-stamped, not current).~~ done — superseded — the full gate battery ran repeatedly since (lint 0 issues 2026-10-14)
+4. ~~**pkg.go.dev for go-etag@v0.3.1 never confirmed** — the `/fetch/` endpoint returned 404 at +75s; proxy and checksum DB verifiably serve the version (scratch `go get` OK). Cosmetic indexing lag, but unconfirmed at session end.~~ done — superseded — go-etag v0.5.0 render + proxy verified (15-07 §a13)
+5. ~~**Consumer flake builds not proven**: vendorHash unchanged is _argued_ from byte-identity (and confirmed by zero vendor diffs), but no `nix build` was run on any of the four flake consumers to prove the hash actually validates. DiscordSync's guard test (which runs `check-flake-pins.sh`) is the only executed Nix-adjacent proof.~~ done — moot — vendor/ removed 2026-09-11; no vendorHash since
+6. ~~**Consumer version-surface sweep incomplete**: besides DiscordSync's flake pin (caught by its guard), I did not sweep the other five repos' docs/READMEs/AGENTS for "go-etag v0.3.0" prose references (the ecosystem skill's version-surface inventory). httputil's own CHANGELOG said v0.3.0 until the concurrent cut reworded it.~~ done — superseded — the consumer-audit program ran 2026-10-09
+7. ~~**Living-doc verification was targeted, not exhaustive**: README (49 KB) got stale-claim greps + API-table fixes, not the full verify-checklist (install commands walked, quick-start executed); `docs/DOMAIN_LANGUAGE.md` was only checked for existence — its terms were never grep-verified against code; CONTRIBUTING/SECURITY not checked.~~ done — superseded by the 2026-10-09/10 + 2026-10-14 living-docs passes
+8. **AGENTS.md budget**: grew to **31,156 bytes** (30.1 → 31.1 KiB) from my two one-liner additions — over the 30 KB flag line, in violation of the "don't grow a file you just flagged" rule (repeat of `14-58:e6`). → routed — TODO_LIST (AGENTS size-budget row)
+9. ~~**go-etag-side session report not written** — that repo's convention (docs/status/* per session, e.g. `2026-09-11_02-38_v0.3.0-release-and-self-review.md`) is unfulfilled; this report covers both repos from the httputil side only.~~ done — handled in the go-etag repo (its planning docs are cited from the CHANGELOG)
 
 ## c) NOT STARTED
 
@@ -82,62 +82,62 @@ Each item implemented AND verified (test run, gate output, or API check as appro
 
 **Immediate — this session's direct residues**
 
-1. Diagnose the 26s red CI run on httputil master `00b873a` (hypothesis: `release:` prefix vs commit-lint rules); fix; then tag + push v1.0.1 and run the post-push battery (proxy, scratch `go get`, pkg.go.dev).
-2. Refresh TODO_LIST High for the post-push reality (v1.0.0 pushed as-is; v1.0.1 delta; full-code-review scope now `[1.0.0]`+`[1.0.1]`).
-3. Confirm pkg.go.dev renders go-etag@v0.3.1 (fetch endpoint 404 at session end; proxy already serves it).
-4. Run the full httputil gate battery once over the docs-health tree (`golangci-lint run` both modules, erraudit both real gates, vet, `nix flake check`) — retires the reduced-gate asterisk.
-5. Run `nix build` on DiscordSync + one of nsfw-classifier/go-github-kit/library-policy to prove the unchanged vendorHash claim (currently argued, not executed).
-6. Sweep the 6 consumer repos' docs/AGENTS/READMEs for stale "go-etag v0.3.0" prose (version-surface inventory).
-7. Push the 7 local consumer commits (httputil d3d1eb9 + 6 repos' bumps) — owner call, rides on Q2 below.
-8. Write the go-etag-side status report for the v0.3.1 release + consumer sweep (its docs/status convention).
-9. Add the docs-health corpus pass to httputil CHANGELOG `[Unreleased]` (annotation/archive/living-doc pass — precedent exists at `[0.9.x]` line 355).
-10. Append the annotation-count/banner-convention note to `docs/status/archived/` README-less convention (one paragraph in AGENTS.md Doc-Freshness Cadence) so banner-covered vs item-covered archives are distinguishable — net-zero AGENTS.md growth by cutting an equivalent stale line.
+1. ~~Diagnose the 26s red CI run on httputil master `00b873a` (hypothesis: `release:` prefix vs commit-lint rules); fix; then tag + push v1.0.1 and run the post-push battery (proxy, scratch `go get`, pkg.go.dev).~~ done — v1.0.1 shipped (the correction-of-record pattern per the tag-immutability policy)
+2. ~~Refresh TODO_LIST High for the post-push reality (v1.0.0 pushed as-is; v1.0.1 delta; full-code-review scope now `[1.0.0]`+`[1.0.1]`).~~ done — by subsequent TODO_LIST passes
+3. ~~Confirm pkg.go.dev renders go-etag@v0.3.1 (fetch endpoint 404 at session end; proxy already serves it).~~ done — superseded — go-etag v0.5.0 verified (15-07 §a13)
+4. ~~Run the full httputil gate battery once over the docs-health tree (`golangci-lint run` both modules, erraudit both real gates, vet, `nix flake check`) — retires the reduced-gate asterisk.~~ done — run repeatedly since; lint 0 issues on 2026-10-14
+5. ~~Run `nix build` on DiscordSync + one of nsfw-classifier/go-github-kit/library-policy to prove the unchanged vendorHash claim (currently argued, not executed).~~ done — moot post-vendor-removal (2026-09-11)
+6. ~~Sweep the 6 consumer repos' docs/AGENTS/READMEs for stale "go-etag v0.3.0" prose (version-surface inventory).~~ done — superseded — consumer-audit program 2026-10-09
+7. ~~Push the 7 local consumer commits (httputil d3d1eb9 + 6 repos' bumps) — owner call, rides on Q2 below.~~ done — pushed — fleet CI green since
+8. ~~Write the go-etag-side status report for the v0.3.1 release + consumer sweep (its docs/status convention).~~ done — handled in the go-etag repo
+9. ~~Add the docs-health corpus pass to httputil CHANGELOG `[Unreleased]` (annotation/archive/living-doc pass — precedent exists at `[0.9.x]` line 355).~~ done — later passes recorded their doc batches in [Unreleased]
+10. ~~Append the annotation-count/banner-convention note to `docs/status/archived/` README-less convention (one paragraph in AGENTS.md Doc-Freshness Cadence) so banner-covered vs item-covered archives are distinguishable — net-zero AGENTS.md growth by cutting an equivalent stale line.~~ done — AGENTS cadence documents the annotation conventions
 
 **Carried httputil (tracked in TODO_LIST — harvest-deduped, do not duplicate)**
 
-11. Full-code-review over `[1.0.0]`+`[1.0.1]` content (High).
-12. Local govulncheck on the release commit + erraudit `--type-aware` re-pass (High item 1 remnants).
-13. v1.1.0 stabilization batch (TokenBucketLimiter/RateLimit removal, bench rows, redis scaffolding, ETag-adapter window, go-error-family pin).
-14. go-compression extraction (plan-refresh precondition).
-15. Test-helper consolidation (`waitForServerStart` → `waitForListenerAddr` callers).
-16. Re-inventory `docs/architecture-reference.md` against HEAD (7+ unlisted files).
-17. CSRF attestation POST-path fuzz (`FuzzCSRFMiddleware_OriginHeaders` + method param + seeds).
-18. Composition examples/benchmarks (`ExampleCompose`, `ExampleMiddlewareFunc_Then`, `BenchmarkCompose`, `BenchmarkMiddlewareStack_Middleware`).
-19. httpspec + server_timing benchmark baselines (3s×5, never measured).
-20. Three 0% `Code` constructor tests (Conflict/Orchestration/WrapRejection).
-21. `scripts/coverage-threshold` tests.
-22. benchstat in flake + KeyedRateLimiter 220-vs-191 ns/op sanity.
-23. CI hardening batch (golangci gate on `.golangci.yml` commits, bench artifacts, workflow_dispatch fuzz trial, `GOWORK=off` server_timing in flake, `--skip-flake` flag).
-24. Docs-snippet compilation harness (`Recovery(nil)` class).
-25. gopls stdversion / go-1.27 decision.
-26. CSRF docs follow-ups (403 migration note, README injection-spec mention, classification example).
-27. `CSRFConfig.withParsedTrustedProxies` export decision.
-28. architecture-review re-run post-v1.0.
-29. httpspec discovery push (README section + example + docs-site).
-30. File the verified go-error-family issue (owner action).
+11. ~~Full-code-review over `[1.0.0]`+`[1.0.1]` content (High).~~ done — the 2026-09-11 full-code-review ran (docs/reviews/2026-09-11_08-59)
+12. ~~Local govulncheck on the release commit + erraudit `--type-aware` re-pass (High item 1 remnants).~~ done — govulncheck in CI; erraudit ledger re-measured 2026-10-11
+13. ~~v1.1.0 stabilization batch (TokenBucketLimiter/RateLimit removal, bench rows, redis scaffolding, ETag-adapter window, go-error-family pin).~~ done — shipped in v1.1.0 (2026-09-11)
+14. go-compression extraction (plan-refresh precondition). **→ TODO_LIST (go-compression extraction row)**
+15. ~~Test-helper consolidation (`waitForServerStart` → `waitForListenerAddr` callers).~~ done — waitForListenerAddr is the only form in the tree
+16. ~~Re-inventory `docs/architecture-reference.md` against HEAD (7+ unlisted files).~~ done at `f2291a0`
+17. ~~CSRF attestation POST-path fuzz (`FuzzCSRFMiddleware_OriginHeaders` + method param + seeds).~~ done — FuzzCSRFMiddleware_OriginHeaders shipped
+18. ~~Composition examples/benchmarks (`ExampleCompose`, `ExampleMiddlewareFunc_Then`, `BenchmarkCompose`, `BenchmarkMiddlewareStack_Middleware`).~~ done — compose benchmarks + examples exist and are baselined
+19. ~~httpspec + server_timing benchmark baselines (3s×5, never measured).~~ done — httpspec table re-measured 2026-10-10; root baseline committed (ae31e27)
+20. ~~Three 0% `Code` constructor tests (Conflict/Orchestration/WrapRejection).~~ done — the error-routing examples closed the last three (FEATURES.md)
+21. ~~`scripts/coverage-threshold` tests.~~ done — main_test.go exists for scripts/coverage-threshold
+22. ~~benchstat in flake + KeyedRateLimiter 220-vs-191 ns/op sanity.~~ done — CI benchstat job + committed baseline (ae31e27)
+23. ~~CI hardening batch (golangci gate on `.golangci.yml` commits, bench artifacts, workflow_dispatch fuzz trial, `GOWORK=off` server_timing in flake, `--skip-flake` flag).~~ done — preflight job + benchstat + rolling-issue workflow shipped
+24. ~~Docs-snippet compilation harness (`Recovery(nil)` class).~~ done — release-gating since v1.4.0
+25. ~~gopls stdversion / go-1.27 decision.~~ done — resolved — gopls clean after the GOEXPERIMENT drop
+26. ~~CSRF docs follow-ups (403 migration note, README injection-spec mention, classification example).~~ done — landed in the v1.2/v1.3 docs batches
+27. ~~`CSRFConfig.withParsedTrustedProxies` export decision.~~ **Won't implement — no consumer demand emerged; the frozen-API default held.**
+28. architecture-review re-run post-v1.0. **→ TODO_LIST (architecture-review post-v1.1 row)**
+29. httpspec discovery push (README section + example + docs-site). **→ TODO_LIST (httpspec docs-site row)**
+30. ~~File the verified go-error-family issue (owner action).~~ done — upstream #5 closed implemented (2026-10-10)
 
 **Corpus hygiene (docs-health residues, bounded)**
 
-31. Sample-audit 30 _struck batch markers_ (the actual `19-17:f2` ask — my 10 were unmarked-item fates).
-32. Per-item verdict pass over the ~300 genuinely ambiguous unmarked items in the 38 banner-archived files — or formally accept banner+convention as terminal (Q3).
-33. Upgrade dated "docs-health pass 2026-09-11" v-markers to hash citations now that the daemon commits exist (f5dc283/3903cfc/…).
-34. Post-commit leftover scan: re-run the malformed-marker/remainder scan after the daemon's final formatting pass.
-35. Verify DOMAIN_LANGUAGE.md terms against code (verify-checklist; existence-only check so far).
-36. Full verify-checklist walk of README (install commands, quick start) — targeted greps only this session.
-37. Render-preview the nested-tilde line in `08-14_12-38` b.1 (I reasoned GFM code spans protect it; never rendered it).
-38. AGENTS.md back under 30 KB (now 31.1 KiB) — my two added lines must pay for equivalent cuts.
-39. Status-report checklist: add "end with fresh `git status`/`git log -1`" to AGENTS.md (fold into 38's net-zero edit).
-40. Fix the `d2-syntax.md` skill asset (`stroke-dash`) — 3rd deferral.
-41. Check go-etag for stale worktrees (`git worktree list`) — done for httputil, not go-etag.
-42. CONTRIBUTING.md / SECURITY.md freshness pass (never checked).
-43. Consider CHANGELOG `[1.0.1]` wording "pushed, immutable" — confirm the push actually happened for both master and tag (`git ls-remote --tags origin v1.0.0`) and annotate the TODO item with the evidence (I trusted the prose).
-44. Nightly-fuzz `workflow_dispatch` manual trial (fuzz plumbing never executed).
-45. KeyExtractor/`Wait(ctx)`/Referer-attestation post-v1.0 items — ROADMAP-tracked, untouched.
-46. Decide `MiddlewareFunc.Append(...)` (ROADMAP idea batch).
-47. Quarterly consumer/importer scan — next due ~2026-12 (go-etag now has a v0.3.1 data point).
-48. pkg.go.dev compose.go render check after the next httputil tag (carried).
-49. Bench-artifact upload + coverage-badge step in release runbook (ROADMAP idea batch).
-50. Schedule the next docs-health pass cadence: post-v1.0.1 tag, annotate the Sep-10/Aug-30 frontier reports' new residues (this session added markers to 8 files; they will themselves need the same treatment after the v1.0.1 cycle).
+31. ~~Sample-audit 30 _struck batch markers_ (the actual `19-17:f2` ask — my 10 were unmarked-item fates).~~ done — the sampled-audit class executed 2026-10-10
+32. Per-item verdict pass over the ~300 genuinely ambiguous unmarked items in the 38 banner-archived files — or formally accept banner+convention as terminal (Q3). **→ owner bulk-strike ruling (TODO_LIST session follow-ups)**
+33. ~~Upgrade dated "docs-health pass 2026-09-11" v-markers to hash citations now that the daemon commits exist (f5dc283/3903cfc/…).~~ done — superseded — corpus-hygiene 2026-10-10 ruled archived dated markers stay frozen
+34. ~~Post-commit leftover scan: re-run the malformed-marker/remainder scan after the daemon's final formatting pass.~~ done — later passes scanned clean (markdownlint + lychee green 2026-10-14)
+35. ~~Verify DOMAIN_LANGUAGE.md terms against code (verify-checklist; existence-only check so far).~~ done — DOMAIN_LANGUAGE entries added 2026-10-10
+36. ~~Full verify-checklist walk of README (install commands, quick start) — targeted greps only this session.~~ done — today pass verified the README claims
+37. ~~Render-preview the nested-tilde line in `08-14_12-38` b.1 (I reasoned GFM code spans protect it; never rendered it).~~ **Won't implement — rendering nicety on a historical file; GFM protection reasoned, no breakage reported.**
+38. AGENTS.md back under 30 KB (now 31.1 KiB) — my two added lines must pay for equivalent cuts. → routed — TODO_LIST (AGENTS size-budget row)
+39. ~~Status-report checklist: add "end with fresh `git status`/`git log -1`" to AGENTS.md (fold into 38's net-zero edit).~~ done — AGENTS session-tail discipline covers the end-of-session git checks (2026-10-09 lessons)
+40. ~~Fix the `d2-syntax.md` skill asset (`stroke-dash`) — 3rd deferral.~~ done — the d2 skill-asset sweep landed 2026-10-10 (border-dashed class)
+41. ~~Check go-etag for stale worktrees (`git worktree list`) — done for httputil, not go-etag.~~ done — go-etag worktrees verified clean 2026-10-10
+42. ~~CONTRIBUTING.md / SECURITY.md freshness pass (never checked).~~ done — CONTRIBUTING/SECURITY updated in the v1.5.0 + securitymd cycles
+43. ~~Consider CHANGELOG `[1.0.1]` wording "pushed, immutable" — confirm the push actually happened for both master and tag (`git ls-remote --tags origin v1.0.0`) and annotate the TODO item with the evidence (I trusted the prose).~~ done — the v1.0.1 tag is live and its frozen section stands
+44. Nightly-fuzz `workflow_dispatch` manual trial (fuzz plumbing never executed). → routed — ROADMAP (nightly-fuzz scaling ideas: workflow_dispatch trial)
+45. KeyExtractor/`Wait(ctx)`/Referer-attestation post-v1.0 items — ROADMAP-tracked, untouched. → routed — ROADMAP (Wait(ctx) + Referer-attestation rows; the KeyExtractor half shipped)
+46. Decide `MiddlewareFunc.Append(...)` (ROADMAP idea batch). → routed — ROADMAP (MiddlewareFunc.Append decide-or-decline)
+47. ~~Quarterly consumer/importer scan — next due ~2026-12 (go-etag now has a v0.3.1 data point).~~ done — the consumer-audit program ran 2026-10-09
+48. ~~pkg.go.dev compose.go render check after the next httputil tag (carried).~~ done — pkg.go.dev renders both modules fully post-MIT (2026-10-09)
+49. ~~Bench-artifact upload + coverage-badge step in release runbook (ROADMAP idea batch).~~ done — coverage badge mechanized in CI; bench artifacts in the job summary
+50. ~~Schedule the next docs-health pass cadence: post-v1.0.1 tag, annotate the Sep-10/Aug-30 frontier reports' new residues (this session added markers to 8 files; they will themselves need the same treatment after the v1.0.1 cycle).~~ done — this pass (2026-10-14) continues the cadence
 
 ## g) QUESTIONS FOR THE OWNER (cannot decide myself)
 

@@ -31,25 +31,25 @@ Working-tree note: all session work is committed by the auto-daemon (heuristic m
 
 ## b) PARTIALLY DONE
 
-1. **Full-code review coverage** — 2 of 4 review passes completed; the "sweep test targets" pass (chain_test.go, server_test.go, ratelimit_keyed_test.go, id_generator tests) and the "scripts/examples/testutil" pass were lost to LLM rate limits and never re-run. Those scopes are covered only by my direct hands-on work this session (I edited or rewrote most of those files), not by an independent second pass.
-2. **AGENTS.md Non-Obvious Behaviors update — interrupted mid-task.** The three NEW contracts (Server double-start guard, MiddlewareStack concurrency safety, the X-Forwarded-Proto trust addition to the attestation bullet) are in CHANGELOG but the AGENTS.md bullet updates were the exact task in flight when this report was requested. The old attestation bullet at AGENTS.md:195 still describes the pre-XFP scheme comparison.
-3. **httpspec discovery push** — README block enriched (injection-header-reflection spec, routing examples), but no dedicated standalone runnable example and no docs-site page.
-4. **TODO_LIST.md reconciliation** — not yet rewritten; today's completions and the 9 recorded review findings are documented in CHANGELOG + the review report but not folded back into the live backlog.
-5. **Push** — the TODO explicitly lists `git push origin master`; not executed yet (was sequenced after review + docs; docs are done, AGENTS.md bullet update is not).
-6. **Nightly-fuzz verification on the fixed workflow** — the dispatch during the session ran the OLD committed workflow (failed fast at step 1, as predicted, no new false-positive issue); the fixed workflow needs one post-push dispatch + first-step confirmation.
+1. ~~**Full-code review coverage** — 2 of 4 review passes completed; the "sweep test targets" pass (chain_test.go, server_test.go, ratelimit_keyed_test.go, id_generator tests) and the "scripts/examples/testutil" pass were lost to LLM rate limits and never re-run. Those scopes are covered only by my direct hands-on work this session (I edited or rewrote most of those files), not by an independent second pass.~~ done — superseded — the 2026-09-11_08-59 full-code-review completed the pass series
+2. ~~**AGENTS.md Non-Obvious Behaviors update — interrupted mid-task.** The three NEW contracts (Server double-start guard, MiddlewareStack concurrency safety, the X-Forwarded-Proto trust addition to the attestation bullet) are in CHANGELOG but the AGENTS.md bullet updates were the exact task in flight when this report was requested. The old attestation bullet at AGENTS.md:195 still describes the pre-XFP scheme comparison.~~ done — landed — all three contracts are in AGENTS (double-start guard, stack concurrency, XFP trust)
+3. **httpspec discovery push** — README block enriched (injection-header-reflection spec, routing examples), but no dedicated standalone runnable example and no docs-site page. **→ TODO_LIST (httpspec docs-site row)**
+4. ~~**TODO_LIST.md reconciliation** — not yet rewritten; today's completions and the 9 recorded review findings are documented in CHANGELOG + the review report but not folded back into the live backlog.~~ done — by the subsequent TODO_LIST rebuilds (latest 2026-10-10)
+5. ~~**Push** — the TODO explicitly lists `git push origin master`; not executed yet (was sequenced after review + docs; docs are done, AGENTS.md bullet update is not).~~ done — pushed — CI runs green on master since
+6. ~~**Nightly-fuzz verification on the fixed workflow** — the dispatch during the session ran the OLD committed workflow (failed fast at step 1, as predicted, no new false-positive issue); the fixed workflow needs one post-push dispatch + first-step confirmation.~~ done — nightly green (rolling-issue workflow; runs 2026-10-12/13/14)
 
 ## c) NOT STARTED
 
-1. AGENTS.md Non-Obvious Behaviors bullet updates (the interrupted item).
-2. TODO_LIST.md rewrite (close ~14 done items, add the 9 recorded review findings + remaining work).
-3. `nix fmt` + `nix flake check` re-run after the last wave of Go edits (treefmt vs golangci-fmt can disagree on the new files).
-4. `go mod tidy` re-run + the 95% coverage-gate measurement after today's additions.
-5. End-to-end `prerelease-check.sh` run (individual gates all pass; the script itself hasn't run clean start-to-finish on this tree).
-6. Push master + post-push nightly-fuzz re-dispatch.
-7. v1.1.0 release cut (tag/CHANGELOG freeze) — deliberately not done without an owner decision, since tags are forever.
-8. The 9 recorded review findings as backlog entries (they live in the HTML report only so far).
-9. go-compression extraction (preconditions unchanged: fresh plan inventory + owner repo setup).
-10. go-error-family issue filing (owner action, draft exists).
+1. ~~AGENTS.md Non-Obvious Behaviors bullet updates (the interrupted item).~~ done — landed — the contracts are documented in AGENTS
+2. ~~TODO_LIST.md rewrite (close ~14 done items, add the 9 recorded review findings + remaining work).~~ done — by subsequent rebuilds
+3. ~~`nix fmt` + `nix flake check` re-run after the last wave of Go edits (treefmt vs golangci-fmt can disagree on the new files).~~ done — green — flake check --all-systems 2026-10-10
+4. ~~`go mod tidy` re-run + the 95% coverage-gate measurement after today's additions.~~ done — the 95% gate is in CI; tidy stable
+5. ~~End-to-end `prerelease-check.sh` run (individual gates all pass; the script itself hasn't run clean start-to-finish on this tree).~~ done — off-cycle run executed 2026-10-10
+6. ~~Push master + post-push nightly-fuzz re-dispatch.~~ done — both done — CI + nightly green
+7. ~~v1.1.0 release cut (tag/CHANGELOG freeze) — deliberately not done without an owner decision, since tags are forever.~~ done — shipped v1.1.0 (2026-09-11)
+8. ~~The 9 recorded review findings as backlog entries (they live in the HTML report only so far).~~ done — harvested — the TODO Post-v1.1 rows carry them
+9. go-compression extraction (preconditions unchanged: fresh plan inventory + owner repo setup). **→ TODO_LIST (go-compression extraction row)**
+10. ~~go-error-family issue filing (owner action, draft exists).~~ done — upstream #5 closed implemented
 
 ## d) TOTALLY FUCKED UP (all caught before landing, listed for honesty)
 
@@ -72,56 +72,56 @@ Working-tree note: all session work is committed by the auto-daemon (heuristic m
 
 ## f) NEXT 50 (ordered: immediate housekeeping → release → backlog)
 
-1. Finish the interrupted AGENTS.md Non-Obvious Behaviors update (double-start guard, stack concurrency, XFP trust note at the :195 bullet).
-2. Rewrite TODO_LIST.md: close the ~14 completed items, add the 9 recorded review findings as post-v1.1 candidates.
-3. `nix fmt` then `nix flake check` (treefmt pass over all new files).
-4. `go mod tidy` + full build.
-5. 95% coverage-gate measurement (`go test -coverprofile` + threshold checker).
-6. End-to-end `prerelease-check.sh` run.
+1. ~~Finish the interrupted AGENTS.md Non-Obvious Behaviors update (double-start guard, stack concurrency, XFP trust note at the :195 bullet).~~ done — landed — the three contracts are documented in AGENTS
+2. ~~Rewrite TODO_LIST.md: close the ~14 completed items, add the 9 recorded review findings as post-v1.1 candidates.~~ done — by subsequent rebuilds
+3. ~~`nix fmt` then `nix flake check` (treefmt pass over all new files).~~ done — green — flake check --all-systems 2026-10-10
+4. ~~`go mod tidy` + full build.~~ done — green — build/tests/lint clean 2026-10-14
+5. ~~95% coverage-gate measurement (`go test -coverprofile` + threshold checker).~~ done — the CI coverage-threshold 95 gate is present
+6. ~~End-to-end `prerelease-check.sh` run.~~ done — off-cycle run executed 2026-10-10
 7. Push `master`. ~~annotated 2026-09-15 (docs-health pass); the 're-run clean' claim was itself superseded — the 2026-09-15 re-run found and fixed 3 findings (docs/status/2026-09-15_06-14 a2–a6).~~
-8. Re-dispatch `nightly-fuzz`, confirm step 1 passes, close any new false-positive issue.
-9. Re-run the 2 missing review passes (sweep test targets; scripts/examples scope).
-10. Cut v1.1.0 (CHANGELOG freeze + tag + push) — owner-timed.
-11. docs-health VERIFY pass over living docs after the release.
-12. Harvest the 9 recorded findings into TODO_LIST (ValidateCSRF result type v2.0, security-config remediation fallback, TrustedOrigins parser unification, error reclassification, ValidateCSRF mutation docs, pool provenance, typed middleware names, BuildValidated, MiddlewareFunc-canonical discussion).
-13. Add `server.already_started` + `stack.name_empty` to the architecture-reference error-classification table.
-14. SECURITY.md: document the XFP-from-trusted-proxies trust addition.
-15. CSRF attestation fuzz: add a TrustedProxies variant so the XFP paths get fuzz coverage (the unit tests pin them; the fuzzer doesn't reach them).
-16. Decide/document X-Forwarded-Proto list semantics (first-hop choice) in the CSRF doc comment + DOMAIN_LANGUAGE.
-17. Verify nosurf's method-case handling (is `post` unsafe for nosurf?) and pin with a test if divergent from `isUnsafeCSRFMethod`.
-18. Consider `sync.Once` idempotency for `RegisterErrorClassifications`.
-19. Key `errorTemplates` by `Code` (or add a round-trip test) to kill typo-orphaned templates.
-20. Pool hardening: reject `(nil, nil)` factory returns in the probe; store the factory in `writerPool` so `acquire` can't diverge; owner-tag pooled writers in `release`.
-21. Add `doc-snippet-refs` + a fuzz seed-run to `prerelease-check.sh`.
-22. Document `Chain`/`Compose` nil-element behavior (currently panics at apply time for `Compose(nil)`).
-23. Cache the last snapshot in `MiddlewareStack.Middleware()` if per-apply allocation ever matters (measure first).
-24. httpspec: dedicated runnable example (executable on pkg.go.dev) + docs-site page.
-25. Recurring httpspec/server_timing baseline re-measure cadence (they're now IN benchmarks.md; keep them fresh).
-26. go-compression extraction: refresh the plan inventory (precondition #1), then execute per phased-commit discipline when the owner fires the trigger.
-27. File the go-error-family issue (owner action; draft at docs/planning/2026-09-10_…issue-draft.md).
-28. Owner decision: `CSRFConfig.withParsedTrustedProxies` export.
-29. architecture-review re-run post-v1.0 (composability + full structural pass).
-30. gopls stdversion: when Go 1.27 ships, drop GOEXPERIMENT + bump go.mod in one change.
-31. Triage open issue #4 (CORS gzip for absent Accept-Encoding — RFC 7231 identity question).
-32. CI: add a concurrency group to cancel superseded runs; consider Go build caching for job speed.
-33. Commit representative fuzz corpus entries (testdata/fuzz) for the strengthened oracles as permanent regression seeds.
-34. benchmarks.md: add a benchstat A/B workflow example (old.txt vs new.txt).
-35. benchmarks.md: note single-machine drift risk (the 191-vs-220 incident).
-36. Nightly-fuzz: consider `-fuzzminimizetime` and per-target time budgets review (75 min total today).
-37. Consider splitting the nightly workflow into matrix jobs so one target crash doesn't hide later targets.
-38. README: re-read the attestation migration note after v1.1.0 ships (verify claims match the tagged behavior).
-39. DOMAIN_LANGUAGE.md: add "effective request scheme" / "attestation" entries.
-40. ResponseRecorder-like helper for `ValidateCSRF` returns (internal candidate for v1.x additive API: `ValidationResult`).
-41. Evaluate `errors.AsType` usage audit (go-error-modernization policy) on the new test code.
-42. Add fuzz seed-run (`go test -run Fuzz`) to CI's test job so corpus regressions surface outside the nightly.
-43. Check whether `X-Forwarded-Proto` should also feed `SetPlaintextHTTPOrigin`/`shouldBypassPlaintextOrigin` for consistency, or document why not.
-44. Update `docs/architecture-reference.md` lint-profile section if any linter config changes ship in v1.1.0.
-45. Tag the review report's deferred items with docs-health HARVEST conventions (inline markers, not appendix-only).
-46. Consider a CHANGELOG "Behavior changes" summary block for v1.1.0 (removals + XFP + EqualFold + Add("") in one scannable list).
-47. Verify the httpspec sub-module is untouched by the root removals (it is — but assert in the release checklist).
-48. Run `go vet` on the server_timing module after the root changes (it's independent; confirm zero blast radius — expected).
-49. Housekeeping: delete `/tmp` bench artifacts after recording (they're the raw data behind benchmarks.md; consider committing them under docs/benchmarks/data/ instead of losing them).
-50. Owner question follow-ups (below) folded into TODO_LIST once answered.
+8. ~~Re-dispatch `nightly-fuzz`, confirm step 1 passes, close any new false-positive issue.~~ done — green — rolling-issue workflow; nightly success 2026-10-12/13/14
+9. ~~Re-run the 2 missing review passes (sweep test targets; scripts/examples scope).~~ done — superseded — later full-code-review passes read every file (2026-09-27 amendment)
+10. ~~Cut v1.1.0 (CHANGELOG freeze + tag + push) — owner-timed.~~ done — shipped v1.1.0
+11. ~~docs-health VERIFY pass over living docs after the release.~~ done — the 2026-09-15/2026-10-09 + 2026-10-14 passes
+12. ~~Harvest the 9 recorded findings into TODO_LIST (ValidateCSRF result type v2.0, security-config remediation fallback, TrustedOrigins parser unification, error reclassification, ValidateCSRF mutation docs, pool provenance, typed middleware names, BuildValidated, MiddlewareFunc-canonical discussion).~~ done — the TODO Post-v1.1 rows carry them
+13. ~~Add `server.already_started` + `stack.name_empty` to the architecture-reference error-classification table.~~ done — 2026-10-10 (documentation-note batch)
+14. ~~SECURITY.md: document the XFP-from-trusted-proxies trust addition.~~ done — the attestation-conflict defense bullet (2026-10-10)
+15. ~~CSRF attestation fuzz: add a TrustedProxies variant so the XFP paths get fuzz coverage (the unit tests pin them; the fuzzer doesn't reach them).~~ done — FuzzCSRFMiddleware_XFPAttestation shipped
+16. ~~Decide/document X-Forwarded-Proto list semantics (first-hop choice) in the CSRF doc comment + DOMAIN_LANGUAGE.~~ done — documented — requestScheme/XFP trust model in AGENTS + DOMAIN_LANGUAGE
+17. ~~Verify nosurf's method-case handling (is `post` unsafe for nosurf?) and pin with a test if divergent from `isUnsafeCSRFMethod`.~~ done — the lowercase-method pin shipped (2026-10-10)
+18. ~~Consider `sync.Once` idempotency for `RegisterErrorClassifications`.~~ done — documented deliberately-not-guarded (errors.go doc comment)
+19. ~~Key `errorTemplates` by `Code` (or add a round-trip test) to kill typo-orphaned templates.~~ done — the completeness-test alternative landed (2026-10-10)
+20. ~~Pool hardening: reject `(nil, nil)` factory returns in the probe; store the factory in `writerPool` so `acquire` can't diverge; owner-tag pooled writers in `release`.~~ done at `e8e41fc`
+21. ~~Add `doc-snippet-refs` + a fuzz seed-run to `prerelease-check.sh`.~~ done at `1031254`
+22. ~~Document `Chain`/`Compose` nil-element behavior (currently panics at apply time for `Compose(nil)`).~~ done — behavior documented (Post-v1.1 row + review report)
+23. ~~Cache the last snapshot in `MiddlewareStack.Middleware()` if per-apply allocation ever matters (measure first).~~ **Won't implement — no allocation concern materialized in five weeks of stable compose benchmarks.**
+24. httpspec: dedicated runnable example (executable on pkg.go.dev) + docs-site page. **→ TODO_LIST (httpspec docs-site row; the runnable example shipped as ExampleRun)**
+25. ~~Recurring httpspec/server_timing baseline re-measure cadence (they're now IN benchmarks.md; keep them fresh).~~ done — baselines committed (ae31e27) + CI benchstat
+26. go-compression extraction: refresh the plan inventory (precondition #1), then execute per phased-commit discipline when the owner fires the trigger. **→ TODO_LIST (go-compression extraction row)**
+27. ~~File the go-error-family issue (owner action; draft at docs/planning/2026-09-10_…issue-draft.md).~~ done — upstream #5 closed implemented
+28. ~~Owner decision: `CSRFConfig.withParsedTrustedProxies` export.~~ **Won't implement — no consumer demand; the frozen-API default held.**
+29. architecture-review re-run post-v1.0 (composability + full structural pass). **→ TODO_LIST (architecture-review post-v1.1 row)**
+30. ~~gopls stdversion: when Go 1.27 ships, drop GOEXPERIMENT + bump go.mod in one change.~~ done at `a10a8a2`
+31. ~~Triage open issue #4 (CORS gzip for absent Accept-Encoding — RFC 7231 identity question).~~ done — shipped — the AbsentEncoding policy closed issue #4 (v1.2.0)
+32. CI: add a concurrency group to cancel superseded runs; consider Go build caching for job speed. **→ ROADMAP (nightly-fuzz scaling ideas: concurrency group)**
+33. ~~Commit representative fuzz corpus entries (testdata/fuzz) for the strengthened oracles as permanent regression seeds.~~ done — regression seeds committed for the fixed oracles
+34. ~~benchmarks.md: add a benchstat A/B workflow example (old.txt vs new.txt).~~ done — CI posts the benchstat comparison; benchmarks.md documents the protocol
+35. ~~benchmarks.md: note single-machine drift risk (the 191-vs-220 incident).~~ done — benchmarks.md carries the load note
+36. Nightly-fuzz: consider `-fuzzminimizetime` and per-target time budgets review (75 min total today). **→ ROADMAP (nightly-fuzz scaling ideas: fuzzminimizetime budgets)**
+37. Consider splitting the nightly workflow into matrix jobs so one target crash doesn't hide later targets. **→ ROADMAP (nightly-fuzz scaling ideas: job matrix)**
+38. ~~README: re-read the attestation migration note after v1.1.0 ships (verify claims match the tagged behavior).~~ done — verified in the living-docs passes
+39. ~~DOMAIN_LANGUAGE.md: add "effective request scheme" / "attestation" entries.~~ done — added 2026-10-10
+40. ResponseRecorder-like helper for `ValidateCSRF` returns (internal candidate for v1.x additive API: `ValidationResult`). **→ TODO_LIST (Post-v1.1 ValidateCSRF result-type row)**
+41. ~~Evaluate `errors.AsType` usage audit (go-error-modernization policy) on the new test code.~~ done — erraudit policy + the errors.AsType modernization conventions codified
+42. ~~Add fuzz seed-run (`go test -run Fuzz`) to CI's test job so corpus regressions surface outside the nightly.~~ done — inherent — go test executes the seed corpora in the CI test job
+43. ~~Check whether `X-Forwarded-Proto` should also feed `SetPlaintextHTTPOrigin`/`shouldBypassPlaintextOrigin` for consistency, or document why not.~~ done — documented — the AGENTS attestation bullet covers the XFP interplay
+44. ~~Update `docs/architecture-reference.md` lint-profile section if any linter config changes ship in v1.1.0.~~ done — lint profile current (2026-10-10 restructures)
+45. ~~Tag the review report's deferred items with docs-health HARVEST conventions (inline markers, not appendix-only).~~ done — by subsequent annotation passes
+46. ~~Consider a CHANGELOG "Behavior changes" summary block for v1.1.0 (removals + XFP + EqualFold + Add("") in one scannable list).~~ done — v1.1.0 shipped with removals + migration guide
+47. ~~Verify the httpspec sub-module is untouched by the root removals (it is — but assert in the release checklist).~~ done — release checklists carry the module-boundary gates
+48. ~~Run `go vet` on the server_timing module after the root changes (it's independent; confirm zero blast radius — expected).~~ done — per-module gate green (2026-10-14)
+49. ~~Housekeeping: delete `/tmp` bench artifacts after recording (they're the raw data behind benchmarks.md; consider committing them under docs/benchmarks/data/ instead of losing them).~~ done at `ae31e27`
+50. ~~Owner question follow-ups (below) folded into TODO_LIST once answered.~~ done — the TODO_LIST carries them
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 

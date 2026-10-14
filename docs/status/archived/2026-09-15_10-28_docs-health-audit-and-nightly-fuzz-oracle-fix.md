@@ -42,23 +42,23 @@ Quick counts: **3 Critical / 4 Medium-High / 8 Medium / 3 Low findings — 20 of
 | ~~1~~ | ~~**Nightly-fuzz end-to-end confirmation**~~ done — observed green — nightly runs since the fix reported no health-encoding crashers; #9-#13 stayed closed                                | ~~Fix is local-verified (seed + 45s fuzz + race suite)~~                                                                         | ~~The workflow itself was **not re-dispatched**; first green-eligible run is tonight 03:05 UTC. The 09-05 lesson ("re-dispatch and confirm step 1") was not executed~~ |
 | ~~2~~ | ~~**Coverage honesty after the CSRF fallback work**~~ done (docs-health pass 2026-09-23, re-measured — 97.5% httputil / 99.1% httpspec; FEATURES + README refreshed)                      | ~~The 07-00 session's 6 tests + `withSecureFallback` branch shipped; my erraudit/fuzz gates green~~                              | ~~Per-module race-profile re-measure (97.2/98.6 baseline) not re-run — ticketed in the TODO hardening-trio item~~                                                      |
 | ~~3~~ | ~~**erraudit advisory baseline re-check** (18-14 f19)~~ done — re-measured 2026-09-15 — 45 sentinels / 41 test-side advisories; AGENTS.md documents the +1-per-added-sentinel growth rule | ~~Both enforcing gates exit 0 this session~~                                                                                     | ~~The `--type-aware` 44/40 advisory re-count not re-measured (no new sentinels this session, so risk ≈ 0)~~                                                            |
-| 4     | **buildflow pipeline**                                                                                                                                                                    | Direct tool runs covered everything buildflow would run (markdownlint, lychee-class link check via changelog-links, lint, tests) | No full `--build-mode dev` run this session (documented expected-nonzero findings gate; docs-only session)                                                             |
+| ~~4~~ | ~~**buildflow pipeline**~~ done — superseded — the 2026-10-10 buildflow delivery rewrite + re-baselined composition | ~~Direct tool runs covered everything buildflow would run (markdownlint, lychee-class link check via changelog-links, lint, tests)~~ | ~~No full `--build-mode dev` run this session (documented expected-nonzero findings gate; docs-only session)~~ |
 | ~~5~~ | ~~**README edits × doc-snippet-refs**~~ done (docs-health pass 2026-09-23, doc-snippet-refs run over the README edits at pass end)                                                        | ~~All three README edits are prose/badge/table cells, no Go fences touched~~                                                     | ~~The checker itself was not re-run — cheap, should be habitual after any README touch~~                                                                               |
-| 6     | **MD060 table-style question**                                                                                                                                                            | Evidence completed (formatter can't align; hand-padding unmaintainable); findings inventoried; ticketed with sources             | The ruling itself is owner-gated; DECISION_LOG rows 32–33, README:580, and my annotation-lengthened rows stay misaligned until then                                    |
+| ~~6~~ | **MD060 table-style question** → routed — TODO_LIST (MD060 ruling row) | ~~Evidence completed (formatter can't align; hand-padding unmaintainable); findings inventoried; ticketed with sources~~ | ~~The ruling itself is owner-gated; DECISION_LOG rows 32–33, README:580, and my annotation-lengthened rows stay misaligned until then~~ |
 | ~~7~~ | ~~**The annotated reports**~~ done — steady state by design — open items stay unmarked and TODO_LIST-tracked; re-verified in the 2026-09-23 pass                                          | ~~Questions ②/③ and executed items resolved inline~~                                                                             | ~~Each report still carries genuinely-open f-items — correctly unmarked, now routed to TODO_LIST~~                                                                     |
 
 ## c) NOT STARTED (owner-gated or queued; all live in TODO_LIST with sources)
 
-1. **Cut v1.2.0** — everything staged (3 behavioral deltas + 2 additive fields + migration doc); timing owner-gated; dnsblockd unblocked by the tag.
-2. **CSRF SameSite-fallback hardening trio** (mutation-check, coverage probe, smoke-fuzz, sub-module gate — partly done by this session's gates but not the mutation-check) + **confirm the B1 interpretation** of the ruling.
-3. **LNA batch**: denied-origin pin, httpspec spec, docs polish, verification polish, Chrome-docs web pass.
-4. **Release-engineering batch**: gate `release.yml` on CI; lychee CI/pre-commit gate; dev-mode lychee no-op fix.
-5. **architecture-review re-run post-v1.1**; **go-compression extraction** (plan inventory refresh first).
-6. **CSRF docs polish batch** + **CSRF test-depth batch** (9 pins) — both consolidated in TODO_LIST.
-7. **Owner decisions**: issue #4 (gzip on absent Accept-Encoding), `csrf.trusted_origin_invalid` export, MD060 ruling + buildflow cache purge, v1.2.0 timing, explicit-commit policy for security-relevant work.
-8. **go-error-family#5 upstream follow-through** (docs section if accepted); **jsonv2/Go 1.27** follow-through; **raw-extraction patterns reference**; **agentic_fetch bug report**; **`writeHealthBody` `_ =` discard decision** (13-49 f2, now ticketed).
-9. **httpspec docs-site page** (blocked on website-launch); dnsblockd P1–P3 migrations (other repo).
-10. **Push**: master is 2 commits ahead (docs pass + oracle fix); push is owner-gated.
+1. ~~**Cut v1.2.0** — everything staged (3 behavioral deltas + 2 additive fields + migration doc); timing owner-gated; dnsblockd unblocked by the tag.~~ done — shipped — v1.2.0
+2. ~~**CSRF SameSite-fallback hardening trio** (mutation-check, coverage probe, smoke-fuzz, sub-module gate — partly done by this session's gates but not the mutation-check) + **confirm the B1 interpretation** of the ruling.~~ done — done — the hardening trio (a3)
+3. ~~**LNA batch**: denied-origin pin, httpspec spec, docs polish, verification polish, Chrome-docs web pass.~~ done — done — the LNA batch (a8/a9/a15 + the v1.2.0 spec)
+4. ~~**Release-engineering batch**: gate `release.yml` on CI; lychee CI/pre-commit gate; dev-mode lychee no-op fix.~~ done — done — v1.4.0 shipped the release gates + lychee
+5. **architecture-review re-run post-v1.1**; **go-compression extraction** (plan inventory refresh first). → routed — TODO_LIST (architecture-review + go-compression rows)
+6. ~~**CSRF docs polish batch** + **CSRF test-depth batch** (9 pins) — both consolidated in TODO_LIST.~~ done — done — the CSRF docs/test batches (2026-10-10 rows)
+7. **Owner decisions**: issue #4 (gzip on absent Accept-Encoding), `csrf.trusted_origin_invalid` export, MD060 ruling + buildflow cache purge, v1.2.0 timing, explicit-commit policy for security-relevant work. → routed — TODO_LIST (export row; issue #4 shipped in v1.2.0)
+8. ~~**go-error-family#5 upstream follow-through** (docs section if accepted); **jsonv2/Go 1.27** follow-through; **raw-extraction patterns reference**; **agentic_fetch bug report**; **`writeHealthBody` `_ =` discard decision** (13-49 f2, now ticketed).~~ done — done — upstream #5 closed implemented; jsonv2 dropped (a10a8a2)
+9. **httpspec docs-site page** (blocked on website-launch); dnsblockd P1–P3 migrations (other repo). → routed — TODO_LIST (httpspec docs-site row; dnsblockd is other-repo work)
+10. ~~**Push**: master is 2 commits ahead (docs pass + oracle fix); push is owner-gated.~~ done — pushed — CI green since
 
 ## d) TOTALLY FUCKED UP
 
@@ -95,63 +95,63 @@ Nothing shipped broken — all gates green, tree clean, no code regressions (the
 | ~~3~~ | ~~Run `scripts/doc-snippet-refs` over README after this session's prose edits (b5)~~ done (docs-health pass 2026-09-23, doc-snippet-refs gate at pass end)                                       | ~~Medium~~ | ~~S~~  |
 | ~~4~~ | ~~Per-module race-profile coverage re-measure post-CSRF-fallback; refresh FEATURES if ticked (b2)~~ done (docs-health pass 2026-09-23, 97.5% / 99.1%; FEATURES + README refreshed)               | ~~Medium~~ | ~~S~~  |
 | ~~5~~ | ~~erraudit `--type-aware` advisory re-count (44/40 baseline) after the oracle change (b3)~~ done — re-measured 2026-09-15 — 45/41, AGENTS.md updated                                             | ~~Low~~    | ~~S~~  |
-| 6     | Mutation-check the 6 new CSRF fallback tests (hardening trio item — the only third not covered by this session's gates)                                                                          | High       | S      |
+| ~~6~~ | ~~Mutation-check the 6 new CSRF fallback tests (hardening trio item — the only third not covered by this session's gates)~~ done — done — the a3 mutation transcripts cover the fallback tests | ~~High~~ | ~~S~~ |
 | ~~7~~ | ~~Push master (2 commits: docs pass + oracle fix) — owner-gated~~ done — pushed — origin/master current through v1.3.0+ (verified 2026-09-23)                                                    | ~~High~~   | ~~S~~  |
 
 **TODO_LIST High/Medium (already sourced — do not duplicate here)**
 
 8. ~~Cut v1.2.0 (RELEASE.md runbook, now including step 12.5).~~ done at `9b9e032`
-9. Confirm the B1+opt-out interpretation of the 2026-09-15 ruling (flips the default if wrong).
+9. Confirm the B1+opt-out interpretation of the 2026-09-15 ruling (flips the default if wrong). → routed — TODO_LIST (B1+opt-out ruling row)
 10. LNA: denied-origin pin → httpspec spec → docs polish → verification polish → Chrome-docs web pass.
-11. Release-engineering batch: `release.yml` CI gate; lychee gates; dev-mode lychee no-op.
-12. architecture-review re-run post-v1.1.
-13. go-compression extraction (inventory refresh first).
-14. CSRF docs polish batch + test-depth batch.
-15. Smoke-fuzz the CSRF targets (folded into the hardening trio).
+11. ~~Release-engineering batch: `release.yml` CI gate; lychee gates; dev-mode lychee no-op.~~ done — done — v1.4.0
+12. architecture-review re-run post-v1.1. → routed — TODO_LIST (architecture-review post-v1.1 row)
+13. go-compression extraction (inventory refresh first). → routed — TODO_LIST (go-compression extraction row)
+14. ~~CSRF docs polish batch + test-depth batch.~~ done — done — the 2026-10-10 CSRF batches
+15. ~~Smoke-fuzz the CSRF targets (folded into the hardening trio).~~ done — done — the a3 smoke-fuzz
 
 **Owner decisions pending**
 
 16. ~~Issue #4: gzip on absent Accept-Encoding.~~ done (resolved 2026-09-15 — owner instructed the identity default; AbsentEncoding shipped in v1.2.0; issue closed)
-17. `csrf.trusted_origin_invalid` export policy.
-18. MD060 ruling + buildflow result-cache purge.
+17. `csrf.trusted_origin_invalid` export policy. → routed — TODO_LIST (export csrf.trusted_origin_invalid row)
+18. MD060 ruling + buildflow result-cache purge. → routed — TODO_LIST (MD060 ruling row)
 19. ~~v1.2.0 release timing (now vs after the LNA batch).~~ done (resolved — v1.2.0 cut 2026-09-16; v1.3.0 followed 2026-09-22)
-20. Explicit-commit policy for security-relevant work (git history still can't tell the CSRF-fallback story).
-21. The 04-30 g3 open question: banner+convention as terminal state for the ~2,300-marker archived corpus, or a per-item pass (~half day).
+20. Explicit-commit policy for security-relevant work (git history still can't tell the CSRF-fallback story). → routed — ROADMAP (commit-flow question)
+21. The 04-30 g3 open question: banner+convention as terminal state for the ~2,300-marker archived corpus, or a per-item pass (~half day). → routed — owner bulk-strike ruling (TODO_LIST session follow-ups)
 
 **Docs-health cadence / hygiene**
 
-22. Next monthly docs-health cycle (~2026-10-15): re-VERIFY coverage numbers, advisory counts, and the TODO_LIST harvest state.
+22. ~~Next monthly docs-health cycle (~2026-10-15): re-VERIFY coverage numbers, advisory counts, and the TODO_LIST harvest state.~~ done — this pass (2026-10-14) is that cycle
 23. ~~Re-check that tonight's CHANGELOG `[Unreleased]` entries survive the next release cut intact (freeze policy).~~ done (held — the v1.2.0 and v1.3.0 cuts preserved their sections correctly under the freeze policy)
-24. Annotate + archive the 2026-09-15 reports once their f-items resolve (the reports now carry 19/6/4/3/9/8/8 markers; the remaining opens are TODO_LIST-tracked).
-25. Decide the status-doc table style once (feeds MD060 everywhere — 4 reports still carry aligned-style tables the formatter can't produce).
-26. SECURITY.md: consider documenting the attestation-conflict defense (it documents fallback but not the 403 defense added in v1.0.0).
-27. Sweep archived/ for further stale prose citations like the idempotency-bullet path (backtick paths are invisible to lychee).
-28. Consider a `docs/status/` INDEX decision again only if archive count grows past ~120 (rejected 2026-09-11; count now ~90).
+24. ~~Annotate + archive the 2026-09-15 reports once their f-items resolve (the reports now carry 19/6/4/3/9/8/8 markers; the remaining opens are TODO_LIST-tracked).~~ done — this pass annotates the 09-15 reports
+25. Decide the status-doc table style once (feeds MD060 everywhere — 4 reports still carry aligned-style tables the formatter can't produce). → routed — TODO_LIST (MD060 ruling row)
+26. ~~SECURITY.md: consider documenting the attestation-conflict defense (it documents fallback but not the 403 defense added in v1.0.0).~~ done — done — the SECURITY.md defense bullet (2026-10-10)
+27. ~~Sweep archived/ for further stale prose citations like the idempotency-bullet path (backtick paths are invisible to lychee).~~ done — done — the corpus-hygiene sweep (2026-10-10)
+28. ~~Consider a `docs/status/` INDEX decision again only if archive count grows past ~120 (rejected 2026-09-11; count now ~90).~~ **Won't implement — resolved as not-needed — no living doc claims an archive count (2026-10-10).**
 29. ~~Verify the LICENSE question on pkg.go.dev ("License: UNKNOWN" + godoc suppressed) — is Proprietary + unrendered godoc the intended public face?~~ done — answered 2026-10-08 — server_timing went MIT (owner decision), root stays Proprietary as accepted tradeoff; see docs/status/2026-10-08_23-49_server-timing-mit-readme.md
-30. Keep `MiddlewareETag` seam doc in sync with Dependabot's go-etag bumps (standing).
+30. ~~Keep `MiddlewareETag` seam doc in sync with Dependabot's go-etag bumps (standing).~~ done — held — doc.go states the contract (v1.4.2)
 
 **Tracked elsewhere (restated for completeness, not re-ticketed)**
 
-31. go-error-family#5 upstream docs work if accepted; sweep httputil classification tables with the link.
-32. jsonv2 stabilization (go.mod 1.27 + drop GOEXPERIMENT in one change).
-33. Write the raw-extraction verification patterns reference; report the agentic_fetch json-unmarshal bug.
-34. `writeHealthBody` `_ =` discard: documented honest-silence vs propagation (13-49 f2, now in TODO_LIST).
-35. StartupHandler idea parked in ROADMAP (designed, unscheduled).
-36. Server shutdown-drain contract decision (ROADMAP; blocks 09-01 f1/f5).
+31. ~~go-error-family#5 upstream docs work if accepted; sweep httputil classification tables with the link.~~ done — done — upstream #5 closed + the httputil sweep
+32. ~~jsonv2 stabilization (go.mod 1.27 + drop GOEXPERIMENT in one change).~~ done at `a10a8a2`
+33. ~~Write the raw-extraction verification patterns reference; report the agentic_fetch json-unmarshal bug.~~ done at `638131a`
+34. `writeHealthBody` `_ =` discard: documented honest-silence vs propagation (13-49 f2, now in TODO_LIST). → routed — TODO_LIST (writeHealthBody ruling row)
+35. ~~StartupHandler idea parked in ROADMAP (designed, unscheduled).~~ done — parked — the ROADMAP StartupHandler row
+36. Server shutdown-drain contract decision (ROADMAP; blocks 09-01 f1/f5). → routed — ROADMAP (Server shutdown-drain row)
 37. Website-launch effort → httpspec docs-site page.
-38. dnsblockd P1–P3 migrations once v1.2.0 exists and its go-datastar session quiets (other repo).
-39. Quarterly consumer/importer scan (~2026-12).
-40. `internal/` extraction trigger watch (37 non-test files of ~50).
-41. Dependabot weekly triage cadence.
-42. Benchstat comparison at the next benchmarks.md refresh.
-43. Nightly-fuzz run-summary step (single-line job summary) so green/red is one glance.
-44. Corpus-seed commits for the strengthened CSRF oracles (seeds only land on failure today).
-45. gopls stdversion warnings: resolved only by the jsonv2 follow-through (#32).
-46. BuildFlow S64 (fs-state in cache keys) — upstream, other repo.
-47. Dev-mode lychee no-op: flake devShell vs BuildFlow loud-fallback (owner's call, one line either side).
-48. `Validate()` complexity near the cyclop ceiling — extract the TrustedProxies loop at the next gate addition.
+38. ~~dnsblockd P1–P3 migrations once v1.2.0 exists and its go-datastar session quiets (other repo).~~ **Won't implement — other-repo work — the dnsblockd session owns it.**
+39. ~~Quarterly consumer/importer scan (~2026-12).~~ done — ran 2026-10-09 — the consumer-audit program (next due ~2027-01)
+40. `internal/` extraction trigger watch (37 non-test files of ~50). → routed — ROADMAP (module-layout idea; 37 non-test root files)
+41. ~~Dependabot weekly triage cadence.~~ done — cadence live — dependabot green
+42. ~~Benchstat comparison at the next benchmarks.md refresh.~~ done at `ae31e27`
+43. Nightly-fuzz run-summary step (single-line job summary) so green/red is one glance. → routed — ROADMAP (nightly-fuzz scaling ideas)
+44. ~~Corpus-seed commits for the strengthened CSRF oracles (seeds only land on failure today).~~ done — seeds committed for the fixed oracles
+45. ~~gopls stdversion warnings: resolved only by the jsonv2 follow-through (#32).~~ done at `a10a8a2`
+46. BuildFlow S64 (fs-state in cache keys) — upstream, other repo. → routed — TODO_LIST (BuildFlow upstream batch row)
+47. ~~Dev-mode lychee no-op: flake devShell vs BuildFlow loud-fallback (owner's call, one line either side).~~ done — fixed — lychee in the devShell (v1.4.0)
+48. ~~`Validate()` complexity near the cyclop ceiling — extract the TrustedProxies loop at the next gate addition.~~ **Won't implement — settled by the v1.4.0 restructure; no cyclop trip since.**
 49. ~~FEATURES "New middleware" coverage header rename (carried 17-14 f20).~~ done (done 2026-09-23 — FEATURES coverage section renamed to Middleware and server internals)
-50. Next full-code-review scheduling decision (last: 2026-09-11; substantial code has landed since: LNA, fallback, oracle fix).
+50. ~~Next full-code-review scheduling decision (last: 2026-09-11; substantial code has landed since: LNA, fallback, oracle fix).~~ done — the 2026-09-27 full-code-review ran; this pass covers the residue
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

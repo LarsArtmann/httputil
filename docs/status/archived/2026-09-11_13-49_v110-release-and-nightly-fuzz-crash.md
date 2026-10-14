@@ -22,19 +22,19 @@
 
 ## b) PARTIALLY DONE
 
-1. **Nightly-fuzz cycle 34574182326: 24/25 targets green, 1 crasher** — `FuzzHealthResponse_Encoding` failed in seconds (see d3). All other targets (including the previously problematic `^FuzzDecompression$`) passed.
+1. ~~**Nightly-fuzz cycle 34574182326: 24/25 targets green, 1 crasher** — `FuzzHealthResponse_Encoding` failed in seconds (see d3). All other targets (including the previously problematic `^FuzzDecompression$`) passed.~~ done — fixed — the oracle bug was repaired and the nightly is green (rolling-issue workflow)
    ~~2. **Issue #9** (`nightly fuzz: crash detected 2026-09-11`) auto-filed and triaged in-session, **fix not yet landed** — the failing input (`ac6733e1726c6863`, 34 bytes, status `"\x82"`) lives in the job checkout, not in this repo's corpus yet.~~ done 2026-09-15: oracle corrected (invalid UTF-8 ⇒ error; valid ⇒ nil + exact round-trip), seed committed at `testdata/fuzz/FuzzHealthResponse_Encoding/ac6733e1726c6863`, issues #9–#13 (the same crasher auto-filed nightly through 09-15) closed with root-cause comments; 45s fuzz run 2.7M execs PASS.
-2. **The v1.1.0 GitHub release page lacks the honesty note** about the tag commit's red link-check (fix landed in `ba85626`). The CHANGELOG `[Unreleased]` records it; the release page itself does not yet.
-3. **Local unpushed docs edits** — RELEASE.md gate-3 fix and this report are committed-by-daemon but **not pushed** (per "THEN WAIT FOR INSTRUCTIONS").
+2. ~~**The v1.1.0 GitHub release page lacks the honesty note** about the tag commit's red link-check (fix landed in `ba85626`). The CHANGELOG `[Unreleased]` records it; the release page itself does not yet.~~ done — superseded — the correction-of-record pattern documents it (v1.4.1 entry)
+3. ~~**Local unpushed docs edits** — RELEASE.md gate-3 fix and this report are committed-by-daemon but **not pushed** (per "THEN WAIT FOR INSTRUCTIONS").~~ done — pushed — CI green since
    ~~5. **pkg.go.dev** — resolution verified through the module proxy (`go get`/`go build`); the public package page rendering itself was not visually confirmed.~~ done 2026-09-15: v1.1.0 and server_timing v1.0.1 pages fetched and verified rendering (Published Sep 11, 2026; valid go.mod; tagged/stable).
 
 ## c) NOT STARTED
 
 ~~1. Issue #9 fix (oracle correction; corpus seed commit).~~ done 2026-09-15 (docs-health pass) (see b2).
-2. TODO_LIST Medium batch: CSRF remediation ruling (standing question ②), TrustedOrigins parser unification, stdlib error reclassification, ValidateCSRF mutation docs, StaticOrigins fail-open, go-compression extraction (preconditions 1–3), post-v1.1 architecture-review.
-3. Post-v1.1/v2.0 items (review findings 1/7/8/9).
-4. docs-health HARVEST of the two 2026-09-11 reports' next-item lists into TODO_LIST/ROADMAP.
-5. v1.1.1 scope decision (see g1/g2).
+2. TODO_LIST Medium batch: CSRF remediation ruling (standing question ②), TrustedOrigins parser unification, stdlib error reclassification, ValidateCSRF mutation docs, StaticOrigins fail-open, go-compression extraction (preconditions 1–3), post-v1.1 architecture-review. **→ TODO_LIST (B1+opt-out row; the parser-unification and reclassification halves shipped)**
+3. ~~Post-v1.1/v2.0 items (review findings 1/7/8/9).~~ done — the TODO Post-v1.1 rows carry them
+4. ~~docs-health HARVEST of the two 2026-09-11 reports' next-item lists into TODO_LIST/ROADMAP.~~ done — by subsequent passes (rows cite these reports)
+5. ~~v1.1.1 scope decision (see g1/g2).~~ done — superseded — the v1.1.x line closed; the patch pattern documented at v1.4.1/v1.4.2
 
 ## d) TOTALLY FUCKED UP
 
@@ -60,55 +60,55 @@
 ## f) NEXT (prioritized; ≤50, from this session only)
 
 1. Fix issue #9: correct the `FuzzHealthResponse_Encoding` oracle (invalid UTF-8 → assert the jsontext error; valid UTF-8 → nil + round-trip invariant), commit the minimized corpus seed (`ac6733e1726c6863`).
-2. Decide + record the `writeHealthBody` `_ =` discard: documented honest-silence vs propagation (pairs with #1; health.go:83).
+2. Decide + record the `writeHealthBody` `_ =` discard: documented honest-silence vs propagation (pairs with #1; health.go:83). → routed — TODO_LIST (writeHealthBody ruling row)
    ~~3. Add the CI-green-on-tag-commit gate to `docs/RELEASE.md` (step 12.5).~~ done 2026-09-15 (docs-health pass): RELEASE.md step 12.5 added (gh run watch on the tag commit) with the v1.1.0 red-tag incident as rationale.
    ~~4. Add `check-changelog-links.sh` to `prerelease-check.sh` as gate 8b.~~ done 2026-09-15 (docs-health pass): gate 8b added and verified green on this tree.
    ~~5. Add the honesty note to the published v1.1.0 GitHub release (tag predates the link-definition fix; fixed in `ba85626`).~~ done 2026-09-15 (docs-health pass): correction-of-record note appended to the release page via `gh release edit`.
    ~~6. Document the CHANGELOG link-definition convention in AGENTS.md hard constraints.~~ done 2026-09-15 (docs-health pass): Link-definition convention paragraph added to the CHANGELOG Freeze Policy section.
-3. Gate `release.yml` on CI success.
-4. Confirm the next nightly-fuzz cycle is 25/25 green.
+3. ~~Gate `release.yml` on CI success.~~ done — v1.4.0 shipped the release-gate hardening (re-runs every CI gate)
+4. ~~Confirm the next nightly-fuzz cycle is 25/25 green.~~ done — nightly success 2026-10-12/13/14
    ~~9. Push the pending local docs (RELEASE.md fix + this report) with the next instruction batch.~~ done 2026-09-15 (docs-health pass): `git ls-tree origin/master` confirms this report and the RELEASE.md fix are on origin.
    ~~10. pkg.go.dev page visual check for v1.1.0 and server_timing v1.0.1.~~ done 2026-09-15 (docs-health pass): both pages fetched and verified rendering.
-5. Decide v1.1.1 scope (see g1/g2): oracle fix alone would be a clean patch.
-6. Owner question ② (standing): CSRF security-degrading config — log-only final vs remediate-to-secure-defaults.
-7. Owner question ③ (standing): gzip-on-absent-Accept-Encoding ruling (issue #4).
-8. TrustedOrigins parser unification (TODO_LIST Medium).
+5. ~~Decide v1.1.1 scope (see g1/g2): oracle fix alone would be a clean patch.~~ done — superseded — the v1.1.x line closed
+6. Owner question ② (standing): CSRF security-degrading config — log-only final vs remediate-to-secure-defaults. → routed — TODO_LIST (B1+opt-out ruling row)
+7. ~~Owner question ③ (standing): gzip-on-absent-Accept-Encoding ruling (issue #4).~~ done — resolved — the AbsentEncoding policy shipped in v1.2.0
+8. ~~TrustedOrigins parser unification (TODO_LIST Medium).~~ done — done — parseTrustedOrigin is the single parse point (2026-09-14)
 9. Stdlib error reclassification (`http.ErrNoCookie`/`ErrNoLocation` Transient→Rejection; `ErrCodeHijackFailed` doc/WayOut mismatch) — with its own changelog entry.
-10. ValidateCSRF caller-request-mutation documentation.
+10. ~~ValidateCSRF caller-request-mutation documentation.~~ done — documented — the doc pins the in-place mutation contract (csrf.go:1026)
 11. `nosurf.StaticOrigins` fail-open → fail-closed treatment.
-12. go-compression extraction: precondition 1 (refresh plan inventory post-`writerPool`), 2 (owner repo setup), 3 (phased execution).
-13. Re-run architecture-review post-v1.1 (last run predates removals + XFP trust model).
-14. v2.0 material: ValidateCSRF `*httptest.ResponseRecorder` return type (finding 1).
-15. v2.0 material: `MiddlewareFunc` vs `Middleware` alias canonicalization (finding 7).
-16. Route remaining review findings 8/9 into TODO_LIST/v2.0 buckets.
-17. Refresh FEATURES PARTIALLY DONE line numbers (csrf.go refs likely drifted after the XFP changes).
-18. Refresh `docs/architecture-reference.md` export tables for the v1.1.0 removals (doc-snippet-refs CI does not cover this file).
-19. Adopt benchstat comparison records in the next `docs/benchmarks.md` baseline refresh (tool now pinned).
-20. HARVEST both 2026-09-11 status reports' next-items into TODO_LIST/ROADMAP (docs-health).
-21. Re-run the erraudit `--type-aware` sweep on v1.1.0 code; confirm the ~30 known-good advisories are unchanged.
-22. Verify Dependabot's first grouped PR wave against v1.1.0.
-23. nightly-fuzz: upload crasher corpus files as workflow artifacts (issue bodies currently only carry run-log pointers; the failing input lives in the job checkout).
-24. Give the auto-filed fuzz issue a template (repro command, target, corpus path fields).
-25. Add the `[Unreleased]` Fixed entry for the issue #9 fix when it lands.
-26. Consider printable-alphabet seeds for string-status fuzz targets so strict oracles become assertable.
-27. Codify the server_timing drift check into RELEASE.md pre-release verification.
-28. Codify the build+run consumer probe (not just `go get`) into RELEASE.md step 15.
-29. Check migration-guide link rot post-removals (doc-snippet-refs covers code fences, not markdown links).
-30. Re-verify the AGENTS.md "0 active warnings" claim against the post-release tree (gates say green; keep the claim honest).
-31. gopls `stdversion` × 6: revisit at Go 1.27 (DECISION_LOG row stands — no action until then).
-32. Record today's red-tag-CI incident in DECISION_LOG with the new gate decision.
-33. benchstat-verify the "195.6–220 ns/op is machine-state noise" claim at the next baseline refresh.
-34. httpspec docs-site (TODO_LIST Low).
-35. File the verified go-error-family upstream issue draft (drafted v1.0.0-era, never filed).
-36. `withParsedTrustedProxies` doc gap (TODO_LIST Low).
-37. Consider moving "CHANGELOG link check" out of the CI `Test` job into a docs job for clearer signal.
-38. nightly-fuzz runtime: ~2h for 25 targets; consider a rotation subset for shorter cycles.
-39. Bump actions/checkout + actions/setup-go past the Node 20 deprecation warnings seen in tonight's run.
-40. Decide the release-commit mechanics (daemon won the race twice; tag identity may be enough — make it policy either way).
-41. Remember the `[Unreleased]` Fixed bullet (link-def fix) retitles into the _next_ version section at that release.
-42. After issue #9 lands, close it referencing the new corpus seed and the green nightly run.
-43. Consider a `docs/status/` archival pass for fully-resolved reports (docs-health ANNOTATE cadence, monthly).
-44. Keep `MiddlewareETag` seam documentation in sync if go-etag's API surface changes (Dependabot bumps will touch it).
+12. go-compression extraction: precondition 1 (refresh plan inventory post-`writerPool`), 2 (owner repo setup), 3 (phased execution). → routed — TODO_LIST (go-compression extraction row)
+13. Re-run architecture-review post-v1.1 (last run predates removals + XFP trust model). → routed — TODO_LIST (architecture-review post-v1.1 row)
+14. v2.0 material: ValidateCSRF `*httptest.ResponseRecorder` return type (finding 1). → routed — TODO_LIST (Post-v1.1 ValidateCSRF row)
+15. v2.0 material: `MiddlewareFunc` vs `Middleware` alias canonicalization (finding 7). → routed — TODO_LIST (Post-v1.1 alias-split row)
+16. ~~Route remaining review findings 8/9 into TODO_LIST/v2.0 buckets.~~ done — routed — the typed-names row stands; finding 9 shipped (e8e41fc)
+17. ~~Refresh FEATURES PARTIALLY DONE line numbers (csrf.go refs likely drifted after the XFP changes).~~ done — registry re-derived 2026-10-10
+18. ~~Refresh `docs/architecture-reference.md` export tables for the v1.1.0 removals (doc-snippet-refs CI does not cover this file).~~ done at `f2291a0`
+19. ~~Adopt benchstat comparison records in the next `docs/benchmarks.md` baseline refresh (tool now pinned).~~ done at `ae31e27`
+20. ~~HARVEST both 2026-09-11 status reports' next-items into TODO_LIST/ROADMAP (docs-health).~~ done — done by subsequent passes
+21. ~~Re-run the erraudit `--type-aware` sweep on v1.1.0 code; confirm the ~30 known-good advisories are unchanged.~~ done — ledger re-measured 2026-10-11 (51/49)
+22. ~~Verify Dependabot's first grouped PR wave against v1.1.0.~~ done — dependabot runs green (2026-10-11)
+23. nightly-fuzz: upload crasher corpus files as workflow artifacts (issue bodies currently only carry run-log pointers; the failing input lives in the job checkout). → routed — ROADMAP (nightly-fuzz scaling ideas: upload-artifact)
+24. ~~Give the auto-filed fuzz issue a template (repro command, target, corpus path fields).~~ done — superseded — the rolling-issue workflow auto-derives failing targets
+25. ~~Add the `[Unreleased]` Fixed entry for the issue #9 fix when it lands.~~ done — recorded — the fuzz-harness fixes carry CHANGELOG Fixed entries
+26. ~~Consider printable-alphabet seeds for string-status fuzz targets so strict oracles become assertable.~~ **Won't implement — the oracles are normalization-based now; the strict-oracle class retired.**
+27. Codify the server_timing drift check into RELEASE.md pre-release verification. → routed — TODO_LIST (RELEASE.md runbook gaps row)
+28. Codify the build+run consumer probe (not just `go get`) into RELEASE.md step 15. → routed — TODO_LIST (RELEASE.md runbook gaps row)
+29. ~~Check migration-guide link rot post-removals (doc-snippet-refs covers code fences, not markdown links).~~ done — the lychee gate is green (CI + 2026-10-14 local)
+30. ~~Re-verify the AGENTS.md "0 active warnings" claim against the post-release tree (gates say green; keep the claim honest).~~ done — held — lint 0 issues 2026-10-14
+31. ~~gopls `stdversion` × 6: revisit at Go 1.27 (DECISION_LOG row stands — no action until then).~~ done at `a10a8a2`
+32. ~~Record today's red-tag-CI incident in DECISION_LOG with the new gate decision.~~ done — recorded — the release-gate hardening + RELEASE.md gate 6.6
+33. ~~benchstat-verify the "195.6–220 ns/op is machine-state noise" claim at the next baseline refresh.~~ done — baseline + benchstat comparison mechanized (ae31e27)
+34. httpspec docs-site (TODO_LIST Low). → routed — TODO_LIST (httpspec docs-site row)
+35. ~~File the verified go-error-family upstream issue draft (drafted v1.0.0-era, never filed).~~ done — upstream #5 closed implemented
+36. ~~`withParsedTrustedProxies` doc gap (TODO_LIST Low).~~ done — the parse contract is doc-pinned (csrf.go:899 + the InvalidCIDRYieldsEmpty test)
+37. ~~Consider moving "CHANGELOG link check" out of the CI `Test` job into a docs job for clearer signal.~~ **Won't implement — signal is clear today — the preflight/lint split gives fast feedback.**
+38. ~~nightly-fuzz runtime: ~2h for 25 targets; consider a rotation subset for shorter cycles.~~ done — 26 of 30 targets at 5 minutes — the rotation shipped
+39. ~~Bump actions/checkout + actions/setup-go past the Node 20 deprecation warnings seen in tonight's run.~~ done — dependabot maintains the actions (2026-10-11 green)
+40. ~~Decide the release-commit mechanics (daemon won the race twice; tag identity may be enough — make it policy either way).~~ done — policy of record — the coordinated single push (RELEASE.md step 12)
+41. ~~Remember the `[Unreleased]` Fixed bullet (link-def fix) retitles into the _next_ version section at that release.~~ done — held at every release since (the freeze policy)
+42. ~~After issue #9 lands, close it referencing the new corpus seed and the green nightly run.~~ done — superseded — the rolling-issue workflow owns nightly issues; the seeds committed
+43. ~~Consider a `docs/status/` archival pass for fully-resolved reports (docs-health ANNOTATE cadence, monthly).~~ done — this pass (2026-10-14) is that cadence
+44. ~~Keep `MiddlewareETag` seam documentation in sync if go-etag's API surface changes (Dependabot bumps will touch it).~~ done — doc.go states the real contract (v1.4.2 fix)
 
 ## g) QUESTIONS (cannot answer myself)
 

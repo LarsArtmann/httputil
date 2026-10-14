@@ -18,7 +18,7 @@ The resumed session completed 8 of 9 tracked tasks; the ninth (v1.1.0 tag cut) i
 
 **What did you forget?**
 
-1. `AGENTS.md:232` still listed the deleted `etag_test.go` in the test-file split inventory — missed during a _dedicated_ AGENTS.md freshness pass. Caught in post-completion self-review, fixed on sight (`csrf_test.go`, `ratelimit_keyed_test.go` now terminate the list).
+1. ~~`AGENTS.md:232` still listed the deleted `etag_test.go` in the test-file split inventory — missed during a _dedicated_ AGENTS.md freshness pass. Caught in post-completion self-review, fixed on sight (`csrf_test.go`, `ratelimit_keyed_test.go` now terminate the list). → routed — TODO_LIST (AGENTS size-budget row)~~ done — superseded — the later AGENTS rewrites removed the stale ref
 2. Initially did not check the push-triggered CI run. It turned out green — but the preceding 07:06 run on the pre-fix tree was a **failure**, so this miss had real stakes: had the fix been wrong, broken master would have sat unnoticed.
 3. Did not verify FEATURES.md/ROADMAP.md/README.md claims myself this session (spot-checks during self-review found them correct: `MiddlewareETag` survives in stack.go:23 as a composition seam, FEATURES:231 is struck through, README's ETag section documents `etag.New` not the removed adapter — but that was luck-adjacent, not verified-by-process).
 4. The two `t.TempDir()` calls in `TestServerStartTLSServesHTTPSWithSelfSignedCert` (two separate temp dirs) — found, judged harmless, not fixed. Defensible; inconsistent with the fix-on-sight bar.
@@ -82,9 +82,9 @@ The resumed session completed 8 of 9 tracked tasks; the ninth (v1.1.0 tag cut) i
 ## c) NOT STARTED
 
 1. ~~**v1.1.0 tag cut** — owner-blocked (question ① + ③); master is now in a tag-ready state: all gates green, pushed, CHANGELOG current.~~ done at `ae0a46d`
-2. **go-compression extraction** — deferred post-v1.1 by decision; plan inventory refresh is a precondition.
-3. **docs-site / website-launch** — httpspec discovery page et al.
-4. **architecture-review re-run** — post-v1.1 scope.
+2. **go-compression extraction** — deferred post-v1.1 by decision; plan inventory refresh is a precondition. → routed — TODO_LIST (go-compression extraction row)
+3. **docs-site / website-launch** — httpspec discovery page et al. → routed — TODO_LIST (httpspec docs-site row)
+4. **architecture-review re-run** — post-v1.1 scope. → routed — TODO_LIST (architecture-review post-v1.1 row)
 5. ~~**go-error-family upstream issue filing** — verified draft waiting; owner action.~~ done (filed 2026-09-15 as go-error-family#5)
 6. ~~**`withParsedTrustedProxies` export decision** — conditional, trigger not fired.~~ done (decided 2026-09-15 — stays unexported; zero public importers, trigger not fired (DECISION_LOG))
 7. ~~**Full docs-health VERIFY/ANNOTATE cycle** for the 09-05 report + monthly cadence.~~ done (done — the 2026-09-15 docs-health pass annotated 09-05; this 2026-09-23 pass renews the cycle)
@@ -117,9 +117,9 @@ Nothing rose to "fucked up" — no data loss, no broken master, no re-tagging. T
 2. ~~Watch nightly-fuzz run 34574182326 to completion; triage any crasher; close any auto-filed false positive.~~ done (observed green — no crashers; auto-filed issues stayed closed)
 3. ~~Reorganize `[Unreleased]` CHANGELOG to single Added/Changed/Fixed sections; retitle to `[1.1.0]` at tag time.~~ done (done at the v1.1.0 cut — single sections; retitled [1.1.0])
 4. ~~At tag: run RELEASE.md steps 7-16 (GitHub release, pkg.go.dev propagation, `go get` verification, badge).~~ done (done — RELEASE.md steps executed for v1.1.0)
-5. Add `doc-snippet-refs` step to prerelease-check.sh (CI parity).
+5. ~~Add `doc-snippet-refs` step to prerelease-check.sh (CI parity).~~ done at `1031254`
    ~~6. Annotate the 09-05 status report: question ② answered (passes re-run clean); ① resolution once ruled.~~ done 2026-09-15 (docs-health pass annotated the 09-05 report's question-② and ③ items; the ② answer was revised — the 09-15 re-run found 3 findings).
-6. Triage incoming Dependabot PRs (weekly cadence is live).
+6. ~~Triage incoming Dependabot PRs (weekly cadence is live).~~ done — cadence live — dependabot runs green (2026-10-11)
 
 **Owner decisions pending**
 8. ~~CSRF security-degrading config: log-only vs remediate (question ③) → then implement the ruling.~~ done (resolved 2026-09-15 — owner ruling; B1 fallback + AllowInsecureSameSiteNone shipped in v1.2.0)
@@ -131,52 +131,52 @@ Nothing rose to "fucked up" — no data loss, no broken master, no re-tagging. T
 12. ~~Document `ValidateCSRF` caller-request mutation; consider context flag.~~ done (done — shipped as the v1.2.0 documentation-only Fixed entry (ValidateCSRF mutation contract documented))
 13. ~~`nosurf.StaticOrigins` failure: fail-closed design pass (TrustedProxies-style).~~ done (done — shipped in v1.2.0 as the all-or-nothing fail-closed parsing)
 14. ~~CSRF remediation implementation (depends on #8).~~ done (done — shipped in v1.2.0 (withSecureFallback + opt-out))
-15. v2.0 ledger: `ValidateCSRF` result type, `MiddlewareFunc` canonicalization.
-16. Additive: typed `MiddlewareStack` names (type + overload).
-17. Pool-contract hardening: `(nil,nil)` probe, factory-param divergence, release provenance (next pool touch).
+15. v2.0 ledger: `ValidateCSRF` result type, `MiddlewareFunc` canonicalization. → routed — TODO_LIST (Post-v1.1 rows)
+16. Additive: typed `MiddlewareStack` names (type + overload). → routed — TODO_LIST (Post-v1.1 typed-names row; deferred 2026-10-10)
+17. ~~Pool-contract hardening: `(nil,nil)` probe, factory-param divergence, release provenance (next pool touch).~~ done at `e8e41fc`
 
 **Docs & docs-health**
 18. ~~Full docs-health VERIFY pass over living docs with the mechanical stale-symbol grep (the etag_test.go class-hunt).~~ done (docs-health pass 2026-09-23, full VERIFY with mechanical sweeps (etagmetrics/vendor/etag.go greps) executed)
 19. ~~Document `MiddlewareETag` as composition seam (FEATURES one-liner).~~ done (present — FEATURES.md documents MiddlewareETag as the go-etag composition seam)
-20. docs-site launch (website-launch skill): httpspec page, spec-runner example, discovery push.
+20. docs-site launch (website-launch skill): httpspec page, spec-runner example, discovery push. → routed — TODO_LIST (httpspec docs-site row)
 21. ~~File the verified go-error-family conditional-request issue (owner repo).~~ done (filed 2026-09-15 as go-error-family#5)
-22. architecture-review re-run post-v1.1 (compose API, XFP trust model, removals in scope).
+22. architecture-review re-run post-v1.1 (compose API, XFP trust model, removals in scope). → routed — TODO_LIST (architecture-review post-v1.1 row)
 23. ~~Monthly docs-health cadence: schedule next VERIFY before v1.2 planning.~~ done (cadence held — full passes ran 2026-09-15 and 2026-09-23)
-24. AGENTS.md size watch (docs-health budget) — next pass likely crosses the line again.
-25. DOMAIN_LANGUAGE: add "generation-swapped ring", "attestation conflict", "trusted proxy" entries if missing.
+24. AGENTS.md size watch (docs-health budget) — next pass likely crosses the line again. → routed — TODO_LIST (AGENTS size-budget row)
+25. ~~DOMAIN_LANGUAGE: add "generation-swapped ring", "attestation conflict", "trusted proxy" entries if missing.~~ done — added 2026-10-10 (documentation-note batch)
 
 **Extraction & architecture**
-26. go-compression extraction: refresh the plan's line-by-line inventory (writerPool probe invalidated it), then phase per plan discipline.
-27. Server TLS-config mutation: evaluate clone-on-write or doc-only hardening (the `Clone()` footgun is documented; is it enough?).
-28. Evaluate `internal/` extraction trigger (post-v1.0 or ~50 non-test files — track the count).
-29. Consider `go-workflow-auditlog`-style sibling for Server-Timing if third consumer appears (ROADMAP fuel only).
+26. go-compression extraction: refresh the plan's line-by-line inventory (writerPool probe invalidated it), then phase per plan discipline. → routed — TODO_LIST (go-compression extraction row)
+27. Server TLS-config mutation: evaluate clone-on-write or doc-only hardening (the `Clone()` footgun is documented; is it enough?). → routed — ROADMAP (TLS-config clone-on-write row)
+28. Evaluate `internal/` extraction trigger (post-v1.0 or ~50 non-test files — track the count). → routed — ROADMAP (module-layout idea; 37 non-test root files today)
+29. ~~Consider `go-workflow-auditlog`-style sibling for Server-Timing if third consumer appears (ROADMAP fuel only).~~ **Won't implement — no third consumer appeared; parked.**
 
 **Testing & tooling**
 30. ~~Unit tests for `doc-snippet-refs` (fixture fences + golden findings) — currently 0%; decide if it stays intentionally untested or earns a suite.~~ done (decided — intentionally untested per v1.1.0 (the CI drift check is its verification; CHANGELOG [1.1.0]))
-31. benchstat regression gate in CI (pin the 3s×5 protocol output; fail on >N% regression).
-32. Fuzz corpus expansion: real-world odd `Accept-Encoding`/`Origin` seeds from issue trackers.
-33. Weekly (not per-push) `-race -count=10` stress workflow to cut CI minutes without losing the timing-race net.
+31. ~~benchstat regression gate in CI (pin the 3s×5 protocol output; fail on >N% regression).~~ done — shipped as the informational CI benchstat comparison with the documented noise rationale
+32. ~~Fuzz corpus expansion: real-world odd `Accept-Encoding`/`Origin` seeds from issue trackers.~~ done — seeds committed for the fixed oracles; corpus migrated
+33. ~~Weekly (not per-push) `-race -count=10` stress workflow to cut CI minutes without losing the timing-race net.~~ **Won't implement — superseded — prerelease gate 4b + CI shuffle cover the class.**
 34. ~~server_timing `-race` into prerelease-check.sh explicitly (parity with root module).~~ done (present — prerelease-check.sh runs server_timing vet + race + lint explicitly)
-35. Property test for the fence parser (weird markdown: nested fences, CRLF, no-trailing-newline).
+35. ~~Property test for the fence parser (weird markdown: nested fences, CRLF, no-trailing-newline).~~ **Won't implement — dev-tool internal; not adopted.**
 36. ~~Coverage-gap audit: confirm every sub-100% function still has its FEATURES reason (docs-health owns).~~ done (docs-health pass 2026-09-23, FEATURES gap section re-verified against a fresh -race -coverprofile (code.go trio now 100%))
 
 **Ecosystem & consumers**
-37. go-datastar SSE trigger check for go-compression timing.
-38. httpspec zero-public-importers: outreach/discovery plan decision (README + example landed; page pending).
+37. ~~go-datastar SSE trigger check for go-compression timing.~~ done — the trigger is tracked on the go-compression TODO row
+38. httpspec zero-public-importers: outreach/discovery plan decision (README + example landed; page pending). → routed — TODO_LIST (httpspec docs-site row)
 39. ~~Post-tag: monitor pkg.go.dev + first external `go get`.~~ done (done for v1.1.0 — pkg.go.dev verified in the 2026-09-15 docs-health pass (a12))
 40. ~~GitHub Release notes for v1.1.0 drafted from CHANGELOG (freeze policy: no retro-edits after).~~ done (done — v1.1.0 GitHub release published from the frozen section)
 41. ~~Public README claim sweep post-removal: "four external dependencies" wording vs go-etag-stays reality (AGENTS fixed; README unverified for this phrasing).~~ done (verified 2026-09-23 — README says four dependencies; accurate)
 
 **Hygiene & process**
-42. Fix the two-`t.TempDir()` nit in the TLS test (one dir, two Join calls).
-43. `TestServerShutdownReturnsErrorOnContextExpiry`: replace raw `&Server{httpServer:...}` literal with a helper that survives future invariant fields.
-44. gopls `stdversion` warnings: revisit when Go 1.27 + stable json/v2 land (DECISION_LOG row exists).
+42. ~~Fix the two-`t.TempDir()` nit in the TLS test (one dir, two Join calls).~~ done — fixed — each TLS test uses a single t.TempDir
+43. ~~`TestServerShutdownReturnsErrorOnContextExpiry`: replace raw `&Server{httpServer:...}` literal with a helper that survives future invariant fields.~~ done — fixed — the raw Server literal is gone (verified 2026-10-10)
+44. ~~gopls `stdversion` warnings: revisit when Go 1.27 + stable json/v2 land (DECISION_LOG row exists).~~ done at `a10a8a2`
 45. ~~`.gitignore` vendor/ entry: keep (guard against stray `go mod vendor`); verify in next hygiene pass.~~ done (verified 2026-09-23 — .gitignore keeps the vendor/ guard line, documented in AGENTS.md)
-46. Auto-daemon commit messages: consider enforcing conventional prefixes for daemon commits too (commit-lint only gates PRs today).
+46. Auto-daemon commit messages: consider enforcing conventional prefixes for daemon commits too (commit-lint only gates PRs today). → routed — ROADMAP (commit-flow question)
 47. ~~Status-report archive policy: move fully-resolved `docs/status/` reports to `archived/` once their questions are answered.~~ done (adopted — AGENTS.md Doc-Freshness documents the archive policy; executed in the 2026-09-15 and 2026-09-23 passes)
-48. nightly-fuzz: add a run-summary step (single job-summary line: targets × crashers) so "is it green" is one glance.
-49. Consider `workflow_dispatch` inputs (target-subset, fuzztime) on nightly-fuzz for cheaper verification dispatches.
-50. Retire or finish the two `//nolint:makezero` sites if a modernize release makes append idioms equivalent (low priority, lint-hygiene).
+48. nightly-fuzz: add a run-summary step (single job-summary line: targets × crashers) so "is it green" is one glance. → routed — ROADMAP (nightly-fuzz scaling ideas)
+49. Consider `workflow_dispatch` inputs (target-subset, fuzztime) on nightly-fuzz for cheaper verification dispatches. → routed — ROADMAP (nightly-fuzz scaling ideas)
+50. ~~Retire or finish the two `//nolint:makezero` sites if a modernize release makes append idioms equivalent (low priority, lint-hygiene).~~ done — the KEEP verdict is recorded (2026-10-10)
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF (3)
 

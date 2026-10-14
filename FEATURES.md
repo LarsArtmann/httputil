@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-10-10 (post-Language-train recount) — counts recomputed from the repo (58 examples — 43 root, 10 `httpspec`, 5 `server_timing`; 52 benchmark functions / 62 result rows; 30 fuzz targets — 28 root, 2 `server_timing`; methodology: top-level `func Example`/`func Benchmark`/`func Fuzz` declarations per module, result rows add `b.Run` sub-benchmarks); the earlier same-day figures (53/49/59/28) predated the parallel sessions' example and benchmark additions; coverage stated in both provenances (race-mode 97.9% / 99.1% of 2026-09-27; CI non-race 97.9% / 98.6% of 2026-10-10). Prior sweep 2026-09-27: coverage re-measured post-v1.4.0; the 2026-09-23 docs-health sweep folded in v1.2.0/v1.3.0 and deleted the removed `httputil.ETag()` adapter row (v1.1.0)._
+_Updated: 2026-10-14 (docs-health AUDIT: the middleware-suite table's separator row normalized to the 8-column shape; the duplicated httpspec coverage rows merged; the Language row's Benchmarks cell corrected (BenchmarkLanguage/HeaderOnly/ParseAcceptLanguageCandidates exist in language_bench_test.go) and the TrustedClientIP row's Tests cell corrected (ratelimit_keyed_trusted_test.go, 100% covered). Counts unchanged: 52 benchmarks / 62 result rows, 58 examples, 30 fuzz targets — re-derived from the tree this pass.)
 
 ---
 
@@ -11,7 +11,7 @@ _Updated: 2026-10-10 (post-Language-train recount) — counts recomputed from th
 ### Core Middleware Suite (16 middlewares + the ResponseRecorder utility)
 
 | Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz | |
-| ------------- | --------------------------------------------------------------- | ----------------------------- | ----------------------------- | ------------------------------------------------------------- | ---------------------------------------- | --------------------- | -------------------- | -------------------- | ------------------------------ | ------------------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
+| ------------- | -------- | ------------- | ------- | ------------ | -------------- | -------- | ----- |
 | CORS | `cors.go` | `CORSConfig` + `Validate()` | Yes | `ExampleCORS` | `BenchmarkCORS` | `FuzzCORS*` (4) | |
 | ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` | |
 | RequestID | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` | |
@@ -26,10 +26,10 @@ _Updated: 2026-10-10 (post-Language-train recount) — counts recomputed from th
 | Server-Timing | `server_timing/server_timing.go` | — | Yes | `ExampleServerTimingMiddleware` | `BenchmarkServerTiming*` | `FuzzServerTiming*` | |
 | CSRF | `csrf.go` | `CSRFConfig` + `Validate()` (incl. `BootLogUntrustedForwardedProto` boot-warning opt-in) | Yes | `ExampleCSRFMiddleware`, `ExampleCSRFTokenFormField`, `ExampleCSRFTokenHXHeaders` | `BenchmarkCSRFMiddleware*` | `FuzzCSRF*` (6) | |
 | KeyedRateLimit | `ratelimit_keyed.go` | `KeyedRateLimiterConfig` + `Validate()` | Yes | `ExampleKeyedRateLimiterMiddleware` | `BenchmarkKeyedRateLimiter*` | — | |
-| TrustedClientIP | `ratelimit_keyed_trusted.go` | `TrustedProxySet` via `ParseTrustedProxies()`, `KeyExtractorFromTrustedClientIP()` (additive, v1.5-cycle) | — | — | — | `FuzzTrustedProxySetClientIP` | |
+| TrustedClientIP | `ratelimit_keyed_trusted.go` | `TrustedProxySet` via `ParseTrustedProxies()`, `KeyExtractorFromTrustedClientIP()` (additive, v1.5-cycle) | Yes | — | — | `FuzzTrustedProxySetClientIP` | |
 | Decompression | `decompression.go` | `DecompressionConfig` + `Validate()`, bomb protection | Yes | `ExampleDecompression` | `BenchmarkDecompression*` | `FuzzDecompression` | |
 | CSP Nonce | `nonce.go` | `NonceConfig` + `Validate()`, `NonceAttr`, CSP builders | Yes | `ExampleNonce` | `BenchmarkNonce*` | `FuzzNonce` | |
-| Language | `language.go` | `LanguageConfig` + `Validate()`, pluggable extractors + `TagMatcher` | Yes | `ExampleLanguage` | — | `FuzzParseAcceptLanguage` | |
+| Language | `language.go` | `LanguageConfig` + `Validate()`, pluggable extractors + `TagMatcher` | Yes | `ExampleLanguage` | `BenchmarkLanguage*` | `FuzzParseAcceptLanguage` | |
 
 ETag conditional requests are not a row above since v1.1.0: the adapter was removed, and the middleware composes directly from [`go-etag`](https://github.com/larsartmann/go-etag) (`etag.New`), named in stacks via the surviving `MiddlewareETag` constant.
 
@@ -222,9 +222,7 @@ Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%**
 
 - `httpspec/httpspec.go:235 runSpecs` — 88.2%. Internal option error paths.
 - `httpspec/httpspec.go:317 parsedMediaType` — 75.0%. Malformed media-type defensive branches.
-- `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Malformed content-type defensive branches.
-- `httpspec/httpspec.go:317 parsedMediaType` — 75.0%. Malformed Content-Type branches.
-- `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Structured-syntax-suffix branches (`+json`/`+xml`) exercised only via the suffix test matrix.
+- `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Malformed content-type and structured-syntax-suffix (`+json`/`+xml`) branches; the suffix matrix is exercised only via the dedicated test.
 
 **Honest assessment:** The remaining sub-100% functions are documented as defensive code paths or error-injection-only branches. The deleted `crypto/rand` error guards (nonce, ID-generator refill) left the profile entirely in the v1.0.0 panic-free pass. Closing what remains would require either (a) kernel-level fault injection, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
 

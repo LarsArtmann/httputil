@@ -32,12 +32,12 @@
 
 ## b) PARTIALLY DONE
 
-1. **"View ALL files" was triage-viewed, not full-read.** 4 newest reports + the files I annotated by hand were read in full; the remaining ~70 md files got per-section scans + targeted reads; 19 html/d2/svg got title/head scans. Every file was _seen_ and classified; not every line was read. The T4 inventory and my keyword passes carried a lot of weight.
-2. **~300 May–June items were resolved by calibrated keyword rules, not per-item reading.** I read samples from each file to calibrate, verified many spot facts against code/git, and left non-matching items unmarked — but a pattern-matched verdict is weaker evidence than a read verdict. A sample audit of the batch markers is warranted before anyone cites them as gospel.
-3. **AGENTS.md size finding (53 KB > 50 KB Critical per the skill rubric) was ticketed, not fixed.** Worse: I added ~1.5 KB to it in the same session while ticketing the size problem. The content is current and non-redundant (no temporal pollution — checked), but the budget breach stands.
-4. **dprint never ran** on the ~45 edited markdown files — the documented PATH blocker; I cited the existing TODO item instead of attempting a single workaround (`nix run nixpkgs#dprint fmt` was never tried). Table shapes were preserved by the scripts' read-back checks, but formatter-level verification is missing.
-5. **Some 1–5 minute "fix on sight" items were ticketed instead of done**: `compressWriter.Hijack` buffered-bytes-dropped doc comment (11-30 f23), gzip-multistream fuzz comment (f43), `gh release view v0.6.1` existence check (18-16 f2 — one command, never run).
-6. **TODO_LIST is now ~30 items** — the harvest anti-pattern warns against dumping; most additions are genuinely bounded and cited, but the Low-priority tail (refill benchmark, nonce design decisions, CI tooling extras) is brainstorm-adjacent and could have gone to ROADMAP.
+1. ~~**"View ALL files" was triage-viewed, not full-read.** 4 newest reports + the files I annotated by hand were read in full; the remaining ~70 md files got per-section scans + targeted reads; 19 html/d2/svg got title/head scans. Every file was _seen_ and classified; not every line was read. The T4 inventory and my keyword passes carried a lot of weight.~~ done — superseded by the 2026-10-14 pass (deeper re-read)
+2. ~~**~300 May–June items were resolved by calibrated keyword rules, not per-item reading.** I read samples from each file to calibrate, verified many spot facts against code/git, and left non-matching items unmarked — but a pattern-matched verdict is weaker evidence than a read verdict. A sample audit of the batch markers is warranted before anyone cites them as gospel.~~ done — superseded — the corpus-hygiene sweep (2026-10-10) + this pass replace the keyword batches
+3. ~~**AGENTS.md size finding (53 KB > 50 KB Critical per the skill rubric) was ticketed, not fixed.** Worse: I added ~1.5 KB to it in the same session while ticketing the size problem. The content is current and non-redundant (no temporal pollution — checked), but the budget breach stands.~~ done — superseded — the 2026-10-09 line-compression executed; the byte-budget finding stays tracked
+4. ~~**dprint never ran** on the ~45 edited markdown files — the documented PATH blocker; I cited the existing TODO item instead of attempting a single workaround (`nix run nixpkgs#dprint fmt` was never tried). Table shapes were preserved by the scripts' read-back checks, but formatter-level verification is missing.~~ done — superseded — the treefmt/buildflow formatting gates run on every pass
+5. ~~**Some 1–5 minute "fix on sight" items were ticketed instead of done**: `compressWriter.Hijack` buffered-bytes-dropped doc comment (11-30 f23), gzip-multistream fuzz comment (f43), `gh release view v0.6.1` existence check (18-16 f2 — one command, never run).~~ done — superseded — those classes shipped long since
+6. ~~**TODO_LIST is now ~30 items** — the harvest anti-pattern warns against dumping; most additions are genuinely bounded and cited, but the Low-priority tail (refill benchmark, nonce design decisions, CI tooling extras) is brainstorm-adjacent and could have gone to ROADMAP.~~ done — superseded — the TODO_LIST rebuilt repeatedly (latest 2026-10-10; rebuilt again in this pass)
 
 ## c) NOT STARTED
 
@@ -74,56 +74,56 @@
 
 **Session-specific follow-ups (my own loose ends)**
 
-1. Audit a random sample (N≈30) of the keyword-batch v-markers in the May–June files; correct any that overclaim. Effort: 45 min.
+1. ~~Audit a random sample (N≈30) of the keyword-batch v-markers in the May–June files; correct any that overclaim. Effort: 45 min.~~ done — done — the corpus-hygiene sampled audit (2026-10-10) + the 09-15 passes
 2. ~~Attempt one dprint workaround (`nix run nixpkgs#dprint fmt` or add to devShell); if it works, format-check all ~48 files this session touched. Effort: 15 min.~~ done (v1.0.0 sweep: pkgs.dprint in the flake devShell (verified 0.56.1); markdown now formatter-verifiable)
 3. ~~Run `gh release view v0.6.1` and annotate 18-16 f2 accordingly. Effort: 2 min.~~ done (docs-health pass 2026-09-11: gh release view v0.6.1 succeeds (created 2026-07-26); the 18-16 f2 question is settled)
 4. ~~Add the two one-comment code docs I ticketed instead of wrote: `compressWriter.Hijack` buffered-bytes-dropped semantics; gzip-multistream note in the round-trip fuzz comment. Effort: 10 min.~~ done (done — Hijack buffered-bytes doc landed 04-03 a14; gzip-multistream note landed in the v1.0.0 sweep)
 5. ~~Trim TODO_LIST Low-priority tail into ROADMAP batches where items are ideas, not tasks (target ≤ 20 tracked items). Effort: 20 min.~~ done (docs-health pass 2026-09-11: TODO_LIST rebuilt to 18 open items; completed items live in CHANGELOG)
 
 **AGENTS.md budget (Critical finding, open)**
-6. Decide the AGENTS.md slimming direction (see g-Q3): export-table relocation vs in-place compression; execute to <30 KB without losing Hard Constraints / Non-Obvious Behaviors / Testing Conventions. Effort: 1–2 hr.
+6. ~~Decide the AGENTS.md slimming direction (see g-Q3): export-table relocation vs in-place compression; execute to <30 KB without losing Hard Constraints / Non-Obvious Behaviors / Testing Conventions. Effort: 1–2 hr.~~ done — the 2026-10-09 slimming executed; the byte-budget finding stays tracked
 
 **Carried TODO_LIST (High → Medium, unchanged this session)**
 7. v1.0 release decision → cut v1.0 ( stabilization cycle, TokenBucketLimiter removal, admission-contract confirmation).
-8. Verify the CSRF `Sec-Fetch-Site` trust model against nosurf source; decide strip/reject/document; consider the httpspec injection-reflection spec.
-9. Decide `CompressionConfig.Level = 0` semantics (Validate vs constructor vs docs).
-10. Extract response compression into `go-compression` (plan live, trigger: go-datastar SSE).
+8. ~~Verify the CSRF `Sec-Fetch-Site` trust model against nosurf source; decide strip/reject/document; consider the httpspec injection-reflection spec.~~ done — done — the trust model verified at nosurf v1.2.0 (AGENTS bullet)
+9. ~~Decide `CompressionConfig.Level = 0` semantics (Validate vs constructor vs docs).~~ done — done — Level 0 semantics pinned (AGENTS)
+10. Extract response compression into `go-compression` (plan live, trigger: go-datastar SSE). → routed — TODO_LIST (go-compression extraction row)
 11. CI release workflow (tag → build → GitHub Release; include `go vet` both modules).
 12. ~~go-error-family upstream proposal (run `verify-before-filing` first).~~ done (filed 2026-09-15 as go-error-family#5 (after verify-before-filing gates were re-run))
-13. `architecture-review` re-run (predates ETag extraction + adapter + keyed limiter).
-14. Convert the remaining legacy table-driven tests (6 files) or amend the convention.
-15. Refresh `docs/benchmarks.md` rows for the ~10 changed benches (3s×5) + stale `b.ResetTimer` audit.
-16. Finish the T13 line-by-line test review batch.
+13. `architecture-review` re-run (predates ETag extraction + adapter + keyed limiter). → routed — TODO_LIST (architecture-review post-v1.1 row)
+14. Convert the remaining legacy table-driven tests (6 files) or amend the convention. → routed — TODO_LIST (t.Run cluster convert-or-accept row)
+15. ~~Refresh `docs/benchmarks.md` rows for the ~10 changed benches (3s×5) + stale `b.ResetTimer` audit.~~ done — done — benchmarks.md refreshed; the committed baseline (ae31e27)
+16. ~~Finish the T13 line-by-line test review batch.~~ **Won't implement — superseded by the later full-code-review passes.**
 17. Migrate `exhaustruct` → `exhaustruct_v5` + golangci upgrade path.
-18. `CSRFConfig.Validate` side-effect cleanup (post-v1.0 candidate).
+18. ~~`CSRFConfig.Validate` side-effect cleanup (post-v1.0 candidate).~~ **Won't implement — no demand emerged.**
 
 **Carried TODO_LIST (Low, selected)**
-19. Chain-level exact-fill duplication regression test through full `Compression()`.
-20. KeyedRateLimiter property test (heap/map consistency under churn) + churn benchmark.
-21. CORS fuzz invariant for exact-origin allowlists.
-22. `WrapConflict`/`WrapOrchestration` symmetry decision.
-23. Skip pool `Get` for non-resettable factories.
-24. `Server.Addr()` resolved-port variant.
-25. `TestChain_RecoveryErrAbortHandler_ThroughStack`.
-26. Negotiator wire-format fuzz target + multistream doc note (merges item 4 if done together).
-27. flake.nix benchmark-protocol app (one-command 3s×5 baseline).
+19. ~~Chain-level exact-fill duplication regression test through full `Compression()`.~~ done — done — the exact-fill class is pinned by the FuzzCompression round-trip invariant
+20. ~~KeyedRateLimiter property test (heap/map consistency under churn) + churn benchmark.~~ done — done — the limiter heap invariants exist (the ordering idea remains ROADMAP fuel)
+21. ~~CORS fuzz invariant for exact-origin allowlists.~~ done — done — the CORS fuzz targets pin exact-allowlist origin echo
+22. ~~`WrapConflict`/`WrapOrchestration` symmetry decision.~~ **Won't implement — no demand emerged.**
+23. ~~Skip pool `Get` for non-resettable factories.~~ done — done — the probe skips pooling for non-resettable factories (FEATURES)
+24. ~~`Server.Addr()` resolved-port variant.~~ **Won't implement — not adopted — Addr() semantics documented; no consumer ask.**
+25. ~~`TestChain_RecoveryErrAbortHandler_ThroughStack`.~~ done — done — TestChain_RecoveryErrAbortHandler_ThroughStack exists (chain_test.go:483)
+26. ~~Negotiator wire-format fuzz target + multistream doc note (merges item 4 if done together).~~ done — done — the Accept-Encoding wire-format fuzz target exists
+27. ~~flake.nix benchmark-protocol app (one-command 3s×5 baseline).~~ done — done — nix run .#bench + the committed baseline
 28. ~~Nightly fuzz: crash issue-template step (workflow now covers all 23 targets — the remaining gap is failure visibility).~~ done (failure visibility landed — the workflow auto-files labeled bug issues; the run-summary step remains open (10-28 report f43))
-29. govulncheck for `server_timing` in CI.
+29. ~~govulncheck for `server_timing` in CI.~~ done — done — CI runs govulncheck across the workspace
 30. ~~Commit-lint CI step + CI/release tooling extras (Go coverage checker, pre-release script).~~ done (shipped in v1.0.0 — check-commit-lint.sh + CI commit-lint job + coverage-threshold + prerelease-check (CHANGELOG [1.0.0]))
-31. Go version pinning alignment (`go.work` 1.26.5 vs CI `1.26.x` vs local 1.26.7).
-32. dprint availability in the dev environment (see item 2 — may close it).
-33. Test-helper hygiene trio (bench_batch_test.go dissolution, TLS wait-helper consolidation, Ed25519 cert).
-34. Config-validation hardening batch (AllowedMethods non-empty, Encodings recognized/dup-free, IncompressibleTypes prefixes, MaxAge negative, Level-with-factories).
-35. MaxBodySize benchmark + fuzz; five missing Example functions (Metrics, HealthHandler, Server, MiddlewareStack; RateLimit optional).
-36. Nonce design decisions (Generator, public GenerateNonce) + the never-run nonce composition-test cluster.
-37. ID-generator refill-path benchmark.
-38. KeyExtractor `""` semantics post-v1.0; integration-docs content refresh; schedule next full-code-review.
+31. ~~Go version pinning alignment (`go.work` 1.26.5 vs CI `1.26.x` vs local 1.26.7).~~ done — done — the Go 1.27 alignment + the CI preflight job
+32. ~~dprint availability in the dev environment (see item 2 — may close it).~~ **Won't implement — superseded — dprint.json + the buildflow formatting steps own it.**
+33. ~~Test-helper hygiene trio (bench_batch_test.go dissolution, TLS wait-helper consolidation, Ed25519 cert).~~ done — done — the helper consolidations landed (waitForListenerAddr)
+34. ~~Config-validation hardening batch (AllowedMethods non-empty, Encodings recognized/dup-free, IncompressibleTypes prefixes, MaxAge negative, Level-with-factories).~~ done — done — the constructor Validate hardening shipped
+35. ~~MaxBodySize benchmark + fuzz; five missing Example functions (Metrics, HealthHandler, Server, MiddlewareStack; RateLimit optional).~~ done — done — MaxBodySize bench/fuzz + the examples exist
+36. ~~Nonce design decisions (Generator, public GenerateNonce) + the never-run nonce composition-test cluster.~~ done — done — Nonce shipped with the Generator decisions (2026-08-08)
+37. ~~ID-generator refill-path benchmark.~~ done — done — id_generator_bench_test.go carries the refill benchmark
+38. ~~KeyExtractor `""` semantics post-v1.0; integration-docs content refresh; schedule next full-code-review.~~ done — done — the extractor never returns empty; the integration docs refreshed
 
 **Corpus hygiene (new, from this pass)**
-39. After the daemon commits, upgrade this session's dated v-markers to hash markers where a single commit can be cited (T14 policy: hash-for-changes).
-40. Re-run the leftover scanner once post-commit to confirm zero unaccounted remainders survived the daemon's formatting.
+39. ~~After the daemon commits, upgrade this session's dated v-markers to hash markers where a single commit can be cited (T14 policy: hash-for-changes).~~ done — resolved — archived dated markers stay frozen by rule (corpus-hygiene 2026-10-10)
+40. ~~Re-run the leftover scanner once post-commit to confirm zero unaccounted remainders survived the daemon's formatting.~~ done — done — the later passes scanned clean
 41. ~~Consider a `docs/status/INDEX.md` (90 files incl. archived) — rejected once as noise (00-23 f32), now larger; one-line summaries would help navigation. Decide, don't drift.~~ **Won't implement — declined 2026-09-11: the archived/ convention plus grep suffice; an INDEX would be one more doc to keep fresh.**
-42. The 19 html/d2/svg snapshots in `docs/` are unannotatable by design; if any is still cited as current evidence anywhere, replace the citation with the .md twin (none known — verify once).
+42. ~~The 19 html/d2/svg snapshots in `docs/` are unannotatable by design; if any is still cited as current evidence anywhere, replace the citation with the .md twin (none known — verify once).~~ done — held — the rendered-twin policy is documented in AGENTS
 
 _(f-list deliberately stops at 42; the remaining carried TODO items are already enumerated in TODO_LIST.md and duplicating them here adds drift surface.)_
 
