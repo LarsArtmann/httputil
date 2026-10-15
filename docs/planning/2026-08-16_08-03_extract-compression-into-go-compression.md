@@ -429,3 +429,37 @@ flowchart TD
 | SSE compression silently buffered by MinSize                          | F19.2 latency-bound test catches it                                                       |
 | Brotli/Zstd on EventSource not universally supported                  | Honest README note; gzip remains default (F19.4)                                          |
 | go-datastar purity advocates object to any dep                        | Root untouched; test-only dep confined to datastartest module (decision 5)                |
+
+## 10. Inventory Refresh (2026-10-15) — precondition 1 of the deferred execution
+
+_Measured against the tree at commit `44bb669` (2026-10-15). §3's table above is the 2026-08-16 snapshot, preserved as history; this section supersedes its numbers. Annotate, never rewrite._
+
+### LOC drift (every file grew or stayed; §3 columns are stale)
+
+| File                                    | §3 LOC | Now | Driver of the delta                                                                                                  |
+| --------------------------------------- | -----: | --: | ---------------------------------------------------------------------------------------------------------------------- |
+| `compression.go`                        |    235 | 343 | Range-aware passthrough guard (2026-10-10), `AbsentEncodingPolicy` axis (issue #4), Level-vs-factories precedence docs    |
+| `compression_negotiator.go`             |    234 | 252 | AbsentEncoding policy plumbing                                                                                           |
+| `compression_qvalue.go`                 |    149 | 149 | unchanged                                                                                                                |
+| `compress_writer.go`                    |    298 | 314 | drift (writer contract hardening)                                                                                        |
+| `compress_writer_compress.go`           |     64 |  42 | drift (shrank)                                                                                                           |
+| `compress_pool.go`                      |     41 | 172 | the writerPool resettability-probe refactor (the very change that voided §3)                                             |
+| `compress_content_type.go`              |     34 |  34 | unchanged                                                                                                                |
+| `wrapper.go`                            |     85 |  85 | unchanged                                                                                                                |
+| tests (9 files §3)                      | 1,800 ~ | 2,459 | `compression_test.go` 566→841, `compress_fuzz_test.go` 42→177 (Range/AbsentEncoding/property invariants), `compression_behavior_test.go` 59→165, `compression_bench_test.go` 53→176 |
+| NEW: `compress_pool_test.go`            |      — |  480+ | pool-contract tests (born with the refactor)                                                                             |
+| NEW: `compression_negotiator_property_test.go` | — |  140+ | property-based negotiator tests                                                                                          |
+
+### New extraction constraints §3 could not know
+
+1. **`parseQValue` is now shared**: `language.go:357` reuses the compression q-value grammar for Accept-Language. Extraction must either keep `compression_qvalue.go` in root (language keeps it, go-compression duplicates or re-imports root — breaks the zero-dep goal) or move it and give `httputil` a `go-compression` dependency for a parser (inverts the dependency direction the plan assumes). Decide before F15; the clean option is a tiny shared `go-qvalue` or moving the parser into go-compression and having language depend on go-compression (a real dep policy change — owner call).
+2. **`AbsentEncodingPolicy` is frozen-surface API** (v1.2.0, issue #4) — moves as public API, so go-compression's v0 must carry it from day one (not an internal detail).
+3. **The Range passthrough guard** is consumer-contract behavior (nginx-style); its tests and the design note reference must move with it.
+4. **Scope question, undecided**: `decompression.go` + its 4 test files (family landed after this plan) share the writer/pool infrastructure — extract together or leave decompression in root? The plan is compression-only; a one-line ruling belongs in the owner brief before execution.
+5. **Error codes**: `compression.*` codes are registered in httputil's error-code superset; go-compression carrying its own registration changes the `RegisterErrorClassifications` story §3 describes.
+
+### Preconditions state (TODO_LIST row 20)
+
+1. ~~Refresh the plan inventory~~ — DONE 2026-10-15 (this section).
+2. New-repo/remote setup by the owner — OPEN.
+3. Execute per the plan's phased-commit discipline — OPEN (re-baseline F0.2 benchmarks at execution time; §3 LOC gates are stale, use this section).
