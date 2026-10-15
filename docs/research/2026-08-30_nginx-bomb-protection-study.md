@@ -3,6 +3,7 @@
 **Date:** 2026-08-30
 **Source item:** `05-45:f48` ("nginx bomb-protection study — compare nginx behavior with Decompression bomb protection")
 **Sources:** nginx.org official docs (fetched and quoted 2026-08-30): [ngx_http_gunzip_module](https://nginx.org/en/docs/http/ngx_http_gunzip_module.html), [ngx_http_core_module §client_max_body_size](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size), §large_client_header_buffers.
+**Disposition (2026-10-15 read-through): CURRENT** — `Decompression`'s bounded-reader contract and the 0-means-16-MiB default are unchanged (both pinned in AGENTS); the nginx-side findings are upstream documentation quotes and stay valid until nginx changes those modules.
 
 ## Question
 

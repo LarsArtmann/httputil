@@ -2,6 +2,7 @@
 
 _Date: 2026-07-05_
 _Sources: [huma README](https://github.com/danielgtaylor/huma/), [huma.rocks](https://huma.rocks/), pkg.go.dev/huma/v2, httputil repo._
+_Disposition (2026-10-15 read-through): the positioning verdict ("complementary, not competing — httputil underneath") is CURRENT and stays citable. The point-in-time numbers are stale: maturity v0.5.0 → v1.5.0+; dependency count 2 → 4 (+nosurf, +go-etag for its error-code registration); "requires go 1.26" → 1.27. Re-derive numbers before quoting any cell externally._
 
 ## TL;DR
 

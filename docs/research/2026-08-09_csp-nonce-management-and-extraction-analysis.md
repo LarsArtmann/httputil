@@ -2,6 +2,7 @@
 
 **Date:** 2026-08-09
 **Scope:** How httputil's CSP nonce middleware works, what broke in go-health-dashboard, and whether nonce should be extracted into a dedicated project.
+**Disposition (2026-10-15 read-through):** CURRENT as incident analysis; the extraction question resolved to KEEP-LOCAL — `Nonce()` remains an httputil middleware (see the AGENTS Non-Obvious Behaviors nonce bullet), and no extraction demand signal has appeared since. The per-request-vs-static model mismatch it documents is the durable lesson.
 
 ---
 

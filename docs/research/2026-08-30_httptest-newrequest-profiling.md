@@ -3,6 +3,7 @@
 **Date:** 2026-08-30
 **Source items:** `05-45:f27`, `00-51:f36` ("measure allocation cost behind the noctx warnings")
 **Benchmark:** `BenchmarkHTTPRequestConstruction` (`newrequest_bench_test.go`, b.Run groups, `-benchtime=1s -count=3`)
+**Disposition (2026-10-15 read-through): CURRENT** — the measurement and all four conclusions still hold (the benchmark file and the test-file noctx exclusion it justifies are both live); the Go version in the header is the measurement environment, not a claim about current tooling.
 
 ## Why the linter cares
 

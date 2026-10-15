@@ -59,7 +59,7 @@
 | BenchmarkMiddlewareStack_Middleware (3 entries, per apply)     | 6.415  | 0      | 0         |
 | BenchmarkLanguage (path-miss + header hit, de/en) *            | 570.3  | 584    | 8         |
 | BenchmarkLanguageHeaderOnly *                                  | 423.7  | 584    | 8         |
-| BenchmarkLanguageStaticRequest (io.Discard writer, no recorder) * | ~1210 | 584  | 8         |
+| BenchmarkLanguageStaticRequest (bare-header writer, no recorder) * | ~1210 | 584  | 8         |
 | BenchmarkParseAcceptLanguageCandidates *                       | 103.1  | 176    | 3         |
 
 \* Added 2026-10-10 with the `Language()` middleware (one 3s×5 pass;

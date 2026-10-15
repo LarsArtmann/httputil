@@ -1,6 +1,7 @@
 # Package Structure Analysis — Refresh (2026-08-30)
 
 **Supersedes:** the numbers in [2026-08-05_06-56_package-structure-analysis.html](2026-08-05_06-56_package-structure-analysis.html); the decision itself is unchanged. This refresh exists because the 08-05 analysis predates the go-etag extraction and the `server_timing` sub-module split (both landed 2026-08-07), so its counts and dependency picture were stale.
+**Disposition (2026-10-15 read-through):** the keep-flat DECISION and the revisit triggers remain current (re-affirmed by the 2026-09-10 go-modularize run below); the file counts have drifted again since (the Language middleware and its companions grew the root past 37) — recount via `ls *.go | grep -v _test | wc -l` before citing; the ~50-file trigger still has headroom.
 
 ## Current shape (verified 2026-08-30)
 

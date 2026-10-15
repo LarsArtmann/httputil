@@ -1,6 +1,7 @@
 # Go Module Boundary Assessment (go-modularize run, 2026-09-10 04:49)
 
 **Verdict: HOLD all boundaries.** No go.mod changes, no package moves. All future moves are trigger-gated. Companion diagrams: [2026-09-10_04_49-go-modularize-boundaries.d2](2026-09-10_04_49-go-modularize-boundaries.d2) (current) and [-improved](2026-09-10_04_49-go-modularize-boundaries-improved.d2) (target).
+**Disposition (2026-10-15 read-through): CURRENT** — the HOLD verdict and trigger gates stand (the go-compression extraction is still pre-setup, so its re-run trigger has not fired). Stale point-in-time facts: "latest v0.12.0" tags are now v1.5.0-era; the root external-dep count moved (the ETag adapter was removed in v1.1.0 while the dep stays for error-code registration); the consumer scan is superseded by the 2026-10-09 consumer-audit program (scripts/consumer-audit/).
 
 ## Phase 1-2 evidence (all verified this run)
 

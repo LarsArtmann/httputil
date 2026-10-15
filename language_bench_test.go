@@ -1,7 +1,6 @@
 package httputil
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,21 +10,19 @@ import (
 // the middleware, not the handler.
 func languageBenchHandler(http.ResponseWriter, *http.Request) {}
 
-// languageStaticWriter is a minimal ResponseWriter over io.Discard: a bare
-// header map with no recorder machinery. It exists to isolate the
-// middleware's own cost from httptest's synthetic-request/recorder
-// overhead (measured at ~750 ns and ~5 KB per construction in
+// languageStaticWriter is a minimal ResponseWriter with a bare header map
+// and no recorder machinery. It exists to isolate the middleware's own cost
+// from httptest's synthetic-request/recorder overhead (measured at ~750 ns
+// and ~5 KB per construction in
 // docs/research/2026-08-30_httptest-newrequest-profiling.md; the recorder's
-// buffered body adds its own allocations per write).
+// buffered body adds its own per-write allocations).
 type languageStaticWriter struct{ header http.Header }
 
 func (w *languageStaticWriter) Header() http.Header { return w.header }
 
-func (w *languageStaticWriter) Write(p []byte) (int, error) {
-	n, err := io.Discard.Write(p)
-
-	return n, err
-}
+// Write satisfies the interface; it is never exercised because the bench
+// handler writes nothing - the body sink is irrelevant to the measured path.
+func (w *languageStaticWriter) Write(p []byte) (int, error) { return len(p), nil }
 
 func (w *languageStaticWriter) WriteHeader(int) {}
 
