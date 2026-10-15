@@ -6,7 +6,7 @@ Step-by-step checklist for cutting an httputil release. Follow in order — each
 
 Run every gate below. If any fails, fix it before proceeding.
 
-**Automation:** `./scripts/prerelease-check.sh` runs gates 1-6 (plus the erraudit gates, the coverage-threshold checker, changelog freshness, and `nix flake check`) for BOTH modules in one command and fails on the first violation. The manual commands below document each gate individually and remain the source of truth.
+**Automation:** `./scripts/prerelease-check.sh` runs gates 1-6 (plus the race-stress step 4b, the doc-snippet-refs step 5b, the erraudit gates, the coverage-threshold checker, changelog freshness, and `nix flake check` as its step 9) for BOTH modules in one command and fails on the first violation. The script's step numbers (1-9, with 4b/5b/8b interleaved) are its own scheme and need not match the section numbers below; the manual commands remain the source of truth.
 
 ### 1. Clean build
 
@@ -20,6 +20,8 @@ go vet ./...
 ```bash
 go test -race -count=1 ./...
 ```
+
+The script adds step 4b, `go test -race -count=10 ./...` (CI parity): timing-dependent races pass `count=1` clean but fail repeated race builds — the 2026-08-05 lesson (`cors_ratelimit_specs_test.go`). Run it before any tag.
 
 ### 3. Coverage measurement
 
