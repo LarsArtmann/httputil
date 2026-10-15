@@ -59,12 +59,18 @@
 | BenchmarkMiddlewareStack_Middleware (3 entries, per apply)     | 6.415  | 0      | 0         |
 | BenchmarkLanguage (path-miss + header hit, de/en) *            | 570.3  | 584    | 8         |
 | BenchmarkLanguageHeaderOnly *                                  | 423.7  | 584    | 8         |
+| BenchmarkLanguageStaticRequest (io.Discard writer, no recorder) * | ~1210 | 584  | 8         |
 | BenchmarkParseAcceptLanguageCandidates *                       | 103.1  | 176    | 3         |
 
 \* Added 2026-10-10 with the `Language()` middleware (one 3s×5 pass;
 best-of-5 reported, same estimator as the load note above). The 584 B/op
 is dominated by the query/URL parse on the reused harness request —
 allocation counts are the trustworthy signal, ns/op the noisy one.
+`BenchmarkLanguageStaticRequest` (added 2026-10-15, T18) replaces the
+recorder with a bare-header writer over `io.Discard`: identical 584
+B/op and 8 allocs/op, slightly lower ns/op — proving the httptest
+baseline was already allocation-clean in steady state and the recorder
+delta is wall-clock bookkeeping only.
 
 ### `httpspec` (3s×5, own module; re-measured in a quiet window 2026-10-10 — the 2026-10-09 one-short-window caveat is retired)
 

@@ -91,8 +91,9 @@ func BenchmarkParseAcceptLanguageCandidates(b *testing.B) {
 // BenchmarkLanguage against the static writer: the delta between the two
 // (same request object, same handler chain) is the httptest recorder
 // overhead, so the static numbers are the middleware's own per-request
-// cost. Headers are cleared each iteration so stamping cost stays in the
-// measurement without growing the map across the loop.
+// cost. The writer is reused in steady state exactly like the recorder
+// harness — Content-Language is overwritten in place and the Vary token
+// is deduped by addVaryToken, so no header state grows across iterations.
 func BenchmarkLanguageStaticRequest(b *testing.B) {
 	cfg := LanguageConfig{
 		SupportedTags: []string{"de", "en"},
@@ -108,10 +109,8 @@ func BenchmarkLanguageStaticRequest(b *testing.B) {
 	w := &languageStaticWriter{header: make(http.Header, 2)}
 
 	b.ReportAllocs()
-	b.ResetTimer()
 
 	for b.Loop() {
-		clear(w.header)
 		handler.ServeHTTP(w, req)
 	}
 }
