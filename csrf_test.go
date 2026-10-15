@@ -603,6 +603,22 @@ func TestCSRFTokenHXHeaders_WithToken(t *testing.T) {
 	}
 }
 
+func TestCSRFTokenHXHeaders_InvalidUTF8TokenRendersEmpty(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req = req.WithContext(WithCSRFToken(context.Background(), "\x82"))
+
+	if got := CSRFTokenHXHeaders(req); got != "" {
+		t.Errorf("invalid-UTF-8 token renders hx-headers %q, want empty (encoding/json v2 fails closed where v1 coerced)", got)
+	}
+
+	valid := req.WithContext(WithCSRFToken(context.Background(), "abc123"))
+	if got := CSRFTokenHXHeaders(valid); got == "" {
+		t.Error("valid token renders empty hx-headers, want the quoted attribute")
+	}
+}
+
 func TestCSRFTokenHTMLMeta_WithToken(t *testing.T) {
 	t.Parallel()
 

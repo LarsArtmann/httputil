@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 // isValidHTTPToken returns true if s contains only valid HTTP token characters
@@ -448,6 +449,19 @@ func FuzzCSRFTokenHTMLFormatters(f *testing.F) {
 
 		if !strings.Contains(field, escaped) {
 			t.Errorf("form field %q does not contain the escaped token %q", field, escaped)
+		}
+
+		// encoding/json (json/v2, standard since Go 1.27) REJECTS invalid
+		// UTF-8 instead of coercing it (json/v1 replaced it with U+FFFD), so
+		// CSRFTokenHXHeaders fails closed and renders an empty attribute for
+		// such tokens. The oracle models that contract — pinning v1
+		// semantics here would flag the safe behavior as a bug.
+		if !utf8.ValidString(token) {
+			if hxHeaders != "" {
+				t.Errorf("invalid-UTF-8 token renders hx-headers %q, want empty (json/v2 fails closed)", hxHeaders)
+			}
+
+			return
 		}
 
 		const hxPrefix = `hx-headers='`
