@@ -58,6 +58,8 @@ Third occurrence of the same scenario: the user pasted an off-policy erraudit in
 
 ## f) Next up (session-derived; impact-ranked; HARVEST input — not padded to 50)
 
+<!-- check-rows:ledger -->
+
 | #  | Task                                                                                                                                                                                                | Impact | Effort | Category      |
 | -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
 | ~~1~~  | ~~Script-diff the pasted 102-finding list against a local full-flag reproduction (close the repeat-offense gap for good)~~ done — superseded by repeated exact re-derivations (2026-10-11 and 2026-10-15 both reproduce 51/49 exactly) | ~~High~~ | ~~S~~ | ~~Quality~~ |
