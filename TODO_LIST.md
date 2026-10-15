@@ -2,7 +2,7 @@
 
 Short- and mid-term improvement tasks. Each item verified against the actual code. Completed work lives in [CHANGELOG.md](CHANGELOG.md) (`[Unreleased]` and the frozen version sections); rejected ideas live in [ROADMAP.md](ROADMAP.md) Non-goals; process decisions live in [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
-_Updated: 2026-10-14 (docs-health AUDIT: all 25 remaining 2026-08/09 status reports annotated to full resolution and archived; 36 completed rows deleted per the delete-done rule — completed work lives in CHANGELOG [Unreleased]; the nightly-vs-floor skew guard verified shipped and deleted; the AGENTS size-budget finding harvested from the archived reports). Prior sweeps: i18n-plan execution 2026-10-10; docs-health AUDIT 2026-10-09._
+_Updated: 2026-10-15 (owner decision brief published: [docs/planning/2026-10-15_02-12_owner-decision-brief.md](docs/planning/2026-10-15_02-12_owner-decision-brief.md) consolidates all 15 ROADMAP rulings + 7 TODO owner rows — one sitting unblocks ~25 routed items). Prior: 2026-10-14 docs-health AUDIT (25 reports annotated + archived, 36 done rows deleted, AGENTS size-budget finding harvested); i18n-plan execution 2026-10-10; docs-health AUDIT 2026-10-09._
 
 ---
 
@@ -23,7 +23,7 @@ _No open high-priority items — the v1.5.0 / server_timing v1.0.2 coordinated r
 
 ## Low Priority
 
-- [ ] **AGENTS.md size budget** — the file is ~48 KB (the docs-health rubric flags >30 KB; the 2026-10-09 line-compression traded width for count). Decide: slim via pointer-ification (the arch-ref already owns the deep tables) or re-baseline the budget with the owner. Sources: docs/status/archived/2026-09-11_04-30 b8/f38, docs/status/archived/2026-09-11_09-35 f24 (routed 2026-10-14).
+- [ ] **AGENTS.md size budget** — the file is ~48 KB (the docs-health rubric flags >30 KB; the 2026-10-09 line-compression traded width for count). Decide: slim via pointer-ification (the arch-ref already owns the deep tables) or re-baseline the budget with the owner. Outline staged: [docs/planning/2026-10-15_02-25_agents-slim-outline.md](docs/planning/2026-10-15_02-25_agents-slim-outline.md) (byte inventory + 5 candidates + tradeoff); ruling = brief row T7. Sources: docs/status/archived/2026-09-11_04-30 b8/f38, docs/status/archived/2026-09-11_09-35 f24 (routed 2026-10-14).
 
 - [ ] **httpspec discovery push (docs-site page remains)** — README section + runnable example landed 2026-09-11; the importer scan still shows zero public importers, and private consumer repos exist. Remaining: a docs-site page for the spec runner (blocked on the website-launch effort). Owner decision: push discovery, not retire.
 - [ ] **Export `csrf.trusted_origin_invalid` as an exported `Code` constant?** — consumers currently match it via the string; exporting is additive and frozen-API-safe (verified unexported 2026-09-23). Owner decision, standing since 2026-09-14. Sources: docs/status/2026-09-15_07-00 f21, docs/status/2026-09-14_18-14 f9/g3.
