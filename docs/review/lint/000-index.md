@@ -44,6 +44,10 @@ cd ~/projects && rg -l -g '*.go' -g '!**/vendor/**' '"github.com/larsartmann/htt
 The pipeline is now code: `scripts/consumer-audit/run-audit.sh` automates the
 inventory → pins → corpus → pattern-grep steps and scaffolds a report.
 
+## Scan deltas (quarterly cadence prep)
+
+- **2026-10-15 pipeline re-run** (evidence at `/tmp/httputil-consumer-audit-2026-10-15/`, ephemeral — the numbers are the record): **65 consumers** (was 46 on 2026-10-10, +19 — the v1.5.0 MIT release wave visible in the pin list: most new consumers pin `v1.5.0`), **201 pins** (was 194, +7), **1,475 call sites** (was 1,423, +52). All 11 pattern greps fire (counts in the scaffold report); per-pattern human review (step 6) remains the manual residue — the deltas are discovery input for the next review cycle, not verdicts.
+
 ## Verification log
 
 - **2026-10-10 — the three open claims from the audit session are closed:**
