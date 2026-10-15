@@ -139,9 +139,31 @@ T15 ledger rows for T20/T21 rewritten from premature "executed" to Closed with r
 44. Consider upstreaming the "export-data version 5 vs 4" failure signature into a doctor check (BuildFlow `doctor` or golangci-lint issue) — it cost go-etag a red master for ~16 h before anyone looked.
 45. Follow up the runner-images notice seen in CI logs (ubuntu-latest → Ubuntu 26 migration beginning 2026-10-19; both repos' workflows may need matrix pinning or acceptance).
 
+## Postscript (19:20 CEST) — the sweep RECURRED, master re-broken and re-repaired
+
+The tail state above was true for ~10 minutes. At 19:08:53 the daemon swept
+`e6431ce` — the **identical 9-file sentinel annotation sweep** as `8302e66`,
+re-applied 44 minutes after my first revert landed green. I pushed my status
+report (`42aaa9d`) on top of it blind (the range `c3caa6c..42aaa9d` carried
+`e6431ce`), and CI on remote went red with the exact original signature
+(`example_test.go:859: ErrCSRFInvalid.WithContext undefined`, run 38775125327).
+Re-reverted in `a6e0a12`, build+vet verified, pushed.
+
+**New evidence gathered while root-causing:**
+- `/etc/projects-management-automation/service.yaml` (read 19:12): `auto_push: false` — the daemon does NOT push, so the mid-session push of `8302e66` and earlier was a **second actor** (owner or parallel session); this sharpens g1.
+- The daemon config shows only commit behavior (`mode: active`, on-change, 120 s min interval, auto_stage) — **no fixer/lint step**, so whatever reapplies the annotations is a separate periodic mechanism (system-unit timer or a parallel agent session running the erraudit fix whose rewrite hint is the known-noncompiling one, upstream LarsArtmann/erraudit#10). No live fixer process was visible in `ps` at 19:13; `systemctl` is blocked for me.
+- The two sweeps are 49 minutes apart (18:19:35, 19:08:53) — roughly periodic; expect a third around ~20:00 if the mechanism is a timer.
+- Consequence of the recurrence: a sentinel re-revert is now the expected recurring maintenance until the writer is identified and stopped. The build (vet) fails loudly each time, so detection is instant; the risk is blind pushes between sweep and revert (mine this time, d-list amendment: pushing a range without reading the intermediate heuristic commits).
+
+**Amended g1 (supersedes the question as written):** who runs the periodic
+sentinel-annotation fixer (and the mid-session push)? Candidates: a system-unit
+timer visible only to you, a parallel agent session with erraudit-fix in its
+loop, or the daemon's undocumented second mode. Stopping it at the source is
+owner-level; everything I can do from here is detect-and-revert.
+
 ## g) Questions I can NOT figure out myself
 
-1. **Who pushed origin/master mid-session?** The handoff recorded `auto_push` flipped **false** at 17:09 today, yet during my session commits through `8302e66` landed on origin/master (my unpushed set shrank from 9 to 3 while I worked). Was that you, another agent session, or a daemon config change — and should `auto_push` stay off, or was re-enabling it intentional? This determines whether I treat remote master as a shared live surface (consolidation urgency) or a quiescent one.
+1. **Who or what runs the periodic sentinel-annotation fixer — and who pushed mid-session?** The handoff recorded `auto_push` flipped **false** at 17:09 today, yet during my session commits through `8302e66` landed on origin/master (my unpushed set shrank from 9 to 3 while I worked). Was that you, another agent session, or a daemon config change — and should `auto_push` stay off, or was re-enabling it intentional? This determines whether I treat remote master as a shared live surface (consolidation urgency) or a quiescent one.
 2. **Is a parallel session mid-work in BuildFlow right now?** I found and restored a dirty `go.mod` (zero-pseudo-version requires) 13 h after the last commit there, and the deployed binary is stale (`518739c-dirty` vs `d114f28ce`). Do you want me to rebuild + redeploy BuildFlow's flake package now (item 3), or is someone mid-migration such that I should stay out of that repo entirely?
 3. **Fleet lint-pin sweep: now or never?** go-etag's red master proves every fleet repo pinning golangci-lint v2.13.2 is one Go-toolchain bump away from the same failure. Should I sweep all known fleet repos' CI pins to v2.14.0 proactively (item 4, ~an hour + CI watches), or do you want per-repo bumps to happen only when each repo's own toolchain moves?
 
