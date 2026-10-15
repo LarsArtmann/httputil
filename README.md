@@ -802,7 +802,7 @@ This project maintains strict quality standards enforced in CI:
 | ---------------- | ------------------------------------------ | ------------------------------------------------ |
 | Tests            | `go test -race -count=1 ./...`             | Passing                                          |
 | Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
-| Coverage         | `go test -coverprofile=coverage.out ./...` | 97.9% httputil / 98.6% httpspec (threshold: 95%) |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 98.6% httputil / 99.2% httpspec (threshold: 95%) |
 | Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
 | Vet              | `go vet ./...`                             | Clean                                            |
 | Vulnerabilities  | `govulncheck ./...`                        | None found                                       |
