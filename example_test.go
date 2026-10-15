@@ -336,6 +336,38 @@ func ExampleNewKeyedRateLimiter() {
 	// Output: 2
 }
 
+func ExampleKeyedRateLimiter_evictionTTL() {
+	// EvictionTTL sweeps entries idle longer than the TTL on the next
+	// admission (lazy, no background goroutine). A one-nanosecond TTL makes
+	// the outcome deterministic without a fake clock: by the time the second
+	// key's Check runs, any real elapsed time exceeds the TTL, so the first
+	// key is always swept before the second is admitted. With MaxKeys unset
+	// the eviction here is purely TTL-driven, not capacity-driven.
+	limiter := NewKeyedRateLimiter(KeyedRateLimiterConfig{
+		Limit:        100,
+		Window:       time.Minute,
+		TTL:          time.Nanosecond,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+	})
+
+	check := func(remote string) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.RemoteAddr = remote
+		limiter.Check(req)
+	}
+
+	check("10.0.0.1:1000")
+	before := limiter.ActiveKeys()
+	check("10.0.0.2:2000")
+	after := limiter.ActiveKeys()
+
+	// The first key went idle past the TTL while the second was in flight,
+	// so the tracked set never grows past one key despite no MaxKeys cap.
+	fmt.Println(before > 0, after == 1)
+
+	// Output: true true
+}
+
 func Example_conditionalRequests() {
 	helloHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("hello world"))
