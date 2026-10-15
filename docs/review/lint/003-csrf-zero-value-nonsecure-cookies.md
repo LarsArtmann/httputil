@@ -63,6 +63,11 @@ browser SameSite default; combined with LINT-001's credentialed
 wildcard-echo CORS, the API has neither read-side nor write-side
 cross-origin protection that does not depend on browser defaults.
 
+_(2026-10-15 update: the verification log resolved this negative — GmbH sets
+no cookies anywhere; auth is header-based JWT, so the cookie class is vacuous.
+The pre-staged remediation plan (docs/planning/2026-10-15_17-40_gmbh-csrf-remediation-prestage.md)
+routes GmbH's real work to LINT-001's CORS allowlist, parked until the R10 fix-PR ruling.)_
+
 ## Why it is wrong
 
 A CSRF cookie without `Secure` travels over plaintext connections; on
