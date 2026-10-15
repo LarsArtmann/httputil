@@ -610,7 +610,10 @@ func TestCSRFTokenHXHeaders_InvalidUTF8TokenRendersEmpty(t *testing.T) {
 	req = req.WithContext(WithCSRFToken(context.Background(), "\x82"))
 
 	if got := CSRFTokenHXHeaders(req); got != "" {
-		t.Errorf("invalid-UTF-8 token renders hx-headers %q, want empty (encoding/json v2 fails closed where v1 coerced)", got)
+		t.Errorf(
+			"invalid-UTF-8 token renders hx-headers %q, want empty (encoding/json v2 fails closed where v1 coerced)",
+			got,
+		)
 	}
 
 	valid := req.WithContext(WithCSRFToken(context.Background(), "abc123"))
