@@ -1,0 +1,138 @@
+# Pareto-Plan Execution: Tiers 1%–20% Landed, a Real Fuzz Crasher Caught and Fixed, One 25-Minute Red-Master Window
+
+_Created: 2026-10-15 07:45 CEST · Session scope: full-execution order over the [pareto plan](../planning/2026-10-15_00-57_pareto-full-backlog-after-docs-health-audit.md) from T2 onward (T1 was already shipped at session start) · Master: `b2bedba`, pushed, CI GREEN (run on `b2bedba`; the prior run on `ff25e80` failed — see d1). Tree clean, 0 unpushed. Tasks completed: T2, T3, T4, T5, T6, T7, T8, T9, T10, and most of T13. Remaining: T11–T14 (partial), T15–T27._
+
+## a) FULLY DONE
+
+| #  | Item                                                                                                                                                                            | Evidence                                                                                                                                                                  |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a1 | **T2 gate re-measurements** — erraudit ledger re-derived exactly (51 `sentinel_concrete_type` + 49 test-side, 0 other, server_timing clean); both enforced gates exit 0; full `nix flake check` green; coverage badge re-derived 98.7% (CI-parity command) + per-module race numbers 98.6/99.2 into the README table | AGENTS Commands block numbers now measured, not inferred; `761736b`                                                                                                        |
+| a2 | **vendorHash incident fixed via the canonical tool** — the go-error-family v0.12.0 bump (daemon commit `079eb94`, verified: build + race ×2 modules + vet + lint 0 + upstream changelog read — a nil-receiver `Unwrap` guard, additive) had invalidated the flake hash; `buildflow -s nix-hash-fix --fix` repaired it, re-check passed | `761736b`; first `nix flake check` of the session FAILED with the hash mismatch, second passed                                                                               |
+| a3 | **T3 owner decision brief** — all 15 rulings (14 ROADMAP entries + R15 filed this session) + 7 owner TODO rows + 4 pointer rows in one matrix with options, defaults, evidence; linked from TODO_LIST; one sitting unblocks ~25 routed items | [2026-10-15_02-12_owner-decision-brief.md](../planning/2026-10-15_02-12_owner-decision-brief.md), `3ded77a`                                                                  |
+| a4 | **T7 AGENTS slim outline** — byte inventory per section (Non-Obvious 17.0 KB = 35%, Commands 12.6 KB = 26%), five pointer-ification candidates, ~48 KB → ~30 KB projection, single-file-property tradeoff stated; execution gated on brief row T7 | [2026-10-15_02-25_agents-slim-outline.md](../planning/2026-10-15_02-25_agents-slim-outline.md), `3ded77a`                                                                    |
+| a5 | **T5 fleet-daemon build gate** — proposal with source-verified insertion points (`require_clean_build` config key EXISTS and is DEAD: config.go:21 parsed, never consulted; gate belongs in `processBatch` after `IsSafeToCommit`), failure semantics, cost budget, index.lock interaction guard; filed upstream as pma TODO row J3 (pma's own 2026-10-01 status report §e.1 already asked for this); AGENTS daemon bullet cross-linked | [2026-10-15_02-35_daemon-presweep-build-gate-proposal.md](../planning/2026-10-15_02-35_daemon-presweep-build-gate-proposal.md), `32a15a3`, pma `eca21717`                      |
+| a6 | **T6 annotate defects filed** — both reproduced against the current binary with 7-line fixtures before filing: (1) status-items strikes WHOLE table rows (`~~\| 1 \| alpha \|~~` destroys the table); (2) bare numbered keys hit the FIRST file-wide match, silently striking the wrong section. Filed as LarsArtmann/SKILLS#3 and #4 (voice-checked, verified OPEN); drafts committed in SKILLS | issues #3/#4; TODO session-follow-ups row updated, `a52fc7b`                                                                                                                 |
+| a7 | **T4 v1.6.0 release readiness — verdict READY** — `[Unreleased]` headline entries spot-verified against code (Language symbols incl. `ExampleLanguage`, Range guard at `compression.go:318` + tests + design note, trusted-IP extractor set + error code); link defs push-ready (`[Unreleased]: v1.5.0...HEAD`); **prerelease-check.sh FULL battery exit 0** (all 11 gates incl. flake); server_timing drift measured: 2 additive commits since v1.0.2 (examples +24 lines, lint config) → patch-bump candidate for the coordinated cut; tag-prep state written | [2026-10-15_03-05_v1.6.0-tag-prep-state.md](2026-10-15_03-05_v1.6.0-tag-prep-state.md), `a52fc7b`                                                                            |
+| a8 | **T8 language-train tail** — (1) survey claim RE-VERIFIED at current upstream HEADs: all 61 Go files across gin-contrib/i18n (master, 2026-10-14), itpey/echoi18n (main, 2024-06-02), kaptinlin/go-i18n (main, 2026-08-02) tree-walked and grepped: **zero** `Content-Language`/`Vary` references — claim is now citable; (2) cookbook shipped (German-canonical + `/en` worked example per the D5 ruling, EN-canonical variant, hreflang app-lane caveat); (4) visible-missing-translation CI-gate section in go-i18n.md — TODO row 15 down to one residual (the v1.6.0-gated consumer-audit item) | `33d5f09`                                                                                                                                                                   |
+| a9 | **T9 RELEASE.md reconcile + row 36 closed** — all four row-36 items verified shipped (§6.7 drift check, §15 consumer probe, gate 5b, race-stress as 4b); the automation paragraph now documents 4b/5b and the script-vs-section numbering scheme | `44bb669`                                                                                                                                                                   |
+| a10 | **T10 go-compression inventory refresh (precondition 1 of the deferred extraction)** — every file re-measured (compression.go 235→343, compress_pool.go 41→172, tests ~1.8k→~2.6k, 2 new test files); four new constraints recorded, the load-bearing one: `parseQValue` is now SHARED with `language.go:357`, so extraction needs a dependency-direction ruling; decompression-scope question filed as brief row R15; TODO row 20 precondition 1 done | plan §10, `22e303b`                                                                                                                                                         |
+| a11 | **T13 fuzz rotation + the crasher it caught** — 4 new targets added (30/30 in the nightly, YAML-valid, budgets uniform 300s); smoke-running them BEFORE their first scheduled run crashed `FuzzCSRFTokenHTMLFormatters` in 0.08s. Root cause: Go 1.27's encoding/json (json/v2) REJECTS invalid UTF-8 (v1 coerced to U+FFFD), so `CSRFTokenHXHeaders` fails closed to `""` for such context tokens — safe behavior, wrong oracle. Oracle fixed to model the contract, regression test `TestCSRFTokenHXHeaders_InvalidUTF8TokenRendersEmpty` pins it, crasher corpus file doubles as seed; 5s fuzz clean, race + lint 0 + vet green | `b2bedba` (+ daemon `1ae6d4e` holding the edit), CI green on `b2bedba`                                                                                                       |
+
+## b) PARTIALLY DONE
+
+| #  | Item                                                                                                             | What remains                                                                                                  |
+| -- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| b1 | T13 bookkeeping — the rotation code is pushed and green, but FEATURES ("26 of 30") and the CHANGELOG `[Unreleased]` nightly bullets still say 26; the AGENTS Go-1.27 notes block doesn't yet carry the json/v2 marshal-rejects-invalid-UTF-8 gotcha (fleet-relevant) | Two doc touches + one AGENTS bullet; after the oracle fix the erraudit/adupl baselines should re-confirm (test files grew) |
+| b2 | CI watch on the final head — green run confirmed on `b2bedba` (the fix), red run confirmed on `ff25e80` (the crasher seed); no further watch done after that | Nothing expected; the nightly at 03:00 UTC tonight is the first scheduled run with 30 targets                    |
+| b3 | Session-tail discipline on sibling repos — SKILLS has 2 unpushed commits (drafts), pma has 0 unpushed but the J3 commit may be unpushed (checked: pma 0 ahead; SKILLS 2 ahead) | Push SKILLS after your review of the two filings                                                                |
+
+## c) NOT STARTED (planned, untouched this session)
+
+| #  | Item                                                                                                   |
+| -- | ------------------------------------------------------------------------------------------------------- |
+| c1 | T11 — docs-health pass over the eight 2026-10-09/10/11 reports + coordination of the 2026-10-14 i18n report (P20.15–P20.18); note: the survey rows in the 22-32/04-07/08-11 reports can now be annotated with a8's evidence |
+| c2 | T12 — commit `scripts/consumer-audit/`, close the 3 unverified claims (`s.rateLimit`, storbi constant, GmbH cookie site), P100.22 pre-stage |
+| c3 | T14 — fresh-session fact-loss audit of AGENTS.md vs the pre-compression version (P20.24–P20.25)          |
+| c4 | T15 — consolidated harvest ledger (routed arrows from the 25 archived reports into one table)            |
+| c5 | T16 — read-or-SKIP the 7 unviewed research/architecture files                                            |
+| c6 | T17 — the two `t.Run` clusters in security_test.go (convert or amend the convention)                     |
+| c7 | T18 — `BenchmarkLanguage` static-request harness (isolate middleware cost from the 584 B/op httptest baseline) |
+| c8 | T19 — `EvictionTTL` example with fake-clock injection + deterministic Output                             |
+| c9 | T20 — go-etag hygiene batch (other repo: bench artifact, DOMAIN_LANGUAGE entries, no-fuzz decision)       |
+| c10 | T21 — BuildFlow batch (enumerate the 11 failed format steps, file the downgrade issue, ripple v2.14.0)   |
+| c11 | T22 — index.lock forensics (the 23:46 lock owner)                                                        |
+| c12 | T23 — shutdown-drain decision note (WaitGroup vs documented-race)                                        |
+| c13 | T24 — diagram embedding prep (SVG previews + README embed diff draft)                                    |
+| c14 | T25 — v2.0 ledger notes (result type, alias, typed names, nil-entry)                                     |
+| c15 | T26 — quarterly consumer scan prep (who-uses delta since 2026-10-09)                                     |
+| c16 | T27 — httpspec docs-site page scoping                                                                    |
+
+## d) TOTALLY FUCKED UP
+
+| #  | Item                                                                                                                  | Repair state                                                                                                                  |
+| -- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| d1 | **25-minute pushed-master red window (the exact recurring class).** I analyzed the crasher in-place with an uncommitted failing corpus seed; the daemon swept BOTH files (`cac702b` rotation, `ff25e80` crasher seed) AND pushed while I worked — CI went red on `ff25e80`. I was mid-session, so detection was fast (next `git status` revealed it), and the fix landed green at `b2bedba`, but the window existed. This is the T5 proposal's scenario playing out with me as the half-faulty writer | Fixed: `b2bedba` green (CI verified both runs). The J3 build gate would have prevented the commit entirely                        |
+| d2 | **Uncommitted-work exposure to the daemon** — the crasher analysis ran with a dirty tree for ~20 minutes; any daemon sweep publishes intermediate states by design. Snapshot discipline caught it, but I should have committed the smoke-mate rotation change BEFORE deep-diving the crasher (or stashed the corpus file) | Process fix adopted below (e2)                                                                                                    |
+| d3 | **Wasted cycles from interrupted infrastructure** — the first prerelease background run (shell 0FA) was killed by an interrupted agent call and I briefly mistook an empty log for results; the first `gh api search/code` Vary query 404'd on endpoint misuse; the first repro-B spec file used the wrong key format | All redone correctly (prerelease exit 0; tree-walk grep became the evidence; repro confirmed); ~3 wasted commands total            |
+| d4 | **Nearly shipped a convention-violating docs example** — my first guard-test draft used `t.Run` table subtests, contradicting the repo's no-table-driven convention (the very thing T17 exists for); caught it before commit and rewrote as a plain loop | Fixed pre-commit                                                                                                                  |
+| d5 | **Ambiguous verification probes** — the first `i18n.go` content grep printed a misleading "(exit 0)" after a 404'd path; final evidence came only from the rigorous tree-walk. Lesson applied: exact-string claims need mechanical extraction, not shell-piped ambiguity | Superseded by a8's clean method                                                                                                    |
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Never deep-dive with a dirty tree in daemon territory** — commit (or stash/trash the seeds) before any multi-minute investigation; the daemon's sweep+push converted my analysis state into a red master (d1/d2).
+2. **Smoke-test new nightly targets BEFORE wiring them** — ordering the smoke before the workflow edit would have kept the crasher entirely off master; the rotation is only as safe as the newest target's oracle.
+3. **The json/v2 semantic-diff class needs a fleet audit** — one call site bit us; every `json.Marshal` over externally-influenced strings changed semantics in Go 1.27 (reject vs coerce). A grep + per-site verdict is cheap and prevents the next crasher.
+4. **Sibling-repo pushes need a tail checklist** — SKILLS sits 2 commits unpushed; session-tail discipline should span every repo a session touched, not just the current one.
+5. **The `| N |`-table annotate defect now has extra urgency** — TODO_LIST row edits this session were hand-applied precisely because status-items mangles numbered tables (filed as #3); fixing the tool would speed every future docs pass.
+6. **prerelease-check as a pre-push habit** — it exit-0'd cleanly here; running it before any risky push (not just releases) would catch the vendorHash/red-tree classes locally.
+7. **The agent-call interruption cost a background job** — long verification runs should be re-checked after ANY interrupted tool call (0FA died silently).
+8. **Decision-brief row R15 worked well** — filing new owner questions into the brief at discovery time (instead of leaving them in prose) kept the "one sitting unblocks all" property true; keep doing that.
+9. **Fuzz-oracle audits should model stdlib VERSION semantics, not just parser postures** — the 2026-10-10 oracle-strictness rule extends to stdlib behavior changes (json/v2), not just hand-written leniency.
+10. **CHANGELOG-vs-implementation drift check belongs in every task's verify step** — row 36's four items were all shipped but the row stayed open for days; a 30-second grep against the CHANGELOG would have closed it at the 2026-10-14 audit.
+
+## f) NEXT (up to 50, priority-ordered)
+
+| #  | Thing                                                                                                                                              | Source |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1  | Push SKILLS' 2 draft commits after your review of issues #3/#4                                                                                          | b3     |
+| 2  | FEATURES "26 of 30" → "30 of 30" + CHANGELOG `[Unreleased]` nightly bullet update for the rotation                                                       | b1     |
+| 3  | AGENTS Go-1.27 notes: json/v2 rejects invalid UTF-8 in `Marshal` (the hx-headers gotcha, fleet-relevant)                                                 | b1/e3  |
+| 4  | json/v2 semantic-diff audit: grep `json.Marshal` over externally-influenced strings, verdict per site                                                     | e3     |
+| 5  | Re-run erraudit 51/49 + art-dupl baselines after the test additions (numbers may have moved)                                                              | b1     |
+| 6  | `go test -race -count=10 ./...` after today's test additions (paralleltest discipline)                                                                    | a11    |
+| 7  | T11: annotate the eight 2026-10-09/10/11 reports (survey rows can cite a8's HEAD verification)                                                            | c1     |
+| 8  | T12: commit `scripts/consumer-audit/` + locate the 3 unverified claims                                                                                    | c2     |
+| 9  | T14: fact-loss audit of AGENTS.md vs pre-compression                                                                                                      | c3     |
+| 10 | T15: harvest ledger from the 25 archived reports                                                                                                          | c4     |
+| 11 | T16: read-or-SKIP the 7 research/architecture files                                                                                                       | c5     |
+| 12 | T17: convert or convention-amend the two `t.Run` clusters                                                                                                 | c6     |
+| 13 | T18: `BenchmarkLanguage` static-request harness vs 584 B/op                                                                                               | c7     |
+| 14 | T19: `EvictionTTL` fake-clock example                                                                                                                     | c8     |
+| 15 | T20: go-etag hygiene batch (other repo)                                                                                                                   | c9     |
+| 16 | T21: BuildFlow batch (11 failed format steps, downgrade issue, v2.14.0 pin)                                                                                | c10    |
+| 17 | T22: index.lock forensics                                                                                                                                 | c11    |
+| 18 | T23: shutdown-drain decision note                                                                                                                         | c12    |
+| 19 | T24: diagram embed prep                                                                                                                                   | c13    |
+| 20 | T25: v2.0 ledger notes (4 proposals)                                                                                                                      | c14    |
+| 21 | T26: who-uses delta since 2026-10-09                                                                                                                      | c15    |
+| 22 | T27: httpspec docs-site page scoping                                                                                                                      | c16    |
+| 23 | P100.22: pre-stage the GmbH CSRF remediation plan (read-only until R10)                                                                                   | c2     |
+| 24 | P100.23: keep the Post-v1.6.0 blocker row accurate                                                                                                        | a7     |
+| 25 | Owner brief: pre-draft the server_timing `[1.0.3]` changelog section (a7's drift finding) so the cut is copy-paste                                         | a7     |
+| 26 | README per-module coverage row: automate or drop (it drifts every middleware; the CI badge only covers combined)                                          | a1     |
+| 27 | Consider `-fuzzminimizetime` + crash-corpus artifact upload in the nightly (ROADMAP scaling ideas; owner cost appetite)                                    | R-scaled |
+| 28 | Cross-link SKILLS#3 ↔ #4 (same root class: strike placement)                                                                                               | a6     |
+| 29 | Run `annotate.go self-test` + `check-rows --normalize TODO_LIST.md` after today's row edits                                                                | e5     |
+| 30 | Nightly tonight = first 30-target run: check the rolling issue in the morning                                                                             | a11    |
+| 31 | `nix flake check --all-systems` re-confirm after today's flake change (darwin fleet members)                                                               | a2     |
+| 32 | Verify go.work's go-error-family floor statement stays true post-v0.12.0 (no directive change observed, but confirm)                                       | a2     |
+| 33 | CHANGELOG `[Unreleased]`: add the rotation + oracle-fix entries (CI behavior = changelog-worthy per R5's code-only default)                                | b1     |
+| 34 | T7 execution: if you rule pointer-ify (brief T7), the outline's 5 candidates are execution-ready                                                           | a4     |
+| 35 | After the v1.6.0 tag: activate row 15 item 5 (consumer-audit Language misuse classes) + row 2 cross-repo follow-ups                                        | a7/a8  |
+| 36 | Vendor-ish residue: confirm `.markdownlintignore`/lychee vendor refs stay as guards (R12 default) or strip after ruling                                    | brief  |
+| 37 | Decision brief: your answers by ID (R1–R15, T1–T7) — single sitting dissolves ~25 routed items                                                            | a3     |
+| 38 | v1.6.0 cut itself (owner-only; the readiness state doc is the checklist)                                                                                  | a7     |
+| 39 | Post-cut: sperrmuell T24/T70 + dnsblockd F96 pings (row 2)                                                                                                 | a7     |
+| 40 | Consider a `GOWORK=off` CI leg for server_timing if R6 rules exemptions (currently workspace-covered)                                                      | brief  |
+| 41 | pma J3: if you approve the build gate, the proposal's verification plan is implementation-ready                                                            | a5     |
+| 42 | Add the crasher to the fuzz-rotation docs (FEATURES nightly note) as the worked example for why smoke-before-rotate matters                                | e2     |
+| 43 | Sweep the remaining TODO rows for shipped-but-open states like row 36 (30-second CHANGELOG grep per row)                                                    | e10    |
+| 44 | annotate tool: after #3/#4 are fixed in SKILLS, re-run the 2026-10-15 fixtures as regression tests there                                                    | a6     |
+| 45 | httpspec `LanguageSpecs` — consider a contract spec for the hx/meta/field formatters (the json/v2 class is testable there too)                              | a11    |
+| 46 | Check tonight's benchstat CI summary against `docs/benchmarks.bench.txt` after the test additions (informational gate)                                      | a1     |
+| 47 | SKILLS: the annotate defects suggest a fuzz-ish property test for the tool itself (strike must never break table/section structure)                          | a6     |
+| 48 | go-error-family v0.12.0: nil-receiver `Unwrap` — sweep httputil for typed-nil forwards that the guard now protects (likely none; one grep)                   | a2     |
+| 49 | Quarterly architecture-review re-run slot (row 7) still unscheduled — next cycle                                                                            | c-tier |
+| 50 | After T11 lands, re-run the docs-health archive-completeness gate (`grep -rLn '~~'` on .md)                                                                 | c1     |
+
+## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
+
+1. **The hx-headers invalid-UTF-8 contract (crasher #1):** I kept the fail-closed behavior (empty attribute for invalid-UTF-8 tokens) and fixed the oracle to model it — the alternative is pre-marshal sanitization (v1-style coercion to U+FFFD), which would render MORE tokens and is the security-worse direction. Is fail-closed the contract you want pinned, or do you want the formatter to coerce so every non-empty token produces a non-empty attribute?
+
+2. **Sibling-repo push authority:** SKILLS has 2 unpushed commits (the two filed defect drafts). Push them now under this session's standing order, or do you want to read issues #3/#4 first?
+
+3. **Should I finish T11–T14 + the completion tier (T15–T27) in the same full-execution mode,** with the same commit+push-per-task cadence — or pause here so the decision brief (a3) and the v1.6.0 readiness verdict (a7) can absorb your answers first, given ~25 routed items and the tag both wait on you?
+
+---
+
+_What I forgot / could do better, in one line each: forgot that the daemon pushes now (d1 — my model of "daemon commits, sessions push" was stale); could have committed the rotation before analyzing the crasher (d2); could still improve by making smoke-before-rotate and tail-checklists-across-repos mechanical rather than remembered (e2, e4)._
