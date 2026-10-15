@@ -88,3 +88,18 @@ func TestEverySupportedTagRendersItsLanguage(t *testing.T) {
 A missing catalog file fails the test with the exact tag named — the translation gap becomes a red build instead of a user report. Run it before the release gate; pair it with `httpspec.LanguageSpecs()` for the header contract.
 
 Related: the [language cookbook](language-cookbook.md) shows the German-canonical + `/en` deployment shape this bridge is typically deployed in.
+
+## Locale formatting (out of middleware scope, by design)
+
+go-i18n owns message catalogs and plurals; `httputil.Language()` owns negotiation. Neither owns **formatting** (dates, numbers, currency) — that is `golang.org/x/text/message`'s job. Route the negotiated tag into a per-request `message.Printer`:
+
+```go
+func handle(w http.ResponseWriter, r *http.Request) {
+	printer := message.NewPrinter(language.Make(string(httputil.LanguageFromRequest(r))))
+
+	price := printer.Sprintf("%.2f", 1234.5) // locale-correct decimal separator
+	_ = price
+}
+```
+
+Build the printer per request (it is cheap); do not cache one per locale in a global unless you also pin its behavior under concurrent use. The middleware's contract ends at `Content-Language`/context — everything user-visible that depends on locale conventions belongs to the formatter layer.

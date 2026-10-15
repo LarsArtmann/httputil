@@ -21,13 +21,15 @@
 
 ## b) PARTIALLY DONE
 
-1. **M13 — compression test/doc batch (~90%)**: identity-policy fuzz branch + Range param (done, corpus migrated twice for arity), issue #4 public comment fixed (daemon hash `1ab88cd` replaced with the v1.2.0 tag reference — the AGENTS external-artifact rule), art-dupl pinned in flake.nix (`buildGoModule.override { go = go_1_27; }`, vendor hash `DTAs2KG…`, builds, `nix run .#art-dupl` works, clone baseline re-verified **0 groups at -t 2** after collapsing 8 boilerplate blocks into `newTrustedProxySet`), fixture-dedup item found already satisfied (`newWriteLargeBodyHandler` shared), ABNF-vs-Go oracle audit verdict recorded (conformant at outcome level; two documented leniencies: sign chars neutralized, malformed-q keeps default weight). **Open tail:** the final lint run timed out AFTER the `newTrustedProxySet` no-arg simplification + `assertHeaderlessAbsentEncoding` extraction — those two refactors are test/fuzz-green but lint-unverified.
-2. **Push/CI state for this session's tail**: 13 unpushed daemon commits mix MY M11/M13 work with the parallel session's in-flight files (i18n status reports, ROADMAP.md, stack.go, language design-doc updates). Per the parallel-writer protocol I did **not** push; master CI is green at `bef4bc2` (run 38027445511, includes M08/M12/M14/M15/M16). Everything after that is local-only.
-3. **AGENTS.md memory hygiene**: the stale-binary paragraph (buildflow delivery moved to `~/.nix-profile`) was flagged in the previous report as pending — still not rewritten. New AGENTS content this session (trusted-extractor bullet, three lint/daemon notes) IS in.
+1. ~~**M13 — compression test/doc batch (~90%)**: identity-policy fuzz branch + Range param (done, corpus migrated twice for arity), issue #4 public comment fixed (daemon hash `1ab88cd` replaced with the v1.2.0 tag reference — the AGENTS external-artifact rule), art-dupl pinned in flake.nix (`buildGoModule.override { go = go_1_27; }`, vendor hash `DTAs2KG…`, builds, `nix run .#art-dupl` works, clone baseline re-verified **0 groups at -t 2** after collapsing 8 boilerplate blocks into `newTrustedProxySet`), fixture-dedup item found already satisfied (`newWriteLargeBodyHandler` shared), ABNF-vs-Go oracle audit verdict recorded (conformant at outcome level; two documented leniencies: sign chars neutralized, malformed-q keeps default weight). **Open tail:** the final lint run timed out AFTER the `newTrustedProxySet` no-arg simplification + `assertHeaderlessAbsentEncoding` extraction — those two refactors are test/fuzz-green but lint-unverified.~~ done — resolved by the h-addendum: lint --timeout 5m 0 issues, both refactors verified; M13 100%
+2. ~~**Push/CI state for this session's tail**: 13 unpushed daemon commits mix MY M11/M13 work with the parallel session's in-flight files (i18n status reports, ROADMAP.md, stack.go, language design-doc updates). Per the parallel-writer protocol I did **not** push; master CI is green at `bef4bc2` (run 38027445511, includes M08/M12/M14/M15/M16). Everything after that is local-only.~~ done — consolidated + pushed 2026-10-10 (09:30 report a1): explicit-path commits, CI green run 38030629769 sha f65aec6
+3. ~~**AGENTS.md memory hygiene**: the stale-binary paragraph (buildflow delivery moved to `~/.nix-profile`) was flagged in the previous report as pending — still not rewritten. New AGENTS content this session (trusted-extractor bullet, three lint/daemon notes) IS in.~~ done — AGENTS stale-binary paragraph rewritten to nix-profile delivery (09:30 report a7)
 
 ## c) NOT STARTED (unchanged scope, listed for completeness)
 
 M10 (post-v1.4.0 residue ×12), M20 (buildflow dry-run re-run, erraudit tooling hygiene, noctx-exclusion narrowing, darwin flake check), M21 (quiet-window bench re-measure † rows + benchstat CI mechanization), M22 (`scripts/consumer-audit/` + 3 unverified claims), M23 (corpus-hygiene sweep, t.Run cluster conversion), arch-ref full re-inventory, server_timing/limiter examples, external micro-hygiene (d2 skill ref, go-etag worktree, Trash copies), BuildFlow cross-repo batch (golangci v2.14.0 ripple + upstream issues), go-etag hygiene batch, session follow-ups (21-46 §a5 strike, archive-count gate, check-rows scope note, skill-defect report), AGENTS fact-loss audit, architecture-review re-run, `httptest.NewTestServer` evaluation, plus every §5 owner-gated item (LNA denied-origin posture, B1 ruling, go-compression extraction, httpspec docs-site, `csrf.trusted_origin_invalid` export, MD060 ruling, writeHealthBody, consumer fix-PRs, diagram embedding, v2.0 items).
+
+_(Annotated 2026-10-15: M10/M20/M21/M22/M23, the arch-ref re-inventory, the examples, and the `httptest.NewTestServer` evaluation were executed by the same-day 09:30/10:18 continuation sessions — the f-list verdicts below carry evidence. Still open: the cross-repo batches (BuildFlow, go-etag), the EvictionTTL example, the AGENTS fact-loss audit, the external micro-hygiene, the architecture-review re-run, and all §5 owner-gated items — routed to the 2026-10-15 pareto plan.)_
 
 ## d) TOTALLY FUCKED UP (all disclosed, none hidden)
 
@@ -55,35 +57,35 @@ M10 (post-v1.4.0 residue ×12), M20 (buildflow dry-run re-run, erraudit tooling 
 
 **Immediate debt (before anything else):**
 
-1. Re-run `golangci-lint run` (with `--timeout 5m`) on the tail refactors; fix anything it flags; then `-race -count=10` for M11/M13 tests and the three erraudit gates (new code shipped in M07).
-2. Quiescence-check the parallel session's files (`git log origin/master..HEAD` file lists stable ≥15 min) → consolidate the 13 mixed commits into mine-only explicit-path commits + leave theirs, push, CI-verify to green.
-3. CHANGELOG entry for the M11/M13 tail (batch entry exists for M13's body; the newTrustedProxySet/nestif refactors are covered by it — verify wording).
+1. ~~Re-run `golangci-lint run` (with `--timeout 5m`) on the tail refactors; fix anything it flags; then `-race -count=10` for M11/M13 tests and the three erraudit gates (new code shipped in M07).~~ done — h-addendum: lint --timeout 5m 0 issues; -race -count=10 ok; both erraudit gates exit 0
+2. ~~Quiescence-check the parallel session's files (`git log origin/master..HEAD` file lists stable ≥15 min) → consolidate the 13 mixed commits into mine-only explicit-path commits + leave theirs, push, CI-verify to green.~~ done — consolidated + pushed (09:30 report a1), CI green run 38030629769
+3. ~~CHANGELOG entry for the M11/M13 tail (batch entry exists for M13's body; the newTrustedProxySet/nestif refactors are covered by it — verify wording).~~ done — M11/M13 batch entries in [Unreleased] (CSRF test-depth batch, Compression test/doc batch)
 
 **Then the macro-tasks in priority order:**
-4. M10 — post-v1.4.0 residue batch (12 micro-items: TestTimeout_NegativeDuration, invalid-gzip 400 direct test, ExpectVaryContains/ExpectNotModifiedWithETag examples, stack zero-value doc promotion, keyed-limiter default Retry-After doc, `int(p.burst)` 32-bit guard, AbsentEncodingPolicy.String(), errors.go consistency sweep, `-shuffle=on` in CI, StartTLS listener-occupation fixture, CI coverage-threshold cross-check, off-cycle prerelease run).
-5. M20 — buildflow `--dry-run` re-run (findings-gate composition), erraudit tooling hygiene, noctx-exclusion narrowing, darwin `--all-systems` acceptance.
-6. M23 — t.Run cluster conversion in security_test.go; corpus-hygiene sampling sweep.
-7. M22 — commit `scripts/consumer-audit/`; close the 3 unverified consumer-audit claims.
-8. M21 — quiet-window bench re-measure (four † rows + httpspec table); benchstat-vs-baseline CI step.
-9. arch-reference full re-inventory (export rows vs tree; my session added files — include them).
+4. ~~M10 — post-v1.4.0 residue batch (12 micro-items: TestTimeout_NegativeDuration, invalid-gzip 400 direct test, ExpectVaryContains/ExpectNotModifiedWithETag examples, stack zero-value doc promotion, keyed-limiter default Retry-After doc, `int(p.burst)` 32-bit guard, AbsentEncodingPolicy.String(), errors.go consistency sweep, `-shuffle=on` in CI, StartTLS listener-occupation fixture, CI coverage-threshold cross-check, off-cycle prerelease run).~~ done — M10 done (09:30 a2 / 10:18 row 3)
+5. ~~M20 — buildflow `--dry-run` re-run (findings-gate composition), erraudit tooling hygiene, noctx-exclusion narrowing, darwin `--all-systems` acceptance.~~ done — M20 done (09:30 a3)
+6. ~~M23 — t.Run cluster conversion in security_test.go; corpus-hygiene sampling sweep.~~ done — M23 done; 0 t.Run remain (verified in-tree 2026-10-15)
+7. ~~M22 — commit `scripts/consumer-audit/`; close the 3 unverified consumer-audit claims.~~ done — M22 done; verification log in docs/review/lint/000-index.md (verified in-tree 2026-10-15)
+8. ~~M21 — quiet-window bench re-measure (four † rows + httpspec table); benchstat-vs-baseline CI step.~~ done — M21 done (09:30 a6): baseline committed, benchstat CI step live
+9. ~~arch-reference full re-inventory (export rows vs tree; my session added files — include them).~~ done — arch-ref re-inventory done (09:30 a7; also 05:16 M05)
 10. server_timing + limiter examples (`ExampleMeasureWithDesc`, nil-safe `ServerTimingFromContext`, `EvictionTTL` example).
-11. `httptest.NewTestServer` (synctest) evaluation for Timeout tests.
+11. ~~`httptest.NewTestServer` (synctest) evaluation for Timeout tests.~~ done — evaluated NOT adopted with rationale (10:18 row 9)
 12. AGENTS.md fact-loss audit (independent fresh-eyes read of the 217-line file) + stale-binary paragraph rewrite.
 13. Session follow-ups: strike 21-46 §a5; archive-count gate; check-rows scope note in AGENTS; report the annotate-status `| N |` mangling defect; record the d2-syntax skill fix (`stroke-dash`).
 14. External micro-hygiene: go-etag stale worktree; `~/.local/share/Trash` etagmetrics copies.
 15. BuildFlow ripple: golangci-lint v2.14.0 into fleet lint pins (~/projects/BuildFlow, verify binary freshness after).
 16. BuildFlow upstream batch: format-normalize downgrade issue (enumerate the 11 failed steps first), repair-steps-dry proposal, module-inventory check, mutation-verify convention.
 17. go-etag hygiene batch (reports artifact, DOMAIN_LANGUAGE entries, drift-check, KeyHolderAI require).
-18. go-error-family#5: check upstream state; if accepted, write the "Conditional requests" docs section + sweep README/arch-ref.
-19. External-claim raw-extraction patterns → write into a durable reference.
+18. ~~go-error-family#5: check upstream state; if accepted, write the "Conditional requests" docs section + sweep README/arch-ref.~~ done — upstream #5 CLOSED as implemented; README + arch-ref swept (10:18 row 10)
+19. ~~External-claim raw-extraction patterns → write into a durable reference.~~ done — docs/external-claim-extraction.md written (verified in-tree 2026-10-15)
 20. Architecture-review re-run (post-v1.5 tooling exists as a skill).
 21–50. Remaining §5 owner-gated items held in place (LNA posture, B1 ruling, go-compression extraction, docs-site, code export, MD060, writeHealthBody, consumer PRs, diagrams, v2.0 discussions, corpus bulk-strike ruling) — need owner decisions; do not execute without them.
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 
-1. **Push protocol under the parallel writer** — my tail (13 daemon commits) mixes my M11/M13 work with the parallel session's in-flight i18n files. I held the push. Options: (a) I keep polling and push branch-atomic once their file set is quiet ≥15 min (what I did for M08, which their push then published); (b) you tell them to push and I follow after; (c) I push now accepting their WIP rides along. Which do you want as the standing rule?
-2. **The five uncovered `language.go` functions** (carried question from the 05:16 report, still unanswered) — close with tests here, leave documented in the coverage registry, or hand back to the language-middleware owning session?
-3. **Verification depth for this session's tail** — shall I re-run the full gate suite now (lint with timeout headroom, `-race -count=10`, erraudit gates) and push as one verification commit when quiescent, or do you want to review the unpushed set first?
+1. ~~**Push protocol under the parallel writer** — my tail (13 daemon commits) mixes my M11/M13 work with the parallel session's in-flight i18n files. I held the push. Options: (a) I keep polling and push branch-atomic once their file set is quiet ≥15 min (what I did for M08, which their push then published); (b) you tell them to push and I follow after; (c) I push now accepting their WIP rides along. Which do you want as the standing rule?~~ done — resolved as option (a) - h-addendum consolidation published only explicit-path own files
+2. ~~**The five uncovered `language.go` functions** (carried question from the 05:16 report, still unanswered) — close with tests here, leave documented in the coverage registry, or hand back to the language-middleware owning session?~~ **NOT-DO — gaps stay documented per the coverage methodology (FEATURES registry).**
+3. ~~**Verification depth for this session's tail** — shall I re-run the full gate suite now (lint with timeout headroom, `-race -count=10`, erraudit gates) and push as one verification commit when quiescent, or do you want to review the unpushed set first?~~ done — resolved by the owner follow-up; h-addendum executed the full verification then pushed
 
 ## h) ADDENDUM — tail debt cleared (08:19 CEST)
 

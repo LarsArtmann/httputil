@@ -351,7 +351,8 @@ Invariants and policies that the library enforces.
 
 ### Keyed Rate Limiting Rules
 
-- `KeyedRateLimiter` enforces a `Limit` of requests per `Window` per key, with optional `Burst` capacity
+- `KeyedRateLimiter` enforces a `Limit` of requests per `Window` per key, with optional `Burst` capacity; a `Burst` above `math.MaxInt32` is a config rejection (`ratelimit.keyed_burst_too_large`) because the bucket size feeds a signed-int conversion that overflows on 32-bit platforms
+- `AbsentEncodingPolicy` has exactly two forms, rendered by `String()`: `identity` (header-less requests are served uncompressed — the zero value) and `first-configured` (header-less requests get the highest-priority configured encoding); any other value renders `AbsentEncodingPolicy(N)`
 - `KeyExtractor` determines the key: `KeyExtractorFromClientIP()` (default) or `KeyExtractorFromRemoteAddr()`
 - `MaxKeys` caps the number of tracked keys; when capacity is reached, the oldest-accessed key is evicted via O(log n) min-heap pop
 - `TTL` enables lazy time-based eviction: entries idle longer than TTL are swept on the next `Allow` check
@@ -399,6 +400,13 @@ Invariants and policies that the library enforces.
 - `MetricsRecorder` is a pluggable interface for recording request metrics
 - Records method, path, status, and duration for each request
 - Default implementation is a no-op; consumers provide their own recorder
+
+### Language Negotiation Rules
+
+- **Declared spelling** — the exact spelling from `SupportedTags` is what gets served and stamped in `Content-Language` (`zh-Hans` stays `zh-Hans`); only comparisons are lowercased
+- **Extractor chain, first-wins** — `LanguageExtractorChain` legs run in declaration order (path, cookie, query, header are caller-composed); the first leg yielding candidates decides the input, later legs never blend in
+- **Primary-subtag fallback** — when no exact tag matches, the matcher falls back by primary subtag (`de-AT` serves `de`); `TagMatcher` is the plugin hatch for full BCP 47 matching
+- **Locale formatting** is out of scope by design (catalogs, plurals, dates/numbers/currency belong to go-i18n / `x/text/message`; the integration guides route readers there)
 
 ### Body Size Limit Rules
 

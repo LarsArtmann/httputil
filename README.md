@@ -463,6 +463,16 @@ The default matcher falls back by primary subtag (`de-AT` serves `de`); supply a
 
 > **Ordering:** Place `Language` **outside** `CSRFMiddleware` (the 403 page can localize, which needs the language context resolved) and **inside** `CORS` (CORS must stay outermost to answer preflights). Declared tag spellings are preserved — `zh-Hans` is served as `zh-Hans`; only comparisons are case-insensitive. **ETag** must also sit inside (after) `Language`: an ETag computed before language selection would let a cache serve language A's body to language B's conditional request.
 
+```go
+handler := httputil.Chain(
+    mux,
+    httputil.CORS(httputil.DefaultCORSConfig()), // outermost: answers preflights
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    httputil.Language(cfg),
+    etagMiddleware, // innermost of the pair: hashes AFTER language selection
+)
+```
+
 ### Error Classification
 
 `ResponseRecorder`, `compressWriter`, and `CSRFMiddleware` errors are classified with behavioral families via [go-error-family](https://github.com/larsartmann/go-error-family):

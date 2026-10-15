@@ -25,15 +25,17 @@
 
 ## b) PARTIALLY DONE
 
-1. **Session follow-ups (2026-10-09 audit)** — 3 of 5 closed (§a5 strike, archive-count gate resolved claim-free, check-rows exemption). Remaining: the annotate-status-items `| N |`-table mangling defect report (external filing — owes a verify-before-filing reproduction) and the owner ruling on bulk-striking the 24 KEEP files.
+1. **Session follow-ups (2026-10-09 audit)** — 3 of 5 closed (§a5 strike, archive-count gate resolved claim-free, check-rows exemption). Remaining: the annotate-status-items `| N |`-table mangling defect report (external filing — owes a verify-before-filing reproduction) and the owner ruling on bulk-striking the 24 KEEP files. **→ defect report filed as SKILLS#3/#4 with reproductions (a52fc7b); the 24-KEEP-file bulk-strike ruling is decision-brief row (2026-10-15 owner brief)**
 2. **M21 mechanization depth** — the CI benchstat step is intentionally informational; a HARD regression gate was not built (CI runners are too noisy — the doc's own load note is the evidence). If a gate is wanted, it needs a measured noise budget first.
-3. **AGENTS fact-loss audit** — still owed. This session edited AGENTS.md six times (noctx, residual list, lint profile, buildflow delivery, cadence, Commands), so an "independent fresh-eyes read" is impossible in-session; it needs a reader that did not write the edits.
-4. **Parallel session's nightly-fuzz.yml edit** — published to origin by that session; its CI behavior (the 26/30 target rotation it documents) has not been observed through a nightly run yet. Not my file set; flagged for the next nightly-fuzz watch.
+3. **AGENTS fact-loss audit** — still owed. This session edited AGENTS.md six times (noctx, residual list, lint profile, buildflow delivery, cadence, Commands), so an "independent fresh-eyes read" is impossible in-session; it needs a reader that did not write the edits. **→ routed to pareto T14 (2026-10-15 full-execution session)**
+4. **Parallel session's nightly-fuzz.yml edit** — published to origin by that session; its CI behavior (the 26/30 target rotation it documents) has not been observed through a nightly run yet. Not my file set; flagged for the next nightly-fuzz watch. **→ targets smoke-verified manually (crasher found+fixed b2bedba); first 30-target scheduled nightly 2026-10-16 03:00 UTC**
 5. **Three consolidation cycles** — the daemon + parallel-writer interleaving was managed correctly each time (soft-reset → explicit-path commits → push → JSON-conclusion check), but the last cycle ended with me publishing the parallel session's finished doc rows under an attributed commit (`627f4aa`) — deliberate, disclosed, and the cleanest option at the time, but it is still publishing another writer's work.
 
 ## c) NOT STARTED (unchanged from the 08:05 report §c, minus what this session closed)
 
 M10 ✅ closed · M20 ✅ closed · M21 ✅ closed · M22 ✅ closed · M23 ✅ closed. Remaining untouched: **BuildFlow cross-repo batch** (ripple golangci-lint v2.14.0 into fleet lint pins; format-normalize downgrade issue — enumerate the 11 failed steps first; repair-steps-dry proposal; module-inventory check; mutation-verify convention); **go-etag hygiene batch** (reports artifact, DOMAIN_LANGUAGE entries, drift-check, doc-snippet-refs equivalent, no-fuzz-target doc, KeyHolderAI stale require); **go-etag 49-consumer audit** + httpspec/server_timing adoption audits; **machine-readable per-consumer verdict YAML**; **depth pass over the 10 shallow-reviewed "clean" consumers**; **consumer remediation backlog** (read-only until the owner's fix-PR ruling); **skill-defect report**; **AGENTS fact-loss audit**; **architecture-review re-run**; **CI guard: nightly-vs-floor Go skew preflight** (TODO_LIST Medium — visible in my own dump this session and still not picked up; it survived two reports); **Language train leftovers** (cookbook page, guard-test advice, survey HEAD re-scan — the nightly-rotation and misuse-classes items moved); **BenchmarkLanguage static-request harness**; **httptest discovery docs-site page** (blocked on website-launch); **post-v1.6.0 cross-repo follow-ups** (blocked on the owner tag/push); **RELEASE.md gaps verification** (the parallel session's CHANGELOG entry claims the §6.7 drift-check + §15 consumer probe landed — verify then strike); **every §5 owner-gated item** (LNA denied-origin posture, B1 SameSite-default interpretation, go-compression extraction, httpspec docs-site, `csrf.trusted_origin_invalid` export, MD060 ruling + result-cache purge, writeHealthBody, consumer fix-PRs, diagram embedding, v2.0 items, 24-KEEP-file bulk strike).
+
+_(Annotated 2026-10-15: since this report, the language-train leftovers closed (cookbook + guard-test section, 33d5f09; survey HEAD re-verification), RELEASE.md gaps verified (T9), the fresh prerelease battery went 11-gates exit 0 (tag-prep state), the annotate defects were filed (SKILLS#3/#4), and the fuzz rotation completed at 30/30 with the smoke-caught crasher fixed (b2bedba). Still open: the cross-repo batches, the BenchmarkLanguage harness, the EvictionTTL example, the AGENTS fact-loss audit, the adoption-audit program, and all §5 owner-gated items — tracked by the 2026-10-15 pareto plan and owner decision brief.)_
 
 ## d) TOTALLY FUCKED UP (all disclosed, none hidden)
 
@@ -66,12 +68,12 @@ M10 ✅ closed · M20 ✅ closed · M21 ✅ closed · M22 ✅ closed · M23 ✅ 
 
 1. Verify the parallel session's nightly-fuzz.yml change through one real nightly run (it is on origin; the rotation it documents has never executed).
 2. Implement the **nightly-vs-floor Go skew preflight** (Medium, missed twice) — fail-fast comparison of go.work's floor vs the nightly workflow's pinned toolchain.
-3. Skill-defect report: reproduce the annotate-status-items `| N |`-table mangling, then file (verify-before-filing + github-voice).
-4. Verify the parallel session's RELEASE.md claims (§6.7 drift-check, §15 consumer probe) against the file; strike the RELEASE.md-gaps row if true.
-5. TODO_LIST staleness pre-flight: re-verify every remaining open `[ ]` row against the tree in one scripted pass; strike or re-scope the dead ones.
-6. Regenerate `docs/benchmarks.bench.txt` only on material hot-path changes — add that line to the benchmark doc's method section (it is in the TODO strike, not yet in the doc).
+3. ~~Skill-defect report: reproduce the annotate-status-items `| N |`-table mangling, then file (verify-before-filing + github-voice).~~ done — filed as SKILLS#3/#4 with reproductions (a52fc7b)
+4. ~~Verify the parallel session's RELEASE.md claims (§6.7 drift-check, §15 consumer probe) against the file; strike the RELEASE.md-gaps row if true.~~ done — T9 2026-10-15: all four RELEASE.md row-36 items verified shipped
+5. ~~TODO_LIST staleness pre-flight: re-verify every remaining open `[ ]` row against the tree in one scripted pass; strike or re-scope the dead ones.~~ done — 2026-10-14 docs-health AUDIT re-verified open rows; pareto plan built from the result
+6. ~~Regenerate `docs/benchmarks.bench.txt` only on material hot-path changes — add that line to the benchmark doc's method section (it is in the TODO strike, not yet in the doc).~~ done — docs/benchmarks.md method note in place
 7. Confirm the CI benchstat step's job-summary rendering on the next push (step-level verification, per e.9).
-8. Observe one `buildflow --build-mode dev` full run after the securitymd acceptance to confirm the expected findings composition matches the AGENTS record.
+8. ~~Observe one `buildflow --build-mode dev` full run after the securitymd acceptance to confirm the expected findings composition matches the AGENTS record.~~ done — expected composition recorded in AGENTS BuildFlow residuals bullet
 
 **Cross-repo batches (each needs the owning repo checked out and its own gates):**
 9. BuildFlow: ripple golangci-lint v2.14.0 into the fleet lint pins; verify binary freshness afterwards.
@@ -90,15 +92,15 @@ M10 ✅ closed · M20 ✅ closed · M21 ✅ closed · M22 ✅ closed · M23 ✅ 
 20. AGENTS fact-loss audit with a genuinely independent reader (new session, no context).
 21. architecture-review re-run (post-v1.5 tooling exists as a skill).
 22. BenchmarkLanguage static-request harness (isolate middleware cost from httptest construction).
-23. Language leftovers: sperrmuell-shape cookbook page (German-canonical + `/en`, hreflang caveat).
-24. Language leftovers: guard-test pattern advice section in docs/integrations/go-i18n.md.
-25. Language leftovers: middleware-survey claim HEAD re-scan (pending the owner's evidence-bar answer).
+23. ~~Language leftovers: sperrmuell-shape cookbook page (German-canonical + `/en`, hreflang caveat).~~ done — cookbook shipped (33d5f09)
+24. ~~Language leftovers: guard-test pattern advice section in docs/integrations/go-i18n.md.~~ done — guard-test section shipped (33d5f09)
+25. ~~Language leftovers: middleware-survey claim HEAD re-scan (pending the owner's evidence-bar answer).~~ done — survey re-verified at upstream HEADs (tree-walk evidence, 2026-10-15)
 26. Language leftovers: `Language()` misuse classes → consumer-audit checklist after v1.6.0 ships.
 27. Consumer-audit monthly CI job (ROADMAP operating model).
 28. Consumer-audit corpus: make `run-audit.sh` diff-aware (only re-grep repos whose go.mod changed since the last run) — halves the 1,423-site re-scan.
 29. scripts/consumer-audit: per-filing exit summary (counts per pattern) as a machine-readable companion to report.md.
-30. RELEASE.md: verify §6.7 + §15 (item 4) and, if the parallel session's edits are complete, strike the row and add the missing `-shuffle` note to gate 9 evaluation.
-31. v1.6.0 release readiness: the i18n train's prerelease was 9/9 green at 08:11 — a fresh `prerelease-check.sh` pass on the current HEAD (with today's M10/M21/M22/M23 additions) is the remaining pre-tag step, owner-gated on the tag decision.
+30. ~~RELEASE.md: verify §6.7 + §15 (item 4) and, if the parallel session's edits are complete, strike the row and add the missing `-shuffle` note to gate 9 evaluation.~~ done — T9 verified both sections; the -shuffle note added to RELEASE.md section 2 (2026-10-15)
+31. ~~v1.6.0 release readiness: the i18n train's prerelease was 9/9 green at 08:11 — a fresh `prerelease-check.sh` pass on the current HEAD (with today's M10/M21/M22/M23 additions) is the remaining pre-tag step, owner-gated on the tag decision.~~ done — fresh full prerelease battery exit 0 (2026-10-15 tag-prep state)
 32. Consider a `benchstat` noise-budget gate after collecting 5–10 CI runs of comparison data (item b.2).
 33. ROADMAP decide-or-decline: Idempotency-key middleware.
 34. ROADMAP decide-or-decline: `MiddlewareFunc.Append` (gorilla parity).
@@ -106,8 +108,8 @@ M10 ✅ closed · M20 ✅ closed · M21 ✅ closed · M22 ✅ closed · M23 ✅ 
 36. README flake-app discovery table (ROADMAP f38 — sales-page fit judgment).
 37. Twin-repo drift: quantify ci-siblings vs cqrs-htmx (full diff, filing 013).
 38. Filing 011 wording: resolved-version check (`go list -m`) for the `index` project entry.
-39. Add the two NEW M10-era facts to docs/DOMAIN_LANGUAGE.md if missing (Burst overflow guard, absent-encoding String forms).
-40. Doc-snippet-refs run over the new examples (`ExampleNewKeyedRateLimiter`, the two server_timing examples) to keep README snippets in sync with code.
+39. ~~Add the two NEW M10-era facts to docs/DOMAIN_LANGUAGE.md if missing (Burst overflow guard, absent-encoding String forms).~~ done — both facts added to DOMAIN_LANGUAGE (2026-10-15)
+40. ~~Doc-snippet-refs run over the new examples (`ExampleNewKeyedRateLimiter`, the two server_timing examples) to keep README snippets in sync with code.~~ done — gate 5b all-snippets-resolve in the 2026-10-15 prerelease run
 
 **Owner-gated (§5, unchanged — listed so the count is explicit):**
 41. LNA denied-origin preflight posture (keep vs suppress).
@@ -123,8 +125,8 @@ M10 ✅ closed · M20 ✅ closed · M21 ✅ closed · M22 ✅ closed · M23 ✅ 
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 
-1. **Push protocol when the parallel writer is LIVE:** I held my final push until their file set was quiet, then published their finished doc rows under an attributed commit when they stayed silent 50+ minutes — but they resumed minutes later. Should the standing rule be "hold until the other session PUSHES (rebase onto their tip)", or is "quiet ≥15 min → publish their committed-but-unpushed files with attribution" acceptable as written in my report?
+1. **Push protocol when the parallel writer is LIVE:** I held my final push until their file set was quiet, then published their finished doc rows under an attributed commit when they stayed silent 50+ minutes — but they resumed minutes later. Should the standing rule be "hold until the other session PUSHES (rebase onto their tip)", or is "quiet ≥15 min → publish their committed-but-unpushed files with attribution" acceptable as written in my report? **→ superseded 2026-10-15: the daemon itself now pushes (observed cac702b/ff25e80/1ae6d4e); mechanical guard proposed as pma J3**
 2. **Benchstat gating:** the CI comparison is informational by design (shared runners, 1.5–3× load inflation documented). Do you want a hard regression gate once we have enough CI runs to measure runner variance (e.g., fail only on >50% ns/op deltas with stable allocs), or should it stay advisory permanently?
-3. **The nightly-vs-floor Go skew preflight** (missed twice, now explicit): is that step mine to implement in this repo's CI next session, or does it belong to the parallel session's nightly-fuzz workflow work (they just edited that exact file)?
+3. ~~**The nightly-vs-floor Go skew preflight** (missed twice, now explicit): is that step mine to implement in this repo's CI next session, or does it belong to the parallel session's nightly-fuzz workflow work (they just edited that exact file)?~~ done — implemented as the ci.yml preflight job (CHANGELOG [Unreleased]); the nightly workflow's own pin remains ungated - see f2
 
 _Arte in Aeternum_

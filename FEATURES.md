@@ -235,5 +235,6 @@ Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%**
 
 ## WORTH CONSIDERING
 
+- **Locale-formatting helpers** — dates/numbers/currency are out of the middleware's scope by design (`language.go` doc comment); both integration guides now route readers to `golang.org/x/text/message` per-request `message.Printer` fed from `LanguageFromRequest`. A convenience wrapper (middleware-injected printer in context) would be additive — build only on a real consumer demand signal.
 - **Brotli / zstd / lz4 support** — now possible via the `WriterFactory` plugin interface without adding core dependencies. Documentation examples at `docs/integrations/brotli-zstd.md`; built-in encoders are deliberately not added to preserve the dependency policy.
 - **Rate limiter `context.Context` cancellation** — a cancel-aware `Wait(ctx, key)` remains the post-v1.0 additive path; v1.0 shipped the admission-only contract (evaluated in [docs/planning/archived/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md](docs/planning/archived/2026-08-29_21-30_rate-limiter-ctx-cancellation-design-note.md), decided in [ROADMAP.md](ROADMAP.md)).

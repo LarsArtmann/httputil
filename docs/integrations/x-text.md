@@ -74,3 +74,14 @@ Why the script class is the motivating case: the built-in primary-subtag matcher
 ## Parse vs Make
 
 Use `language.Parse` (returns an error) inside the per-request adapter so garbage candidates fail the leg cleanly. `language.Make` never returns an error — it silently substitutes a sensible default — which would turn unparsable input into a surprising match.
+
+## Locale formatting
+
+x/text ships the formatter the middleware deliberately omits: `golang.org/x/text/message`. Once negotiation has resolved the tag, build a per-request `message.Printer` from it for dates, numbers, and currency:
+
+```go
+printer := message.NewPrinter(language.Make(string(httputil.LanguageFromRequest(r))))
+printer.Fprintf(w, "Updated %s", someTime) // locale-correct date rendering
+```
+
+Matching (`language.Matcher` via `TagMatcher`) and formatting (`message.Printer`) are independent — keep the matcher long-lived and immutable, and the printer per-request.

@@ -21,7 +21,7 @@ go vet ./...
 go test -race -count=1 ./...
 ```
 
-The script adds step 4b, `go test -race -count=10 ./...` (CI parity): timing-dependent races pass `count=1` clean but fail repeated race builds — the 2026-08-05 lesson (`cors_ratelimit_specs_test.go`). Run it before any tag.
+The script adds step 4b, `go test -race -count=10 ./...` (CI parity): timing-dependent races pass `count=1` clean but fail repeated race builds — the 2026-08-05 lesson (`cors_ratelimit_specs_test.go`). Run it before any tag. CI's test steps additionally run with `-shuffle=on` (test-order randomization); the release gates keep the deterministic default order so a failing seed is always reproducible.
 
 ### 3. Coverage measurement
 
