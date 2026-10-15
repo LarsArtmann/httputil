@@ -62,8 +62,14 @@ jobs:
       - name: Fuzz CORS wildcard patterns
         run: go test -run='^$' -fuzz '^FuzzCORSWildcardPattern$' -fuzztime 300s .
 
+      - name: Fuzz CORS private-network preflight
+        run: go test -run='^$' -fuzz '^FuzzCORSPreflightPrivateNetwork$' -fuzztime 300s .
+
       - name: Fuzz client IP extraction
         run: go test -run='^$' -fuzz '^FuzzClientIP$' -fuzztime 300s .
+
+      - name: Fuzz trusted-proxy client IP extraction
+        run: go test -run='^$' -fuzz '^FuzzTrustedProxySetClientIP$' -fuzztime 300s .
 
       - name: Fuzz request ID handling
         run: go test -run='^$' -fuzz '^FuzzRequestID$' -fuzztime 300s .
@@ -85,6 +91,12 @@ jobs:
 
       - name: Fuzz CSRF TrustedProxiesCIDR parsing
         run: go test -run='^$' -fuzz '^FuzzCSRFConfig_TrustedProxiesCIDR$' -fuzztime 300s .
+
+      - name: Fuzz CSRF XFP attestation
+        run: go test -run='^$' -fuzz '^FuzzCSRFMiddleware_XFPAttestation$' -fuzztime 300s .
+
+      - name: Fuzz CSRF token HTML formatters
+        run: go test -run='^$' -fuzz '^FuzzCSRFTokenHTMLFormatters$' -fuzztime 300s .
 
       - name: Fuzz Server-Timing header value
         run: go test -run='^$' -fuzz '^FuzzServerTimingHeaderValue$' -fuzztime 300s ./server_timing
