@@ -81,7 +81,7 @@ var (
 		"CORSConfig: AllowCredentials=true with AllowAllOrigins=true is not permitted by the CORS spec",
 	)
 	errNegativeMaxAge = codeCorsMaxAgeNegative.Rejection("CORSConfig: MaxAge must not be negative")
-	errMethodsEmpty error   = codeCorsMethodsEmpty.Rejection(
+	errMethodsEmpty   = codeCorsMethodsEmpty.Rejection(
 		"CORSConfig: AllowedMethods must not be empty; preflight responses would advertise no methods",
 	)
 )
