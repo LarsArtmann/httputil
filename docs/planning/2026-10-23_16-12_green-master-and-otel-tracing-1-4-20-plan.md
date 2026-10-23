@@ -232,7 +232,7 @@ Legend: **Imp** = importance / impact (1–5) · **CV** = customer value (1–5)
 | P3.3.1 | P3.3 | Link check on all touched docs | Exit 0 |
 | P3.3.2 | P3.3 | Freshness check: no doc claims "no demand" or "green" falsely | Grep evidence |
 
-### 5.2 Gated backlog (P4) — 12-minute steps, executed only after their gate opens
+### 5.2 Gated backlog (P4) — preview (full decomposition in 5.3)
 
 | ID | Parent | Subtask (≤12 min) |
 |---|---|---|
@@ -310,6 +310,202 @@ Legend: **Imp** = importance / impact (1–5) · **CV** = customer value (1–5)
 | B37.2 | B37 | First h2 integration test |
 | B38.1 | B38 | Draft table |
 | B38.2 | B38 | Place in README + judge fit |
+
+### 5.3 Gated backlog (P4) — full 12-minute decomposition
+
+Every parent from section 4.2 is broken into concrete steps summing to its
+effort estimate (30 min = 3 steps, 60 min = 5 steps, 100 min = 8 steps).
+Steps execute only after the parent's gate opens.
+
+| ID | Parent | Step (≤12 min) |
+|---|---|---|
+| B01.1 | B01 | Re-read gate proposal + incident timeline evidence |
+| B01.2 | B01 | List wiring options (daemon hook vs CI gate vs both) with costs |
+| B01.3 | B01 | Draft ruling text + owner question; record in proposal |
+| B02.1 | B02 | Re-read the P2.6 correlation ruling |
+| B02.2 | B02 | Design header precedence + fallback matrix |
+| B02.3 | B02 | Extend RequestIDConfig (echo header, fallback flag) + validation |
+| B02.4 | B02 | Implement echo + fallback in RequestID |
+| B02.5 | B02 | Tests: incoming present, absent, both headers, empty value |
+| B02.6 | B02 | Chain integration test (RequestID inside CORS/CSRF) |
+| B02.7 | B02 | Godoc + migration note for consumers |
+| B02.8 | B02 | Verify: gofmt, vet, race, lint |
+| B03.1 | B03 | Collect go.work/server_timing/etagmetrics membership evidence |
+| B03.2 | B03 | Draft policy (membership requirements + CI gates) |
+| B03.3 | B03 | Apply to ROADMAP open question + AGENTS note |
+| B04.1 | B04 | Design HSTSConfig (MaxAge, IncludeSubDomains, Preload) + validation |
+| B04.2 | B04 | Implement validation + error codes |
+| B04.3 | B04 | Implement middleware core |
+| B04.4 | B04 | Preload eligibility guard (max-age ≥ 1y, subdomains) |
+| B04.5 | B04 | Tests: header values, validation rejections |
+| B04.6 | B04 | Example + godoc |
+| B04.7 | B04 | Chain integration test |
+| B04.8 | B04 | Verify: gofmt, vet, race, lint |
+| B05.1 | B05 | Design redirect rules (X-Forwarded-Proto trust model) |
+| B05.2 | B05 | Reuse TrustedProxySet for proto trust |
+| B05.3 | B05 | Implement middleware core (301/308 policy) |
+| B05.4 | B05 | Preserve query string + optional host |
+| B05.5 | B05 | Tests: trusted/untrusted proxy, plain TLS, HSTS interplay |
+| B05.6 | B05 | Example + godoc |
+| B05.7 | B05 | Chain integration test |
+| B05.8 | B05 | Verify: gofmt, vet, race, lint |
+| B06.1 | B06 | Add MaxHeaderBytes to ServerConfig + wire to http.Server |
+| B06.2 | B06 | Test config translation + zero-value behavior |
+| B06.3 | B06 | Godoc + AGENTS note (MaxHeaderValueCount stays unreachable) |
+| B07.1 | B07 | Collect Stripe idempotency semantics + fleet evidence |
+| B07.2 | B07 | Design Store interface (Get/Save, TTL, replay) |
+| B07.3 | B07 | Design replay semantics (status/headers/body capture) |
+| B07.4 | B07 | Compare ResponseRecorder reuse vs a dedicated cache type |
+| B07.5 | B07 | Draft design note with decision gates |
+| B07.6 | B07 | List test plan (dedupe, replay, conflict, expiry) |
+| B07.7 | B07 | Owner question (scope, API shape) |
+| B07.8 | B07 | Verify note links + archive if declined |
+| B08.1 | B08 | Reproduce the drain race in a test |
+| B08.2 | B08 | Draft contract options (block vs document) |
+| B08.3 | B08 | Decide and record in AGENTS/architecture-reference |
+| B08.4 | B08 | Implement WaitGroup tracking (test-driven) |
+| B08.5 | B08 | Regression test for Start-during-drain |
+| B08.6 | B08 | Tests: Shutdown behavior, ListenerAddr state |
+| B08.7 | B08 | Godoc update |
+| B08.8 | B08 | Verify: gofmt, vet, race, lint |
+| B09.1 | B09 | Draft matrix job structure + caching |
+| B09.2 | B09 | Add concurrency group |
+| B09.3 | B09 | Add workflow_dispatch inputs (target, time) |
+| B09.4 | B09 | Dry-run with a workflow linter |
+| B09.5 | B09 | Record decision + observe the first nightly |
+| B10.1 | B10 | Design clone-on-write (where to clone) |
+| B10.2 | B10 | Implement internal clone |
+| B10.3 | B10 | Remove the test-only clone workaround |
+| B10.4 | B10 | Regression test (shared config, two servers) |
+| B10.5 | B10 | Verify: gofmt, vet, race, lint |
+| B11.1 | B11 | Define monthly job shape + verdict schema |
+| B11.2 | B11 | Script skeleton (fetch consumers, run checks) |
+| B11.3 | B11 | Implement first check (version drift) |
+| B11.4 | B11 | Manual first run + diff baseline |
+| B11.5 | B11 | Store machine-readable verdicts |
+| B11.6 | B11 | Document operating procedure |
+| B11.7 | B11 | Schedule (CI or timer) decide |
+| B11.8 | B11 | Verify: script lint + dry run |
+| B12.1 | B12 | Collect deployment-manifest evidence (internet-facing?) |
+| B12.2 | B12 | Draft three rulings (ci-siblings, read-only vs PRs, ordering) |
+| B12.3 | B12 | Record + route to owner |
+| B13.1 | B13 | Inventory precedent (#31 same-session fix) |
+| B13.2 | B13 | Draft authority options |
+| B13.3 | B13 | Record ruling + update nightly docs |
+| B14.1 | B14 | Collect consumer usage of AbsentEncodingFirstConfigured |
+| B14.2 | B14 | Draft lifecycle options (permanent vs v2 removal) |
+| B14.3 | B14 | Record + update v1-stability + ROADMAP non-goals |
+| B15.1 | B15 | Re-verify the three tool defects (heap, slices, variadic) |
+| B15.2 | B15 | Decide filing vs suppression per defect |
+| B15.3 | B15 | File upstream issues or add ignores |
+| B15.4 | B15 | Record baseline policy |
+| B15.5 | B15 | Verify tool runs |
+| B16.1 | B16 | Check gorilla parity + consumer demand |
+| B16.2 | B16 | Draft API shape if pursued |
+| B16.3 | B16 | Decide or decline; record |
+| B17.1 | B17 | Draft scan job shape (who-uses API or module graph) |
+| B17.2 | B17 | Run first scan |
+| B17.3 | B17 | Record baseline + cadence |
+| B18.1 | B18 | Locate coverage badge source + refresh command |
+| B18.2 | B18 | Add step to RELEASE.md |
+| B18.3 | B18 | Verify link renders |
+| B19.1 | B19 | Inventory tag conventions used (single tag + replace) |
+| B19.2 | B19 | Draft convention |
+| B19.3 | B19 | Record in RELEASE.md |
+| B20.1 | B20 | Re-read inotify evidence from status reports |
+| B20.2 | B20 | Reproduce with inotifywait if possible |
+| B20.3 | B20 | Snapshot process list on next event |
+| B20.4 | B20 | Identify actor or close as unsolvable |
+| B20.5 | B20 | Record outcome |
+| B21.1 | B21 | Collect this week's daemon race evidence |
+| B21.2 | B21 | Draft options (accept heuristic, commit+push per unit, coordination) |
+| B21.3 | B21 | Record ruling + update AGENTS daemon note |
+| B22.1 | B22 | Compare go-etag tags vs go.mod directives |
+| B22.2 | B22 | Reconcile in that repo (or file it) |
+| B22.3 | B22 | Verify consumers unaffected |
+| B23.1 | B23 | Collect doc-only change examples |
+| B23.2 | B23 | Decide granularity |
+| B23.3 | B23 | Record in AGENTS/CHANGELOG policy |
+| B24.1 | B24 | Re-measure art-dupl -t 1 baseline |
+| B24.2 | B24 | Decide gate policy |
+| B24.3 | B24 | Record in AGENTS Commands |
+| B25.1 | B25 | Inventory tracked binaries + size |
+| B25.2 | B25 | Decide keep vs untrack |
+| B25.3 | B25 | Apply + document |
+| B26.1 | B26 | Grep all vendor references |
+| B26.2 | B26 | Decide strip vs guard |
+| B26.3 | B26 | Apply + verify lychee/markdownlint |
+| B27.1 | B27 | Read Mozilla StrictCSP template + map to builder |
+| B27.2 | B27 | Design preset + config hooks |
+| B27.3 | B27 | Implement preset |
+| B27.4 | B27 | Tests: header content, nonce integration |
+| B27.5 | B27 | Docs + example |
+| B27.6 | B27 | SecurityHeaders interplay test |
+| B27.7 | B27 | Verify: gofmt, vet, race, lint |
+| B27.8 | B27 | CHANGELOG entry |
+| B28.1 | B28 | Collect browser Referer behavior evidence |
+| B28.2 | B28 | Review the nosurf referer path source |
+| B28.3 | B28 | Define contradiction scope |
+| B28.4 | B28 | Design test matrix |
+| B28.5 | B28 | Spike implementation |
+| B28.6 | B28 | Owner question (evidence threshold) |
+| B28.7 | B28 | Record decision or defer |
+| B28.8 | B28 | Verify note links |
+| B29.1 | B29 | Read docs/integrations/brotli-zstd.md pattern |
+| B29.2 | B29 | Implement brotli WriterFactory |
+| B29.3 | B29 | Implement zstd WriterFactory |
+| B29.4 | B29 | Tests: roundtrip, pooling |
+| B29.5 | B29 | Benchmarks |
+| B29.6 | B29 | Doc update |
+| B29.7 | B29 | Verify: vet, race, bench sanity |
+| B29.8 | B29 | Changelog + doc snippet |
+| B30.1 | B30 | Review the MetricsRecorder interface |
+| B30.2 | B30 | Implement Prometheus adapter (or doc-only snippet) |
+| B30.3 | B30 | Tests with prometheus testutil |
+| B30.4 | B30 | Doc + example |
+| B30.5 | B30 | Verify: vet, race, lint |
+| B30.6 | B30 | Changelog |
+| B30.7 | B30 | Consumer snippet |
+| B30.8 | B30 | Archive if demand absent |
+| B31.1 | B31 | Re-read the parked StartupHandler design |
+| B31.2 | B31 | Decide implement vs archive |
+| B31.3 | B31 | Record in ROADMAP |
+| B32.1 | B32 | List ordering invariants (Recovery outermost, etc.) |
+| B32.2 | B32 | Build random stack generator |
+| B32.3 | B32 | Property: Validate agrees with execution |
+| B32.4 | B32 | Property: names unique |
+| B32.5 | B32 | Property: Build idempotent |
+| B32.6 | B32 | Shrink failing cases |
+| B32.7 | B32 | Run under -race -count=10 |
+| B32.8 | B32 | Verify + docs |
+| B33.1 | B33 | Reproduce the ServeTLS ALPN mutation |
+| B33.2 | B33 | Write the execution-probe test |
+| B33.3 | B33 | Verify the test fails on mutation |
+| B34.1 | B34 | Inventory existing seeds (5 of 27) |
+| B34.2 | B34 | Draft policy (which targets carry seeds) |
+| B34.3 | B34 | Record + apply |
+| B35.1 | B35 | Find all .d2 files |
+| B35.2 | B35 | Add render check to CI |
+| B35.3 | B35 | Verify render |
+| B36.1 | B36 | Scaffold example/ directory |
+| B36.2 | B36 | Write main with middleware chain |
+| B36.3 | B36 | Add server lifecycle demo |
+| B36.4 | B36 | Add tracing-compatible wiring |
+| B36.5 | B36 | Build in CI |
+| B36.6 | B36 | README link |
+| B36.7 | B36 | Verify: run + build |
+| B36.8 | B36 | Changelog |
+| B37.1 | B37 | Build TLS h2 test harness |
+| B37.2 | B37 | Test: h2 negotiation with Server |
+| B37.3 | B37 | Test: middleware chain under h2 |
+| B37.4 | B37 | Test: ServerTiming under h2 |
+| B37.5 | B37 | Race run |
+| B37.6 | B37 | Docs note |
+| B37.7 | B37 | Verify: vet, race |
+| B37.8 | B37 | Changelog |
+| B38.1 | B38 | Draft flake-app table (bench, devShell, checks) |
+| B38.2 | B38 | Place in README + judge sales fit |
+| B38.3 | B38 | Verify commands |
 
 ---
 
