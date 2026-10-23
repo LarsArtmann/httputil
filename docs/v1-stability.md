@@ -32,6 +32,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
 | `NonceConfig`            | Additive | New in v0.10.0                                            |
+| `RecoveryConfig`         | Additive | New in v1.6.0 (`Logger`, `OnPanic` observability hook)    |
 | `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
 | `SecurityHeadersConfig`  | Additive |                                                           |
 | `ServerConfig`           | Additive |                                                           |
@@ -70,6 +71,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | `Metrics`                      | `func(MetricsConfig) Middleware`            |
 | `Nonce`                        | `func(NonceConfig) Middleware`              |
 | `Recovery`                     | `func(*slog.Logger) Middleware`             |
+| `RecoveryWithConfig`           | `func(RecoveryConfig) Middleware`           |
 | `RequestID`                    | `func(RequestIDConfig) Middleware`          |
 | `SecurityHeaders`              | `func(SecurityHeadersConfig) Middleware`    |
 | `ServerTimingMiddleware`       | `func() Middleware`                         |
@@ -293,6 +295,7 @@ The gated alternative is additive:
 | ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Run`                          | Frozen   |                                                                                                                                                                       |
 | `RunSerial`                    | Frozen   |                                                                                                                                                                       |
+| `RunTracing`                   | Additive | New in v1.6.0 — middleware-level tracing contract checks                                                                                                              |
 | `Spec`                         | Additive | New fields may be added                                                                                                                                               |
 | `Check`                        | Frozen   |                                                                                                                                                                       |
 | `Result`                       | Additive |                                                                                                                                                                       |
@@ -315,6 +318,7 @@ The gated alternative is additive:
 | `SpecName*` constants          | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`) |
 | `CORSSpecs` / `RateLimitSpecs` | Frozen   | Pre-v1.0 opt-in spec bundles                                                                                                                                          |
 | `PrivateNetworkSpecs`          | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec)                                                                                                                          |
+| `TracingSpecs`                 | Additive | New in v1.6.0 — handler-level traceparent specs                                                                                                                       |
 
 ### Standard Specs (Additive)
 
