@@ -984,3 +984,30 @@ func ExampleLanguage() {
 	// Accept-Language
 	// negotiated=de
 }
+
+// ExampleRecoveryWithConfig bridges panic recovery to an observability SDK.
+// The hook runs after the panic is logged and before the 500 is written, so an
+// active span (for example one created by otelhttp) is still open when it runs.
+func ExampleRecoveryWithConfig() {
+	handler := RecoveryWithConfig(RecoveryConfig{
+		Logger: slog.New(slog.DiscardHandler),
+		OnPanic: func(r *http.Request, recovered any) {
+			// Bridge point: record the panic on the active span here, e.g.
+			// span.RecordError(...) and span.SetStatus(codes.Error, ...).
+			fmt.Printf("hook: %s %v\n", r.Method, recovered)
+		},
+	})(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		panic("boom")
+	}))
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/orders", http.NoBody))
+
+	fmt.Println("status:", rec.Code)
+	fmt.Println("body:", rec.Body.String())
+
+	// Output:
+	// hook: GET boom
+	// status: 500
+	// body: Internal Server Error
+}

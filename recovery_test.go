@@ -67,6 +67,80 @@ func TestRecovery_RepanicsErrAbortHandler(t *testing.T) {
 	handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/", ""))
 }
 
+func TestRecoveryWithConfig_OnPanicReceivesRequestAndValue(t *testing.T) {
+	t.Parallel()
+
+	var (
+		gotReq   *http.Request
+		gotValue any
+	)
+
+	handler := RecoveryWithConfig(RecoveryConfig{
+		Logger: newTestLogger(),
+		OnPanic: func(r *http.Request, recovered any) {
+			gotReq = r
+			gotValue = recovered
+		},
+	})(newPanicHandler("hook probe"))
+
+	req := newTestRequest(http.MethodGet, "/probe", "")
+	rec := newRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if gotReq != req {
+		t.Errorf("hook request = %p, want %p", gotReq, req)
+	}
+
+	if gotValue != "hook probe" {
+		t.Errorf("hook recovered value = %v, want %q", gotValue, "hook probe")
+	}
+
+	assertStatus(t, rec, http.StatusInternalServerError)
+	assertBody(t, rec, "Internal Server Error")
+}
+
+func TestRecoveryWithConfig_NilHookMatchesRecovery(t *testing.T) {
+	t.Parallel()
+
+	handler := RecoveryWithConfig(RecoveryConfig{Logger: newTestLogger()})(newPanicHandler("nil hook probe"))
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))
+
+	assertStatus(t, rec, http.StatusInternalServerError)
+	assertBody(t, rec, "Internal Server Error")
+}
+
+func TestRecoveryWithConfig_PanickingHookIsSwallowed(t *testing.T) {
+	t.Parallel()
+
+	handler := RecoveryWithConfig(RecoveryConfig{
+		Logger: newTestLogger(),
+		OnPanic: func(_ *http.Request, _ any) {
+			panic("hook panic")
+		},
+	})(newPanicHandler("original panic"))
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/", ""))
+
+	assertStatus(t, rec, http.StatusInternalServerError)
+	assertBody(t, rec, "Internal Server Error")
+}
+
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestRecoveryWithConfig_NilLoggerFallsBackToSlogDefault(t *testing.T) {
+	attrs := captureValidateConfigLog(t, func() {
+		handler := RecoveryWithConfig(RecoveryConfig{})(newPanicHandler("nil logger probe"))
+		handler.ServeHTTP(newRecorder(), newTestRequest(http.MethodGet, "/nil-logger", ""))
+	})
+
+	if attrs["msg"] != "panic recovered" {
+		t.Errorf("log msg = %v, want %q", attrs["msg"], "panic recovered")
+	}
+}
+
 func BenchmarkRecovery(b *testing.B) {
 	logger := newTestLogger()
 	middleware := Recovery(logger)

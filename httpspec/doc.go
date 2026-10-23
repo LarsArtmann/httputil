@@ -38,6 +38,18 @@
 //	httpspec.Run(t, handler,
 //		httpspec.SkipSpec(httpspec.SpecNameUnknownPathReturns404))
 //
+// # Tracing checks
+//
+// [TracingSpecs] adds handler-level specs: a valid W3C traceparent never
+// causes a server error, and a malformed one behaves like an absent one.
+//
+//	httpspec.Run(t, handler, httpspec.WithExtraSpecs(httpspec.TracingSpecs()...))
+//
+// Request-header passthrough and response-writer capabilities are invisible in
+// a response, so [RunTracing] checks them against a middleware directly:
+//
+//	httpspec.RunTracing(t, tracingMiddleware)
+//
 // # Adding custom specs
 //
 // Use the helper builders to create application-specific specs:
