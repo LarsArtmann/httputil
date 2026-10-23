@@ -1,7 +1,7 @@
 # Green Master + OTEL Tracing Support — 1% / 4% / 20% Pareto Execution Plan
 
 - **Date:** 2026-10-23 16:12 CEST
-- **Status:** PROPOSED — ready to execute; owner decisions marked below
+- **Status:** IN PROGRESS — P0 (green master + guard) executed and verified 2026-10-23 (commits `9aa4178`, `2303584`, `d826fab`); owner decisions marked below
 - **Inputs:** `docs/status/2026-10-23_15-56_otel-tracing-exploration-and-red-master.md` (50-item backlog), AGENTS.md, ROADMAP.md, the 2026-10-23 OTEL exploration session
 - **Hard rule:** do not verschlimmbessern. Additive only, no new root dependencies, verify each step before the next.
 
