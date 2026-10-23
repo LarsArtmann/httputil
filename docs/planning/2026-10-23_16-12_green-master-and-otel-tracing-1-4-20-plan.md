@@ -1,7 +1,7 @@
 # Green Master + OTEL Tracing Support — 1% / 4% / 20% Pareto Execution Plan
 
 - **Date:** 2026-10-23 16:12 CEST
-- **Status:** IN PROGRESS — P0 (green master + guard) executed and verified 2026-10-23 (commits `9aa4178`, `2303584`, `d826fab`); owner decisions marked below
+- **Status:** P0–P3 EXECUTED AND VERIFIED 2026-10-23 (green master + guard + docs + OTEL doc/hook/specs + harvest). P4 remains gated backlog (ROADMAP fuel, not commitments). See the progress log at the end.
 - **Inputs:** `docs/status/2026-10-23_15-56_otel-tracing-exploration-and-red-master.md` (50-item backlog), AGENTS.md, ROADMAP.md, the 2026-10-23 OTEL exploration session
 - **Hard rule:** do not verschlimmbessern. Additive only, no new root dependencies, verify each step before the next.
 
@@ -560,3 +560,32 @@ Until answered, P0/P1/P3 and P2.1/P2.5 can proceed; P2.2/P2.4/P2.6 wait for the 
 2. `docs:` add this plan → commit.
 3. `git push` both (explicitly requested).
 4. Later phases: one commit per phase item, detailed bodies naming the incident and the outcome.
+
+---
+
+## 11. Progress log
+
+### 2026-10-23 — P0
+
+- 15 sentinel declarations restored across 9 files; AST guard `sentinels_type_test.go` added and mutation-proven. Commits `9aa4178`, `2303584`, `d826fab`, `032b819`; pushed.
+
+### 2026-10-23 — P1 (incident lock)
+
+- P1.1: gate proposal updated with the third-recurrence timeline (`28681f2` → `e6431ce`, `a6e0a12` → `0ae65b9`) and "validated by live incident; ruling pending".
+- P1.2: AGENTS erraudit block records recurrence ×3 and the mechanical guard; no contradictory directive exists (grep for `sentinel_concrete_type` shows only historical status reports).
+- P1.3: CHANGELOG `[Unreleased]` entries for the fix and the guard.
+
+### 2026-10-23 — P2 (OTEL tracing support)
+
+- P2.5: lane ruling recorded in AGENTS.md ("Observability Lane — OTEL Ruling") and docs/architecture-reference.md; ROADMAP cross-links.
+- P2.1: `docs/integrations/otel.md` shipped: two lanes, bare-`otelhttp` and `go-appkit/otel` wiring, ordering matrix, exception bridging, correlation, gotchas, verification.
+- P2.2: `RecoveryConfig{Logger, OnPanic}` + additive `RecoveryWithConfig`; `Recovery` unchanged; tests cover hook invocation, nil-hook parity, panicking-hook isolation, and nil-logger fallback; `-race` green.
+- P2.3: deterministic `ExampleRecoveryWithConfig` with a pinned `// Output:`.
+- P2.4: `httpspec.TracingSpecs()` (handler-level) + `httpspec.RunTracing` (middleware-level); every check mutation-probed; `-race` green.
+- P2.6: correlation decision note `docs/planning/2026-10-23_17-20_requestid-correlation-ruling.md` (Option A recommended; traceparent never seeds RequestID).
+
+### 2026-10-23 — P3 (docs truth and harvest)
+
+- P3.1: ROADMAP OTEL item rewritten GRADUATED (no longer parked or "no demand"); dated update header.
+- P3.2: TODO_LIST gains the owner sign-off, sentinel-actor hunt, and B02 rows; ROADMAP Open questions gains the daemon gate, correlation ruling, and OTEL sign-off entries.
+- P3.3: link/freshness verification and full gates run (see §8 DoD).

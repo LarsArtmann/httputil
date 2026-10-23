@@ -36,3 +36,41 @@ The daemon commits continuously by design; nothing in its commit path compiles t
 ## Requested ruling
 
 The gate changes fleet-wide daemon behavior (owner-owned tooling). Options: (a) ship as opt-in (`require_clean_build: true` in `service.yaml`), (b) ship default-on for Go repos with a per-repo opt-out, (c) reject. This repo's vote: (b) — the red-master incidents cost more than the gate's seconds.
+
+---
+
+## Update 2026-10-23 — validated by a live incident; the sweep won three times
+
+**Status: proposal VALIDATED by a red-master incident that lasted 8 days. Ruling still pending.**
+
+The 2026-10-15 02:35 draft above was written after two red-master incidents. On that same day, a third and far more expensive instance proved the failure class end-to-end — and this one was caused by the daemon re-landing a lint auto-fix that humans had deliberately reverted twice.
+
+### Timeline (source-verified with `git log -S`)
+
+| Time (2026-10-15) | Commit | Event |
+|---|---|---|
+| 18:47 | `28681f2` | deliberate `fix: revert error-interface annotations on error-family sentinels` (first reversal) |
+| 19:08 | `e6431ce` | daemon heuristic commit — **re-lands the sweep across 9 files**, 21 min later |
+| 19:17 | `a6e0a12` | deliberate `fix: re-revert the error-interface sentinel sweep (second occurrence)` |
+| 19:31 | `0ae65b9` | daemon heuristic commit — **re-lands the sweep again**, 14 min later |
+
+Master stayed red and pushed from 19:31 on 2026-10-15 until 2026-10-23. `go vet ./...` failed with:
+
+```text
+example_test.go:859:30: ErrCSRFInvalid.WithContext undefined (type error has no field or method WithContext)
+```
+
+### Why this specific incident strengthens the proposal
+
+1. **It is exactly the gate's target class.** A mechanically-applied rewrite produced a tree that does not compile, and the daemon snapshotted it without asking. `go build ./...` would have refused the commit in under a second.
+2. **Human reverts are not a control.** The sweep had already been reverted, documented, and reverted again. Neither revert survived the next daemon cycle. Policy text alone (AGENTS.md already said *"declaring `var errX error` breaks WithContext/WithCause call sites"*) did not stop it.
+3. **The residue was almost entirely latent.** Only one of the 15 annotations (`csrf.go:60`, the only sentinel with a direct `.WithContext` call in compiled code) broke the build; the other 14 were pattern violations that would have surfaced on the next consumer. A build gate catches the first; only a test catches the rest — which is why this repo added the AST guard `sentinels_type_test.go` alongside the fix (commit `9aa4178`).
+4. **Recovery cost was ~8 days of unusable post-10-15 master** for every consumer pinned to it, plus a full forensics session to reconstruct what happened from `git show 0ae65b9` (the failing `go vet` names only one of the 15 sites).
+
+### Consequence for the requested ruling
+
+The vote for option (b) — default-on for Go repos with a per-repo opt-out — is unchanged, now with an incident that the gate would have blocked three separate times. Detection-only tooling cannot cover this class: the first two sweeps compiled cleanly at the point of commit and only failed when a consumer symbol was touched.
+
+Evidence trail: `docs/status/2026-10-23_15-56_otel-tracing-exploration-and-red-master.md` §a–c and the execution plan `docs/planning/2026-10-23_16-12_green-master-and-otel-tracing-1-4-20-plan.md` (§P0 executed, §P1.1).
+
+**Ruling: pending — owner-owned tooling (pma). Do not wire anything until the ruling lands.**
