@@ -43,6 +43,16 @@ nix fmt                    # treefmt (Go via golangci-lint formatters; run befor
 nix flake check            # Full flake gates (includes treefmt verification)
 nix flake check --all-systems  # darwin accepted — evaluated + native checks pass (2026-10-10); safe for mac fleet members
 
+# Local stopgap for the daemon's missing pre-sweep build gate: build + vet +
+# the error-sentinel guards in both modules (~30s). Run it before leaving a tree
+# unattended so the daemon cannot commit a non-compiling state.
+scripts/pre-sweep-check.sh
+
+# OTEL interop fixture (separate module; the root dependency policy stays intact).
+# CI job `otel-interop` runs exactly this; it compiles the docs/integrations/otel.md
+# snippets and proves httpspec.RunTracing against the real otelhttp + go-appkit/otel.
+(cd testdata/otelinterop && GOWORK=off go build ./... && GOWORK=off go test -race ./...)
+
 # erraudit (aligned with go-error-family policy; NEVER --enforce-samber-oops).
 # CANONICAL HOME for erraudit policy and residual verdicts — the BuildFlow
 # residuals bullet and the honest-silence paragraph point here; update this
@@ -63,16 +73,29 @@ nix flake check --all-systems  # darwin accepted — evaluated + native checks p
 # server_timing clean.
 # The load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites.
-# The 15 "declare it as the error interface" hints are ALSO rejected: they name
-# sentinels whose .WithContext/.WithContextAny/.WithCause call sites the rewrite
-# hint does not compile (erraudit#10) and whose `errors.Is` matches already work
-# through errorfamily's code+family semantics. KEEP EVERY CONCRETE SENTINEL.
+# The 15 "declare it as the error interface" hints are ALSO rejected, and the
+# proof is `ErrCSRFInvalid`: its only method call site is
+# `ErrCSRFInvalid.WithContext("path", "/login")` in example_test.go:859, which
+# the tool's load-bearing analysis misses because that analysis reads non-test
+# files only. 13 of the 15 have no method call site today and are hinted purely
+# for legacy_is noise reduction, which errorfamily's code+family `Is` semantics
+# already handle. ACTOR (P05 verdict, 2026-10-23): the sweep is not a mechanical
+# fix — erraudit has no --fix — it is an agent applying a FLEET rule
+# (BuildFlow docs/GOTCHAS.md #125: "sentinel variables MUST be declared as the
+# error interface type") to this repo, where it is wrong because these sentinels
+# are load-bearing. KEEP EVERY CONCRETE SENTINEL; the upstream corrections
+# (erraudit hint vs test-file call sites, GOTCHAS #125's blanket wording) are
+# owner-gated cross-repo items, not silent edits.
 # RECURRENCE ×3 (2026-10-15): an automated sweep re-landed the annotations
 # twice after deliberate reverts (28681f2 → e6431ce, a6e0a12 → 0ae65b9),
-# leaving master red and pushed for 8 days. MECHANICAL GUARD:
+# leaving master red and pushed for 8 days. MECHANICAL GUARDS (both modules):
 # `sentinels_type_test.go` parses the package and fails any err*/Err* var
-# declared with an explicit `error` type (2026-10-23, commit 9aa4178);
-# extend the guard, never hand-repair an annotation.
+# declared with an explicit `error` type (2026-10-23, commit 9aa4178; extended
+# the same day with a record-reporter self-test that proves the detector is not
+# vacuous, and mirrored into `server_timing/sentinels_type_test.go` because the
+# sweep class is not root-only). scripts/pre-sweep-check.sh runs both guards
+# plus build+vet, and prerelease-check.sh step 4a names them explicitly;
+# extend the guards, never hand-repair an annotation.
 # Verdict history: docs/status/archived/2026-09-11_10-03 and archived/
 # 2026-09-11_13-49 (also the `_ =` honest-silence discards and the scripts/
 # exemptions; the 2 `enforce_generic_return` scripts/ advisories are

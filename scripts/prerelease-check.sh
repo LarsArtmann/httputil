@@ -24,7 +24,6 @@ done
 # every Go toolchain call fails with "failed to initialize build cache".
 export GOCACHE="${GOCACHE:-$HOME/.cache/go-build-httputil}"
 export GOLANGCI_LINT_CACHE="${GOLANGCI_LINT_CACHE:-$HOME/.cache/golangci-lint-httputil}"
-export GOEXPERIMENT=jsonv2
 
 step() { printf '\n=== %s ===\n' "$1"; }
 fail() {
@@ -46,6 +45,14 @@ go vet ./... || fail "go vet ./... (root)"
 step "4/9 Tests with race detection (root + server_timing)"
 go test -race -count=1 ./... || fail "go test -race (root)"
 (cd server_timing && go test -race -count=1 ./...) || fail "go test -race (server_timing)"
+
+step "4a/9 Error-sentinel guards (root + server_timing)"
+# Named explicitly so a rename or deletion of the guard cannot silently drop
+# the gate: these are the tests that catch the 2026-10-15 sweep class. The
+# server_timing module has no sentinels yet; its guard is the backstop for when
+# it adopts classified errors.
+go test -race -count=1 -run 'Sentinel' . || fail "sentinel guard (root)"
+(cd server_timing && go test -race -count=1 -run 'Sentinel' .) || fail "sentinel guard (server_timing)"
 
 step "4b/9 Race stress (CI parity, -count=10)"
 # count=1 does not reliably surface timing-dependent races (the 2026-08-05

@@ -74,3 +74,18 @@ The vote for option (b) — default-on for Go repos with a per-repo opt-out — 
 Evidence trail: `docs/status/2026-10-23_15-56_otel-tracing-exploration-and-red-master.md` §a–c and the execution plan `docs/planning/2026-10-23_16-12_green-master-and-otel-tracing-1-4-20-plan.md` (§P0 executed, §P1.1).
 
 **Ruling: pending — owner-owned tooling (pma). Do not wire anything until the ruling lands.**
+
+### Update 2026-10-23 — the actor is identified, and it is a fleet rule (P05)
+
+The sweep is not a mechanical tool applying a fix: `erraudit lint --help` has no `--fix` flag. The actor is an agent applying a **different repo's policy** to this one. `BuildFlow/docs/GOTCHAS.md` #125 states, as a hard rule, *"Sentinel variables MUST be declared as the `error` interface type"*, because declaring the concrete type makes erraudit's `legacy_is` rule flag every `errors.Is` call site.
+
+That rule is correct for BuildFlow and wrong here. The two repos hold sentinels with opposite lifecycles:
+
+- BuildFlow's sentinels are compared with `errors.Is` and never call `.WithContext`/`.WithCause`, so the `error` interface costs nothing and silences the advisory.
+- httputil's are the opposite: they are *load-bearing*. `ErrCSRFInvalid.WithContext("path", "/login")` (`example_test.go:859`) is the exact call site the 2026-10-15 sweep broke.
+
+The tool has since moved toward our position but has not arrived. erraudit `119791b` splits the 51 `sentinel_concrete_type` findings into 36 labeled *"load-bearing — keep the declaration"* and 15 that still carry the `var errX error` rewrite hint. `ErrCSRFInvalid` is one of the 15 — the tool's load-bearing analysis reads non-test files only, so a method call site that lives in `example_test.go` is invisible to it. Acting on that hint re-creates the outage.
+
+Consequence for the ruling: a pre-sweep build gate would have blocked all three re-lands, but it would not have prevented the *rewrite*. The durable controls are the ones now in place — AST guards in both modules, a self-test proving the guard is not vacuous, `scripts/pre-sweep-check.sh`, and the explicit prerelease gate. The fleet-level corrections (erraudit's hint vs test-file call sites; GOTCHAS #125's blanket wording) are cross-repo and owner-gated; they are recorded here and in the AGENTS erraudit block rather than edited silently.
+
+**Ruling: still pending — and now independent of the actor question.** The gate is wanted for the daemon class regardless of who writes the tree.
