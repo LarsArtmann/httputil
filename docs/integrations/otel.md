@@ -56,8 +56,8 @@ func main() {
 		_ = provider.Shutdown(shutdownCtx)
 	}()
 
-	handler := httputil.Chain(
-		appkitotel.Middleware(),   // span outermost
+	handler := httputil.Compose(
+		appkitotel.Middleware(),     // span outermost
 		appkitotel.Recovery(logger), // exception events, inside the span
 		httputil.RequestID(httputil.DefaultRequestIDConfig()),
 		httputil.CORS(httputil.DefaultCORSConfig()),
@@ -80,7 +80,7 @@ func mux() http.Handler {
 
 ## Lane 2 — bare otelhttp
 
-If you already have a `TracerProvider`, the bridge is one line. `otelhttp` is a `func(http.Handler) http.Handler`, which is exactly what `httputil.Chain` accepts.
+If you already have a `TracerProvider`, the bridge is one line. `otelhttp` is a `func(http.Handler) http.Handler`, which is exactly what `httputil.Compose` accepts. (`httputil.Chain` takes the handler first — `Chain(mux, mw1, mw2)` — so it is the other valid spelling.)
 
 ```go
 // This example references
@@ -96,7 +96,7 @@ import (
 )
 
 func newHandler(mux *http.ServeMux) http.Handler {
-	return httputil.Chain(
+	return httputil.Compose(
 		otelhttp.NewMiddleware("orders-api",
 			// Only for internet-facing endpoints.
 			otelhttp.WithPublicEndpointFn(func(*http.Request) bool { return true }),
@@ -181,6 +181,8 @@ Tracing answers "which trace"; `RequestID` answers "which request" in logs. They
 httpspec.Run(t, handler, httpspec.WithExtraSpecs(httpspec.TracingSpecs()...))
 httpspec.RunTracing(t, appkitotel.Middleware())
 ```
+
+5. **The snippets in this page are compiled, not merely prose.** `testdata/otelinterop` is a separate module that builds both lanes and the `OnPanic` bridge, and runs `RunTracing` against the real `otelhttp` and `appkitotel` middlewares. The CI job `otel-interop` runs it; reproduce locally with `cd testdata/otelinterop && GOWORK=off go test -race ./...`. The module lives outside the root `go.mod` so httputil keeps its four-dependency policy.
 
 ## Related
 

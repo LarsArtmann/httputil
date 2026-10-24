@@ -177,6 +177,36 @@ jobs:
           cd server_timing
           golangci-lint run ./...
 
+  # The OpenTelemetry guide ships copy-paste snippets against modules httputil
+  # deliberately does not depend on. A separate fixture module compiles those
+  # snippets and runs httpspec.RunTracing against the real otelhttp and
+  # go-appkit/otel middlewares, so a guide that no longer compiles fails here
+  # instead of in a consumer's editor. GOWORK=off keeps the root workspace and
+  # the root dependency policy untouched.
+  otel-interop:
+    name: OTEL Interop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          # The fixture's go.mod carries the patch floor appkit/otel v0.3.0
+          # requires; setup-go must be able to satisfy it.
+          go-version: "1.27.x"
+
+      - name: Build the documented OTEL lanes
+        working-directory: testdata/otelinterop
+        env:
+          GOWORK: "off"
+        run: go build ./...
+
+      - name: Prove the tracing contracts against the real SDKs
+        working-directory: testdata/otelinterop
+        env:
+          GOWORK: "off"
+        run: go test -race -count=1 ./...
+
   commit-lint:
     name: Commit Lint
     runs-on: ubuntu-latest
