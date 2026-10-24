@@ -148,7 +148,7 @@ func TestHTTPBehavior(t *testing.T) {
 }
 ```
 
-Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence, no injection-header reflection (a client-supplied `X-CSRF-Token`/probe header value must never be echoed back in a response header). Opt-in spec families add targeted contract checks — `httpspec.LanguageSpecs()` pins that language-negotiating handlers stamp `Content-Language` and list `Accept-Language` in `Vary`, while `httpspec.TracingSpecs()` pins traceparent tolerance (a valid header never causes a 5xx; a malformed one behaves like an absent one). `httpspec.RunTracing(t, middleware)` goes further and verifies the middleware layer itself: header and `r.Pattern` passthrough, absent-header invariance, response passthrough, and `Flusher`/`Hijacker` preservation. Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
+Specs checked: index page reachability, unknown path 404s, long URL handling, POST safety, Content-Type on bodies and errors, HEAD/OPTIONS/TRACE/CONNECT handling, redirect Location correctness, no duplicate headers, Accept header handling, no leaked internals, no Server version fingerprinting, no X-Powered-By header, X-Content-Type-Options: nosniff presence, no injection-header reflection (a client-supplied `X-CSRF-Token`/probe header value must never be echoed back in a response header). Opt-in spec families add targeted contract checks — `httpspec.LanguageSpecs()` pins that language-negotiating handlers stamp `Content-Language` and list `Accept-Language` in `Vary`, while `httpspec.TracingSpecs()` pins W3C trace-context tolerance (a valid `traceparent` or `tracestate` never causes a 5xx; a malformed one behaves like an absent header). `httpspec.RunTracing(t, middleware)` goes further and verifies the middleware layer itself: header and `r.Pattern` passthrough, absent-header invariance, request invariance (method/path/body), response passthrough, and `Flusher`/`Pusher`/`Hijacker` preservation. Use `RunSerial` for handlers with shared state. Skip inapplicable specs or add custom ones:
 
 ```go
 httpspec.Run(t, handler,
@@ -812,7 +812,7 @@ This project maintains strict quality standards enforced in CI:
 | ---------------- | ------------------------------------------ | ------------------------------------------------ |
 | Tests            | `go test -race -count=1 ./...`             | Passing                                          |
 | Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
-| Coverage         | `go test -coverprofile=coverage.out ./...` | 98.7% httputil / 98.6% httpspec (threshold: 95%) |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 98.7% httputil / 98.4% httpspec (threshold: 95%) |
 | Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
 | Vet              | `go vet ./...`                             | Clean                                            |
 | Vulnerabilities  | `govulncheck ./...`                        | None found                                       |
