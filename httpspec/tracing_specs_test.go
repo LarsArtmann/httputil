@@ -33,6 +33,55 @@ func plainWriterMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// flushOnlyWriter exposes http.Flusher while hiding http.Hijacker.
+type flushOnlyWriter struct {
+	http.ResponseWriter
+}
+
+// Flush delegates to the wrapped writer when it can flush.
+func (f flushOnlyWriter) Flush() {
+	if flusher, ok := f.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// flushOnlyMiddleware wraps the response writer so Flusher survives and
+// Hijacker does not.
+func flushOnlyMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(flushOnlyWriter{ResponseWriter: w}, r)
+	})
+}
+
+// routePatternDroppingMiddleware clears the matched route pattern, simulating a
+// wrapper that rebuilds the request.
+func routePatternDroppingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Pattern = ""
+		next.ServeHTTP(w, r)
+	})
+}
+
+// traceparentInventingMiddleware fabricates a traceparent when the client sent
+// none, simulating a wrapper that misreports trace context.
+func traceparentInventingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(headerTraceparent) == "" {
+			r.Header.Set(headerTraceparent, validTraceparent)
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// bodyTamperingMiddleware lets the handler answer, then appends to the body.
+func bodyTamperingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+		_, _ = w.Write([]byte("tampered"))
+	})
+}
+
 func TestTracingSpecs_PassWithPlainHandler(t *testing.T) {
 	t.Parallel()
 
@@ -131,5 +180,80 @@ func TestRunTracing_DetectsBrokenResponsePassthrough(t *testing.T) {
 	msg := checkResponsePassthrough(swallowingMiddleware)
 	if msg == "" {
 		t.Fatal("checkResponsePassthrough passed for a middleware that swallows the handler response, want failure")
+	}
+}
+
+// TestRunTracing_DetectsDroppedRoutePattern mutation-probes the pattern half of
+// the request-passthrough check.
+func TestRunTracing_DetectsDroppedRoutePattern(t *testing.T) {
+	t.Parallel()
+
+	msg := checkRequestPassthrough(routePatternDroppingMiddleware)
+	if msg == "" {
+		t.Fatal("checkRequestPassthrough passed for a middleware that clears r.Pattern, want failure")
+	}
+}
+
+// TestRunTracing_DetectsInventedTraceparent mutation-probes the absent-header
+// invariance check.
+func TestRunTracing_DetectsInventedTraceparent(t *testing.T) {
+	t.Parallel()
+
+	msg := checkAbsentTraceparent(traceparentInventingMiddleware)
+	if msg == "" {
+		t.Fatal("checkAbsentTraceparent passed for a middleware that invents a traceparent, want failure")
+	}
+}
+
+// TestRunTracing_DetectsTamperedBody mutation-probes the body half of the
+// response-passthrough check.
+func TestRunTracing_DetectsTamperedBody(t *testing.T) {
+	t.Parallel()
+
+	msg := checkResponsePassthrough(bodyTamperingMiddleware)
+	if msg == "" {
+		t.Fatal("checkResponsePassthrough passed for a middleware that appends to the body, want failure")
+	}
+}
+
+// TestRunTracing_DetectsDroppedHijacker mutation-probes the Hijacker half of
+// the writer-interface check.
+func TestRunTracing_DetectsDroppedHijacker(t *testing.T) {
+	t.Parallel()
+
+	msg := checkWriterInterfaces(flushOnlyMiddleware)
+	if msg == "" {
+		t.Fatal("checkWriterInterfaces passed for a writer that drops Hijacker, want failure")
+	}
+}
+
+// TestRunTracing_RejectsNilMiddleware covers the guard that stops RunTracing
+// from panicking on a nil chain.
+func TestRunTracing_RejectsNilMiddleware(t *testing.T) {
+	t.Parallel()
+
+	if msg := tracingMiddlewareProblem(nil); msg == "" {
+		t.Fatal("tracingMiddlewareProblem accepted a nil middleware, want a failure message")
+	}
+}
+
+// TestTracingSpecs_InvalidTraceparent_FailsOnStatusChange mutation-probes the
+// status half of the invalid-traceparent spec.
+func TestTracingSpecs_InvalidTraceparent_FailsOnStatusChange(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(headerTraceparent) == invalidTraceparent {
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := invalidTraceparentIgnoredCheck()(handler)
+	if result.OK {
+		t.Error("spec passed for a handler that changes status on a malformed traceparent, want failure")
 	}
 }

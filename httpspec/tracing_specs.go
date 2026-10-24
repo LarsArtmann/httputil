@@ -130,8 +130,8 @@ func invalidTraceparentIgnoredCheck() Check {
 func RunTracing(t *testing.T, middleware func(http.Handler) http.Handler) {
 	t.Helper()
 
-	if middleware == nil {
-		t.Fatal("httpspec: RunTracing middleware must not be nil")
+	if msg := tracingMiddlewareProblem(middleware); msg != "" {
+		t.Fatal(msg)
 	}
 
 	t.Run("traceparent and route pattern reach the wrapped handler", func(t *testing.T) {
@@ -165,6 +165,16 @@ func RunTracing(t *testing.T, middleware func(http.Handler) http.Handler) {
 			t.Error(msg)
 		}
 	})
+}
+
+// tracingMiddlewareProblem returns a failure message when the middleware handed
+// to RunTracing cannot be checked.
+func tracingMiddlewareProblem(middleware func(http.Handler) http.Handler) string {
+	if middleware == nil {
+		return "httpspec: RunTracing middleware must not be nil"
+	}
+
+	return ""
 }
 
 // checkRequestPassthrough returns a failure message, or "" when the check
