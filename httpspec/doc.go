@@ -40,13 +40,17 @@
 //
 // # Tracing checks
 //
-// [TracingSpecs] adds handler-level specs: a valid W3C traceparent never
-// causes a server error, and a malformed one behaves like an absent one.
+// [TracingSpecs] adds handler-level specs for both W3C trace-context headers: a
+// valid traceparent or tracestate never causes a server error, and a malformed
+// one behaves like an absent one.
 //
 //	httpspec.Run(t, handler, httpspec.WithExtraSpecs(httpspec.TracingSpecs()...))
 //
-// Request-header passthrough and response-writer capabilities are invisible in
-// a response, so [RunTracing] checks them against a middleware directly:
+// Request-header passthrough, request invariance, and response-writer
+// capabilities are invisible in a response, so [RunTracing] checks them against
+// a middleware directly — traceparent, tracestate, and the route pattern reach
+// the handler, method/path/body arrive unmodified, and Flusher, Pusher, and
+// Hijacker survive the wrapper:
 //
 //	httpspec.RunTracing(t, tracingMiddleware)
 //

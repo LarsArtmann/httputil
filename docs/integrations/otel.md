@@ -159,6 +159,29 @@ Tracing answers "which trace"; `RequestID` answers "which request" in logs. They
 - Log it next to `httputil.RequestIDFromRequest(r)` so log lines are joinable to traces.
 - For cross-service correlation, use the fleet baggage convention `correlation_id` (go-appkit/otel's `WithCorrelationID` / `CorrelationID`). Do not invent a parallel header or seed request IDs from `traceparent` without a ruling — the dual-header `X-Correlation-ID` question is tracked in [ROADMAP.md](../../ROADMAP.md).
 
+## Sampling
+
+httputil makes no sampling decision and never mutates trace headers. Sampling belongs to the provider, which means there is exactly one lane-specific answer:
+
+- **Lane 1 (`go-appkit/otel`).** With no option, sampling is env-native: `OTEL_TRACES_SAMPLER` and `OTEL_TRACES_SAMPLER_ARG` drive the SDK (`parentbased_traceidratio` with a ratio is the usual production setting). Pass `WithSampler` only when the decision needs code:
+
+```go
+provider, err := appkitotel.Setup(
+	appkitotel.WithService("orders-api", "1.0.0", os.Getenv("POD_NAME")),
+	appkitotel.WithOTLP(),
+	// ParentBased keeps distributed traces continuous: the inner sampler only
+	// decides for requests that arrive without a sampled parent.
+	appkitotel.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.1))),
+)
+```
+
+- **Lane 2 (bare `otelhttp`).** You already own the `TracerProvider`, so you already own the sampler. `otelhttp` contributes nothing here.
+
+Two rules that matter more than the ratio:
+
+1. **Wrap any ratio sampler in `ParentBased`.** A bare `TraceIDRatioBased` re-decides on every hop and silently breaks traces into unrelated fragments, which looks like missing spans rather than a sampling bug.
+2. **Sampling is not a security control.** A caller can send `traceparent` claiming to be sampled; that is why public endpoints need `WithPublicEndpoint()` (lane 1) or `WithPublicEndpointFn` (lane 2) so the header becomes a link instead of a parent.
+
 ## Gotchas
 
 - **Compression and tracing both wrap the writer.** Keep tracing outermost (see the ordering table). `Compression` short-circuits `identity` and passes the raw writer through, so the span is unaffected either way; the order only decides whether compression time is inside the span.
@@ -174,8 +197,8 @@ Tracing answers "which trace"; `RequestID` answers "which request" in logs. They
 2. **Parent/child continuity.** Send a request with a valid `traceparent` and confirm the server span shares its trace ID. With `WithPublicEndpoint`, confirm the header becomes a link instead.
 3. **Exception events.** Panic in a handler and confirm the backend shows an exception event (type, message, stacktrace) and an error span status, with the client still receiving `500 Internal Server Error`.
 4. **Contract checks.** Two complementary surfaces:
-   - `httpspec.TracingSpecs()` adds handler-level specs (a valid `traceparent` never causes a 5xx; a malformed one behaves like an absent one) to a normal spec run.
-   - `httpspec.RunTracing(t, middleware)` verifies the middleware layer directly: the header and `r.Pattern` reach the wrapped handler, no header is invented, status/body pass through, and `Flusher`/`Hijacker` survive the writer wrapper.
+   - `httpspec.TracingSpecs()` adds handler-level specs for both W3C trace-context headers (a valid `traceparent` or `tracestate` never causes a 5xx; a malformed one behaves like an absent header) to a normal spec run.
+   - `httpspec.RunTracing(t, middleware)` verifies the middleware layer directly: `traceparent`, `tracestate`, and `r.Pattern` reach the wrapped handler, no header is invented, method/path/body arrive unmodified, status/body pass through, and `Flusher`/`Pusher`/`Hijacker` survive the writer wrapper.
 
 ```go
 httpspec.Run(t, handler, httpspec.WithExtraSpecs(httpspec.TracingSpecs()...))

@@ -3,6 +3,7 @@ package httpspec
 import (
 	"bufio"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"testing"
@@ -28,6 +29,15 @@ func (p passthroughWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	}
 
 	return nil, nil, errors.ErrUnsupported
+}
+
+// Push delegates to the wrapped writer when it can push.
+func (p passthroughWriter) Push(target string, opts *http.PushOptions) error {
+	if pusher, ok := p.ResponseWriter.(http.Pusher); ok {
+		return pusher.Push(target, opts)
+	}
+
+	return http.ErrNotSupported
 }
 
 // passthroughWriterMiddleware wraps the response writer in a type that keeps the
@@ -101,10 +111,77 @@ func (f flushOnlyWriter) Flush() {
 }
 
 // flushOnlyMiddleware wraps the response writer so Flusher survives and
-// Hijacker does not.
+// Pusher/Hijacker do not.
 func flushOnlyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(flushOnlyWriter{ResponseWriter: w}, r)
+	})
+}
+
+// flushPushWriter exposes http.Flusher and http.Pusher while hiding
+// http.Hijacker.
+type flushPushWriter struct {
+	http.ResponseWriter
+}
+
+// Flush delegates to the wrapped writer when it can flush.
+func (f flushPushWriter) Flush() {
+	if flusher, ok := f.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// Push delegates to the wrapped writer when it can push.
+func (f flushPushWriter) Push(target string, opts *http.PushOptions) error {
+	if pusher, ok := f.ResponseWriter.(http.Pusher); ok {
+		return pusher.Push(target, opts)
+	}
+
+	return http.ErrNotSupported
+}
+
+// flushPushMiddleware wraps the response writer so Flusher and Pusher survive
+// and Hijacker does not.
+func flushPushMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(flushPushWriter{ResponseWriter: w}, r)
+	})
+}
+
+// bodyDrainingMiddleware consumes the request body before delegating, the
+// classic wrapper bug the invariance check exists to catch.
+func bodyDrainingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Body != nil {
+			_, _ = io.Copy(io.Discard, r.Body)
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// methodRewritingMiddleware rewrites the method before delegating.
+func methodRewritingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Method = http.MethodGet
+		next.ServeHTTP(w, r)
+	})
+}
+
+// pathRewritingMiddleware rewrites the request path before delegating.
+func pathRewritingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = "/rewritten"
+		next.ServeHTTP(w, r)
+	})
+}
+
+// tracestateStrippingMiddleware deletes the W3C vendor-state header before
+// delegating.
+func tracestateStrippingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Del(headerTracestate)
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -276,9 +353,127 @@ func TestRunTracing_DetectsTamperedBody(t *testing.T) {
 func TestRunTracing_DetectsDroppedHijacker(t *testing.T) {
 	t.Parallel()
 
-	msg := checkWriterInterfaces(flushOnlyMiddleware)
+	msg := checkWriterInterfaces(flushPushMiddleware)
 	if msg == "" {
 		t.Fatal("checkWriterInterfaces passed for a writer that drops Hijacker, want failure")
+	}
+}
+
+// TestRunTracing_DetectsDroppedPusher mutation-probes the Pusher half of the
+// writer-interface check.
+func TestRunTracing_DetectsDroppedPusher(t *testing.T) {
+	t.Parallel()
+
+	msg := checkWriterInterfaces(flushOnlyMiddleware)
+	if msg == "" {
+		t.Fatal("checkWriterInterfaces passed for a writer that drops Pusher, want failure")
+	}
+}
+
+// TestRunTracing_DetectsDrainedBody mutation-probes the body half of the
+// request-invariance check.
+func TestRunTracing_DetectsDrainedBody(t *testing.T) {
+	t.Parallel()
+
+	msg := checkRequestInvariance(bodyDrainingMiddleware)
+	if msg == "" {
+		t.Fatal("checkRequestInvariance passed for a middleware that consumes the body, want failure")
+	}
+}
+
+// TestRunTracing_DetectsRewrittenMethod mutation-probes the method half of the
+// request-invariance check.
+func TestRunTracing_DetectsRewrittenMethod(t *testing.T) {
+	t.Parallel()
+
+	msg := checkRequestInvariance(methodRewritingMiddleware)
+	if msg == "" {
+		t.Fatal("checkRequestInvariance passed for a middleware that rewrites the method, want failure")
+	}
+}
+
+// TestRunTracing_DetectsRewrittenPath mutation-probes the path half of the
+// request-invariance check.
+func TestRunTracing_DetectsRewrittenPath(t *testing.T) {
+	t.Parallel()
+
+	msg := checkRequestInvariance(pathRewritingMiddleware)
+	if msg == "" {
+		t.Fatal("checkRequestInvariance passed for a middleware that rewrites the path, want failure")
+	}
+}
+
+// TestRunTracing_DetectsStrippedTracestate mutation-probes the tracestate half
+// of the request-passthrough check.
+func TestRunTracing_DetectsStrippedTracestate(t *testing.T) {
+	t.Parallel()
+
+	msg := checkRequestPassthrough(tracestateStrippingMiddleware)
+	if msg == "" {
+		t.Fatal("checkRequestPassthrough passed for a middleware that drops tracestate, want failure")
+	}
+}
+
+// TestTracingSpecs_ValidTracestate_FailsOnServerError mutation-probes the valid
+// tracestate spec.
+func TestTracingSpecs_ValidTracestate_FailsOnServerError(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(headerTracestate) != "" {
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := validTracestateAcceptedCheck()(handler)
+	if result.OK {
+		t.Error("spec passed for a handler that returns 500 on a valid tracestate, want failure")
+	}
+}
+
+// TestTracingSpecs_InvalidTracestate_FailsOnStatusChange mutation-probes the
+// status half of the invalid-tracestate spec.
+func TestTracingSpecs_InvalidTracestate_FailsOnStatusChange(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(headerTracestate) == invalidTracestate {
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := invalidTracestateIgnoredCheck()(handler)
+	if result.OK {
+		t.Error("spec passed for a handler that changes status on a malformed tracestate, want failure")
+	}
+}
+
+// TestTracingSpecs_InvalidTracestate_FailsOnBodyChange mutation-probes the body
+// half of the invalid-tracestate spec.
+func TestTracingSpecs_InvalidTracestate_FailsOnBodyChange(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(headerTracestate) == invalidTracestate {
+			_, _ = w.Write([]byte("rejected"))
+
+			return
+		}
+
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	result := invalidTracestateIgnoredCheck()(handler)
+	if result.OK {
+		t.Error("spec passed for a handler that reacts to a malformed tracestate, want failure")
 	}
 }
 

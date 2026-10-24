@@ -78,12 +78,46 @@ outer := httputil.Chain(mux, tenantMiddleware, stack.Middleware())
 
 `stack.Middleware()` reads the current stack entries per application, so compositions built before later `Add` calls still pick them up, with the same first-is-outermost ordering as `Build`.
 
+## A tracing-first bundle
+
+Tracing is the one bundle member whose position is not negotiable: the span must cover the whole request, and Recovery must sit inside it. See [OpenTelemetry tracing](./otel.md) for the two lanes and the reasoning.
+
+```go
+// Lane 2 shape: you own the TracerProvider, otelhttp supplies the span.
+bundle := httputil.Compose(
+	otelhttp.NewMiddleware("orders-api"), // span outermost
+	httputil.RecoveryWithConfig(httputil.RecoveryConfig{
+		Logger:  logger,
+		OnPanic: recordPanicOnSpan, // exception events, inside the span
+	}),
+	httputil.RequestID(httputil.DefaultRequestIDConfig()),
+	httputil.CORS(httputil.DefaultCORSConfig()),
+	httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+	httputil.Compression(httputil.DefaultCompressionConfig()),
+)
+
+handler := bundle(mux)
+```
+
+Inside a `MiddlewareStack`, add tracing first and let `Validate()` enforce the Recovery rule:
+
+```go
+stack := httputil.NewMiddlewareStack()
+_ = stack.Add("Tracing", otelhttp.NewMiddleware("orders-api"))
+_ = stack.Add(httputil.MiddlewareRecovery, httputil.Recovery(slog.Default()))
+```
+
+Two bundle-level rules:
+
+- **Recovery goes inside the span, never outside.** Outer Recovery still produces a span, but an empty successful one: `otelhttp` ends the span in a `defer`, so a panic caught above it never sets the 500 status or records the exception.
+- **`ServerTimingMiddleware` is innermost.** It measures handler time; keeping it inside the span makes Server-Timing and trace durations comparable.
+
 ## Ordering rules that always apply
 
 - **First = outermost.** `Chain`, `Compose`, and `MiddlewareStack` all share this ordering contract.
-- **Recovery outermost when present.** A panic in any middleware to its right is caught; a `Recovery` that is not outermost silently stops protecting everything to its left.
+- **Recovery outermost when present.** A panic in any middleware to its right is caught; a `Recovery` that is not outermost silently stops protecting everything to its left. The one exception is tracing, which belongs outside Recovery (see above).
 - **Nonce inside SecurityHeaders.** The nonce-bearing CSP must overwrite any static CSP; see `Nonce`'s doc comment.
-- **`MiddlewareFunc.Then(nil)` panics by design.** Wiring errors must surface at composition time, not as request-time panics (there are no `Must*` helpers in this library for the same reason).
+- **`MiddlewareFunc.Then(nil)` does not panic.** A nil handler wires a fallback that answers 500 with a diagnostic body, and a nil receiver with a non-nil handler applies as the identity, so a wiring mistake surfaces as a response rather than a crash. The library ships no `Must*` helpers for the same reason: construction errors are returned or logged, never fatal.
 
 ## See also
 
