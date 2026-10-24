@@ -24,9 +24,22 @@ jobs:
       - name: Workflow GOTOOLCHAIN pins must satisfy the workspace floor
         run: |
           set -euo pipefail
-          floor=$({ cat go.work; find . -name go.mod -not -path './vendor/*' -exec cat {} +; } \
+          # Floor = the highest `go` directive among the modules the WORKSPACE
+          # builds, derived from go.work's `use` list. Do NOT use
+          # `find . -name go.mod`: testdata fixtures are deliberately outside the
+          # workspace (testdata/otelinterop pins the patch floor its SDK needs),
+          # `./...` patterns skip nested modules, and each fixture gets its
+          # toolchain from its own job. Scanning every go.mod let one fixture
+          # red-line three unrelated workflows (CI run 40062194046, 2026-10-24).
+          mods=$(awk '
+            /^use \(/ { inblock = 1; next }
+            inblock && /^\)/ { inblock = 0; next }
+            inblock && NF { print $1 }
+            /^use [^(]/ && NF >= 2 { print $2 }
+          ' go.work)
+          floor=$({ cat go.work; for d in $mods; do cat "${d%/}/go.mod"; done; } \
             | awk '/^go /{print $2}' | sort -V | tail -1)
-          echo "Highest go directive across go.work/go.mod: go${floor}"
+          echo "Highest go directive across the workspace (go.work + ${mods}): go${floor}"
           fail=0
           for wf in .github/workflows/*.yml; do
             pins=$(awk '/GOTOOLCHAIN: go[0-9]/{sub(/^.*GOTOOLCHAIN: /, ""); print}' "$wf" | sort -u)

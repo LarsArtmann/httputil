@@ -54,7 +54,7 @@ Open Chrome or Firefox DevTools → Network → Timing and the metrics appear pe
 2. Any handler downstream records metrics via the context helpers — `MeasureServerTiming` (timed regions), `RecordServerTiming` (already-measured durations), or `ServerTimingFromContext` (direct collector access). All are nil-safe: without the middleware they are no-ops, so handlers need no per-request branching.
 3. At the first `WriteHeader`/`Write`, the middleware finalizes the `total` metric (time to first byte) and sets the header — exactly once, before the response commits.
 
-Manual control (frameworks that own the middleware chain): `WrapServerTiming(w, r)` wraps an individual writer/request pair.
+Manual control (frameworks that own the middleware chain): `WrapServerTiming(w, r)` wraps an individual writer/request pair. For full lifetime control, build a collector with `NewServerTiming()` and attach it yourself via `WithServerTiming(ctx, st)`.
 
 ## Features
 

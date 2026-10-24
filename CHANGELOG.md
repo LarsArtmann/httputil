@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [1.6.0] - 2026-10-23
+## [1.6.0] - 2026-10-24
+
+Coordinated cut: `server_timing/v1.0.3` is tagged from the same commit (no API change; the sub-module gains the sentinel-guard test, the 2026-10-15 examples, and a README line covering `NewServerTiming`/`WithServerTiming`).
 
 ### Added
 
