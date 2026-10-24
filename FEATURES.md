@@ -2,7 +2,7 @@
 
 Honest feature inventory for `httputil`.
 
-_Updated: 2026-10-15 (T18/T19 measurement batch: BenchmarkLanguageStaticRequest + ExampleKeyedRateLimiter_evictionTTL added; counts re-derived from the tree: 53 benchmarks / 63 result rows, 59 examples, 30 fuzz targets. Prior: 2026-10-14 docs-health AUDIT — the middleware-suite table's separator row normalized to the 8-column shape; the duplicated httpspec coverage rows merged; the Language row's Benchmarks cell corrected (BenchmarkLanguage/HeaderOnly/ParseAcceptLanguageCandidates exist in language_bench_test.go) and the TrustedClientIP row's Tests cell corrected (ratelimit_keyed_trusted_test.go, 100% covered).)
+_Updated: 2026-10-23 (OTEL tracing support: `RecoveryConfig`/`RecoveryWithConfig` with the `OnPanic` hook, `httpspec.TracingSpecs()` + `httpspec.RunTracing()`, and `docs/integrations/otel.md` added; counts re-derived from the tree: 53 benchmarks / 63 result rows, 60 examples (45 root / 10 `httpspec` / 5 `server_timing`), 30 fuzz targets, 32 `httpspec` specs when all extras are included. Prior: 2026-10-15 (T18/T19 measurement batch: BenchmarkLanguageStaticRequest + ExampleKeyedRateLimiter_evictionTTL added; counts re-derived from the tree: 53 benchmarks / 63 result rows, 59 examples, 30 fuzz targets. Prior: 2026-10-14 docs-health AUDIT — the middleware-suite table's separator row normalized to the 8-column shape; the duplicated httpspec coverage rows merged; the Language row's Benchmarks cell corrected (BenchmarkLanguage/HeaderOnly/ParseAcceptLanguageCandidates exist in language_bench_test.go) and the TrustedClientIP row's Tests cell corrected (ratelimit_keyed_trusted_test.go, 100% covered).)
 
 ---
 
@@ -16,7 +16,7 @@ _Updated: 2026-10-15 (T18/T19 measurement batch: BenchmarkLanguageStaticRequest 
 | ClientIP | `clientip.go`, `context.go` | — | Yes | `ExampleClientIP` | `BenchmarkClientIP` | `FuzzClientIP` | |
 | RequestID | `requestid.go`, `id_generator.go` | `RequestIDConfig` + `Validate()`, time-ordered ID generator | Yes | `ExampleRequestID` | `BenchmarkRequestID` | `FuzzRequestID` | |
 | SecurityHeaders | `security.go` | `SecurityHeadersConfig` + `Validate()` | Yes | `ExampleSecurityHeaders` | `BenchmarkSecurityHeaders` | — | |
-| Recovery | `recovery.go` | `*slog.Logger` | Yes | `ExampleRecovery` | `BenchmarkRecovery` | — | |
+| Recovery | `recovery.go` | `*slog.Logger` (via `Recovery`) or `RecoveryConfig` + `RecoveryWithConfig()` (`Logger`, `OnPanic` observability hook) | Yes | `ExampleRecovery`, `ExampleRecoveryWithConfig` | `BenchmarkRecovery` | — | |
 | Timeout | `timeout.go` | `time.Duration` | Yes | `ExampleTimeout` | `BenchmarkTimeout` | — | |
 | Logging | `logging.go` | `*slog.Logger`; `LoggingFromContext` (context-resolved logger + fallback) | Yes | `ExampleLogging` | `BenchmarkLogging` | — | |
 | ResponseRecorder | `recorder.go` | — | Yes | `ExampleNewResponseRecorder` | `BenchmarkResponseRecorder` | — | |
@@ -113,6 +113,15 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - CRLF-injection-safe header values (sanitized via `escapeQuotedString` and CRLF replacement).
 - Hijacker, Flusher, Pusher delegation via `delegatingWriter`.
 
+### Observability Hooks (OpenTelemetry bridge)
+
+- `RecoveryWithConfig(RecoveryConfig)` — panic recovery with a `RecoveryConfig{Logger, OnPanic}`; the `OnPanic func(*http.Request, any)` hook runs after the panic is logged and before the 500 is written, so a tracing SDK can record the panic on the active span (`otel.RecordError`) without adding a telemetry dependency here.
+- `Recovery(logger)` is unchanged and delegates to `RecoveryWithConfig` with a nil hook; `RecoveryConfig` has zero-value semantics for every field, so there is no invalid configuration to validate.
+- A panicking hook is logged (`"panic recovery hook panicked"`) and swallowed, so a buggy integration cannot replace the original panic handling; the 500 response is still written.
+- Hook runs synchronously on the request goroutine; `http.ErrAbortHandler` panics are re-panicked unchanged and never reach the hook.
+- Two-lane OTEL guidance in [`docs/integrations/otel.md`](docs/integrations/otel.md): `go-appkit/otel` owns SDK/provider setup, httputil owns zero-dependency hooks and ordering. An `httputil/otel` sub-module is a recorded non-goal.
+- `RequestID` correlation ruling: `X-Correlation-ID` echo + fallback (opt-in), with `correlation_id` baggage as the cross-service complement; the W3C trace ID never seeds the request ID.
+
 ### Query Parameter Helpers
 
 - `ParseUintQuery(r *http.Request, key string) uint` — extracts a base-10 unsigned integer from a named query parameter. Returns 0 if missing, empty, or invalid.
@@ -161,7 +170,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `docs/DOMAIN_LANGUAGE.md` — domain glossary.
 - `docs/migrating-to-keyed-rate-limiter.md` — deprecation migration guide.
 - `docs/migrating-to-v1.2.md` — v1.2.0 behavioral-change migration guide.
-- `docs/integrations/` — extensibility examples (brotli/zstd, redis, prometheus, samber/do, huma, compose bundles).
+- `docs/integrations/` — extensibility examples (brotli/zstd, redis, prometheus, samber/do, huma, compose bundles, `otel.md` for the OpenTelemetry tracing lanes).
 - `docs/architecture-reference.md` — file-by-file export tables, error-classification table, lint profile.
 - `docs/RELEASE.md` (runbook) + `scripts/prerelease-check.sh` — the documented, automated release gates.
 - Status reports in `docs/status/`.
@@ -170,10 +179,11 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 ### Tooling & Quality Gates
 
 - `golangci-lint` with ~70 linters, 0 issues.
-- `go test -race ./...` passes across the full suite with **97.9% statement coverage** (`httputil`, library packages), **99.1%** (`httpspec`), **100%** (`server_timing`) — measured 2026-09-27 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate); the CI non-race artifact states 98.0% (`httputil`) / 98.6% (`httpspec`), the number the README quality-gates table carries.
+- `go test -race ./...` passes across the full suite with **98.7% statement coverage** (`httputil`, library packages), **98.6%** (`httpspec`), **100%** (`server_timing`) — measured 2026-10-23 with race detection enabled (the dev-tooling `scripts/coverage-threshold` package is excluded, matching the CI gate). The previous race measurement was 97.9% / 99.1% on 2026-09-27; the root gain comes from the `RecoveryWithConfig` tests, the `httpspec` change reflects the new `tracing_specs.go` (its checks are fully covered, only failure-forwarding lines are not).
 - 30 fuzz targets (28 root + 2 `server_timing`): CORS (header building + origin matching + wildcard patterns + exact-allowlist origin echo + preflight Private-Network), Compression (round-trip gunzip-and-compare invariant + writer state machine + Accept-Encoding wire format), MaxBodySize (limit contract), RequestID, ClientIP, `ParseUintQuery`, `HealthResponse` encoding, ResponseRecorder, limited reader (bomb boundary), Decompression (malformed bodies + round-trip invariants), CSRF (8 targets: TrustedProxies CIDR, TrustedOrigins, `isTrustedProxy`, token validation, `remoteHostAndIP`, origin headers, the token HTML formatters, XFP attestation), trusted-proxy client-IP keying, Accept-Language wire format (`FuzzParseAcceptLanguage` — three real parser bugs in its first 45s), and Server-Timing (header value + middleware). The compression round-trip invariant caught the exact-fill duplication bug within seconds of first execution (2026-08-30). The nightly fuzz workflow runs all 30 at 300 seconds each — the 2026-10-15 rotation added the last four (`FuzzCORSPreflightPrivateNetwork`, `FuzzCSRFTokenHTMLFormatters`, `FuzzCSRFMiddleware_XFPAttestation`, `FuzzTrustedProxySetClientIP`) after the mandatory pre-wiring smoke run, which promptly crashed `FuzzCSRFTokenHTMLFormatters` in 0.08 seconds (Go 1.27's encoding/json rejects invalid UTF-8 where v1 coerced; oracle fixed, production code untouched) — the standing worked example for why smoke-before-rotate is the discipline.
-- 53 top-level benchmark functions (63 result rows counting `b.Run` sub-benchmarks) and 59 example functions across the three modules — 44 root (incl. the health/queryparam and language examples), 10 `httpspec`, 5 `server_timing` (added 2026-09-23, all self-contained per the Example Conventions; every one executes with a verified `// Output:` block).
+- 53 top-level benchmark functions (63 result rows counting `b.Run` sub-benchmarks) and 60 example functions across the three modules — 45 root (incl. the health/queryparam, language, and `ExampleRecoveryWithConfig` examples), 10 `httpspec`, 5 `server_timing` (added 2026-09-23, all self-contained per the Example Conventions; every one executes with a verified `// Output:` block).
 - `go vet` clean.
+- AST sentinel guard (`sentinels_type_test.go`) — parses the package and fails any `err*`/`Err*` package variable whose declared type is the `error` interface, the exact shape that silently breaks `.WithContext`/`.WithCause` and left master uncompilable for 8 days (2026-10-15 → 2026-10-23).
 - `.editorconfig` enforces consistent indentation and formatting across editors.
 - Nix flake for reproducible development environment.
 - GitHub Actions CI for tests, lint, and `govulncheck`.
@@ -184,7 +194,8 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 - `httpspec.Run(t, handler)` validates any `http.Handler` against 19 standard HTTP behavior specs.
 - `httpspec.RunSerial(t, handler)` variant for handlers with shared mutable state.
-- 11 pre-built extra specs available via `WithExtraSpecs`: `CORSSpecs()` (5 specs: allow-origin, allow-credentials, Vary: Origin, wildcard-no-credentials, origin-matches-request), `RateLimitSpecs()` (3 specs: Retry-After on reject, X-RateLimit-* headers on reject, hint headers on allow), `PrivateNetworkSpecs()` (1 spec: denied-origin LNA preflight still answers 204 without the Private-Network header — added v1.2.0), and `LanguageSpecs()` (2 specs: Content-Language present, Vary lists Accept-Language — new in v1.6.0). Total: 30 specs when all are included.
+- 13 pre-built extra specs available via `WithExtraSpecs`: `CORSSpecs()` (5 specs: allow-origin, allow-credentials, Vary: Origin, wildcard-no-credentials, origin-matches-request), `RateLimitSpecs()` (3 specs: Retry-After on reject, X-RateLimit-* headers on reject, hint headers on allow), `PrivateNetworkSpecs()` (1 spec: denied-origin LNA preflight still answers 204 without the Private-Network header — added v1.2.0), `LanguageSpecs()` (2 specs: Content-Language present, Vary lists Accept-Language — new in v1.6.0), and `TracingSpecs()` (2 specs: a valid `traceparent` does not produce a server error, a malformed one behaves like an absent one — new in v1.6.0). Total: 32 specs when all are included.
+- `httpspec.RunTracing(t, middleware)` — middleware-level tracing contract checks that handler-level `Spec`s cannot observe: `traceparent` and the route pattern reach the wrapped handler, an absent `traceparent` stays absent, status and body pass through unchanged, and `Flusher`/`Hijacker` survive the wrapper. Point it at `otelhttp.NewMiddleware(...)` (or any tracing middleware) to prove interop (new in v1.6.0).
 - Specs cover routing (index reachability, unknown paths, long URLs), method handling (HEAD, OPTIONS, TRACE, POST, CONNECT), response headers (Content-Type, Location on redirects, no duplicate headers, Accept header handling), and security (no leaked internals, no version fingerprints, no X-Powered-By, X-Content-Type-Options: nosniff).
 - Extensible via `SkipSpec`, `WithExtraSpecs`, `WithIndexPath`.
 - Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`, `ExpectJSON` (validates body parses as JSON + JSON Content-Type), `ExpectHTML` (HTML Content-Type incl. XHTML), `ExpectVaryContains` (cache-correctness, `Vary: *` aware), `ExpectNotModifiedWithETag` (opt-in 304 contract via `WithExtraSpecs`).
@@ -196,35 +207,35 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Re-derived 2026-10-10 from the CI non-race artifact (run 38018343009): **97.9%** (`httputil`, library packages), **98.6%** (`httpspec`); race-mode 2026-09-27 measured 97.9% / 99.1%. The remaining sub-100% functions are documented defensive code paths. (Post-artifact additions measured locally: `ratelimit_keyed_trusted.go` 100%, `server.go` Start 97.6% / StartTLS 100%, root total 98.5% — 2026-10-10.)
+Re-measured 2026-10-23 with `go test -race -coverprofile` per package: **98.7%** (`httputil`, library packages), **98.6%** (`httpspec`), **100%** (`server_timing`). The remaining sub-100% functions are documented defensive code paths, listed below with their current figures.
 
 **Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 
-**Middleware, server, language, and ID-generator internals (non-race CI artifact):**
+**Middleware, server, language, and ID-generator internals (2026-10-23 race measurement):**
 
-- `csrf.go:914 CSRFTokenHXHeaders` — 85.7%. Token-less request branch and the `json.Marshal` error on `map[string]string` (practically unreachable).
-- `csrf.go:955 CSRFTestToken` — 92.9%. Internal nosurf error branches. (`requestScheme`, `forwardedProtoFromTrustedProxy`, and `ValidateCSRF` reached 100% with the 2026-09-23 CSRF test batch.)
-- `ratelimit_keyed.go:207 buildKeyedRateLimiter` — 93.1%. Defensive config validation edge.
-- `ratelimit_keyed.go:327 limiter` — 78.3%. RLock-hit-but-TTL-expired path (race condition).
-- `ratelimit_keyed.go:391 evictOldestIfAtCapacity` — 88.9%. Stale-heap-mismatch continue branch.
-- `server.go:210 Start` — 97.6% (2026-10-10 lifecycle batch: bind-failure restart path covered). Remaining: the non-shutdown Serve-error send (242-243) — forcing an accept failure needs the unexported listener handle, not injectable from tests.
-- `server.go:266 StartTLS` — 100% (was 72.2%; the 2026-10-10 lifecycle batch added the port-conflict listen-failure injection, cert-failure restart, and StartTLS-twice tests).
-- `compression.go:255 Compression` — 95.8%. Constructor warning path for an invalid custom level.
-- `decompression.go:107 Decompression` — 87.9%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
-- `id_generator.go:129 drawRandomBytes` — 86.7%. Short-read loop branch (kernel-level fault injection).
-- `language.go:167 supports` — 75.0%. Charset-reject and duplicate-entry branches of the built-in matcher.
-- `language.go:180 validLanguageTag` — 83.3%. Charset-guard reject branches.
-- `language.go:215 buildLanguageMatcher` — 94.4%. Invalid-tag skip branch.
-- `language.go:382 LanguageExtractorFromQuery` — 80.0%. Missing query-parameter branch.
-- `language.go:396 LanguageExtractorFromCookie` — 75.0%. Missing-cookie and malformed-cookie branches.
+- `csrf.go:991 CSRFTestToken` — 96.4%. Internal nosurf error branches. (`CSRFTokenHXHeaders`, `requestScheme`, `forwardedProtoFromTrustedProxy`, and `ValidateCSRF` are now 100%.)
+- `ratelimit_keyed.go:220 buildKeyedRateLimiter` — 95.5%. Defensive config validation edge.
+- `ratelimit_keyed.go:340 limiter` — 91.5%. RLock-hit-but-TTL-expired path (race condition).
+- `ratelimit_keyed.go:404 evictOldestIfAtCapacity` — 90.9%. Stale-heap-mismatch continue branch.
+- `server.go:210 Start` — 97.6%. The non-shutdown Serve-error send — forcing an accept failure needs the unexported listener handle, not injectable from tests.
+- `compression.go:269 Compression` — 97.9%. Constructor warning path for an invalid custom level.
+- `decompression.go:107 Decompression` — 84.0%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
+- `id_generator.go:129 drawRandomBytes` — 84.6%. Short-read loop branch (kernel-level fault injection).
+- `language.go:168 supports` — 75.0%. Charset-reject and duplicate-entry branches of the built-in matcher.
+- `language.go:181 validLanguageTag` — 83.3%. Charset-guard reject branches.
+- `language.go:216 buildLanguageMatcher` — 95.5%. Invalid-tag skip branch.
+- `language.go:383 LanguageExtractorFromQuery` — 80.0%. Missing query-parameter branch.
+- `language.go:397 LanguageExtractorFromCookie` — 75.0%. Missing-cookie and malformed-cookie branches.
 
-**`httpspec` subpackage (separate module, 98.6% non-race / 99.1% race):**
+**`httpspec` subpackage (separate module, 98.6% race):**
 
-- `httpspec/httpspec.go:235 runSpecs` — 88.2%. Internal option error paths.
+- `httpspec/httpspec.go:235 runSpecs` — 91.7%. Internal option error paths.
 - `httpspec/httpspec.go:317 parsedMediaType` — 75.0%. Malformed media-type defensive branches.
 - `httpspec/httpspec.go:326 isJSONContentType` / `:335 isHTMLContentType` — 75.0% each. Malformed content-type and structured-syntax-suffix (`+json`/`+xml`) branches; the suffix matrix is exercised only via the dedicated test.
+- `httpspec/tracing_specs.go:130 RunTracing` — 82.8%. The four `t.Error` forwarding lines and the nil-middleware `t.Fatal` line execute only when a check fails; the checks themselves (`checkRequestPassthrough`, `checkAbsentTraceparent`, `checkResponsePassthrough`, `checkWriterInterfaces`, `tracingMiddlewareProblem`) are 100% covered and each failure arm is mutation-probed directly.
+- `httpspec/tracing_specs.go:292 Hijack` — 0.0%. Deliberate: the probing writer exists so the checks can type-assert `http.Hijacker`; the method is never called (documented on the method).
 
-**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths or error-injection-only branches. The deleted `crypto/rand` error guards (nonce, ID-generator refill) left the profile entirely in the v1.0.0 panic-free pass. Closing what remains would require either (a) kernel-level fault injection, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
+**Honest assessment:** The remaining sub-100% functions are documented as defensive code paths, error-injection-only branches, or failure-reporting lines. The deleted `crypto/rand` error guards (nonce, ID-generator refill) left the profile entirely in the v1.0.0 panic-free pass. Closing what remains would require either (a) kernel-level fault injection, (b) direct unit-only construction of internal types, or (c) test infrastructure that doesn't exist in this project.
 
 ---
 

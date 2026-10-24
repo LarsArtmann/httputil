@@ -48,25 +48,36 @@ nix flake check --all-systems  # darwin accepted — evaluated + native checks p
 # residuals bullet and the honest-silence paragraph point here; update this
 # block, not copies.
 # Real gates (exit 0 required): legacy_as + stdlib_constructor below.
-# --type-aware is ADVISORY-ONLY: 51 `sentinel_concrete_type`
-# (re-measured 2026-10-11, erraudit 1c6809a. Delta ledger: 45 at 02:42 → 50 at
+# --type-aware is ADVISORY-ONLY. RE-MEASURED 2026-10-23 with erraudit 119791b:
+# 51 `sentinel_concrete_type` (now split by the tool itself into 36 labeled
+# "load-bearing — keep the declaration" and 15 carrying a `var errX error`
+# rewrite hint) + 1 `legacy_is` advisory
+# (validation_classified_test.go:474, a correct sentinel-value match). The
+# advisory count collapsed from 49 to 1 because 119791b stopped flagging
+# `errors.Is` sites whose target is a load-bearing concrete sentinel — a tool
+# change, not a code change; the ledger is re-derived per tool build, never
+# carried forward by arithmetic. (Prior 49-advisory deltas: +3 pool-contract
+# matches e8e41fc/7f4b3f1, +2 Burst/retry matches.) Delta ledger: 45 at 02:42 → 50 at
 # 3ebc428 06:16 = +4 language-middleware sentinels + errTrustedProxyCIDRInvalid
-# (2539ab1) → 51 now = +errKeyedBurstTooLarge (ab90d9f). server_timing clean.
+# (2539ab1) → 51 at 1c6809a = +errKeyedBurstTooLarge (ab90d9f) → 51 still.
+# server_timing clean.
 # The load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites.
+# The 15 "declare it as the error interface" hints are ALSO rejected: they name
+# sentinels whose .WithContext/.WithContextAny/.WithCause call sites the rewrite
+# hint does not compile (erraudit#10) and whose `errors.Is` matches already work
+# through errorfamily's code+family semantics. KEEP EVERY CONCRETE SENTINEL.
 # RECURRENCE ×3 (2026-10-15): an automated sweep re-landed the annotations
 # twice after deliberate reverts (28681f2 → e6431ce, a6e0a12 → 0ae65b9),
 # leaving master red and pushed for 8 days. MECHANICAL GUARD:
 # `sentinels_type_test.go` parses the package and fails any err*/Err* var
 # declared with an explicit `error` type (2026-10-23, commit 9aa4178);
-# extend the guard, never hand-repair an annotation) and
-# 49 test-side `errors.Is` matches (all correct; deltas root-caused: +3
-# pool-contract matches e8e41fc/7f4b3f1, +2 Burst/retry matches) — verdict
-# history: docs/status/archived/2026-09-11_10-03 and archived/2026-09-11_13-49
-# (also the `_ =`
-# honest-silence discards and the scripts/ exemptions; the 2
-# `enforce_generic_return` scripts/ advisories are policy-rejected 2026-10-11 —
-# standalone dev tools, idiomatic wrapped/sentinel returns, zero consumers).
+# extend the guard, never hand-repair an annotation.
+# Verdict history: docs/status/archived/2026-09-11_10-03 and archived/
+# 2026-09-11_13-49 (also the `_ =` honest-silence discards and the scripts/
+# exemptions; the 2 `enforce_generic_return` scripts/ advisories are
+# policy-rejected 2026-10-11 — standalone dev tools, idiomatic wrapped/sentinel
+# returns, zero consumers).
 # Upstream tool bugs filed 2026-10-10: LarsArtmann/erraudit#10 (the
 # rewrite hint does not compile for the 29 cloned sentinels), #11 (the
 # legacy_is guard misses unexported err* sentinels — cause of the ~44).

@@ -719,7 +719,7 @@ Conventions:
 ## Design
 
 - **Stdlib-first** — all middleware uses `func(http.Handler) http.Handler`, compatible with any Go HTTP framework
-- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. The nightly fuzz workflow runs 26 of the repo's 30 fuzz targets at 5 minutes each in CI.
+- **Round-trip fuzz invariants** — every response-transforming middleware ships a decode-and-compare fuzz invariant (e.g. `FuzzCompression` gunzips every negotiated-gzip response and compares bytes); the invariant caught a real exact-fill duplication bug that 96.9% line coverage had missed. The nightly fuzz workflow runs all 30 of the repo's fuzz targets at 5 minutes each in CI.
 - **Classified errors** — `ResponseRecorder` errors carry behavioral families (Transient, Infrastructure) and structured context via [go-error-family](https://github.com/larsartmann/go-error-family) for observability and retry logic
 - **Minimal dependencies** — `go-error-family` (same author, zero transitive deps), `go-etag` (same author, ETag conditional requests), `golang.org/x/time` (canonical Go rate-limit extension), and `justinas/nosurf` (CSRF protection).
 
@@ -812,7 +812,7 @@ This project maintains strict quality standards enforced in CI:
 | ---------------- | ------------------------------------------ | ------------------------------------------------ |
 | Tests            | `go test -race -count=1 ./...`             | Passing                                          |
 | Race stress      | `go test -race -count=10 ./...`            | Passing                                          |
-| Coverage         | `go test -coverprofile=coverage.out ./...` | 98.6% httputil / 99.2% httpspec (threshold: 95%) |
+| Coverage         | `go test -coverprofile=coverage.out ./...` | 98.7% httputil / 98.6% httpspec (threshold: 95%) |
 | Lint             | `golangci-lint run` (~70 linters)          | 0 issues                                         |
 | Vet              | `go vet ./...`                             | Clean                                            |
 | Vulnerabilities  | `govulncheck ./...`                        | None found                                       |

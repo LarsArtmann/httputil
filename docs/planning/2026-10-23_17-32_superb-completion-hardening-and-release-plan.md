@@ -623,3 +623,12 @@ Every parent from section 4 is broken into steps of at most 12 minutes. A parent
 ## 11. Progress log
 
 - 2026-10-23 17:32 — plan created; no tasks executed. Four owner decisions gate phase 4 and the backlog.
+- 2026-10-23 18:05 — **Phase 1 (truth) executed.**
+  - T01: `FEATURES.md` now names `RecoveryConfig`/`RecoveryWithConfig`/`OnPanic`, `TracingSpecs`, `RunTracing`, the OTEL guide, the lane ruling, and the sentinel guard. Counts re-derived from the tree: 60 examples (45 root / 10 httpspec / 5 server_timing), 53 benchmarks, 30 fuzz targets, 32 httpspec specs from 13 extras. A missing row was found: `ExampleRecoveryWithConfig` had never entered the inventory.
+  - T02: the source plan's P2.4 row and mermaid label now name `TracingSpecs` plus `RunTracing` and `WithExtraSpecs`; section 9 marks P2.2/P2.4/P2.6 executed and adds `RunTracing` to the owner sign-off list.
+  - T03: `nix fmt` reported 0 changed files; `nix flake check` printed "all checks passed"; `go vet` and `go test -race` green in both modules.
+  - T04: baselines re-measured with commands. Coverage is 98.7% root (was 97.9%), 98.6% httpspec, 100% server_timing. erraudit `119791b` reports 51 sentinel findings (36 now tool-labeled load-bearing) plus 1 `legacy_is`; both real gates exit 0; the AGENTS ledger now records that the drop from 49 advisories was a tool change, not a code change. art-dupl unchanged (exactly the two accepted pairs at `-t 1`). README drift found and fixed: "26 of 30 fuzz targets" (all 30 are wired) and a stale coverage row.
+  - T05: lint zero. Removed the seven unused `//nolint:gosec` directives (gosec is silent at all seven sites) and dropped `FuzzCSRFMiddleware_XFPAttestation` below the complexity limit by extracting three helpers. The mandatory 30-second smoke run then found a real oracle defect: mixed-case `httpS` is honored by the parser but was rejected by the oracle. Oracle fixed to mirror the documented normalization, minimized seed committed, fuzz re-run 30 seconds clean, lint 0 issues.
+  - T06: CHANGELOG `[Unreleased]` gained Documented entries (lane ruling and correlation ruling, baseline re-measurement) and a Fixed entry for the oracle defect; no frozen version section touched; the `[Unreleased]` compare link still targets `v1.5.0...HEAD` for the v1.6.0 cut.
+  - Coverage hardening inside T04: every `tracing_specs.go` check is 100% covered and each failure arm mutation-probed; the two remaining gaps (`RunTracing` failure-forwarding lines, the deliberate `Hijack` stub) carry documented reasons.
+

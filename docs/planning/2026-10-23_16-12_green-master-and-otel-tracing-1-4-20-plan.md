@@ -64,7 +64,7 @@ flowchart TB
         C0["P2.5 Lane ruling (appkit=SDK, httputil=hooks)"] --> C1["P2.1 docs/integrations/otel.md"]
         C1 --> C2["P2.2 RecoveryConfig.OnPanic + RecoveryWithConfig"]
         C2 --> C3["P2.3 Nondeterministic-safe godoc example"]
-        C1 --> C4["P2.4 httpspec.TracingSpecs()"]
+        C1 --> C4["P2.4 httpspec.TracingSpecs() + RunTracing()"]
         C5["P2.6 Correlation ruling note (owner-gated)"]
     end
 
@@ -119,7 +119,7 @@ Legend: **Imp** = importance / impact (1–5) · **CV** = customer value (1–5)
 | P2.1 | `docs/integrations/otel.md`: two-lane guide (bare otelhttp; go-appkit/otel), canonical ordering, gotchas (Compression writer wrap, Hijacker/Flusher, ServerTiming placement), verification snippets | 5 | 5 | 100 min | P2.5 | f9 | A consumer can wire tracing from the doc alone; every claim matched to code |
 | P2.2 | `RecoveryConfig{Logger, OnPanic}` + additive `RecoveryWithConfig`; `Recovery(logger)` unchanged; hook runs before the 500 body write | 4 | 5 | 100 min | P2.1 | f10 | Tests: hook receives request + recovered value; nil hook == current behavior; `-race` green |
 | P2.3 | Godoc example for the hook (deterministic boolean probes, no raw stack prints) | 2 | 3 | 45 min | P2.2 | — | `// Output:` deterministic; no testutil helpers |
-| P2.4 | `httpspec.TracingSpecs()`: traceparent reaches the handler intact; absent header unchanged; wrapper preserves `Flusher`/`Hijacker` | 3 | 3 | 100 min | P2.1 | f11 | Opt-in specs run via `Run(..., WithSpecs(TracingSpecs()))`; passes against a plain handler and a wrapped chain |
+| P2.4 | `httpspec.TracingSpecs()` (handler-level: valid traceparent accepted, malformed ignored) **plus `httpspec.RunTracing()`** (middleware-level: request passthrough, absent-traceparent invariance, response passthrough, `Flusher`/`Hijacker` survival) | 3 | 3 | 100 min | P2.1 | f11 | Opt-in specs run via `Run(..., WithExtraSpecs(TracingSpecs()))`; `RunTracing(t, mw)` runs the four middleware checks; both mutation-probed |
 | P2.6 | Correlation ruling note: `X-Correlation-ID` echo + fallback, `correlation_id` baggage, traceparent-seeded RequestID yes/no; feeds the dnsblockd item | 3 | 3 | 60 min | — | f12, f16 | Decision note in `docs/planning/`; owner question listed; no code until ruled |
 | P3.1 | ROADMAP annotation: OTEL demand signal 2026-10-23, plan link, un-park wording ("parked — demand appeared") | 4 | 2 | 30 min | P2.5 | f7 | ROADMAP.md:31 no longer says "no consumer demand" |
 | P3.2 | HARVEST: route active items into TODO_LIST.md, gated items into ROADMAP.md, none left entombed | 4 | 1 | 60 min | P3.1 | f14 | Every section-f item has exactly one home |
@@ -538,7 +538,7 @@ Steps execute only after the parent's gate opens.
 |---|---|
 | P0 | `go vet ./...` 0; `go test -race ./...` 0 (both modules); `golangci-lint run` 0; guard test proven by mutation |
 | P1 | Proposal records the incident; AGENTS has one canonical verdict paragraph; CHANGELOG entry added |
-| P2 | `docs/integrations/otel.md` complete; `RecoveryWithConfig` shipped with tests; `httpspec.TracingSpecs()` opt-in; lane ruling recorded; correlation note written |
+| P2 | `docs/integrations/otel.md` complete; `RecoveryWithConfig` shipped with tests; `httpspec.TracingSpecs()` opt-in **and** `httpspec.RunTracing()` middleware checks; lane ruling recorded; correlation note written |
 | P3 | ROADMAP says the truth; every section-f item has exactly one home; links resolve |
 | P4 | Each item is either implemented, archived with a decision, or explicitly re-parked with a demand gate |
 
@@ -547,10 +547,11 @@ Steps execute only after the parent's gate opens.
 ## 9. Owner decisions (blocking specific tasks only)
 
 1. **OTEL demand source** — a specific consumer project or fleet posture? (Sets urgency; P2 proceeds regardless, but the guide's framing changes.)
-2. **`RecoveryConfig.OnPanic` additive hook acceptable in the frozen v1 line?** (P2.2; additive-only, but it is new public surface.)
+2. **`RecoveryConfig.OnPanic` additive hook acceptable in the frozen v1 line?** (P2.2 — shipped 2026-10-23 as additive public surface; awaiting sign-off, revertible in one commit.)
 3. **Correlation convention** — `X-Correlation-ID` echo + `correlation_id` baggage, and should RequestID seed from a valid traceparent? (P2.6 → B02.)
+4. **`httpspec.RunTracing` as new public API** (shipped 2026-10-23; not in the original gated list — it exists because handler-level `Spec`s cannot observe header passthrough or writer-interface preservation).
 
-Until answered, P0/P1/P3 and P2.1/P2.5 can proceed; P2.2/P2.4/P2.6 wait for the owner's nod where marked.
+**Status 2026-10-23 17:28:** P0, P1, P2, and P3 are executed and verified; see `docs/status/2026-10-23_17-28_otel-tracing-p1-p3-execution-status.md`. Questions 2 and 4 remain open as post-hoc sign-offs (the code is additive and revertible); question 3 gates B02 only.
 
 ---
 
