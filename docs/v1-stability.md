@@ -295,7 +295,7 @@ The gated alternative is additive:
 | ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Run`                          | Frozen   |                                                                                                                                                                       |
 | `RunSerial`                    | Frozen   |                                                                                                                                                                       |
-| `RunTracing`                   | Additive | New in v1.6.0 — middleware-level tracing contract checks                                                                                                              |
+| `RunTracing`                   | Additive | New in v1.6.0 — middleware-level tracing contracts: header/pattern passthrough, absent-header invariance, request invariance, response passthrough, Flusher/Pusher/Hijacker survival |
 | `Spec`                         | Additive | New fields may be added                                                                                                                                               |
 | `Check`                        | Frozen   |                                                                                                                                                                       |
 | `Result`                       | Additive |                                                                                                                                                                       |
@@ -318,7 +318,7 @@ The gated alternative is additive:
 | `SpecName*` constants          | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`) |
 | `CORSSpecs` / `RateLimitSpecs` | Frozen   | Pre-v1.0 opt-in spec bundles                                                                                                                                          |
 | `PrivateNetworkSpecs`          | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec)                                                                                                                          |
-| `TracingSpecs`                 | Additive | New in v1.6.0 — handler-level traceparent specs                                                                                                                       |
+| `TracingSpecs`                 | Additive | New in v1.6.0 — 4 handler-level trace-context specs (traceparent + tracestate, valid and malformed)                                                                    |
 
 ### Standard Specs (Additive)
 

@@ -226,6 +226,21 @@ Catches panics, logs the stack trace, and returns `500 Internal Server Error`.
 handler := httputil.Recovery(slog.Default())(mux)
 ```
 
+`RecoveryWithConfig` adds a nil-default `OnPanic` hook for observability integrations. It runs after the panic is logged and before the 500 is written — late enough to know the panic happened, early enough for the span to still be recording:
+
+```go
+handler := httputil.RecoveryWithConfig(httputil.RecoveryConfig{
+	Logger: logger,
+	OnPanic: func(r *http.Request, recovered any) {
+		span := trace.SpanFromContext(r.Context())
+		span.RecordError(fmt.Errorf("panic: %v", recovered))
+		span.SetStatus(codes.Error, "panic")
+	},
+})(mux)
+```
+
+A hook that panics is logged and swallowed, so a buggy integration cannot replace the recovery path. `Recovery(logger)` is exactly `RecoveryWithConfig{Logger: logger}` and is unchanged. Full OpenTelemetry wiring: [docs/integrations/otel.md](docs/integrations/otel.md).
+
 ### Request Timeout
 
 Enforces a deadline on the request context. The handler must respect context cancellation.
@@ -519,6 +534,7 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `DefaultRequestIDConfig`          | `func() RequestIDConfig`                                              | Default X-Request-ID config                                                   |
 | `RequestIDFromContext`            | `func(context.Context) string`                                        | Retrieve stored request ID                                                    |
 | `Recovery`                        | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                                                                |
+| `RecoveryWithConfig`              | `func(RecoveryConfig) Middleware`                                     | Panic recovery with an `OnPanic` observability hook                           |
 | `Timeout`                         | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                                                  |
 | `Logging`                         | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                                                    |
 | `LoggingFromContext`              | `func(*slog.Logger, func(context.Context) *slog.Logger) Middleware`   | Request logging with the logger resolved per request from context             |

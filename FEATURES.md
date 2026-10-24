@@ -8,7 +8,7 @@ _Updated: 2026-10-23 (OTEL tracing support: `RecoveryConfig`/`RecoveryWithConfig
 
 ## FULLY FUNCTIONAL
 
-### Core Middleware Suite (16 middlewares + the ResponseRecorder utility)
+### Core Middleware Suite (18 rows: 16 root constructors, Server-Timing from its own module, and the ResponseRecorder utility)
 
 | Middleware | File | Config Type | Tests | Examples | Benchmarks | Fuzz | |
 | ------------- | -------- | ------------- | ------- | ------------ | -------------- | -------- | ----- |
