@@ -1,10 +1,12 @@
 package httputil
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -39,9 +41,65 @@ func TestSentinelsKeepConcreteType(t *testing.T) {
 	}
 }
 
+// TestSentinelGuardDetectsPlainErrorAnnotation proves the guard is not vacuous:
+// a file declaring an err* variable with the plain error type must be reported.
+// Without this, a broken detector and a clean package would look identical.
+func TestSentinelGuardDetectsPlainErrorAnnotation(t *testing.T) {
+	t.Parallel()
+
+	const source = `package fixture
+
+var errSwept error
+`
+
+	path := filepath.Join(t.TempDir(), "fixture.go")
+
+	if err := os.WriteFile(path, []byte(source), 0o600); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+
+	fset := token.NewFileSet()
+
+	file, err := parser.ParseFile(fset, path, nil, 0)
+	if err != nil {
+		t.Fatalf("parse fixture: %v", err)
+	}
+
+	report := new(recordingReporter)
+	assertNoPlainErrorSentinels(report, fset, file)
+
+	if len(report.findings) != 1 {
+		t.Fatalf("guard reported %d findings for one annotated sentinel, want 1", len(report.findings))
+	}
+
+	if !strings.Contains(report.findings[0], "errSwept") {
+		t.Errorf("guard finding %q does not name errSwept", report.findings[0])
+	}
+}
+
+// sentinelReporter is the part of testing.T the guard needs, so the detector can
+// be exercised by a fake reporter.
+type sentinelReporter interface {
+	Helper()
+	Errorf(format string, args ...any)
+}
+
+// recordingReporter collects guard findings for the self-test.
+type recordingReporter struct {
+	findings []string
+}
+
+// Helper marks the recorder as a test helper.
+func (*recordingReporter) Helper() {}
+
+// Errorf records a formatted finding.
+func (r *recordingReporter) Errorf(format string, args ...any) {
+	r.findings = append(r.findings, fmt.Sprintf(format, args...))
+}
+
 // assertNoPlainErrorSentinels reports every err*/Err* variable declared with
 // an explicit error type in file.
-func assertNoPlainErrorSentinels(t *testing.T, fset *token.FileSet, file *ast.File) {
+func assertNoPlainErrorSentinels(t sentinelReporter, fset *token.FileSet, file *ast.File) {
 	t.Helper()
 
 	for _, decl := range file.Decls {
@@ -68,7 +126,7 @@ func assertNoPlainErrorSentinels(t *testing.T, fset *token.FileSet, file *ast.Fi
 
 // reportPlainErrorSentinel reports the err*/Err* names in spec that carry the
 // plain error type.
-func reportPlainErrorSentinel(t *testing.T, fset *token.FileSet, spec *ast.ValueSpec) {
+func reportPlainErrorSentinel(t sentinelReporter, fset *token.FileSet, spec *ast.ValueSpec) {
 	t.Helper()
 
 	for _, name := range spec.Names {

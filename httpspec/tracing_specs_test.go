@@ -1,9 +1,64 @@
 package httpspec
 
 import (
+	"bufio"
+	"errors"
+	"net"
 	"net/http"
 	"testing"
 )
+
+// passthroughWriter preserves http.Flusher and http.Hijacker the way httputil's
+// own response wrappers do.
+type passthroughWriter struct {
+	http.ResponseWriter
+}
+
+// Flush delegates to the wrapped writer when it can flush.
+func (p passthroughWriter) Flush() {
+	if flusher, ok := p.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// Hijack delegates to the wrapped writer when it can hijack.
+func (p passthroughWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacker, ok := p.ResponseWriter.(http.Hijacker); ok {
+		return hijacker.Hijack()
+	}
+
+	return nil, nil, errors.ErrUnsupported
+}
+
+// passthroughWriterMiddleware wraps the response writer in a type that keeps the
+// optional interfaces reachable.
+func passthroughWriterMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(passthroughWriter{ResponseWriter: w}, r)
+	})
+}
+
+// headerStampingMiddleware sets a response header before delegating, the way
+// RequestID and CORS do.
+func headerStampingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Probe-Route", "chain")
+		next.ServeHTTP(w, r)
+	})
+}
+
+// recoveringMiddleware converts a panic into a 500, the way Recovery does.
+func recoveringMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 // identityMiddleware is the trivially correct middleware: it changes nothing.
 func identityMiddleware(next http.Handler) http.Handler {
@@ -255,5 +310,34 @@ func TestTracingSpecs_InvalidTraceparent_FailsOnStatusChange(t *testing.T) {
 	result := invalidTraceparentIgnoredCheck()(handler)
 	if result.OK {
 		t.Error("spec passed for a handler that changes status on a malformed traceparent, want failure")
+	}
+}
+
+// TestRunTracing_PassesOnComposedChain runs the contracts against a realistic
+// stack: a header-stamping policy layer, a panic-to-500 layer, and a delegating
+// writer wrapper, in the order the integration guide prescribes.
+func TestRunTracing_PassesOnComposedChain(t *testing.T) {
+	t.Parallel()
+
+	chain := func(next http.Handler) http.Handler {
+		return headerStampingMiddleware(recoveringMiddleware(passthroughWriterMiddleware(next)))
+	}
+
+	RunTracing(t, chain)
+}
+
+// TestRunTracing_ComposedChainDetectsRegression mutation-probes the composed
+// chain: replacing the delegating wrapper with one that drops the optional
+// interfaces must be reported even though the other layers are unchanged.
+func TestRunTracing_ComposedChainDetectsRegression(t *testing.T) {
+	t.Parallel()
+
+	chain := func(next http.Handler) http.Handler {
+		return headerStampingMiddleware(recoveringMiddleware(plainWriterMiddleware(next)))
+	}
+
+	msg := checkWriterInterfaces(chain)
+	if msg == "" {
+		t.Fatal("checkWriterInterfaces passed for a composed chain that drops Flusher/Hijacker, want failure")
 	}
 }
