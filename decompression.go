@@ -38,7 +38,7 @@ var errDecompressionEncodingDuplicate = codeDecompressionEncodingDuplicate.Rejec
 // errDecompressionSizeExceeded is the bomb-protection trip: the decompressed
 // body exceeded the configured limit. Classified as Rejection — the client
 // sent a decompression bomb, retrying the same request cannot succeed.
-var errDecompressionSizeExceeded error = codeDecompressionSizeExceeded.Rejection(
+var errDecompressionSizeExceeded = codeDecompressionSizeExceeded.Rejection(
 	"decompression size limit exceeded",
 )
 

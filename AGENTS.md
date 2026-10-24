@@ -116,10 +116,15 @@ cd server_timing && go test -race ./... && golangci-lint run
 # covers ONLY the root module — run httpspec/ and server_timing/ in-module)
 nix run .#bench
 
-# Clone-detection baseline (see Accepted Code Duplication below): -t 2 shows
-# 0 groups; -t 1 shows the two accepted pairs — anything NEW is a finding.
-art-dupl --sort total-tokens -t 1 --type-aware .
-art-dupl --sort total-tokens -t 2 --type-aware .
+# Clone-detection baseline (see Accepted Code Duplication below). Canonical form
+# is COMBINED mode (owner ruling 2026-10-24): one shared type-check feeds both
+# the type-aware pass and the type-erased generics pass (ADR-0026). Expected:
+# -t 2 shows 0 groups; -t 1 shows exactly the two accepted pairs and NO
+# generics candidates — anything NEW in either lane is a finding. Record the
+# generics-lane verdict with each re-measurement. Baseline stays prose (owner
+# ruled against an enforcement gate, 2026-10-24).
+art-dupl --sort total-tokens -t 1 --type-aware --suggest-generics .
+art-dupl --sort total-tokens -t 2 --type-aware --suggest-generics .
 
 # Release: scripts/prerelease-check.sh automates the gates; runbook is
 # docs/RELEASE.md. CHANGELOG [version] sections freeze at the tag.
@@ -286,4 +291,4 @@ There are **0 active warnings** across ~70 linters. Site-specific suppressions: 
 
 ## Accepted Code Duplication
 
-Clone baseline (re-measured 2026-10-24, art-dupl 0.9.0-93432fd `--type-aware`; combined `--type-aware --suggest-generics` mode reports no generics candidates at these thresholds): **0 shown groups at `-t 2`**; `-t 1` shows exactly the `Middleware` alias pair and the `scripts/doc-snippet-refs` if-err pair — anything NEW at these thresholds is a finding. The four accepted clones and their rationale (Middleware alias across the module boundary; `mw1`/`mw2`; `newTypedBodyHandler`; the scripts if-err pair): [docs/architecture-reference.md](docs/architecture-reference.md) Accepted Code Duplication section.
+Clone baseline (re-measured 2026-10-24 with the canonical COMBINED mode, art-dupl 0.9.0-93432fd `--type-aware --suggest-generics`; type-aware lane: the two accepted pairs, generics lane: no candidates): **0 shown groups at `-t 2`**; `-t 1` shows exactly the `Middleware` alias pair and the `scripts/doc-snippet-refs` if-err pair — anything NEW at these thresholds is a finding. The baseline stays prose — an enforcement gate was proposed and owner-REJECTED 2026-10-24, do not re-raise without new evidence. The four accepted clones and their rationale (Middleware alias across the module boundary; `mw1`/`mw2`; `newTypedBodyHandler`; the scripts if-err pair): [docs/architecture-reference.md](docs/architecture-reference.md) Accepted Code Duplication section.
