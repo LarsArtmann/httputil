@@ -86,9 +86,17 @@ scripts/pre-sweep-check.sh
 # are load-bearing. KEEP EVERY CONCRETE SENTINEL; the upstream corrections
 # (erraudit hint vs test-file call sites, GOTCHAS #125's blanket wording) are
 # owner-gated cross-repo items, not silent edits.
-# RECURRENCE ×3 (2026-10-15): an automated sweep re-landed the annotations
+# RECURRENCE ×4 (2026-10-24): an automated sweep re-landed the annotations
 # twice after deliberate reverts (28681f2 → e6431ce, a6e0a12 → 0ae65b9),
-# leaving master red and pushed for 8 days. MECHANICAL GUARDS (both modules):
+# leaving master red and pushed for 8 days, and AGAIN after the guards: commit
+# 072e6db (08:3x) applied all 15 erraudit rewrite hints at once, compile-broke
+# `ErrCSRFInvalid.WithContext` (example_test.go:859) and sat red AND pushed for
+# ~20 minutes until the next session's audit caught it — the guards fire at
+# TEST time, so they cannot stop a daemon that never runs tests; the only
+# pre-push stopgap is scripts/pre-sweep-check.sh, and the sweeping session
+# must run it (restored from 072e6db^ same morning; the same commit's
+# go.mod server_timing v1.0.2→v1.0.3 and flake.lock bump were legitimate and
+# kept). MECHANICAL GUARDS (both modules):
 # `sentinels_type_test.go` parses the package and fails any err*/Err* var
 # declared with an explicit `error` type (2026-10-23, commit 9aa4178; extended
 # the same day with a record-reporter self-test that proves the detector is not

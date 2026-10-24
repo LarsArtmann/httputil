@@ -163,7 +163,7 @@ These won't surprise you on every edit, but may trigger on specific patterns:
 
 ## Accepted Code Duplication
 
-Clone baseline re-measured 2026-10-24 (art-dupl 0.9.0-93432fd, `--type-aware`; combined `--type-aware --suggest-generics` mode reports no generics candidates at these thresholds): **0 shown groups at `-t 2`**; `-t 1` shows exactly the two pairs below (test files are auto-excluded by the tool) — anything NEW at these thresholds is a finding. Intentional clones that remain:
+Clone baseline re-measured 2026-10-24 with the canonical COMBINED mode (art-dupl 0.9.0-93432fd, `--type-aware --suggest-generics`; type-aware lane: the two pairs below, generics lane: no candidates): **0 shown groups at `-t 2`**; `-t 1` shows exactly the two pairs below (test files are auto-excluded by the tool) — anything NEW at these thresholds is a finding. The baseline stays prose: an enforcement gate was proposed and owner-rejected 2026-10-24. Intentional clones that remain:
 
 - **`Middleware` in `recorder.go` and `server_timing/middleware.go`** — identical `type Middleware = func(http.Handler) http.Handler` aliases across the module boundary. Both alias the same underlying type (no drift risk), the signature is the stdlib middleware idiom (frozen by definition), and every extraction is worse: server_timing importing root is a module cycle that breaks its stdlib-only zero-dep guarantee, a third shared module adds release machinery for one line, and aliasing root's `Middleware` into servertiming couples the foundational library type to an optional sub-module.
 - **`mw1`/`mw2` in `stack_test.go`** — the integer label is intrinsic to the order-assertion test.
