@@ -51,7 +51,7 @@ var (
 	errShutdownTimeoutNegative = codeServerShutdownTimeoutNegative.Rejection(
 		"ServerConfig.ShutdownTimeout must not be negative",
 	)
-	errServerAddrEmpty = codeServerAddrEmpty.Rejection(
+	errServerAddrEmpty error = codeServerAddrEmpty.Rejection(
 		"ServerConfig.Addr must not be empty (e.g. \":8080\" or \":http\")",
 	)
 	errServerTimeoutOrdering = codeServerTimeoutOrdering.Rejection(
@@ -63,7 +63,7 @@ var (
 	// errServerShutdownFailed wraps shutdown failures as Infrastructure: the
 	// surrounding process state, not the request, is what failed.
 	errServerShutdownFailed = codeServerShutdownFailed.Infrastructure("server shutdown failed")
-	errServerAlreadyStarted = codeServerAlreadyStarted.Rejection(
+	errServerAlreadyStarted error = codeServerAlreadyStarted.Rejection(
 		"server is already started: Start or StartTLS was called twice",
 	)
 )
