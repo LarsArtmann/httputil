@@ -199,7 +199,7 @@ func FuzzCSRFMiddleware_TokenValidation(f *testing.F) {
 		}
 
 		if cookieValue != "" {
-			//nolint:gosec // test fixture — cookie values are intentionally fuzzed
+			// Cookie values are intentionally fuzzed.
 			req.AddCookie(&http.Cookie{
 				Name:  DefaultCSRFCookieName,
 				Value: cookieValue,
@@ -511,14 +511,8 @@ func FuzzCSRFMiddleware_XFPAttestation(f *testing.F) {
 			method = http.MethodGet
 		}
 
-		if !isValidHTTPToken(method) {
-			t.Skip("invalid HTTP method character")
-		}
-
-		if origin != "" && origin != "null" {
-			if u, err := url.Parse(origin); err != nil || u.Scheme == "" || u.Host == "" {
-				t.Skip("not a parseable scheme://host origin")
-			}
+		if !fuzzXFPInputIsCheckable(method, origin) {
+			t.Skip("unusable fuzz input")
 		}
 
 		mw := CSRFMiddleware(CSRFConfig{
@@ -527,71 +521,129 @@ func FuzzCSRFMiddleware_XFPAttestation(f *testing.F) {
 			TrustedProxies:       []string{"127.0.0.0/8", "::1/128"},
 		})
 
-		status := http.StatusTeapot
-		handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			status = http.StatusOK
+		handlerRan := false
+		handler := mw(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+			handlerRan = true
 		}))
 
-		req := httptest.NewRequest(method, "/", nil)
-		req.RemoteAddr = "127.0.0.1:1234"
-
-		if origin != "" {
-			req.Header.Set("Origin", origin)
-		}
-
-		if secFetchSite != "" {
-			req.Header.Set("Sec-Fetch-Site", secFetchSite)
-		}
-
-		if xfp != "" {
-			req.Header.Set("X-Forwarded-Proto", xfp)
-		}
-
 		rec := httptest.NewRecorder()
-		handler.ServeHTTP(rec, req)
+		handler.ServeHTTP(rec, newXFPAttestationRequest(method, origin, secFetchSite, xfp))
 
-		switch rec.Code {
-		case http.StatusForbidden:
-			// Rejection is always an allowed outcome; verify the handler
-			// never ran behind it.
-			if status == http.StatusOK {
-				t.Error("handler ran behind a 403 response")
-			}
-		case http.StatusOK:
-			if status != http.StatusOK {
-				t.Error("200 response without the handler running")
-			}
-		default:
-			t.Errorf(
-				"unexpected status %d for method=%q origin=%q attestation=%q xfp=%q",
-				rec.Code,
-				method,
-				origin,
-				secFetchSite,
-				xfp,
-			)
-		}
-
-		// The core invariant: with an https origin, a same-origin
-		// attestation, and an unsafe method, the attestation-conflict
-		// rejection fires exactly when XFP is NOT honored as https — an
-		// honored attestation still 403s (no token), but with nosurf's
-		// token failure, not the conflict body.
-		if isUnsafeCSRFMethod(method) && secFetchSite == "same-origin" && origin == "https://example.com" {
-			xfpHonored := xfp == "https" || xfp == "HTTPS" || xfp == "https, http"
-			isConflict := strings.Contains(rec.Body.String(), "csrf.origin_attestation_conflict")
-
-			if xfpHonored && isConflict {
-				t.Errorf("xfp=%q honored as https: attestation conflict must not fire", xfp)
-			}
-
-			if !xfpHonored && !isConflict {
-				t.Errorf(
-					"xfp=%q not honored: https origin must be an attestation conflict (body: %s)",
-					xfp,
-					rec.Body.String(),
-				)
-			}
-		}
+		assertXFPAttestationOutcome(t, rec, handlerRan, method, origin, secFetchSite, xfp)
+		assertXFPAttestationConflict(t, rec, method, secFetchSite, origin, xfp)
 	})
+}
+
+// fuzzXFPInputIsCheckable reports whether the fuzzed tuple describes a request
+// shape the attestation rule can reason about; everything else is skipped
+// rather than asserted on.
+func fuzzXFPInputIsCheckable(method, origin string) bool {
+	if !isValidHTTPToken(method) {
+		return false
+	}
+
+	if origin == "" || origin == "null" {
+		return true
+	}
+
+	parsed, err := url.Parse(origin)
+
+	return err == nil && parsed.Scheme != "" && parsed.Host != ""
+}
+
+// newXFPAttestationRequest builds the loopback-proxied request for the fuzzed
+// headers, omitting unset ones so the middleware sees the absent-header path.
+func newXFPAttestationRequest(method, origin, secFetchSite, xfp string) *http.Request {
+	req := httptest.NewRequest(method, "/", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+
+	if origin != "" {
+		req.Header.Set("Origin", origin)
+	}
+
+	if secFetchSite != "" {
+		req.Header.Set("Sec-Fetch-Site", secFetchSite)
+	}
+
+	if xfp != "" {
+		req.Header.Set("X-Forwarded-Proto", xfp)
+	}
+
+	return req
+}
+
+// assertXFPAttestationOutcome checks the middleware's status and whether the
+// handler ran behind it.
+func assertXFPAttestationOutcome(
+	t *testing.T,
+	rec *httptest.ResponseRecorder,
+	handlerRan bool,
+	method, origin, secFetchSite, xfp string,
+) {
+	t.Helper()
+
+	switch rec.Code {
+	case http.StatusForbidden:
+		// Rejection is always an allowed outcome; verify the handler never ran
+		// behind it.
+		if handlerRan {
+			t.Error("handler ran behind a 403 response")
+		}
+	case http.StatusOK:
+		if !handlerRan {
+			t.Error("200 response without the handler running")
+		}
+	default:
+		t.Errorf(
+			"unexpected status %d for method=%q origin=%q attestation=%q xfp=%q",
+			rec.Code,
+			method,
+			origin,
+			secFetchSite,
+			xfp,
+		)
+	}
+}
+
+// assertXFPAttestationConflict checks the core invariant: with an https origin,
+// a same-origin attestation, and an unsafe method, the attestation-conflict
+// rejection fires exactly when XFP is NOT honored as https. An honored
+// attestation still 403s (no token), but with nosurf's token failure rather
+// than the conflict body.
+func assertXFPAttestationConflict(
+	t *testing.T,
+	rec *httptest.ResponseRecorder,
+	method, secFetchSite, origin, xfp string,
+) {
+	t.Helper()
+
+	if !isUnsafeCSRFMethod(method) || secFetchSite != "same-origin" || origin != "https://example.com" {
+		return
+	}
+
+	xfpHonored := xfpSelectsHTTPS(xfp)
+	isConflict := strings.Contains(rec.Body.String(), "csrf.origin_attestation_conflict")
+
+	if xfpHonored && isConflict {
+		t.Errorf("xfp=%q honored as https: attestation conflict must not fire", xfp)
+	}
+
+	if !xfpHonored && !isConflict {
+		t.Errorf(
+			"xfp=%q not honored: https origin must be an attestation conflict (body: %s)",
+			xfp,
+			rec.Body.String(),
+		)
+	}
+}
+
+// xfpSelectsHTTPS mirrors the documented X-Forwarded-Proto normalization used
+// by forwardedProtoFromTrustedProxy: first hop only, surrounding space trimmed,
+// scheme compared case-insensitively. The oracle encodes the parser's real
+// posture rather than the spec's strict grammar; a stricter spelling list
+// flags valid inputs such as "httpS" (found by a 30s fuzz run on 2026-10-23).
+func xfpSelectsHTTPS(xfp string) bool {
+	firstHop, _, _ := strings.Cut(xfp, ",")
+
+	return strings.EqualFold(strings.TrimSpace(firstHop), "https")
 }

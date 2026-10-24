@@ -81,7 +81,7 @@ func TestServerValidationErrorsClassified(t *testing.T) {
 	)
 
 	cfg = DefaultServerConfig()
-	//nolint:gosec // intentionally insecure MinVersion to exercise validation
+	// Intentionally insecure MinVersion to exercise validation.
 	cfg.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS10}
 	assertValidationClassified(
 		t,

@@ -134,7 +134,7 @@ func TestNegotiator_Property_SelectsHighestQAvailable(t *testing.T) {
 	t.Parallel()
 
 	src := rand.NewSource(20260830)
-	rng := rand.New(src) //nolint:gosec // G404: deterministic property-test generator, not security
+	rng := rand.New(src)
 	neg := newTestNegotiator()
 	order, available := testNegotiatorFacts(neg)
 
@@ -171,7 +171,7 @@ func TestNegotiator_Property_HeaderOrderInvariance(t *testing.T) {
 	t.Parallel()
 
 	src := rand.NewSource(20260831)
-	rng := rand.New(src) //nolint:gosec // G404: deterministic property-test generator, not security
+	rng := rand.New(src)
 	neg := newTestNegotiator()
 
 	for range 2000 {
