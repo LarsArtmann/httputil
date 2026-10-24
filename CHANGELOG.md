@@ -6,10 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-23
+
 ### Added
 
 - **OpenTelemetry interop: `RecoveryConfig` + `RecoveryWithConfig`** (`recovery.go`) — an additive constructor beside the unchanged `Recovery(logger)` exposes a nil-default `OnPanic(r *http.Request, recovered any)` hook that runs after the panic is logged and before the 500 is written, so consumers can record `exception.*` span events (e.g. `span.RecordError`) without httputil taking a telemetry dependency. A panicking hook is logged and swallowed; a nil `Logger` falls back to `slog.Default`. `Recovery` is now `RecoveryWithConfig{Logger: logger}` and behaves exactly as before. Guide: [docs/integrations/otel.md](docs/integrations/otel.md).
-- **`httpspec.TracingSpecs()` and `httpspec.RunTracing`** — the handler-level specs check that a valid `traceparent` never causes a 5xx and a malformed one behaves like an absent one. `RunTracing(t, middleware)` verifies the middleware layer directly: the header and `r.Pattern` reach the wrapped handler, no header is invented, status/body pass through, and `Flusher`/`Hijacker` survive the writer wrapper. Every check is mutation-probed.
+- **`httpspec.TracingSpecs()` and `httpspec.RunTracing`** — four handler-level specs cover both W3C trace-context headers (a valid `traceparent` or `tracestate` never causes a 5xx; a malformed one behaves like an absent header). `RunTracing(t, middleware)` verifies the middleware layer directly: `traceparent`, `tracestate`, and `r.Pattern` reach the wrapped handler, no header is invented, method/path/body arrive unmodified, status/body pass through, and `Flusher`, `Pusher`, and `Hijacker` survive the writer wrapper. Every check is mutation-probed.
 - **OTEL integration guide and lane ruling** — [docs/integrations/otel.md](docs/integrations/otel.md) documents the two lanes (`go-appkit/otel` = SDK/provider, httputil = zero-dependency hooks/contracts), the canonical middleware ordering (tracing outermost, Recovery inside the span), exception-event bridging, correlation guidance, and verification steps. An `httputil/otel` sub-module is a recorded non-goal.
 - **Deeper tracing contracts: `tracestate`, request invariance, and `Pusher`** — `TracingSpecs()` now covers both W3C trace-context headers (4 specs: valid traceparent/tracestate never 5xx, malformed ones behave like absent headers), and `RunTracing` gained two middleware-level checks that the first release missed: the forwarded request keeps its method, path, and body (a wrapper that drains the body breaks every POST handler under tracing), and `http.Pusher` survives alongside `Flusher` and `Hijacker`. Request passthrough now also asserts `tracestate`. Every new arm is mutation-probed, including a body-draining, a method-rewriting, a path-rewriting, and a tracestate-stripping fake. The guide gained a sampling section (env-native `OTEL_TRACES_SAMPLER`, `WithSampler`, and why a ratio sampler must be wrapped in `ParentBased`), and `compose-bundles.md` gained an ordered tracing bundle with the Recovery-inside-the-span rule.
 - **Executable OTEL interop proof** (`testdata/otelinterop/`) — a separate Go module that compiles the three guide snippets (both lanes plus the `OnPanic` bridge) and runs `httpspec.RunTracing` against the real `otelhttp` and `go-appkit/otel` middlewares, including the full prescribed chain (tracing → Recovery → RequestID → CORS). It lives outside the root `go.mod`, so the library keeps its four-dependency policy; the new CI job `otel-interop` runs `go build ./...` and `go test -race ./...` with `GOWORK=off` so a snippet that stops compiling fails the build instead of a consumer's editor.
@@ -729,7 +731,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/larsartmann/httputil/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/larsartmann/httputil/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/larsartmann/httputil/compare/v1.4.1...v1.4.2
 [1.4.0]: https://github.com/larsartmann/httputil/compare/v1.3.0...v1.4.0

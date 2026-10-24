@@ -168,3 +168,12 @@ Something in the fleet (most likely a parallel session cargo-culting an erraudit
 **Commit status:** No manual commit made — the harness forbids commits without an explicit user request; the auto-commit daemon will pick this file up.
 
 **THEN WAIT FOR INSTRUCTIONS.**
+
+## Resolution (2026-10-23, v1.6.0 release)
+
+Both halves of this report are closed:
+
+- **Red master**: the 15 sentinel declarations were restored, and the class is now mechanically blocked (AST guards in both modules, each with a self-test proving the detector works). The sweep's actor was identified during the release hardening: it is an agent applying `BuildFlow/docs/GOTCHAS.md` #125's blanket rule to a repo whose sentinels are load-bearing. See the AGENTS erraudit block and the daemon gate proposal's 2026-10-23 update.
+- **OTEL exploration**: the demand question was answered as far as this repo can answer it (the two-lane ruling), and the deliverable is released — `RecoveryConfig`/`RecoveryWithConfig`, `TracingSpecs` (4 specs), `RunTracing` (5 checks), `docs/integrations/otel.md`, and the executable interop fixture.
+
+The report's closing instruction ("THEN WAIT FOR INSTRUCTIONS") was superseded by the owner's direction to execute the resulting plan; this appendix records the outcome rather than removing the instruction.
