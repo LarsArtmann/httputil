@@ -8,10 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [1.7.0] - 2026-10-25
+
+No coordinated sub-module cut: `server_timing` has zero drift since `v1.0.3`, so no `server_timing/v*` tag ships with this release; the root `go.mod` requires the published `v1.0.3` from the module proxy.
+
+### Added
+
 - **Listener injection: `NewServerListener(ln, cfg, handler)`** (`server.go`, issue #41) — the composition seam for wrappers that need to own the bind (synchronous bind-failure classification, readiness observable before serving, socket-activated or unix-socket listeners). Ownership semantics match `NewServer` for everything except the bind: `Start`/`StartTLS` serve the injected listener without ever binding, `Shutdown` drains and closes it, timeouts and the TLS 1.2+ floor apply as usual, and `Addr()` is derived from `ln.Addr()` (the bound listener is the address authority). `ListenerAddr()` reports the injected listener from construction, so post-bind startup hooks need no start-polling. Single-serve by ownership: `net/http` closes a listener when serving ends, so a restart after the first serve finished returns the classified `server.listener_consumed` Rejection (bind a fresh listener and build a new `Server` to serve again); `NewServerListener(nil, …)` returns `server.listener_nil` and leaves nothing to close. `ExampleNewServerListener` demonstrates the synchronous-readiness loop; tests pin the no-rebind behavior, unix-socket serving, HTTPS over the injected listener, and the consumed-rejection contract for both start paths, plus a 16-goroutine start-race stress test proving exactly one serve wins and every post-serve retry gets a classified rejection.
 
 ### Fixed
 
+- **The published `go.mod` no longer carries a filesystem `replace` for `server_timing`** (issue #43) — `v1.6.0` shipped with `replace github.com/larsartmann/httputil/server_timing => ./server_timing`, which is ignored in consumer builds (harmless there) but makes every main-module-position load refuse the module: `go doc github.com/larsartmann/httputil@v1.6.0 <symbol>` fails with "contains one or more replace directives". The line is gone from master; local cross-module work goes through the tracked `go.work`, the root `go.sum` now carries the `server_timing v1.0.3` hashes, and the CI/release module-boundary checks build each module `GOWORK=off` against the proxy exactly like a consumer. `v1.6.0` itself is immutable (never retagged); `v1.7.0` is the replace-free version.
 - **`Shutdown` before `Start` is now a true no-op** (`server.go`) — it previously forwarded to `net/http`'s `Server.Shutdown`, which marks the embedded `http.Server` as shut down, so any later `Start`/`StartTLS` returned `ErrServerClosed` immediately and *silently*: no serve, no error on the returned channel. `Shutdown` on a never-started `Server` now returns nil without touching the embedded server. For `NewServerListener` servers this also preserves the `ListenerAddr`-from-construction promise (the caller's listener stays open, addressable, and servable). Pinned by `TestServerShutdownBeforeStart_IsNoOpAndStartStillServes` and `TestServerListener_ShutdownBeforeStart_IsNoOpAndStartStillServes`, both mutation-probed.
 
 ## [1.6.0] - 2026-10-24
@@ -741,7 +754,8 @@ Coordinated cut: `server_timing/v1.0.3` is tagged from the same commit (no API c
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/larsartmann/httputil/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/larsartmann/httputil/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/larsartmann/httputil/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/larsartmann/httputil/compare/v1.4.1...v1.4.2
