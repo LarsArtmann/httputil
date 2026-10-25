@@ -36,6 +36,8 @@ var allHTTputilErrorCodes = []Code{
 	codeServerTLSMinVersionInsecure,
 	codeServerShutdownFailed,
 	codeServerAlreadyStarted,
+	codeServerListenerNil,
+	codeServerListenerConsumed,
 
 	codeCompressionLevelInvalid,
 	codeCompressionMinSizeNeg,

@@ -227,6 +227,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Set MinVersion to tls.VersionTLS12 or higher, or leave it zero (Go defaults to TLS 1.2).",
 		WayOut: "Test with a modern client; old clients will fail the handshake by design.",
 	},
+	string(codeServerListenerNil): {
+		What:   "Injected listener is nil",
+		Why:    "NewServerListener was called with a nil net.Listener; there is no bound socket to serve on.",
+		Fix:    "Bind a listener first (e.g. net.ListenConfig.Listen) and pass it to NewServerListener.",
+		WayOut: "Use NewServer and let the Server bind ServerConfig.Addr itself.",
+	},
 
 	// Compression config and Accept-Encoding q-value parsing.
 	string(codeCompressionLevelInvalid): {
@@ -421,6 +427,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Why:    "Start or StartTLS was called while a previous listener from this Server is still serving; a second listener would be unreachable through ListenerAddr and impossible to track.",
 		Fix:    "Call Start/StartTLS once per Server; create a new Server for a second listener.",
 		WayOut: "Shutdown the running server first, then start again.",
+	},
+	string(codeServerListenerConsumed): {
+		What:   "Injected listener was already served",
+		Why:    "The listener passed to NewServerListener was served once already; net/http closes a listener when serving ends, so it cannot accept again.",
+		Fix:    "Bind a fresh listener and construct a new Server with NewServerListener for each serve cycle.",
+		WayOut: "A Server that binds its own address (NewServer) can restart; injected-listener Servers are single-serve by ownership.",
 	},
 	string(codeDecompressionSizeExceeded): {
 		What:   "Decompressed request body exceeded the size limit",

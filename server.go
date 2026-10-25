@@ -68,6 +68,12 @@ var (
 	errServerAlreadyStarted = codeServerAlreadyStarted.Rejection(
 		"server is already started: Start or StartTLS was called twice",
 	)
+	errServerListenerNil = codeServerListenerNil.Rejection(
+		"NewServerListener: ln must not be nil",
+	)
+	errServerListenerConsumed = codeServerListenerConsumed.Rejection(
+		"the injected listener was already served: Serve closes it when serving ends",
+	)
 )
 
 // ServerConfig holds the configuration for an HTTP server.
@@ -253,6 +259,8 @@ func NewServerListener(ln net.Listener, cfg ServerConfig, handler http.Handler) 
 // It returns a channel that receives any non-shutdown error from Serve;
 // a bind failure (e.g. address already in use) is delivered immediately.
 // Use ListenerAddr to resolve ephemeral ports after a ":0" address.
+// For a Server built by NewServerListener, no bind happens: Start serves on
+// the injected listener instead.
 //
 // Error delivery implies full failure settlement: the listener is closed
 // and ListenerAddr reports false before the error can be received, so the
@@ -270,15 +278,33 @@ func (srv *Server) Start() <-chan error {
 		return errChan
 	}
 
-	var listenConfig net.ListenConfig
+	injected := srv.injectedListener != nil
 
-	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
-	if err != nil {
-		srv.started.Store(false)
+	var listener net.Listener
 
-		errChan <- err
+	if injected {
+		if srv.consumed.Load() {
+			srv.started.Store(false)
 
-		return errChan
+			errChan <- errServerListenerConsumed
+
+			return errChan
+		}
+
+		listener = srv.injectedListener
+	} else {
+		var listenConfig net.ListenConfig
+
+		var err error
+
+		listener, err = listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
+		if err != nil {
+			srv.started.Store(false)
+
+			errChan <- err
+
+			return errChan
+		}
 	}
 
 	srv.setListener(listener)
@@ -286,8 +312,15 @@ func (srv *Server) Start() <-chan error {
 	go func() {
 		// The listener and started flag are cleared before the error is
 		// delivered: receiving a Serve error must imply the failure state is
-		// settled, so ListenerAddr no longer reports a live listener.
+		// settled, so ListenerAddr no longer reports a live listener. The
+		// consumed mark is stored first, so a Start that wins the CAS after
+		// this serve ended observes it and reports the classified rejection
+		// instead of serving a closed listener.
 		err := srv.httpServer.Serve(listener)
+
+		if injected {
+			srv.consumed.Store(true)
+		}
 
 		srv.clearListener()
 		srv.started.Store(false)
@@ -317,6 +350,8 @@ func (srv *Server) Start() <-chan error {
 //
 // With in-memory certificates, pass empty paths and set
 // TLSConfig.GetCertificate (or Certificates) on the ServerConfig instead.
+// For a Server built by NewServerListener, no bind happens: StartTLS wraps
+// and serves on the injected listener instead.
 func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 	errChan := make(chan error, 1)
 
@@ -326,15 +361,33 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 		return errChan
 	}
 
-	var listenConfig net.ListenConfig
+	injected := srv.injectedListener != nil
 
-	listener, err := listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
-	if err != nil {
-		srv.started.Store(false)
+	var listener net.Listener
 
-		errChan <- err
+	if injected {
+		if srv.consumed.Load() {
+			srv.started.Store(false)
 
-		return errChan
+			errChan <- errServerListenerConsumed
+
+			return errChan
+		}
+
+		listener = srv.injectedListener
+	} else {
+		var listenConfig net.ListenConfig
+
+		var err error
+
+		listener, err = listenConfig.Listen(context.Background(), "tcp", srv.httpServer.Addr)
+		if err != nil {
+			srv.started.Store(false)
+
+			errChan <- err
+
+			return errChan
+		}
 	}
 
 	srv.setListener(listener)
@@ -348,7 +401,13 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 		// A ServeTLS failure (e.g. unreadable certificate files) must not
 		// leave ListenerAddr reporting a live listener. Clearing before the
 		// error is delivered guarantees a caller observing the error also
-		// observes the cleared listener state.
+		// observes the cleared listener state. The consumed mark is stored
+		// first so a retried start reports the classified rejection instead
+		// of serving a closed listener.
+		if injected {
+			srv.consumed.Store(true)
+		}
+
 		srv.clearListener()
 		srv.started.Store(false)
 
@@ -390,8 +449,10 @@ func (srv *Server) Addr() string {
 
 // ListenerAddr returns the resolved network address of the active listener
 // (useful after binding an ephemeral port such as ":0"), and false when the
-// server is not currently listening (never started, failed to bind, or shut
-// down).
+// server is not currently listening (failed to bind, or shut down; for a
+// Server that binds its own listener, also before Start is called). A Server
+// built by NewServerListener reports its injected listener from construction
+// onward, because the listener exists before serving starts.
 func (srv *Server) ListenerAddr() (net.Addr, bool) {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
