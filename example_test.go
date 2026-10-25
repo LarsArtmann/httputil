@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -555,6 +556,73 @@ func ExampleServer() {
 	}
 
 	// Output: 200 hello
+}
+
+func ExampleNewServerListener() {
+	// Bind the listener yourself: bind failures are classified at this call,
+	// and the bound address is observable before any serving starts.
+	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	srv, err := NewServerListener(ln, ServerConfig{
+		ShutdownTimeout: time.Second,
+	}, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "injected")
+	}))
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	srv.Start()
+
+	// ListenerAddr reports the injected listener from construction, so no
+	// start-polling is needed: readiness is synchronous because the caller
+	// owns the bind.
+	addr, _ := srv.ListenerAddr()
+
+	req, reqErr := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		"http://"+addr.String()+"/",
+		nil,
+	)
+	if reqErr != nil {
+		fmt.Println("error:", reqErr)
+
+		return
+	}
+
+	resp, doErr := http.DefaultClient.Do(req)
+	if doErr != nil {
+		fmt.Println("error:", doErr)
+
+		return
+	}
+
+	body, readErr := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if readErr != nil {
+		fmt.Println("error:", readErr)
+
+		return
+	}
+
+	fmt.Println(resp.StatusCode, string(body))
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		fmt.Println("error:", err)
+	}
+
+	// Output: 200 injected
 }
 
 func ExampleMiddlewareStack() {

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Listener injection: `NewServerListener(ln, cfg, handler)`** (`server.go`, issue #41) — the composition seam for wrappers that need to own the bind (synchronous bind-failure classification, readiness observable before serving, socket-activated or unix-socket listeners). Ownership semantics match `NewServer` for everything except the bind: `Start`/`StartTLS` serve the injected listener without ever binding, `Shutdown` drains and closes it, timeouts and the TLS 1.2+ floor apply as usual, and `Addr()` is derived from `ln.Addr()` (the bound listener is the address authority). `ListenerAddr()` reports the injected listener from construction, so post-bind startup hooks need no start-polling. Single-serve by ownership: `net/http` closes a listener when serving ends, so a restart after the first serve finished returns the classified `server.listener_consumed` Rejection (bind a fresh listener and build a new `Server` to serve again); `NewServerListener(nil, …)` returns `server.listener_nil` and leaves nothing to close. `ExampleNewServerListener` demonstrates the synchronous-readiness loop; tests pin the no-rebind behavior, unix-socket serving, HTTPS over the injected listener, and the consumed-rejection contract for both start paths.
+
 ## [1.6.0] - 2026-10-24
 
 Coordinated cut: `server_timing/v1.0.3` is tagged from the same commit (no API change; the sub-module gains the sentinel-guard test, the 2026-10-15 examples, and a README line covering `NewServerTiming`/`WithServerTiming`).

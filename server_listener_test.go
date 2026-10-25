@@ -269,9 +269,19 @@ func TestServerListener_StartTLS_ServesHTTPSOnInjectedListener(t *testing.T) {
 		ServerName:         "localhost",
 	}
 
+	// A plain HTTP request against the TLS listener must not be served as
+	// HTTP: net/http answers it with 400 "Client sent an HTTP request to an
+	// HTTPS server", proving the listener speaks TLS, not plaintext.
 	plainClient := &http.Client{Timeout: 2 * time.Second}
-	if _, err := plainClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/")); err == nil {
-		t.Error("plain HTTP request against TLS listener succeeded, want failure")
+	plainResp, plainErr := plainClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/"))
+	if plainErr != nil {
+		t.Fatalf("plain HTTP probe failed at transport level: %v", plainErr)
+	}
+
+	_ = plainResp.Body.Close()
+
+	if plainResp.StatusCode != http.StatusBadRequest {
+		t.Errorf("plain HTTP probe status = %d, want %d", plainResp.StatusCode, http.StatusBadRequest)
 	}
 
 	clientTLS := tlsCfg.Clone()

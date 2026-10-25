@@ -343,6 +343,30 @@ errChan := srv.Start()
 // HTTPS: srv.StartTLS("cert.pem", "key.pem") applies cfg.TLSConfig (TLS 1.2+ enforced).
 ```
 
+Wrappers that need to own the bind (synchronous bind-failure classification,
+readiness observable before serving, socket-activated or unix-socket listeners)
+inject an already-bound listener instead:
+
+```go
+ln, err := net.Listen("tcp", "127.0.0.1:0") // bind failures classify HERE, synchronously
+if err != nil {
+    log.Fatal(err)
+}
+
+srv, err := httputil.NewServerListener(ln, cfg, handler) // Addr is derived from ln
+if err != nil {
+    log.Fatal(err)
+}
+
+errChan := srv.Start() // serves on ln, never binds; StartTLS wraps it for HTTPS
+```
+
+The injected listener is owned by the `Server` from construction (`ListenerAddr`
+reports it before `Start`): `net/http` closes it when serving ends, so a
+`NewServerListener` server is single-serve — a restart after `Shutdown` returns
+the classified `server.listener_consumed` error. Bind a fresh listener and build
+a new `Server` to serve again.
+
 Default timeouts match production recommendations:
 
 - `ReadTimeout`: 10s
@@ -571,6 +595,7 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `DetectCapabilities`              | `func(http.ResponseWriter) Capabilities`                              | Report Hijacker/Flusher support                                               |
 | `RegisterErrorClassifications`    | `func()`                                                              | Register stdlib error sentinels + templates                                   |
 | `NewServer`                       | `func(ServerConfig, http.Handler) (*Server, error)`                   | Configurable HTTP server with timeouts                                        |
+| `NewServerListener`               | `func(net.Listener, ServerConfig, http.Handler) (*Server, error)`      | Serve on a caller-bound listener (wrappers own the bind)                      |
 | `Server.ListenerAddr()`           | `func() (net.Addr, bool)`                                             | Resolved listener address (`:0` → real port); false when not listening        |
 | `DefaultServerConfig`             | `func() ServerConfig`                                                 | Sensible server timeout defaults                                              |
 | `RegisterHealth`                  | `func(*http.ServeMux)`                                                | Register /health + /live + /ready                                             |

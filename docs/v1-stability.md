@@ -85,6 +85,7 @@ Each returns a config with sensible defaults. Frozen at v1.0.
 | --------------------- | -------- | ---------------------------------------------------------------------- |
 | `Server`              | Frozen   | Struct; constructor + methods locked                                   |
 | `NewServer`           | Frozen   | `func(ServerConfig, http.Handler) (*Server, error)`                    |
+| `NewServerListener`   | Additive | Added post-v1.6.0 (issue #41): serve on a caller-bound `net.Listener`  |
 | `Server.Start`        | Frozen   | `func() <-chan error`                                                  |
 | `Server.StartTLS`     | Additive | Added post-v0.10.0: HTTPS serving via `ListenAndServeTLS`              |
 | `Server.ListenerAddr` | Additive | Added in v1.0.0: `func() (net.Addr, bool)` — resolved listener address |
