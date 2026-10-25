@@ -146,7 +146,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `DefaultServerConfig()` — production defaults (`:8080`, 10s/5s/30s/60s timeouts).
 - `NewServer()` wraps `http.Server` with lifecycle helpers.
 - `NewServerListener(ln, cfg, handler)` serves on a caller-bound listener (issue #41 composition seam): wrappers own the bind, `Start`/`StartTLS` never bind, `ListenerAddr()` reports the injected listener from construction, `Addr` is derived from `ln.Addr()`. Single-serve by ownership — `net/http` closes the listener when serving ends, and a restart after that returns the classified `server.listener_consumed` rejection. Works for any `net.Listener` (TCP, unix sockets, socket-activation fds).
-- `Start()` / `StartTLS()` bind via `net.Listen` first (bind errors are delivered immediately on the returned channel) and track the listener. Error delivery implies full settlement: the listener is closed and `ListenerAddr()` reports `(nil, false)` before the error can be received, so restarting the same `Server` after any failure (or after `Shutdown()`) is safe; starting a listening server returns the classified `server.already_started` error and leaves it running.
+- `Start()` / `StartTLS()` bind via `net.Listen` first (bind errors are delivered immediately on the returned channel) and track the listener. Error delivery implies full settlement: the listener is closed and `ListenerAddr()` reports `(nil, false)` before the error can be received, so restarting the same `Server` after any failure (or after `Shutdown()`) is safe; starting a listening server returns the classified `server.already_started` error and leaves it running. `Shutdown` on a never-started `Server` is a no-op returning nil (the embedded `http.Server` is not poisoned, so a later `Start` still serves; for `NewServerListener` servers the listener stays open and addressable).
 - `ListenerAddr()` returns the resolved address of the active listener (`"127.0.0.1:0"` → the real port), `(nil, false)` when not listening; cleared on successful `Shutdown()`.
 - `StartTLS(certFile, keyFile)` serves HTTPS with the validated `TLSConfig` (TLS 1.2+ enforced); in-memory certs work via `GetCertificate` with empty paths.
 - `Shutdown()` performs graceful shutdown respecting a context deadline.
@@ -208,7 +208,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Test Coverage — sub-100% functions (defensive code paths)
 
-Re-measured 2026-10-23 with `go test -race -coverprofile` per package: **98.7%** (`httputil`, library packages), **98.4%** (`httpspec`), **100%** (`server_timing`). The remaining sub-100% functions are documented defensive code paths, listed below with their current figures.
+Re-measured 2026-10-25 with `go test -race -coverprofile` per package: **98.7%** (`httputil`, library packages), **98.4%** (`httpspec`), **100%** (`server_timing`). The remaining sub-100% functions are documented defensive code paths, listed below with their current figures.
 
 **Typed error model (`code.go`):** fully covered as of the 2026-09-23 measurement (all constructor and Wrap methods at 100% — the error-routing examples closed the last three).
 
@@ -218,7 +218,7 @@ Re-measured 2026-10-23 with `go test -race -coverprofile` per package: **98.7%**
 - `ratelimit_keyed.go:220 buildKeyedRateLimiter` — 95.5%. Defensive config validation edge.
 - `ratelimit_keyed.go:340 limiter` — 91.5%. RLock-hit-but-TTL-expired path (race condition).
 - `ratelimit_keyed.go:404 evictOldestIfAtCapacity` — 90.9%. Stale-heap-mismatch continue branch.
-- `server.go:210 Start` — 97.6%. The non-shutdown Serve-error send — forcing an accept failure needs the unexported listener handle, not injectable from tests.
+- `server.go:272 Start` — 98.5%. The non-shutdown Serve-error send — forcing an accept failure needs the unexported listener handle, not injectable from tests.
 - `compression.go:269 Compression` — 97.9%. Constructor warning path for an invalid custom level.
 - `decompression.go:107 Decompression` — 84.0%. Encoding-filter reject path (unreachable `default:` switch case when allowed list contains only gzip/deflate — documented as the custom-Encodings contract).
 - `id_generator.go:129 drawRandomBytes` — 84.6%. Short-read loop branch (kernel-level fault injection).
