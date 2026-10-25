@@ -201,7 +201,7 @@ Reusable BDD-style HTTP behavior specifications. Point `httpspec.Run(t, handler)
 
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler` (aliased as `Middleware` in `recorder.go`). `Chain()` and `Compose()` apply middlewares in declaration order (first = outermost); `Compose()` bundles them into one reusable `Middleware`. `MiddlewareStack` adds names, duplicate prevention, and opt-in ordering validation (`Validate()`: Recovery outermost when present; `Build()` does NOT auto-validate); `MiddlewareStack.Middleware()` nests the whole stack as one middleware.
 
-The `server_timing` sub-module is a separate Go module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`), stdlib-only with zero external deps, wired via a `replace` directive (`=> ./server_timing`) and `go.work`. `ServerTimingMiddleware` injects `*servertiming.ServerTiming` via context; `servertiming.WrapServerTiming(w, r)` wraps manually; header values are CRLF-sanitized.
+The `server_timing` sub-module is a separate Go module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`), stdlib-only with zero external deps, linked locally via `go.work` only — the root `go.mod` requires the published `server_timing` tag from the module proxy and must NEVER carry a filesystem `replace` for it (v1.6.0 shipped one and `go doc @v1.6.0` refuses the module for it; issue #43, fixed in v1.7.0). `ServerTimingMiddleware` injects `*servertiming.ServerTiming` via context; `servertiming.WrapServerTiming(w, r)` wraps manually; header values are CRLF-sanitized.
 
 ### Observability Lane — OTEL Ruling (2026-10-23)
 
