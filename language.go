@@ -62,7 +62,7 @@ const (
 )
 
 var (
-	errLanguageTagsEmpty error = codeLanguageTagsEmpty.Rejection(
+	errLanguageTagsEmpty = codeLanguageTagsEmpty.Rejection(
 		"LanguageConfig.SupportedTags must list at least one language tag (priority order, first is default)",
 	)
 	errLanguageTagInvalid = codeLanguageTagInvalid.Rejection(
@@ -71,7 +71,7 @@ var (
 	errLanguageDefaultUnsupported = codeLanguageDefaultUnsupported.Rejection(
 		"LanguageConfig.DefaultTag must be empty (use the first supported tag) or one of SupportedTags",
 	)
-	errLanguageExtractorNil error = codeLanguageExtractorNil.Rejection(
+	errLanguageExtractorNil = codeLanguageExtractorNil.Rejection(
 		"LanguageConfig.Extractors must not contain nil entries",
 	)
 )
