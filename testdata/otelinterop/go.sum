@@ -29,8 +29,8 @@ github.com/larsartmann/go-etag/server v0.6.1 h1:JVguufBCoLSj83bHM1FqgfSEYc2x1E31
 github.com/larsartmann/go-etag/server v0.6.1/go.mod h1:o3VNBhO58/5rIm0qaU3jLsgRPyjTcaMBtfbHm0lphJk=
 github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
 github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
-github.com/larsartmann/httputil/server_timing v1.0.2 h1:x2J4vLsqHDYi9VbeMabLKlTXFnBgcKFV7LKdNXuMfG0=
-github.com/larsartmann/httputil/server_timing v1.0.2/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
+github.com/larsartmann/httputil/server_timing v1.0.3 h1:V1ypfid9TvWznr/qH3p+1uH8034goI3lSwyqIrl6KCY=
+github.com/larsartmann/httputil/server_timing v1.0.3/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
 github.com/samber/lo v1.53.0 h1:t975lj2py4kJPQ6haz1QMgtId2gtmfktACxIXArw3HM=
 github.com/samber/lo v1.53.0/go.mod h1:4+MXEGsJzbKGaUEQFKBq2xtfuznW9oz/WrgyzMzRoM0=
 github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWDWE=
