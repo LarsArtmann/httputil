@@ -76,7 +76,7 @@
         pname = "httputil";
         description = "HTTP utilities for Go";
         goPkgAttr = "go_1_27";
-        vendorHash = "sha256-N0JDhRKHv1Lk/Ll7ebPeJJtFYgH/yXC6xApq2bSgOWE=";
+        vendorHash = "sha256-pftKad3jjpyMgetzZLbcQ+5jUsQq/bpLJIf1QHWkkVc=";
         # Library repo: the package exists so the ROOT module compiles;
         # tests run via apps.test (race), not in checkPhase.
         enableCheck = false;
