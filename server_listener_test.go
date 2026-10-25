@@ -30,7 +30,7 @@ func TestNewServerListener_NilListener_ReturnsListenerNilRejection(t *testing.T)
 func TestNewServerListener_InvalidConfig_ReturnsValidationErrorAndLeavesListenerToCaller(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestNewServerListener_InvalidConfig_ReturnsValidationErrorAndLeavesListener
 	cfg := DefaultServerConfig()
 	cfg.ReadTimeout = -time.Second
 
-	_, err = NewServerListener(ln, cfg, newNoOpHandler())
+	_, err = NewServerListener(listener, cfg, newNoOpHandler())
 	if err == nil {
 		t.Fatal("NewServerListener() error = nil, want error for negative ReadTimeout")
 	}
@@ -49,20 +49,23 @@ func TestNewServerListener_InvalidConfig_ReturnsValidationErrorAndLeavesListener
 
 	// The listener is untouched on failure, so closing it stays the caller's
 	// prerogative and must succeed.
-	if closeErr := ln.Close(); closeErr != nil {
-		t.Fatalf("ln.Close() after failed construction error = %v, want nil (listener must be untouched)", closeErr)
+	if closeErr := listener.Close(); closeErr != nil {
+		t.Fatalf(
+			"listener.Close() after failed construction error = %v, want nil (listener must be untouched)",
+			closeErr,
+		)
 	}
 }
 
 func TestNewServerListener_DerivesAddrFromListener(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
-	defer func() { _ = ln.Close() }()
+	defer func() { _ = listener.Close() }()
 
 	// Zero Addr is acceptable here: the bound listener is the authority, so
 	// Addr derivation must fill the field before validation runs.
@@ -70,12 +73,12 @@ func TestNewServerListener_DerivesAddrFromListener(t *testing.T) {
 		ShutdownTimeout: time.Second,
 	}
 
-	srv, err := NewServerListener(ln, cfg, newNoOpHandler())
+	srv, err := NewServerListener(listener, cfg, newNoOpHandler())
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
 
-	if got, want := srv.Addr(), ln.Addr().String(); got != want {
+	if got, want := srv.Addr(), listener.Addr().String(); got != want {
 		t.Errorf("Addr() = %q, want listener-derived %q", got, want)
 	}
 }
@@ -83,14 +86,14 @@ func TestNewServerListener_DerivesAddrFromListener(t *testing.T) {
 func TestServerListener_ListenerAddr_ReportsInjectedListenerBeforeStart(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
-	defer func() { _ = ln.Close() }()
+	defer func() { _ = listener.Close() }()
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newNoOpHandler())
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newNoOpHandler())
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -100,20 +103,20 @@ func TestServerListener_ListenerAddr_ReportsInjectedListenerBeforeStart(t *testi
 		t.Fatal("ListenerAddr() ok = false before Start, want true for injected listener")
 	}
 
-	if addr.String() != ln.Addr().String() {
-		t.Errorf("ListenerAddr() = %q, want injected listener address %q", addr.String(), ln.Addr().String())
+	if addr.String() != listener.Addr().String() {
+		t.Errorf("ListenerAddr() = %q, want injected listener address %q", addr.String(), listener.Addr().String())
 	}
 }
 
 func TestServerListener_Start_ServesInjectedListenerWithoutRebinding(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newWriteStatusHandler("injected"))
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newWriteStatusHandler("injected"))
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -128,8 +131,8 @@ func TestServerListener_Start_ServesInjectedListenerWithoutRebinding(t *testing.
 		t.Fatal("listener address did not resolve after Start")
 	}
 
-	if listenAddr != ln.Addr().String() {
-		t.Errorf("ListenerAddr() = %q, want injected listener address %q", listenAddr, ln.Addr().String())
+	if listenAddr != listener.Addr().String() {
+		t.Errorf("ListenerAddr() = %q, want injected listener address %q", listenAddr, listener.Addr().String())
 	}
 
 	resp, err := http.DefaultClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/"))
@@ -156,12 +159,12 @@ func TestServerListener_Start_ServesUnixSocketListener(t *testing.T) {
 
 	socketPath := filepath.Join(t.TempDir(), "httputil.sock")
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "unix", socketPath)
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "unix", socketPath)
 	if err != nil {
 		t.Fatalf("listen unix: %v", err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newWriteStatusHandler("unix"))
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newWriteStatusHandler("unix"))
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -218,7 +221,7 @@ func TestServerListener_StartTLS_ServesHTTPSOnInjectedListener(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
@@ -235,7 +238,7 @@ func TestServerListener_StartTLS_ServesHTTPSOnInjectedListener(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), handler)
+	srv, err := NewServerListener(listener, DefaultServerConfig(), handler)
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -246,8 +249,8 @@ func TestServerListener_StartTLS_ServesHTTPSOnInjectedListener(t *testing.T) {
 		t.Fatal("listener address did not resolve after StartTLS")
 	}
 
-	if listenAddr != ln.Addr().String() {
-		t.Errorf("ListenerAddr() = %q, want injected listener address %q", listenAddr, ln.Addr().String())
+	if listenAddr != listener.Addr().String() {
+		t.Errorf("ListenerAddr() = %q, want injected listener address %q", listenAddr, listener.Addr().String())
 	}
 
 	// A plain HTTP request against the TLS listener must fail; a successful
@@ -316,12 +319,12 @@ func TestServerListener_StartTLS_ServesHTTPSOnInjectedListener(t *testing.T) {
 func TestServerListener_Start_TwiceFailsSecondStart(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newNoOpHandler())
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newNoOpHandler())
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -370,12 +373,12 @@ func waitForServerSettled(t *testing.T, srv *Server) {
 func TestServerListener_RestartAfterShutdown_ReturnsListenerConsumed(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newNoOpHandler())
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newNoOpHandler())
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -414,7 +417,7 @@ func TestServerListener_RestartAfterShutdown_ReturnsListenerConsumed(t *testing.
 func TestServerListener_RestartTLSAfterShutdown_ReturnsListenerConsumed(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
@@ -431,7 +434,7 @@ func TestServerListener_RestartTLSAfterShutdown_ReturnsListenerConsumed(t *testi
 		t.Fatal(err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newNoOpHandler())
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newNoOpHandler())
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -466,12 +469,12 @@ func TestServerListener_RestartTLSAfterShutdown_ReturnsListenerConsumed(t *testi
 func TestServerListener_ShutdownClosesInjectedListener(t *testing.T) {
 	t.Parallel()
 
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
-	srv, err := NewServerListener(ln, DefaultServerConfig(), newNoOpHandler())
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newNoOpHandler())
 	if err != nil {
 		t.Fatalf("NewServerListener() error = %v", err)
 	}
@@ -493,7 +496,7 @@ func TestServerListener_ShutdownClosesInjectedListener(t *testing.T) {
 
 	// Ownership transferred to the Server: Serve closes the listener when
 	// serving ends, so a caller-side Accept must report the closed socket.
-	if _, acceptErr := ln.Accept(); acceptErr == nil {
-		t.Error("ln.Accept() after Shutdown error = nil, want closed-listener error")
+	if _, acceptErr := listener.Accept(); acceptErr == nil {
+		t.Error("listener.Accept() after Shutdown error = nil, want closed-listener error")
 	}
 }

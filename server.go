@@ -69,7 +69,7 @@ var (
 		"server is already started: Start or StartTLS was called twice",
 	)
 	errServerListenerNil = codeServerListenerNil.Rejection(
-		"NewServerListener: ln must not be nil",
+		"NewServerListener: listener must not be nil",
 	)
 	errServerListenerConsumed = codeServerListenerConsumed.Rejection(
 		"the injected listener was already served: Serve closes it when serving ends",
@@ -222,20 +222,20 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 // Shutdown drains in-flight requests and closes it, and ListenerAddr reports
 // the injected listener from construction onward.
 //
-// cfg.Addr is derived from ln.Addr().String() because the bound listener is
-// the authority on the address; every other ServerConfig field applies as
-// with NewServer. On success the Server owns ln: net/http's Serve closes the
-// listener when serving ends, so a Server built here serves its listener
+// cfg.Addr is derived from listener.Addr().String() because the bound listener
+// is the authority on the address; every other ServerConfig field applies as
+// with NewServer. On success the Server owns the listener: net/http's Serve
+// closes it when serving ends, so a Server built here serves its listener
 // exactly once — a later Start or StartTLS after the first serve finished
 // returns the classified server.listener_consumed rejection instead of
-// rebinding. Create a new Server (and listener) to serve again. On error, ln
-// is untouched and remains the caller's to close.
-func NewServerListener(ln net.Listener, cfg ServerConfig, handler http.Handler) (*Server, error) {
-	if ln == nil {
+// rebinding. Create a new Server (and listener) to serve again. On error, the
+// listener is untouched and remains the caller's to close.
+func NewServerListener(listener net.Listener, cfg ServerConfig, handler http.Handler) (*Server, error) {
+	if listener == nil {
 		return nil, errServerListenerNil
 	}
 
-	cfg.Addr = ln.Addr().String()
+	cfg.Addr = listener.Addr().String()
 
 	err := cfg.Validate()
 	if err != nil {
@@ -246,8 +246,8 @@ func NewServerListener(ln net.Listener, cfg ServerConfig, handler http.Handler) 
 		httpServer:       newHTTPServer(cfg, handler),
 		shutdownTimeout:  cfg.ShutdownTimeout,
 		mu:               sync.Mutex{},
-		listener:         ln,
-		injectedListener: ln,
+		listener:         listener,
+		injectedListener: listener,
 		started:          atomic.Bool{},
 		consumed:         atomic.Bool{},
 	}

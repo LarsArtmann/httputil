@@ -561,14 +561,14 @@ func ExampleServer() {
 func ExampleNewServerListener() {
 	// Bind the listener yourself: bind failures are classified at this call,
 	// and the bound address is observable before any serving starts.
-	ln, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		fmt.Println("error:", err)
 
 		return
 	}
 
-	srv, err := NewServerListener(ln, ServerConfig{
+	srv, err := NewServerListener(listener, ServerConfig{
 		ShutdownTimeout: time.Second,
 	}, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprint(w, "injected")
