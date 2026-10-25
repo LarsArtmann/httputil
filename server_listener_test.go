@@ -648,7 +648,10 @@ func TestServerListener_ConcurrentStarts_ExactlyOneServesAndRetriesAreClassified
 		select {
 		case err := <-resultChan:
 			if !errors.Is(err, errServerAlreadyStarted) && !errors.Is(err, errServerListenerConsumed) {
-				t.Errorf("phase-2 Start() error = %v, want a classified already_started or listener_consumed rejection", err)
+				t.Errorf(
+					"phase-2 Start() error = %v, want a classified already_started or listener_consumed rejection",
+					err,
+				)
 			}
 		case <-time.After(stressResultTimeout):
 			t.Fatal("phase-2 Start() delivered no error, want a classified rejection")

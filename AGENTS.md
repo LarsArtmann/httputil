@@ -58,9 +58,9 @@ scripts/pre-sweep-check.sh
 # residuals bullet and the honest-silence paragraph point here; update this
 # block, not copies.
 # Real gates (exit 0 required): legacy_as + stdlib_constructor below.
-# --type-aware is ADVISORY-ONLY. RE-MEASURED 2026-10-23 with erraudit 119791b:
-# 51 `sentinel_concrete_type` (now split by the tool itself into 36 labeled
-# "load-bearing — keep the declaration" and 15 carrying a `var errX error`
+# --type-aware is ADVISORY-ONLY. RE-MEASURED 2026-10-25 with erraudit 119791b:
+# 53 `sentinel_concrete_type` (split by the tool itself into 36 labeled
+# "load-bearing — keep the declaration" and 17 carrying a `var errX error`
 # rewrite hint) + 1 `legacy_is` advisory
 # (validation_classified_test.go:474, a correct sentinel-value match). The
 # advisory count collapsed from 49 to 1 because 119791b stopped flagging
@@ -69,7 +69,9 @@ scripts/pre-sweep-check.sh
 # carried forward by arithmetic. (Prior 49-advisory deltas: +3 pool-contract
 # matches e8e41fc/7f4b3f1, +2 Burst/retry matches.) Delta ledger: 45 at 02:42 → 50 at
 # 3ebc428 06:16 = +4 language-middleware sentinels + errTrustedProxyCIDRInvalid
-# (2539ab1) → 51 at 1c6809a = +errKeyedBurstTooLarge (ab90d9f) → 51 still.
+# (2539ab1) → 51 at 1c6809a = +errKeyedBurstTooLarge (ab90d9f) → 53 on
+# 2026-10-25 = +errServerListenerNil/+errServerListenerConsumed (issue #41,
+# hint-only: both are returned directly, no With*/clone call sites).
 # server_timing clean.
 # The load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites.
@@ -229,6 +231,7 @@ Per-source error codes, families, retryability, and triggers: [docs/architecture
 - **`Start`/`StartTLS` clear listener state before delivering a Serve error** — `clearListener()` and `started.Store(false)` run before the error is sent to the returned channel, so receiving an error implies (happens-before) `ListenerAddr()` reports not-listening and a retry `Start` is possible. Never move cleanup back into a `defer` after the send: the buffered channel send completes before the defer runs, which re-opens the race caught by `TestServer_StartTLS_ListenerClearedOnCertFailure` (2026-09-11).
 - **`Server.Start`/`StartTLS` are single-shot** — a second call returns `server.already_started` (Rejection, `errServerAlreadyStarted`) instead of binding an untracked orphan listener; the guard is an `atomic.Bool` CAS, and both the started flag and the listener are cleared when Serve/ServeTLS returns or fails, so a retried `Start` is legal. `ListenerAddr()` reports `(nil, false)` whenever the server is not currently listening (never started, failed to bind, or shut down).
 - **`NewServerListener(ln, cfg, handler)` is the caller-bound-listener seam (issue #41)** — `Start`/`StartTLS` serve the injected listener and NEVER bind; `cfg.Addr` is overwritten from `ln.Addr()` (the bound listener is the authority — a hand-set Addr is ignored), and `ListenerAddr()` reports the injected listener from CONSTRUCTION (pre-Start truthfulness for post-bind startup hooks). Single-serve by ownership: `net/http`'s Serve closes the listener when serving ends, so a retried start after the first serve finished returns `server.listener_consumed` (the `consumed` atomic is stored BEFORE `started.Store(false)`, so a CAS-winning retry always observes it — do not reorder); retry-rebind is only legal for `NewServer` servers. Nil listener → `server.listener_nil`, and a construction error leaves the caller's listener untouched. Any `net.Listener` works (unix sockets, socket-activation fds).
+- **`Shutdown` before `Start` is a no-op returning nil (both server kinds, 2026-10-25)** — it must NOT reach `net/http`: stdlib marks the embedded `http.Server` inShutdown on ANY `Shutdown` call, and a later `Serve` then returns `ErrServerClosed` instantly and SILENTLY (no serve, no error on the channel — the pre-fix bug for `NewServer` servers too). The `!srv.started.Load()` early return in `Shutdown` is load-bearing; `TestServerShutdownBeforeStart_IsNoOpAndStartStillServes` (both variants) is mutation-probed against its removal. The consumed-store ordering note above is defensive polish whose nanosecond window is untestable without seams — the pinned observable contract is the consumed-CHECK (removing it fails two tests, incl. the 16-goroutine `TestServerListener_ConcurrentStarts_ExactlyOneServesAndRetriesAreClassified`).
 - **`ResponseRecorder.Status()` returns `0`** (not `200`) when `WriteHeader` hasn't been called. Check `WroteHeader()` to distinguish "no status set" from "status was actually 0".
 - **`ClientIP` trusts proxy headers blindly** — it does not validate X-Forwarded-For or X-Real-IP. Only safe behind a reverse proxy that strips/overwrites these headers. The gated alternative (`KeyExtractorFromTrustedClientIP`/`TrustedProxySet`, `ratelimit_keyed_trusted.go`) walks XFF right-to-left skipping trusted peers and falls back to the RemoteAddr host; "empty cidrs means loopback-only trust" is a deliberate zero-value substitution (execution-probe pinned — do not "fix" it to no-trust, that silently equals `KeyExtractorFromRemoteAddr`), an invalid CIDR fails construction loudly (`ratelimit.trusted_proxy_cidr_invalid`) because silent loopback-fallback would collapse every client onto the proxy's one bucket. Design: docs/planning/2026-10-10_05-50_trusted-client-ip-extractor-design.md.
 - **`Compression` negotiates encodings** per request from `Accept-Encoding` using RFC 7231 q-values and a server priority order (brotli > zstd > gzip > deflate > identity). A missing header (or an empty one) is served uncompressed by default — `CompressionConfig.AbsentEncoding` (zero value `AbsentEncodingIdentity`, issue #4); `AbsentEncodingFirstConfigured` restores the pre-v1.2 behavior of picking the highest-priority configured encoding. Validate rejects unknown policy values (`compression.absent_encoding_invalid`).
