@@ -559,6 +559,7 @@ const (
 func raceStarts(t *testing.T, srv *Server) []<-chan error {
 	t.Helper()
 
+	//nolint:makezero // pre-allocated with known length, written by direct index, not append
 	chans := make([]<-chan error, stressStarters)
 
 	var wg sync.WaitGroup
