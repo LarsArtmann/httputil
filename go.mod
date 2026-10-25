@@ -11,5 +11,3 @@ require (
 )
 
 require github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
-
-replace github.com/larsartmann/httputil/server_timing => ./server_timing

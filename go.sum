@@ -6,5 +6,7 @@ github.com/larsartmann/go-etag/entitytag v0.6.1 h1:tBr+hR4dqks75SY+pqmUNHUajzOG6
 github.com/larsartmann/go-etag/entitytag v0.6.1/go.mod h1:e09zrSYF6RS8c0IzxZnI1HZQw15gIgwlyp3zerGv+bI=
 github.com/larsartmann/go-etag/server v0.6.1 h1:JVguufBCoLSj83bHM1FqgfSEYc2x1E31kL/Gt1pESHY=
 github.com/larsartmann/go-etag/server v0.6.1/go.mod h1:o3VNBhO58/5rIm0qaU3jLsgRPyjTcaMBtfbHm0lphJk=
+github.com/larsartmann/httputil/server_timing v1.0.3 h1:V1ypfid9TvWznr/qH3p+1uH8034goI3lSwyqIrl6KCY=
+github.com/larsartmann/httputil/server_timing v1.0.3/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
 golang.org/x/time v0.16.0 h1:vMb6ptszcQMkcwiRTAuNNU50gom6++Q/6gY2hDM6VDE=
 golang.org/x/time v0.16.0/go.mod h1:rVKOqvZeKvrDKTQiAHJ7wmwP0RzleSphoEA9RcdLA0s=
