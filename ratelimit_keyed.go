@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	errKeyedLimitZero error = codeRatelimitKeyedLimitZero.Rejection(
+	errKeyedLimitZero = codeRatelimitKeyedLimitZero.Rejection(
 		"KeyedRateLimiterConfig.Limit must be greater than zero",
 	)
 	errKeyedWindowZero = codeRatelimitKeyedWindowZero.Rejection(
