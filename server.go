@@ -426,8 +426,14 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 // Shutting down a Server that was never started is a no-op that returns nil:
 // nothing was served, so for a Server built by NewServerListener the caller's
 // listener stays open, addressable via ListenerAddr, and still servable by a
-// later Start or StartTLS.
+// later Start or StartTLS. Passing the call through to net/http instead would
+// poison the shared http.Server — it marks itself shut down on any Shutdown
+// call, and a later Serve would return ErrServerClosed at once, silently.
 func (srv *Server) Shutdown(ctx context.Context) error {
+	if !srv.started.Load() {
+		return nil
+	}
+
 	if _, ok := ctx.Deadline(); !ok && srv.shutdownTimeout > 0 {
 		var cancel context.CancelFunc
 
@@ -440,13 +446,7 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 		return errServerShutdownFailed.WithCause(err)
 	}
 
-	// A server that never started owns no listener state to clear; clearing
-	// anyway would hide the injected listener that ListenerAddr promised to
-	// report from construction onward. A serving server has started set, and
-	// a serve that already ended cleared its own listener state.
-	if srv.started.Load() {
-		srv.clearListener()
-	}
+	srv.clearListener()
 
 	return nil
 }

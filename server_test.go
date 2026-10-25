@@ -277,6 +277,50 @@ func TestServerStartAndShutdown(t *testing.T) {
 	}
 }
 
+func TestServerShutdownBeforeStart_IsNoOpAndStartStillServes(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultServerConfig()
+	cfg.Addr = "127.0.0.1:0"
+
+	srv, err := NewServer(cfg, newWriteStatusHandler("late"))
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Nothing was ever served, so Shutdown must be a no-op — in particular it
+	// must not poison the shared http.Server, which would make a later Start
+	// return ErrServerClosed at once without delivering any error.
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		t.Fatalf("Shutdown() before Start error = %v, want nil", err)
+	}
+
+	errChan := srv.Start()
+
+	listenAddr, ok := waitForListenerAddr(t, srv, errChan)
+	if !ok {
+		t.Fatal("listener address did not resolve after Start following Shutdown-before-Start")
+	}
+
+	resp, err := http.DefaultClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/"))
+	if err != nil {
+		t.Fatalf("GET http://%s/: %v", listenAddr, err)
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		t.Fatalf("final Shutdown() error = %v", err)
+	}
+}
+
 func TestServerShutdownWithBackgroundContext(t *testing.T) {
 	t.Parallel()
 
