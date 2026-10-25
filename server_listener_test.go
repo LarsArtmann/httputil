@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -466,6 +467,55 @@ func TestServerListener_RestartTLSAfterShutdown_ReturnsListenerConsumed(t *testi
 	}
 }
 
+func TestServerListener_ShutdownBeforeStart_IsNoOpAndStartStillServes(t *testing.T) {
+	t.Parallel()
+
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newWriteStatusHandler("injected"))
+	if err != nil {
+		t.Fatalf("NewServerListener() error = %v", err)
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Nothing was ever served, so Shutdown must be a no-op: it neither closes
+	// the caller's listener nor hides it from ListenerAddr.
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		t.Fatalf("Shutdown() before Start error = %v, want nil", err)
+	}
+
+	if _, ok := srv.ListenerAddr(); !ok {
+		t.Error("ListenerAddr() ok = false after Shutdown-before-Start, want true (the listener was never served)")
+	}
+
+	errChan := srv.Start()
+
+	listenAddr, ok := waitForListenerAddr(t, srv, errChan)
+	if !ok {
+		t.Fatal("listener address did not resolve after Start")
+	}
+
+	resp, err := http.DefaultClient.Do(newTestGetRequest(t, "http://"+listenAddr+"/"))
+	if err != nil {
+		t.Fatalf("GET http://%s/: %v", listenAddr, err)
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		t.Fatalf("final Shutdown() error = %v", err)
+	}
+}
+
 func TestServerListener_ShutdownClosesInjectedListener(t *testing.T) {
 	t.Parallel()
 
@@ -498,5 +548,114 @@ func TestServerListener_ShutdownClosesInjectedListener(t *testing.T) {
 	// serving ends, so a caller-side Accept must report the closed socket.
 	if _, acceptErr := listener.Accept(); acceptErr == nil {
 		t.Error("listener.Accept() after Shutdown error = nil, want closed-listener error")
+	}
+}
+
+const (
+	stressStarters      = 16
+	stressResultTimeout = 500 * time.Millisecond
+)
+
+func raceStarts(t *testing.T, srv *Server) []<-chan error {
+	t.Helper()
+
+	chans := make([]<-chan error, stressStarters)
+
+	var wg sync.WaitGroup
+
+	start := make(chan struct{})
+
+	wg.Add(stressStarters)
+
+	for i := range stressStarters {
+		go func() {
+			defer wg.Done()
+
+			<-start
+
+			chans[i] = srv.Start()
+		}()
+	}
+
+	close(start)
+	wg.Wait()
+
+	return chans
+}
+
+func TestServerListener_ConcurrentStarts_ExactlyOneServesAndRetriesAreClassified(t *testing.T) {
+	t.Parallel()
+
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	srv, err := NewServerListener(listener, DefaultServerConfig(), newNoOpHandler())
+	if err != nil {
+		t.Fatalf("NewServerListener() error = %v", err)
+	}
+
+	// Phase 1: race Start from many goroutines. The started CAS must admit
+	// exactly one serve; every other racer gets the classified
+	// already_started rejection delivered immediately.
+	firstChans := raceStarts(t, srv)
+
+	served := 0
+
+	for _, resultChan := range firstChans {
+		select {
+		case err := <-resultChan:
+			if !errors.Is(err, errServerAlreadyStarted) {
+				t.Errorf("phase-1 Start() error = %v, want errors.Is(err, errServerAlreadyStarted)", err)
+			}
+		case <-time.After(stressResultTimeout):
+			served++
+		}
+	}
+
+	if served != 1 {
+		t.Fatalf("phase-1 silent (serving) Starts = %d, want exactly 1", served)
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
+	}
+
+	waitForServerSettled(t, srv)
+
+	// The winner's channel must have stayed silent through shutdown: a
+	// non-shutdown error there would mean the serve itself failed.
+	for _, resultChan := range firstChans {
+		select {
+		case err := <-resultChan:
+			t.Fatalf("phase-1 serve delivered unexpected error: %v", err)
+		default:
+		}
+	}
+
+	// Phase 2: race Start again after the serve ended. Every racer must get
+	// a classified rejection (already_started from a CAS loser,
+	// listener_consumed from a CAS winner); nobody may reach the serve call
+	// on the closed listener, which would deliver a raw accept-on-closed
+	// error instead of a classified one.
+	secondChans := raceStarts(t, srv)
+
+	for _, resultChan := range secondChans {
+		select {
+		case err := <-resultChan:
+			if !errors.Is(err, errServerAlreadyStarted) && !errors.Is(err, errServerListenerConsumed) {
+				t.Errorf("phase-2 Start() error = %v, want a classified already_started or listener_consumed rejection", err)
+			}
+		case <-time.After(stressResultTimeout):
+			t.Fatal("phase-2 Start() delivered no error, want a classified rejection")
+		}
+	}
+
+	if _, ok := srv.ListenerAddr(); ok {
+		t.Error("ListenerAddr() ok = true after consumed serve, want false")
 	}
 }

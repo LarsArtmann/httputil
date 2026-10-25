@@ -422,6 +422,11 @@ func (srv *Server) StartTLS(certFile, keyFile string) <-chan error {
 // Shutdown gracefully shuts down the server. If the provided context has no
 // deadline and the server was configured with a ShutdownTimeout, a timeout
 // context is derived automatically to prevent indefinite hangs.
+//
+// Shutting down a Server that was never started is a no-op that returns nil:
+// nothing was served, so for a Server built by NewServerListener the caller's
+// listener stays open, addressable via ListenerAddr, and still servable by a
+// later Start or StartTLS.
 func (srv *Server) Shutdown(ctx context.Context) error {
 	if _, ok := ctx.Deadline(); !ok && srv.shutdownTimeout > 0 {
 		var cancel context.CancelFunc
@@ -435,14 +440,22 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 		return errServerShutdownFailed.WithCause(err)
 	}
 
-	srv.clearListener()
+	// A server that never started owns no listener state to clear; clearing
+	// anyway would hide the injected listener that ListenerAddr promised to
+	// report from construction onward. A serving server has started set, and
+	// a serve that already ended cleared its own listener state.
+	if srv.started.Load() {
+		srv.clearListener()
+	}
 
 	return nil
 }
 
 // Addr returns the configured listen address (e.g. ":8080" or ":0"); it is
-// not rewritten when the OS picks an ephemeral port. Use ListenerAddr for the
-// resolved address of the active listener.
+// not rewritten when the OS picks an ephemeral port, so use ListenerAddr for
+// the resolved address of the active listener. For a Server built by
+// NewServerListener the value is derived from the injected listener at
+// construction, not caller configuration.
 func (srv *Server) Addr() string {
 	return srv.httpServer.Addr
 }
