@@ -33,6 +33,8 @@ const (
 	codeServerTLSMinVersionInsecure     = Code("server.tls_min_version_insecure")
 	codeServerShutdownFailed            = Code("server.shutdown_failed")
 	codeServerAlreadyStarted            = Code("server.already_started")
+	codeServerListenerNil               = Code("server.listener_nil")
+	codeServerListenerConsumed          = Code("server.listener_consumed")
 )
 
 var (
@@ -150,11 +152,38 @@ func (c ServerConfig) Validate() error {
 
 // Server wraps an http.Server with lifecycle helpers.
 type Server struct {
-	httpServer      *http.Server
-	shutdownTimeout time.Duration
-	mu              sync.Mutex
-	listener        net.Listener
-	started         atomic.Bool
+	httpServer       *http.Server
+	shutdownTimeout  time.Duration
+	mu               sync.Mutex
+	listener         net.Listener
+	injectedListener net.Listener
+	started          atomic.Bool
+	consumed         atomic.Bool
+}
+
+// newHTTPServer maps a validated ServerConfig onto an http.Server with every
+// field set explicitly, so config coverage is visible at a glance.
+func newHTTPServer(cfg ServerConfig, handler http.Handler) *http.Server {
+	return &http.Server{
+		Addr:                         cfg.Addr,
+		Handler:                      handler,
+		DisableGeneralOptionsHandler: false,
+		TLSConfig:                    cfg.TLSConfig,
+		ReadTimeout:                  cfg.ReadTimeout,
+		ReadHeaderTimeout:            cfg.ReadHeaderTimeout,
+		WriteTimeout:                 cfg.WriteTimeout,
+		IdleTimeout:                  cfg.IdleTimeout,
+		MaxHeaderBytes:               0,
+		MaxHeaderValueCount:          0,
+		DisableClientPriority:        false,
+		TLSNextProto:                 nil,
+		ConnState:                    nil,
+		ErrorLog:                     nil,
+		BaseContext:                  nil,
+		ConnContext:                  nil,
+		HTTP2:                        nil,
+		Protocols:                    nil,
+	}
 }
 
 // NewServer creates a new Server with the given configuration and handler.
@@ -166,30 +195,55 @@ func NewServer(cfg ServerConfig, handler http.Handler) (*Server, error) {
 	}
 
 	server := &Server{
-		httpServer: &http.Server{
-			Addr:                         cfg.Addr,
-			Handler:                      handler,
-			DisableGeneralOptionsHandler: false,
-			TLSConfig:                    cfg.TLSConfig,
-			ReadTimeout:                  cfg.ReadTimeout,
-			ReadHeaderTimeout:            cfg.ReadHeaderTimeout,
-			WriteTimeout:                 cfg.WriteTimeout,
-			IdleTimeout:                  cfg.IdleTimeout,
-			MaxHeaderBytes:               0,
-			MaxHeaderValueCount:          0,
-			DisableClientPriority:        false,
-			TLSNextProto:                 nil,
-			ConnState:                    nil,
-			ErrorLog:                     nil,
-			BaseContext:                  nil,
-			ConnContext:                  nil,
-			HTTP2:                        nil,
-			Protocols:                    nil,
-		},
-		shutdownTimeout: cfg.ShutdownTimeout,
-		mu:              sync.Mutex{},
-		listener:        nil,
-		started:         atomic.Bool{},
+		httpServer:       newHTTPServer(cfg, handler),
+		shutdownTimeout:  cfg.ShutdownTimeout,
+		mu:               sync.Mutex{},
+		listener:         nil,
+		injectedListener: nil,
+		started:          atomic.Bool{},
+		consumed:         atomic.Bool{},
+	}
+
+	return server, nil
+}
+
+// NewServerListener creates a Server that serves on an already-bound listener
+// instead of binding its own. It is the composition seam for wrappers that
+// need to own the bind: synchronous bind-failure classification, readiness
+// state observable before serving starts, or pre-serve startup hooks that
+// inspect the bound address. All Server lifecycle semantics apply unchanged:
+// Start and StartTLS serve on the injected listener (they never bind),
+// Shutdown drains in-flight requests and closes it, and ListenerAddr reports
+// the injected listener from construction onward.
+//
+// cfg.Addr is derived from ln.Addr().String() because the bound listener is
+// the authority on the address; every other ServerConfig field applies as
+// with NewServer. On success the Server owns ln: net/http's Serve closes the
+// listener when serving ends, so a Server built here serves its listener
+// exactly once — a later Start or StartTLS after the first serve finished
+// returns the classified server.listener_consumed rejection instead of
+// rebinding. Create a new Server (and listener) to serve again. On error, ln
+// is untouched and remains the caller's to close.
+func NewServerListener(ln net.Listener, cfg ServerConfig, handler http.Handler) (*Server, error) {
+	if ln == nil {
+		return nil, errServerListenerNil
+	}
+
+	cfg.Addr = ln.Addr().String()
+
+	err := cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	server := &Server{
+		httpServer:       newHTTPServer(cfg, handler),
+		shutdownTimeout:  cfg.ShutdownTimeout,
+		mu:               sync.Mutex{},
+		listener:         ln,
+		injectedListener: ln,
+		started:          atomic.Bool{},
+		consumed:         atomic.Bool{},
 	}
 
 	return server, nil
