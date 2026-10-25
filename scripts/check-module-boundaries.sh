@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Verifies each Go module in the workspace stands alone (the consumer view):
 # with GOWORK=off, every module must build and vet against its own go.mod —
-# including the replace directives that make local paths resolvable.
+# resolving dependencies exactly as a consumer would (the root module's
+# server_timing requirement comes from the module proxy, never a local
+# replace; issue #43).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
