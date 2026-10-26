@@ -18,13 +18,13 @@ Convert a Go developer scanning the README into someone who runs `httpspec.Run(t
 
 ## Assets needed
 
-| Asset | Source | Work |
-| --- | --- | --- |
-| Demo snippet | README "Behavioral Spec Suite" section (existing, gate-checked) | Reuse verbatim |
-| Spec table | `httpspec` `SpecName` list via a small generator or the existing arch-ref table | Generate, don't hand-copy (drift rule) |
-| Failure-output example | Run one spec deliberately against a broken handler, capture output | 10-minute capture, deterministic |
-| Hero/diagram | `2026-09-10_04_49-request-flow.svg` is README-scoped, NOT httpspec-shaped | Optional new d2 (spec-runner flow) — only if the eyeball pass wants a visual |
-| Cross-links | README section, FEATURES row, arch-ref httpspec table | Bidirectional links at build time |
+| Asset                  | Source                                                                          | Work                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Demo snippet           | README "Behavioral Spec Suite" section (existing, gate-checked)                 | Reuse verbatim                                                               |
+| Spec table             | `httpspec` `SpecName` list via a small generator or the existing arch-ref table | Generate, don't hand-copy (drift rule)                                       |
+| Failure-output example | Run one spec deliberately against a broken handler, capture output              | 10-minute capture, deterministic                                             |
+| Hero/diagram           | `2026-09-10_04_49-request-flow.svg` is README-scoped, NOT httpspec-shaped       | Optional new d2 (spec-runner flow) — only if the eyeball pass wants a visual |
+| Cross-links            | README section, FEATURES row, arch-ref httpspec table                           | Bidirectional links at build time                                            |
 
 ## Out of scope for this page
 

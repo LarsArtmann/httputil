@@ -56,6 +56,7 @@ _Date-time:_ 2026-10-25 19:44 CET · _Session scope:_ issue #43 fix + v1.7.0 rel
 ## f) NEXT — up to 50, prioritized
 
 **P0 — closes this session's open loops**
+
 1. Re-check pkg.go.dev render for v1.7.0 (fetch the page; confirm README + docs render under MIT).
 2. Add the no-`^replace` assertion to `check-module-boundaries.sh` (+ CI note in AGENTS).
 3. Commit the AGENTS.md:204 correction (daemon may have swept it — verify).

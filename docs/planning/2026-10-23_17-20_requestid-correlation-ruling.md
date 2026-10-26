@@ -9,11 +9,11 @@
 
 Three identifiers describe the same request at different layers:
 
-| Identifier | Where it comes from | What it answers |
-| --- | --- | --- |
-| `RequestID` | httputil generates it (time-ordered 16-byte ID) or echoes an incoming header | Which request is this in *our* logs? |
-| `trace_id` | W3C `traceparent` (OpenTelemetry) | Which distributed trace is this part of? |
-| `X-Correlation-ID` | dnsblockd's consumer convention | Which business operation is this, across services that do not share a trace? |
+| Identifier         | Where it comes from                                                          | What it answers                                                              |
+| ------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `RequestID`        | httputil generates it (time-ordered 16-byte ID) or echoes an incoming header | Which request is this in _our_ logs?                                         |
+| `trace_id`         | W3C `traceparent` (OpenTelemetry)                                            | Which distributed trace is this part of?                                     |
+| `X-Correlation-ID` | dnsblockd's consumer convention                                              | Which business operation is this, across services that do not share a trace? |
 
 Today they are disconnected: `RequestID` emits/propagates `X-Request-ID` only, `trace_id` lives in the span context, and the fleet's baggage convention is `correlation_id` (go-appkit/otel `CorrelationIDKey`). A consumer (dnsblockd) needs `X-Correlation-ID` echoed with a fallback to the generated request ID, and currently plans a hand-rolled 15-line wrapper.
 

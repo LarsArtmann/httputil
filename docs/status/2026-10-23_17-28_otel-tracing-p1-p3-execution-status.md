@@ -41,53 +41,53 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|---|---|
-| a1 | **P1.1 — daemon gate proposal updated** with the third recurrence timeline (`28681f2`→`e6431ce`, `a6e0a12`→`0ae65b9`), the 8-day red-master cost, why human reverts were not a control, and "validated by live incident; ruling pending" | `docs/planning/2026-10-15_02-35_daemon-presweep-build-gate-proposal.md`; commit `0ad2250` |
-| a2 | **P1.2 — AGENTS erraudit block** now records recurrence ×3, both reverted commit pairs, the 8-day outage, the AST guard path, and "extend the guard, never hand-repair an annotation"; no contradictory directive exists anywhere (grep `sentinel_concrete_type` shows only historical status reports) | `AGENTS.md` Commands block; commit `87faab3` |
-| a3 | **P1.3 — CHANGELOG `[Unreleased]` entries** for the sentinel restore (15 declarations, 9 files, only `ErrCSRFInvalid` compile-breaking) and for the AST guard | `CHANGELOG.md` Fixed/Added; commit `0ad2250` |
-| a4 | **P2.5 — OTEL lane ruling** recorded as "two lanes, one owner each": `go-appkit/otel` = SDK/provider, httputil = zero-dependency hooks/contracts; `httputil/otel` recorded as a non-goal | `AGENTS.md` "Observability Lane — OTEL Ruling"; `docs/architecture-reference.md` "Observability (OTEL) lane"; commit `87faab3` |
-| a5 | **P2.1 — consumer guide** `docs/integrations/otel.md`: two-lane wiring, ordering matrix (tracing outermost → Recovery inside the span → policy → writer wrappers → Server-Timing), exception bridging, correlation guidance, six gotchas, four verification steps | 189 lines; commit `87faab3` |
-| a6 | **P2.2 — `RecoveryConfig` + `RecoveryWithConfig`** with nil-default `OnPanic(r *http.Request, recovered any)`; `Recovery(logger)` delegates unchanged; nil logger → `slog.Default`; a panicking hook is logged and swallowed; hook runs after logging, before the 500 write | `recovery.go`; commit `efae0e3` |
-| a7 | **P2.2 tests** — hook receives the exact request and recovered value; nil hook matches old behavior; panicking hook cannot escape; nil logger falls back to the slog default (non-parallel, global-logger swap) | `recovery_test.go`; `-race` green |
-| a8 | **P2.3 — deterministic example** of the bridge with a pinned `// Output:` (hook line, status, body) | `ExampleRecoveryWithConfig`, `example_test.go`; commit `efae0e3` |
-| a9 | **P2.4 — `httpspec.TracingSpecs()`** (handler-level: valid traceparent never 5xx, malformed behaves like absent) and **`httpspec.RunTracing(t, middleware)`** (middleware-level: header + `r.Pattern` passthrough, no invented header, status/body passthrough, `Flusher`/`Hijacker` survival) | `httpspec/tracing_specs.go`; commit `efae0e3` |
-| a10 | **Mutation probes for every tracing check** — stripping middleware fails the header check, a bare-writer wrapper fails the interface check, a swallowing middleware fails the pass-through check; specs fail on 500 and on body change | `httpspec/tracing_specs_test.go`; commit `efae0e3` |
-| a11 | **P2.6 — correlation decision note**: three options (echo+fallback, traceparent-seeded RequestID, baggage-only), recommendation A + C complement, "traceparent never seeds RequestID" policy proposal, one owner question | `docs/planning/2026-10-23_17-20_requestid-correlation-ruling.md`; commit `0ad2250` |
-| a12 | **P3.1 — ROADMAP un-park**: OTEL item rewritten as GRADUATED with the two-lane answer, plan link, and "httputil/otel remains a non-goal"; dated update header | `ROADMAP.md`; commit `0ad2250` |
-| a13 | **P3.2 — harvest**: TODO_LIST gains the sentinel-actor hunt and B02; ROADMAP Open questions gains the daemon gate, the correlation ruling, and the OTEL sign-off; the pending-decision row was moved out of TODO_LIST to respect the routing rule | `TODO_LIST.md`, `ROADMAP.md`; commits `0ad2250`, `2ca60fa` |
-| a14 | **P3.3 — verification**: `go vet ./...` exit 0; `go test -race ./...` green (root, httpspec, scripts/coverage-threshold); `server_timing` green; `gofmt -l` clean; `golangci-lint run ./httpspec/...` 0 issues; root lint shows only the 8 pre-existing findings | see verification appendix |
-| a15 | **Docs surface for the new API**: README opt-in spec paragraph, `docs/v1-stability.md` rows (`RecoveryConfig`, `RecoveryWithConfig`, `RunTracing`, `TracingSpecs`), architecture-reference file row + `recovery.go` exports, `httpspec/doc.go` "Tracing checks" section | commits `87faab3`, `efae0e3` |
-| a16 | **History consolidated and pushed**: `efae0e3` (feature), `87faab3` (lane + incident docs), `0ad2250` (evidence/decision/harvest), `2ca60fa` (routing fix); `## master...origin/master` clean | `git log --oneline -4` |
+| #   | Item                                                                                                                                                                                                                                                                                                   | Evidence                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| a1  | **P1.1 — daemon gate proposal updated** with the third recurrence timeline (`28681f2`→`e6431ce`, `a6e0a12`→`0ae65b9`), the 8-day red-master cost, why human reverts were not a control, and "validated by live incident; ruling pending"                                                               | `docs/planning/2026-10-15_02-35_daemon-presweep-build-gate-proposal.md`; commit `0ad2250`                                      |
+| a2  | **P1.2 — AGENTS erraudit block** now records recurrence ×3, both reverted commit pairs, the 8-day outage, the AST guard path, and "extend the guard, never hand-repair an annotation"; no contradictory directive exists anywhere (grep `sentinel_concrete_type` shows only historical status reports) | `AGENTS.md` Commands block; commit `87faab3`                                                                                   |
+| a3  | **P1.3 — CHANGELOG `[Unreleased]` entries** for the sentinel restore (15 declarations, 9 files, only `ErrCSRFInvalid` compile-breaking) and for the AST guard                                                                                                                                          | `CHANGELOG.md` Fixed/Added; commit `0ad2250`                                                                                   |
+| a4  | **P2.5 — OTEL lane ruling** recorded as "two lanes, one owner each": `go-appkit/otel` = SDK/provider, httputil = zero-dependency hooks/contracts; `httputil/otel` recorded as a non-goal                                                                                                               | `AGENTS.md` "Observability Lane — OTEL Ruling"; `docs/architecture-reference.md` "Observability (OTEL) lane"; commit `87faab3` |
+| a5  | **P2.1 — consumer guide** `docs/integrations/otel.md`: two-lane wiring, ordering matrix (tracing outermost → Recovery inside the span → policy → writer wrappers → Server-Timing), exception bridging, correlation guidance, six gotchas, four verification steps                                      | 189 lines; commit `87faab3`                                                                                                    |
+| a6  | **P2.2 — `RecoveryConfig` + `RecoveryWithConfig`** with nil-default `OnPanic(r *http.Request, recovered any)`; `Recovery(logger)` delegates unchanged; nil logger → `slog.Default`; a panicking hook is logged and swallowed; hook runs after logging, before the 500 write                            | `recovery.go`; commit `efae0e3`                                                                                                |
+| a7  | **P2.2 tests** — hook receives the exact request and recovered value; nil hook matches old behavior; panicking hook cannot escape; nil logger falls back to the slog default (non-parallel, global-logger swap)                                                                                        | `recovery_test.go`; `-race` green                                                                                              |
+| a8  | **P2.3 — deterministic example** of the bridge with a pinned `// Output:` (hook line, status, body)                                                                                                                                                                                                    | `ExampleRecoveryWithConfig`, `example_test.go`; commit `efae0e3`                                                               |
+| a9  | **P2.4 — `httpspec.TracingSpecs()`** (handler-level: valid traceparent never 5xx, malformed behaves like absent) and **`httpspec.RunTracing(t, middleware)`** (middleware-level: header + `r.Pattern` passthrough, no invented header, status/body passthrough, `Flusher`/`Hijacker` survival)         | `httpspec/tracing_specs.go`; commit `efae0e3`                                                                                  |
+| a10 | **Mutation probes for every tracing check** — stripping middleware fails the header check, a bare-writer wrapper fails the interface check, a swallowing middleware fails the pass-through check; specs fail on 500 and on body change                                                                 | `httpspec/tracing_specs_test.go`; commit `efae0e3`                                                                             |
+| a11 | **P2.6 — correlation decision note**: three options (echo+fallback, traceparent-seeded RequestID, baggage-only), recommendation A + C complement, "traceparent never seeds RequestID" policy proposal, one owner question                                                                              | `docs/planning/2026-10-23_17-20_requestid-correlation-ruling.md`; commit `0ad2250`                                             |
+| a12 | **P3.1 — ROADMAP un-park**: OTEL item rewritten as GRADUATED with the two-lane answer, plan link, and "httputil/otel remains a non-goal"; dated update header                                                                                                                                          | `ROADMAP.md`; commit `0ad2250`                                                                                                 |
+| a13 | **P3.2 — harvest**: TODO_LIST gains the sentinel-actor hunt and B02; ROADMAP Open questions gains the daemon gate, the correlation ruling, and the OTEL sign-off; the pending-decision row was moved out of TODO_LIST to respect the routing rule                                                      | `TODO_LIST.md`, `ROADMAP.md`; commits `0ad2250`, `2ca60fa`                                                                     |
+| a14 | **P3.3 — verification**: `go vet ./...` exit 0; `go test -race ./...` green (root, httpspec, scripts/coverage-threshold); `server_timing` green; `gofmt -l` clean; `golangci-lint run ./httpspec/...` 0 issues; root lint shows only the 8 pre-existing findings                                       | see verification appendix                                                                                                      |
+| a15 | **Docs surface for the new API**: README opt-in spec paragraph, `docs/v1-stability.md` rows (`RecoveryConfig`, `RecoveryWithConfig`, `RunTracing`, `TracingSpecs`), architecture-reference file row + `recovery.go` exports, `httpspec/doc.go` "Tracing checks" section                                | commits `87faab3`, `efae0e3`                                                                                                   |
+| a16 | **History consolidated and pushed**: `efae0e3` (feature), `87faab3` (lane + incident docs), `0ad2250` (evidence/decision/harvest), `2ca60fa` (routing fix); `## master...origin/master` clean                                                                                                          | `git log --oneline -4`                                                                                                         |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What exists | What is missing |
-|---|---|---|---|
-| b1 | **P2.4 verification depth** | Fake-based mutation probes for all four middleware checks and both handler specs | No run against real `otelhttp` (dependency forbidden in the root module); no CI fixture module. "Proven against fakes" is weaker than "proven against the SDK consumers actually use." |
-| b2 | **Doc-side sweep** | AGENTS, README, CHANGELOG, v1-stability, architecture-reference, `httpspec/doc.go`, ROADMAP, TODO_LIST | `FEATURES.md` not updated (feature inventory is now stale for `RecoveryConfig`/`RunTracing`). |
-| b3 | **Quality gates** | Go gates fully green; formatter applied to changed Go files; link checker run | `nix flake check` / `nix fmt` not run; `markdownlint`/`lychee` not available on PATH, so no authoritative markdown gate. |
-| b4 | **Plan truth** | Status line changed to "P0–P3 executed"; progress log appended | §4.1 rows and §5.1 subtasks were not re-marked; P2.4 still names only `TracingSpecs`; owner-decisions section §9 still lists P2.2 as waiting even though it shipped. Plan is accurate in prose, stale in tables. |
-| b5 | **Sentinel incident** | Build fixed, AST guard shipped and mutation-proven, evidence recorded | The **actor** that re-applied the sweep after two reverts is still unidentified. The guard is a backstop; the source is unknown. |
-| b6 | **Correlation work** | Decision note with options and recommendation | Nothing implemented (B02 gated on the owner ruling, by design). |
+| #  | Item                        | What exists                                                                                            | What is missing                                                                                                                                                                                                  |
+| -- | --------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| b1 | **P2.4 verification depth** | Fake-based mutation probes for all four middleware checks and both handler specs                       | No run against real `otelhttp` (dependency forbidden in the root module); no CI fixture module. "Proven against fakes" is weaker than "proven against the SDK consumers actually use."                           |
+| b2 | **Doc-side sweep**          | AGENTS, README, CHANGELOG, v1-stability, architecture-reference, `httpspec/doc.go`, ROADMAP, TODO_LIST | `FEATURES.md` not updated (feature inventory is now stale for `RecoveryConfig`/`RunTracing`).                                                                                                                    |
+| b3 | **Quality gates**           | Go gates fully green; formatter applied to changed Go files; link checker run                          | `nix flake check` / `nix fmt` not run; `markdownlint`/`lychee` not available on PATH, so no authoritative markdown gate.                                                                                         |
+| b4 | **Plan truth**              | Status line changed to "P0–P3 executed"; progress log appended                                         | §4.1 rows and §5.1 subtasks were not re-marked; P2.4 still names only `TracingSpecs`; owner-decisions section §9 still lists P2.2 as waiting even though it shipped. Plan is accurate in prose, stale in tables. |
+| b5 | **Sentinel incident**       | Build fixed, AST guard shipped and mutation-proven, evidence recorded                                  | The **actor** that re-applied the sweep after two reverts is still unidentified. The guard is a backstop; the source is unknown.                                                                                 |
+| b6 | **Correlation work**        | Decision note with options and recommendation                                                          | Nothing implemented (B02 gated on the owner ruling, by design).                                                                                                                                                  |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Why it matters |
-|---|---|---|
-| c1 | **P4 — 38 gated backlog items** (B01–B38) | ROADMAP fuel; none are commitments. B01 (daemon gate), B02 (correlation), B03 (go.work policy) are the nearest. |
-| c2 | **Real-`otelhttp` integration proof for `RunTracing`** | The checks are the library's claim to tracing interop; fakes do not prove the SDK's wrapper passes them. |
-| c3 | **`FEATURES.md` inventory refresh** | The repo's honest feature inventory currently omits the new hook and the tracing specs. |
-| c4 | **`nix flake check` on HEAD** | Full gate (treefmt + flake checks + platform checks); untested this session. |
-| c5 | **Doc-snippet compile fixture** | `otel.md` snippets can rot silently; the repo already has `scripts/doc-snippet-refs` for another class. |
-| c6 | **Sentinel-sweep actor hunt** | Without the actor identified, recurrence #4 is only prevented by the guard, not understood. |
-| c7 | **Pre-existing lint cleanup** | 7 unused `//nolint:gosec` directives + 1 gocyclo (24>20) keep `golangci-lint run` at 8 issues. |
-| c8 | **Owner decisions** | Daemon build gate, correlation Option A, OTEL lane sign-off (now including `RunTracing` as new surface). |
-| c9 | **v1.6.0 release mechanics** | CHANGELOG `[Unreleased]` now carries Language + OTEL work; no version heading, compare-link check, or release run. |
+| #  | Item                                                   | Why it matters                                                                                                     |
+| -- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| c1 | **P4 — 38 gated backlog items** (B01–B38)              | ROADMAP fuel; none are commitments. B01 (daemon gate), B02 (correlation), B03 (go.work policy) are the nearest.    |
+| c2 | **Real-`otelhttp` integration proof for `RunTracing`** | The checks are the library's claim to tracing interop; fakes do not prove the SDK's wrapper passes them.           |
+| c3 | **`FEATURES.md` inventory refresh**                    | The repo's honest feature inventory currently omits the new hook and the tracing specs.                            |
+| c4 | **`nix flake check` on HEAD**                          | Full gate (treefmt + flake checks + platform checks); untested this session.                                       |
+| c5 | **Doc-snippet compile fixture**                        | `otel.md` snippets can rot silently; the repo already has `scripts/doc-snippet-refs` for another class.            |
+| c6 | **Sentinel-sweep actor hunt**                          | Without the actor identified, recurrence #4 is only prevented by the guard, not understood.                        |
+| c7 | **Pre-existing lint cleanup**                          | 7 unused `//nolint:gosec` directives + 1 gocyclo (24>20) keep `golangci-lint run` at 8 issues.                     |
+| c8 | **Owner decisions**                                    | Daemon build gate, correlation Option A, OTEL lane sign-off (now including `RunTracing` as new surface).           |
+| c9 | **v1.6.0 release mechanics**                           | CHANGELOG `[Unreleased]` now carries Language + OTEL work; no version heading, compare-link check, or release run. |
 
 ---
 
@@ -118,78 +118,78 @@ No destructive failure occurred: nothing was deleted, no force-push, no history 
 
 ### Group 1 — close this session's residue (highest leverage)
 
-| # | Task | Impact |
-|---|---|---|
-| 1 | Update `FEATURES.md`: `RecoveryConfig`/`RecoveryWithConfig`, `httpspec.TracingSpecs`, `httpspec.RunTracing`, and the OTEL guide, each with status DONE | Doc honesty; required by the documented sweep |
-| 2 | Run `nix fmt` and `nix flake check` on HEAD; fix anything they surface | Full repo gate |
-| 3 | Amend plan §4.1/§5.1/§9: P2.4 includes `RunTracing`; P2.2 no longer "waiting"; add the `RunTracing` API delta to owner decisions | Plan truth |
-| 4 | Build a fixture module that runs `httpspec.RunTracing` against real `otelhttp` (and, if practical, `appkitotel.Middleware`) | Proves the interop claim |
-| 5 | Extract `docs/integrations/otel.md` snippets into that fixture so they compile | Prevents doc rot |
-| 6 | Add a small `httpspec` test demonstrating `RunTracing` on a real composed chain (RequestID + CORS + tracing fake) | Discoverability |
-| 7 | Add the 8 pre-existing lint findings to a bounded cleanup task (7 gosec directives + 1 gocyclo) and fix them | Restores "0 issues" |
-| 8 | Re-measure the erraudit ledger after this session (`--type-aware` count should be unchanged at 51/49; confirm) | Baseline integrity |
-| 9 | Re-run `art-dupl -t 2` (expect 0) and `-t 1` (expect the two accepted pairs) after the new files | Clone baseline |
-| 10 | Verify coverage did not drop; update the README/FEATURES coverage registry if the new code is under the module figure | Quality claim |
-| 11 | Add a CHANGELOG "Documented" entry for the lane ruling and the correlation note | Release notes completeness |
-| 12 | Check all `[Unreleased]` entries for a future v1.6.0 `[1.6.0]:` compare link (do it at tag time per RELEASE.md) | Tag hygiene |
+| #  | Task                                                                                                                                                   | Impact                                        |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| 1  | Update `FEATURES.md`: `RecoveryConfig`/`RecoveryWithConfig`, `httpspec.TracingSpecs`, `httpspec.RunTracing`, and the OTEL guide, each with status DONE | Doc honesty; required by the documented sweep |
+| 2  | Run `nix fmt` and `nix flake check` on HEAD; fix anything they surface                                                                                 | Full repo gate                                |
+| 3  | Amend plan §4.1/§5.1/§9: P2.4 includes `RunTracing`; P2.2 no longer "waiting"; add the `RunTracing` API delta to owner decisions                       | Plan truth                                    |
+| 4  | Build a fixture module that runs `httpspec.RunTracing` against real `otelhttp` (and, if practical, `appkitotel.Middleware`)                            | Proves the interop claim                      |
+| 5  | Extract `docs/integrations/otel.md` snippets into that fixture so they compile                                                                         | Prevents doc rot                              |
+| 6  | Add a small `httpspec` test demonstrating `RunTracing` on a real composed chain (RequestID + CORS + tracing fake)                                      | Discoverability                               |
+| 7  | Add the 8 pre-existing lint findings to a bounded cleanup task (7 gosec directives + 1 gocyclo) and fix them                                           | Restores "0 issues"                           |
+| 8  | Re-measure the erraudit ledger after this session (`--type-aware` count should be unchanged at 51/49; confirm)                                         | Baseline integrity                            |
+| 9  | Re-run `art-dupl -t 2` (expect 0) and `-t 1` (expect the two accepted pairs) after the new files                                                       | Clone baseline                                |
+| 10 | Verify coverage did not drop; update the README/FEATURES coverage registry if the new code is under the module figure                                  | Quality claim                                 |
+| 11 | Add a CHANGELOG "Documented" entry for the lane ruling and the correlation note                                                                        | Release notes completeness                    |
+| 12 | Check all `[Unreleased]` entries for a future v1.6.0 `[1.6.0]:` compare link (do it at tag time per RELEASE.md)                                        | Tag hygiene                                   |
 
 ### Group 2 — owner decisions that unblock code
 
-| # | Task | Gate |
-|---|---|---|
-| 13 | Rule on the daemon pre-sweep build gate (option b recommended; evidence now ×3) | owner (pma) |
-| 14 | Rule on RequestID correlation Option A (`X-Correlation-ID` echo + fallback, default off) and "traceparent never seeds RequestID" | owner |
-| 15 | Sign off the OTEL lane, including `RecoveryConfig.OnPanic` and the unplanned `RunTracing` surface | owner |
-| 16 | Rule the go.work membership policy for future sub-modules | owner |
-| 17 | Decide the `AbsentEncodingFirstConfigured` lifecycle (permanent vs v2 removal) | owner |
-| 18 | Decide the `MiddlewareFunc.Append` parity question | owner |
-| 19 | Rule the shutdown-drain contract (`Shutdown` vs `Start` race window) | owner |
-| 20 | Choose the TLS-config clone-on-write direction | design/owner |
-| 21 | Decide the tracked-root-binaries question | owner |
-| 22 | Decide the art-dupl `-t 1` gate policy | owner |
-| 23 | Decide CHANGELOG granularity for doc-only changes | owner |
-| 24 | Retire or keep the website "no flake.nix" guard | cross-repo owner |
+| #  | Task                                                                                                                             | Gate             |
+| -- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 13 | Rule on the daemon pre-sweep build gate (option b recommended; evidence now ×3)                                                  | owner (pma)      |
+| 14 | Rule on RequestID correlation Option A (`X-Correlation-ID` echo + fallback, default off) and "traceparent never seeds RequestID" | owner            |
+| 15 | Sign off the OTEL lane, including `RecoveryConfig.OnPanic` and the unplanned `RunTracing` surface                                | owner            |
+| 16 | Rule the go.work membership policy for future sub-modules                                                                        | owner            |
+| 17 | Decide the `AbsentEncodingFirstConfigured` lifecycle (permanent vs v2 removal)                                                   | owner            |
+| 18 | Decide the `MiddlewareFunc.Append` parity question                                                                               | owner            |
+| 19 | Rule the shutdown-drain contract (`Shutdown` vs `Start` race window)                                                             | owner            |
+| 20 | Choose the TLS-config clone-on-write direction                                                                                   | design/owner     |
+| 21 | Decide the tracked-root-binaries question                                                                                        | owner            |
+| 22 | Decide the art-dupl `-t 1` gate policy                                                                                           | owner            |
+| 23 | Decide CHANGELOG granularity for doc-only changes                                                                                | owner            |
+| 24 | Retire or keep the website "no flake.nix" guard                                                                                  | cross-repo owner |
 
 ### Group 3 — incident hardening
 
-| # | Task | Impact |
-|---|---|---|
-| 25 | Identify the sentinel-sweep actor (erraudit invocations, parallel sessions, tool logs) and record it | Removes the recurrence root cause |
-| 26 | Extend the AST guard to the `server_timing` module (it is a separate package the current test never parses) | Closes a blind spot |
-| 27 | Add a mutation test for the guard itself in CI (temporarily re-annotate, expect failure) if feasible non-destructively | Guard trust |
-| 28 | Consider a `go vet`-before-sweep wrapper locally as a stopgap until the daemon gate is ruled | Immediate protection |
-| 29 | Verify `scripts/prerelease-check.sh` runs the AST guard (it runs `go test`, so confirm the test name is included) | Release protection |
+| #  | Task                                                                                                                   | Impact                            |
+| -- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| 25 | Identify the sentinel-sweep actor (erraudit invocations, parallel sessions, tool logs) and record it                   | Removes the recurrence root cause |
+| 26 | Extend the AST guard to the `server_timing` module (it is a separate package the current test never parses)            | Closes a blind spot               |
+| 27 | Add a mutation test for the guard itself in CI (temporarily re-annotate, expect failure) if feasible non-destructively | Guard trust                       |
+| 28 | Consider a `go vet`-before-sweep wrapper locally as a stopgap until the daemon gate is ruled                           | Immediate protection              |
+| 29 | Verify `scripts/prerelease-check.sh` runs the AST guard (it runs `go test`, so confirm the test name is included)      | Release protection                |
 
 ### Group 4 — tracing/spec depth
 
-| # | Task | Impact |
-|---|---|---|
-| 30 | Add a `RunTracing` check for `http.Pusher` preservation (HTTP/2 push) | Interface completeness |
-| 31 | Add a `RunTracing` check that a middleware does not mutate the request method/path/body | Contract completeness |
-| 32 | Add `TracingSpecs` coverage for `tracestate` passthrough (not just `traceparent`) | W3C completeness |
-| 33 | Document the `WithPublicEndpointFn` vs `WithPublicEndpoint` difference in the guide's gotchas (already noted; add the appkit option name) | Consumer clarity |
-| 34 | Add a guide section on sampling (`parentbased_traceidratio`) and what httputil does/does not do | Guide usefulness |
-| 35 | Consider an `httpspec` helper to assert a `traceparent` round-trip on the response (for proxies that echo) — only if real consumers need it | Demand-gated |
-| 36 | Evaluate whether `RecoveryConfig` should accept a hook that receives the stack (`[]byte`) to avoid re-capturing it for span events | API ergonomics |
-| 37 | Add `RecoveryWithConfig` to any consumer-facing examples/bundles docs (`docs/integrations/compose-bundles.md`) if a tracing bundle is documented | Discoverability |
+| #  | Task                                                                                                                                             | Impact                 |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
+| 30 | Add a `RunTracing` check for `http.Pusher` preservation (HTTP/2 push)                                                                            | Interface completeness |
+| 31 | Add a `RunTracing` check that a middleware does not mutate the request method/path/body                                                          | Contract completeness  |
+| 32 | Add `TracingSpecs` coverage for `tracestate` passthrough (not just `traceparent`)                                                                | W3C completeness       |
+| 33 | Document the `WithPublicEndpointFn` vs `WithPublicEndpoint` difference in the guide's gotchas (already noted; add the appkit option name)        | Consumer clarity       |
+| 34 | Add a guide section on sampling (`parentbased_traceidratio`) and what httputil does/does not do                                                  | Guide usefulness       |
+| 35 | Consider an `httpspec` helper to assert a `traceparent` round-trip on the response (for proxies that echo) — only if real consumers need it      | Demand-gated           |
+| 36 | Evaluate whether `RecoveryConfig` should accept a hook that receives the stack (`[]byte`) to avoid re-capturing it for span events               | API ergonomics         |
+| 37 | Add `RecoveryWithConfig` to any consumer-facing examples/bundles docs (`docs/integrations/compose-bundles.md`) if a tracing bundle is documented | Discoverability        |
 
 ### Group 5 — ROADMAP fuel (existing gated items, highest value first)
 
-| # | Task | Gate |
-|---|---|---|
+| #  | Task                                                  | Gate        |
+| -- | ----------------------------------------------------- | ----------- |
 | 38 | B02 — implement RequestID correlation echo + fallback | decision 14 |
-| 39 | B01 — wire the daemon build gate | decision 13 |
-| 40 | B03 — go.work membership policy + CI gates | decision 16 |
-| 41 | B04 — HSTS middleware | demand |
-| 42 | B05 — HTTPS-redirect helper | demand |
-| 43 | B06 — `MaxHeaderBytes` passthrough | demand |
-| 44 | B07 — idempotency-key middleware design | demand |
-| 45 | B08 — shutdown-drain implementation | decision 19 |
-| 46 | B10 — TLS clone-on-write | decision 20 |
-| 47 | B27 — `StrictCSP` preset | demand |
-| 48 | B29/B30 — brotli/zstd factories, Prometheus recorder | demand |
-| 49 | B36 — runnable `example/` directory | demand |
-| 50 | B37 — HTTP/2 integration tests | — |
+| 39 | B01 — wire the daemon build gate                      | decision 13 |
+| 40 | B03 — go.work membership policy + CI gates            | decision 16 |
+| 41 | B04 — HSTS middleware                                 | demand      |
+| 42 | B05 — HTTPS-redirect helper                           | demand      |
+| 43 | B06 — `MaxHeaderBytes` passthrough                    | demand      |
+| 44 | B07 — idempotency-key middleware design               | demand      |
+| 45 | B08 — shutdown-drain implementation                   | decision 19 |
+| 46 | B10 — TLS clone-on-write                              | decision 20 |
+| 47 | B27 — `StrictCSP` preset                              | demand      |
+| 48 | B29/B30 — brotli/zstd factories, Prometheus recorder  | demand      |
+| 49 | B36 — runnable `example/` directory                   | demand      |
+| 50 | B37 — HTTP/2 integration tests                        | —           |
 
 ---
 
@@ -222,12 +222,12 @@ relative-link check (touched docs)      → no real broken links (3 false positi
 
 Commit inventory (all pushed):
 
-| Commit | Subject | Files |
-|---|---|---|
-| `efae0e3` | feat: support tracing bridges without a telemetry dependency | `recovery.go`, `recovery_test.go`, `example_test.go`, `httpspec/tracing_specs.go`, `httpspec/tracing_specs_test.go`, `httpspec/doc.go` |
-| `87faab3` | docs: lock the sentinel incident and document the OpenTelemetry lane | `AGENTS.md`, `README.md`, `docs/architecture-reference.md`, `docs/v1-stability.md`, `docs/integrations/otel.md` |
-| `0ad2250` | docs: record the incident evidence, correlation decision, and backlog routing | `CHANGELOG.md`, `ROADMAP.md`, `TODO_LIST.md`, gate proposal, plan, correlation note |
-| `2ca60fa` | docs: keep pending decisions in the roadmap | `TODO_LIST.md` |
+| Commit    | Subject                                                                       | Files                                                                                                                                  |
+| --------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `efae0e3` | feat: support tracing bridges without a telemetry dependency                  | `recovery.go`, `recovery_test.go`, `example_test.go`, `httpspec/tracing_specs.go`, `httpspec/tracing_specs_test.go`, `httpspec/doc.go` |
+| `87faab3` | docs: lock the sentinel incident and document the OpenTelemetry lane          | `AGENTS.md`, `README.md`, `docs/architecture-reference.md`, `docs/v1-stability.md`, `docs/integrations/otel.md`                        |
+| `0ad2250` | docs: record the incident evidence, correlation decision, and backlog routing | `CHANGELOG.md`, `ROADMAP.md`, `TODO_LIST.md`, gate proposal, plan, correlation note                                                    |
+| `2ca60fa` | docs: keep pending decisions in the roadmap                                   | `TODO_LIST.md`                                                                                                                         |
 
 Environment notes: `GOCACHE=$HOME/.cache/go-build-httputil`, `GOLANGCI_LINT_CACHE=$HOME/.cache/golangci-lint-httputil`, `GOTOOLCHAIN=auto` were set for every Go command. The auto-commit daemon is active; commits `efae0e3`–`2ca60fa` were created deliberately with `--no-verify` because the pre-commit hook's `dprint` binary is absent.
 

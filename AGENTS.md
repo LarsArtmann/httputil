@@ -75,16 +75,17 @@ scripts/pre-sweep-check.sh
 # server_timing clean.
 # The load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites.
-# The 15 "declare it as the error interface" hints are ALSO rejected, and the
+# The 17 "declare it as the error interface" hints are ALSO rejected, and the
 # proof is `ErrCSRFInvalid`: its only method call site is
 # `ErrCSRFInvalid.WithContext("path", "/login")` in example_test.go:859, which
 # the tool's load-bearing analysis misses because that analysis reads non-test
-# files only. 13 of the 15 have no method call site today and are hinted purely
+# files only. 15 of the 17 have no method call site today and are hinted purely
 # for legacy_is noise reduction, which errorfamily's code+family `Is` semantics
-# already handle. ACTOR (P05 verdict, 2026-10-23): the sweep is not a mechanical
-# fix — erraudit has no --fix — it is an agent applying a FLEET rule
-# (BuildFlow docs/GOTCHAS.md #125: "sentinel variables MUST be declared as the
-# error interface type") to this repo, where it is wrong because these sentinels
+# already handle. ACTOR (P05 verdict, 2026-10-23; corrected 2026-10-25): the
+# sweep has TWO actors — agents applying a FLEET rule (BuildFlow
+# docs/GOTCHAS.md #125: "sentinel variables MUST be declared as the error
+# interface type") AND buildflow's own erraudit step, whose fix phase applies
+# every SuggestedFix in-process. Both are wrong here because these sentinels
 # are load-bearing. KEEP EVERY CONCRETE SENTINEL; the upstream corrections
 # (erraudit hint vs test-file call sites, GOTCHAS #125's blanket wording) are
 # owner-gated cross-repo items, not silent edits.
@@ -94,12 +95,20 @@ scripts/pre-sweep-check.sh
 # 072e6db (08:19) applied all 15 erraudit rewrite hints at once, compile-broke
 # `ErrCSRFInvalid.WithContext` (example_test.go:859) and sat red AND pushed for
 # ≈3¾ hours (08:19 → 12:04 revert) — a doc-only commit failed the same CI,
-# proving every push inherited the broken tree until the audit landed. The
-# guards fire at TEST time, so they cannot stop a daemon that never runs
-# tests; the only pre-push stopgap is scripts/pre-sweep-check.sh, and the
-# sweeping session must run it (restored from 072e6db^ same day; the same
-# commit's go.mod server_timing v1.0.2→v1.0.3 and flake.lock bump were
-# legitimate and kept). MECHANICAL GUARDS (both modules):
+# proving every push inherited the broken tree until the audit landed.
+# RECURRENCE ×5 (2026-10-25, mechanism IDENTIFIED): the sweeper is buildflow
+# itself — `buildflow --fix`'s erraudit repair node applies every SuggestedFix
+# in-process (erraudit_sdk.go; no type filter, flag, or env knob), re-landing
+# all 17 hints mid-run and compile-breaking example_test.go:927 (the
+# coverage/test steps then fail on the broken tree). STOPGAP LANDED:
+# `.buildflow.yml` skip_steps erraudit (go-auto-upgrade pattern); the REAL
+# gates are unaffected (prerelease-check.sh step 6 runs legacy_as +
+# stdlib_constructor, exit 0 required). Re-enable when erraudit stops
+# emitting SuggestedFixes for load-bearing sentinels. Guards fire at TEST
+# time and cannot stop a fix step that runs before them;
+# scripts/pre-sweep-check.sh stays the stopgap for the AGENT actor
+# (072e6db^ restore kept that commit's legitimate go.mod/flake.lock bumps).
+# MECHANICAL GUARDS (both modules):
 # `sentinels_type_test.go` parses the package and fails any err*/Err* var
 # declared with an explicit `error` type (2026-10-23, commit 9aa4178; extended
 # the same day with a record-reporter self-test that proves the detector is not

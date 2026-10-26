@@ -8,5 +8,18 @@
 # noise against a standing dependency policy. Run the step explicitly when
 # wanted:
 #   buildflow -s go-auto-upgrade
+# erraudit: the pipeline's fix phase runs legacyerrors.Analyzer in-process
+# (BuildFlow erraudit_sdk.go) and applies EVERY SuggestedFix unconditionally —
+# including the `var errX error` rewrite hints for this repo's 17 load-bearing
+# `*errorfamily.Error` sentinels (no type filter, flag, or env can restrict
+# the SDK path). Each application compile-breaks example_test.go:927
+# (ErrCSRFInvalid.WithContext), which is recurrence class #6 of the AGENTS.md
+# erraudit block; the sentinel guards fire at TEST time and cannot stop a fix
+# step that runs before it. The REAL gates are unaffected: scripts/
+# prerelease-check.sh step 6 runs `erraudit lint --type legacy_as` and
+# `--type stdlib_constructor --enforce-go-error-family` (exit 0 required).
+# Re-enable this step when erraudit stops emitting SuggestedFixes for
+# load-bearing sentinels (owner-gated upstream correction).
 skip_steps:
   - go-auto-upgrade
+  - erraudit

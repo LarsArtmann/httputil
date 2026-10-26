@@ -595,7 +595,7 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `DetectCapabilities`              | `func(http.ResponseWriter) Capabilities`                              | Report Hijacker/Flusher support                                               |
 | `RegisterErrorClassifications`    | `func()`                                                              | Register stdlib error sentinels + templates                                   |
 | `NewServer`                       | `func(ServerConfig, http.Handler) (*Server, error)`                   | Configurable HTTP server with timeouts                                        |
-| `NewServerListener`               | `func(net.Listener, ServerConfig, http.Handler) (*Server, error)`      | Serve on a caller-bound listener (wrappers own the bind)                      |
+| `NewServerListener`               | `func(net.Listener, ServerConfig, http.Handler) (*Server, error)`     | Serve on a caller-bound listener (wrappers own the bind)                      |
 | `Server.ListenerAddr()`           | `func() (net.Addr, bool)`                                             | Resolved listener address (`:0` → real port); false when not listening        |
 | `DefaultServerConfig`             | `func() ServerConfig`                                                 | Sensible server timeout defaults                                              |
 | `RegisterHealth`                  | `func(*http.ServeMux)`                                                | Register /health + /live + /ready                                             |

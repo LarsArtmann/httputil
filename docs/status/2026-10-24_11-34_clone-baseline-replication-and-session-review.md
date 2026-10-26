@@ -11,10 +11,10 @@
 
 **The baseline holds — and now stands verified twice in one day with full numeric replication — but my session was a blind duplicate of the 08:49 session's work.** Same tool (`art-dupl 0.9.0-93432fd`), same three gates, identical counts to the digit. The verification result is as strong as it gets; the process that produced it was redundant and missed the series context until the owner's self-review prompt forced the look.
 
-| Gate | This session (11:3x) | 08:49 session | Episode-1 docs expectation | Verdict |
-| --- | --- | --- | --- | --- |
-| `-t 2 --type-aware` | 0 shown (370 detected, 204 non-actionable, 166 filtered) | 0 shown (370/204/166) | 0 shown groups | ✅ exact numeric replication |
-| `-t 1 --type-aware` | 2 shown (798 detected, 565 non-actionable, 231 filtered) | 2 shown (798 detected) | exactly the 2 accepted pairs | ✅ exact numeric replication |
+| Gate                                   | This session (11:3x)                                                            | 08:49 session                               | Episode-1 docs expectation             | Verdict                      |
+| -------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------- | ---------------------------- |
+| `-t 2 --type-aware`                    | 0 shown (370 detected, 204 non-actionable, 166 filtered)                        | 0 shown (370/204/166)                       | 0 shown groups                         | ✅ exact numeric replication |
+| `-t 1 --type-aware`                    | 2 shown (798 detected, 565 non-actionable, 231 filtered)                        | 2 shown (798 detected)                      | exactly the 2 accepted pairs           | ✅ exact numeric replication |
 | `-t 1` combined (`--suggest-generics`) | 2 shown, 0 generics candidates (800 detected, 567 non-actionable, 231 filtered) | 2 shown, 0 generics candidates (user's run) | combined-mode clean clause added 08:49 | ✅ exact numeric replication |
 
 Both shown groups match their documented accept-rationale (`docs/architecture-reference.md:166-176`): the `Middleware` alias pair across the module boundary (`recorder.go:18` ↔ `server_timing/middleware.go:6`) and the if-err pair in `scripts/doc-snippet-refs/main.go:44-48/57-61`. The other two accepted clones (`mw1`/`mw2`, `newTypedBodyHandler`) live in test files, auto-excluded by the tool.
@@ -31,23 +31,23 @@ Both shown groups match their documented accept-rationale (`docs/architecture-re
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-| --- | --- | --- |
-| a1 | All three clone gates re-run and matched baseline EXACTLY (including suppressed/non-actionable sub-counts, not just shown groups) | run outputs above; identical numbers to episode 1 |
-| a2 | Tool version verified against the baseline stamp (`0.9.0-93432fd`) | version string in all three run outputs |
-| a3 | Both shown pairs judged against their committed accept-rationale; conclusion "zero harmful duplication" | `docs/architecture-reference.md:164-176` |
-| a4 | Scan-scope question closed: 137 tracked `.go` files = 137 scanned → `testdata/otelinterop` included | `git ls-files '*.go' \| wc -l` vs art-dupl discovery count |
-| a5 | Confirmed NO clone gate exists in `scripts/prerelease-check.sh` — episode 1's gate question is not already half-implemented | grep, empty |
-| a6 | No working-tree changes made; no commits, no pushes; skill doctrine "extract/accept/exclude" correctly resolved to "accept ×2, nothing new" | `git status` clean at close |
+| #  | Item                                                                                                                                        | Evidence                                                   |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| a1 | All three clone gates re-run and matched baseline EXACTLY (including suppressed/non-actionable sub-counts, not just shown groups)           | run outputs above; identical numbers to episode 1          |
+| a2 | Tool version verified against the baseline stamp (`0.9.0-93432fd`)                                                                          | version string in all three run outputs                    |
+| a3 | Both shown pairs judged against their committed accept-rationale; conclusion "zero harmful duplication"                                     | `docs/architecture-reference.md:164-176`                   |
+| a4 | Scan-scope question closed: 137 tracked `.go` files = 137 scanned → `testdata/otelinterop` included                                         | `git ls-files '*.go' \| wc -l` vs art-dupl discovery count |
+| a5 | Confirmed NO clone gate exists in `scripts/prerelease-check.sh` — episode 1's gate question is not already half-implemented                 | grep, empty                                                |
+| a6 | No working-tree changes made; no commits, no pushes; skill doctrine "extract/accept/exclude" correctly resolved to "accept ×2, nothing new" | `git status` clean at close                                |
 
 ## b) PARTIALLY DONE
 
-| # | Item | Done | Missing |
-| --- | --- | --- | --- |
-| b1 | Dedup verification | Fully executed, replicated, evidence recorded (a1-a3) | Nothing — complete; the redundancy cost is a (d) item, not a gap here |
-| b2 | Series cross-referencing | Done — but only NOW, during this report, after the owner's prompt; episode 1 was read and reconciled | Was NOT done before running the gates — the work ran blind to the same-day prior episode |
-| b3 | Session-tail discipline (AGENTS.md) | Push state checked (late): ahead 1; tree clean | CI state on pushed HEAD never checked; the check happened at report time, not at the end of the work turn; `scripts/pre-sweep-check.sh` still never run after daemon commit `072e6db` touched 9 `.go` files (episode 1's b2/c3 miss, now carried by TWO sessions) |
-| b4 | Tree-health evidence | My type-aware art-dupl runs type-checked all 137 files successfully (go/packages, exit 0) — incidental type-level proof the tree compiles after `072e6db` | Build + vet + tests still unrun; and I failed to even NOTICE this evidence until writing this report — it existed and went unclaimed |
+| #  | Item                                | Done                                                                                                                                                      | Missing                                                                                                                                                                                                                                                           |
+| -- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| b1 | Dedup verification                  | Fully executed, replicated, evidence recorded (a1-a3)                                                                                                     | Nothing — complete; the redundancy cost is a (d) item, not a gap here                                                                                                                                                                                             |
+| b2 | Series cross-referencing            | Done — but only NOW, during this report, after the owner's prompt; episode 1 was read and reconciled                                                      | Was NOT done before running the gates — the work ran blind to the same-day prior episode                                                                                                                                                                          |
+| b3 | Session-tail discipline (AGENTS.md) | Push state checked (late): ahead 1; tree clean                                                                                                            | CI state on pushed HEAD never checked; the check happened at report time, not at the end of the work turn; `scripts/pre-sweep-check.sh` still never run after daemon commit `072e6db` touched 9 `.go` files (episode 1's b2/c3 miss, now carried by TWO sessions) |
+| b4 | Tree-health evidence                | My type-aware art-dupl runs type-checked all 137 files successfully (go/packages, exit 0) — incidental type-level proof the tree compiles after `072e6db` | Build + vet + tests still unrun; and I failed to even NOTICE this evidence until writing this report — it existed and went unclaimed                                                                                                                              |
 
 ## c) NOT STARTED
 
@@ -85,33 +85,33 @@ No code damage, no red master, nothing destroyed. But radical honesty about the 
 
 Owner asked for up to 50. Same honesty rule as episode 1: no fabrication; items below = episode 1's still-open list (status-updated) + this session's genuinely new findings. **[OWNER]** = owner-gated.
 
-| # | Task | Source | Impact | Effort |
-| --- | --- | --- | --- | --- |
-| 1 | Rule on the clone-baseline gate (fail prerelease unless `-t 1` shows exactly 2 pairs, `-t 2` exactly 0; go-etag precedent; prerelease-check.sh step, not a go test) **[OWNER]** | ep1 #4, still open | High | decision |
-| 2 | If approved: implement the gate in `scripts/` + wire into `prerelease-check.sh` (mirror the sentinel-guard pattern); pin counts AND tool version in the failure message | ep1 #6/#16 | High | ~1h |
-| 3 | Push ruling: `git push` the ahead-1 master (unpushed commit is ep1's report `565d23d`) **[OWNER]** | this session b3 | Medium | ~1min |
-| 4 | Run `scripts/pre-sweep-check.sh` (build+vet+sentinels) — partially de-risked by this session's type-check of all 137 files, but build/vet/tests unverified since `072e6db` | ep1 #1, 2 sessions carried | Medium | ~1min |
-| 5 | Read `072e6db`'s full diff; judge `go.mod`/`flake.lock` deltas against daemon-casualty classes; rule via ep1 question 2 **[OWNER intent]** | ep1 #2/#17 | Medium | ~10min |
-| 6 | Confirm CI green on pushed HEAD `e6fbd0f` | ep1 #3 | Medium | ~2min |
-| 7 | Single-source the baseline stamp: dated sentence lives in architecture-reference.md only; AGENTS.md becomes a pointer — ends the two-file manual sync (split brain, (d)4) | ep1 #7 | Medium | ~15min |
-| 8 | Add scan-scope clause to the baseline section: "137 tracked .go files incl. `testdata/otelinterop`'s 5 — scope = all tracked Go, verified 137==137 (2026-10-24)" | NEW (this session a4) | Low | ~2min |
-| 9 | Record the measured timing pair near the art-dupl commands: cold type-load ~59s, warm ~8.6s/8.8s total (both numbers already in hand) | ep1 #10/#11 + this session | Low | ~2min |
-| 10 | Rule: does combined mode (`--suggest-generics`) join the canonical AGENTS.md Commands block or stay an ad-hoc audit lane with per-run verdicts? **[OWNER]** | ep1 Q3, still open | Low-Med | decision |
-| 11 | Decide `//art-dupl:accept` directives for the 2 shown pairs (self-documenting shown-count) **[OWNER]** | ep1 #18 | Low | ~15min |
-| 12 | Document art-dupl binary provenance/upgrade path (nix profile → current-system/sw; source `~/projects/art-dupl`) | ep1 #12 | Low | ~15min |
-| 13 | Re-run both thresholds at next art-dupl or Go-toolchain bump; refresh stamps in the SAME change (0.7→0.9 drift happened inside one month) | ep1 #8 | Med on bump | ~10min |
-| 14 | Record per-rebaseline combined-mode verdict ("clean as of 2026-10-24, twice") | ep1 #9 | Low | ~2min |
-| 15 | HARVEST both reports' (f) into TODO_LIST/ROADMAP after owner review (docs-health HARVEST rigor) | ep1 #15 | Medium | ~20min |
-| 16 | ANNOTATE ep1's report as items resolve; move both reports to `docs/status/archived/` when fully done (docs-health convention) | ep1 #14 | Low | ~5min |
-| 17 | When the gate lands: add it to `docs/RELEASE.md` gates list so releases cannot skip it | ep1 #20 | Medium | ~10min |
-| 18 | Fleet cross-check: do sibling repos record combined-mode verdicts; should the clause be fleet convention? **[OWNER]** | ep1 #19 | Low | decision |
-| 19 | Codify the pre-task `ls docs/status/` habit (this session's #1 lesson) into AGENTS.md's session-start workflow — one sentence | NEW (e1) | Medium | ~5min |
-| 20 | go-etag dependency revisit: dep kept only for error-code registration since the v1.1.0 adapter removal — can the registration be localized/inlined to drop a whole external dep? **[OWNER]** | AGENTS.md context | Low | ~1h |
-| 21 | Rule on `Server.MaxHeaderValueCount` pass-through: ServerConfig stays closed (documented boundary) or grows the field | AGENTS.md context | Low | decision |
-| 22 | Monitor LNA/PNA spec churn next Chrome cycle (permission-flow compliance vs the PNA header we ship) | AGENTS.md context | Low | recurring |
-| 23 | Consider `httptest.NewRequestWithContext` migration for test sites (Go 1.27; deliberately deferred — needs owner demand signal) **[OWNER]** | AGENTS.md context | Low | ~2h |
-| 24 | Next docs-health monthly verification of living docs (due ~2026-11; last freshness pass 2026-10-24 stamps) | AGENTS.md cadence | Medium | ~1h |
-| 25 | erraudit upstream corrections (hint-vs-test-file-call-sites #10, unexported-sentinel legacy_is #11, GOTCHAS #125 wording) — owner-gated cross-repo, 3 recurrences already mechanically guarded here | AGENTS.md context | Low | decision |
+| #  | Task                                                                                                                                                                                                | Source                     | Impact      | Effort    |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ----------- | --------- |
+| 1  | Rule on the clone-baseline gate (fail prerelease unless `-t 1` shows exactly 2 pairs, `-t 2` exactly 0; go-etag precedent; prerelease-check.sh step, not a go test) **[OWNER]**                     | ep1 #4, still open         | High        | decision  |
+| 2  | If approved: implement the gate in `scripts/` + wire into `prerelease-check.sh` (mirror the sentinel-guard pattern); pin counts AND tool version in the failure message                             | ep1 #6/#16                 | High        | ~1h       |
+| 3  | Push ruling: `git push` the ahead-1 master (unpushed commit is ep1's report `565d23d`) **[OWNER]**                                                                                                  | this session b3            | Medium      | ~1min     |
+| 4  | Run `scripts/pre-sweep-check.sh` (build+vet+sentinels) — partially de-risked by this session's type-check of all 137 files, but build/vet/tests unverified since `072e6db`                          | ep1 #1, 2 sessions carried | Medium      | ~1min     |
+| 5  | Read `072e6db`'s full diff; judge `go.mod`/`flake.lock` deltas against daemon-casualty classes; rule via ep1 question 2 **[OWNER intent]**                                                          | ep1 #2/#17                 | Medium      | ~10min    |
+| 6  | Confirm CI green on pushed HEAD `e6fbd0f`                                                                                                                                                           | ep1 #3                     | Medium      | ~2min     |
+| 7  | Single-source the baseline stamp: dated sentence lives in architecture-reference.md only; AGENTS.md becomes a pointer — ends the two-file manual sync (split brain, (d)4)                           | ep1 #7                     | Medium      | ~15min    |
+| 8  | Add scan-scope clause to the baseline section: "137 tracked .go files incl. `testdata/otelinterop`'s 5 — scope = all tracked Go, verified 137==137 (2026-10-24)"                                    | NEW (this session a4)      | Low         | ~2min     |
+| 9  | Record the measured timing pair near the art-dupl commands: cold type-load ~59s, warm ~8.6s/8.8s total (both numbers already in hand)                                                               | ep1 #10/#11 + this session | Low         | ~2min     |
+| 10 | Rule: does combined mode (`--suggest-generics`) join the canonical AGENTS.md Commands block or stay an ad-hoc audit lane with per-run verdicts? **[OWNER]**                                         | ep1 Q3, still open         | Low-Med     | decision  |
+| 11 | Decide `//art-dupl:accept` directives for the 2 shown pairs (self-documenting shown-count) **[OWNER]**                                                                                              | ep1 #18                    | Low         | ~15min    |
+| 12 | Document art-dupl binary provenance/upgrade path (nix profile → current-system/sw; source `~/projects/art-dupl`)                                                                                    | ep1 #12                    | Low         | ~15min    |
+| 13 | Re-run both thresholds at next art-dupl or Go-toolchain bump; refresh stamps in the SAME change (0.7→0.9 drift happened inside one month)                                                           | ep1 #8                     | Med on bump | ~10min    |
+| 14 | Record per-rebaseline combined-mode verdict ("clean as of 2026-10-24, twice")                                                                                                                       | ep1 #9                     | Low         | ~2min     |
+| 15 | HARVEST both reports' (f) into TODO_LIST/ROADMAP after owner review (docs-health HARVEST rigor)                                                                                                     | ep1 #15                    | Medium      | ~20min    |
+| 16 | ANNOTATE ep1's report as items resolve; move both reports to `docs/status/archived/` when fully done (docs-health convention)                                                                       | ep1 #14                    | Low         | ~5min     |
+| 17 | When the gate lands: add it to `docs/RELEASE.md` gates list so releases cannot skip it                                                                                                              | ep1 #20                    | Medium      | ~10min    |
+| 18 | Fleet cross-check: do sibling repos record combined-mode verdicts; should the clause be fleet convention? **[OWNER]**                                                                               | ep1 #19                    | Low         | decision  |
+| 19 | Codify the pre-task `ls docs/status/` habit (this session's #1 lesson) into AGENTS.md's session-start workflow — one sentence                                                                       | NEW (e1)                   | Medium      | ~5min     |
+| 20 | go-etag dependency revisit: dep kept only for error-code registration since the v1.1.0 adapter removal — can the registration be localized/inlined to drop a whole external dep? **[OWNER]**        | AGENTS.md context          | Low         | ~1h       |
+| 21 | Rule on `Server.MaxHeaderValueCount` pass-through: ServerConfig stays closed (documented boundary) or grows the field                                                                               | AGENTS.md context          | Low         | decision  |
+| 22 | Monitor LNA/PNA spec churn next Chrome cycle (permission-flow compliance vs the PNA header we ship)                                                                                                 | AGENTS.md context          | Low         | recurring |
+| 23 | Consider `httptest.NewRequestWithContext` migration for test sites (Go 1.27; deliberately deferred — needs owner demand signal) **[OWNER]**                                                         | AGENTS.md context          | Low         | ~2h       |
+| 24 | Next docs-health monthly verification of living docs (due ~2026-11; last freshness pass 2026-10-24 stamps)                                                                                          | AGENTS.md cadence          | Medium      | ~1h       |
+| 25 | erraudit upstream corrections (hint-vs-test-file-call-sites #10, unexported-sentinel legacy_is #11, GOTCHAS #125 wording) — owner-gated cross-repo, 3 recurrences already mechanically guarded here | AGENTS.md context          | Low         | decision  |
 
 Items 26-50: intentionally not fabricated. Two same-day reports now cover this task family end-to-end; the honest remaining backlog lives in TODO_LIST/ROADMAP and is out of this session's fenced scope.
 
@@ -123,4 +123,4 @@ Items 26-50: intentionally not fabricated. Two same-day reports now cover this t
 
 ---
 
-*Report by Crush (glm-5.3) session, 2026-10-24 11:34 CEST. Inputs: this session's three art-dupl runs; episode 1's report (`docs/status/2026-10-24_08-49_art-dupl-baseline-reverification.md`, unpushed `565d23d`); `docs/architecture-reference.md` §Accepted Code Duplication; post-hoc git/grep checks. No unrelated research performed, per owner scope. Not committed manually — auto-commit daemon owns the tree (harness forbids unprompted commits).*
+_Report by Crush (glm-5.3) session, 2026-10-24 11:34 CEST. Inputs: this session's three art-dupl runs; episode 1's report (`docs/status/2026-10-24_08-49_art-dupl-baseline-reverification.md`, unpushed `565d23d`); `docs/architecture-reference.md` §Accepted Code Duplication; post-hoc git/grep checks. No unrelated research performed, per owner scope. Not committed manually — auto-commit daemon owns the tree (harness forbids unprompted commits)._

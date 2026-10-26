@@ -15,11 +15,11 @@ The JWT-header auth model also structurally defeats classic CSRF for the token-b
 
 ## The conditional minimal plan (executes only after R10 approves fix-PRs)
 
-| Step | Change | File | Risk |
-| --- | --- | --- | --- |
-| 1 | Replace wildcard origin echo with an explicit origin allowlist (env-configured), `AllowCredentials` only for allowlisted origins | wherever the CORS config is built (near `server/app/server.go:182` chain) | Low — frontend origins are known and few |
-| 2 | (Optional, only if cookie flows are planned) add `httputil.CSRFMiddleware` starting from `DefaultCORSConfig()`-style secure values with `Secure: true` | server chain | Low — additive |
-| 3 | Re-run the audit pattern grep (`scripts/consumer-audit/run-audit.sh`) against GmbH to confirm the 001/003 entries clear | audit corpus | None |
+| Step | Change                                                                                                                                                 | File                                                                      | Risk                                     |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------- |
+| 1    | Replace wildcard origin echo with an explicit origin allowlist (env-configured), `AllowCredentials` only for allowlisted origins                       | wherever the CORS config is built (near `server/app/server.go:182` chain) | Low — frontend origins are known and few |
+| 2    | (Optional, only if cookie flows are planned) add `httputil.CSRFMiddleware` starting from `DefaultCORSConfig()`-style secure values with `Secure: true` | server chain                                                              | Low — additive                           |
+| 3    | Re-run the audit pattern grep (`scripts/consumer-audit/run-audit.sh`) against GmbH to confirm the 001/003 entries clear                                | audit corpus                                                              | None                                     |
 
 Step 2 is explicitly NOT recommended as part of a fix-PR: it adds a token endpoint + frontend changes for a class with no live exposure. It is listed so the R10 ruling sees the full option space.
 

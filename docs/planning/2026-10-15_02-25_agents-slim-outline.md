@@ -2,18 +2,18 @@
 
 _Created: 2026-10-15 02:25 CEST · Inputs: TODO_LIST row 26 (AGENTS size budget: ~48 KB vs the docs-health >30 KB rubric), owner brief row T7 ([2026-10-15_02-12_owner-decision-brief.md](2026-10-15_02-12_owner-decision-brief.md)) · Status: OUTLINE ONLY — execution waits on the owner's pointer-ify vs re-baseline ruling._
 
-## Byte inventory (measured 2026-10-15, `awk` per `## ` section; file total 48,175 B)
+## Byte inventory (measured 2026-10-15, `awk` per `##` section; file total 48,175 B)
 
-| Section                          | Bytes | Share | Every-session value | Verdict                |
-| -------------------------------- | ----- | ----- | ------------------- | ---------------------- |
-| Non-Obvious Behaviors            | 17,031 | 35%   | Partial             | **Candidate 1 (biggest win)** |
-| Commands                         | 12,600 | 26%   | High (canonical)    | **Candidate 2 (slim narrative only)** |
-| Testing Conventions              | 6,884  | 14%   | High                | **Candidate 3 (strip provenance)** |
-| Hard Constraints                 | 3,895  | 8%    | High (breaks code)  | Keep as-is             |
-| Architecture                     | 3,672  | 8%    | Medium              | **Candidate 4**        |
-| Error Model                      | 2,354  | 5%    | Medium              | **Candidate 5**        |
-| Pre-Existing Lint Warnings       | 757    | 2%    | High                | Keep                   |
-| Accepted Code Duplication        | 503    | 1%    | Medium              | Keep (already a pointer) |
+| Section                    | Bytes  | Share | Every-session value | Verdict                               |
+| -------------------------- | ------ | ----- | ------------------- | ------------------------------------- |
+| Non-Obvious Behaviors      | 17,031 | 35%   | Partial             | **Candidate 1 (biggest win)**         |
+| Commands                   | 12,600 | 26%   | High (canonical)    | **Candidate 2 (slim narrative only)** |
+| Testing Conventions        | 6,884  | 14%   | High                | **Candidate 3 (strip provenance)**    |
+| Hard Constraints           | 3,895  | 8%    | High (breaks code)  | Keep as-is                            |
+| Architecture               | 3,672  | 8%    | Medium              | **Candidate 4**                       |
+| Error Model                | 2,354  | 5%    | Medium              | **Candidate 5**                       |
+| Pre-Existing Lint Warnings | 757    | 2%    | High                | Keep                                  |
+| Accepted Code Duplication  | 503    | 1%    | Medium              | Keep (already a pointer)              |
 
 ## The five candidates
 

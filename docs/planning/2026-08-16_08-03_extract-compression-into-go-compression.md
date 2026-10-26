@@ -436,19 +436,19 @@ _Measured against the tree at commit `44bb669` (2026-10-15). §3's table above i
 
 ### LOC drift (every file grew or stayed; §3 columns are stale)
 
-| File                                    | §3 LOC | Now | Driver of the delta                                                                                                  |
-| --------------------------------------- | -----: | --: | ---------------------------------------------------------------------------------------------------------------------- |
-| `compression.go`                        |    235 | 343 | Range-aware passthrough guard (2026-10-10), `AbsentEncodingPolicy` axis (issue #4), Level-vs-factories precedence docs    |
-| `compression_negotiator.go`             |    234 | 252 | AbsentEncoding policy plumbing                                                                                           |
-| `compression_qvalue.go`                 |    149 | 149 | unchanged                                                                                                                |
-| `compress_writer.go`                    |    298 | 314 | drift (writer contract hardening)                                                                                        |
-| `compress_writer_compress.go`           |     64 |  42 | drift (shrank)                                                                                                           |
-| `compress_pool.go`                      |     41 | 172 | the writerPool resettability-probe refactor (the very change that voided §3)                                             |
-| `compress_content_type.go`              |     34 |  34 | unchanged                                                                                                                |
-| `wrapper.go`                            |     85 |  85 | unchanged                                                                                                                |
-| tests (9 files §3)                      | 1,800 ~ | 2,459 | `compression_test.go` 566→841, `compress_fuzz_test.go` 42→177 (Range/AbsentEncoding/property invariants), `compression_behavior_test.go` 59→165, `compression_bench_test.go` 53→176 |
-| NEW: `compress_pool_test.go`            |      — |  480+ | pool-contract tests (born with the refactor)                                                                             |
-| NEW: `compression_negotiator_property_test.go` | — |  140+ | property-based negotiator tests                                                                                          |
+| File                                           |  §3 LOC |   Now | Driver of the delta                                                                                                                                                                 |
+| ---------------------------------------------- | ------: | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compression.go`                               |     235 |   343 | Range-aware passthrough guard (2026-10-10), `AbsentEncodingPolicy` axis (issue #4), Level-vs-factories precedence docs                                                              |
+| `compression_negotiator.go`                    |     234 |   252 | AbsentEncoding policy plumbing                                                                                                                                                      |
+| `compression_qvalue.go`                        |     149 |   149 | unchanged                                                                                                                                                                           |
+| `compress_writer.go`                           |     298 |   314 | drift (writer contract hardening)                                                                                                                                                   |
+| `compress_writer_compress.go`                  |      64 |    42 | drift (shrank)                                                                                                                                                                      |
+| `compress_pool.go`                             |      41 |   172 | the writerPool resettability-probe refactor (the very change that voided §3)                                                                                                        |
+| `compress_content_type.go`                     |      34 |    34 | unchanged                                                                                                                                                                           |
+| `wrapper.go`                                   |      85 |    85 | unchanged                                                                                                                                                                           |
+| tests (9 files §3)                             | 1,800 ~ | 2,459 | `compression_test.go` 566→841, `compress_fuzz_test.go` 42→177 (Range/AbsentEncoding/property invariants), `compression_behavior_test.go` 59→165, `compression_bench_test.go` 53→176 |
+| NEW: `compress_pool_test.go`                   |       — |  480+ | pool-contract tests (born with the refactor)                                                                                                                                        |
+| NEW: `compression_negotiator_property_test.go` |       — |  140+ | property-based negotiator tests                                                                                                                                                     |
 
 ### New extraction constraints §3 could not know
 

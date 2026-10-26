@@ -12,12 +12,12 @@
 - **Git tail at report time:** tree clean; `git log origin/master..master` empty (everything pushed); recent commits are daemon-heuristic only (`aecdf49`, `332abed`, `8e5364c`). Session-tail discipline satisfied.
 - **Verification ledger (claims made in-session, closure status):**
 
-| Claim (in-session) | Status at the time | Status now |
-|---|---|---|
-| "all 4 codes in both classification tables" | Verified (arch-ref lines 101–104, README:482 read directly) | Stands |
-| "the error-template/docs sweep **appears to** have been done" | Hedged, NOT verified | **Now line-verified**: all four `codeLanguage*` entries in `errors.go:387–405` (errorTemplates map) and listed in `errors_templates_test.go:81–84` |
-| "One honest gap: locale formatting" | Asserted from partial doc reads | **Confirmed by full read**: neither integration guide mentions formatting (dates/numbers/currency) |
-| "no drift I could find" | Spot-check basis | Understated — see (b)2: TODO_LIST tracks five open i18n doc residuals my verdict didn't surface |
+| Claim (in-session)                                            | Status at the time                                          | Status now                                                                                                                                         |
+| ------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "all 4 codes in both classification tables"                   | Verified (arch-ref lines 101–104, README:482 read directly) | Stands                                                                                                                                             |
+| "the error-template/docs sweep **appears to** have been done" | Hedged, NOT verified                                        | **Now line-verified**: all four `codeLanguage*` entries in `errors.go:387–405` (errorTemplates map) and listed in `errors_templates_test.go:81–84` |
+| "One honest gap: locale formatting"                           | Asserted from partial doc reads                             | **Confirmed by full read**: neither integration guide mentions formatting (dates/numbers/currency)                                                 |
+| "no drift I could find"                                       | Spot-check basis                                            | Understated — see (b)2: TODO_LIST tracks five open i18n doc residuals my verdict didn't surface                                                    |
 
 ---
 
@@ -86,7 +86,7 @@
 22. **Behavioral (no repo change): make verify-or-flag the default Q&A posture** — see (e)1.
 23. **Behavioral (no repo change): TODO_LIST cross-check becomes a standard step in doc-audit answers** — see (e)2.
 
-*Honest note: "up to 50" allows fewer — 23 grounded items beat 50 padded ones. Items 7, 8, 18 are pre-existing tracked work surfaced by the cross-check, not new discoveries.*
+_Honest note: "up to 50" allows fewer — 23 grounded items beat 50 padded ones. Items 7, 8, 18 are pre-existing tracked work surfaced by the cross-check, not new discoveries._
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF (3)
 

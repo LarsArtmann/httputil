@@ -4,12 +4,12 @@ _Created: 2026-10-15 18:50 CEST (pareto T24 / TODO row 38) · Gate: the owner's 
 
 ## Candidates (verified renderable 2026-10-15 — d2-generated SVGs with real canvases)
 
-| SVG | Canvas | Content age | Fit |
-| --- | --- | --- | --- |
-| `2026-09-10_04_49-request-flow.svg` | 1770×1963 (portrait) | 2026-09-10 — predates Language middleware | **README, Architecture section** — the request pipeline picture |
-| `2026-09-10_04_49-go-modularize-boundaries.svg` | 2455×1710 | 2026-09-10 — module layout still HOLD-current (T16 disposition) | **README, Architecture section** (second embed) or AGENTS pointer |
-| `2026-08-29_internal-coupling.svg` | 1448×2358 | pre-Language, pre-composition | Skip — superseded shape |
-| `2026-08-05/2026-07-05_httputil-current*.svg` | 5424×2280 | stale (pre-extractions) | Skip |
+| SVG                                             | Canvas               | Content age                                                     | Fit                                                               |
+| ----------------------------------------------- | -------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `2026-09-10_04_49-request-flow.svg`             | 1770×1963 (portrait) | 2026-09-10 — predates Language middleware                       | **README, Architecture section** — the request pipeline picture   |
+| `2026-09-10_04_49-go-modularize-boundaries.svg` | 2455×1710            | 2026-09-10 — module layout still HOLD-current (T16 disposition) | **README, Architecture section** (second embed) or AGENTS pointer |
+| `2026-08-29_internal-coupling.svg`              | 1448×2358            | pre-Language, pre-composition                                   | Skip — superseded shape                                           |
+| `2026-08-05/2026-07-05_httputil-current*.svg`   | 5424×2280            | stale (pre-extractions)                                         | Skip                                                              |
 
 Known imperfection to eyeball: both candidates predate the `Language` middleware (2026-10-10), so the request-flow diagram shows one fewer middleware than the shipped chain. Options: embed as-is with a caption note, or re-render the two d2 sources with Language added (a ~15-minute d2 edit — the `.d2` sources sit next to the SVGs).
 

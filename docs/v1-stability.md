@@ -292,34 +292,34 @@ The gated alternative is additive:
 
 ### Public API (Frozen at v1.0)
 
-| Symbol                         | Tier     | Notes                                                                                                                                                                 |
-| ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Run`                          | Frozen   |                                                                                                                                                                       |
-| `RunSerial`                    | Frozen   |                                                                                                                                                                       |
+| Symbol                         | Tier     | Notes                                                                                                                                                                                |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Run`                          | Frozen   |                                                                                                                                                                                      |
+| `RunSerial`                    | Frozen   |                                                                                                                                                                                      |
 | `RunTracing`                   | Additive | New in v1.6.0 — middleware-level tracing contracts: header/pattern passthrough, absent-header invariance, request invariance, response passthrough, Flusher/Pusher/Hijacker survival |
-| `Spec`                         | Additive | New fields may be added                                                                                                                                               |
-| `Check`                        | Frozen   |                                                                                                                                                                       |
-| `Result`                       | Additive |                                                                                                                                                                       |
-| `Category`                     | Frozen   |                                                                                                                                                                       |
-| `Option`                       | Frozen   |                                                                                                                                                                       |
-| `WithIndexPath`                | Frozen   |                                                                                                                                                                       |
-| `SkipSpec`                     | Frozen   |                                                                                                                                                                       |
-| `WithExtraSpecs`               | Frozen   |                                                                                                                                                                       |
-| `Pass`                         | Frozen   |                                                                                                                                                                       |
-| `Fail`                         | Frozen   |                                                                                                                                                                       |
-| `ExpectStatus`                 | Frozen   |                                                                                                                                                                       |
-| `ExpectNotStatus`              | Frozen   |                                                                                                                                                                       |
-| `ExpectHeader`                 | Frozen   |                                                                                                                                                                       |
-| `ExpectHeaderAbsent`           | Frozen   |                                                                                                                                                                       |
-| `ExpectBodyContains`           | Frozen   |                                                                                                                                                                       |
-| `ExpectJSON`                   | Additive | Added post-v0.10.0                                                                                                                                                    |
-| `ExpectHTML`                   | Additive | Added post-v0.10.0                                                                                                                                                    |
-| `ExpectVaryContains`           | Additive | Added post-v0.10.0                                                                                                                                                    |
-| `ExpectNotModifiedWithETag`    | Additive | Added post-v0.10.0                                                                                                                                                    |
-| `SpecName*` constants          | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`) |
-| `CORSSpecs` / `RateLimitSpecs` | Frozen   | Pre-v1.0 opt-in spec bundles                                                                                                                                          |
-| `PrivateNetworkSpecs`          | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec)                                                                                                                          |
-| `TracingSpecs`                 | Additive | New in v1.6.0 — 4 handler-level trace-context specs (traceparent + tracestate, valid and malformed)                                                                    |
+| `Spec`                         | Additive | New fields may be added                                                                                                                                                              |
+| `Check`                        | Frozen   |                                                                                                                                                                                      |
+| `Result`                       | Additive |                                                                                                                                                                                      |
+| `Category`                     | Frozen   |                                                                                                                                                                                      |
+| `Option`                       | Frozen   |                                                                                                                                                                                      |
+| `WithIndexPath`                | Frozen   |                                                                                                                                                                                      |
+| `SkipSpec`                     | Frozen   |                                                                                                                                                                                      |
+| `WithExtraSpecs`               | Frozen   |                                                                                                                                                                                      |
+| `Pass`                         | Frozen   |                                                                                                                                                                                      |
+| `Fail`                         | Frozen   |                                                                                                                                                                                      |
+| `ExpectStatus`                 | Frozen   |                                                                                                                                                                                      |
+| `ExpectNotStatus`              | Frozen   |                                                                                                                                                                                      |
+| `ExpectHeader`                 | Frozen   |                                                                                                                                                                                      |
+| `ExpectHeaderAbsent`           | Frozen   |                                                                                                                                                                                      |
+| `ExpectBodyContains`           | Frozen   |                                                                                                                                                                                      |
+| `ExpectJSON`                   | Additive | Added post-v0.10.0                                                                                                                                                                   |
+| `ExpectHTML`                   | Additive | Added post-v0.10.0                                                                                                                                                                   |
+| `ExpectVaryContains`           | Additive | Added post-v0.10.0                                                                                                                                                                   |
+| `ExpectNotModifiedWithETag`    | Additive | Added post-v0.10.0                                                                                                                                                                   |
+| `SpecName*` constants          | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`)                |
+| `CORSSpecs` / `RateLimitSpecs` | Frozen   | Pre-v1.0 opt-in spec bundles                                                                                                                                                         |
+| `PrivateNetworkSpecs`          | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec)                                                                                                                                         |
+| `TracingSpecs`                 | Additive | New in v1.6.0 — 4 handler-level trace-context specs (traceparent + tracestate, valid and malformed)                                                                                  |
 
 ### Standard Specs (Additive)
 

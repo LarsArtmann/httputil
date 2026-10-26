@@ -4,10 +4,10 @@ httputil ships **no OpenTelemetry dependency**. That is deliberate: a reusable m
 
 ## Two lanes, one owner each (ruling 2026-10-23)
 
-| Lane | Owner | Use when |
-| --- | --- | --- |
+| Lane           | Owner                                                                                                    | Use when                                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | SDK / provider | [`github.com/larsartmann/go-appkit/otel`](https://github.com/larsartmann/go-appkit) (alias `appkitotel`) | You want OTLP export, sampling, dashboards, exception events, and an instrumented client transport out of the box |
-| Bare provider | `go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp` | You already own the OpenTelemetry provider and only need the middleware bridge |
+| Bare provider  | `go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp`                                          | You already own the OpenTelemetry provider and only need the middleware bridge                                    |
 
 Do not build a third lane. An `httputil/otel` sub-module is a recorded non-goal: it would split the SDK lane in two and add the telemetry dependency this library refuses to carry.
 
@@ -110,13 +110,13 @@ func newHandler(mux *http.ServeMux) http.Handler {
 
 Order is declaration order: the first middleware is outermost.
 
-| Position | Middleware | Why |
-| --- | --- | --- |
-| 1 (outermost) | tracing (`appkitotel.Middleware` or `otelhttp.NewMiddleware`) | The span must cover the full request lifetime, including recovery and compression |
-| 2 | `Recovery` (or `appkitotel.Recovery`) | Must run **inside** the span: it turns a panic into a 500, and the tracing middleware records the status on the span it owns |
-| 3 | `RequestID`, `CORS`, `SecurityHeaders`, `CSRFMiddleware`, `Nonce`, `Language` | Ordinary request policy; each propagates `r.Pattern` outward |
-| 4 | `Compression` / `Decompression` | Writer-interception belongs near the handler; the span still sees status and byte counts |
-| 5 (innermost) | `ServerTimingMiddleware` | Measures handler time only; keep it inside the span so Server-Timing and trace durations are comparable |
+| Position      | Middleware                                                                    | Why                                                                                                                          |
+| ------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1 (outermost) | tracing (`appkitotel.Middleware` or `otelhttp.NewMiddleware`)                 | The span must cover the full request lifetime, including recovery and compression                                            |
+| 2             | `Recovery` (or `appkitotel.Recovery`)                                         | Must run **inside** the span: it turns a panic into a 500, and the tracing middleware records the status on the span it owns |
+| 3             | `RequestID`, `CORS`, `SecurityHeaders`, `CSRFMiddleware`, `Nonce`, `Language` | Ordinary request policy; each propagates `r.Pattern` outward                                                                 |
+| 4             | `Compression` / `Decompression`                                               | Writer-interception belongs near the handler; the span still sees status and byte counts                                     |
+| 5 (innermost) | `ServerTimingMiddleware`                                                      | Measures handler time only; keep it inside the span so Server-Timing and trace durations are comparable                      |
 
 In a `MiddlewareStack`, add tracing first and call `Validate()` if you want the Recovery-ordering check enforced.
 

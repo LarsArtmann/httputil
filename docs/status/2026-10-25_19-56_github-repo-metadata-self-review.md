@@ -29,7 +29,7 @@
 ## b) PARTIALLY DONE
 
 1. **pkg.go.dev "latest" verification** — the page renders, but the unversioned URL still defaults to v1.5.0 (published Oct 9) with a "This package is not in the latest version" banner. v1.6.0/v1.7.0 are indexed enough for a "Go to latest" link to exist, but the default has not flipped. Recheck in a few days. The homepage links the unversioned URL, so it self-heals when propagation finishes.
-2. **Homepage decision** — pkg.go.dev is correct *now*, but it is a placeholder-grade choice if the owner ever wants an `httputil.lars.software` site (website-launch pattern used by templ-components/cmdguard/go-error-family). Owner taste call, see g.
+2. **Homepage decision** — pkg.go.dev is correct _now_, but it is a placeholder-grade choice if the owner ever wants an `httputil.lars.software` site (website-launch pattern used by templ-components/cmdguard/go-error-family). Owner taste call, see g.
 3. **Metadata convention documentation** — the sibling-pattern findings (description formula, topic density) live only in this session/report; nothing durable records "how LarsArtmann repos describe themselves" for the next blank repo.
 
 ## c) NOT STARTED
@@ -61,6 +61,7 @@
 ## f) Things to get done next (ranked, not padded to 50)
 
 **This session's fallout (cheap, do first):**
+
 1. Owner verdict on the description (keep / rework with httpspec-and-error-model positioning) — one `gh repo edit`, 2 minutes.
 2. Verify all 18 topic slugs resolve to real GitHub topics; prune dead ones, consider adding `etag`, `content-negotiation`, `health-check` if the owner wants maximal discoverability (cap ~25 topics).
 3. Check `server_timing` pkg.go.dev page renders; if 404s, investigate (it has tags + MIT).
@@ -97,4 +98,4 @@
 
 ---
 
-*Point-in-time snapshot. Written by Crush (GLM agent) 2026-10-25 19:56 CET. Metadata change is GitHub-side only — no git diff belongs to this session; the auto-commit daemon will sweep this file.*
+_Point-in-time snapshot. Written by Crush (GLM agent) 2026-10-25 19:56 CET. Metadata change is GitHub-side only — no git diff belongs to this session; the auto-commit daemon will sweep this file._
