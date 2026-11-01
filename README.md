@@ -39,8 +39,8 @@ func main() {
 
     handler := httputil.Chain(
         mux,
-        httputil.Logging(slog.Default()),
         httputil.Recovery(slog.Default()),
+        httputil.Logging(slog.Default()),
         httputil.Timeout(30 * time.Second),
         httputil.RequestID(httputil.DefaultRequestIDConfig()),
         httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
@@ -831,8 +831,8 @@ api := humago.New(router, huma.DefaultConfig("My API", "1.0.0"))
 huma.Get(api, "/things/{id}", getThing) // huma: types, validation, OpenAPI
 
 handler := httputil.Chain(router, // httputil: compression, security, logging
-    httputil.Logging(slog.Default()),
     httputil.Recovery(slog.Default()),
+    httputil.Logging(slog.Default()),
     httputil.Compression(httputil.DefaultCompressionConfig()),
     httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
     httputil.CORS(httputil.DefaultCORSConfig()),

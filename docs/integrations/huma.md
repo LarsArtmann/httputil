@@ -50,18 +50,28 @@ func main() {
 		return resp, nil
 	})
 
-	// 3. Wrap the router with httputil middleware (first = outermost).
+	// 3. Wrap the router with httputil middleware (first = outermost —
+	// Recovery outermost is the ordering MiddlewareStack.Validate() enforces).
 	handler := httputil.Chain(
 		router,
-		httputil.Logging(slog.Default()),
 		httputil.Recovery(slog.Default()),
+		httputil.Logging(slog.Default()),
 		httputil.Compression(httputil.DefaultCompressionConfig()),
 		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
 		httputil.CORS(httputil.DefaultCORSConfig()),
 	)
 
-	// 4. Start the server.
-	http.ListenAndServe(":8080", handler)
+	// 4. Serve with httputil's lifecycle wrapper (timeouts + graceful shutdown).
+	srv, err := httputil.NewServer(httputil.DefaultServerConfig(), handler)
+	if err != nil {
+		slog.Error("server construction failed", "err", err)
+
+		return
+	}
+
+	if err := <-srv.Start(); err != nil {
+		slog.Error("server stopped", "err", err)
+	}
 }
 ```
 
@@ -71,7 +81,7 @@ func main() {
 ## Request flow
 
 ```
-Client → httputil.Chain (CORS → Security → Compression → Recovery → Logging)
+Client → httputil.Chain (Recovery → Logging → Compression → SecurityHeaders → CORS)
        → http.ServeMux
        → humago adapter → huma operation handler (typed input → validation → OpenAPI)
 ```
