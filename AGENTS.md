@@ -141,6 +141,21 @@ art-dupl --sort total-tokens -t 2 --type-aware --suggest-generics .
 
 # Release: scripts/prerelease-check.sh automates the gates; runbook is
 # docs/RELEASE.md. CHANGELOG [version] sections freeze at the tag.
+
+# Workflow policy vet (adopted 2026-11-02; schemas + rationale live ONLY in
+# the fleet sibling ~/projects/cue-policy — consumer repos carry no copies).
+# cue pin: nixpkgs#cue 0.17.1 locally, go install cuelang.org/go/cmd/cue@v0.17.1
+# in CI; the CI job (ci.yml policy-vet) pins the POLICY CHECKOUT by commit SHA,
+# so schema changes need deliberate SHA bumps there. cue rejects non-canonical
+# path arguments — pass the relative ../cue-policy, never the absolute path.
+# API-compat floor (the apidiff gate, enforced by prerelease gate 3b + ci.yml):
+GOWORK=off go run golang.org/x/exp/cmd/apidiff@v0.0.0-20261014143641-f0251eb4aa3e -m -incompatible apidiff/httputil.export.zip .
+cd server_timing && GOWORK=off go run golang.org/x/exp/cmd/apidiff@v0.0.0-20261014143641-f0251eb4aa3e -m -incompatible ../apidiff/server_timing.export.zip .
+# Regenerate baselines ONLY in a release commit (apidiff/README.md has the ritual).
+# Workflow policy (fails the CI gate on pin-format/allowlist/permission drift):
+cue vet -d '#ReleaseWorkflow' ../cue-policy .github/workflows/release.yml
+cue vet -d '#CIWorkflow' ../cue-policy .github/workflows/ci.yml
+cue vet -d '#CIWorkflow' ../cue-policy .github/workflows/nightly-fuzz.yml
 ```
 
 **Go 1.27 notes (changelog review 2026-10-09; json/v2 gotcha added 2026-10-15):** json/v2 is standard (the erraudit flag prefix was dropped); **`json.Marshal` now REJECTS invalid UTF-8 where v1 coerced to U+FFFD** — version-semantic (depends on the consuming module's `go` directive), bit the `FuzzCSRFTokenHTMLFormatters` smoke run (`CSRFTokenHXHeaders` fails closed to `""`); every `json.Marshal` over externally-influenced strings needs a verdict (the 2026-10-15 fleet audit lives in docs/status/2026-10-15_08-20_jsonv2-marshal-fleet-audit.md); vet's new printf `%w`-pointer check is clean here; the gofmt alignment change caused no drift; compress/flate output changed (round-trip fuzz invariants are robust to it); net/http gained `Server.MaxHeaderValueCount` (NOT reachable through the `Server` wrapper — `ServerConfig` exposes no raw-server override; documented as a pass-through boundary in README).
