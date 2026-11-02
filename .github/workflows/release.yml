@@ -9,6 +9,14 @@ on:
 permissions:
   contents: write
 
+# Two tags pushed close together (RELEASE.md step 12 serializes ref
+# delivery in one push, but a manual second push must not race an
+# in-flight publish): one release job per ref, never cancelling a
+# publish that already started.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   # golangci-lint v2.14.0 is built with go1.27.0 and lints current 1.27.x
   # stdlib export data (verified 2026-10-09 under a go1.27.2 toolchain),

@@ -252,4 +252,10 @@ jobs:
           fetch-depth: 0
 
       - name: Check conventional commit prefixes
-        run: ./scripts/check-commit-lint.sh "origin/${{ github.base_ref }}" "origin/${{ github.head_ref }}"
+        # Env indirection, not inline interpolation: a fork's head_ref is
+        # attacker-controlled, and "${{ }}" inside run: is string splicing
+        # into a shell command (actionlint expression finding, 2026-11-02).
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: ./scripts/check-commit-lint.sh "origin/$BASE_REF" "origin/$HEAD_REF"
