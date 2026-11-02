@@ -1,11 +1,14 @@
 package httputil
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json/v2"
 	"errors"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -713,4 +716,129 @@ func BenchmarkNonceAttr(b *testing.B) {
 	}
 
 	_ = attr
+}
+
+// captureNonceRequestLogs runs fn with slog's default logger swapped for a
+// JSON handler writing to a buffer, and returns every decoded log record in
+// order (the csrf captureCSRFConstructorLogs pattern, request-path edition).
+func captureNonceRequestLogs(t *testing.T, fn func()) []map[string]any {
+	t.Helper()
+
+	var buf bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
+
+	t.Cleanup(func() {
+		slog.SetDefault(previous)
+	})
+
+	fn()
+
+	lines := bytes.Split(bytes.TrimSpace(buf.Bytes()), []byte("\n"))
+	records := make([]map[string]any, 0, len(lines))
+
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+
+		var record map[string]any
+
+		if err := json.Unmarshal(line, &record); err != nil {
+			t.Fatalf("decode log record %q: %v", line, err)
+		}
+
+		records = append(records, record)
+	}
+
+	return records
+}
+
+// TestNonce_CSPConflict_OuterCSPOverwrittenWithWarning pins the
+// security.csp_conflict prototype: SecurityHeaders (with an explicit CSP)
+// wrapping Nonce (with a CSPBuilder) must keep the documented overwrite
+// behavior — the nonce-bearing CSP wins — AND warn loudly that a static CSP
+// was clobbered, so the double-writer misconfiguration stops being silent.
+// No t.Parallel: the slog default swap races constructor tests that log.
+//
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestNonce_CSPConflict_OuterCSPOverwrittenWithWarning(t *testing.T) {
+	outerCSP := "default-src 'self'; script-src 'self'"
+
+	staticHeaders := SecurityHeadersConfig{ContentSecurityPolicy: outerCSP}
+	nonceCfg := DefaultNonceConfig()
+
+	handler := Chain(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+		SecurityHeaders(staticHeaders),
+		Nonce(nonceCfg),
+	)
+
+	var records []map[string]any
+
+	rec := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	records = captureNonceRequestLogs(t, func() {
+		handler.ServeHTTP(rec, request)
+	})
+
+	served := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(served, "nonce-") {
+		t.Fatalf(
+			"served CSP %q does not contain a nonce directive, want the nonce-bearing CSP to win unchanged",
+			served,
+		)
+	}
+
+	if served == outerCSP {
+		t.Fatalf("served CSP %q equals the outer static CSP; the overwrite behavior changed", served)
+	}
+
+	found := false
+
+	for _, record := range records {
+		if record["code"] == string(codeSecurityCSPConflict) {
+			found = true
+
+			if record["outer_csp"] != outerCSP {
+				t.Errorf("warning outer_csp = %v, want %q", record["outer_csp"], outerCSP)
+			}
+		}
+	}
+
+	if !found {
+		t.Fatalf("no %s warning logged; records: %v", codeSecurityCSPConflict, records)
+	}
+}
+
+// TestNonce_NoOuterCSP_NoConflictWarning: a lone Nonce (the normal case)
+// must not emit the conflict warning — the detector fires only when a CSP
+// header is already present.
+//
+//nolint:paralleltest // swaps the global default logger; cannot run in parallel
+func TestNonce_NoOuterCSP_NoConflictWarning(t *testing.T) {
+	handler := Chain(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+		Nonce(DefaultNonceConfig()),
+	)
+
+	var records []map[string]any
+
+	rec := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	records = captureNonceRequestLogs(t, func() {
+		handler.ServeHTTP(rec, request)
+	})
+
+	for _, record := range records {
+		if record["code"] == string(codeSecurityCSPConflict) {
+			t.Fatalf("conflict warning logged without an outer CSP: %v", record)
+		}
+	}
 }

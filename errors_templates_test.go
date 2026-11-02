@@ -62,6 +62,7 @@ var allHTTputilErrorCodes = []Code{
 	codeRequestIDEmptyIncomingHeader,
 
 	codeSecurityInvalidFrameOptions,
+	codeSecurityCSPConflict,
 
 	codeMetricsNilRecorder,
 

@@ -352,6 +352,12 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		Fix:    "Set FrameOptions to one of the valid values or leave it empty to send no header.",
 		WayOut: "DefaultSecurityHeadersConfig() uses SAMEORIGIN.",
 	},
+	string(codeSecurityCSPConflict): {
+		What:   "CSP conflict: an outer middleware already set Content-Security-Policy",
+		Why:    "The nonce-bearing CSP from Nonce overwrites the static CSP an outer middleware (SecurityHeaders with ContentSecurityPolicy set) wrote — one of the two policies is silently lost.",
+		Fix:    "Keep exactly one CSP writer in the chain: unset SecurityHeadersConfig.ContentSecurityPolicy when Nonce's CSPBuilder is active (the nonce CSP already covers scripts and styles), or set NonceConfig.CSPBuilder to nil and keep the static CSP.",
+		WayOut: "The AGENTS Nonce bullet documents the chaining rule: place Nonce inside SecurityHeaders and give only one of them a CSP.",
+	},
 	string(codeMetricsNilRecorder): {
 		What:   "Metrics recorder is missing",
 		Why:    "MetricsConfig.Recorder is nil, so request metrics would have nowhere to go.",

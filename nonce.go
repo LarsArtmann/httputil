@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"html"
+	"log/slog"
 	"net/http"
 )
 
@@ -131,6 +132,11 @@ func generateNonce(size int) string {
 // nonceKey is the context key for storing the per-request CSP nonce.
 type nonceKey struct{}
 
+// codeSecurityCSPConflict classifies the detected double-CSP conflict (the
+// nonce-bearing CSP overwriting a CSP an outer middleware already wrote) as
+// a log-only diagnostic in the security domain.
+const codeSecurityCSPConflict = Code("security.csp_conflict")
+
 // Nonce returns middleware that generates a per-request CSP nonce, stores it
 // in the request context for template access, and optionally sets the
 // Content-Security-Policy response header.
@@ -147,6 +153,25 @@ func Nonce(cfg NonceConfig) Middleware {
 			nonce := generateNonce(size)
 
 			if cfg.CSPBuilder != nil {
+				if outer := w.Header().Get("Content-Security-Policy"); outer != "" {
+					// An outer middleware (SecurityHeaders with
+					// ContentSecurityPolicy set is the documented case) already
+					// wrote a CSP; this Set overwrites it — deliberate behavior,
+					// but a silent CSP loss if nobody knows. Detect and warn;
+					// see docs/research/2026-11-02_cue-engineering-lessons.md
+					// for the design note. Request-time detection can only see
+					// the outer-writes-first order; the reverse order stays
+					// silent (documented limitation).
+					slog.WarnContext(
+						r.Context(),
+						"CSP conflict: outer middleware already set Content-Security-Policy; the nonce-bearing CSP overwrites it",
+						"code",
+						string(codeSecurityCSPConflict),
+						"outer_csp",
+						outer,
+					)
+				}
+
 				w.Header().Set("Content-Security-Policy", cfg.CSPBuilder(nonce))
 			}
 
