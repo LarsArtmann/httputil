@@ -214,3 +214,25 @@ Parallelism: T1 (apidiff) and T2 (CUE pilot) are fully independent and can run i
 ---
 
 *Point-in-time plan. When stale, annotate (docs-health ANNOTATE); harvest open items into the living backlog rather than re-planning from scratch.*
+
+---
+
+## Execution appendix (2026-11-02, end of run)
+
+All macro tasks M01–M05, M06–M14, M16–M22 executed and verified same day;
+M15 (fleet rollout wave 1) is harvested to TODO_LIST and remains the only
+open macro task. Micro tasks all ran; notable deviations recorded:
+- M02's baselines are the released tags (v1.7.0 / v1.0.3 — the repo moved
+  past the v1.6.0 this plan assumed) and live as committed zips under
+  `apidiff/`, not a separate storage convention.
+- M04's "draft central step config" became real BuildFlow Go code — the
+  verified step model has NO config-defined external steps (the plugin
+  system was deliberately deleted), so the step is a provider
+  (BuildFlow `c8eff161f` + path-fix `2d6bbee17`, run green on this repo).
+- M09's "file issues for real findings" needed no filings: both findings
+  were local to httputil and fixed in-commit (`48b664e`).
+- M06's `nix profile install` worked (home-manager did not conflict); the
+  binary reports `version (devel)` — the derivation version 0.17.1 is the
+  recorded pin.
+- Deployment gap: the STORE buildflow binary predates both new steps; the
+  TODO_LIST row tracks the fleet activation.
