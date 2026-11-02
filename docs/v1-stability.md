@@ -1,8 +1,8 @@
 # v1.0 API Stability Definition
 
-**Status:** Target for v1.0 release. Pre-1.0, all APIs are subject to change per SemVer 0.x convention.
+**Status:** Active since v1.0. The classifications below are mechanically enforced (see Mechanical Enforcement at the end of this document); breaking changes fail CI.
 
-This document enumerates every exported symbol and classifies its stability commitment at v1.0.
+This document enumerates every exported symbol and classifies its stability commitment since v1.0.
 
 ## Stability Tiers
 
@@ -332,3 +332,27 @@ New standard specs may be added in minor versions. Existing specs will not be re
 - **v1.1.0:** The APIs pre-declared for removal shipped deprecated and are gone: `RateLimit()`, `RateLimitConfig`, `DefaultRateLimitConfig`, `RateLimiter`, `TokenBucketLimiter`, `NewTokenBucketLimiter` (see [migrating-to-keyed-rate-limiter.md](migrating-to-keyed-rate-limiter.md)) and the `httputil.ETag()` adapter (use `etag.New` directly).
 - **v1.2.0 (next minor):** Four behavior changes within unchanged signatures: CSRF `TrustedOrigins` parsing is fail-closed all-or-nothing and `Validate` rejects entries that are not usable `scheme://host` origins; CSRF `SameSite=None` without `Secure` falls back to `Secure=true` at construction (`AllowInsecureSameSiteNone` opts out); the `http.ErrNoCookie`/`http.ErrNoLocation` classifications moved Transient → Rejection; and requests without an `Accept-Encoding` header are served uncompressed by default (`CompressionConfig.AbsentEncoding` opts back into the v1.1.x behavior). See [migrating-to-v1.2.md](migrating-to-v1.2.md).
 - **Post-1.0 major versions (v2.0+):** Breaking changes permitted with migration guide.
+
+## Mechanical Enforcement
+
+The promises on this page are machine-checked, not prose-only. Since v1.7.0,
+every push and every pre-release run diffs the exported API of both modules
+against committed export-data baselines (the latest released tags):
+
+- **Baselines:** [`apidiff/`](../apidiff/README.md) — one export-data zip per
+  module, regenerated in each release commit so the floor always equals the
+  newest tag.
+- **The gate:** `scripts/check-apidiff.sh` runs the pinned
+  `golang.org/x/exp/cmd/apidiff` in module-incompatible mode and fails on any
+  report (apidiff exits 0 even on incompatible findings, so the report itself
+  is the failure condition).
+- **Where it runs:** the `apidiff` job in [ci.yml](../.github/workflows/ci.yml)
+  on every push/PR, gate 3b of `scripts/prerelease-check.sh` before any tag,
+  and the fleet-wide BuildFlow `apidiff` step on every dev run of repos
+  carrying the baseline convention.
+
+An incompatible change (removed/renamed export, changed signature, dropped
+method) fails all three layers. Additive changes (new exports, new fields)
+pass, matching the Versioning Policy above. To make an intentional break,
+land it behind a v2 module path per the major-version rule — the gate cannot
+be waived for v1.
