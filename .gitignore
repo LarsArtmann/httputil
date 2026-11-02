@@ -79,3 +79,6 @@ result-*
 # Tool artifact databases accidentally committed by the daemon
 /coverage-threshold
 /doc-snippet-refs
+
+# API-compat baselines are deliberately committed (see apidiff/README.md)
+!apidiff/*.zip
