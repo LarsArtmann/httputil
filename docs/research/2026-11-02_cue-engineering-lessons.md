@@ -70,3 +70,82 @@ delta matrix (missing release concurrency guard — CUE's catch;
 `github.head_ref` shell injection — actionlint's catch) are lessons 3 and 4
 made concrete: the missing *type* on `release.yml` and the unprovenanced
 trust of an attacker-controlled field.
+
+## Round 2 (same day): the logic + the project's own practices
+
+Sources read in full: the Logic of CUE concept guide (cuelang.org,
+2026-05-23 revision) and the cue-lang/cue CONTRIBUTING.md + triage labels
+(main @ 2026-11-02 shallow clone).
+
+9. **Backwards compatibility IS subsumption.** The logic guide states the
+   API-compat metaphor as a theorem, not an analogy: a new version is
+   backwards compatible iff the OLD version is an instance (subsumed by) the
+   new one — "a new version may not forbid what was allowed". Optional
+   fields may become required but never vanish. This is the theoretical
+   twin of the apidiff gate: Go's exported-API sets play the role of the
+   lattice, and our gate fails exactly when the containment breaks.
+   *Fleet application:* when documenting breaking-change rules, state them
+   as a set-containment property that a machine can check — it worked for
+   the frozen-API promise.
+
+10. **Defaults need order-independence machinery, or they become solver
+    bait.** CUE keeps two parallel values (all-possible vs default) per
+    field and REFUSES to pick a default when picks would interact —
+    choosing either would make the result depend on implementation mood
+    and edge toward NP-complete constraint solving. Unification stays
+    pseudo-linear because of this refusal.
+    *Fleet application:* when a default interacts with another default
+    through a constraint, the correct behavior is to fail loudly rather
+    than pick; httputil's validate-and-log constructor posture already
+    embodies "no silent picking".
+
+11. **Optional-field conflicts drop the field — by logic, not convenience.**
+    Conflicting values for an optional field infer "not that field" (from
+    P→⊥), while required-field conflicts fault the struct. Fitting
+    closedness into the lattice FORCED this distinction, and the logic
+    justifies it.
+    *Fleet application:* distinguish "reject" from "treat as absent" only
+    where the type system justifies it; don't hand-wave the difference.
+
+12. **Cycles are equations, not errors.** `a: b+1; b: a-1; b: 1` resolves
+    to a=2 by plain logic (the cycle forces a-1 & 1, which is bottom unless
+    a-1 is 1) — no algebraic solver. Most non-infinite cycles resolve in
+    bounded time by design.
+    *Fleet application:* before banning recursion in config or template
+    systems, check whether the equations actually determine values; a ban
+    that exists only because the evaluator is eager is an implementation
+    limit dressed as a rule.
+
+13. **Constraints simplify; assertions accrete.** CUE simplifies
+    `>=3 & <=10` unified with `>=5 & <=20` to `>=5 & <=10`; GCL/Jsonnet
+    assertion piles grow instead, decoupled from their fields — hard to
+    discover, hard to reason about.
+    *Fleet application:* prefer intersectable constraint representations
+    (ranges, typed enums) over piled-up boolean checks; in Go, that argues
+    for typed values whose constructors compose rather than ad-hoc
+    `if` chains.
+
+14. **The project gates design at issues, not PRs.** CONTRIBUTING: "open an
+    issue before writing code"; an approach is agreed when a maintainer
+    says so or labels it NeedsFix; PRs without an agreed approach "may not
+    be reviewed, particularly a large or AI-generated one".
+    *Fleet application:* the fleet's owner-ruling-before-execution gate is
+    the same shape; for upstream contributions, expect design agreement —
+    not code volume — to be the review currency.
+
+15. **Unity is their compat canary fleet.** CUE invites real projects into
+    a program (cue.dev/products/unity) whose purpose is testing CUE changes
+    against member projects — the same pattern as our BuildFlow dogfooding
+    and the wave-1 rollout: a tool's compatibility is proven by running it
+    on real consumers, continuously.
+    *Fleet application:* when adopting a tool fleet-wide, join (or build)
+    its early-feedback channel; being a canary converts upstream breakage
+    from surprise to signal.
+
+16. **Triage taxonomy as workflow contract.** Labels Triage →
+    NeedsInvestigation → NeedsDecision → NeedsFix make each issue's next
+    ACTION explicit and owner-able. Workflow labels that name the blocking
+    step (not the topic) let contributors pick work matching what they can
+    unblock.
+    *Fleet application:* the TODO_LIST " — BLOCKED: <reason>" convention
+    already does this; label-shaped next-actions beat topic-shaped ones.
