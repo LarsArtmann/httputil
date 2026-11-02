@@ -317,7 +317,7 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 	},
 	string(codeRatelimitTrustedProxyCIDRInvalid): {
 		What:   "Trusted proxy CIDR is invalid",
-		Why:    "The trusted-proxy set contains {cidr}, which failed CIDR parsing: {parse_error}.",
+		Why:    "KeyedRateLimiterConfig.TrustedProxiesCIDR (or TrustedProxies) contains {cidr}, which failed CIDR parsing: {parse_error}.",
 		Fix:    "Correct the entry to CIDR notation such as 10.0.0.0/8, or a bare IP such as 10.0.0.1.",
 		WayOut: "ParseTrustedProxies(nil) falls back to the loopback-only default set.",
 	},
