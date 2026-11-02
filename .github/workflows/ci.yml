@@ -190,6 +190,28 @@ jobs:
           cd server_timing
           golangci-lint run ./...
 
+  # The frozen-API promise (docs/v1-stability.md) is machine-checked here:
+  # apidiff reports incompatible exported-API changes between the committed
+  # baselines (the latest released tags, see apidiff/README.md) and this
+  # push. The script fails on a non-empty report because apidiff exits 0
+  # even when it finds incompatible changes.
+  apidiff:
+    name: API Compatibility
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27.x"
+
+      - name: Root module vs released baseline
+        run: ./scripts/check-apidiff.sh apidiff/httputil.export.zip . "root module" "v1.7.0"
+
+      - name: server_timing sub-module vs released baseline
+        run: ./scripts/check-apidiff.sh apidiff/server_timing.export.zip server_timing "server_timing module" "v1.0.3"
+
   # The OpenTelemetry guide ships copy-paste snippets against modules httputil
   # deliberately does not depend on. A separate fixture module compiles those
   # snippets and runs httpspec.RunTracing against the real otelhttp and

@@ -37,6 +37,13 @@ step "3/9 Vet (root + server_timing)"
 go vet ./... || fail "go vet ./... (root)"
 (cd server_timing && go vet ./...) || fail "go vet ./... (server_timing)"
 
+step "3b/9 API compatibility vs released baselines (apidiff)"
+# Single source of the gate logic (the same script ci.yml runs); baselines
+# and the regeneration ritual live in apidiff/README.md, the promise itself
+# in docs/v1-stability.md.
+./scripts/check-apidiff.sh apidiff/httputil.export.zip . "root module" "v1.7.0" || fail "apidiff (root module)"
+./scripts/check-apidiff.sh apidiff/server_timing.export.zip server_timing "server_timing module" "v1.0.3" || fail "apidiff (server_timing)"
+
 step "4/9 Tests with race detection (root + server_timing)"
 go test -race -count=1 ./... || fail "go test -race (root)"
 (cd server_timing && go test -race -count=1 ./...) || fail "go test -race (server_timing)"
