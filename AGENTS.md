@@ -23,13 +23,6 @@ The non-obvious rules that cause immediate lint failures. Read before writing an
 ## Commands
 
 ```bash
-# /mnt/buildcache is unwritable in some environments — export these or every Go
-# toolchain call fails with "failed to initialize build cache":
-export GOCACHE=$HOME/.cache/go-build-httputil GOLANGCI_LINT_CACHE=$HOME/.cache/golangci-lint-httputil
-# go.work requires >= 1.27.1 (go-etag v0.5.0); the local default toolchain is
-# older, so without this the first go command of every fresh session fails:
-export GOTOOLCHAIN=auto
-
 go test ./...              # Run tests
 go test -race ./...        # Race detection (REQUIRED for tests with t.Parallel() or shared state)
 go test -race -count=N ./... # Surface timing-dependent races — repeat N times

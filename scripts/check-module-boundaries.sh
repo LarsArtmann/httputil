@@ -8,15 +8,6 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# /mnt/buildcache-style environments may pin an unwritable GOCACHE; fall back.
-if [ -z "${GOCACHE:-}" ] || ! mkdir -p "$GOCACHE" 2>/dev/null; then
-	export GOCACHE="$HOME/.cache/go-build-httputil"
-fi
-
-if [ -z "${GOMODCACHE:-}" ] || ! mkdir -p "$GOMODCACHE" 2>/dev/null; then
-	export GOMODCACHE="$HOME/go/pkg/mod"
-fi
-
 modules=("." "./server_timing")
 
 status=0

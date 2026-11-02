@@ -17,12 +17,6 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 
-# /mnt/buildcache is unwritable in some environments; without these exports
-# every Go toolchain call fails with "failed to initialize build cache".
-export GOCACHE="${GOCACHE:-$HOME/.cache/go-build-httputil}"
-export GOLANGCI_LINT_CACHE="${GOLANGCI_LINT_CACHE:-$HOME/.cache/golangci-lint-httputil}"
-export GOTOOLCHAIN="${GOTOOLCHAIN:-auto}"
-
 step() { printf '\n=== %s ===\n' "$1"; }
 fail() {
 	printf '\n!!! BROKEN TREE: %s\n' "$1" >&2

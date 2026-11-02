@@ -20,11 +20,6 @@ for arg in "$@"; do
 	esac
 done
 
-# /mnt/buildcache is unwritable in some environments; without these exports
-# every Go toolchain call fails with "failed to initialize build cache".
-export GOCACHE="${GOCACHE:-$HOME/.cache/go-build-httputil}"
-export GOLANGCI_LINT_CACHE="${GOLANGCI_LINT_CACHE:-$HOME/.cache/golangci-lint-httputil}"
-
 step() { printf '\n=== %s ===\n' "$1"; }
 fail() {
 	printf '\n!!! FAILED: %s\n' "$1" >&2
