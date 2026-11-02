@@ -236,7 +236,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: LarsArtmann/cue-policy
-          ref: 90c4183ff3852756f4418806242ebe9da268c65c
+          ref: 7ecfcaf037309d83daf7c2e48375870de66285a2
           path: cue-policy
           persist-credentials: false
 
