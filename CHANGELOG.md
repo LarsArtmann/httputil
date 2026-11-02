@@ -8,9 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Mechanical enforcement of the frozen-API promise: the apidiff gate** — export-data baselines of both modules at their released tags (`apidiff/httputil.export.zip` at v1.7.0 including httpspec, `apidiff/server_timing.export.zip` at v1.0.3, convention in `apidiff/README.md`), a shared gate script (`scripts/check-apidiff.sh`) that fails on any incompatible exported-API change (apidiff exits 0 even on findings, so the report is the failure condition), wired into three layers: the new `apidiff` CI job on every push/PR, gate 3b of `scripts/prerelease-check.sh` before any tag, and the fleet-wide BuildFlow `apidiff` step. The first baselines were verified against master (compatible) and the gate was negative-tested (a renamed export fails it). [docs/v1-stability.md](docs/v1-stability.md) now documents the enforcement; the prose-only era is over.
+- **Workflow policy vet: the `policy-vet` CI job** — installs pinned cue v0.17.1, checks out `LarsArtmann/cue-policy` at a pinned commit, and vets `release.yml` against `#ReleaseWorkflow` and `ci.yml`/`nightly-fuzz.yml` against `#CIWorkflow` (pin formats, runner allowlist, permission shape — the policy classes actionlint has no concept of). Fleet adoption ruling and the CUE-vs-actionlint delta matrix live in the policy repo's `docs/` (2026-11-02); the matching BuildFlow `cue-vet` step landed fleet-side.
 
 ### Fixed
+
+- **The Release workflow now carries a concurrency guard** — a manual second tag push could previously race an in-flight publish; releases are serialized per ref with `cancel-in-progress: false`. Found by the new `#ReleaseWorkflow` schema on its first vet (the pilot's proof-by-finding).
+- **The commit-lint job no longer splices `github.head_ref` into an inline shell command** — attacker-controlled on fork PRs; the refs now travel through environment variables (actionlint's documented mitigation, its finding of the pilot sweep).
+
+### Changed
 
 - Nothing yet.
 
