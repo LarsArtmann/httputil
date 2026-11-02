@@ -131,3 +131,58 @@ Impact: Critical/High/Medium/Low · Effort: S <30min, M 30min–2h, L >2h
 1. **Q1 → Yes, run the CUE pilot.** Track A unblocked: items 1–14 proceed (starting with #2 nixpkgs verification, #3 install, #4 policy module scaffold).
 2. **Q2 → Both layers.** The apidiff gate lives in per-repo CI AND a central BuildFlow step; items 18–19 are no longer placement-blocked.
 3. **Q3 → Separate HTML series.** Brutal self-reviews remain `docs/reviews/<ts>_brutal-self-review.html` per skill default; today's folded-into-status-.md version was a one-off under the single-file instruction. A standalone HTML self-review for this session was NOT backfilled (noted as intentional gap; next session's review opens the series).
+
+---
+
+## Execution appendix (same day, post-ruling Pareto plan run)
+
+Executed per `docs/planning/2026-11-02_05-05_pareto-master-plan_cue-pilot-apidiff.md`.
+Item numbers refer to this report's (f) table; hashes are httputil commits
+unless the cue-policy or BuildFlow repo is named.
+
+- **DONE — Tier 1 (apidiff gate, both layers):** 15, 16, 31 (feasibility +
+  tool decision: apidiff pinned `v0.0.0-20261014143641-f0251eb4aa3e`,
+  committed export-data baselines, output-not-exit-code gate — appendix in
+  AGENTS Commands block, `6db3763`); 17 (baselines at v1.7.0/v1.0.3,
+  `4cbb0c9`); 18, 19a (prerelease gate 3b + ci.yml job + negative test,
+  `1a869e0`); 19b, 30 (BuildFlow central step — external: BuildFlow
+  `c8eff161f`, edge ledger +2, verified green on this repo); 20
+  (v1-stability enforcement section, `f9ae3b5`).
+- **DONE — Tier 2 (pilot, ADOPTED):** 2 (nixpkgs cue VERIFIED at 0.17.1 —
+  the one-time unverified claim of this report is now evidence); 3
+  (installed via nix profile); 4 (policy repo: `LarsArtmann/cue-policy`,
+  public, canonical-doc-home decided, `081e3dc` there); 5 (`#ReleaseWorkflow`
+  + the REAL finding it caught: missing release concurrency guard, fixed
+  `48b664e`); 7, 8 (vet + actionlint delta matrix — second REAL finding:
+  `github.head_ref` shell-injection class in ci.yml, fixed same commit);
+  9, 14 (adoption memo: **ADOPT** as the complementary external-tool lane;
+  cue-policy `b00ef1f`).
+- **DONE — Tier 3 (wiring + records):** 10, 11 (BuildFlow `cue-vet` step
+  `f263829b7`/`2d6bbee17` + per-repo `policy-vet` CI job `290c0a2`);
+  6 (`#CIWorkflow`, cue-policy `90c4183`); 24 (HARVEST into TODO_LIST +
+  CHANGELOG, `52ece58`); 21, 22, 23 (decision records ×2 in DECISION_LOG +
+  durable lessons doc, `5ac7bc8`).
+- **DONE — Tier 4 (rest):** 32 (CSP-conflict detector: request-time
+  `security.csp_conflict` warning, behavior unchanged, `3534246`); 33
+  (WithContext provenance audit: 60 templates audited, one real gap fixed —
+  trusted-proxy CIDR now names its config field, `bc04305`); 28, 29
+  (census 348 dirs stored + a-team-openapi-spec verdict: CUE-OpenAPI lane
+  NOT NEEDED, `5c50829`); 36, 37 (round-2 research: logic guide + CUE
+  project practices, 8 more lessons, `b24f693`); 13, 40, 26, 27 (pin-watch
+  protocol + AGENTS cue commands + meta inventory entry, `6db3763` and
+  cue-policy `1ea1c3d`); 34, 35 (parked evals resolved in writing:
+  strict-set stays DEMAND_GATED, provenance owner-gated, `a97d871`).
+- **OPEN (harvested to TODO_LIST, not forgotten):** 12 (fleet rollout wave
+  1 — three more repos + 30-day review); the buildflow binary redeploy so
+  the store binary gains apidiff + cue-vet; cue-policy SHA-pin bumping as
+  an ongoing duty.
+- **Closed by owner ruling at read time:** 1, 38.
+- **Section re-baseline:** (a) research/verdict unchanged; (b) items 1–3
+  are now DONE (pilot executed and adopted; apidiff gate shipped both
+  layers; BuildFlow step model verified for real — the report's
+  recommendation was validated, including its one wrong assumption about
+  config-defined steps: BuildFlow has none, and the step is Go code);
+  (c) items 1–6 all executed or closed above; (d) the unverified-claim and
+  never-asked-question debts were cleared this session (claim verified
+  0.17.1; the gating questions WERE asked and answered via the question
+  tool before execution).
