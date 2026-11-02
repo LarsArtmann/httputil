@@ -212,6 +212,40 @@ jobs:
       - name: server_timing sub-module vs released baseline
         run: ./scripts/check-apidiff.sh apidiff/server_timing.export.zip server_timing "server_timing module" "v1.0.3"
 
+  # The fleet's workflow policies (pin formats, runner allowlist, permission
+  # shape — the classes actionlint has no concept of) live in exactly one
+  # place: LarsArtmann/cue-policy. This job vets the workflow files against
+  # them with a pinned cue; the policy checkout is pinned by commit SHA so
+  # a policy change cannot silently redefine what this repo's CI enforces
+  # (bumping the pin is a deliberate, reviewable act).
+  policy-vet:
+    name: Workflow Policy (cue vet)
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27.x"
+
+      - name: Install pinned cue
+        run: go install cuelang.org/go/cmd/cue@v0.17.1
+
+      - name: Check out the fleet policy schemas
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: LarsArtmann/cue-policy
+          ref: 90c4183ff3852756f4418806242ebe9da268c65c
+          path: cue-policy
+          persist-credentials: false
+
+      - name: Vet workflows against the fleet policy
+        run: |
+          cue vet -d '#ReleaseWorkflow' ./cue-policy .github/workflows/release.yml
+          cue vet -d '#CIWorkflow' ./cue-policy .github/workflows/ci.yml
+          cue vet -d '#CIWorkflow' ./cue-policy .github/workflows/nightly-fuzz.yml
+
   # The OpenTelemetry guide ships copy-paste snippets against modules httputil
   # deliberately does not depend on. A separate fixture module compiles those
   # snippets and runs httpspec.RunTracing against the real otelhttp and
