@@ -402,6 +402,8 @@ For dependency-based readiness (e.g., database connectivity):
 mux.HandleFunc("GET /health/ready", httputil.ReadyHandlerWithProbe(db.Ping))
 ```
 
+These handlers are the zero-dependency floor. For real probes — critical/non-critical classification, background caching, shutdown-aware readiness, aggregate and federation — pair httputil with [go-health](https://github.com/larsartmann/go-health) behind the same middleware; see [Using httputil with go-health](docs/integrations/go-health.md).
+
 ### CSRF Protection
 
 Double-submit cookie CSRF protection via [justinas/nosurf](https://github.com/justinas/nosurf) with HTMX-aware helpers.

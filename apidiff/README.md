@@ -4,10 +4,10 @@ Machine-checked floor of the frozen v1 API promise documented in
 [docs/v1-stability.md](../docs/v1-stability.md). Each zip holds the export data
 of every exported package of one module at the latest released tag.
 
-| File                        | Module                                     | Generated at        |
-| --------------------------- | ------------------------------------------ | ------------------- |
-| `httputil.export.zip`       | `github.com/larsartmann/httputil`          | tag `v1.7.0`        |
-| `server_timing.export.zip`  | `github.com/larsartmann/httputil/server_timing` | tag `server_timing/v1.0.3` |
+| File                       | Module                                          | Generated at               |
+| -------------------------- | ----------------------------------------------- | -------------------------- |
+| `httputil.export.zip`      | `github.com/larsartmann/httputil`               | tag `v1.7.0`               |
+| `server_timing.export.zip` | `github.com/larsartmann/httputil/server_timing` | tag `server_timing/v1.0.3` |
 
 ## The gate
 

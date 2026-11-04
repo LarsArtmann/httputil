@@ -10,20 +10,20 @@
 
 ## Self-Review (brutal, session-scoped)
 
-| # | Question | Honest answer |
-|---|----------|---------------|
-| 1 | What did I forget? | (1) Persisting the research at the moment of discovery — turn-1 lessons and the turn-2 verdict lived only in chat until this report. (2) The ONE gating question ("is fleet-central policy a goal?") was stated as a caveat but never actually asked via the question tool — two turns ended with dangling "say the word" offers instead. (3) The nixpkgs-packaging claim was never verified. (4) The BuildFlow external-tool step model was never checked before recommending a BuildFlow step. (5) apidiff was recommended twice but never scoped (multi-module baselines, tool source, CI placement). |
-| 2 | What is stupid that we do anyway? | Research sessions that end in chat prose. The fleet's whole memory doctrine says "write it down immediately" — this session did the opposite twice, and only the explicit status demand forced a durable artifact. |
-| 3 | What could I have done better? | Primary-source breadth: I never opened CUE's repo, compatibility policy, or engineering practices — the "what can we learn" question had an unmined vein (their compat promises and triage are exactly the class of process we care about). Fleet claims were made from a 40-line `ls` glimpse instead of a real census. |
-| 4 | What could I still improve? | See (e). |
-| 5 | Did I lie? | No intentional falsehoods. One memory-based assertion delivered as fact: "cue is in nixpkgs" (unverified). Two glimpse-based generalizations ("fleet has dozens of repos", OpenAPI lane fit) were labeled needs-check at delivery time — labeled, but still shipped without evidence. |
-| 6 | How can we be less stupid? | Every recommendation that names an integration point (flake, BuildFlow, CI) gets a 60-second existence check before it ships. Gating decisions get asked the same turn they're identified. |
-| 7 | Ghost systems? | None created (no code). But two "ghost proposals" exist only in chat: the apidiff gate and the CUE pilot — capabilities proposed, wired into nothing. This report integrates them into (f) so HARVEST can pull them forward. |
-| 8 | Scope creep trap? | Brushed twice: the OpenAPI lane and the website-launch provenance pattern both flirt with unrequested expansion. Both are parked as needs-check items, not commitments. |
-| 9 | Removed something useful? | No. Nothing was touched. |
-| 10 | Split brains? | None created. One latent risk recorded: if the CUE pilot lands, its documentation would span AGENTS.md Commands, a new policy repo, and BuildFlow — that needs a single canonical home on day one. |
-| 11 | Tests? | N/A honestly: a research session has no test surface. Quality control was chat-review only; nothing mechanical guards any claim made this session. The apidiff track (f) is the fix for the one promise (v1-stability) that deserves a gate. |
-| 12 | Re-verified inherited claims? | Re-verified against the repo: `docs/v1-stability.md` exists, zero `apidiff` usage, `cue` binary absent, workflows enumerated (ci.yml, nightly-fuzz.yml, release.yml). Leaned on AGENTS.md's depguard list as-is (acceptable: mechanically enforced by the linter itself). |
+| #  | Question                          | Honest answer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | What did I forget?                | (1) Persisting the research at the moment of discovery — turn-1 lessons and the turn-2 verdict lived only in chat until this report. (2) The ONE gating question ("is fleet-central policy a goal?") was stated as a caveat but never actually asked via the question tool — two turns ended with dangling "say the word" offers instead. (3) The nixpkgs-packaging claim was never verified. (4) The BuildFlow external-tool step model was never checked before recommending a BuildFlow step. (5) apidiff was recommended twice but never scoped (multi-module baselines, tool source, CI placement). |
+| 2  | What is stupid that we do anyway? | Research sessions that end in chat prose. The fleet's whole memory doctrine says "write it down immediately" — this session did the opposite twice, and only the explicit status demand forced a durable artifact.                                                                                                                                                                                                                                                                                                                                                                                       |
+| 3  | What could I have done better?    | Primary-source breadth: I never opened CUE's repo, compatibility policy, or engineering practices — the "what can we learn" question had an unmined vein (their compat promises and triage are exactly the class of process we care about). Fleet claims were made from a 40-line `ls` glimpse instead of a real census.                                                                                                                                                                                                                                                                                 |
+| 4  | What could I still improve?       | See (e).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 5  | Did I lie?                        | No intentional falsehoods. One memory-based assertion delivered as fact: "cue is in nixpkgs" (unverified). Two glimpse-based generalizations ("fleet has dozens of repos", OpenAPI lane fit) were labeled needs-check at delivery time — labeled, but still shipped without evidence.                                                                                                                                                                                                                                                                                                                    |
+| 6  | How can we be less stupid?        | Every recommendation that names an integration point (flake, BuildFlow, CI) gets a 60-second existence check before it ships. Gating decisions get asked the same turn they're identified.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 7  | Ghost systems?                    | None created (no code). But two "ghost proposals" exist only in chat: the apidiff gate and the CUE pilot — capabilities proposed, wired into nothing. This report integrates them into (f) so HARVEST can pull them forward.                                                                                                                                                                                                                                                                                                                                                                             |
+| 8  | Scope creep trap?                 | Brushed twice: the OpenAPI lane and the website-launch provenance pattern both flirt with unrequested expansion. Both are parked as needs-check items, not commitments.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 9  | Removed something useful?         | No. Nothing was touched.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 10 | Split brains?                     | None created. One latent risk recorded: if the CUE pilot lands, its documentation would span AGENTS.md Commands, a new policy repo, and BuildFlow — that needs a single canonical home on day one.                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 11 | Tests?                            | N/A honestly: a research session has no test surface. Quality control was chat-review only; nothing mechanical guards any claim made this session. The apidiff track (f) is the fix for the one promise (v1-stability) that deserves a gate.                                                                                                                                                                                                                                                                                                                                                             |
+| 12 | Re-verified inherited claims?     | Re-verified against the repo: `docs/v1-stability.md` exists, zero `apidiff` usage, `cue` binary absent, workflows enumerated (ci.yml, nightly-fuzz.yml, release.yml). Leaned on AGENTS.md's depguard list as-is (acceptable: mechanically enforced by the linter itself).                                                                                                                                                                                                                                                                                                                                |
 
 ---
 
@@ -73,58 +73,58 @@ Nothing was destroyed — no code or files were touched, so there is no broken s
 
 Impact: Critical/High/Medium/Low · Effort: S <30min, M 30min–2h, L >2h
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Owner ruling: is fleet-central workflow/config policy a goal? (Q1 — gates all of Track A) | Critical | S | Decision |
-| 2 | Verify cue packaging: `nix eval nixpkgs#cue.version` (clears session's one unverified claim) | High | S | Quality |
-| 3 | Install pinned cue in the dev environment (home-manager profile or flake input) | High | S | Feature |
-| 4 | Scaffold central CUE policy module (new repo, `cue mod init`, README stating the one canonical doc home) | Medium | S | Feature |
-| 5 | Author `#ReleaseWorkflow` schema: changelog compare-link rule, GO_VERSION/pin format, runner allowlist, concurrency invariants | High | M | Feature |
-| 6 | Author `#CIWorkflow` schema covering ci.yml + nightly-fuzz.yml invariants | Medium | M | Feature |
-| 7 | Run `cue vet` against httputil's 3 workflows; record findings verbatim | High | S | Quality |
-| 8 | Install + run actionlint on the same 3 workflows; build the CUE-vs-actionlint delta matrix | High | S | Quality |
-| 9 | Adoption memo: adopt or retire the pilot based strictly on the delta evidence | High | S | Documentation |
-| 10 | If adopted: verify BuildFlow supports external-tool steps, then wire the vet in | Medium | M | Feature |
-| 11 | If adopted: add a per-repo CI job running the policy vet | Medium | M | Feature |
-| 12 | If adopted: roll out to the next 3 repos; measure signal/noise for 30 days | Medium | M | Feature |
-| 13 | If adopted: watch CUE releases (v0.18+) for breaking churn | Low | S | Cleanup |
-| 14 | If retired: close-out appendix in this report's successor with the evidence | Low | S | Documentation |
-| 15 | Verify apidiff works across go.work multi-module (root/httpspec/server_timing baselines) | High | M | Quality |
-| 16 | Check whether Go 1.27 ships a first-party API-compat tool before committing to x/exp apidiff | Medium | S | Quality |
-| 17 | Generate exported-API baselines at the current released tags of all 3 modules | High | M | Quality |
-| 18 | Add an apidiff step to scripts/prerelease-check.sh | High | M | Quality |
-| 19 | Add apidiff to CI (placement per Q2) | High | M | Quality |
-| 20 | Reference the mechanical gate from docs/v1-stability.md (prose becomes enforced) | Medium | S | Documentation |
-| 21 | Distill the 8 CUE lessons into a durable notes doc (not just this timestamped file) | Medium | S | Documentation |
-| 22 | Write decision record: "CUE is not a Go dependency here" (depguard + fleet validation-lane policy) | Medium | S | Documentation |
-| 23 | Write decision record: "CUE as external tool — conditional pilot" (the adoption gate) | Medium | S | Documentation |
-| 24 | HARVEST this report's (f) into TODO_LIST.md / ROADMAP.md (docs-health, on next instruction) | High | M | Documentation |
-| 25 | Annotate this report as items complete (docs-health ANNOTATE mode) | Low | S | Documentation |
-| 26 | If pilot lands: add the cue commands to AGENTS.md Commands block (single canonical home) | Medium | S | Documentation |
-| 27 | If policy repo lands: add it to the meta project inventory | Low | S | Documentation |
-| 28 | Census ~/projects properly (full count + list, stored once) | Low | S | Cleanup |
-| 29 | Inspect a-team-openapi-spec (size, CI, validation state) to judge the CUE-OpenAPI lane | Medium | S | Quality |
-| 30 | Verify BuildFlow's step model for arbitrary external binaries before any integration claim | Medium | S | Quality |
-| 31 | Pin the apidiff tool source (nixpkgs vs `go install`) once #16 settles the choice | Medium | S | Quality |
-| 32 | Prototype a CSP-conflict detector (Nonce + SecurityHeaders double-CSP made explicit, not docs-only) | Medium | M | Feature |
-| 33 | Audit WithContext keys: every classified error names its config field/middleware provenance | Medium | M | Quality |
-| 34 | Evaluate an httpspec "strict set" (closed-struct-style full-spec opt-in) — park unless demand appears | Low | S | Feature |
-| 35 | Add page+commit provenance to issue links in the website-launch pattern (owner-gated, cross-repo) | Low | S | Documentation |
-| 36 | Research CUE's own engineering practices (compat policy, repo hygiene, triage) — the unmined half of turn 1 | Low | M | Documentation |
-| 37 | Read the-logic-of-cue concept guide (skipped this session) | Low | S | Documentation |
-| 38 | Resolve the self-review format convention (Q3) and record the ruling | Medium | S | Decision |
-| 39 | After Q1/Q2 answers: re-baseline this report's (a)–(d) sections | Low | S | Documentation |
-| 40 | If CUE adopted anywhere: periodic re-check that the pin still exists in nixpkgs at that version | Low | S | Cleanup |
+| #  | Task                                                                                                                           | Impact   | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------------- |
+| 1  | Owner ruling: is fleet-central workflow/config policy a goal? (Q1 — gates all of Track A)                                      | Critical | S      | Decision      |
+| 2  | Verify cue packaging: `nix eval nixpkgs#cue.version` (clears session's one unverified claim)                                   | High     | S      | Quality       |
+| 3  | Install pinned cue in the dev environment (home-manager profile or flake input)                                                | High     | S      | Feature       |
+| 4  | Scaffold central CUE policy module (new repo, `cue mod init`, README stating the one canonical doc home)                       | Medium   | S      | Feature       |
+| 5  | Author `#ReleaseWorkflow` schema: changelog compare-link rule, GO_VERSION/pin format, runner allowlist, concurrency invariants | High     | M      | Feature       |
+| 6  | Author `#CIWorkflow` schema covering ci.yml + nightly-fuzz.yml invariants                                                      | Medium   | M      | Feature       |
+| 7  | Run `cue vet` against httputil's 3 workflows; record findings verbatim                                                         | High     | S      | Quality       |
+| 8  | Install + run actionlint on the same 3 workflows; build the CUE-vs-actionlint delta matrix                                     | High     | S      | Quality       |
+| 9  | Adoption memo: adopt or retire the pilot based strictly on the delta evidence                                                  | High     | S      | Documentation |
+| 10 | If adopted: verify BuildFlow supports external-tool steps, then wire the vet in                                                | Medium   | M      | Feature       |
+| 11 | If adopted: add a per-repo CI job running the policy vet                                                                       | Medium   | M      | Feature       |
+| 12 | If adopted: roll out to the next 3 repos; measure signal/noise for 30 days                                                     | Medium   | M      | Feature       |
+| 13 | If adopted: watch CUE releases (v0.18+) for breaking churn                                                                     | Low      | S      | Cleanup       |
+| 14 | If retired: close-out appendix in this report's successor with the evidence                                                    | Low      | S      | Documentation |
+| 15 | Verify apidiff works across go.work multi-module (root/httpspec/server_timing baselines)                                       | High     | M      | Quality       |
+| 16 | Check whether Go 1.27 ships a first-party API-compat tool before committing to x/exp apidiff                                   | Medium   | S      | Quality       |
+| 17 | Generate exported-API baselines at the current released tags of all 3 modules                                                  | High     | M      | Quality       |
+| 18 | Add an apidiff step to scripts/prerelease-check.sh                                                                             | High     | M      | Quality       |
+| 19 | Add apidiff to CI (placement per Q2)                                                                                           | High     | M      | Quality       |
+| 20 | Reference the mechanical gate from docs/v1-stability.md (prose becomes enforced)                                               | Medium   | S      | Documentation |
+| 21 | Distill the 8 CUE lessons into a durable notes doc (not just this timestamped file)                                            | Medium   | S      | Documentation |
+| 22 | Write decision record: "CUE is not a Go dependency here" (depguard + fleet validation-lane policy)                             | Medium   | S      | Documentation |
+| 23 | Write decision record: "CUE as external tool — conditional pilot" (the adoption gate)                                          | Medium   | S      | Documentation |
+| 24 | HARVEST this report's (f) into TODO_LIST.md / ROADMAP.md (docs-health, on next instruction)                                    | High     | M      | Documentation |
+| 25 | Annotate this report as items complete (docs-health ANNOTATE mode)                                                             | Low      | S      | Documentation |
+| 26 | If pilot lands: add the cue commands to AGENTS.md Commands block (single canonical home)                                       | Medium   | S      | Documentation |
+| 27 | If policy repo lands: add it to the meta project inventory                                                                     | Low      | S      | Documentation |
+| 28 | Census ~/projects properly (full count + list, stored once)                                                                    | Low      | S      | Cleanup       |
+| 29 | Inspect a-team-openapi-spec (size, CI, validation state) to judge the CUE-OpenAPI lane                                         | Medium   | S      | Quality       |
+| 30 | Verify BuildFlow's step model for arbitrary external binaries before any integration claim                                     | Medium   | S      | Quality       |
+| 31 | Pin the apidiff tool source (nixpkgs vs `go install`) once #16 settles the choice                                              | Medium   | S      | Quality       |
+| 32 | Prototype a CSP-conflict detector (Nonce + SecurityHeaders double-CSP made explicit, not docs-only)                            | Medium   | M      | Feature       |
+| 33 | Audit WithContext keys: every classified error names its config field/middleware provenance                                    | Medium   | M      | Quality       |
+| 34 | Evaluate an httpspec "strict set" (closed-struct-style full-spec opt-in) — park unless demand appears                          | Low      | S      | Feature       |
+| 35 | Add page+commit provenance to issue links in the website-launch pattern (owner-gated, cross-repo)                              | Low      | S      | Documentation |
+| 36 | Research CUE's own engineering practices (compat policy, repo hygiene, triage) — the unmined half of turn 1                    | Low      | M      | Documentation |
+| 37 | Read the-logic-of-cue concept guide (skipped this session)                                                                     | Low      | S      | Documentation |
+| 38 | Resolve the self-review format convention (Q3) and record the ruling                                                           | Medium   | S      | Decision      |
+| 39 | After Q1/Q2 answers: re-baseline this report's (a)–(d) sections                                                                | Low      | S      | Documentation |
+| 40 | If CUE adopted anywhere: periodic re-check that the pin still exists in nixpkgs at that version                                | Low      | S      | Cleanup       |
 
 ## g) Questions I cannot answer myself
 
-1. **Is fleet-central workflow/config policy a goal you actually hold?** The red-tag incidents (v1.1.0, v1.4.2) were process failures no YAML schema catches; I verified no cue, no actionlint, no policy infra exists anywhere — so there is no evidence trail telling me whether you *want* central policy or were fine with per-repo process gates. This single answer gates items 1–14.
+1. **Is fleet-central workflow/config policy a goal you actually hold?** The red-tag incidents (v1.1.0, v1.4.2) were process failures no YAML schema catches; I verified no cue, no actionlint, no policy infra exists anywhere — so there is no evidence trail telling me whether you _want_ central policy or were fine with per-repo process gates. This single answer gates items 1–14.
 2. **If the v1-stability promise gets mechanized with apidiff, where does the gate live: per-repo CI or a central BuildFlow step?** I verified the gap is real and unowned, but placement is fleet-architecture preference I should not guess.
 3. **Going forward: should brutal self-reviews be separate `docs/reviews/*.html` series entries (skill default) or folded into the status `.md` (today's explicit instruction)?** The two conventions conflict by design; a ruling now prevents the next session from re-hitting this.
 
 ---
 
-*Point-in-time snapshot. HARVEST pending (item 24). Annotate, never rewrite (docs-health ANNOTATE convention).*
+_Point-in-time snapshot. HARVEST pending (item 24). Annotate, never rewrite (docs-health ANNOTATE convention)._
 
 ## Appendix: Rulings recorded (2026-11-02, same session)
 
@@ -152,11 +152,11 @@ unless the cue-policy or BuildFlow repo is named.
   the one-time unverified claim of this report is now evidence); 3
   (installed via nix profile); 4 (policy repo: `LarsArtmann/cue-policy`,
   public, canonical-doc-home decided, `081e3dc` there); 5 (`#ReleaseWorkflow`
-  + the REAL finding it caught: missing release concurrency guard, fixed
-  `48b664e`); 7, 8 (vet + actionlint delta matrix — second REAL finding:
-  `github.head_ref` shell-injection class in ci.yml, fixed same commit);
-  9, 14 (adoption memo: **ADOPT** as the complementary external-tool lane;
-  cue-policy `b00ef1f`).
+  - the REAL finding it caught: missing release concurrency guard, fixed
+    `48b664e`); 7, 8 (vet + actionlint delta matrix — second REAL finding:
+    `github.head_ref` shell-injection class in ci.yml, fixed same commit);
+    9, 14 (adoption memo: **ADOPT** as the complementary external-tool lane;
+    cue-policy `b00ef1f`).
 - **DONE — Tier 3 (wiring + records):** 10, 11 (BuildFlow `cue-vet` step
   `f263829b7`/`2d6bbee17` + per-repo `policy-vet` CI job `290c0a2`);
   6 (`#CIWorkflow`, cue-policy `90c4183`); 24 (HARVEST into TODO_LIST +

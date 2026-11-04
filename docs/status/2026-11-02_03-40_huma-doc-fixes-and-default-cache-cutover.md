@@ -52,7 +52,7 @@
 ## d) TOTALLY FUCKED UP
 
 1. **Format gates left unverified on my own edits.** I edited four markdown files and ran neither `nix fmt` (dprint/treefmt gate) nor markdownlint on them. The daemon already committed them (976fba0). If any edit violates treefmt/markdown rules, that commit ships the violation and `nix flake check` would go red — the exact red-master class AGENTS.md documents. Severity depends on CI result never checked. This is the session's genuine fuckup: I enforced `doc-snippet-refs` but skipped the formatting gate on the same files in the same breath.
-2. *(No code fuckups: no Go source changed; both runnable gates pass; nothing broken left in tree.)*
+2. _(No code fuckups: no Go source changed; both runnable gates pass; nothing broken left in tree.)_
 
 ## e) WHAT WE SHOULD IMPROVE
 
@@ -92,4 +92,4 @@
 
 ---
 
-*Point-in-time snapshot; goes stale. Report written per status-report skill; HARVEST into TODO_LIST pending (f.9). Manual commit skipped: harness forbids unrequested commits; the daemon sweeps.*
+_Point-in-time snapshot; goes stale. Report written per status-report skill; HARVEST into TODO_LIST pending (f.9). Manual commit skipped: harness forbids unrequested commits; the daemon sweeps._

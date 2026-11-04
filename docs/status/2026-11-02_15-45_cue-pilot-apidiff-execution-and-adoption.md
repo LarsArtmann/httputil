@@ -102,7 +102,7 @@ Not fucked up, worth recording as verified-clean: no Go API changes beyond the a
 
 ## f) Up to 50 things we should get done next
 
-*Brainstorm ranked by value/effort; harvested candidates should survive docs-health routing rigor. "owner" = gated on you.*
+_Brainstorm ranked by value/effort; harvested candidates should survive docs-health routing rigor. "owner" = gated on you._
 
 1. Add the concurrency guard + `policy-vet` job to **library-policy** (template: its own wave report) and set the 30-day review date.
 2. Same for **go-etag**.
@@ -163,4 +163,4 @@ Not fucked up, worth recording as verified-clean: no Go API changes beyond the a
 
 ---
 
-*Point-in-time snapshot. When stale, annotate (docs-health ANNOTATE); harvest open items into TODO_LIST rather than re-planning from scratch.*
+_Point-in-time snapshot. When stale, annotate (docs-health ANNOTATE); harvest open items into TODO_LIST rather than re-planning from scratch._
