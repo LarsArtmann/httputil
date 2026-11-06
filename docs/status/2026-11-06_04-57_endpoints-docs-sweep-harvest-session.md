@@ -254,6 +254,10 @@ duplicated here.
    fuzz 5-min-clean, race ×10 clean); what remains is purely your risk call on
    freezing the `Handle`/`Register` shape. (Everything downstream — apidiff
    baseline, badge, compare-link, meta inventory — waits on this one word.)
+   **→ RULED 2026-11-06: `endpoints/v0.1.0`, pre-1.0 iteration tier (0.x
+   semantics bound the freeze risk), cut the same day — release commit
+   `ce3471a`; baseline, badge, compare-link landed with it. The meta-inventory
+   row stays open in TODO_LIST.**
 2. **CI parity for sub-module tests:** add `cd endpoints && go test -race
    ./...` (and server_timing's) as CI test-job steps, or keep
    release-time-only as the deliberate shape? Sharpened by this session: CI
