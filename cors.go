@@ -133,25 +133,8 @@ func CORS(cfg CORSConfig) Middleware {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			allowOrigin := "*"
-
 			origin := req.Header.Get("Origin")
-			if origin != "" {
-				allowOrigin = resolveOrigin(origin, cfg)
-			}
-
-			if allowOrigin != "" {
-				resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-			}
-
-			// A request-dependent Access-Control-Allow-Origin value (allowlist
-			// or wildcard-pattern reflection) must declare Origin-variance so
-			// shared caches cannot serve an origin-A-stamped response to
-			// origin B. AllowAllOrigins emits the constant "*" and is exempt.
-			// Add (not Set): other layers may already vary other headers.
-			if origin != "" && !cfg.AllowAllOrigins {
-				resp.Header().Add("Vary", "Origin")
-			}
+			writeAllowOriginAndVary(resp, origin, cfg)
 
 			resp.Header().Set("Access-Control-Allow-Methods", allowMethods)
 			resp.Header().Set("Access-Control-Allow-Headers", allowHeaders)
@@ -177,6 +160,28 @@ func CORS(cfg CORSConfig) Middleware {
 
 			next.ServeHTTP(resp, req)
 		})
+	}
+}
+
+// writeAllowOriginAndVary stamps Access-Control-Allow-Origin for the request's
+// origin and, for a request-dependent value (allowlist or wildcard-pattern
+// reflection), declares Origin-variance so shared caches cannot serve an
+// origin-A-stamped response to origin B. AllowAllOrigins emits the constant
+// "*" and is exempt. Vary is Added (not Set): other layers may already vary
+// other headers.
+func writeAllowOriginAndVary(resp http.ResponseWriter, origin string, cfg CORSConfig) {
+	allowOrigin := "*"
+
+	if origin != "" {
+		allowOrigin = resolveOrigin(origin, cfg)
+	}
+
+	if allowOrigin != "" {
+		resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+	}
+
+	if origin != "" && !cfg.AllowAllOrigins {
+		resp.Header().Add("Vary", "Origin")
 	}
 }
 
