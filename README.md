@@ -569,77 +569,77 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 
 ## API
 
-| Function                          | Signature                                                             | Purpose                                                                       |
-| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `CORS`                            | `func(CORSConfig) func(http.Handler) http.Handler`                    | CORS middleware factory                                                       |
-| `DefaultCORSConfig`               | `func() CORSConfig`                                                   | Permissive dev config (allows all origins)                                    |
-| `ClientIP`                        | `func(*http.Request) string`                                          | Extract client IP from proxied request                                        |
-| `ClientIPMiddleware`              | `func(http.Handler) http.Handler`                                     | Store client IP in request context                                            |
-| `ClientIPFromContext`             | `func(context.Context) string`                                        | Retrieve stored client IP                                                     |
-| `WithClientIP`                    | `func(context.Context, string) context.Context`                       | Store client IP in context                                                    |
-| `NewResponseRecorder`             | `func(http.ResponseWriter) *ResponseRecorder`                         | Wrap writer to capture status                                                 |
-| `Chain`                           | `func(http.Handler, ...func(http.Handler) http.Handler) http.Handler` | Compose middleware                                                            |
-| `Compose`                         | `func(...Middleware) Middleware`                                      | Reusable middleware bundle (first = outermost)                                |
-| `SecurityHeaders`                 | `func(SecurityHeadersConfig) func(http.Handler) http.Handler`         | Security response headers                                                     |
-| `DefaultSecurityHeadersConfig`    | `func() SecurityHeadersConfig`                                        | Sensible security defaults                                                    |
-| `RequestID`                       | `func(RequestIDConfig) func(http.Handler) http.Handler`               | Request ID propagation/generation                                             |
-| `DefaultRequestIDConfig`          | `func() RequestIDConfig`                                              | Default X-Request-ID config                                                   |
-| `RequestIDFromContext`            | `func(context.Context) string`                                        | Retrieve stored request ID                                                    |
-| `Recovery`                        | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Panic recovery                                                                |
-| `RecoveryWithConfig`              | `func(RecoveryConfig) Middleware`                                     | Panic recovery with an `OnPanic` observability hook                           |
-| `Timeout`                         | `func(time.Duration) func(http.Handler) http.Handler`                 | Request deadline enforcement                                                  |
-| `Logging`                         | `func(*slog.Logger) func(http.Handler) http.Handler`                  | Structured request logging                                                    |
-| `LoggingFromContext`              | `func(*slog.Logger, func(context.Context) *slog.Logger) Middleware`   | Request logging with the logger resolved per request from context             |
-| `MaxBodySize`                     | `func(int64) func(http.Handler) http.Handler`                         | Request body size limit                                                       |
-| `Compression`                     | `func(CompressionConfig) func(http.Handler) http.Handler`             | Negotiated response compression                                               |
-| `DefaultCompressionConfig`        | `func() CompressionConfig`                                            | gzip/deflate defaults                                                         |
-| `DefaultWriterFactories`          | `func() map[string]WriterFactory`                                     | Built-in gzip/deflate/identity factories                                      |
-| `DefaultWriterFactoriesForLevel`  | `func(int) map[string]WriterFactory`                                  | Built-in factories at a given compression level                               |
-| `GzipWriterFactory`               | `func(int) WriterFactory`                                             | Stdlib gzip factory at a given level                                          |
-| `DeflateWriterFactory`            | `func(int) WriterFactory`                                             | Stdlib flate/raw-deflate factory                                              |
-| `DefaultIncompressibleTypes`      | `func() []string`                                                     | Default content-type deny-list for compression                                |
-| `Decompression`                   | `func(DecompressionConfig) func(http.Handler) http.Handler`           | Request body decompression + bomb protection                                  |
-| `DefaultDecompressionConfig`      | `func() DecompressionConfig`                                          | gzip/deflate defaults                                                         |
-| `KeyedRateLimiterMiddleware`      | `func(KeyedRateLimiterConfig) func(http.Handler) http.Handler`        | Per-key rate limiting with eviction                                           |
-| `Language`                        | `func(LanguageConfig) func(http.Handler) http.Handler`                | Content-language negotiation (Content-Language + Vary stamping)               |
-| `NewKeyedRateLimiter`             | `func(KeyedRateLimiterConfig) *KeyedRateLimiter`                      | Rate limiter with monitoring API                                              |
-| `DefaultKeyedRateLimiterConfig`   | `func() KeyedRateLimiterConfig`                                       | Default per-key rate limit config                                             |
-| `KeyExtractorFromTrustedClientIP` | `func([]string) (KeyExtractor, error)`                                | Client-IP keying gated by trusted-proxy CIDRs                                 |
-| `ParseTrustedProxies`             | `func([]string) (TrustedProxySet, error)`                             | Parsed, immutable trusted-proxy set (`.ClientIP`/`.Contains`/`.KeyExtractor`) |
-| `CSRFMiddleware`                  | `func(CSRFConfig) func(http.Handler) http.Handler`                    | CSRF protection middleware                                                    |
-| `CSRFResponseHeaderMiddleware`    | `func(http.Handler) http.Handler`                                     | Auto-set CSRF token in response header                                        |
-| `Nonce`                           | `func(NonceConfig) func(http.Handler) http.Handler`                   | Per-request CSP nonce (context + optional CSP header)                         |
-| `DefaultNonceConfig`              | `func() NonceConfig`                                                  | Default CSP nonce config (20 bytes)                                           |
-| `NonceAttr`                       | `func(*http.Request) string`                                          | Ready-to-use `nonce="..."` HTML attribute                                     |
-| `ValidateCSRF`                    | `func(*http.Request, CSRFConfig) (bool, *httptest.ResponseRecorder)`  | Standalone CSRF validation                                                    |
-| `ServerTimingMiddleware`          | `func() func(http.Handler) http.Handler`                              | W3C Server-Timing middleware (`server_timing` module)                         |
-| `ServerTimingMiddlewareWhen`      | `func(func(*http.Request) bool) func(http.Handler) http.Handler`      | Conditional Server-Timing (`server_timing` module)                            |
-| `endpoints.NewRegistry`           | `func() *endpoints.Registry`                                          | Route registry for the `/endpoints` listing (`endpoints` module)              |
-| `endpoints.Registry.Handle`       | `func(*http.ServeMux, string, http.Handler, string) error`            | Mount a handler on the mux AND record its route                               |
-| `endpoints.Registry.HandleFunc`   | `func(*http.ServeMux, string, func(http.ResponseWriter, *http.Request), string) error` | `Handle` for a bare handler function                                           |
-| `endpoints.Registry.Routes`       | `func() []endpoints.Route`                                            | Registered routes, sorted defensive copy                                       |
-| `endpoints.Registry.Handler`      | `func() http.Handler`                                                 | The content-negotiated listing handler (GET/HEAD, 405 otherwise)              |
-| `endpoints.Register`              | `func(*http.ServeMux, *endpoints.Registry) error`                     | Mount the listing at `DefaultPattern` (`GET /endpoints`)                      |
-| `endpoints.Route`                 | `struct { Method, Pattern, Summary string }`                          | One recorded route                                                             |
-| `endpoints.Response`              | `struct { Endpoints []endpoints.Route }`                              | Listing payload rendered as JSON or HTML                                       |
-| `endpoints.DefaultPattern`        | `const "GET /endpoints"`                                             | Pattern `Register` mounts by default                                           |
-| `ParseUintQuery`                  | `func(*http.Request, string) uint`                                    | Parse uint from query param                                                   |
-| `Metrics`                         | `func(MetricsConfig) func(http.Handler) http.Handler`                 | Request metrics recording                                                     |
-| `DefaultMetricsConfig`            | `func() MetricsConfig`                                                | Default metrics config                                                        |
-| `NewMiddlewareStack`              | `func() *MiddlewareStack`                                             | Named middleware stack builder                                                |
-| `MiddlewareStack.Middleware()`    | `func() Middleware`                                                   | Nest the whole stack as one middleware                                        |
-| `MiddlewareFunc.Then`             | `func(http.Handler) http.Handler`                                     | Value-level chaining; nil wires a 500-stub handler                            |
-| `DetectCapabilities`              | `func(http.ResponseWriter) Capabilities`                              | Report Hijacker/Flusher support                                               |
-| `RegisterErrorClassifications`    | `func()`                                                              | Register stdlib error sentinels + templates                                   |
-| `NewServer`                       | `func(ServerConfig, http.Handler) (*Server, error)`                   | Configurable HTTP server with timeouts                                        |
-| `NewServerListener`               | `func(net.Listener, ServerConfig, http.Handler) (*Server, error)`     | Serve on a caller-bound listener (wrappers own the bind)                      |
-| `Server.ListenerAddr()`           | `func() (net.Addr, bool)`                                             | Resolved listener address (`:0` → real port); false when not listening        |
-| `DefaultServerConfig`             | `func() ServerConfig`                                                 | Sensible server timeout defaults                                              |
-| `RegisterHealth`                  | `func(*http.ServeMux)`                                                | Register /health + /live + /ready                                             |
-| `HealthHandler`                   | `func() http.HandlerFunc`                                             | Simple `{"status":"up"}` handler                                              |
-| `LiveHandler`                     | `func() http.HandlerFunc`                                             | Kubernetes liveness probe handler                                             |
-| `ReadyHandler`                    | `func() http.HandlerFunc`                                             | Kubernetes readiness probe handler                                            |
-| `ReadyHandlerWithProbe`           | `func(func() bool) http.HandlerFunc`                                  | Readiness with dependency probe (200/503)                                     |
+| Function                          | Signature                                                                              | Purpose                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `CORS`                            | `func(CORSConfig) func(http.Handler) http.Handler`                                     | CORS middleware factory                                                       |
+| `DefaultCORSConfig`               | `func() CORSConfig`                                                                    | Permissive dev config (allows all origins)                                    |
+| `ClientIP`                        | `func(*http.Request) string`                                                           | Extract client IP from proxied request                                        |
+| `ClientIPMiddleware`              | `func(http.Handler) http.Handler`                                                      | Store client IP in request context                                            |
+| `ClientIPFromContext`             | `func(context.Context) string`                                                         | Retrieve stored client IP                                                     |
+| `WithClientIP`                    | `func(context.Context, string) context.Context`                                        | Store client IP in context                                                    |
+| `NewResponseRecorder`             | `func(http.ResponseWriter) *ResponseRecorder`                                          | Wrap writer to capture status                                                 |
+| `Chain`                           | `func(http.Handler, ...func(http.Handler) http.Handler) http.Handler`                  | Compose middleware                                                            |
+| `Compose`                         | `func(...Middleware) Middleware`                                                       | Reusable middleware bundle (first = outermost)                                |
+| `SecurityHeaders`                 | `func(SecurityHeadersConfig) func(http.Handler) http.Handler`                          | Security response headers                                                     |
+| `DefaultSecurityHeadersConfig`    | `func() SecurityHeadersConfig`                                                         | Sensible security defaults                                                    |
+| `RequestID`                       | `func(RequestIDConfig) func(http.Handler) http.Handler`                                | Request ID propagation/generation                                             |
+| `DefaultRequestIDConfig`          | `func() RequestIDConfig`                                                               | Default X-Request-ID config                                                   |
+| `RequestIDFromContext`            | `func(context.Context) string`                                                         | Retrieve stored request ID                                                    |
+| `Recovery`                        | `func(*slog.Logger) func(http.Handler) http.Handler`                                   | Panic recovery                                                                |
+| `RecoveryWithConfig`              | `func(RecoveryConfig) Middleware`                                                      | Panic recovery with an `OnPanic` observability hook                           |
+| `Timeout`                         | `func(time.Duration) func(http.Handler) http.Handler`                                  | Request deadline enforcement                                                  |
+| `Logging`                         | `func(*slog.Logger) func(http.Handler) http.Handler`                                   | Structured request logging                                                    |
+| `LoggingFromContext`              | `func(*slog.Logger, func(context.Context) *slog.Logger) Middleware`                    | Request logging with the logger resolved per request from context             |
+| `MaxBodySize`                     | `func(int64) func(http.Handler) http.Handler`                                          | Request body size limit                                                       |
+| `Compression`                     | `func(CompressionConfig) func(http.Handler) http.Handler`                              | Negotiated response compression                                               |
+| `DefaultCompressionConfig`        | `func() CompressionConfig`                                                             | gzip/deflate defaults                                                         |
+| `DefaultWriterFactories`          | `func() map[string]WriterFactory`                                                      | Built-in gzip/deflate/identity factories                                      |
+| `DefaultWriterFactoriesForLevel`  | `func(int) map[string]WriterFactory`                                                   | Built-in factories at a given compression level                               |
+| `GzipWriterFactory`               | `func(int) WriterFactory`                                                              | Stdlib gzip factory at a given level                                          |
+| `DeflateWriterFactory`            | `func(int) WriterFactory`                                                              | Stdlib flate/raw-deflate factory                                              |
+| `DefaultIncompressibleTypes`      | `func() []string`                                                                      | Default content-type deny-list for compression                                |
+| `Decompression`                   | `func(DecompressionConfig) func(http.Handler) http.Handler`                            | Request body decompression + bomb protection                                  |
+| `DefaultDecompressionConfig`      | `func() DecompressionConfig`                                                           | gzip/deflate defaults                                                         |
+| `KeyedRateLimiterMiddleware`      | `func(KeyedRateLimiterConfig) func(http.Handler) http.Handler`                         | Per-key rate limiting with eviction                                           |
+| `Language`                        | `func(LanguageConfig) func(http.Handler) http.Handler`                                 | Content-language negotiation (Content-Language + Vary stamping)               |
+| `NewKeyedRateLimiter`             | `func(KeyedRateLimiterConfig) *KeyedRateLimiter`                                       | Rate limiter with monitoring API                                              |
+| `DefaultKeyedRateLimiterConfig`   | `func() KeyedRateLimiterConfig`                                                        | Default per-key rate limit config                                             |
+| `KeyExtractorFromTrustedClientIP` | `func([]string) (KeyExtractor, error)`                                                 | Client-IP keying gated by trusted-proxy CIDRs                                 |
+| `ParseTrustedProxies`             | `func([]string) (TrustedProxySet, error)`                                              | Parsed, immutable trusted-proxy set (`.ClientIP`/`.Contains`/`.KeyExtractor`) |
+| `CSRFMiddleware`                  | `func(CSRFConfig) func(http.Handler) http.Handler`                                     | CSRF protection middleware                                                    |
+| `CSRFResponseHeaderMiddleware`    | `func(http.Handler) http.Handler`                                                      | Auto-set CSRF token in response header                                        |
+| `Nonce`                           | `func(NonceConfig) func(http.Handler) http.Handler`                                    | Per-request CSP nonce (context + optional CSP header)                         |
+| `DefaultNonceConfig`              | `func() NonceConfig`                                                                   | Default CSP nonce config (20 bytes)                                           |
+| `NonceAttr`                       | `func(*http.Request) string`                                                           | Ready-to-use `nonce="..."` HTML attribute                                     |
+| `ValidateCSRF`                    | `func(*http.Request, CSRFConfig) (bool, *httptest.ResponseRecorder)`                   | Standalone CSRF validation                                                    |
+| `ServerTimingMiddleware`          | `func() func(http.Handler) http.Handler`                                               | W3C Server-Timing middleware (`server_timing` module)                         |
+| `ServerTimingMiddlewareWhen`      | `func(func(*http.Request) bool) func(http.Handler) http.Handler`                       | Conditional Server-Timing (`server_timing` module)                            |
+| `endpoints.NewRegistry`           | `func() *endpoints.Registry`                                                           | Route registry for the `/endpoints` listing (`endpoints` module)              |
+| `endpoints.Registry.Handle`       | `func(*http.ServeMux, string, http.Handler, string) error`                             | Mount a handler on the mux AND record its route                               |
+| `endpoints.Registry.HandleFunc`   | `func(*http.ServeMux, string, func(http.ResponseWriter, *http.Request), string) error` | `Handle` for a bare handler function                                          |
+| `endpoints.Registry.Routes`       | `func() []endpoints.Route`                                                             | Registered routes, sorted defensive copy                                      |
+| `endpoints.Registry.Handler`      | `func() http.Handler`                                                                  | The content-negotiated listing handler (GET/HEAD, 405 otherwise)              |
+| `endpoints.Register`              | `func(*http.ServeMux, *endpoints.Registry) error`                                      | Mount the listing at `DefaultPattern` (`GET /endpoints`)                      |
+| `endpoints.Route`                 | `struct { Method, Pattern, Summary string }`                                           | One recorded route                                                            |
+| `endpoints.Response`              | `struct { Endpoints []endpoints.Route }`                                               | Listing payload rendered as JSON or HTML                                      |
+| `endpoints.DefaultPattern`        | `const "GET /endpoints"`                                                               | Pattern `Register` mounts by default                                          |
+| `ParseUintQuery`                  | `func(*http.Request, string) uint`                                                     | Parse uint from query param                                                   |
+| `Metrics`                         | `func(MetricsConfig) func(http.Handler) http.Handler`                                  | Request metrics recording                                                     |
+| `DefaultMetricsConfig`            | `func() MetricsConfig`                                                                 | Default metrics config                                                        |
+| `NewMiddlewareStack`              | `func() *MiddlewareStack`                                                              | Named middleware stack builder                                                |
+| `MiddlewareStack.Middleware()`    | `func() Middleware`                                                                    | Nest the whole stack as one middleware                                        |
+| `MiddlewareFunc.Then`             | `func(http.Handler) http.Handler`                                                      | Value-level chaining; nil wires a 500-stub handler                            |
+| `DetectCapabilities`              | `func(http.ResponseWriter) Capabilities`                                               | Report Hijacker/Flusher support                                               |
+| `RegisterErrorClassifications`    | `func()`                                                                               | Register stdlib error sentinels + templates                                   |
+| `NewServer`                       | `func(ServerConfig, http.Handler) (*Server, error)`                                    | Configurable HTTP server with timeouts                                        |
+| `NewServerListener`               | `func(net.Listener, ServerConfig, http.Handler) (*Server, error)`                      | Serve on a caller-bound listener (wrappers own the bind)                      |
+| `Server.ListenerAddr()`           | `func() (net.Addr, bool)`                                                              | Resolved listener address (`:0` → real port); false when not listening        |
+| `DefaultServerConfig`             | `func() ServerConfig`                                                                  | Sensible server timeout defaults                                              |
+| `RegisterHealth`                  | `func(*http.ServeMux)`                                                                 | Register /health + /live + /ready                                             |
+| `HealthHandler`                   | `func() http.HandlerFunc`                                                              | Simple `{"status":"up"}` handler                                              |
+| `LiveHandler`                     | `func() http.HandlerFunc`                                                              | Kubernetes liveness probe handler                                             |
+| `ReadyHandler`                    | `func() http.HandlerFunc`                                                              | Kubernetes readiness probe handler                                            |
+| `ReadyHandlerWithProbe`           | `func(func() bool) http.HandlerFunc`                                                   | Readiness with dependency probe (200/503)                                     |
 
 ### `CORSConfig` fields
 

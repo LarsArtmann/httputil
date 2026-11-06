@@ -6,7 +6,7 @@ Step-by-step checklist for cutting an httputil release. Follow in order — each
 
 Run every gate below. If any fails, fix it before proceeding.
 
-**Automation:** `./scripts/prerelease-check.sh` runs gates 1-6 (plus the race-stress step 4b, the doc-snippet-refs step 5b, the erraudit gates, the coverage-threshold checker, changelog freshness, and `nix flake check` as its step 9) for BOTH modules in one command and fails on the first violation. The script's step numbers (1-9, with 4b/5b/8b interleaved) are its own scheme and need not match the section numbers below; the manual commands remain the source of truth.
+**Automation:** `./scripts/prerelease-check.sh` runs gates 1-6 (plus the race-stress step 4b, the doc-snippet-refs step 5b, the erraudit gates, the coverage-threshold checker, changelog freshness, and `nix flake check` as its step 9) for all three modules (root, `server_timing`, `endpoints`) in one command and fails on the first violation. The script's step numbers (1-9, with 4b/5b/8b interleaved) are its own scheme and need not match the section numbers below; the manual commands remain the source of truth.
 
 ### 1. Clean build
 
@@ -71,6 +71,8 @@ ls server_timing/*.go   # compare against the arch-ref server_timing table
 - The root `CHANGELOG.md` section being cut documents the sub-module tag version (coordinated cuts tag both modules from one commit — see step 11).
 - `server_timing/README.md` matches the actual exports (`grep -c '^func [A-Z]' server_timing/*.go`).
 
+The same drift check applies to the `endpoints` sub-module whenever its tag moves (`ls endpoints/*.go` against the arch-ref endpoints table; `endpoints/README.md` matches the exports). Its FIRST release is a one-time setup: generate the `apidiff/endpoints.export.zip` baseline, wire `scripts/check-apidiff.sh` for the module into the ci apidiff job and prerelease gate 3b (replacing the pending-first-tag comments in both), and add the pkg.go.dev badge to `endpoints/README.md` (the ritual lives in [apidiff/README.md](../apidiff/README.md)).
+
 ### 6.5. Scripts and examples review sweep
 
 Re-review `scripts/` and every `Example*` function — a prior pass claiming "clean" is not a substitute (the 2026-09-15 re-run found three real findings despite one). Check that examples still compile against the current API, their `// Output:` blocks are deterministic, and `scripts/` gates referenced by CI still exist and pass.
@@ -125,7 +127,7 @@ git tag -v vX.Y.Z
 ### 12. Push (master and tags in ONE command)
 
 ```bash
-git push origin master vX.Y.Z server_timing/vX.Y.Z
+git push origin master vX.Y.Z server_timing/vX.Y.Z  # append endpoints/vX.Y.Z when its tag is part of the cut
 ```
 
 Push master and ALL release tags together, never sequentially. The CHANGELOG's new `[X.Y.Z]:` compare links and the retargeted `[Unreleased]:` reference the tag being created — if master lands first, its CI run fails the lychee link check on compare URLs whose tags do not exist yet (the exact mechanism behind the v1.4.2 red release run: master pushed at 18:57, tag links unresolvable until the tag ref landed).
@@ -150,7 +152,7 @@ gh release create vX.Y.Z --notes "$(awk '/^## \[X.Y.Z\]/{f=1} f{print} /^## \[/{
 
 Or write custom notes for major releases.
 
-Sub-module tags get Release objects too (owner decision 2026-10-09): the workflow's tag trigger includes `server_timing/v*`, so a coordinated cut — ONE commit, both tags, one push — produces both objects automatically. Auto-generated notes for a sub-module tag list the whole-repo diff; curate afterwards by extracting the sub-module bullets from the coordinated CHANGELOG section.
+Sub-module tags get Release objects too (owner decision 2026-10-09): the workflow's tag trigger includes `server_timing/v*` and `endpoints/v*`, so a coordinated cut — ONE commit, all tags, one push — produces the objects automatically. Auto-generated notes for a sub-module tag list the whole-repo diff; curate afterwards by extracting the sub-module bullets from the coordinated CHANGELOG section.
 
 ### 14. Verify the release
 

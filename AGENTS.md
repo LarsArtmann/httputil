@@ -37,8 +37,8 @@ nix flake check            # Full flake gates (includes treefmt verification)
 nix flake check --all-systems  # darwin accepted — evaluated + native checks pass (2026-10-10); safe for mac fleet members
 
 # Local stopgap for the daemon's missing pre-sweep build gate: build + vet +
-# the error-sentinel guards in both modules (~30s). Run it before leaving a tree
-# unattended so the daemon cannot commit a non-compiling state.
+# the error-sentinel guards in all three modules (~30s). Run it before leaving a
+# tree unattended so the daemon cannot commit a non-compiling state.
 scripts/pre-sweep-check.sh
 
 # OTEL interop fixture (separate module; the root dependency policy stays intact).
@@ -65,7 +65,9 @@ scripts/pre-sweep-check.sh
 # (2539ab1) → 51 at 1c6809a = +errKeyedBurstTooLarge (ab90d9f) → 53 on
 # 2026-10-25 = +errServerListenerNil/+errServerListenerConsumed (issue #41,
 # hint-only: both are returned directly, no With*/clone call sites).
-# server_timing clean.
+# server_timing clean; endpoints clean too (2026-11-06 at module creation: all
+# three modes exit 0 — plain stdlib errors.New sentinels with concrete types, no
+# errorfamily, no legacy patterns, so even the advisory lane is empty).
 # The load-bearing `*errorfamily.Error` sentinels — do NOT migrate;
 # declaring `var errX error` breaks WithContext/WithCause call sites.
 # The 17 "declare it as the error interface" hints are ALSO rejected, and the
@@ -101,13 +103,14 @@ scripts/pre-sweep-check.sh
 # time and cannot stop a fix step that runs before them;
 # scripts/pre-sweep-check.sh stays the stopgap for the AGENT actor
 # (072e6db^ restore kept that commit's legitimate go.mod/flake.lock bumps).
-# MECHANICAL GUARDS (both modules):
+# MECHANICAL GUARDS (all three modules):
 # `sentinels_type_test.go` parses the package and fails any err*/Err* var
 # declared with an explicit `error` type (2026-10-23, commit 9aa4178; extended
 # the same day with a record-reporter self-test that proves the detector is not
-# vacuous, and mirrored into `server_timing/sentinels_type_test.go` because the
-# sweep class is not root-only). scripts/pre-sweep-check.sh runs both guards
-# plus build+vet, and prerelease-check.sh step 4a names them explicitly;
+# vacuous, and mirrored into `server_timing/sentinels_type_test.go` and
+# `endpoints/sentinels_type_test.go` because the sweep class is not root-only).
+# scripts/pre-sweep-check.sh runs the guards plus build+vet for all three
+# modules, and prerelease-check.sh step 4a names them explicitly;
 # extend the guards, never hand-repair an annotation.
 # Verdict history: docs/status/archived/2026-09-11_10-03 and archived/
 # 2026-09-11_13-49 (also the `_ =` honest-silence discards and the scripts/
@@ -125,15 +128,20 @@ erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
 # server_timing sub-module (run from server_timing/)
 cd server_timing && go test -race ./... && golangci-lint run
 
+# endpoints sub-module (run from endpoints/)
+cd endpoints && go test -race ./... && golangci-lint run
+
 # Documented 3s×5 benchmark protocol (see docs/benchmarks.md; the flake app
 # covers ONLY the root module — run httpspec/ and server_timing/ in-module)
 nix run .#bench
 
 # Clone-detection baseline (see Accepted Code Duplication below). Canonical form
 # is COMBINED mode (owner ruling 2026-10-24): one shared type-check feeds both
-# the type-aware pass and the type-erased generics pass (ADR-0026). Expected:
-# -t 2 shows 0 groups; -t 1 shows exactly the two accepted pairs and NO
-# generics candidates — anything NEW in either lane is a finding. Record the
+# the type-aware pass and the type-erased generics pass (ADR-0026). Expected
+# (baseline 2026-11-06, after the endpoints module landed):
+# -t 2 shows only the q-value clone fragments (root ↔ endpoints); -t 1 adds the
+# two long-standing pairs — anything NEW in either lane, or ANY generics
+# candidate, is a finding. Record the
 # generics-lane verdict with each re-measurement. Baseline stays prose (owner
 # ruled against an enforcement gate, 2026-10-24).
 art-dupl --sort total-tokens -t 1 --type-aware --suggest-generics .
@@ -192,11 +200,11 @@ Living docs (`TODO_LIST.md`, `FEATURES.md`, `ROADMAP.md`, `CHANGELOG.md`) are ve
 - **Snapshot before `--fix`:** `git status --short > /tmp/pre-buildflow.txt` before any `buildflow … --fix` step — with a foreign writer in the same window, attribution becomes guesswork (2026-09-23 misattribution incident). The rule extends to ANY multi-step lint/fmt interaction, not just buildflow: this repo runs parallel sessions plus the auto-commit daemon, so check `git status --short` before and after formatter passes on shared files (2026-10-10: a formatter×nolint fight was attributed three times before the snapshot discipline stuck).
 - **The go-directive "downgrade" in buildflow format/fix runs is policy, not a bug (resolved 2026-10-15):** format mode = fast build-mode + AutoFix, and the go.mod/go.work directive surface is owned by `go-version-auto-configure`'s floor-safe patch strips — the same strip class that was an incident on 2026-09-23 became fleet policy on 2026-10-03 (go-etag v0.6.1 de-poisoning cascade: a patch-form floor re-poisons consumers through MVS; this repo's directives are deliberately minor-form `go 1.27`). Repos that must keep a patch floor opt out with the `honor-the-pin` knob (shipped 2026-10-14, honored fleet-wide by go-mod-normalize). Do NOT re-file the old downgrade issue or "repair" a minor-form directive back to patch form. Related casualty: a mid-cycle `go mod tidy` in a repo whose HEAD is unpushed zeroes internal requires to `v0.0.0-00010101000000-000000000000` (found in BuildFlow 2026-10-15) — restore from HEAD, never commit that state.
 - **BuildFlow pins no lint-tool version** (verified 2026-10-15: CI installs golangci-lint @latest, flake has no golangci input) — fleet lint-version pins live in each repo's CI workflow (go-etag bumped v2.13.2→v2.14.0 that day; the config owner golangci-lint-auto-configure was already v2.14.0). Don't look for a fleet pin dial inside BuildFlow.
-- **Residual detect-only findings are policy-rejected, not debt:** erraudit `_ =` "honest silence" discards (canonical verdict: the Commands erraudit block above), go-structure-linter (flat root package deliberate; its "compiled binary in git" claim is false), flake-meta-checker (project flake ships without a nixpkgs-style `meta` on purpose), jscpd (the root/`server_timing` `.golangci.yml` pair is two per-module configs that must each be complete — YAML anchors cannot cross files), securitymd (fleet-wired 2026-10-08; its "Security Practices" section rule is satisfied in this repo — 2026-10-10; `missing-file` only trips repos without a SECURITY.md), and ALL branching-flow sections (row-level census + per-class verdicts: docs/architecture-reference.md "Branching-flow residual baseline" + docs/review/lint/branching-flow-baseline-2026-10-10.md; re-run and diff — anything NEW is a finding). These are the expected composition of the dev-mode findings gate's error count; anything outside these classes is NEW and needs triage. Do not bulk-fix without re-reading the decision docs.
+- **Residual detect-only findings are policy-rejected, not debt:** erraudit `_ =` "honest silence" discards (canonical verdict: the Commands erraudit block above), go-structure-linter (flat root package deliberate; its "compiled binary in git" claim is false), flake-meta-checker (project flake ships without a nixpkgs-style `meta` on purpose), jscpd (the root/`server_timing`/`endpoints` `.golangci.yml` triple is three per-module configs that must each be complete — YAML anchors cannot cross files), securitymd (fleet-wired 2026-10-08; its "Security Practices" section rule is satisfied in this repo — 2026-10-10; `missing-file` only trips repos without a SECURITY.md), and ALL branching-flow sections (row-level census + per-class verdicts: docs/architecture-reference.md "Branching-flow residual baseline" + docs/review/lint/branching-flow-baseline-2026-10-10.md; re-run and diff — anything NEW is a finding). These are the expected composition of the dev-mode findings gate's error count; anything outside these classes is NEW and needs triage. Do not bulk-fix without re-reading the decision docs.
 
 ## Architecture
 
-Two Go modules in a workspace (`go.work`): the root `httputil` module (flat package with middleware + server lifecycle, and the `httputil/httpspec` subpackage for reusable HTTP behavior specs) and the `httputil/server_timing` sub-module (W3C Server-Timing instrumentation, stdlib-only, zero external deps). The root module has four external dependencies: `github.com/larsartmann/go-error-family`, `golang.org/x/time`, `github.com/justinas/nosurf`, and `github.com/larsartmann/go-etag` (the `ETag()` passthrough adapter was removed in v1.1.0; the dependency remains for its error-code registration). Go 1.27+.
+Three Go modules in a workspace (`go.work`): the root `httputil` module (flat package with middleware + server lifecycle, and the `httputil/httpspec` subpackage for reusable HTTP behavior specs), the `httputil/server_timing` sub-module (W3C Server-Timing instrumentation, stdlib-only, zero external deps), and the `httputil/endpoints` sub-module (package `endpoints`: self-describing route registration — a `Registry` mounts handlers on an `*http.ServeMux` AND records them in one declaration — plus a content-negotiated `GET /endpoints` JSON/HTML listing; stdlib-only, zero external deps; no release tag yet). The root module has four external dependencies: `github.com/larsartmann/go-error-family`, `golang.org/x/time`, `github.com/justinas/nosurf`, and `github.com/larsartmann/go-etag` (the `ETag()` passthrough adapter was removed in v1.1.0; the dependency remains for its error-code registration). Go 1.27+.
 
 ### CHANGELOG Freeze Policy
 
@@ -210,7 +218,7 @@ Tags are never deleted or re-cut — not even when the tag predates code its own
 
 One flat root package by decision (user-confirmed 2026-08-05, re-affirmed 2026-08-30): for a middleware library where everything shares one signature, a single import path (`httputil.CORS()`) beats fragmented namespaces; compression cannot be a public sub-package anyway (root-symbol cycle). Deferred: `internal/` extraction until post-v1.0 or ~50 non-test files. Analysis: `docs/modularization/2026-08-05_DECISION.html`.
 
-**Code map:** the file-by-file export tables for the root package, the `httpspec` subpackage, and the `server_timing` sub-module live in [docs/architecture-reference.md](docs/architecture-reference.md) — refresh that page whenever files or exports change; do not re-grow tables here.
+**Code map:** the file-by-file export tables for the root package, the `httpspec` subpackage, and the `server_timing` + `endpoints` sub-modules live in [docs/architecture-reference.md](docs/architecture-reference.md) — refresh that page whenever files or exports change; do not re-grow tables here.
 
 ### `httpspec` subpackage
 
@@ -219,6 +227,8 @@ Reusable BDD-style HTTP behavior specifications. Point `httpspec.Run(t, handler)
 **Middleware pattern:** All middleware is `func(http.Handler) http.Handler` (aliased as `Middleware` in `recorder.go`). `Chain()` and `Compose()` apply middlewares in declaration order (first = outermost); `Compose()` bundles them into one reusable `Middleware`. `MiddlewareStack` adds names, duplicate prevention, and opt-in ordering validation (`Validate()`: Recovery outermost when present; `Build()` does NOT auto-validate); `MiddlewareStack.Middleware()` nests the whole stack as one middleware.
 
 The `server_timing` sub-module is a separate Go module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`), stdlib-only with zero external deps, linked locally via `go.work` only — the root `go.mod` requires the published `server_timing` tag from the module proxy and must NEVER carry a filesystem `replace` for it (v1.6.0 shipped one and `go doc @v1.6.0` refuses the module for it; issue #43, fixed in v1.7.0). `ServerTimingMiddleware` injects `*servertiming.ServerTiming` via context; `servertiming.WrapServerTiming(w, r)` wraps manually; header values are CRLF-sanitized.
+
+The `endpoints` sub-module is the same shape: a separate Go module (`github.com/larsartmann/httputil/endpoints`, package `endpoints`), stdlib-only with zero external deps, linked via `go.work` only. The root `go.mod` does NOT require it at all until the first published tag exists — and then only as a proxy requirement, NEVER a filesystem `replace` (the issue #43 poisoning class). Wiring errors are values, never panics (`ServeMux` panics from rejected patterns are translated via `muxRejectedError`; nil mux/handler, empty pattern, and non-UTF-8 pattern/summary are rejected at registration). Negotiation between JSON (default) and HTML is lenient-never-406 with `Vary: Accept` + `Cache-Control: no-store`; non-GET/HEAD gets 405 + `Allow`. The q-value parser is a deliberate clone of root `compression_qvalue.go` — Accepted Code Duplication below carries the sync duty.
 
 ### Observability Lane — OTEL Ruling (2026-10-23)
 
@@ -274,7 +284,7 @@ Per-source error codes, families, retryability, and triggers: [docs/architecture
 - **`Server` mutates the `*tls.Config` you hand it (via stdlib `ServeTLS`)** — `http.Server.ServeTLS`/`ListenAndServeTLS` append h2 ALPN protocols to `TLSConfig.NextProtos`. Never share one `*tls.Config` between a `Server` and a TLS client without cloning; the test suite caught exactly this race (`TestServerStartTLSServesHTTPSWithSelfSignedCert`).
 - **Request-body nil-vs-`http.NoBody` convention** — `httptest.NewRequest(GET, ...)` yields `http.NoBody`, while a raw constructed request may carry a nil `Body`. Middleware must treat BOTH as "no body" and must never replace a nil `Body` with a typed nil reader (and must not panic on either). `MaxBodySize` and `Decompression` guard `r.Body == nil` explicitly before wrapping; `MaxBodySize` leaves the body untouched for methods it does not wrap. Fuzz tests (`recorder_fuzz_test.go`, `decompression_fuzz_invariants_test.go`) pin these invariants.
 - **Post-header-commit writes discard errors by design ("honest silence")** — after `WriteHeader` is called, the HTTP response is in-flight and write failures cannot be surfaced to the client or caller. Error-response body writes go through the `writeCommittedBody(w, body)` helper in `recorder.go` (used by `Recovery()`, `CSRFMiddleware()`, `KeyedRateLimiterMiddleware()`). Other intentional discards with inline comments: `compressWriter.Flush()` (post-handler body flush); `Compression()` defer Close (cleanup); `limitedReader.Read()` bomb-protection Close. The erraudit-policy side of the `_ =` discards lives in the Commands erraudit block (canonical).
-- **pkg.go.dev license gating — both modules are MIT** (owner decisions 2026-10-08 for `server_timing`, 2026-10-09 for the root; recorded in CHANGELOG [1.5.0]) — pkg.go.dev hides READMEs AND all docs for non-redistributable licenses (empirically verified 2026-10-08: the root page at `v1.4.2`, 18 importers, rendered neither the 782-line root `README.md` nor any documentation), and it re-indexes per tagged release, so visibility arrives only from the first tag cut after a LICENSE change (`v1.5.0` root, `server_timing/v1.0.2` sub-module). The old "root stays Proprietary — do NOT mirror the MIT switch without an explicit owner decision" guard is resolved; do not reintroduce a Proprietary LICENSE in this repo without an explicit owner decision.
+- **pkg.go.dev license gating — all three modules are MIT** (owner decisions 2026-10-08 for `server_timing`, 2026-10-09 for the root, `endpoints` MIT from creation 2026-11-06; recorded in CHANGELOG [1.5.0]) — pkg.go.dev hides READMEs AND all docs for non-redistributable licenses (empirically verified 2026-10-08: the root page at `v1.4.2`, 18 importers, rendered neither the 782-line root `README.md` nor any documentation), and it re-indexes per tagged release, so visibility arrives only from the first tag cut after a LICENSE change (`v1.5.0` root, `server_timing/v1.0.2` sub-module; the `endpoints` page arrives with its first tag). The old "root stays Proprietary — do NOT mirror the MIT switch without an explicit owner decision" guard is resolved; do not reintroduce a Proprietary LICENSE in this repo without an explicit owner decision.
 
 ## Testing Conventions
 
@@ -305,7 +315,7 @@ Codified 2026-09-22 (plan: `docs/planning/archived/2026-09-22_23-04_superb-examp
 
 ### Coverage Methodology
 
-Coverage is measured per module with `go test -race -coverprofile` (race detector on — the race build exercises different paths than the plain build); the two module percentages are reported separately (httputil vs httpspec), never averaged. Sub-100% functions are not chased to 100%: each remaining gap is individually documented in FEATURES.md with the reason it stays uncovered (kernel-level fault injection, unit-only-reachable internal paths, nosurf-internal branches). A gap without a documented reason is a bug in the docs, not a pass.
+Coverage is measured per module with `go test -race -coverprofile` (race detector on — the race build exercises different paths than the plain build); the per-module percentages are reported separately (httputil, httpspec, server_timing, endpoints), never averaged. Sub-100% functions are not chased to 100%: each remaining gap is individually documented in FEATURES.md with the reason it stays uncovered (kernel-level fault injection, unit-only-reachable internal paths, nosurf-internal branches). A gap without a documented reason is a bug in the docs, not a pass.
 
 - **Same package** (`package httputil`, not `package httputil_test`) — tests can access unexported symbols
 - **Plain `testing`** — no assertion libraries
@@ -313,12 +323,12 @@ Coverage is measured per module with `go test -race -coverprofile` (race detecto
 - **`t.Errorf`** for non-fatal, `t.Fatalf` for fatal assertions
 - **`httptest.NewRecorder()`** + `httptest.NewRequest()` for HTTP doubles
 - **Shared test helpers** in `testutil_test.go`: `newNoOpHandler()`, `newCountingHandler()`, `newTestRequest()`, `newRecorder()`
-- **Test files split by middleware** — each middleware has its own `*_test.go`; chain integration in `chain_test.go`; the full file map lives in [docs/architecture-reference.md](docs/architecture-reference.md). Server-Timing tests/benchmarks/fuzz live in the `server_timing` sub-module.
+- **Test files split by middleware** — each middleware has its own `*_test.go`; chain integration in `chain_test.go`; the full file map lives in [docs/architecture-reference.md](docs/architecture-reference.md). Server-Timing tests/benchmarks/fuzz live in the `server_timing` sub-module; endpoints tests/benchmarks/fuzz/examples live in `endpoints/`.
 
 ## Pre-Existing Lint Warnings
 
-There are **0 active warnings** across ~70 linters. Site-specific suppressions: `//nolint:makezero` on pre-allocated direct-index writes (`recorder.go`, `stack.go`, `nonce.go`, `id_generator*`); `varnamelen` ignores `w`, `r`, `n`, `rw`; noctx's `httptest.NewRequest` test findings are text-scoped-excluded in both `.golangci.yml` files. In `_test.go` files generally: `exhaustruct_v5`, `testpackage`, `gochecknoglobals`, `funlen`, `cyclop`, `goconst`, `unused` are suppressed. Other active linters worth knowing: `wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero`, `modernize`, `nolintlint` — per-linter detail in [docs/architecture-reference.md](docs/architecture-reference.md) (lint profile).
+There are **0 active warnings** across ~70 linters. Site-specific suppressions: `//nolint:makezero` on pre-allocated direct-index writes (`recorder.go`, `stack.go`, `nonce.go`, `id_generator*`); `varnamelen` ignores `w`, `r`, `n`, `rw`; noctx's `httptest.NewRequest` test findings are text-scoped-excluded in all three `.golangci.yml` files. In `_test.go` files generally: `exhaustruct_v5`, `testpackage`, `gochecknoglobals`, `funlen`, `cyclop`, `goconst`, `unused` are suppressed. Other active linters worth knowing: `wrapcheck`, `godox`, `forbidigo`, `gosec`, `cyclop` (max 12), `gocritic`, `ireturn`, `varnamelen`, `makezero`, `modernize`, `nolintlint` — per-linter detail in [docs/architecture-reference.md](docs/architecture-reference.md) (lint profile).
 
 ## Accepted Code Duplication
 
-Clone baseline (re-measured 2026-10-24 with the canonical COMBINED mode, art-dupl 0.9.0-93432fd `--type-aware --suggest-generics`; type-aware lane: the two accepted pairs, generics lane: no candidates): **0 shown groups at `-t 2`**; `-t 1` shows exactly the `Middleware` alias pair and the `scripts/doc-snippet-refs` if-err pair — anything NEW at these thresholds is a finding. The baseline stays prose — an enforcement gate was proposed and owner-REJECTED 2026-10-24, do not re-raise without new evidence. The four accepted clones and their rationale (Middleware alias across the module boundary; `mw1`/`mw2`; `newTypedBodyHandler`; the scripts if-err pair): [docs/architecture-reference.md](docs/architecture-reference.md) Accepted Code Duplication section.
+Clone baseline (re-measured 2026-11-06 after the `endpoints` sub-module landed, with the canonical COMBINED mode, art-dupl v0.9.1-0.20261017225421-93432fd910fb `--type-aware --suggest-generics`; type-aware lane: the accepted clones below, generics lane: no candidates): **`-t 2` shows exactly the q-value clone fragments** (`compression_qvalue.go` ↔ `endpoints/qvalue.go`, added 2026-11-06); `-t 1` adds the `Middleware` alias pair and the `scripts/doc-snippet-refs` if-err pair — anything NEW at these thresholds is a finding. The baseline stays prose — an enforcement gate was proposed and owner-REJECTED 2026-10-24, do not re-raise without new evidence. The five accepted clone families and their rationale (Middleware alias across the module boundary; the q-value parser family — carrying a SYNC DUTY: any change to root `parseQValue` must be mirrored into `endpoints/qvalue.go` with art-dupl re-measured in the same change; `mw1`/`mw2`; `newTypedBodyHandler`; the scripts if-err pair): [docs/architecture-reference.md](docs/architecture-reference.md) Accepted Code Duplication section.

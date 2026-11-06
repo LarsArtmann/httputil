@@ -325,6 +325,10 @@ The gated alternative is additive:
 
 New standard specs may be added in minor versions. Existing specs will not be removed or have their assertions loosened.
 
+## `endpoints` Sub-module (separately versioned, unreleased)
+
+Added 2026-11-06 (`github.com/larsartmann/httputil/endpoints`): `Route`, `Response`, `Registry`, `NewRegistry`, `Registry.Handle`/`HandleFunc`/`Routes`/`Handler`, `Register`, `DefaultPattern`. No release tag exists yet, so there is no apidiff baseline and nothing is Frozen — the starting tier (v0.1.0 pre-1.0 iteration vs day-one v1.0 freeze mirroring `server_timing`) is an owner-gated decision. The Mechanical Enforcement section below covers this module from its first tag.
+
 ## Versioning Policy
 
 - **v1.0:** This document takes effect. All "Frozen" symbols are locked.

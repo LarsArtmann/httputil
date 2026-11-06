@@ -142,8 +142,8 @@ its repo machinery, mirroring `server_timing`.
 
 1. **First release of the module** — tag (`endpoints/v0.1.0` vs `v1.0.0` is
    owner-gated, see g), `apidiff/endpoints.export.zip` baseline generation
-   + wiring into the ci apidiff job and prerelease gate 3b, pkg.go.dev
-   badge in the module README, CHANGELOG compare-link for the new tag.
+   - wiring into the ci apidiff job and prerelease gate 3b, pkg.go.dev
+     badge in the module README, CHANGELOG compare-link for the new tag.
 2. **TODO_LIST.md harvest** from this report's (f) section (docs-health
    HARVEST).
 3. **docs/v1-stability.md** — endpoints mention (separately versioned, no
