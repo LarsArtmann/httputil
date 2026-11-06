@@ -8,7 +8,7 @@ of every exported package of one module at the latest released tag.
 | -------------------------- | ----------------------------------------------- | -------------------------- |
 | `httputil.export.zip`      | `github.com/larsartmann/httputil`               | tag `v1.7.0`               |
 | `server_timing.export.zip` | `github.com/larsartmann/httputil/server_timing` | tag `server_timing/v1.0.3` |
-| `endpoints.export.zip`     | `github.com/larsartmann/httputil/endpoints`     | tag `endpoints/v0.1.0`    |
+| `endpoints.export.zip`     | `github.com/larsartmann/httputil/endpoints`     | tag `endpoints/v0.1.0`     |
 
 ## The gate
 

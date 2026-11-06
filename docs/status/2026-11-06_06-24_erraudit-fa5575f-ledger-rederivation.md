@@ -27,41 +27,41 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| a1 | Erraudit pasted output triaged against the documented baseline | 56 findings counted mechanically = exact match with the AGENTS.md ledger (36+17+1+2) |
-| a2 | Tool-build change detected (119791b → fa5575f) and ledger RE-DERIVED fresh per policy | `erraudit --version`; own `--max` run counted, not the paste |
-| a3 | Ledger held identically across tool builds — first cross-build confirmation of the 36/17 split | Count grep results (Appendix) |
-| a4 | `--modules` contradiction settled empirically: `lint` REJECTS the flag; nested analysis for lint is per-root only | EXIT=1 post-flag-parse rejection captured verbatim; banner text from own run |
-| a5 | All six real gates verified exit 0 (legacy_as + stdlib_constructor × root/endpoints/server_timing) | Per-module gate files all `EXIT=0` |
-| a6 | Pre-sweep stopgap green: build + vet + sentinel guards, all three modules | `scripts/pre-sweep-check.sh` EXIT=0: "the tree compiles, vets clean, and keeps its sentinels concrete" |
-| a7 | Proof site re-confirmed live at its CURRENT line | `example_test.go:927: rejection := ErrCSRFInvalid.WithContext("path", "/login")` |
-| a8 | All three mechanical guards confirmed on disk | glob: root + endpoints + server_timing `sentinels_type_test.go` |
-| a9 | AGENTS.md canonical block updated; re-derivation is now the canonical record (not a copy) | AGENTS.md lines ~59–68 + nested gate commands ~130–134 |
-| a10 | Format + tree hygiene | `nix fmt` 0 changed; `git status` shows only ` M AGENTS.md` |
-| a11 | Every encoded claim verified against a primary source (verify-external-claims) | help text vs. actual runs vs. own counts; no claim taken from the paste unverified |
+| #   | Item                                                                                                              | Evidence                                                                                               |
+| --- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| a1  | Erraudit pasted output triaged against the documented baseline                                                    | 56 findings counted mechanically = exact match with the AGENTS.md ledger (36+17+1+2)                   |
+| a2  | Tool-build change detected (119791b → fa5575f) and ledger RE-DERIVED fresh per policy                             | `erraudit --version`; own `--max` run counted, not the paste                                           |
+| a3  | Ledger held identically across tool builds — first cross-build confirmation of the 36/17 split                    | Count grep results (Appendix)                                                                          |
+| a4  | `--modules` contradiction settled empirically: `lint` REJECTS the flag; nested analysis for lint is per-root only | EXIT=1 post-flag-parse rejection captured verbatim; banner text from own run                           |
+| a5  | All six real gates verified exit 0 (legacy_as + stdlib_constructor × root/endpoints/server_timing)                | Per-module gate files all `EXIT=0`                                                                     |
+| a6  | Pre-sweep stopgap green: build + vet + sentinel guards, all three modules                                         | `scripts/pre-sweep-check.sh` EXIT=0: "the tree compiles, vets clean, and keeps its sentinels concrete" |
+| a7  | Proof site re-confirmed live at its CURRENT line                                                                  | `example_test.go:927: rejection := ErrCSRFInvalid.WithContext("path", "/login")`                       |
+| a8  | All three mechanical guards confirmed on disk                                                                     | glob: root + endpoints + server_timing `sentinels_type_test.go`                                        |
+| a9  | AGENTS.md canonical block updated; re-derivation is now the canonical record (not a copy)                         | AGENTS.md lines ~59–68 + nested gate commands ~130–134                                                 |
+| a10 | Format + tree hygiene                                                                                             | `nix fmt` 0 changed; `git status` shows only `M AGENTS.md`                                             |
+| a11 | Every encoded claim verified against a primary source (verify-external-claims)                                    | help text vs. actual runs vs. own counts; no claim taken from the paste unverified                     |
 
 ## b) PARTIALLY DONE
 
-| # | Item | Gap |
-|---|------|-----|
-| b1 | Ledger re-derivation | Done via `--max` only. The CANONICAL advisory lane (`erraudit lint ./... --type-aware --enforce-go-error-family`, no `--max`) was NOT re-run this session; its output is inferred (should be 54 = 56 − 2 scripts), not measured |
-| b2 | Nested-module verification | Real gates verified per-root for endpoints + server_timing; their `--max` ADVISORY lanes were not re-run today |
-| b3 | Session tail | Tree clean + formatted, but the AGENTS.md edit is UNCOMMITTED (deliberate commit left to owner/daemon per never-commit rule); push/CI-green confirmation pending |
-| b4 | legacy_is advisory re-verification | Confirmed by count (1) + AGENTS.md characterization; the target line `validation_classified_test.go:474` itself was not re-read this session |
-| b5 | Load-bearing ledger granularity | Verified at count level (36) + full hint-name level (17); the 36 load-bearing NAMES were not individually diffed against a prior stored list (none exists to diff against) |
+| #  | Item                               | Gap                                                                                                                                                                                                                             |
+| -- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| b1 | Ledger re-derivation               | Done via `--max` only. The CANONICAL advisory lane (`erraudit lint ./... --type-aware --enforce-go-error-family`, no `--max`) was NOT re-run this session; its output is inferred (should be 54 = 56 − 2 scripts), not measured |
+| b2 | Nested-module verification         | Real gates verified per-root for endpoints + server_timing; their `--max` ADVISORY lanes were not re-run today                                                                                                                  |
+| b3 | Session tail                       | Tree clean + formatted, but the AGENTS.md edit is UNCOMMITTED (deliberate commit left to owner/daemon per never-commit rule); push/CI-green confirmation pending                                                                |
+| b4 | legacy_is advisory re-verification | Confirmed by count (1) + AGENTS.md characterization; the target line `validation_classified_test.go:474` itself was not re-read this session                                                                                    |
+| b5 | Load-bearing ledger granularity    | Verified at count level (36) + full hint-name level (17); the 36 load-bearing NAMES were not individually diffed against a prior stored list (none exists to diff against)                                                      |
 
 ## c) NOT STARTED (observed as gaps during this session; deliberately not researched per scope)
 
-| # | Item |
-|---|------|
+| #  | Item                                                                                                                                                                                                                                                                           |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | c1 | ~~Upstream erraudit issue: `lint` rejects `--modules` while its own multi-module banner hints `--modules=all`~~ **RESOLVED BY DISCOVERY**: already self-filed as erraudit#12 (2026-11-03, closed, source-cited at flag_consumers.go:77); verified FIXED at HEAD — see Addendum |
-| c2 | ~~Upstream erraudit issue: `lint --help` lists `--modules` under FLAGS although the subcommand rejects it~~ **RESOLVED BY DISCOVERY**: same class, already self-filed as erraudit#13 (2026-11-03, closed); verified FIXED at HEAD — see Addendum |
-| c3 | Extending `scripts/prerelease-check.sh` with the six per-root erraudit gates (root gates are covered; nested-module gates are manual today) |
-| c4 | A `scripts/` helper that runs the whole re-derivation ritual (version capture + 6 gates + `--max` count summary) in one command |
-| c5 | erraudit binary freshness check (buildflow-style: `erraudit --version` vs the erraudit source repo HEAD — where does the store build come from? Not investigated) |
-| c6 | Whether ci.yml / nightly-fuzz.yml currently run any erraudit lanes that need the per-root treatment (not inspected — out of scope) |
-| c7 | TODO_LIST.md / FEATURES.md erraudit rows needing the fa5575f note (not checked — out of scope) |
+| c2 | ~~Upstream erraudit issue: `lint --help` lists `--modules` under FLAGS although the subcommand rejects it~~ **RESOLVED BY DISCOVERY**: same class, already self-filed as erraudit#13 (2026-11-03, closed); verified FIXED at HEAD — see Addendum                               |
+| c3 | Extending `scripts/prerelease-check.sh` with the six per-root erraudit gates (root gates are covered; nested-module gates are manual today)                                                                                                                                    |
+| c4 | A `scripts/` helper that runs the whole re-derivation ritual (version capture + 6 gates + `--max` count summary) in one command                                                                                                                                                |
+| c5 | erraudit binary freshness check (buildflow-style: `erraudit --version` vs the erraudit source repo HEAD — where does the store build come from? Not investigated)                                                                                                              |
+| c6 | Whether ci.yml / nightly-fuzz.yml currently run any erraudit lanes that need the per-root treatment (not inspected — out of scope)                                                                                                                                             |
+| c7 | TODO_LIST.md / FEATURES.md erraudit rows needing the fa5575f note (not checked — out of scope)                                                                                                                                                                                 |
 
 ## d) TOTALLY FUCKED UP
 
@@ -73,17 +73,20 @@
 ## e) WHAT WE SHOULD IMPROVE
 
 **What I forgot:**
+
 - Re-run the canonical (non-`--max`) advisory lane — the ledger's documented measurement form. `--max` reproduction is a superset, but the canonical number (54) is inferred, not measured.
 - The erraudit binary freshness check (buildflow taught exactly this lesson: "the store build predates the repo"); it was never applied to erraudit.
 - The nested modules' advisory lanes (only their real gates were verified).
 - Capturing `erraudit --version` in the FIRST batch (it landed in batch 2; had the binary changed mid-session, attribution would blur).
 
 **What I could have done better:**
+
 - Files-first for every long command from the very first attempt (learned after losing shells 004/005).
 - Name-level ledger diffing (36 load-bearing names extracted and pinned), not count-only.
 - One combined verification script instead of 8 ad-hoc commands — the re-derivation ritual is now clearly a repeatable procedure that deserves a helper.
 
 **What we could still improve:**
+
 - A warn-only staleness guard: fail/warn when `erraudit --version` hash ≠ the hash recorded in AGENTS.md, forcing a re-derivation instead of trusting a stale ledger. (Enforcement-gate proposals were owner-rejected before for the art-dupl baseline — this needs its own explicit ruling, do not build it silently.)
 - The AGENTS.md erraudit block has grown into a ~90-line comment wall mixing policy, history, and incident forensics; a docs-health pass should split "current policy" from "history ledger".
 - Per-root gate duplication (root + endpoints + server_timing) is currently copy-pasted commands in AGENTS.md; a script + prerelease/CI wiring (c3/c4) removes the manual surface where the recurrence-×5 class of mistakes lives.
@@ -91,6 +94,7 @@
 ## f) NEXT — 32 things (grouped, session-scoped)
 
 **Close the verification loop**
+
 1. Re-run the canonical advisory lane (`--type-aware --enforce-go-error-family`, no `--max`) on fa5575f; record the measured number (expect 54).
 2. Run the `--max` advisory lane inside `endpoints/` and `server_timing/` (nested advisory re-derivation).
 3. Re-read `validation_classified_test.go:474` and re-confirm the legacy_is advisory is still the benign sentinel-value class (io.EOF-family), not a new pattern.
@@ -158,18 +162,18 @@ After the rulings, the upstream filing task ran the verify-before-filing gates a
 
 ## Appendix — verification matrix (all commands run this session)
 
-| Command | Exit | Meaning |
-|---|---|---|
-| `erraudit lint ./... --type legacy_as` | 0 | REAL GATE (root) |
-| `erraudit lint ./... --type stdlib_constructor --enforce-go-error-family` | 0 | REAL GATE (root) |
-| `erraudit lint ./... --modules=all --type legacy_as` | 1 | `--modules` REJECTED by lint (post-flag-parse) — proves the banner hint is a trap for lint |
-| `erraudit lint ./... --modules=all --type stdlib_constructor --enforce-go-error-family` | 1 | same rejection |
-| endpoints: `lint --type legacy_as` | 0 | REAL GATE (nested) |
-| endpoints: `lint --type stdlib_constructor --enforce-go-error-family` | 0 | REAL GATE (nested) |
-| server_timing: `lint --type legacy_as` | 0 | REAL GATE (nested) |
-| server_timing: `lint --type stdlib_constructor --enforce-go-error-family` | 0 | REAL GATE (nested) |
-| `erraudit lint ./... --max` | 2 | ADVISORY lane (expected non-zero); 56 findings counted = 36 LB + 17 hints + 2 scripts + 1 legacy_is |
-| `scripts/pre-sweep-check.sh` | 0 | build + vet + sentinel guards, all three modules |
+| Command                                                                                 | Exit | Meaning                                                                                             |
+| --------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------- |
+| `erraudit lint ./... --type legacy_as`                                                  | 0    | REAL GATE (root)                                                                                    |
+| `erraudit lint ./... --type stdlib_constructor --enforce-go-error-family`               | 0    | REAL GATE (root)                                                                                    |
+| `erraudit lint ./... --modules=all --type legacy_as`                                    | 1    | `--modules` REJECTED by lint (post-flag-parse) — proves the banner hint is a trap for lint          |
+| `erraudit lint ./... --modules=all --type stdlib_constructor --enforce-go-error-family` | 1    | same rejection                                                                                      |
+| endpoints: `lint --type legacy_as`                                                      | 0    | REAL GATE (nested)                                                                                  |
+| endpoints: `lint --type stdlib_constructor --enforce-go-error-family`                   | 0    | REAL GATE (nested)                                                                                  |
+| server_timing: `lint --type legacy_as`                                                  | 0    | REAL GATE (nested)                                                                                  |
+| server_timing: `lint --type stdlib_constructor --enforce-go-error-family`               | 0    | REAL GATE (nested)                                                                                  |
+| `erraudit lint ./... --max`                                                             | 2    | ADVISORY lane (expected non-zero); 56 findings counted = 36 LB + 17 hints + 2 scripts + 1 legacy_is |
+| `scripts/pre-sweep-check.sh`                                                            | 0    | build + vet + sentinel guards, all three modules                                                    |
 
 **Count evidence (own `--max` run):** total finding lines 56; `is load-bearing` 36; `declare it as the error interface` 17; `returns generic error interface` 2 (scripts/coverage-threshold/main.go:84, scripts/doc-snippet-refs/main.go:88); `legacy_is` 1 (validation_classified_test.go:474). Banner: root-only scan (45 files), nested modules named endpoints + server_timing.
 
