@@ -267,7 +267,11 @@ func TestCORS_ReflectingOriginsSetVaryOrigin(t *testing.T) {
 	middleware(inner).ServeHTTP(rec, req)
 
 	if vary := rec.Header().Get("Vary"); vary != "Origin" {
-		t.Errorf("Vary = %q, want %q (reflected Access-Control-Allow-Origin must declare Origin-variance)", vary, "Origin")
+		t.Errorf(
+			"Vary = %q, want %q (reflected Access-Control-Allow-Origin must declare Origin-variance)",
+			vary,
+			"Origin",
+		)
 	}
 }
 

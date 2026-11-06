@@ -135,8 +135,10 @@ its repo machinery, mirroring `server_timing`.
      ~~Commands: per-module endpoints block + erraudit note; Accepted Code~~
      ~~Duplication: mirror the new baseline + parser-sync duty; jscpd~~
      ~~residual "pair"→"triple").~~ done at `70d998a`,`94b9626`
-2. **Session-tail** — tree clean and pushed, but **CI green on the exact
-   head is unobserved** (the tail discipline requires watching it).
+2. ~~**Session-tail** — tree clean and pushed, but **CI green on the exact~~
+   ~~head is unobserved** (the tail discipline requires watching it).~~ done —
+   CI green observed on 94b9626 + 7989eb8 (2026-11-06); tail closed by the
+   docs-sweep session.
 
 ## c) NOT STARTED
 
@@ -242,7 +244,7 @@ Docs lane (the b)/1 remainder):
 
 Quality/CI lane:
 
-25. `gh run watch` the pushed head; confirm all jobs green (first-ever run of the new steps).
+~~25. `gh run watch` the pushed head; confirm all jobs green (first-ever run of the new steps).~~ done — CI green on 94b9626 and 7989eb8 (endpoints lint + config-verify steps first-run green)
 ~~26. Full `buildflow --build-mode dev` pass; triage anything outside the policy-rejected residual classes (expect jscpd to now see the config triple — verdict already documented).~~ **→ routed to TODO_LIST** (buildflow dev-pass row; f30/f31 folded in)
 ~~27. Local `buildflow -s markdown-lint` + lychee over the new/edited docs.~~ done — markdown-lint + lychee green locally this session
 ~~28. `go test -race -count=10 ./...` in endpoints (the count=10 lesson; CI won't do it).~~ done — `go test -race -count=10` green in endpoints/ this session
@@ -268,9 +270,9 @@ Feature lane (v0.2 candidates, additive only):
 Housekeeping lane:
 
 ~~44. Run `scripts/pre-sweep-check.sh` before leaving the tree unattended (now covers all three modules).~~ done — scripts/pre-sweep-check.sh green (all three modules) this session
-45. Session-tail: confirm CI green on head + tree clean (per AGENTS Session-Tail Discipline).
+~~45. Session-tail: confirm CI green on head + tree clean (per AGENTS Session-Tail Discipline).~~ done — session tail observed 2026-11-06: CI green on both content heads, tree clean
 ~~46. coverage badge decision (e)/6).~~ **→ routed to TODO_LIST Low** (badge scope)
-47. If any CI job fails on first run: triage via `gh run view --log-failed` before touching code.
+~~47. If any CI job fails on first run: triage via `gh run view --log-failed` before touching code.~~ moot — no CI job failed on first run
 ~~48. Consider recording the endpoints module in the fleet `meta` inventory (stack-selection discovery) once released.~~ **→ routed to TODO_LIST Low** (fleet meta inventory)
 ~~49. Re-run art-dupl after any root parser change (sync duty, e)/2).~~ done — codified as the standing parser-sync duty in AGENTS Accepted Code Duplication
 ~~50. Mark this report's items done via docs-health ANNOTATE as they land.~~ done (docs-health pass 2026-11-06)
