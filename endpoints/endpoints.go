@@ -129,7 +129,8 @@ func (r *Registry) Handle(mux *http.ServeMux, pattern string, handler http.Handl
 		return fmt.Errorf("%w: %q", errSummaryInvalidUTF8, summary)
 	}
 
-	if err := registerOnMux(mux, pattern, handler); err != nil {
+	err := registerOnMux(mux, pattern, handler)
+	if err != nil {
 		return err
 	}
 
@@ -160,7 +161,7 @@ func (r *Registry) Routes() []Route {
 		return nil
 	}
 
-	routes := make([]Route, len(*current))
+	routes := make([]Route, len(*current)) //nolint:makezero // pre-allocated with known length, filled by copy
 	copy(routes, *current)
 
 	slices.SortFunc(routes, func(a, b Route) int {

@@ -43,7 +43,12 @@ func ExampleRegistry_Handler() {
 	routes := NewRegistry()
 	mux := http.NewServeMux()
 
-	if err := routes.HandleFunc(mux, "GET /users/{id}", func(w http.ResponseWriter, _ *http.Request) {}, "Fetch one user"); err != nil {
+	if err := routes.HandleFunc(
+		mux,
+		"GET /users/{id}",
+		func(w http.ResponseWriter, _ *http.Request) {},
+		"Fetch one user",
+	); err != nil {
 		fmt.Println("registration error:", err)
 
 		return
@@ -71,7 +76,12 @@ func ExampleRegistry_Handler() {
 func ExampleRegistry_Routes() {
 	routes := NewRegistry()
 
-	if err := routes.Handle(http.NewServeMux(), "GET /users/{id}", http.NotFoundHandler(), "Fetch one user"); err != nil {
+	if err := routes.Handle(
+		http.NewServeMux(),
+		"GET /users/{id}",
+		http.NotFoundHandler(),
+		"Fetch one user",
+	); err != nil {
 		fmt.Println("registration error:", err)
 
 		return

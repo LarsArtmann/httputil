@@ -30,41 +30,53 @@ func newPatternMux(innerPattern *string) *http.ServeMux {
 	return mux
 }
 
-func TestPatternPropagationThroughForkingMiddlewares(t *testing.T) {
+// assertPatternSurvivesFork serves one request through patternCaptureMiddleware
+// wrapping mw wrapping the pattern mux, then asserts the route pattern is
+// visible on both sides of the fork. name identifies the forking middleware
+// in failure messages.
+func assertPatternSurvivesFork(t *testing.T, name string, mw Middleware) {
+	t.Helper()
+
+	var outerPattern, innerPattern string
+	handler := patternCaptureMiddleware(&outerPattern)(mw(newPatternMux(&innerPattern)))
+
+	rec := newRecorder()
+	handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/users/42", ""))
+
+	if innerPattern != "GET /users/{id}" {
+		t.Errorf("inner pattern = %q, want %q", innerPattern, "GET /users/{id}")
+	}
+
+	if outerPattern != "GET /users/{id}" {
+		t.Errorf(
+			"outer pattern = %q, want %q (pattern lost across %s fork)",
+			outerPattern, "GET /users/{id}", name,
+		)
+	}
+}
+
+func TestRequestID_PropagatesRoutePattern(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name string
-		mw   Middleware
-	}{
-		{"RequestID", RequestID(DefaultRequestIDConfig())},
-		{"Timeout", Timeout(time.Second)},
-		{"ClientIPMiddleware", ClientIPMiddleware},
-		{"Nonce", Nonce(DefaultNonceConfig())},
-	}
+	assertPatternSurvivesFork(t, "RequestID", RequestID(DefaultRequestIDConfig()))
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+func TestTimeout_PropagatesRoutePattern(t *testing.T) {
+	t.Parallel()
 
-			var outerPattern, innerPattern string
-			handler := patternCaptureMiddleware(&outerPattern)(tt.mw(newPatternMux(&innerPattern)))
+	assertPatternSurvivesFork(t, "Timeout", Timeout(time.Second))
+}
 
-			rec := newRecorder()
-			handler.ServeHTTP(rec, newTestRequest(http.MethodGet, "/users/42", ""))
+func TestClientIP_PropagatesRoutePattern(t *testing.T) {
+	t.Parallel()
 
-			if innerPattern != "GET /users/{id}" {
-				t.Errorf("inner pattern = %q, want %q", innerPattern, "GET /users/{id}")
-			}
+	assertPatternSurvivesFork(t, "ClientIPMiddleware", ClientIPMiddleware)
+}
 
-			if outerPattern != "GET /users/{id}" {
-				t.Errorf(
-					"outer pattern = %q, want %q (pattern lost across %s fork)",
-					outerPattern, "GET /users/{id}", tt.name,
-				)
-			}
-		})
-	}
+func TestNonce_PropagatesRoutePattern(t *testing.T) {
+	t.Parallel()
+
+	assertPatternSurvivesFork(t, "Nonce", Nonce(DefaultNonceConfig()))
 }
 
 func TestPatternPropagationThroughFullForkChain(t *testing.T) {

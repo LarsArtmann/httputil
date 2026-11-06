@@ -21,7 +21,6 @@ func TestHandle_RegistersHandlerOnMux(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("hello"))
 	}, "Says hello")
-
 	if err != nil {
 		t.Fatalf("HandleFunc returned error: %v", err)
 	}
@@ -44,7 +43,6 @@ func TestHandle_RecordsRouteWithParsedMethod(t *testing.T) {
 	registry := NewRegistry()
 
 	err := registry.Handle(http.NewServeMux(), "GET /users/{id}", http.NotFoundHandler(), "Fetch one user")
-
 	if err != nil {
 		t.Fatalf("Handle returned error: %v", err)
 	}
@@ -108,7 +106,7 @@ func TestHandle_MethodAndHostPattern_RecordsMethod(t *testing.T) {
 
 	routes := registry.Routes()
 
-	if len(routes) != 1 || routes[0].Method != "GET" {
+	if len(routes) != 1 || routes[0].Method != http.MethodGet {
 		t.Errorf("routes = %+v, want one route with Method GET", routes)
 	}
 }
@@ -125,7 +123,7 @@ func TestHandle_TabSeparatedMethod_RecordsMethod(t *testing.T) {
 
 	routes := registry.Routes()
 
-	if len(routes) != 1 || routes[0].Method != "GET" {
+	if len(routes) != 1 || routes[0].Method != http.MethodGet {
 		t.Errorf("routes = %+v, want one route with Method GET (tab separator)", routes)
 	}
 }
@@ -227,10 +225,13 @@ func TestHandle_RejectedPattern_ReturnsErrorNotPanic(t *testing.T) {
 	// "GET" alone has no path; ServeMux panics on this at registration.
 	err := registry.Handle(http.NewServeMux(), "GET", http.NotFoundHandler(), "")
 
-	var rejected *muxRejectedError
-
-	if !errors.As(err, &rejected) {
+	rejected, ok := errors.AsType[*muxRejectedError](err)
+	if !ok {
 		t.Fatalf("err = %v, want *muxRejectedError", err)
+	}
+
+	if rejected.pattern != "GET" {
+		t.Errorf("rejected.pattern = %q, want %q", rejected.pattern, "GET")
 	}
 
 	if !strings.Contains(err.Error(), `"GET"`) {
@@ -337,11 +338,7 @@ func TestRegistry_ConcurrentHandleAndRoutes_AreRaceFree(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for writer := range writers {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for i := range perWriter {
 				pattern := fmt.Sprintf("GET /w%d-%d", writer, i)
 
@@ -352,19 +349,15 @@ func TestRegistry_ConcurrentHandleAndRoutes_AreRaceFree(t *testing.T) {
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	for range writers {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for range perWriter {
 				_ = registry.Routes()
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

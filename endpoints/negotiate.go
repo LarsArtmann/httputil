@@ -41,17 +41,17 @@ func negotiateRepresentation(accept string) representation {
 	bestJSON := qUnacceptable
 	bestHTML := qUnacceptable
 
-	for _, entry := range strings.Split(accept, ",") {
-		mediaRange, q, ok := parseMediaRange(entry)
-		if !ok || q <= 0 {
+	for entry := range strings.SplitSeq(accept, ",") {
+		mediaRange, weight, ok := parseMediaRange(entry)
+		if !ok || weight <= 0 {
 			continue
 		}
 
 		switch mediaRange {
 		case "text/html", "text/*":
-			bestHTML = max(bestHTML, q)
+			bestHTML = max(bestHTML, weight)
 		case "application/json", "application/*", "*/*":
-			bestJSON = max(bestJSON, q)
+			bestJSON = max(bestJSON, weight)
 		}
 	}
 
@@ -75,18 +75,18 @@ func parseMediaRange(entry string) (string, float64, bool) {
 		return "", 0, false
 	}
 
-	for _, param := range strings.Split(params, ";") {
+	for param := range strings.SplitSeq(params, ";") {
 		name, value, _ := strings.Cut(param, "=")
 		if strings.ToLower(trimOWS(name)) != qParamName {
 			continue
 		}
 
-		q, err := parseQValue(trimOWS(value))
+		weight, err := parseQValue(trimOWS(value))
 		if err != nil {
 			return mediaType, defaultQValue, true
 		}
 
-		return mediaType, q, true
+		return mediaType, weight, true
 	}
 
 	return mediaType, defaultQValue, true

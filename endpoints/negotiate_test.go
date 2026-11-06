@@ -132,7 +132,9 @@ func TestNegotiateRepresentation_IgnoresAcceptExtensions(t *testing.T) {
 	t.Parallel()
 
 	// RFC 9110 example shape: parameters other than q are accept-ext.
-	if got := negotiateRepresentation("text/*;q=0.3, text/html;q=0.7, text/html;level=1, */*;q=0.5"); got != representationHTML {
+	if got := negotiateRepresentation(
+		"text/*;q=0.3, text/html;q=0.7, text/html;level=1, */*;q=0.5",
+	); got != representationHTML {
 		t.Errorf("got = %v, want representationHTML", got)
 	}
 }
@@ -140,7 +142,7 @@ func TestNegotiateRepresentation_IgnoresAcceptExtensions(t *testing.T) {
 func TestParseMediaRange_ReturnsLowercasedType(t *testing.T) {
 	t.Parallel()
 
-	mediaRange, q, ok := parseMediaRange("  TEXT/html ; Q=0.9 ")
+	mediaRange, weight, ok := parseMediaRange("  TEXT/html ; Q=0.9 ")
 
 	if !ok {
 		t.Fatal("ok = false, want true")
@@ -150,8 +152,8 @@ func TestParseMediaRange_ReturnsLowercasedType(t *testing.T) {
 		t.Errorf("mediaRange = %q, want %q", mediaRange, "text/html")
 	}
 
-	if q != 0.9 {
-		t.Errorf("q = %v, want 0.9", q)
+	if weight != 0.9 {
+		t.Errorf("weight = %v, want 0.9", weight)
 	}
 }
 
@@ -168,13 +170,13 @@ func TestParseMediaRange_NoSlash_ReturnsNotOK(t *testing.T) {
 func TestParseMediaRange_MissingQDefaultsToOne(t *testing.T) {
 	t.Parallel()
 
-	mediaRange, q, ok := parseMediaRange("application/json;charset=utf8")
+	mediaRange, weight, ok := parseMediaRange("application/json;charset=utf8")
 
 	if !ok || mediaRange != "application/json" {
 		t.Fatalf("got (%q, %v), want (application/json, true)", mediaRange, ok)
 	}
 
-	if q != defaultQValue {
-		t.Errorf("q = %v, want %v", q, defaultQValue)
+	if weight != defaultQValue {
+		t.Errorf("weight = %v, want %v", weight, defaultQValue)
 	}
 }
