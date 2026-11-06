@@ -50,7 +50,20 @@ func main() {
 `curl :8080/endpoints` (no `Accept` header) serves JSON:
 
 ```json
-{"endpoints":[{"method":"GET","pattern":"GET /endpoints","summary":"Endpoint listing (this page)"},{"method":"GET","pattern":"GET /users/{id}","summary":"Fetch one user"}]}
+{
+  "endpoints": [
+    {
+      "method": "GET",
+      "pattern": "GET /endpoints",
+      "summary": "Endpoint listing (this page)"
+    },
+    {
+      "method": "GET",
+      "pattern": "GET /users/{id}",
+      "summary": "Fetch one user"
+    }
+  ]
+}
 ```
 
 The same URL in a browser (`Accept: text/html,...`) serves a plain HTML table.
