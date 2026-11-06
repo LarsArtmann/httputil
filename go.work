@@ -2,5 +2,6 @@ go 1.27
 
 use (
 	.
+	./endpoints
 	./server_timing
 )

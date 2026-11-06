@@ -8,9 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [1.8.0] - 2026-11-04
+
+Correction of record (2026-11-06): the tag was cut from `c4094bb` while these entries still sat under [Unreleased], so no `[1.8.0]` section or compare-link retarget was frozen at tag time. The section is reconstructed from the verified diff `v1.7.0...v1.8.0`; the tag itself is untouched (never retagged).
+
+### Added
+
 - **Mechanical enforcement of the frozen-API promise: the apidiff gate** — export-data baselines of both modules at their released tags (`apidiff/httputil.export.zip` at v1.7.0 including httpspec, `apidiff/server_timing.export.zip` at v1.0.3, convention in `apidiff/README.md`), a shared gate script (`scripts/check-apidiff.sh`) that fails on any incompatible exported-API change (apidiff exits 0 even on findings, so the report is the failure condition), wired into three layers: the new `apidiff` CI job on every push/PR, gate 3b of `scripts/prerelease-check.sh` before any tag, and the fleet-wide BuildFlow `apidiff` step. The first baselines were verified against master (compatible) and the gate was negative-tested (a renamed export fails it). [docs/v1-stability.md](docs/v1-stability.md) now documents the enforcement; the prose-only era is over.
 - **Workflow policy vet: the `policy-vet` CI job** — installs pinned cue v0.17.1, checks out `LarsArtmann/cue-policy` at a pinned commit, and vets `release.yml` against `#ReleaseWorkflow` and `ci.yml`/`nightly-fuzz.yml` against `#CIWorkflow` (pin formats, runner allowlist, permission shape — the policy classes actionlint has no concept of). Fleet adoption ruling and the CUE-vs-actionlint delta matrix live in the policy repo's `docs/` (2026-11-02); the matching BuildFlow `cue-vet` step landed fleet-side.
 - **Integration guide for go-health** — [docs/integrations/go-health.md](docs/integrations/go-health.md) documents how the fleet's health-probe SDK composes with httputil: the health.go stubs as the zero-dependency floor, the `up`/`down` vs `pass`/`warn`/`fail` vocabulary mapping, the endpoint split (liveness stays open), drain ordering (flip the probe before the server drains), and the Server-Timing per-check bridge. Proven on the go-health side by its `httputil-interop` fixture module; the README Health Checks section and FEATURES now point at it. Docs-only — no API change, no dependency either direction.
+- **Nonce detects double-CSP writers at request time** (`nonce.go`) — when `Nonce` is chained after a middleware that already set `Content-Security-Policy` (the documented case: `SecurityHeaders` with `ContentSecurityPolicy` set), it now logs `security.csp_conflict` (new code in the `security` domain, message template in `errors.go`) as a log-only diagnostic: served behavior is deliberately unchanged (the nonce-bearing CSP still overwrites the static one), but the previously silent CSP loss is now observable. The reverse order (Nonce outer, static CSP inner) stays silent — request-time detection can only see the outer-writes-first order. Keep exactly one CSP writer per chain. Pinned by `TestNonce_CSPConflict_OuterCSPOverwrittenWithWarning` and `TestNonce_NoOuterCSP_NoConflictWarning`.
 
 ### Fixed
 
@@ -19,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- Nothing yet.
+- **The BuildFlow pipeline skips the `erraudit` step** (`.buildflow.yml`) — BuildFlow's fix phase applies every erraudit `SuggestedFix` in-process, which re-lands the `var errX error` rewrite hints for this repo's load-bearing `*errorfamily.Error` sentinels and compile-breaks the example suite (recurrence #5, root-caused to `buildflow --fix` itself). The step stays skipped until erraudit stops emitting SuggestedFixes for load-bearing sentinels; the real erraudit gates (`legacy_as`, `stdlib_constructor` via `scripts/prerelease-check.sh`) are unaffected.
 
 ## [1.7.0] - 2026-10-25
 
@@ -761,7 +774,8 @@ Coordinated cut: `server_timing/v1.0.3` is tagged from the same commit (no API c
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/larsartmann/httputil/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/larsartmann/httputil/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/larsartmann/httputil/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/larsartmann/httputil/compare/v1.4.2...v1.5.0
