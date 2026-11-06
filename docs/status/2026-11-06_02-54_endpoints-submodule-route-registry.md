@@ -123,18 +123,18 @@ its repo machinery, mirroring `server_timing`.
 
 ## b) PARTIALLY DONE
 
-1. **Living-docs sweep** — only `docs/architecture-reference.md` is updated.
-   The same change must sweep (all NOT yet edited):
-   - `FEATURES.md` (Updated header, endpoints section, counts: benchmarks
-     53→57, examples 60→63, fuzz targets 30→33, coverage add 100.0%
-     endpoints; Distribution section "Both modules"→three).
-   - `CHANGELOG.md` `[Unreleased]` Added entry.
-   - Root `README.md` (module section near Server-Timing, export-table
-     rows, license line).
-   - `AGENTS.md` (Architecture "Two Go modules"→three + module description;
-     Commands: per-module endpoints block + erraudit note; Accepted Code
-     Duplication: mirror the new baseline + parser-sync duty; jscpd
-     residual "pair"→"triple").
+1. ~~**Living-docs sweep** — only `docs/architecture-reference.md` is updated.~~
+   ~~The same change must sweep (all NOT yet edited):~~
+   ~~- `FEATURES.md` (Updated header, endpoints section, counts: benchmarks~~
+     ~~53→57, examples 60→63, fuzz targets 30→33, coverage add 100.0%~~
+     ~~endpoints; Distribution section "Both modules"→three).~~
+   ~~- `CHANGELOG.md` `[Unreleased]` Added entry.~~
+   ~~- Root `README.md` (module section near Server-Timing, export-table~~
+     ~~rows, license line).~~
+   ~~- `AGENTS.md` (Architecture "Two Go modules"→three + module description;~~
+     ~~Commands: per-module endpoints block + erraudit note; Accepted Code~~
+     ~~Duplication: mirror the new baseline + parser-sync duty; jscpd~~
+     ~~residual "pair"→"triple").~~ done at `70d998a`,`94b9626`
 2. **Session-tail** — tree clean and pushed, but **CI green on the exact
    head is unobserved** (the tail discipline requires watching it).
 
@@ -144,14 +144,15 @@ its repo machinery, mirroring `server_timing`.
    owner-gated, see g), `apidiff/endpoints.export.zip` baseline generation
    - wiring into the ci apidiff job and prerelease gate 3b, pkg.go.dev
      badge in the module README, CHANGELOG compare-link for the new tag.
-2. **TODO_LIST.md harvest** from this report's (f) section (docs-health
-   HARVEST).
-3. **docs/v1-stability.md** — endpoints mention (separately versioned, no
-   baseline yet).
-4. **docs/RELEASE.md** — verify the runbook covers a third module tag
-   (mirror of the server_timing steps).
+   **→ routed to the TODO_LIST first-endpoints-release row (owner-gated tag ruling; f1–f6 ride it)**
+2. ~~**TODO_LIST.md harvest** from this report's (f) section (docs-health~~
+   ~~HARVEST).~~ done at `94b9626`
+3. ~~**docs/v1-stability.md** — endpoints mention (separately versioned, no~~
+   ~~baseline yet).~~ done at `94b9626`
+4. ~~**docs/RELEASE.md** — verify the runbook covers a third module tag~~
+   ~~(mirror of the server_timing steps).~~ done at `94b9626`
 5. Optional: integration example wiring `endpoints` under httputil
-   middleware chains.
+   middleware chains. **→ routed to the ROADMAP Post-v1.0 ideas batch (f43)**
 
 ## d) TOTALLY FUCKED UP!
 
@@ -211,68 +212,68 @@ honest in-session mistakes, all self-caught:
 
 Release lane:
 
-1. Owner rules on the first tag version (g)/1) → cut via docs/RELEASE.md ritual.
-2. Generate `apidiff/endpoints.export.zip` at the tag; wire `check-apidiff.sh` into ci.yml's apidiff job.
-3. Wire the same into `scripts/prerelease-check.sh` gate 3b; delete the pending-first-tag comment.
-4. Add the pkg.go.dev badge + verify install section of `endpoints/README.md` at first tag.
-5. CHANGELOG `[Unreleased]` → frozen section + compare-link + `[Unreleased]` retarget (one push with tag + master).
-6. Verify pkg.go.dev renders the endpoints module page (per-tag indexing).
-7. Audit `docs/RELEASE.md` for third-module coverage (tag push ordering, gates).
-8. Decide + document: root go.mod deliberately does NOT require endpoints (keep it that way until proven otherwise).
+~~1. Owner rules on the first tag version (g)/1) → cut via docs/RELEASE.md ritual.~~ **→ rides the TODO_LIST first-endpoints-release row** (owner-gated; ROADMAP Open questions)
+~~2. Generate `apidiff/endpoints.export.zip` at the tag; wire `check-apidiff.sh` into ci.yml's apidiff job.~~ **→ rides the TODO_LIST first-endpoints-release row**
+~~3. Wire the same into `scripts/prerelease-check.sh` gate 3b; delete the pending-first-tag comment.~~ **→ rides the TODO_LIST first-endpoints-release row**
+~~4. Add the pkg.go.dev badge + verify install section of `endpoints/README.md` at first tag.~~ **→ rides the TODO_LIST first-endpoints-release row**
+~~5. CHANGELOG `[Unreleased]` → frozen section + compare-link + `[Unreleased]` retarget (one push with tag + master).~~ **→ rides the TODO_LIST first-endpoints-release row**
+~~6. Verify pkg.go.dev renders the endpoints module page (per-tag indexing).~~ **→ rides the TODO_LIST first-endpoints-release row**
+~~7. Audit `docs/RELEASE.md` for third-module coverage (tag push ordering, gates).~~ done at `94b9626`
+~~8. Decide + document: root go.mod deliberately does NOT require endpoints (keep it that way until proven otherwise).~~ done at `94b9626`
 
 Docs lane (the b)/1 remainder):
 
-9. FEATURES.md — Updated header with re-derived counts (57 benchmarks, 63 examples, 33 fuzz targets).
-10. FEATURES.md — endpoints module section (registry, negotiation, renderers, security posture).
-11. FEATURES.md — coverage bullets: add 100.0% (endpoints); gaps list: none (100%).
-12. FEATURES.md — Distribution: three modules MIT; endpoints README line.
-13. README.md root — endpoints section (import, quick start, negotiation summary) near Server-Timing.
-14. README.md root — export table rows for the 9 endpoints exports.
-15. README.md root — license paragraph mentions endpoints.
-16. AGENTS.md — Architecture: three modules, endpoints description, go.work membership.
-17. AGENTS.md — Commands: `cd endpoints && go test -race ./... && golangci-lint run` block.
-18. AGENTS.md — erraudit block: endpoints clean note (re-measure `--type-aware` advisory once).
-19. AGENTS.md — Accepted Code Duplication: new baseline + q-value clone verdict + parser-sync duty.
-20. AGENTS.md — jscpd residual: `.golangci.yml` pair → triple.
-21. docs/v1-stability.md — endpoints line (separately versioned; baseline pending first tag).
-22. TODO_LIST.md — HARVEST this report's (f) into the backlog (docs-health).
-23. Re-run `doc-snippet-refs` after README edits (CI parity).
-24. Annotate this report as items complete (docs-health discipline).
+~~9. FEATURES.md — Updated header with re-derived counts (57 benchmarks, 63 examples, 33 fuzz targets).~~ done at `70d998a`,`94b9626`
+~~10. FEATURES.md — endpoints module section (registry, negotiation, renderers, security posture).~~ done at `70d998a`,`94b9626`
+~~11. FEATURES.md — coverage bullets: add 100.0% (endpoints); gaps list: none (100%).~~ done at `70d998a`,`94b9626`
+~~12. FEATURES.md — Distribution: three modules MIT; endpoints README line.~~ done at `70d998a`,`94b9626`
+~~13. README.md root — endpoints section (import, quick start, negotiation summary) near Server-Timing.~~ done at `70d998a`,`94b9626`
+~~14. README.md root — export table rows for the 9 endpoints exports.~~ done at `70d998a`,`94b9626`
+~~15. README.md root — license paragraph mentions endpoints.~~ done at `70d998a`,`94b9626`
+~~16. AGENTS.md — Architecture: three modules, endpoints description, go.work membership.~~ done at `94b9626`
+~~17. AGENTS.md — Commands: `cd endpoints && go test -race ./... && golangci-lint run` block.~~ done at `94b9626`
+~~18. AGENTS.md — erraudit block: endpoints clean note (re-measure `--type-aware` advisory once).~~ done at `94b9626`
+~~19. AGENTS.md — Accepted Code Duplication: new baseline + q-value clone verdict + parser-sync duty.~~ done at `94b9626`
+~~20. AGENTS.md — jscpd residual: `.golangci.yml` pair → triple.~~ done at `94b9626`
+~~21. docs/v1-stability.md — endpoints line (separately versioned; baseline pending first tag).~~ done at `94b9626`
+~~22. TODO_LIST.md — HARVEST this report's (f) into the backlog (docs-health).~~ done at `94b9626`
+~~23. Re-run `doc-snippet-refs` after README edits (CI parity).~~ done at `70d998a`,`94b9626`
+~~24. Annotate this report as items complete (docs-health discipline).~~ done (docs-health pass 2026-11-06)
 
 Quality/CI lane:
 
 25. `gh run watch` the pushed head; confirm all jobs green (first-ever run of the new steps).
-26. Full `buildflow --build-mode dev` pass; triage anything outside the policy-rejected residual classes (expect jscpd to now see the config triple — verdict already documented).
-27. Local `buildflow -s markdown-lint` + lychee over the new/edited docs.
-28. `go test -race -count=10 ./...` in endpoints (the count=10 lesson; CI won't do it).
+~~26. Full `buildflow --build-mode dev` pass; triage anything outside the policy-rejected residual classes (expect jscpd to now see the config triple — verdict already documented).~~ **→ routed to TODO_LIST** (buildflow dev-pass row; f30/f31 folded in)
+~~27. Local `buildflow -s markdown-lint` + lychee over the new/edited docs.~~ done — markdown-lint + lychee green locally this session
+~~28. `go test -race -count=10 ./...` in endpoints (the count=10 lesson; CI won't do it).~~ done — `go test -race -count=10` green in endpoints/ this session
 29. Longer local fuzz (5 min/target) before the first nightly rotation hits.
-30. Confirm buildflow's golangci step fans out to endpoints (no ghost-module staleness; `ls endpoints` + re-run).
-31. Confirm go-mod-normalize leaves the new `go.mod` minor-form directive alone (fleet policy).
-32. `buildflow -s dependabot-auto-configure --fix` — add the new module's dependabot group.
-33. Check the nightly fuzz run after first rotation (rolling issue stays closed).
-34. Decide the multiple-Accept-headers posture (e)/5) and pin with a test.
+~~30. Confirm buildflow's golangci step fans out to endpoints (no ghost-module staleness; `ls endpoints` + re-run).~~ **→ folded into the TODO_LIST buildflow row**
+~~31. Confirm go-mod-normalize leaves the new `go.mod` minor-form directive alone (fleet policy).~~ **→ folded into the TODO_LIST buildflow row**
+~~32. `buildflow -s dependabot-auto-configure --fix` — add the new module's dependabot group.~~ done — dependabot endpoints group already present, verified
+~~33. Check the nightly fuzz run after first rotation (rolling issue stays closed).~~ **→ routed to TODO_LIST** (nightly-fuzz row)
+~~34. Decide the multiple-Accept-headers posture (e)/5) and pin with a test.~~ **→ routed to TODO_LIST** (Accept-headers posture row)
 
 Feature lane (v0.2 candidates, additive only):
 
-35. `?format=json|html` override for debugging/demos.
-36. Deterministic ETag + If-None-Match handling on the listing; revisit Cache-Control.
-37. Per-route hiding (`Hidden` flag or `HideFunc`) for admin-only routes.
-38. Richer route metadata (query params, auth class) — only on demand.
-39. `Add(pattern, summary)` recorder for non-ServeMux routers (kept out of v0 deliberately).
-40. OpenAPI-lite export shape (the JSON listing is deliberately minimal today).
-41. Snapshot versioning/callback on Routes() change (for cache invalidation in consumers).
-42. httpspec-flavored contract specs for the listing (Vary/Cache-Control/405) — possibly `EndpointsSpecs()` upstream of the module.
-43. Docs/integrations guide: endpoints under a full httputil middleware chain (Recovery→Logging→...→mux) with SecurityHeaders CSP proof.
+~~35. `?format=json|html` override for debugging/demos.~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~36. Deterministic ETag + If-None-Match handling on the listing; revisit Cache-Control.~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~37. Per-route hiding (`Hidden` flag or `HideFunc`) for admin-only routes.~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~38. Richer route metadata (query params, auth class) — only on demand.~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~39. `Add(pattern, summary)` recorder for non-ServeMux routers (kept out of v0 deliberately).~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~40. OpenAPI-lite export shape (the JSON listing is deliberately minimal today).~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~41. Snapshot versioning/callback on Routes() change (for cache invalidation in consumers).~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~42. httpspec-flavored contract specs for the listing (Vary/Cache-Control/405) — possibly `EndpointsSpecs()` upstream of the module.~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
+~~43. Docs/integrations guide: endpoints under a full httputil middleware chain (Recovery→Logging→...→mux) with SecurityHeaders CSP proof.~~ **→ routed to ROADMAP Post-v1.0 ideas batch**
 
 Housekeeping lane:
 
 44. Run `scripts/pre-sweep-check.sh` before leaving the tree unattended (now covers all three modules).
 45. Session-tail: confirm CI green on head + tree clean (per AGENTS Session-Tail Discipline).
-46. coverage badge decision (e)/6).
+~~46. coverage badge decision (e)/6).~~ **→ routed to TODO_LIST Low** (badge scope)
 47. If any CI job fails on first run: triage via `gh run view --log-failed` before touching code.
-48. Consider recording the endpoints module in the fleet `meta` inventory (stack-selection discovery) once released.
-49. Re-run art-dupl after any root parser change (sync duty, e)/2).
-50. Mark this report's items done via docs-health ANNOTATE as they land.
+~~48. Consider recording the endpoints module in the fleet `meta` inventory (stack-selection discovery) once released.~~ **→ routed to TODO_LIST Low** (fleet meta inventory)
+~~49. Re-run art-dupl after any root parser change (sync duty, e)/2).~~ done — codified as the standing parser-sync duty in AGENTS Accepted Code Duplication
+~~50. Mark this report's items done via docs-health ANNOTATE as they land.~~ done (docs-health pass 2026-11-06)
 
 ## g) Questions I cannot answer myself
 
