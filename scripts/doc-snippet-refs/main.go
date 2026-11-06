@@ -27,6 +27,7 @@ var checkedPackages = map[string]string{
 	"httputil":     "github.com/larsartmann/httputil",
 	"servertiming": "github.com/larsartmann/httputil/server_timing",
 	"httpspec":     "github.com/larsartmann/httputil/httpspec",
+	"endpoints":    "github.com/larsartmann/httputil/endpoints",
 }
 
 var fencePattern = regexp.MustCompile("(?s)```go\n(.*?)```")

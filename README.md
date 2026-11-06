@@ -6,7 +6,7 @@
 ![govulncheck](https://img.shields.io/badge/govulncheck-clean-brightgreen)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag composition), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, content-language negotiation, configurable HTTP server, and standard health checks.
+Composable HTTP middleware, utility primitives, and server lifecycle helpers for Go — CORS, client IP extraction, response recording, middleware chaining, security headers, CSP nonce support, request ID, panic recovery, timeout enforcement, structured logging, response compression, request body decompression with bomb protection, ETag conditional requests (via go-etag composition), W3C Server-Timing, CSRF protection (nosurf), keyed rate limiting, content-language negotiation, configurable HTTP server, standard health checks, and — from the separate `endpoints` module — a self-describing `/endpoints` route listing.
 
 Minimal footprint — four dependencies (`go-error-family` + `go-etag` same-author, `golang.org/x/time`, `justinas/nosurf`). Pure stdlib `net/http`. Go 1.27+ (the `go` directive requires 1.27.1+ since go-etag v0.5.0).
 
@@ -457,6 +457,32 @@ handler := servertiming.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
 })(mux)
 ```
 
+### Endpoints Listing
+
+A `GET /endpoints` listing of every route the server serves — JSON for API clients, an HTML table for browsers, picked by content negotiation on the `Accept` header. Lives in the `endpoints` sub-module (`github.com/larsartmann/httputil/endpoints`), which is MIT-licensed, stdlib-only with zero dependencies, and has its own [README](endpoints/README.md).
+
+`*http.ServeMux` cannot enumerate the patterns registered on it, so the listing needs its own source of truth: every route registered through a `Registry` is mounted on the mux AND recorded in one declaration, so the listing cannot drift from what is actually served.
+
+```go
+import "github.com/larsartmann/httputil/endpoints"
+
+routes := endpoints.NewRegistry()
+mux := http.NewServeMux()
+
+// One declaration: mounts "GET /users/{id}" AND records it for the listing.
+err := routes.HandleFunc(mux, "GET /users/{id}", getUser, "Fetch one user")
+if err != nil {
+    return err // wiring errors are values: nil mux, empty or duplicate pattern, non-UTF-8 summary
+}
+
+// Mount the listing itself — it lists itself too.
+if err := endpoints.Register(mux, routes); err != nil {
+    return err
+}
+```
+
+Negotiation never 406s: an absent, unknown, or garbage `Accept` header serves JSON (json/v2); `text/html` or `text/*` serves the HTML table; `q=0` excludes a representation and ties go to JSON. Both representations carry `Vary: Accept` + `Cache-Control: no-store`; methods other than GET/HEAD get `405` with `Allow`. The HTML is CSP-clean (no inline styles or scripts; every field escaped), so it composes with `SecurityHeaders` and `Nonce`. A route listing documents the attack surface — mount it deliberately if the service is internet-facing.
+
 ### Rate Limiting
 
 Token-bucket rate limiting per client key with O(log n) min-heap eviction and monitoring.
@@ -588,6 +614,15 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `ValidateCSRF`                    | `func(*http.Request, CSRFConfig) (bool, *httptest.ResponseRecorder)`  | Standalone CSRF validation                                                    |
 | `ServerTimingMiddleware`          | `func() func(http.Handler) http.Handler`                              | W3C Server-Timing middleware (`server_timing` module)                         |
 | `ServerTimingMiddlewareWhen`      | `func(func(*http.Request) bool) func(http.Handler) http.Handler`      | Conditional Server-Timing (`server_timing` module)                            |
+| `endpoints.NewRegistry`           | `func() *endpoints.Registry`                                          | Route registry for the `/endpoints` listing (`endpoints` module)              |
+| `endpoints.Registry.Handle`       | `func(*http.ServeMux, string, http.Handler, string) error`            | Mount a handler on the mux AND record its route                               |
+| `endpoints.Registry.HandleFunc`   | `func(*http.ServeMux, string, func(http.ResponseWriter, *http.Request), string) error` | `Handle` for a bare handler function                                           |
+| `endpoints.Registry.Routes`       | `func() []endpoints.Route`                                            | Registered routes, sorted defensive copy                                       |
+| `endpoints.Registry.Handler`      | `func() http.Handler`                                                 | The content-negotiated listing handler (GET/HEAD, 405 otherwise)              |
+| `endpoints.Register`              | `func(*http.ServeMux, *endpoints.Registry) error`                     | Mount the listing at `DefaultPattern` (`GET /endpoints`)                      |
+| `endpoints.Route`                 | `struct { Method, Pattern, Summary string }`                          | One recorded route                                                             |
+| `endpoints.Response`              | `struct { Endpoints []endpoints.Route }`                              | Listing payload rendered as JSON or HTML                                       |
+| `endpoints.DefaultPattern`        | `const "GET /endpoints"`                                             | Pattern `Register` mounts by default                                           |
 | `ParseUintQuery`                  | `func(*http.Request, string) uint`                                    | Parse uint from query param                                                   |
 | `Metrics`                         | `func(MetricsConfig) func(http.Handler) http.Handler`                 | Request metrics recording                                                     |
 | `DefaultMetricsConfig`            | `func() MetricsConfig`                                                | Default metrics config                                                        |
@@ -878,4 +913,4 @@ nix flake check             # Nix flake validation
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The [`server_timing`](server_timing/) sub-module is MIT-licensed as well, with its own [LICENSE](server_timing/LICENSE) and [README](server_timing/README.md).
+MIT — see [LICENSE](LICENSE). The [`server_timing`](server_timing/) and [`endpoints`](endpoints/) sub-modules are MIT-licensed as well, each with its own [LICENSE](server_timing/LICENSE)/[LICENSE](endpoints/LICENSE) and [README](server_timing/README.md)/[README](endpoints/README.md).
