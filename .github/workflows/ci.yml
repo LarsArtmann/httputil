@@ -145,6 +145,11 @@ jobs:
           cd server_timing
           govulncheck ./...
 
+      - name: Run govulncheck (endpoints sub-module)
+        run: |
+          cd endpoints
+          govulncheck ./...
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
@@ -177,17 +182,24 @@ jobs:
           args: --timeout=5m
 
       # A .golangci.yml edit once shipped 13 findings because CI's older
-      # binary silently ignored the new linter keys. Config schema + both
-      # modules must pass with the same pinned binary the action uses —
-      # server_timing is a separate Go module the action does not visit.
-      - name: Verify golangci config schema (root + server_timing)
+      # binary silently ignored the new linter keys. Config schema + every
+      # module must pass with the same pinned binary the action uses —
+      # server_timing and endpoints are separate Go modules the action does
+      # not visit.
+      - name: Verify golangci config schema (root + server_timing + endpoints)
         run: |
           golangci-lint config verify
           cd server_timing && golangci-lint config verify
+          cd ../endpoints && golangci-lint config verify
 
       - name: Lint (server_timing sub-module)
         run: |
           cd server_timing
+          golangci-lint run ./...
+
+      - name: Lint (endpoints sub-module)
+        run: |
+          cd endpoints
           golangci-lint run ./...
 
   # The frozen-API promise (docs/v1-stability.md) is machine-checked here:

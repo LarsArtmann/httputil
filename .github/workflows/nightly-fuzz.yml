@@ -104,6 +104,15 @@ jobs:
       - name: Fuzz Server-Timing CRLF injection
         run: go test -run='^$' -fuzz '^FuzzServerTimingMiddleware$' -fuzztime 300s ./server_timing
 
+      - name: Fuzz endpoints Accept negotiation
+        run: go test -run='^$' -fuzz '^FuzzNegotiateRepresentation$' -fuzztime 300s ./endpoints
+
+      - name: Fuzz endpoints q-value parser
+        run: go test -run='^$' -fuzz '^FuzzParseQValue$' -fuzztime 300s ./endpoints
+
+      - name: Fuzz endpoints HTML rendering
+        run: go test -run='^$' -fuzz '^FuzzRenderHTML$' -fuzztime 300s ./endpoints
+
       - name: Fuzz MaxBodySize contract
         run: go test -run='^$' -fuzz '^FuzzMaxBodySize$' -fuzztime 300s .
 

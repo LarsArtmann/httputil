@@ -8,7 +8,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-modules=("." "./server_timing")
+modules=("." "./server_timing" "./endpoints")
 
 status=0
 for mod in "${modules[@]}"; do

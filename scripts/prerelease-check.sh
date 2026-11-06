@@ -33,9 +33,10 @@ echo "clean"
 step "2/9 Build (workspace)"
 go build ./... || fail "go build ./..."
 
-step "3/9 Vet (root + server_timing)"
+step "3/9 Vet (root + server_timing + endpoints)"
 go vet ./... || fail "go vet ./... (root)"
 (cd server_timing && go vet ./...) || fail "go vet ./... (server_timing)"
+(cd endpoints && go vet ./...) || fail "go vet ./... (endpoints)"
 
 step "3b/9 API compatibility vs released baselines (apidiff)"
 # Single source of the gate logic (the same script ci.yml runs); baselines
@@ -43,18 +44,24 @@ step "3b/9 API compatibility vs released baselines (apidiff)"
 # in docs/v1-stability.md.
 ./scripts/check-apidiff.sh apidiff/httputil.export.zip . "root module" "v1.7.0" || fail "apidiff (root module)"
 ./scripts/check-apidiff.sh apidiff/server_timing.export.zip server_timing "server_timing module" "v1.0.3" || fail "apidiff (server_timing)"
+# endpoints has no baseline yet: it gains one at its first release tag
+# (apidiff/README.md regeneration ritual). Until then there is nothing to
+# diff against.
 
-step "4/9 Tests with race detection (root + server_timing)"
+step "4/9 Tests with race detection (root + server_timing + endpoints)"
 go test -race -count=1 ./... || fail "go test -race (root)"
 (cd server_timing && go test -race -count=1 ./...) || fail "go test -race (server_timing)"
+(cd endpoints && go test -race -count=1 ./...) || fail "go test -race (endpoints)"
 
 step "4a/9 Error-sentinel guards (root + server_timing)"
 # Named explicitly so a rename or deletion of the guard cannot silently drop
 # the gate: these are the tests that catch the 2026-10-15 sweep class. The
 # server_timing module has no sentinels yet; its guard is the backstop for when
-# it adopts classified errors.
+# it adopts classified errors. The endpoints module carries plain stdlib
+# sentinels today.
 go test -race -count=1 -run 'Sentinel' . || fail "sentinel guard (root)"
 (cd server_timing && go test -race -count=1 -run 'Sentinel' .) || fail "sentinel guard (server_timing)"
+(cd endpoints && go test -race -count=1 -run 'Sentinel' .) || fail "sentinel guard (endpoints)"
 
 step "4b/9 Race stress (CI parity, -count=10)"
 # count=1 does not reliably surface timing-dependent races (the 2026-08-05
@@ -62,9 +69,10 @@ step "4b/9 Race stress (CI parity, -count=10)"
 # every push, so release parity is the point.
 go test -race -count=10 ./... || fail "go test -race -count=10 (root)"
 
-step "5/9 Lint (root + server_timing)"
+step "5/9 Lint (root + server_timing + endpoints)"
 golangci-lint run ./... || fail "golangci-lint run (root)"
 (cd server_timing && golangci-lint run ./...) || fail "golangci-lint run (server_timing)"
+(cd endpoints && golangci-lint run ./...) || fail "golangci-lint run (endpoints)"
 
 step "5b/9 Doc snippet symbol check (CI parity)"
 # Same command as ci.yml's "Doc snippet symbol check": README and the

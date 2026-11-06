@@ -8,6 +8,11 @@ of every exported package of one module at the latest released tag.
 | -------------------------- | ----------------------------------------------- | -------------------------- |
 | `httputil.export.zip`      | `github.com/larsartmann/httputil`               | tag `v1.7.0`               |
 | `server_timing.export.zip` | `github.com/larsartmann/httputil/server_timing` | tag `server_timing/v1.0.3` |
+| `endpoints.export.zip`    | `github.com/larsartmann/httputil/endpoints`     | pending first release tag  |
+
+The `endpoints` sub-module has no baseline yet: its export zip is created at
+its first release tag (below) and joins the ci.yml / prerelease-check.sh gates
+in the same release push.
 
 ## The gate
 

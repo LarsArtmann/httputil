@@ -12,20 +12,13 @@ import (
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
-// TestStack_FullMiddlewareComposition chains all 13 middlewares in their
-// recommended production order and verifies:
-//  1. A standard GET request flows through every layer without breakage.
-//  2. Each middleware's headers are present on the response (proves every
-//     middleware ran).
-//  3. A POST request without a CSRF token is rejected (proves CSRF is wired).
-//  4. A 429 response still includes security headers (proves ordering:
-//     rate-limit rejection does not skip outer middleware).
-//  5. A panicking inner handler returns 500 (proves Recovery is outermost).
-//
-// The middleware order matches the production guidance in README.md and
-// AGENTS.md (Recovery outermost, Logging next so it sees the final status,
-// rate limiting before expensive work, CSRF before state-changing handlers).
-func TestStack_FullMiddlewareComposition(t *testing.T) {
+// TestStack_FullMiddlewareComposition_ValidatedAndDuplicateRejected builds
+// all 13 middlewares in their recommended production order (README.md and
+// AGENTS.md: Recovery outermost, Logging next so it sees the final status,
+// rate limiting before expensive work, CSRF before state-changing handlers)
+// and verifies the composition passes Validate() while a duplicate Recovery
+// entry is still rejected.
+func TestStack_FullMiddlewareComposition_ValidatedAndDuplicateRejected(t *testing.T) {
 	t.Parallel()
 
 	logger := newTestLogger()
@@ -40,38 +33,59 @@ func TestStack_FullMiddlewareComposition(t *testing.T) {
 	if err := stack.Add(MiddlewareRecovery, Recovery(logger)); err == nil {
 		t.Error("expected duplicate recovery middleware to be rejected")
 	}
+}
 
-	// Each subtest builds its own handler + atomic so they are fully
-	// independent and safe to run in parallel.
-	t.Run("GET produces all expected headers", func(t *testing.T) {
-		t.Parallel()
-		called := &atomic.Bool{}
-		handler := stack.Build(newInnerHandler(called))
-		verifyGETHeaders(t, handler, called)
-	})
+// TestStack_FullMiddlewareComposition_GETProducesAllExpectedHeaders serves a
+// standard GET through the full 13-middleware stack and verifies every
+// middleware's header is present on the response (proves every middleware
+// ran without breakage).
+func TestStack_FullMiddlewareComposition_GETProducesAllExpectedHeaders(t *testing.T) {
+	t.Parallel()
 
-	t.Run("POST without CSRF token is rejected", func(t *testing.T) {
-		t.Parallel()
-		called := &atomic.Bool{}
-		handler := stack.Build(newInnerHandler(called))
-		verifyCSRFRejection(t, handler, called)
-	})
+	called := &atomic.Bool{}
+	handler := newFullStackHandler(t, called)
 
-	t.Run("OPTIONS preflight succeeds with CORS headers", func(t *testing.T) {
-		t.Parallel()
-		handler := stack.Build(newInnerHandler(&atomic.Bool{}))
-		verifyCORSPreflight(t, handler)
-	})
+	verifyGETHeaders(t, handler, called)
+}
 
-	t.Run("Panic in inner handler returns 500", func(t *testing.T) {
-		t.Parallel()
-		verifyPanicRecovery(t, logger)
-	})
+// TestStack_FullMiddlewareComposition_POSTWithoutCSRFTokenIsRejected serves
+// a cross-site POST without a CSRF token through the full stack and verifies
+// the inner handler is never called (proves CSRF is wired).
+func TestStack_FullMiddlewareComposition_POSTWithoutCSRFTokenIsRejected(t *testing.T) {
+	t.Parallel()
 
-	t.Run("Rate-limited response still has all headers", func(t *testing.T) {
-		t.Parallel()
-		verifyRateLimitHeaders(t, logger)
-	})
+	called := &atomic.Bool{}
+	handler := newFullStackHandler(t, called)
+
+	verifyCSRFRejection(t, handler, called)
+}
+
+// TestStack_FullMiddlewareComposition_PreflightSucceedsWithCORSHeaders
+// serves a CORS preflight through the full stack and verifies it succeeds
+// with the CORS response headers.
+func TestStack_FullMiddlewareComposition_PreflightSucceedsWithCORSHeaders(t *testing.T) {
+	t.Parallel()
+
+	handler := newFullStackHandler(t, &atomic.Bool{})
+
+	verifyCORSPreflight(t, handler)
+}
+
+// TestStack_PanicInInnerHandlerReturns500 verifies a panicking inner handler
+// behind Recovery returns 500 (proves Recovery catches and converts).
+func TestStack_PanicInInnerHandlerReturns500(t *testing.T) {
+	t.Parallel()
+
+	verifyPanicRecovery(t, newTestLogger())
+}
+
+// TestStack_RateLimitedResponseStillHasAllHeaders verifies a 429 response
+// still includes the security headers (proves ordering: a rate-limit
+// rejection does not skip outer middleware).
+func TestStack_RateLimitedResponseStillHasAllHeaders(t *testing.T) {
+	t.Parallel()
+
+	verifyRateLimitHeaders(t, newTestLogger())
 }
 
 // TestStack_RecoveryMustBeOuterMost verifies the ordering invariant: if a
@@ -162,6 +176,17 @@ func buildFullStack(t *testing.T, stack *MiddlewareStack, logger *slog.Logger) {
 	addStackMiddleware(t, stack, MiddlewareTimeout, Timeout(30*time.Second))
 	addStackMiddleware(t, stack, MiddlewareClientIP, ClientIPMiddleware)
 	addStackMiddleware(t, stack, MiddlewareServerTiming, servertiming.ServerTimingMiddleware())
+}
+
+// newFullStackHandler builds the full 13-middleware production-order stack
+// around an inner handler whose execution is recorded in called.
+func newFullStackHandler(t *testing.T, called *atomic.Bool) http.Handler {
+	t.Helper()
+
+	stack := NewMiddlewareStack()
+	buildFullStack(t, stack, newTestLogger())
+
+	return stack.Build(newInnerHandler(called))
 }
 
 // newInnerHandler returns the inner handler used by stack composition tests.

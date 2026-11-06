@@ -21,3 +21,16 @@ nonce-ordering	Nonce\(
 hand-rolled-twins	func\s*\(\s*next\s+http\.Handler\)\s+http\.Handler
 # 014 nonce'd HTML without Cache-Control: no-store
 nonce-no-store	Cache-Control
+# Language() misuse classes (added 2026-11-06 post-v1.6.0, i18n plan residual 5).
+# Human check: with DisableVary true, does any response variant depend on the
+# negotiated tag? Then shared caches can serve the wrong language (cookbook:
+# DisableVary is for chains whose body does NOT vary by language).
+language-vary-suppressed	DisableVary\s*:\s*true
+# Human check: ETag composed before (outside) Language bypasses the negotiated
+# variant in the 304/validation decision — verify composition order against
+# docs/integrations/language-cookbook.md wherever both middlewares appear.
+language-etag-ordering	etag\.New\(
+# Human check: the first extractor leg yielding a supported tag wins; verify
+# the chain order matches product intent (cookbook: path leg first so a
+# bookmarked /en wins over cookie and Accept-Language).
+language-extractor-ordering	LanguageExtractorChain\(|WithLanguageExtractor\(

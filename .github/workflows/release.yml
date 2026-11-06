@@ -5,6 +5,7 @@ on:
     tags:
       - "v*"
       - "server_timing/v*"
+      - "endpoints/v*"
 
 permissions:
   contents: write
@@ -70,6 +71,13 @@ jobs:
           go vet ./...
           go test -race ./...
 
+      - name: endpoints sub-module gates (build, vet, test)
+        run: |
+          cd endpoints
+          go build ./...
+          go vet ./...
+          go test -race ./...
+
       - name: Lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
@@ -84,6 +92,11 @@ jobs:
       - name: Run govulncheck (server_timing sub-module)
         run: |
           cd server_timing
+          govulncheck ./...
+
+      - name: Run govulncheck (endpoints sub-module)
+        run: |
+          cd endpoints
           govulncheck ./...
 
       - name: Create GitHub Release
