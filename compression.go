@@ -200,7 +200,7 @@ var (
 	errNegativeMinSize = codeCompressionMinSizeNeg.Rejection(
 		"compression minimum size must not be negative",
 	)
-	errNoWriterFactory = codeCompressionNoFactory.Rejection(
+	errNoWriterFactory error = codeCompressionNoFactory.Rejection(
 		"compression WriterFactories is empty; at least one encoding is required",
 	)
 	errIncompressiblePrefixInvalid = codeCompressionIncompressibleInvalid.Rejection(
@@ -209,7 +209,7 @@ var (
 	errAbsentEncodingInvalid = codeCompressionAbsentEncodingInvalid.Rejection(
 		"compression AbsentEncoding policy is not a known AbsentEncodingPolicy value",
 	)
-	errEmptyQValue    = codeCompressionQValueEmpty.Rejection("empty q-value")
+	errEmptyQValue error    = codeCompressionQValueEmpty.Rejection("empty q-value")
 	errInvalidQInt    = codeCompressionQValueInvalid.Rejection("invalid q-value integer")
 	errTrailingQChars = codeCompressionQValueTrail.Rejection("trailing chars in q-value")
 	errQValueTooLarge = codeCompressionQValueTooBig.Rejection("q-value > 1.0")

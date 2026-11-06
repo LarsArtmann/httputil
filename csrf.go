@@ -57,13 +57,13 @@ func ForbiddenHandler(w http.ResponseWriter, _ *http.Request, _ error) {
 // ErrCSRFInvalid is returned when a CSRF token is missing, malformed, or does
 // not match. Uses justinas/nosurf under the hood for token generation and
 // validation.
-var ErrCSRFInvalid = errorfamily.NewRejection(
+var ErrCSRFInvalid error = errorfamily.NewRejection(
 	string(codeCSRFInvalid),
 	"invalid or missing CSRF token",
 )
 
 // ErrCSRFConfig is returned when the CSRF configuration is invalid or insecure.
-var ErrCSRFConfig = errorfamily.NewInfrastructure(
+var ErrCSRFConfig error = errorfamily.NewInfrastructure(
 	string(codeCSRFConfig),
 	"invalid CSRF configuration",
 )
