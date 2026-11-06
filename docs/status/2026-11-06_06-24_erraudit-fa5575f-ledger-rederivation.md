@@ -55,8 +55,8 @@
 
 | # | Item |
 |---|------|
-| c1 | Upstream erraudit issue: `lint` rejects `--modules` while its own multi-module banner hints `--modules=all` |
-| c2 | Upstream erraudit issue: `lint --help` lists `--modules` under FLAGS although the subcommand rejects it (help aggregation defect) |
+| c1 | ~~Upstream erraudit issue: `lint` rejects `--modules` while its own multi-module banner hints `--modules=all`~~ **RESOLVED BY DISCOVERY**: already self-filed as erraudit#12 (2026-11-03, closed, source-cited at flag_consumers.go:77); verified FIXED at HEAD — see Addendum |
+| c2 | ~~Upstream erraudit issue: `lint --help` lists `--modules` under FLAGS although the subcommand rejects it~~ **RESOLVED BY DISCOVERY**: same class, already self-filed as erraudit#13 (2026-11-03, closed); verified FIXED at HEAD — see Addendum |
 | c3 | Extending `scripts/prerelease-check.sh` with the six per-root erraudit gates (root gates are covered; nested-module gates are manual today) |
 | c4 | A `scripts/` helper that runs the whole re-derivation ritual (version capture + 6 gates + `--max` count summary) in one command |
 | c5 | erraudit binary freshness check (buildflow-style: `erraudit --version` vs the erraudit source repo HEAD — where does the store build come from? Not investigated) |
@@ -137,8 +137,22 @@
 ## g) QUESTIONS — ANSWERED (owner rulings 2026-11-06, in-session)
 
 1. **Canonical measurement lane:** `--max` is THE canonical re-derivation lane going forward. → AGENTS.md updated: the documented advisory command becomes `--max`-based; the old non-max `--type-aware` line is superseded for LEDGER purposes.
-2. **Release/CI gate scope:** prerelease-check.sh ONLY (not ci.yml). → step added to the release script.
-3. **Upstream filing:** FILE BOTH. → verify-before-filing gate then gh issues in LarsArtmann/erraudit.
+2. **Release/CI gate scope:** prerelease-check.sh ONLY (not ci.yml). → step 6b added to the release script (per-root, build-robust on both old and new erraudit builds; syntax-checked, block verified exit-passing).
+3. **Upstream filing:** FILE BOTH → **superseded by Gate 5 (already exists)**: both defects were self-filed on 2026-11-03 and are CLOSED — erraudit#12 (banner trap, cites flag_consumers.go:77), erraudit#13 (help-declared-but-rejected class), plus erraudit#14 (exit-code contract, explains today's observed EXIT=2). Nothing filed; verify-before-filing worked exactly as designed. Real action item became the DEPLOYMENT REFRESH (below).
+
+---
+
+## Addendum — post-report verification (06:24–06:40, same session)
+
+After the rulings, the upstream filing task ran the verify-before-filing gates and hit Gate 5:
+
+- **erraudit source checkout** `~/projects/erraudit`: HEAD `5c841cf` (2026-11-06); deployed binary build `fa5575f` (2026-11-02) IS an ancestor — the store build predates the 2026-11-03 issue closures.
+- **Empirical fix verification** (fresh `go build` of HEAD → `/tmp/erraudit-head`, version 5c841cf):
+  - `erraudit-head lint ./... --modules=all --type legacy_as` → **EXIT=0** (accepted; was EXIT=1 on fa5575f).
+  - Default `lint` run → **no multi-module banner** (gone from HEAD; new conditional text lives at pipeline.go:328).
+- **Ledger consequence (tool build changed AGAIN):** HEAD `--max` = **57** findings vs deployed 56 — 36 load-bearing + 17 hints + 1 legacy_is UNCHANGED; +1 `enforce_generic_return` at `endpoints/endpoints.go:111:1` (`Registry.Handle` returns bare `error`) — surfaced only because HEAD lint analyzes nested modules by default (the #12 fix). **Verdict: policy-rejected** — a public library API returning `error` is idiomatic Go; the tool's own help marks the check off-by-default for exactly this reason. Same class as the scripts/ verdict.
+- **Action item (owner-gated, NOT done):** refresh the deployed erraudit (nix/home-manager store build predates the fixes). After refresh: ledger becomes 57 (documented in AGENTS.md), the banner trap disappears, and the prerelease 6b per-root runs become redundant-but-harmless.
+- AGENTS.md updated for both build states; prerelease-check.sh 6b comment made build-agnostic.
 
 ---
 

@@ -51,21 +51,29 @@ scripts/pre-sweep-check.sh
 # residuals bullet and the honest-silence paragraph point here; update this
 # block, not copies.
 # Real gates (exit 0 required): legacy_as + stdlib_constructor below.
-# --type-aware is ADVISORY-ONLY. RE-MEASURED 2026-10-25 with erraudit 119791b:
+# --type-aware is ADVISORY-ONLY. CANONICAL LEDGER LANE = `--max` (owner ruling
+# 2026-11-06; strictest form: --type-aware + --no-suppress + --explain + every
+# --enforce-* — it additionally surfaces the 2 scripts/ enforce_generic_return
+# advisories, policy-rejected 2026-10-11, see the scripts/ verdict below).
+# MEASURED 2026-10-25 with erraudit 119791b:
 # 53 `sentinel_concrete_type` (split by the tool itself into 36 labeled
 # "load-bearing — keep the declaration" and 17 carrying a `var errX error`
 # rewrite hint) + 1 `legacy_is` advisory
 # (validation_classified_test.go:474, a correct sentinel-value match).
-# RE-DERIVED 2026-11-06 with erraudit fa5575f: identical counts — 36
-# load-bearing + 17 hints (same sentinel names) + 1 legacy_is; the ledger held
-# across tool builds. `erraudit lint ... --max` = --type-aware + --no-suppress
-# + --explain + every --enforce-*, so it additionally surfaces the 2 scripts/
-# enforce_generic_return advisories (policy-rejected 2026-10-11, see the
-# scripts/ verdict below) that the canonical advisory lane does not.
-# `lint` is ROOT-MODULE-ONLY and REJECTS --modules (post-flag-parse rejection;
-# the flag belongs to analyze/watch/tree/errorflow) even though the
-# multi-module banner hints "--modules=all" — that hint is a trap for lint.
-# For lint, run nested modules per-root (see the gate commands below). The
+# RE-DERIVED 2026-11-06 with erraudit fa5575f via --max (now the canonical
+# lane): 56 findings — 36 load-bearing + 17 hints (same sentinel names) + 1
+# legacy_is + the 2 scripts/ enforce_generic_return advisories; the ledger
+# held across tool builds. NEXT BUILD (5c841cf+, after the deployment
+# refresh): 57 = +1 enforce_generic_return at endpoints/endpoints.go:111
+# (Registry.Handle) — policy-rejected, a public API returning error is
+# idiomatic Go; same class as the scripts/ verdict below.
+# Multi-module handling is BUILD-DEPENDENT: the deployed fa5575f binary (up to
+# the 2026-11-03 fixes, erraudit#12/#13/#14) analyzes the root module only,
+# REJECTS --modules on lint, and its banner misleadingly hints
+# "--modules=all" — run nested modules per-root (the prerelease 6b step;
+# correct on both builds). HEAD builds accept --modules (default all) and
+# analyze nested modules by default; after the deployment refresh the
+# per-root runs become redundant but stay harmless. The
 # advisory count collapsed from 49 to 1 because 119791b stopped flagging
 # `errors.Is` sites whose target is a load-bearing concrete sentinel — a tool
 # change, not a code change; the ledger is re-derived per tool build, never
@@ -131,7 +139,7 @@ scripts/pre-sweep-check.sh
 # rewrite hint does not compile for the 29 cloned sentinels), #11 (the
 # legacy_is guard misses unexported err* sentinels — cause of the ~44).
 # GOEXPERIMENT=jsonv2 prefix dropped 2026-10-09: json/v2 is standard in Go 1.27.
-erraudit lint ./... --type-aware --enforce-go-error-family
+erraudit lint ./... --max
 erraudit lint ./... --type legacy_as
 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
 

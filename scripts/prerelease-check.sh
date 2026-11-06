@@ -83,6 +83,21 @@ erraudit lint ./... --type legacy_as || fail "erraudit legacy_as"
 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family ||
 	fail "erraudit stdlib_constructor"
 
+step "6b/9 erraudit gates (nested modules; lint is root-only)"
+# Per-root because nested-module handling is build-dependent: erraudit fa5575f
+# (deployed until the 2026-11-03 fixes, erraudit#12/#13) analyzes the root
+# module only and rejects --modules on lint; HEAD builds analyze all modules
+# by default. Per-root gating is correct on both (owner ruling 2026-11-06:
+# release gate, not CI).
+(cd endpoints && erraudit lint ./... --type legacy_as) ||
+	fail "erraudit legacy_as (endpoints)"
+(cd endpoints && erraudit lint ./... --type stdlib_constructor --enforce-go-error-family) ||
+	fail "erraudit stdlib_constructor (endpoints)"
+(cd server_timing && erraudit lint ./... --type legacy_as) ||
+	fail "erraudit legacy_as (server_timing)"
+(cd server_timing && erraudit lint ./... --type stdlib_constructor --enforce-go-error-family) ||
+	fail "erraudit stdlib_constructor (server_timing)"
+
 step "7/9 Coverage threshold (95%)"
 # Library coverage only: the scripts/ dev tooling (doc-snippet-refs has no
 # tests by design; coverage-threshold tests itself) would drag the total
