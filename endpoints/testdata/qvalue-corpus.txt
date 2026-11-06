@@ -1,0 +1,77 @@
+# Shared q-value corpus — the parity oracle for the two deliberately
+# duplicated parsers: the root module's compression_qvalue.go and the
+# endpoints sub-module's qvalue.go. Both modules' tests assert THIS file, so a
+# semantic change on one side cannot ship silently in the other.
+#
+# Format: <Go-quoted input><TAB><expected>, one case per line. Blank lines and
+# lines starting with "#" are ignored.
+#   value:<float literal>  the parser returns that float64
+#   err:<sentinel name>    errors.Is(result, that sentinel) must hold
+# Sentinel names: errEmptyQValue, errInvalidQInt, errTrailingQChars,
+# errQValueTooLarge.
+#
+# The root file is canonical; endpoints/testdata/qvalue-corpus.txt is a
+# byte-identical mirror because a nested module directory is excluded from the
+# root module zip (the sub-module must carry its own copy). Keep them
+# byte-identical — scripts/check-qvalue-corpus-sync.sh enforces it, and both
+# modules' corpus tests must pass in the same change that touches the parser.
+
+# Bare integers.
+"0"	value:0
+"1"	value:1
+
+# Three fractional digits (the RFC 9110 maximum) including the boundary.
+"0.5"	value:0.5
+"0.100"	value:0.1
+"0.010"	value:0.01
+"0.001"	value:0.001
+"0.123"	value:0.123
+"0.555"	value:0.555
+"0.999"	value:0.999
+"1.000"	value:1
+
+# An empty fractional part parses as zero (deliberately lenient: "0." is 0.0).
+"0."	value:0
+"1."	value:1
+
+# Sign handling: "+" is accepted but neutralized, "-" is preserved as-is.
+"+1"	value:1
+"+0.5"	value:0.5
+"-0.5"	value:-0.5
+"-1"	value:-1
+"-0"	value:-0
+"-1.5"	err:errQValueTooLarge
+
+# Empty input is rejected with its own sentinel.
+""	err:errEmptyQValue
+
+# The integer part must be a single "0" or "1" — no whitespace, no Unicode
+# digits, no dot-first form, no bare sign.
+"2"	err:errInvalidQInt
+".5"	err:errInvalidQInt
+"abc"	err:errInvalidQInt
+" 1"	err:errInvalidQInt
+"\t0"	err:errInvalidQInt
+" "	err:errInvalidQInt
+"\t\t"	err:errInvalidQInt
+"+"	err:errInvalidQInt
+"-"	err:errInvalidQInt
+"\u0661"	err:errInvalidQInt
+
+# Nothing may follow the parsed number: no junk, no extra digits, no space.
+"1x"	err:errTrailingQChars
+"0x"	err:errTrailingQChars
+"00"	err:errTrailingQChars
+"0.5x"	err:errTrailingQChars
+"0.5."	err:errTrailingQChars
+"1..0"	err:errTrailingQChars
+"1 "	err:errTrailingQChars
+"0.5\n"	err:errTrailingQChars
+"0.1234"	err:errTrailingQChars
+"0.9999"	err:errTrailingQChars
+"1.0000"	err:errTrailingQChars
+"0.123456789"	err:errTrailingQChars
+
+# Anything above 1.0 is rejected once a fractional part is present.
+"1.001"	err:errQValueTooLarge
+"1.999"	err:errQValueTooLarge
