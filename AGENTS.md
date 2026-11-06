@@ -55,7 +55,17 @@ scripts/pre-sweep-check.sh
 # 53 `sentinel_concrete_type` (split by the tool itself into 36 labeled
 # "load-bearing — keep the declaration" and 17 carrying a `var errX error`
 # rewrite hint) + 1 `legacy_is` advisory
-# (validation_classified_test.go:474, a correct sentinel-value match). The
+# (validation_classified_test.go:474, a correct sentinel-value match).
+# RE-DERIVED 2026-11-06 with erraudit fa5575f: identical counts — 36
+# load-bearing + 17 hints (same sentinel names) + 1 legacy_is; the ledger held
+# across tool builds. `erraudit lint ... --max` = --type-aware + --no-suppress
+# + --explain + every --enforce-*, so it additionally surfaces the 2 scripts/
+# enforce_generic_return advisories (policy-rejected 2026-10-11, see the
+# scripts/ verdict below) that the canonical advisory lane does not.
+# `lint` is ROOT-MODULE-ONLY and REJECTS --modules (post-flag-parse rejection;
+# the flag belongs to analyze/watch/tree/errorflow) even though the
+# multi-module banner hints "--modules=all" — that hint is a trap for lint.
+# For lint, run nested modules per-root (see the gate commands below). The
 # advisory count collapsed from 49 to 1 because 119791b stopped flagging
 # `errors.Is` sites whose target is a load-bearing concrete sentinel — a tool
 # change, not a code change; the ledger is re-derived per tool build, never
@@ -124,6 +134,11 @@ scripts/pre-sweep-check.sh
 erraudit lint ./... --type-aware --enforce-go-error-family
 erraudit lint ./... --type legacy_as
 erraudit lint ./... --type stdlib_constructor --enforce-go-error-family
+
+# Real gates in the nested modules (erraudit lint is root-only; verified exit 0
+# across all six gate×module runs 2026-11-06):
+(cd endpoints && erraudit lint ./... --type legacy_as && erraudit lint ./... --type stdlib_constructor --enforce-go-error-family)
+(cd server_timing && erraudit lint ./... --type legacy_as && erraudit lint ./... --type stdlib_constructor --enforce-go-error-family)
 
 # server_timing sub-module (run from server_timing/)
 cd server_timing && go test -race ./... && golangci-lint run
