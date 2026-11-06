@@ -224,6 +224,9 @@ jobs:
       - name: server_timing sub-module vs released baseline
         run: ./scripts/check-apidiff.sh apidiff/server_timing.export.zip server_timing "server_timing module" "v1.0.3"
 
+      - name: endpoints sub-module vs released baseline
+        run: ./scripts/check-apidiff.sh apidiff/endpoints.export.zip endpoints "endpoints module" "endpoints/v0.1.0"
+
   # The fleet's workflow policies (pin formats, runner allowlist, permission
   # shape — the classes actionlint has no concept of) live in exactly one
   # place: LarsArtmann/cue-policy. This job vets the workflow files against

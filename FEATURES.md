@@ -122,7 +122,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - Wiring errors are values, never panics (the no-`Must*` API policy): nil mux/handler, empty pattern, non-UTF-8 pattern or summary, and rejected `ServeMux` patterns (malformed or duplicate — the mux panic is translated to an error) all return classified errors.
 - `Registry` is safe for concurrent use (atomic-pointer snapshot publication, the `MiddlewareStack` pattern); the zero value is usable.
 - 100.0% statement coverage under `-race`; 3 fuzz targets (negotiation totality/determinism, q-value bounds, HTML escaped-containment) in the nightly rotation; 4 benchmarks; 3 self-contained examples.
-- Unreleased as a tag: no apidiff baseline and no pkg.go.dev page until the first release (owner-gated).
+- Released 2026-11-06 as `endpoints/v0.1.0` (pre-1.0 iteration tier, owner ruling): the apidiff baseline, pkg.go.dev badge, and CHANGELOG compare-link landed with the tag.
 
 ### Observability Hooks (OpenTelemetry bridge)
 
@@ -255,9 +255,9 @@ Re-measured 2026-10-25 with `go test -race -coverprofile` per package: **98.7%**
 
 ## Distribution & Licensing
 
-- **All three modules are MIT** — root `LICENSE` since v1.5.0, `server_timing/LICENSE` since v1.0.2, `endpoints/LICENSE` from creation (2026-11-06; owner decision pattern 2026-10-08/09, holder "Lars Artmann"). pkg.go.dev renders README and full documentation for the root and `server_timing` module pages (verified 2026-10-09; visibility is per-tag — it began with those tags). The `endpoints` page appears with its first release tag.
+- **All three modules are MIT** — root `LICENSE` since v1.5.0, `server_timing/LICENSE` since v1.0.2, `endpoints/LICENSE` from creation (2026-11-06; owner decision pattern 2026-10-08/09, holder "Lars Artmann"). pkg.go.dev renders README and full documentation for the root and `server_timing` module pages (verified 2026-10-09; visibility is per-tag — it began with those tags). The `endpoints` page appears with `endpoints/v0.1.0` (first release tag, 2026-11-06).
 - **`server_timing/README.md`** — the sub-module's own end-user page (install, quick start, the measure-before-write gotcha), rendered on pkg.go.dev's module page and the GitHub directory view (added in the v1.5.0 cycle, shipped at `server_timing/v1.0.2`).
-- **`endpoints/README.md`** — the sub-module's end-user page (why a registry, install, quick start, negotiation table, security posture); the pkg.go.dev badge is deliberately absent until the first tag exists.
+- **`endpoints/README.md`** — the sub-module's end-user page (why a registry, install, quick start, negotiation table, security posture); the pkg.go.dev badge landed with `endpoints/v0.1.0` (2026-11-06).
 
 ## WORTH CONSIDERING
 

@@ -1,5 +1,6 @@
 # endpoints
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/httputil/endpoints.svg)](https://pkg.go.dev/github.com/larsartmann/httputil/endpoints)
 [![Go Version](https://img.shields.io/badge/Go-1.27+-00ADD8)](https://go.dev)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 

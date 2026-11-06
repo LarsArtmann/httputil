@@ -325,9 +325,9 @@ The gated alternative is additive:
 
 New standard specs may be added in minor versions. Existing specs will not be removed or have their assertions loosened.
 
-## `endpoints` Sub-module (separately versioned, unreleased)
+## `endpoints` Sub-module (separately versioned)
 
-Added 2026-11-06 (`github.com/larsartmann/httputil/endpoints`): `Route`, `Response`, `Registry`, `NewRegistry`, `Registry.Handle`/`HandleFunc`/`Routes`/`Handler`, `Register`, `DefaultPattern`. No release tag exists yet, so there is no apidiff baseline and nothing is Frozen — the starting tier (v0.1.0 pre-1.0 iteration vs day-one v1.0 freeze mirroring `server_timing`) is an owner-gated decision. The Mechanical Enforcement section below covers this module from its first tag.
+Released 2026-11-06 as `endpoints/v0.1.0` (`github.com/larsartmann/httputil/endpoints`): `Route`, `Response`, `Registry`, `NewRegistry`, `Registry.Handle`/`HandleFunc`/`Routes`/`Handler`, `Register`, `DefaultPattern`. Owner ruling at the first tag: the pre-1.0 iteration tier, NOT `server_timing`'s day-one-v1 freeze — 0.x semantics govern (breaking changes ship as minor bumps), so real consumers can still reshape the `Handle`/`Register` API. The baseline is `apidiff/endpoints.export.zip` (tag `endpoints/v0.1.0`), and the Mechanical Enforcement section below covers this module from that tag.
 
 ## Versioning Policy
 
@@ -340,7 +340,7 @@ Added 2026-11-06 (`github.com/larsartmann/httputil/endpoints`): `Route`, `Respon
 ## Mechanical Enforcement
 
 The promises on this page are machine-checked, not prose-only. Since v1.7.0,
-every push and every pre-release run diffs the exported API of both modules
+every push and every pre-release run diffs the exported API of all three modules
 against committed export-data baselines (the latest released tags):
 
 - **Baselines:** [`apidiff/`](../apidiff/README.md) — one export-data zip per

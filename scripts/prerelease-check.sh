@@ -44,9 +44,7 @@ step "3b/9 API compatibility vs released baselines (apidiff)"
 # in docs/v1-stability.md.
 ./scripts/check-apidiff.sh apidiff/httputil.export.zip . "root module" "v1.7.0" || fail "apidiff (root module)"
 ./scripts/check-apidiff.sh apidiff/server_timing.export.zip server_timing "server_timing module" "v1.0.3" || fail "apidiff (server_timing)"
-# endpoints has no baseline yet: it gains one at its first release tag
-# (apidiff/README.md regeneration ritual). Until then there is nothing to
-# diff against.
+./scripts/check-apidiff.sh apidiff/endpoints.export.zip endpoints "endpoints module" "endpoints/v0.1.0" || fail "apidiff (endpoints)"
 
 step "4/9 Tests with race detection (root + server_timing + endpoints)"
 go test -race -count=1 ./... || fail "go test -race (root)"
