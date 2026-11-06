@@ -8,11 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Fleet rollout wave 1 shipped: workflow policy vet in library-policy, go-etag, go-error-family** — each repo's `release.yml` gained the concurrency guard (`release-${{ github.ref }}`, `cancel-in-progress: false` — the one defect the 2026-11-02 read-only sweep found fleet-wide) and each `ci.yml` a `policy-vet` job mirroring this repo's (pinned cue v0.17.1, cue-policy checkout at `7ecfcaf`), every modified workflow verified locally with `cue vet` and actionlint; each repo's TODO_LIST carries its 30-day signal/noise review row (due 2026-12-06; library-policy's clock starts when its manually-disabled CI re-enables). The buildflow-binary premise resolved along the way: the fleet binary already delivers the `apidiff` + `cue-vet` steps (verified via `buildflow list providers` and a live `buildflow -s apidiff` run against this repo's baselines); the exact-HEAD refresh is blocked upstream and filed (LarsArtmann/BuildFlow#92: master's `_local_deps` templ fragments need templ v0.3.1100 while go.mod replace-pins v0.3.1070 — verified at source level, one-line fix named).
+- **Language() misuse classes joined the consumer-audit pattern pack** — `scripts/consumer-audit/patterns.tsv` gains three human-check classes (`language-vary-suppressed`, `language-etag-ordering`, `language-extractor-ordering`) and [docs/review/lint/000-index.md](docs/review/lint/000-index.md) records them for the next quarterly review — the i18n plan's last residual. The post-v1.6.0 cross-repo follow-ups closed with evidence: dnsblockd's needs-check verdict is NO i18n need (all locale hits are client-side `toLocaleString()` on a single-household operator UI), and sperrmuell-direct's T70 row now records the migration precondition as fulfilled (v1.6.0 released 2026-10-24; that tree already pins v1.8.0).
+- **Architecture re-review post-v1.1** — [docs/architecture-understanding/2026-11-06_02-14_post-v1.1-architecture-review.html](docs/architecture-understanding/2026-11-06_02-14_post-v1.1-architecture-review.html): 4.14/5 (was 3.9 on 2026-09-10; Modularity 3→4 on mechanically enforced boundaries — apidiff plus the stdlib-only endpoints extraction — with no dimension falling). Prior roadmap closed: nonce generator injection declined-by-design (`nonce.go:34`), MustAdd declined (never-panic policy), bundle pattern documented in the README, flat-root held at 37/50 files. New P2 finding tracked in TODO_LIST: two parseQValue implementations (root + endpoints) with no cross-module parity oracle.
 
 ### Fixed
 
 - Nothing yet.
+
+### Changed
+
+- **The no-table-driven-tests convention now holds root-wide** — the two remaining `t.Run` clusters are standalone tests: `pattern_propagation_test.go`'s forking-middlewares table became four per-middleware `Test*_PropagatesRoutePattern` tests over a shared `assertPatternSurvivesFork` helper, and `stack_integration_test.go`'s composition subtests became six standalone tests (each building its own stack via `newFullStackHandler`; the panic and rate-limit scenarios renamed to match their own mini-stacks). security_test.go's clusters had already been converted earlier (0076791). The httpspec BDD specs keep `t.Run` by design — parallel human-named subtests are that package's contract. Full suite green under `-race`; golangci-lint 0 issues.
 
 ## [1.8.0] - 2026-11-04
 
