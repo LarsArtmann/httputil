@@ -144,6 +144,15 @@ func CORS(cfg CORSConfig) Middleware {
 				resp.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			}
 
+			// A request-dependent Access-Control-Allow-Origin value (allowlist
+			// or wildcard-pattern reflection) must declare Origin-variance so
+			// shared caches cannot serve an origin-A-stamped response to
+			// origin B. AllowAllOrigins emits the constant "*" and is exempt.
+			// Add (not Set): other layers may already vary other headers.
+			if origin != "" && !cfg.AllowAllOrigins {
+				resp.Header().Add("Vary", "Origin")
+			}
+
 			resp.Header().Set("Access-Control-Allow-Methods", allowMethods)
 			resp.Header().Set("Access-Control-Allow-Headers", allowHeaders)
 			resp.Header().Set("Access-Control-Allow-Credentials", allowCredentials)

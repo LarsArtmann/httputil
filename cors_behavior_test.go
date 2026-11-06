@@ -242,3 +242,55 @@ func FuzzCORSOriginMatching(f *testing.F) {
 		}
 	})
 }
+
+// TestCORS_ReflectingOriginsSetVaryOrigin specifies that when the emitted
+// Access-Control-Allow-Origin depends on the request's Origin header
+// (allowlist or wildcard-pattern reflection), the response carries
+// Vary: Origin. Without it, a shared cache may store the response stamped
+// for origin A and serve it to origin B (cache-poisoning class). See
+// fetch spec §databases/caches: browsers key the CORS cache on Origin, HTTP
+// caches do not unless told.
+func TestCORS_ReflectingOriginsSetVaryOrigin(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowedOrigins: []string{"https://allowed.example.com"},
+		AllowedMethods: []string{http.MethodGet},
+		AllowedHeaders: []string{"Content-Type"},
+	}
+	middleware := CORS(cfg)
+
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "https://allowed.example.com")
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	if vary := rec.Header().Get("Vary"); vary != "Origin" {
+		t.Errorf("Vary = %q, want %q (reflected Access-Control-Allow-Origin must declare Origin-variance)", vary, "Origin")
+	}
+}
+
+// TestCORS_AllAllOriginsOmitsVaryOrigin documents the exemption: with
+// AllowAllOrigins the header is the constant "*" for every request, so the
+// response cannot vary by Origin and a Vary entry would be cache noise.
+func TestCORS_AllAllOriginsOmitsVaryOrigin(t *testing.T) {
+	t.Parallel()
+
+	cfg := CORSConfig{
+		AllowAllOrigins: true,
+		AllowedMethods:  []string{http.MethodGet},
+		AllowedHeaders:  []string{"Content-Type"},
+	}
+	middleware := CORS(cfg)
+
+	inner := newNoOpHandler()
+	req := newTestRequest(http.MethodGet, "/", "https://any.example.com")
+	rec := newRecorder()
+
+	middleware(inner).ServeHTTP(rec, req)
+
+	if vary := rec.Header().Get("Vary"); vary != "" {
+		t.Errorf("Vary = %q, want absent (constant \"*\" Access-Control-Allow-Origin cannot vary)", vary)
+	}
+}
