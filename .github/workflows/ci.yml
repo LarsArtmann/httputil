@@ -109,6 +109,16 @@ jobs:
       - name: Test
         run: go test -race -shuffle=on -count=1 ./...
 
+      # `go test ./...` at the root does NOT reach the nested modules (Go
+      # excludes other modules' directories from a pattern in the current
+      # module), so without this step the sub-modules' 100+ tests — including
+      # the shared q-value corpus parity oracle — only ran in the release
+      # workflow. Same race+shuffle posture as the root step.
+      - name: Sub-module tests (server_timing + endpoints)
+        run: |
+          (cd server_timing && go test -race -shuffle=on -count=1 ./...)
+          (cd endpoints && go test -race -shuffle=on -count=1 ./...)
+
       - name: Race stress test
         run: go test -race -shuffle=on -count=10 ./...
 

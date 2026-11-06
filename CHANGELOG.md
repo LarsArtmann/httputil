@@ -15,10 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Nothing yet.
+- **CI now runs the sub-modules' tests on every push** — `go test ./...` at the repo root cannot reach `server_timing/` or `endpoints/` (Go excludes another module's directories from a pattern in the current module), so the ~100 sub-module tests and both new q-value corpus tests only ran in the release workflow's re-run of every gate. The test job gains a `Sub-module tests (server_timing + endpoints)` step with the same `-race -shuffle=on -count=1` posture as the root step; `actionlint` and `cue vet -d '#CIWorkflow'` both clean.
 
 ### Changed
 
+- **The art-dupl pin now names the commit the clone ledger stamps** — `flake.nix` pointed at 0.7.0-81ce00b while `docs/architecture-reference.md` cites v0.9.1-0.20261017225421-93432fd910fb, so `nix run .#art-dupl` could not reproduce the documented baseline at all (combined mode only exists from 0.9.x on). The pin moves to 93432fd910fb2ccf25a7080cc78c3af7a40e2e56 and was verified by rebuilding it and reproducing the ledger with the store binary (5 groups at `-t 2`, 7 at `-t 1`, empty generics lane). `doCheck = false` is documented inline: upstream's own `config` tests fail under Go 1.27's json/v2 (`json.Marshal` refuses `time.Duration`), and the fix exists only on an unpushed fork HEAD.
 - **The no-table-driven-tests convention now holds root-wide** — the two remaining `t.Run` clusters are standalone tests: `pattern_propagation_test.go`'s forking-middlewares table became four per-middleware `Test*_PropagatesRoutePattern` tests over a shared `assertPatternSurvivesFork` helper, and `stack_integration_test.go`'s composition subtests became six standalone tests (each building its own stack via `newFullStackHandler`; the panic and rate-limit scenarios renamed to match their own mini-stacks). security_test.go's clusters had already been converted earlier (0076791). The httpspec BDD specs keep `t.Run` by design — parallel human-named subtests are that package's contract. Full suite green under `-race`; golangci-lint 0 issues.
 
 ## [endpoints/v0.1.0] - 2026-11-06
