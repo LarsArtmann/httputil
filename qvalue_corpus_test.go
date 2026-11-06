@@ -38,7 +38,10 @@ type qValueCorpusCase struct {
 // TestParseQValue_Corpus locks every documented posture of the q-value
 // parser (RFC 9110 grammar, the accepted signs, the lenient empty fraction
 // and trailing-zero handling, and each rejection sentinel) to the shared
-// corpus that the endpoints copy of this parser is asserted against.
+// corpus that the endpoints copy of this parser is asserted against. It is
+// deliberately data-driven rather than one test per case: the contract is the
+// shared file, and per-case names would not make the cross-module parity
+// stronger.
 func TestParseQValue_Corpus(t *testing.T) {
 	t.Parallel()
 

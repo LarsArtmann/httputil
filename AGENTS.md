@@ -168,6 +168,13 @@ nix run .#bench
 # generics candidate, is a finding. Record the
 # generics-lane verdict with each re-measurement. Baseline stays prose (owner
 # ruled against an enforcement gate, 2026-10-24).
+# Tool pin: the flake's art-dupl pin and the stamp above name the SAME commit
+# (93432fd910fb; combined mode only exists from 0.9.x on, so the old
+# 0.7.0-81ce00b pin could not reproduce this ledger). Bump pin + stamp together.
+# The package sets doCheck = false: upstream's own config tests fail under Go
+# 1.27 json/v2 (json.Marshal refuses time.Duration), a fix that lives only on an
+# unpushed fork HEAD. The nix-built binary reports version "dev" (buildGoModule
+# disables VCS stamping); identify it by the pinned rev, not --version.
 art-dupl --sort total-tokens -t 1 --type-aware --suggest-generics .
 art-dupl --sort total-tokens -t 2 --type-aware --suggest-generics .
 
@@ -352,7 +359,7 @@ Coverage is measured per module with `go test -race -coverprofile` (race detecto
 
 - **Same package** (`package httputil`, not `package httputil_test`) — tests can access unexported symbols
 - **Plain `testing`** — no assertion libraries
-- **No table-driven tests** — each case is a standalone `func Test*(t *testing.T)`
+- **No table-driven tests** — each case is a standalone `func Test*(t *testing.T)`; the one deliberate exception is `TestParseQValue_Corpus` in both modules, which asserts the committed `testdata/qvalue-corpus.txt` instead of per-case functions (the contract is the shared file — see Accepted Code Duplication)
 - **`t.Errorf`** for non-fatal, `t.Fatalf` for fatal assertions
 - **`httptest.NewRecorder()`** + `httptest.NewRequest()` for HTTP doubles
 - **Shared test helpers** in `testutil_test.go`: `newNoOpHandler()`, `newCountingHandler()`, `newTestRequest()`, `newRecorder()`
