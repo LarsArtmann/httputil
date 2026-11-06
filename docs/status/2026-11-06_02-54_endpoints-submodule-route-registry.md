@@ -246,7 +246,7 @@ Quality/CI lane:
 ~~26. Full `buildflow --build-mode dev` pass; triage anything outside the policy-rejected residual classes (expect jscpd to now see the config triple — verdict already documented).~~ **→ routed to TODO_LIST** (buildflow dev-pass row; f30/f31 folded in)
 ~~27. Local `buildflow -s markdown-lint` + lychee over the new/edited docs.~~ done — markdown-lint + lychee green locally this session
 ~~28. `go test -race -count=10 ./...` in endpoints (the count=10 lesson; CI won't do it).~~ done — `go test -race -count=10` green in endpoints/ this session
-29. Longer local fuzz (5 min/target) before the first nightly rotation hits.
+~~29. Longer local fuzz (5 min/target) before the first nightly rotation hits.~~ done — 3×5min local fuzz PASS (39.5M/206k/40M execs) this session
 ~~30. Confirm buildflow's golangci step fans out to endpoints (no ghost-module staleness; `ls endpoints` + re-run).~~ **→ folded into the TODO_LIST buildflow row**
 ~~31. Confirm go-mod-normalize leaves the new `go.mod` minor-form directive alone (fleet policy).~~ **→ folded into the TODO_LIST buildflow row**
 ~~32. `buildflow -s dependabot-auto-configure --fix` — add the new module's dependabot group.~~ done — dependabot endpoints group already present, verified
@@ -267,7 +267,7 @@ Feature lane (v0.2 candidates, additive only):
 
 Housekeeping lane:
 
-44. Run `scripts/pre-sweep-check.sh` before leaving the tree unattended (now covers all three modules).
+~~44. Run `scripts/pre-sweep-check.sh` before leaving the tree unattended (now covers all three modules).~~ done — scripts/pre-sweep-check.sh green (all three modules) this session
 45. Session-tail: confirm CI green on head + tree clean (per AGENTS Session-Tail Discipline).
 ~~46. coverage badge decision (e)/6).~~ **→ routed to TODO_LIST Low** (badge scope)
 47. If any CI job fails on first run: triage via `gh run view --log-failed` before touching code.
