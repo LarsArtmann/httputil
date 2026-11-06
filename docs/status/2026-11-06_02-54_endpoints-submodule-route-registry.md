@@ -126,15 +126,15 @@ its repo machinery, mirroring `server_timing`.
 1. ~~**Living-docs sweep** — only `docs/architecture-reference.md` is updated.~~
    ~~The same change must sweep (all NOT yet edited):~~
    ~~- `FEATURES.md` (Updated header, endpoints section, counts: benchmarks~~
-     ~~53→57, examples 60→63, fuzz targets 30→33, coverage add 100.0%~~
-     ~~endpoints; Distribution section "Both modules"→three).~~
+   ~~53→57, examples 60→63, fuzz targets 30→33, coverage add 100.0%~~
+   ~~endpoints; Distribution section "Both modules"→three).~~
    ~~- `CHANGELOG.md` `[Unreleased]` Added entry.~~
    ~~- Root `README.md` (module section near Server-Timing, export-table~~
-     ~~rows, license line).~~
+   ~~rows, license line).~~
    ~~- `AGENTS.md` (Architecture "Two Go modules"→three + module description;~~
-     ~~Commands: per-module endpoints block + erraudit note; Accepted Code~~
-     ~~Duplication: mirror the new baseline + parser-sync duty; jscpd~~
-     ~~residual "pair"→"triple").~~ done at `70d998a`,`94b9626`
+   ~~Commands: per-module endpoints block + erraudit note; Accepted Code~~
+   ~~Duplication: mirror the new baseline + parser-sync duty; jscpd~~
+   ~~residual "pair"→"triple").~~ done at `70d998a`,`94b9626`
 2. ~~**Session-tail** — tree clean and pushed, but **CI green on the exact~~
    ~~head is unobserved** (the tail discipline requires watching it).~~ done —
    CI green observed on 94b9626 + 7989eb8 (2026-11-06); tail closed by the
@@ -146,7 +146,7 @@ its repo machinery, mirroring `server_timing`.
    owner-gated, see g), `apidiff/endpoints.export.zip` baseline generation
    - wiring into the ci apidiff job and prerelease gate 3b, pkg.go.dev
      badge in the module README, CHANGELOG compare-link for the new tag.
-   **→ routed to the TODO_LIST first-endpoints-release row (owner-gated tag ruling; f1–f6 ride it)**
+     **→ routed to the TODO_LIST first-endpoints-release row (owner-gated tag ruling; f1–f6 ride it)**
 2. ~~**TODO_LIST.md harvest** from this report's (f) section (docs-health~~
    ~~HARVEST).~~ done at `94b9626`
 3. ~~**docs/v1-stability.md** — endpoints mention (separately versioned, no~~

@@ -154,15 +154,14 @@ real slop, all self-caught:
    then walked into the SAME defect on b/2 because I didn't check placement
    immediately after the second prose call. Two extra repair rounds that a
    post-call grep would have collapsed into zero.
-3. **Shell-quoting mangle in b/1's hash verdict** (`done at `70d998a``,`
-   ``94b9626`` — double backticks) from hand-built quoting in the prose spec
+3. **Shell-quoting mangle in b/1's hash verdict** (`done at`70d998a`` ,` ``94b9626`` — double backticks) from hand-built quoting in the prose spec
    argument. The f)-spec (printf with escapes) was clean; the prose call
    wasn't. Inconsistent tooling discipline in one session.
 4. **Wrong spec format first try** (`key:kind:value` lines vs the tool's
    `key<TAB>verdict`) — one wasted round trip; I guessed instead of reading
    the tool's header comment first.
 5. **A `git status -sb | head -1` misread**: I concluded "tree clean" while
-   the ` M` line was below the cutoff — caught a minute later, but status
+   the `M` line was below the cutoff — caught a minute later, but status
    misreads are precisely the class AGENTS warns about in a parallel-writer
    repo. Never truncate status output.
 6. **My `nix fmt` pass swept the parallel session's in-flight
