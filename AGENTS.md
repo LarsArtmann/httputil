@@ -162,13 +162,22 @@ nix run .#bench
 # is COMBINED mode (owner ruling 2026-10-24): one shared type-check feeds both
 # the type-aware pass and the type-erased generics pass (ADR-0026). Expected
 # (baseline 2026-11-06, after the endpoints module landed):
-# -t 2 shows only the q-value clone fragments (root ↔ endpoints); -t 1 adds the
-# two long-standing pairs — anything NEW in either lane, or ANY generics
-# candidate, is a finding. Record the
+# -t 2 shows only the q-value family fragments (root compression_qvalue.go ↔
+# endpoints/qvalue.go, plus the trim/trimOWS helper ↔ endpoints/negotiate.go);
+# -t 1 adds the two long-standing pairs — anything NEW in either lane, or ANY
+# generics candidate, is a finding. Record the
 # generics-lane verdict with each re-measurement. Baseline stays prose (owner
 # ruled against an enforcement gate, 2026-10-24).
 art-dupl --sort total-tokens -t 1 --type-aware --suggest-generics .
 art-dupl --sort total-tokens -t 2 --type-aware --suggest-generics .
+
+# Q-value parser parity oracle (the accepted root↔endpoints parser clone).
+# Both modules' tests assert testdata/qvalue-corpus.txt — the root file is
+# canonical, endpoints/testdata/ holds a byte-identical mirror (a nested module
+# is excluded from the root module zip). Parser change and corpus change ship
+# together, and art-dupl is re-measured in the same change.
+./scripts/check-qvalue-corpus-sync.sh
+go test -run TestParseQValue_Corpus . && (cd endpoints && go test -run TestParseQValue_Corpus .)
 
 # Release: scripts/prerelease-check.sh automates the gates; runbook is
 # docs/RELEASE.md. CHANGELOG [version] sections freeze at the tag.
@@ -252,7 +261,7 @@ Reusable BDD-style HTTP behavior specifications. Point `httpspec.Run(t, handler)
 
 The `server_timing` sub-module is a separate Go module (`github.com/larsartmann/httputil/server_timing`, package `servertiming`), stdlib-only with zero external deps, linked locally via `go.work` only — the root `go.mod` requires the published `server_timing` tag from the module proxy and must NEVER carry a filesystem `replace` for it (v1.6.0 shipped one and `go doc @v1.6.0` refuses the module for it; issue #43, fixed in v1.7.0). `ServerTimingMiddleware` injects `*servertiming.ServerTiming` via context; `servertiming.WrapServerTiming(w, r)` wraps manually; header values are CRLF-sanitized.
 
-The `endpoints` sub-module is the same shape: a separate Go module (`github.com/larsartmann/httputil/endpoints`, package `endpoints`), stdlib-only with zero external deps, linked via `go.work` only, released as `endpoints/v0.1.0` (2026-11-06, pre-1.0 iteration tier — 0.x semantics: breaking changes ship as minor bumps). The root `go.mod` does not require it (nothing in the root module imports it; if that ever changes it must be a proxy requirement from the published tag, NEVER a filesystem `replace` — the issue #43 poisoning class). Wiring errors are values, never panics (`ServeMux` panics from rejected patterns are translated via `muxRejectedError`; nil mux/handler, empty pattern, and non-UTF-8 pattern/summary are rejected at registration). Negotiation between JSON (default) and HTML is lenient-never-406 with `Vary: Accept` + `Cache-Control: no-store`; non-GET/HEAD gets 405 + `Allow`. The q-value parser is a deliberate clone of root `compression_qvalue.go` — Accepted Code Duplication below carries the sync duty.
+The `endpoints` sub-module is the same shape: a separate Go module (`github.com/larsartmann/httputil/endpoints`, package `endpoints`), stdlib-only with zero external deps, linked via `go.work` only, released as `endpoints/v0.1.0` (2026-11-06, pre-1.0 iteration tier — 0.x semantics: breaking changes ship as minor bumps). The root `go.mod` does not require it (nothing in the root module imports it; if that ever changes it must be a proxy requirement from the published tag, NEVER a filesystem `replace` — the issue #43 poisoning class). Wiring errors are values, never panics (`ServeMux` panics from rejected patterns are translated via `muxRejectedError`; nil mux/handler, empty pattern, and non-UTF-8 pattern/summary are rejected at registration). Negotiation between JSON (default) and HTML is lenient-never-406 with `Vary: Accept` + `Cache-Control: no-store`; non-GET/HEAD gets 405 + `Allow`. The q-value parser is a deliberate clone of root `compression_qvalue.go` — Accepted Code Duplication below carries the sync duty, which is now mechanical: `endpoints/testdata/qvalue-corpus.txt` is a byte-identical mirror of the root corpus, both modules' `TestParseQValue_Corpus` assert it, and `scripts/check-qvalue-corpus-sync.sh` fails the gate on drift.
 
 ### Observability Lane — OTEL Ruling (2026-10-23)
 
@@ -355,4 +364,4 @@ There are **0 active warnings** across ~70 linters. Site-specific suppressions: 
 
 ## Accepted Code Duplication
 
-Clone baseline (re-measured 2026-11-06 after the `endpoints` sub-module landed, with the canonical COMBINED mode, art-dupl v0.9.1-0.20261017225421-93432fd910fb `--type-aware --suggest-generics`; type-aware lane: the accepted clones below, generics lane: no candidates): **`-t 2` shows exactly the q-value clone fragments** (`compression_qvalue.go` ↔ `endpoints/qvalue.go`, added 2026-11-06); `-t 1` adds the `Middleware` alias pair and the `scripts/doc-snippet-refs` if-err pair — anything NEW at these thresholds is a finding. The baseline stays prose — an enforcement gate was proposed and owner-REJECTED 2026-10-24, do not re-raise without new evidence. The five accepted clone families and their rationale (Middleware alias across the module boundary; the q-value parser family — carrying a SYNC DUTY: any change to root `parseQValue` must be mirrored into `endpoints/qvalue.go` with art-dupl re-measured in the same change; `mw1`/`mw2`; `newTypedBodyHandler`; the scripts if-err pair): [docs/architecture-reference.md](docs/architecture-reference.md) Accepted Code Duplication section.
+Clone baseline (re-measured 2026-11-06 after the `endpoints` sub-module landed, with the canonical COMBINED mode, art-dupl v0.9.1-0.20261017225421-93432fd910fb `--type-aware --suggest-generics`; type-aware lane: the accepted clones below, generics lane: no candidates; re-confirmed unchanged 2026-11-06 at this session's re-run): **`-t 2` shows exactly the q-value family fragments** — the parser five (`compression_qvalue.go` ↔ `endpoints/qvalue.go`, added 2026-11-06) plus the two `trim`/`trimOWS` whitespace-helper fragments (`compression_qvalue.go` ↔ `endpoints/negotiate.go`); `-t 1` adds the `Middleware` alias pair and the `scripts/doc-snippet-refs` if-err pair — anything NEW at these thresholds is a finding. The baseline stays prose — an enforcement gate was proposed and owner-REJECTED 2026-10-24, do not re-raise without new evidence. The five accepted clone families and their rationale (Middleware alias across the module boundary; the q-value parser family — carrying a SYNC DUTY at TWO endpoints sites, `endpoints/qvalue.go` for the parser and `endpoints/negotiate.go` for the `trim`/`trimOWS` helper; that duty is now MECHANICAL: `testdata/qvalue-corpus.txt` is asserted by both modules' parser tests, `endpoints/testdata/` holds a byte-identical mirror enforced by `scripts/check-qvalue-corpus-sync.sh` (CI, release, prerelease 8c, pre-sweep), and art-dupl is re-measured in the same change; `mw1`/`mw2`; `newTypedBodyHandler`; the scripts if-err pair): [docs/architecture-reference.md](docs/architecture-reference.md) Accepted Code Duplication section.

@@ -113,6 +113,9 @@ echo "found"
 step "8b/9 CHANGELOG link definitions (CI parity)"
 ./scripts/check-changelog-links.sh || fail "check-changelog-links.sh"
 
+step "8c/9 Q-value corpus sync (shared parser parity oracle)"
+./scripts/check-qvalue-corpus-sync.sh || fail "check-qvalue-corpus-sync.sh"
+
 step "9/9 Flake gates"
 if [[ "$skip_flake" == true ]]; then
 	echo "skipped (--skip-flake)"

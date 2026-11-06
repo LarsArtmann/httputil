@@ -47,9 +47,12 @@
         };
 
       # art-dupl is not packaged in nixpkgs; pin the exact commit the clone
-      # baseline was measured with (docs/review/lint/branching-flow-baseline
-      # and the Accepted Code Duplication section cite 0.7.0-81ce00b) so
-      # clone-detection runs are reproducible across machines.
+      # baseline was measured with — the Accepted Code Duplication section cites
+      # v0.9.1-0.20261017225421-93432fd910fb, and combined mode (--type-aware
+      # plus --suggest-generics over one shared type-check, ADR-0026) only exists
+      # from that line on, so the older 0.7.0-81ce00b pin could not reproduce the
+      # documented ledger at all. Reproducible across machines only while the pin
+      # and the ledger stamp name the same commit; bump both together.
       mkArtDupl =
         pkgs:
         # art-dupl's go.mod requires go >= 1.27; buildGoModule defaults to
@@ -57,16 +60,16 @@
         # GOTOOLCHAIN=local — override the compiler, not the attrs.
         (pkgs.buildGoModule.override { go = pkgs.go_1_27; }) rec {
           pname = "art-dupl";
-          version = "0.7.0-81ce00b";
+          version = "0.9.1-93432fd";
 
           src = pkgs.fetchFromGitHub {
             owner = "LarsArtmann";
             repo = "art-dupl";
-            rev = "81ce00b9b60e1d2e1a01b0fce7cd50cf537b1213";
-            hash = "sha256-KDDR2XSUnlO09zTryKBzRUghQM/jK+Zp5ZqI9FawW18=";
+            rev = "93432fd910fb2ccf25a7080cc78c3af7a40e2e56";
+            hash = "sha256-wnPL0M6Cnqdigu3wD1bBAfZv9XW+Uq+CvjVI3b4dEHg=";
           };
 
-          vendorHash = "sha256-DTAs2KGZPvhk1C1EpRRpNzyR3DDYD57d8JprcjPXFDQ=";
+          vendorHash = "sha256-q4yyw9JinMbMFXjE3LCBJe9pJg2IAeWcrajsra0mHAQ=";
         };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {

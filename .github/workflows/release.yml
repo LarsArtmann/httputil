@@ -61,6 +61,9 @@ jobs:
       - name: Module boundary check (GOWORK=off per module)
         run: ./scripts/check-module-boundaries.sh
 
+      - name: Q-value corpus sync check (shared parser parity oracle)
+        run: ./scripts/check-qvalue-corpus-sync.sh
+
       - name: Test
         run: go test -v -race ./...
 

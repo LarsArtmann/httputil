@@ -10,9 +10,10 @@
 #
 # Usage: scripts/pre-sweep-check.sh
 #
-# Scope is deliberately narrow and fast (build + vet + the sentinel guards, all
-# three modules). Full gates stay in scripts/prerelease-check.sh; tests, lint, and the
-# OTEL interop fixture are not repeated here.
+# Scope is deliberately narrow and fast (build + vet + the sentinel guards + the
+# q-value corpus oracle, all three modules). Full gates stay in
+# scripts/prerelease-check.sh; tests, lint, and the OTEL interop fixture are not
+# repeated here.
 set -uo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
@@ -24,19 +25,24 @@ fail() {
 	exit 1
 }
 
-step "1/3 Build (root + server_timing + endpoints)"
+step "1/4 Build (root + server_timing + endpoints)"
 go build ./... || fail "go build ./... (root)"
 (cd server_timing && go build ./...) || fail "go build ./... (server_timing)"
 (cd endpoints && go build ./...) || fail "go build ./... (endpoints)"
 
-step "2/3 Vet (root + server_timing + endpoints)"
+step "2/4 Vet (root + server_timing + endpoints)"
 go vet ./... || fail "go vet ./... (root)"
 (cd server_timing && go vet ./...) || fail "go vet ./... (server_timing)"
 (cd endpoints && go vet ./...) || fail "go vet ./... (endpoints)"
 
-step "3/3 Error-sentinel guards (root + server_timing + endpoints)"
+step "3/4 Error-sentinel guards (root + server_timing + endpoints)"
 go test -count=1 -run 'Sentinel' . || fail "sentinel guard (root)"
 (cd server_timing && go test -count=1 -run 'Sentinel' .) || fail "sentinel guard (server_timing)"
 (cd endpoints && go test -count=1 -run 'Sentinel' .) || fail "sentinel guard (endpoints)"
 
-printf '\nOK: the tree compiles, vets clean, and keeps its sentinels concrete.\n'
+step "4/4 Q-value corpus oracle (mirror sync + both parsers)"
+./scripts/check-qvalue-corpus-sync.sh || fail "q-value corpus sync"
+go test -count=1 -run 'TestParseQValue_Corpus' . || fail "q-value corpus (root parser)"
+(cd endpoints && go test -count=1 -run 'TestParseQValue_Corpus' .) || fail "q-value corpus (endpoints parser)"
+
+printf '\nOK: the tree compiles, vets clean, keeps its sentinels concrete, and holds the q-value corpus.\n'
