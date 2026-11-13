@@ -184,6 +184,116 @@ func TestHijack_Failure_ClassifiedAsTransient(t *testing.T) {
 	}
 }
 
+func TestPush_SatisfiesPusher_OnResponseRecorder(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(newPushRecorder())
+
+	if _, ok := any(recorder).(http.Pusher); !ok {
+		t.Error("(*ResponseRecorder) does not implement http.Pusher, want the interface preserved")
+	}
+}
+
+func TestPush_DelegatesTargetAndOptions(t *testing.T) {
+	t.Parallel()
+
+	inner := newPushRecorder()
+	recorder := NewResponseRecorder(inner)
+
+	opts := &http.PushOptions{Method: http.MethodGet}
+	err := recorder.Push("/app.css", opts)
+	if err != nil {
+		t.Fatalf("Push() error = %v, want nil", err)
+	}
+
+	if inner.pushedTarget != "/app.css" {
+		t.Errorf("pushedTarget = %q, want %q", inner.pushedTarget, "/app.css")
+	}
+
+	if inner.pushedOpts != opts {
+		t.Error("pushedOpts pointer not forwarded verbatim")
+	}
+}
+
+func TestPush_ReturnsError_WhenUnsupported(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+
+	err := recorder.Push("/app.css", nil)
+	if err == nil {
+		t.Error("Push() error = nil, but httptest.Recorder doesn't support Push")
+	}
+}
+
+func TestPush_ClassifiedAsInfrastructure_WhenUnsupported(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+
+	err := recorder.Push("/app.css", nil)
+	if err == nil {
+		t.Fatal("Push() error = nil, want non-nil")
+	}
+
+	assertClassified(t, err, errorfamily.Infrastructure, false)
+}
+
+func TestPush_HasErrorCode_WhenUnsupported(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+
+	err := recorder.Push("/app.css", nil)
+
+	coded, ok := errors.AsType[errorfamily.Coded](err)
+	if !ok {
+		t.Fatal("error does not implement Coded")
+	}
+
+	if coded.ErrorCode() != ErrCodePushUnsupported {
+		t.Errorf("ErrorCode() = %q, want %q", coded.ErrorCode(), ErrCodePushUnsupported)
+	}
+}
+
+func TestPush_ErrNotSupported_InErrorChain(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(httptest.NewRecorder())
+
+	err := recorder.Push("/app.css", nil)
+
+	assertErrNotSupported(t, err)
+}
+
+// TestPush_Failure_ClassifiedAsTransient covers the path where the underlying
+// writer implements Pusher but its Push() returns an error.
+func TestPush_Failure_ClassifiedAsTransient(t *testing.T) {
+	t.Parallel()
+
+	recorder := NewResponseRecorder(newFailingPusher())
+
+	err := recorder.Push("/app.css", nil)
+	if err == nil {
+		t.Fatal("Push() error = nil, want non-nil")
+	}
+
+	if !errors.Is(err, errPushFailed) {
+		t.Errorf("errors.Is(err, errPushFailed) = false, want true")
+	}
+
+	assertClassified(t, err, errorfamily.Transient, true)
+
+	coded, ok := errors.AsType[errorfamily.Coded](err)
+	if !ok {
+		t.Fatal("error does not implement Coded")
+	}
+
+	if coded.ErrorCode() != ErrCodePushFailed {
+		t.Errorf("ErrorCode() = %q, want %q", coded.ErrorCode(), ErrCodePushFailed)
+	}
+}
+
 func assertErrorContext(t *testing.T, err error, key, want string) {
 	t.Helper()
 
