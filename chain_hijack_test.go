@@ -66,6 +66,36 @@ func TestChain_CompressionETag_PreservesHijacker(t *testing.T) {
 	}
 }
 
+// TestChain_Compression_PreservesPusher verifies that the inner handler still
+// sees an http.Pusher through the Compression wrapper and that Push reaches
+// the underlying writer. Without the responseWrapper.Push delegation a
+// push-capable handler silently loses HTTP/2 server push behind Compression.
+func TestChain_Compression_PreservesPusher(t *testing.T) {
+	t.Parallel()
+
+	inner := http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+		pusher, ok := rw.(http.Pusher)
+		if !ok {
+			t.Fatal("ResponseWriter does not implement http.Pusher")
+		}
+
+		if err := pusher.Push("/app.css", nil); err != nil {
+			t.Fatalf("Push() error = %v, want nil", err)
+		}
+	})
+
+	rec := newPushRecorder()
+
+	Compression(DefaultCompressionConfig())(inner).ServeHTTP(
+		rec,
+		newTestRequest(http.MethodGet, "/", ""),
+	)
+
+	if rec.pushedTarget != "/app.css" {
+		t.Errorf("pushedTarget = %q, want %q", rec.pushedTarget, "/app.css")
+	}
+}
+
 // TestChain_HijackUpgrade_ResponseType is the light real-connection test: a
 // handler that hijacks must produce a 101 response with its own headers and
 // neither Content-Encoding (Compression) nor ETag (ETag) injected.
