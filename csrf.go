@@ -42,6 +42,10 @@ const (
 	headerSecFetchSite    = "Sec-Fetch-Site"
 	attestationSameOrigin = "same-origin"
 	originNull            = "null"
+	// methodQuery is the HTTP QUERY method (RFC 10008): safe and idempotent
+	// like GET, but carried in a request body. The Go stdlib has no
+	// http.MethodQuery constant, so the literal is named here once.
+	methodQuery = "QUERY"
 )
 
 // ErrorHandler handles CSRF validation failures.
@@ -529,6 +533,9 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 //
 // For GET/HEAD/OPTIONS/TRACE requests, the middleware ensures a CSRF token
 // cookie exists and stores the masked token in context for use in templates.
+// HTTP QUERY (RFC 10008) is treated the same way: it is spec-safe and
+// idempotent like GET, so it passes without a token (behavior change: before
+// v1.9.0 QUERY was challenged like a mutation).
 //
 // For state-changing methods (POST/PUT/PATCH/DELETE), it validates that the
 // request includes a matching token in either:
@@ -614,6 +621,17 @@ func CSRFMiddleware(cfg CSRFConfig) func(http.Handler) http.Handler {
 
 		handler := nosurf.New(inner)
 		ConfigureNosurfHandler(handler, cfg)
+
+		// nosurf's own safeMethods list (GET/HEAD/OPTIONS/TRACE, verified at
+		// v1.2.0) does not know HTTP QUERY and would challenge it like a
+		// mutation, contradicting RFC 10008's safety contract. Exempting QUERY
+		// short-circuits nosurf's token check the same way its safe list does;
+		// the token cookie regeneration runs earlier in nosurf's ServeHTTP, so
+		// QUERY responses still seed the cookie for later state-changing
+		// requests.
+		handler.ExemptFunc(func(r *http.Request) bool {
+			return r.Method == methodQuery
+		})
 
 		needsTranslation := cfg.headerName() != DefaultCSRFHeaderName ||
 			cfg.fieldName() != DefaultCSRFFieldName
@@ -781,12 +799,15 @@ func parseTrustedOriginURLs(origins []string) []*url.URL {
 	return parsed
 }
 
-// isUnsafeCSRFMethod mirrors nosurf's safe-method set: origin validation (and
-// therefore attestation-consistency checking) applies only to state-changing
-// requests.
+// isUnsafeCSRFMethod extends nosurf's safe-method set (GET, HEAD, OPTIONS,
+// TRACE) with HTTP QUERY (RFC 10008): QUERY carries GET's safety and
+// idempotence — servers MUST NOT derive state from it — so origin validation
+// (and therefore attestation-consistency checking) applies only to genuinely
+// state-changing requests. Token-less QUERY readers (server-to-server
+// clients, QUERY-native browsers) must not be challenged on a read.
 func isUnsafeCSRFMethod(method string) bool {
 	switch method {
-	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace, methodQuery:
 		return false
 	}
 

@@ -1,6 +1,11 @@
 package httputil
 
 func (w *compressWriter) startCompression() error {
+	// Sniff BEFORE installing Content-Encoding: the buffer still holds the
+	// handler's plaintext bytes, and the issue-31753 guard inside would skip
+	// the sniff once the encoding header is present.
+	w.maybeSniffContentType()
+
 	w.Header().Set(headerContentEncoding, w.encoding)
 	w.Header().Del(headerContentLength)
 

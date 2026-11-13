@@ -243,6 +243,7 @@ func (w *compressWriter) Close() error {
 		return nil
 	}
 
+	w.maybeSniffContentType()
 	w.writeHeaderToUnderlying()
 
 	if len(w.buf) > 0 {
@@ -287,12 +288,66 @@ func (w *compressWriter) Flush() {
 	w.responseWrapper.Flush()
 }
 
+// Statuses whose responses never carry a body (mirroring net/http's
+// unexported bodyAllowedForStatus): no Content-Type is invented for them.
+const (
+	statusInformationalMin = 100
+	statusInformationalMax = 199
+)
+
+// bodyAllowedForStatus mirrors net/http's response-body guard: 1xx, 204, and
+// 304 responses carry no body, so no Content-Type should be sniffed for them.
+func bodyAllowedForStatus(status int) bool {
+	switch {
+	case status >= statusInformationalMin && status <= statusInformationalMax:
+		return false
+	case status == http.StatusNoContent:
+		return false
+	case status == http.StatusNotModified:
+		return false
+	}
+
+	return true
+}
+
+// maybeSniffContentType fills a missing Content-Type from the buffered body
+// bytes before the middleware commits the header itself. net/http sniffs only
+// when IT commits the header from a first body write; every writeHeaderToUnderlying
+// call bypasses that path, so without this a handler that sets no Content-Type
+// ships with none at all — and under X-Content-Type-Options: nosniff browsers
+// render the body as plain text. The guards mirror net/http's chunkWriter: no
+// sniff when Content-Type is already set, when the status forbids a body, or
+// when Content-Encoding is already set (net/http issue 31753: encoded bytes
+// must not be sniffed). The compressed path calls this BEFORE installing its
+// own Content-Encoding, with the buffer still holding the handler's plaintext
+// bytes, so the sniffed type describes the decoded representation.
+func (w *compressWriter) maybeSniffContentType() {
+	if len(w.buf) == 0 {
+		return
+	}
+
+	if w.Header().Get(headerContentType) != "" {
+		return
+	}
+
+	if !bodyAllowedForStatus(w.status) {
+		return
+	}
+
+	if w.Header().Get(headerContentEncoding) != "" {
+		return
+	}
+
+	w.Header().Set(headerContentType, http.DetectContentType(w.buf))
+}
+
 // beginPlainResponse transitions the writer into plain (uncompressed) mode
 // and commits any pending status header to the underlying ResponseWriter.
 // Callers must subsequently drain w.buf and forward further writes to the
 // underlying ResponseWriter directly.
 func (w *compressWriter) beginPlainResponse() {
 	w.plain = true
+	w.maybeSniffContentType()
 	w.writeHeaderToUnderlying()
 }
 
