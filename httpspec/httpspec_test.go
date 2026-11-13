@@ -1164,3 +1164,127 @@ func TestExpectNotModifiedWithETagFailsOn200(t *testing.T) {
 		t.Error("expected fail when handler ignores If-None-Match")
 	}
 }
+
+// newHashETagHandler returns a handler mimicking the content-hash ETag
+// posture: it derives the tag from the served body (here a fixed stand-in
+// hash), echoes it on fresh responses, honors If-None-Match with an empty
+// 304 that repeats the tag, and never leaks a body on the 304.
+func newHashETagHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const etag = `"deadbeef"`
+
+		w.Header().Set("ETag", etag)
+
+		if r.Header.Get("If-None-Match") == etag {
+			w.WriteHeader(http.StatusNotModified)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("resource bytes"))
+	})
+}
+
+func TestExpectNotModifiedDynamicPassesOnHarvestThen304(t *testing.T) {
+	t.Parallel()
+
+	result := ExpectNotModifiedDynamic(http.MethodGet, "/")(newHashETagHandler())
+
+	if !result.OK {
+		t.Errorf("expected pass, got: %s", result.Message)
+	}
+}
+
+func TestExpectNotModifiedDynamicFailsWhenFirstResponseHasNoETag(t *testing.T) {
+	t.Parallel()
+
+	handler := newStatusOnlyHandler(http.StatusOK)
+
+	result := ExpectNotModifiedDynamic(http.MethodGet, "/")(handler)
+
+	if result.OK {
+		t.Error("expected fail when the first response carries no ETag to harvest")
+	}
+
+	if !strings.Contains(result.Message, "no ETag") {
+		t.Errorf("failure message %q should point at the missing ETag header", result.Message)
+	}
+}
+
+// TestExpectNotModifiedDynamicFailsOnChangedRepresentation models a stale
+// tag: the handler revalidates against a tag the check can never have
+// harvested, so the re-request must come back a full 200 — and the check
+// must flag it.
+func TestExpectNotModifiedDynamicFailsOnChangedRepresentation(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("ETag", `"always-new"`)
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("fresh bytes"))
+	})
+
+	result := ExpectNotModifiedDynamic(http.MethodGet, "/")(handler)
+
+	if result.OK {
+		t.Error("expected fail when the representation changed (stale tag never revalidated)")
+	}
+
+	if !strings.Contains(result.Message, "want 304") {
+		t.Errorf("failure message %q should report the non-304 status", result.Message)
+	}
+}
+
+// TestExpectNotModifiedDynamicFailsOn304WithBody pins the empty-body half of
+// the contract: a 304 that still writes body bytes is a spec violation the
+// check must catch.
+func TestExpectNotModifiedDynamicFailsOn304WithBody(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const etag = `"v1"`
+
+		w.Header().Set("ETag", etag)
+
+		if r.Header.Get("If-None-Match") == etag {
+			w.WriteHeader(http.StatusNotModified)
+			_, _ = w.Write([]byte("leaked bytes"))
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := ExpectNotModifiedDynamic(http.MethodGet, "/")(handler)
+
+	if result.OK {
+		t.Error("expected fail when the 304 response carries a body")
+	}
+}
+
+// TestExpectNotModifiedDynamicFailsWhen304DoesNotEchoETag pins the tag-echo
+// half of the contract: a 304 without the harvested ETag leaves caches unable
+// to update their stored tag, so the check must flag it.
+func TestExpectNotModifiedDynamicFailsWhen304DoesNotEchoETag(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-None-Match") != "" {
+			w.WriteHeader(http.StatusNotModified)
+
+			return
+		}
+
+		w.Header().Set("ETag", `"v1"`)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	result := ExpectNotModifiedDynamic(http.MethodGet, "/")(handler)
+
+	if result.OK {
+		t.Error("expected fail when the 304 response does not echo the harvested ETag")
+	}
+}

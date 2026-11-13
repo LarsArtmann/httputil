@@ -16,7 +16,7 @@ import (
 func BenchmarkKeyedRateLimiter_MaxKeysChurn(b *testing.B) {
 	const maxKeys = 1024
 
-	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
+	p := newPerKeyLimiter(time.Now, rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
 
 	i := 0
 

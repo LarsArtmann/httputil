@@ -394,7 +394,8 @@ func ExpectVaryContains(method, path, field string) Check {
 // ExpectNotModifiedWithETag returns a [Check] that verifies conditional
 // request handling: repeating the request with If-None-Match set to the
 // given entity tag should return 304 Not Modified. Opt in via
-// WithExtraSpecs for handlers that serve ETag-validated resources.
+// [WithExtraSpecs] for handlers that serve ETag-validated resources with
+// static, caller-known tags.
 func ExpectNotModifiedWithETag(method, path, etag string) Check {
 	return func(handler http.Handler) Result {
 		req := mustRequest(method, path)
@@ -406,6 +407,57 @@ func ExpectNotModifiedWithETag(method, path, etag string) Check {
 			return Fail(
 				"%s %s with If-None-Match: %s returned status %d, want 304",
 				method, path, etag, rec.Code,
+			)
+		}
+
+		return Pass()
+	}
+}
+
+// ExpectNotModifiedDynamic returns a [Check] that verifies conditional
+// request handling against servers whose entity tags the test author does
+// not know ahead of time — the content-hash ETag posture, where the tag can
+// only be learned by requesting the resource. The check performs the request
+// once, harvests the ETag response header, repeats the request with
+// If-None-Match set to the harvested tag, and asserts a 304 Not Modified
+// response with an empty body whose ETag echoes the harvested tag unchanged.
+// It fails when the first response carries no ETag at all. Use
+// [ExpectNotModifiedWithETag] instead when the tag is static and known.
+func ExpectNotModifiedDynamic(method, path string) Check {
+	return func(handler http.Handler) Result {
+		first := serve(handler, mustRequest(method, path))
+
+		etag := first.Header().Get("ETag")
+		if etag == "" {
+			return Fail(
+				"%s %s returned no ETag header to harvest; a dynamic revalidation spec needs an ETag-serving handler",
+				method, path,
+			)
+		}
+
+		req := mustRequest(method, path)
+		req.Header.Set("If-None-Match", etag)
+
+		second := serve(handler, req)
+
+		if second.Code != http.StatusNotModified {
+			return Fail(
+				"%s %s with harvested If-None-Match: %s returned status %d, want 304",
+				method, path, etag, second.Code,
+			)
+		}
+
+		if second.Body.Len() != 0 {
+			return Fail(
+				"%s %s 304 response carries a %d-byte body, want an empty one",
+				method, path, second.Body.Len(),
+			)
+		}
+
+		if echoed := second.Header().Get("ETag"); echoed != etag {
+			return Fail(
+				"%s %s 304 response ETag = %q, want the harvested %q echoed unchanged",
+				method, path, echoed, etag,
 			)
 		}
 

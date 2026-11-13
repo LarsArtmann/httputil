@@ -534,8 +534,8 @@ func InvalidateCSRFCookie(w http.ResponseWriter, cfg CSRFConfig) {
 // For GET/HEAD/OPTIONS/TRACE requests, the middleware ensures a CSRF token
 // cookie exists and stores the masked token in context for use in templates.
 // HTTP QUERY (RFC 10008) is treated the same way: it is spec-safe and
-// idempotent like GET, so it passes without a token (behavior change: before
-// v1.9.0 QUERY was challenged like a mutation).
+// idempotent like GET, so it passes without a token (QUERY used to be
+// challenged like a mutation before that safe-list alignment).
 //
 // For state-changing methods (POST/PUT/PATCH/DELETE), it validates that the
 // request includes a matching token in either:

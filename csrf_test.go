@@ -99,6 +99,79 @@ func TestCSRFMiddleware_POSTWithValidTokenAccepted(t *testing.T) {
 	}
 }
 
+// TestCSRFMiddleware_QueryWithoutTokenAccepted_RFC10008 pins the safe-list
+// alignment: HTTP QUERY carries GET's safety and idempotence (RFC 10008), so
+// a token-less QUERY — the server-to-server reader that never fetched a page
+// — must reach the handler instead of being challenged like a mutation.
+func TestCSRFMiddleware_QueryWithoutTokenAccepted_RFC10008(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(methodQuery, "/", strings.NewReader(`{"filter":"x"}`))
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("token-less QUERY should pass as spec-safe, got %d", rec.Code)
+	}
+}
+
+// TestCSRFMiddleware_QuerySeedsCSRFCookie pins that QUERY responses still
+// seed the CSRF cookie: nosurf regenerates the token before its exemption
+// check, so a client that only ever issues QUERY requests still acquires the
+// cookie a later state-changing request needs.
+func TestCSRFMiddleware_QuerySeedsCSRFCookie(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(methodQuery, "/", nil)
+	handler.ServeHTTP(rec, req)
+
+	seeded := false
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == DefaultCSRFCookieName {
+			seeded = true
+		}
+	}
+
+	if !seeded {
+		t.Error("QUERY response did not seed the CSRF cookie")
+	}
+}
+
+// TestCSRFMiddleware_QueryWithContradictedAttestationNotRejected pins the
+// isUnsafeCSRFMethod half of the safe-listing: the attestation-consistency
+// check exists for state-changing requests, and QUERY is not one — a forged
+// same-origin attestation on a spec-safe read is harmless and must not
+// trigger ErrCSRFAttestationConflict (the same headers on a POST do).
+func TestCSRFMiddleware_QueryWithContradictedAttestationNotRejected(t *testing.T) {
+	t.Parallel()
+
+	mw := CSRFMiddleware(CSRFConfig{})
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(methodQuery, "/", nil)
+	req.Header.Set(headerSecFetchSite, attestationSameOrigin)
+	req.Header.Set(headerOrigin, "https://evil.example")
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("spec-safe QUERY must not run the unsafe-method attestation check, got %d", rec.Code)
+	}
+}
+
 func TestCSRFResponseHeaderMiddleware_SetsHeader(t *testing.T) {
 	t.Parallel()
 

@@ -115,6 +115,13 @@ type KeyedRateLimiterConfig struct {
 	// RejectionHandler writes the response for rejected requests.
 	// Default: writes 429 Too Many Requests with Retry-After header.
 	RejectionHandler func(w http.ResponseWriter, r *http.Request, retryAfter string)
+	// Now returns the limiter's notion of the current time. It stamps entry
+	// last-use times, drives TTL eviction, and is handed to the underlying
+	// token bucket for refill math, so one injected clock controls the whole
+	// limiter — tests advance time deterministically instead of sleeping.
+	// Zero defaults to time.Now. The function must be safe for concurrent
+	// use: the limiter calls it on request goroutines.
+	Now func() time.Time
 }
 
 // DefaultKeyedRateLimiterConfig returns a KeyedRateLimiterConfig with sensible
@@ -232,6 +239,10 @@ func buildKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 
 	validateConfig("KeyedRateLimiterConfig", cfg.Validate())
 
+	if cfg.Now == nil {
+		cfg.Now = time.Now
+	}
+
 	limit := rate.Limit(float64(cfg.Limit) / cfg.Window.Seconds())
 	retryAfter := strconv.Itoa(int(cfg.Window.Seconds()))
 
@@ -241,7 +252,7 @@ func buildKeyedRateLimiter(cfg KeyedRateLimiterConfig) *KeyedRateLimiter {
 	}
 
 	lim := newPerKeyLimiter(
-		limit, cfg.Burst,
+		cfg.Now, limit, cfg.Burst,
 		cfg.KeyExtractor, retryAfter, ttl, cfg.MaxKeys,
 	)
 
@@ -296,9 +307,11 @@ type perKeyLimiter struct {
 	heap         *evictionHeap
 	ttl          time.Duration
 	maxKeys      uint
+	now          func() time.Time
 }
 
 func newPerKeyLimiter(
+	nowFunc func() time.Time,
 	l rate.Limit,
 	burst uint,
 	extractor KeyExtractor,
@@ -316,6 +329,7 @@ func newPerKeyLimiter(
 		heap:         &evictionHeap{},
 		ttl:          ttl,
 		maxKeys:      maxKeys,
+		now:          nowFunc,
 	}
 }
 
@@ -330,7 +344,7 @@ func (p *perKeyLimiter) allow(r *http.Request) (bool, string) {
 	}
 
 	lim := p.limiter(key)
-	if lim.Allow() {
+	if lim.AllowN(p.now(), 1) {
 		return true, ""
 	}
 
@@ -341,7 +355,7 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.mu.RLock()
 
 	entry, ok := p.limiters[key]
-	if ok && time.Since(entry.lastUsed) < p.ttl {
+	if ok && p.now().Sub(entry.lastUsed) < p.ttl {
 		p.mu.RUnlock()
 
 		return entry.lim
@@ -355,7 +369,7 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.evictStale()
 
 	if entry, ok := p.limiters[key]; ok {
-		entry.lastUsed = time.Now()
+		entry.lastUsed = p.now()
 		if entry.heapRef != nil {
 			entry.heapRef.lastUsed = entry.lastUsed
 			heap.Fix(p.heap, entry.heapRef.index)
@@ -367,7 +381,7 @@ func (p *perKeyLimiter) limiter(key string) *rate.Limiter {
 	p.evictOldestIfAtCapacity()
 
 	lim := rate.NewLimiter(p.limit, int(p.burst))
-	now := time.Now()
+	now := p.now()
 	heapRef := &evictionEntry{key: key, lastUsed: now, index: -1}
 	newEntry := &limiterEntry{lim: lim, lastUsed: now, heapRef: heapRef}
 	p.limiters[key] = newEntry
@@ -385,7 +399,7 @@ func (p *perKeyLimiter) Len() int {
 }
 
 func (p *perKeyLimiter) evictStale() {
-	now := time.Now()
+	now := p.now()
 
 	for p.heap.Len() > 0 {
 		oldest := (*p.heap)[0]

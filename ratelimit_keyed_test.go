@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -625,7 +626,7 @@ func TestPerKeyLimiter_Property_CapacityEvictionPreservesInvariants(t *testing.T
 		operations  = 2000
 	)
 
-	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
+	p := newPerKeyLimiter(time.Now, rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
 
 	// Fixed-seed property test; weak randomness is intentional.
 	rng := rand.New(
@@ -655,7 +656,7 @@ func TestPerKeyLimiter_MaxKeysChurn_KeepsMostRecentKeys(t *testing.T) {
 		maxKeys   = 32
 	)
 
-	p := newPerKeyLimiter(rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
+	p := newPerKeyLimiter(time.Now, rate.Limit(1e9), 1_000_000_000, nil, "0", time.Hour, maxKeys)
 
 	for i := range totalKeys {
 		_ = p.limiter(fmt.Sprintf("key-%04d", i))
@@ -675,5 +676,131 @@ func TestPerKeyLimiter_MaxKeysChurn_KeepsMostRecentKeys(t *testing.T) {
 		if !tracked {
 			t.Errorf("recent key %q evicted, want it retained", key)
 		}
+	}
+}
+
+// fakeClock is a deterministic time source for limiter tests: Advance moves
+// time forward with no real waiting, making refill and TTL-eviction pins
+// instant and flake-free. Mutex-guarded because the limiter reads it on
+// request goroutines and the concurrency contract of Now demands
+// concurrency safety.
+type fakeClock struct {
+	mu  sync.Mutex
+	now time.Time
+}
+
+func newFakeClock() *fakeClock {
+	return &fakeClock{now: time.Unix(0, 0).UTC()}
+}
+
+func (c *fakeClock) Now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.now
+}
+
+func (c *fakeClock) Advance(d time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.now = c.now.Add(d)
+}
+
+// TestKeyedRateLimiter_ClockInjection_RefillsWithoutSleeping pins the refill
+// seam end to end: exhausting the burst and advancing the injected clock by
+// one refill window re-admits the request with zero real-time waiting (the
+// deterministic replacement for the 6-second-sleep refill pins consumers had
+// to write before the Now field existed).
+func TestKeyedRateLimiter_ClockInjection_RefillsWithoutSleeping(t *testing.T) {
+	t.Parallel()
+
+	clock := newFakeClock()
+
+	limiter := NewKeyedRateLimiter(KeyedRateLimiterConfig{
+		Limit:        1,
+		Window:       time.Minute,
+		Burst:        1,
+		TTL:          time.Hour,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		Now:          clock.Now,
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	allowed, _ := limiter.Check(req)
+	if !allowed {
+		t.Fatal("first request should consume the single burst token")
+	}
+
+	allowed, _ = limiter.Check(req)
+	if allowed {
+		t.Fatal("second request should be rejected: the bucket is empty")
+	}
+
+	clock.Advance(time.Minute)
+
+	allowed, _ = limiter.Check(req)
+	if !allowed {
+		t.Fatal("after advancing the injected clock one refill window, the request should be allowed again")
+	}
+}
+
+// TestKeyedRateLimiter_ClockInjection_TTLEvictionDeterministic pins the TTL
+// seam: advancing the injected clock past the TTL and touching a fresh key
+// evicts the expired entry deterministically, no real waits.
+func TestKeyedRateLimiter_ClockInjection_TTLEvictionDeterministic(t *testing.T) {
+	t.Parallel()
+
+	clock := newFakeClock()
+
+	limiter := NewKeyedRateLimiter(KeyedRateLimiterConfig{
+		Limit:        1000,
+		Window:       time.Hour,
+		TTL:          time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+		Now:          clock.Now,
+	})
+
+	first := httptest.NewRequest(http.MethodGet, "/", nil)
+	first.RemoteAddr = "1.2.3.4:1234"
+
+	limiter.Check(first)
+
+	if got := limiter.ActiveKeys(); got != 1 {
+		t.Fatalf("ActiveKeys = %d after first request, want 1", got)
+	}
+
+	clock.Advance(2 * time.Minute)
+
+	second := httptest.NewRequest(http.MethodGet, "/", nil)
+	second.RemoteAddr = "5.6.7.8:1234"
+
+	limiter.Check(second)
+
+	if got := limiter.ActiveKeys(); got != 1 {
+		t.Fatalf("ActiveKeys = %d after TTL expiry plus a second key, want 1 (expired entry evicted)", got)
+	}
+}
+
+// TestKeyedRateLimiter_NilNowDefaultsToRealClock pins the zero-value
+// contract: a nil Now must construct a fully working limiter on the real
+// clock.
+func TestKeyedRateLimiter_NilNowDefaultsToRealClock(t *testing.T) {
+	t.Parallel()
+
+	limiter := NewKeyedRateLimiter(KeyedRateLimiterConfig{
+		Limit:        10,
+		Window:       time.Minute,
+		KeyExtractor: KeyExtractorFromRemoteAddr(),
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	allowed, _ := limiter.Check(req)
+	if !allowed {
+		t.Fatal("nil Now must default to time.Now and keep the limiter working")
 	}
 }
