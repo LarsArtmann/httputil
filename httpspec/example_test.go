@@ -151,3 +151,27 @@ func ExampleExpectNotModifiedWithETag() {
 
 	// Output: passed
 }
+
+func ExampleExpectNotModifiedDynamic() {
+	// The handler derives its ETag from the response body (content-hash
+	// posture), so the test cannot know the tag up front: the check harvests
+	// it from a first request and revalidates with If-None-Match.
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const etag = `"9f3a-"` // stand-in for a body hash
+
+		w.Header().Set("ETag", etag)
+
+		if r.Header.Get("If-None-Match") == etag {
+			w.WriteHeader(http.StatusNotModified)
+
+			return
+		}
+
+		_, _ = w.Write([]byte("resource"))
+	})
+
+	check := ExpectNotModifiedDynamic(http.MethodGet, "/")
+	fmt.Println(check(handler))
+
+	// Output: passed
+}

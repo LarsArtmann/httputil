@@ -113,7 +113,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 ```
 
-`ResponseRecorder` transparently supports `http.Flusher` and `http.Hijacker` when the underlying writer implements them. Write errors carry classified error codes via [go-error-family](https://github.com/larsartmann/go-error-family) for retry decisions.
+`ResponseRecorder` transparently supports `http.Flusher`, `http.Hijacker`, and `http.Pusher` when the underlying writer implements them (a `Push` against a writer without `http.Pusher` returns a classified `http.push_unsupported` error instead of silently dropping the capability). Write errors carry classified error codes via [go-error-family](https://github.com/larsartmann/go-error-family) for retry decisions.
 
 `HeaderSnapshot()` returns an isolated copy of response headers for inspection:
 
@@ -549,6 +549,8 @@ handler := httputil.Chain(
 | `Write`      | `http.write_failed`                         | Transient      | Yes       | Underlying ResponseWriter.Write fails                                                                         |
 | `Hijack`     | `http.hijack_unsupported`                   | Infrastructure | No        | Underlying writer doesn't implement Hijacker                                                                  |
 | `Hijack`     | `http.hijack_failed`                        | Transient      | Yes       | Underlying Hijack call fails                                                                                  |
+| `Push`       | `http.push_unsupported`                     | Infrastructure | No        | Underlying writer doesn't implement `http.Pusher` (HTTP/1, httptest recorders)                                  |
+| `Push`       | `http.push_failed`                          | Transient      | Yes       | Underlying Push call fails (stream reset, connection going away)                                                |
 | `Compress`   | `http.compress_write_failed`                | Transient      | Yes       | Compression writer Write/Close fails                                                                          |
 | `CSRF`       | `csrf_invalid`                              | Rejection      | No        | CSRF token missing, malformed, or mismatched                                                                  |
 | `CSRF`       | `csrf.origin_attestation_conflict`          | Rejection      | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
@@ -669,6 +671,7 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `Write([]byte)`    | `(int, error)`                         | Write body, implicitly set 200                         |
 | `Flush()`          | —                                      | Delegate if underlying writer supports `http.Flusher`  |
 | `Hijack()`         | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker` |
+| `Push(string, *http.PushOptions)` | `error`                  | Delegate an HTTP/2 server push; classified `http.push_unsupported` when the underlying writer lacks `http.Pusher` |
 
 ### `CompressionConfig` fields
 
@@ -699,6 +702,7 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `OnAllowed`        | `func(*http.Request)`         | `nil`                        | Callback when a request passes                 |
 | `OnRejected`       | `func(*http.Request, string)` | `nil`                        | Callback when rejected (receives retryAfter)   |
 | `RejectionHandler` | `func(w, r, retryAfter)`      | `nil` (429 + Retry-After)    | Custom handler for rejected requests           |
+| `Now`              | `func() time.Time`            | `nil` (= `time.Now`)         | Injected clock: controls refill, last-use stamps, and TTL eviction — tests advance time deterministically instead of sleeping |
 
 ### `CSRFConfig` fields
 
