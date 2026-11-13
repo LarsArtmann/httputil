@@ -68,8 +68,9 @@ func writeCommittedBody(w http.ResponseWriter, body []byte) {
 }
 
 // ResponseRecorder wraps an http.ResponseWriter to capture the status code.
-// It also supports http.Flusher and http.Hijacker when the underlying
-// ResponseWriter implements them.
+// It also supports http.Flusher, http.Hijacker, and http.Pusher when the
+// underlying ResponseWriter implements them (Push returns a classified
+// error when it does not).
 type ResponseRecorder struct {
 	http.ResponseWriter
 
@@ -141,6 +142,15 @@ func (r *ResponseRecorder) Flush() {
 // http.Hijacker.
 func (r *ResponseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return hijackDelegate(r.ResponseWriter)
+}
+
+// Push delegates an HTTP/2 server push to the underlying ResponseWriter if
+// it implements http.Pusher. Without an http.Pusher underneath it returns a
+// classified http.push_unsupported error (Infrastructure, cause
+// http.ErrNotSupported), so handlers keep the standard type-assert idiom:
+// the recorder itself always satisfies http.Pusher.
+func (r *ResponseRecorder) Push(target string, opts *http.PushOptions) error {
+	return pushDelegate(r.ResponseWriter, target, opts)
 }
 
 // Chain wraps a handler with multiple middleware, applying them in reverse

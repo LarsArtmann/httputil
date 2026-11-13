@@ -16,6 +16,8 @@ var allHTTputilErrorCodes = []Code{
 	codeWriteFailed,
 	codeHijackUnsupported,
 	codeHijackFailed,
+	codePushUnsupported,
+	codePushFailed,
 	codeCompressWriteFailed,
 	codeCompressionPoolTypeUnexpected,
 

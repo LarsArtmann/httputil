@@ -26,6 +26,16 @@ const (
 	// may succeed.
 	ErrCodeHijackFailed = "http.hijack_failed"
 
+	// ErrCodePushUnsupported is returned when the underlying ResponseWriter
+	// does not implement http.Pusher. Classified as Infrastructure (not retryable).
+	ErrCodePushUnsupported = "http.push_unsupported"
+
+	// ErrCodePushFailed is returned when the underlying Push call fails.
+	// Classified as Transient (retryable): HTTP/2 server push failures are
+	// usually stream-level (the stream was reset or the connection is going
+	// away), and pushing on a fresh request may succeed.
+	ErrCodePushFailed = "http.push_failed"
+
 	// ErrCodeCompressWriteFailed is returned when gzip write during
 	// compression fails. Classified as Transient (retryable).
 	ErrCodeCompressWriteFailed = "http.compress_write_failed"
@@ -39,6 +49,8 @@ const (
 	codeWriteFailed         = Code(ErrCodeWriteFailed)
 	codeHijackUnsupported   = Code(ErrCodeHijackUnsupported)
 	codeHijackFailed        = Code(ErrCodeHijackFailed)
+	codePushUnsupported     = Code(ErrCodePushUnsupported)
+	codePushFailed          = Code(ErrCodePushFailed)
 	codeCompressWriteFailed = Code(ErrCodeCompressWriteFailed)
 )
 
@@ -75,6 +87,18 @@ var errorTemplates = map[string]errorfamily.MessageTemplate{
 		What:   "Failed to hijack HTTP connection",
 		Why:    "The underlying Hijack() call returned an error.",
 		Fix:    "Inspect the cause: the client connection may have dropped, or the writer was already hijacked by an earlier handler.",
+		WayOut: msgRetryMaySucceed,
+	},
+	ErrCodePushUnsupported: {
+		What:   "HTTP/2 server push is not supported",
+		Why:    "The underlying ResponseWriter does not implement the http.Pusher interface (HTTP/1 connections and httptest recorders never do).",
+		Fix:    "Type-assert http.Pusher before pushing, or serve clients that negotiate HTTP/2.",
+		WayOut: msgInfrastructureUnsupported,
+	},
+	ErrCodePushFailed: {
+		What:   "Failed to push an HTTP/2 resource",
+		Why:    "The underlying Push() call returned an error.",
+		Fix:    "Inspect the cause: the push stream may have been reset, or the connection may be going away.",
 		WayOut: msgRetryMaySucceed,
 	},
 	ErrCodeCompressWriteFailed: {
