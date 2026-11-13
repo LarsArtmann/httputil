@@ -160,6 +160,43 @@ func (failingHijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, errHijackFailed
 }
 
+// pushRecorder is an httptest.ResponseRecorder that also implements
+// http.Pusher, recording the pushed target and options.
+type pushRecorder struct {
+	*httptest.ResponseRecorder
+
+	pushedTarget string
+	pushedOpts   *http.PushOptions
+}
+
+func newPushRecorder() *pushRecorder {
+	return &pushRecorder{ResponseRecorder: httptest.NewRecorder()}
+}
+
+func (r *pushRecorder) Push(target string, opts *http.PushOptions) error {
+	r.pushedTarget = target
+	r.pushedOpts = opts
+
+	return nil
+}
+
+// errPushFailed is the sentinel returned by failingPusher.Push.
+var errPushFailed = errors.New("push failed")
+
+// failingPusher is an http.ResponseWriter that implements http.Pusher whose
+// Push always fails. Used to exercise the ErrCodePushFailed path.
+type failingPusher struct {
+	*httptest.ResponseRecorder
+}
+
+func newFailingPusher() failingPusher {
+	return failingPusher{ResponseRecorder: httptest.NewRecorder()}
+}
+
+func (failingPusher) Push(_ string, _ *http.PushOptions) error {
+	return errPushFailed
+}
+
 // assertStatus checks that a response recorder has the expected status code.
 func assertStatus(t *testing.T, rec *httptest.ResponseRecorder, want int) {
 	t.Helper()
