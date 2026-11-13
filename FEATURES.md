@@ -37,7 +37,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Error Classification System
 
-- Typed error-code model (`Code`/`Domain`, v0.12.0): every code is `domain.failure`; constructor + Wrap pairs cover all six families; `DomainOf`/`InDomain` route by failing component. Runtime codes: `http.write_failed`, `http.hijack_unsupported`, `http.hijack_failed`, `http.compress_write_failed`, `http.etag_*`, `compression.pool_type_unexpected`, `compression.qvalue_*`, `compression.incompressible_prefix_invalid`, `compression.absent_encoding_invalid`, `decompression.*`, `server.shutdown_failed`, `ratelimit.*`, `maxbodysize.*`, `requestid.*`, `security.*`, `metrics.*`, `nonce.*`, `cors.*`, `csrf.*`, `language.*`, `stack.*`. Plus 3 ETag codes from `go-etag` registered via `RegisterErrorClassifications()`.
+- Typed error-code model (`Code`/`Domain`, v0.12.0): every code is `domain.failure`; constructor + Wrap pairs cover all six families; `DomainOf`/`InDomain` route by failing component. Runtime codes: `http.write_failed`, `http.hijack_unsupported`, `http.hijack_failed`, `http.push_unsupported`, `http.push_failed`, `http.compress_write_failed`, `http.etag_*`, `compression.pool_type_unexpected`, `compression.qvalue_*`, `compression.incompressible_prefix_invalid`, `compression.absent_encoding_invalid`, `decompression.*`, `server.shutdown_failed`, `ratelimit.*`, `maxbodysize.*`, `requestid.*`, `security.*`, `metrics.*`, `nonce.*`, `cors.*`, `csrf.*`, `language.*`, `stack.*`. Plus 3 ETag codes from `go-etag` registered via `RegisterErrorClassifications()`.
 - `RegisterErrorClassifications()` maps stdlib HTTP errors to behavioral families (Transient vs Infrastructure).
 - CSRF middleware uses `go-error-family` directly: `ErrCSRFInvalid` (Rejection family) and `ErrCSRFConfig` (Infrastructure family), plus inline `NewInfrastructure` errors for config validation failures.
 - Message templates with `what/why/fix/wayOut` for all classified errors.
@@ -45,7 +45,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 ### Shared ResponseWriter Wrapper
 
-- `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, and `Flush` delegation.
+- `wrapper.go` extracts common `WriteHeader` buffering, `Hijack`, `Flush`, and `Push` delegation (Push via `pushDelegate`: classified `http.push_unsupported`/`http.push_failed` instead of a silent capability loss).
 - Embedded by `compressWriter`, eliminating ~80 lines of duplication.
 
 ### Infrastructure Types
@@ -77,12 +77,14 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - Bounded buffering: only buffers up to `minSize`, then streams tail bytes directly.
 - Buffer pre-allocated to `max(minSize, 512)` capacity to avoid intermediate reallocations.
 - RFC 7231 `Accept-Encoding` negotiation with q-value parsing; server priority order is brotli > zstd > gzip > deflate > identity.
+- **Content-Type sniffing survives the wrapper** (issue #49): all three header-commit paths (compressed start, plain flush, small-response Close) fill a missing Content-Type via `http.DetectContentType` over the still-plaintext buffered bytes — mirroring net/http's own guards (explicit CT never overridden, nothing invented for 1xx/204/304, handler-set Content-Encoding suppresses the sniff per net/http issue 31753). Without it, a CT-less handler behind `Compression` shipped with NO Content-Type and rendered as plain text under `X-Content-Type-Options: nosniff`.
 - Requests without an `Accept-Encoding` header (or with an empty one) are served uncompressed by default (`CompressionConfig.AbsentEncoding` zero value `AbsentEncodingIdentity`); `AbsentEncodingFirstConfigured` restores the v1.1.x behavior of compressing with the highest-priority configured encoding (issue #4).
 - Single error-classification choke point: compress write failures funnel through `compressWriteError` with `encoding` context.
 
 ### Rate Limiting
 
 - **Keyed rate limiting** via `KeyedRateLimiter` (new in v0.8.0) — O(log n) min-heap eviction, `MaxKeys` cap, lazy TTL eviction, `Retry-After` headers, and a monitoring API (`ActiveKeys()`). This is the recommended API going forward.
+- `KeyedRateLimiterConfig.Now` (issue #45) is the clock injection seam: one injected `func() time.Time` controls entry last-use stamps, TTL eviction, AND token-bucket refill (admission calls `AllowN(now, 1)`), so consumer tests advance time deterministically — no real sleeps, no `-short` skips. Zero value (nil) means `time.Now`.
 - `EvictionTTL` field on `KeyedRateLimiterConfig` enables opt-in lazy eviction of idle buckets. Zero (default) preserves unbounded-growth behavior.
 - Pluggable `KeyExtractor` interface (`KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP`, and — new in the v1.5 cycle — `KeyExtractorFromTrustedClientIP(cidrs)`, which honors forwarded headers only from trusted-proxy CIDR peers; `ParseTrustedProxies` returns the reusable `TrustedProxySet` with `ClientIP`/`Contains` for guard and logging consumers).
 - Pluggable `RejectionHandler` for custom 429 responses.
@@ -91,6 +93,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 ### CSRF Protection
 
 - **Double-submit cookie** middleware via `justinas/nosurf` (new in v0.8.0).
+- HTTP QUERY (RFC 10008) is spec-safe (issue #48): `isUnsafeCSRFMethod` lists it alongside GET/HEAD/OPTIONS/TRACE, and a method-scoped nosurf exemption short-circuits nosurf's own token check (its safe list does not know QUERY). Token-less QUERY readers pass; the CSRF cookie is still seeded on QUERY responses.
 - `CSRFMiddleware` and `CSRFResponseHeaderMiddleware` for simple and header-based CSRF defense.
 - `ValidateCSRF` for per-handler validation of `*http.Request`.
 - `CSRFTokenHXHeaders`, `CSRFTokenHTMLMeta`, `CSRFTokenFormField` for HTMX/templ integration.
@@ -211,7 +214,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 - `httpspec.RunTracing(t, middleware)` — middleware-level tracing contract checks that handler-level `Spec`s cannot observe: `traceparent`, `tracestate`, and the route pattern reach the wrapped handler; an absent `traceparent` stays absent; method, path, and body arrive unmodified; status and body pass through unchanged; and `Flusher`, `Pusher`, and `Hijacker` survive the wrapper. Point it at `otelhttp.NewMiddleware(...)` (or any tracing middleware) to prove interop (new in v1.6.0).
 - Specs cover routing (index reachability, unknown paths, long URLs), method handling (HEAD, OPTIONS, TRACE, POST, CONNECT), response headers (Content-Type, Location on redirects, no duplicate headers, Accept header handling), and security (no leaked internals, no version fingerprints, no X-Powered-By, X-Content-Type-Options: nosniff).
 - Extensible via `SkipSpec`, `WithExtraSpecs`, `WithIndexPath`.
-- Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`, `ExpectJSON` (validates body parses as JSON + JSON Content-Type), `ExpectHTML` (HTML Content-Type incl. XHTML), `ExpectVaryContains` (cache-correctness, `Vary: *` aware), `ExpectNotModifiedWithETag` (opt-in 304 contract via `WithExtraSpecs`).
+- Helper builders: `ExpectStatus`, `ExpectNotStatus`, `ExpectHeader`, `ExpectHeaderAbsent`, `ExpectBodyContains`, `ExpectJSON` (validates body parses as JSON + JSON Content-Type), `ExpectHTML` (HTML Content-Type incl. XHTML), `ExpectVaryContains` (cache-correctness, `Vary: *` aware), `ExpectNotModifiedWithETag` (opt-in 304 contract via `WithExtraSpecs`), `ExpectNotModifiedDynamic` (harvest-then-revalidate for content-hash ETags the test author cannot know: first request harvests the tag, the revalidated request must 304 with an empty body and the tag echoed; fails when no ETag is served).
 - Pure stdlib, no third-party dependencies.
 
 ---
