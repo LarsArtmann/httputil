@@ -549,8 +549,8 @@ handler := httputil.Chain(
 | `Write`      | `http.write_failed`                         | Transient      | Yes       | Underlying ResponseWriter.Write fails                                                                         |
 | `Hijack`     | `http.hijack_unsupported`                   | Infrastructure | No        | Underlying writer doesn't implement Hijacker                                                                  |
 | `Hijack`     | `http.hijack_failed`                        | Transient      | Yes       | Underlying Hijack call fails                                                                                  |
-| `Push`       | `http.push_unsupported`                     | Infrastructure | No        | Underlying writer doesn't implement `http.Pusher` (HTTP/1, httptest recorders)                                  |
-| `Push`       | `http.push_failed`                          | Transient      | Yes       | Underlying Push call fails (stream reset, connection going away)                                                |
+| `Push`       | `http.push_unsupported`                     | Infrastructure | No        | Underlying writer doesn't implement `http.Pusher` (HTTP/1, httptest recorders)                                |
+| `Push`       | `http.push_failed`                          | Transient      | Yes       | Underlying Push call fails (stream reset, connection going away)                                              |
 | `Compress`   | `http.compress_write_failed`                | Transient      | Yes       | Compression writer Write/Close fails                                                                          |
 | `CSRF`       | `csrf_invalid`                              | Rejection      | No        | CSRF token missing, malformed, or mismatched                                                                  |
 | `CSRF`       | `csrf.origin_attestation_conflict`          | Rejection      | No        | `Sec-Fetch-Site: same-origin` attestation contradicted by a cross-origin `Origin` header (forged attestation) |
@@ -662,16 +662,16 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 
 ### `ResponseRecorder` methods
 
-| Method             | Returns                                | Description                                            |
-| ------------------ | -------------------------------------- | ------------------------------------------------------ |
-| `Status()`         | `int`                                  | Captured status code (0 if `WriteHeader` not called)   |
-| `WroteHeader()`    | `bool`                                 | Whether `WriteHeader` was called                       |
-| `HeaderSnapshot()` | `http.Header`                          | Isolated copy of response headers                      |
-| `WriteHeader(int)` | —                                      | Capture status and delegate                            |
-| `Write([]byte)`    | `(int, error)`                         | Write body, implicitly set 200                         |
-| `Flush()`          | —                                      | Delegate if underlying writer supports `http.Flusher`  |
-| `Hijack()`         | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker` |
-| `Push(string, *http.PushOptions)` | `error`                  | Delegate an HTTP/2 server push; classified `http.push_unsupported` when the underlying writer lacks `http.Pusher` |
+| Method                            | Returns                                | Description                                                                                                       |
+| --------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Status()`                        | `int`                                  | Captured status code (0 if `WriteHeader` not called)                                                              |
+| `WroteHeader()`                   | `bool`                                 | Whether `WriteHeader` was called                                                                                  |
+| `HeaderSnapshot()`                | `http.Header`                          | Isolated copy of response headers                                                                                 |
+| `WriteHeader(int)`                | —                                      | Capture status and delegate                                                                                       |
+| `Write([]byte)`                   | `(int, error)`                         | Write body, implicitly set 200                                                                                    |
+| `Flush()`                         | —                                      | Delegate if underlying writer supports `http.Flusher`                                                             |
+| `Hijack()`                        | `(net.Conn, *bufio.ReadWriter, error)` | Delegate if underlying writer supports `http.Hijacker`                                                            |
+| `Push(string, *http.PushOptions)` | `error`                                | Delegate an HTTP/2 server push; classified `http.push_unsupported` when the underlying writer lacks `http.Pusher` |
 
 ### `CompressionConfig` fields
 
@@ -691,17 +691,17 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 
 ### `KeyedRateLimiterConfig` fields
 
-| Field              | Type                          | Default                      | Description                                    |
-| ------------------ | ----------------------------- | ---------------------------- | ---------------------------------------------- |
-| `Limit`            | `uint`                        | `100`                        | Maximum requests per `Window` per key          |
-| `Window`           | `time.Duration`               | `1m`                         | Time window for the limit                      |
-| `Burst`            | `uint`                        | `0` (= Limit)                | Maximum burst size (can exceed Limit)          |
-| `KeyExtractor`     | `KeyExtractor`                | `KeyExtractorFromClientIP()` | Extracts the rate-limit key from the request   |
-| `TTL`              | `time.Duration`               | `10m`                        | How long idle entries are kept before eviction |
-| `MaxKeys`          | `uint`                        | `0` (unbounded)              | Caps tracked keys; oldest evicted at capacity  |
-| `OnAllowed`        | `func(*http.Request)`         | `nil`                        | Callback when a request passes                 |
-| `OnRejected`       | `func(*http.Request, string)` | `nil`                        | Callback when rejected (receives retryAfter)   |
-| `RejectionHandler` | `func(w, r, retryAfter)`      | `nil` (429 + Retry-After)    | Custom handler for rejected requests           |
+| Field              | Type                          | Default                      | Description                                                                                                                   |
+| ------------------ | ----------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `Limit`            | `uint`                        | `100`                        | Maximum requests per `Window` per key                                                                                         |
+| `Window`           | `time.Duration`               | `1m`                         | Time window for the limit                                                                                                     |
+| `Burst`            | `uint`                        | `0` (= Limit)                | Maximum burst size (can exceed Limit)                                                                                         |
+| `KeyExtractor`     | `KeyExtractor`                | `KeyExtractorFromClientIP()` | Extracts the rate-limit key from the request                                                                                  |
+| `TTL`              | `time.Duration`               | `10m`                        | How long idle entries are kept before eviction                                                                                |
+| `MaxKeys`          | `uint`                        | `0` (unbounded)              | Caps tracked keys; oldest evicted at capacity                                                                                 |
+| `OnAllowed`        | `func(*http.Request)`         | `nil`                        | Callback when a request passes                                                                                                |
+| `OnRejected`       | `func(*http.Request, string)` | `nil`                        | Callback when rejected (receives retryAfter)                                                                                  |
+| `RejectionHandler` | `func(w, r, retryAfter)`      | `nil` (429 + Retry-After)    | Custom handler for rejected requests                                                                                          |
 | `Now`              | `func() time.Time`            | `nil` (= `time.Now`)         | Injected clock: controls refill, last-use stamps, and TTL eviction — tests advance time deterministically instead of sleeping |
 
 ### `CSRFConfig` fields

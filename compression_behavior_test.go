@@ -241,9 +241,9 @@ func TestCompression_ExplicitContentType_NotOverridden(t *testing.T) {
 func TestCompression_SniffsContentType_BinaryStaysOctetStream(t *testing.T) {
 	t.Parallel()
 
-	binaryBody := make([]byte, defaultCompressionMinSize+1)
-	for i := range binaryBody {
-		binaryBody[i] = byte(i % 256)
+	binaryBody := make([]byte, 0, defaultCompressionMinSize+1)
+	for i := range defaultCompressionMinSize + 1 {
+		binaryBody = append(binaryBody, byte(i))
 	}
 
 	handler := Compression(DefaultCompressionConfig())(newWriteBodyHandler(binaryBody))
