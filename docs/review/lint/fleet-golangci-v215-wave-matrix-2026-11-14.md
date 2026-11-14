@@ -16,20 +16,20 @@ per-method sigs (httputil). Session 3 standardized the import-path sig for new p
 
 ## Actioned in session 3 (ported + verified green under local v2.15.0)
 
-| Repo | Old pin | Clone sites | Outcome |
-| --- | --- | --- | --- |
-| go-codec | v2.14.0 | 2 | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN |
-| go-retry | v2.13.2 | 3 | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN |
-| go-composable-business-types | v2.14.0 | 1 | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN (6 modules) |
-| german-business-contract-automation | v2.13.2 | 33 | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN |
-| go-finding | v2.14.0 | 3 | ignore-sigs block added + pin → v2.15.0, CHANGELOG; ALL-GREEN (4 modules) |
-| go-appkit | v2.14.0 | 1 | sig + pin → v2.15.0 ×2 sites, CHANGELOG; root + 13 submodules GREEN (integration fails on its own go.work pattern shape, pre-existing) |
-| go-localsync | v2.13.2 | 2 | sig added to `ignore-sig-regexps`; NOT bumped — v2.15 also flags huma v2 sigs (per-repo triage) |
-| KeyHolderAI | v2.14.0 | 93 | sig added; NOT bumped — pre-existing templ typecheck break (`templruntime.NewAttributeExpression` undefined) |
-| Zlota44 | v2.13.2 | 103 | sig added; NOT bumped — same templ typecheck break class |
-| legal-graph-ai-system | v2.14.0 | 2 | sig added; NOT bumped — pre-existing typecheck break (graphrag.NodeID type mismatch) |
-| ChastityAPI | v2.13.2 | 5 | sig added; NOT bumped — mixed findings (http.Pusher.Push wrapcheck, noctx/paralleltest/exhaustruct test classes) |
-| Standup-Killer | v2.13.2 | 2 | sig added; NOT bumped — 150+ findings under v2.15 (varnamelen/paralleltest/exhaustruct/wrapcheck/ireturn); own-session triage |
+| Repo                                | Old pin | Clone sites | Outcome                                                                                                                                |
+| ----------------------------------- | ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| go-codec                            | v2.14.0 | 2           | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN                                                                                              |
+| go-retry                            | v2.13.2 | 3           | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN                                                                                              |
+| go-composable-business-types        | v2.14.0 | 1           | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN (6 modules)                                                                                  |
+| german-business-contract-automation | v2.13.2 | 33          | sig + pin → v2.15.0, CHANGELOG; ALL-GREEN                                                                                              |
+| go-finding                          | v2.14.0 | 3           | ignore-sigs block added + pin → v2.15.0, CHANGELOG; ALL-GREEN (4 modules)                                                              |
+| go-appkit                           | v2.14.0 | 1           | sig + pin → v2.15.0 ×2 sites, CHANGELOG; root + 13 submodules GREEN (integration fails on its own go.work pattern shape, pre-existing) |
+| go-localsync                        | v2.13.2 | 2           | sig added to `ignore-sig-regexps`; NOT bumped — v2.15 also flags huma v2 sigs (per-repo triage)                                        |
+| KeyHolderAI                         | v2.14.0 | 93          | sig added; NOT bumped — pre-existing templ typecheck break (`templruntime.NewAttributeExpression` undefined)                           |
+| Zlota44                             | v2.13.2 | 103         | sig added; NOT bumped — same templ typecheck break class                                                                               |
+| legal-graph-ai-system               | v2.14.0 | 2           | sig added; NOT bumped — pre-existing typecheck break (graphrag.NodeID type mismatch)                                                   |
+| ChastityAPI                         | v2.13.2 | 5           | sig added; NOT bumped — mixed findings (http.Pusher.Push wrapcheck, noctx/paralleltest/exhaustruct test classes)                       |
+| Standup-Killer                      | v2.13.2 | 2           | sig added; NOT bumped — 150+ findings under v2.15 (varnamelen/paralleltest/exhaustruct/wrapcheck/ireturn); own-session triage          |
 
 ## Already solved before session 3 (v2.15-pinned, green)
 

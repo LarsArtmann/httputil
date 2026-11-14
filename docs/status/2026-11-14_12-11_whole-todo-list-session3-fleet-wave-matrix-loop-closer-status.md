@@ -7,6 +7,7 @@
 ## Scope line — verified vs. not
 
 **VERIFIED by command this session:**
+
 - Fleet scan: every `~/projects` repo importing go-error-family (~250 go.mods, ~150 repos) — pins, GOTOOLCHAIN, clone call sites. Matrix written to [docs/review/lint/fleet-golangci-v215-wave-matrix-2026-11-14.md](../review/lint/fleet-golangci-v215-wave-matrix-2026-11-14.md).
 - 12 consumer repos ported to the `- go-error-family.` import-path sig (the mr-sync convention; cqrs-htmx's package-globs variant also confirmed): 8 via the idempotent inserter script, 4 by hand (go-finding, go-localsync's `ignore-sig-regexps`, go-composable-business-types, german-business-contract-automation).
 - 6 repos bumped v2.13.2/v2.14.0 → **v2.15.0 and verified ALL-GREEN** locally with the v2.15.0 binary across all their modules: go-codec, go-retry, go-composable-business-types (5 modules), german-business-contract-automation, go-finding (4 modules), go-appkit (root + 13 submodules). Stale pin-rationale comments updated to match. CHANGELOG `### Changed` entries ×6.
@@ -23,6 +24,7 @@
 - TODO_LIST: 5 rows struck/updated with evidence + session-3 header. Both 2026-11-14 reports carry done-at markers on completed §f items.
 
 **NOT verified / NOT done, and why:**
+
 - **Push** — owner-gated; this repo is ahead 6, and NINE fleet repos (go-etag, GEF, library-policy, go-codec, go-retry, go-composable-business-types, german-bca, go-finding, go-appkit) hold today's verified commits unpushed.
 - **T1–T7 rulings** — owner-gated; see g).
 - **nixpkgs go1.27.4** — upstream-blocked (verified session 2).
@@ -34,38 +36,38 @@
 
 ## a) FULLY DONE
 
-| Work | Evidence |
-| --- | --- |
-| Fleet errorfamily wave: 12 repos ported, 6 bumped to v2.15.0 + verified green | matrix file + per-repo lint runs |
-| 6 pin bumps with CHANGELOG entries + rationale-comment truthing | grep-verified v2.15.0 sites, zero stale pins |
-| cue-policy pin sweep 7ecfcaf→f0ed5f5 ×4 consumers, vet ×4 green | cue vet outputs; deliberate-commit pin |
-| meta inventory: endpoints discoverable (`meta list --tags endpoints`) | CLI outputs |
-| file-size-check policy-reject recorded in AGENTS residuals (owner-overridable) | AGENTS.md BuildFlow paragraph |
-| docs-gates F/spacing class ELIMINATED (19 sites → 0, formatter-regression survived) | docs-gates runs: 231→216, zero F/ |
-| README GO-2026-6859 Security callout at the MaxBodySize ordering docs + CHANGELOG line | README.md; CHANGELOG [Unreleased] Security |
-| Full buildflow loop-closer: green-in-documented-shape (exit 69 = residuals only) | /tmp/buildflow-final-run.log |
-| Timing-regression verdict: noise-floor, not real (1ms→2ms proof) | same log |
-| `nix flake check --all-systems` exit 0 | /tmp/flake-all-systems.txt |
-| 33-target fuzz rotation green under go1.27.4 | rotation script output: NONE-ALL-33-GREEN |
-| SQLITE_BUSY evidence pack (env-level, filing deferred) | cache.db strings + observed concurrent pids |
-| T6 decoded: decision-brief row with pre-written defaults (T1–T7) | docs/planning/2026-10-15_02-12_owner-decision-brief.md |
-| GEF probe verdicts incl. the own-package-explanation | probe runs, config restored |
-| TODO_LIST harvest (5 rows) + both reports annotated with done-at markers | TODO_LIST.md; docs/status |
-| Daemon-commit consolidation into deliberate b785f40 (attribution verified) | git show ×5 file lists |
-| §f.15 FEATURES.md spacing fix (carried from 09-46 report) + fuzz-seed decision (skip: unit-pinned) | FEATURES.md; report §f |
-| go-etag/GEF AGENTS pin-note convention check (none exists beyond CHANGELOG) | grep |
+| Work                                                                                               | Evidence                                               |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Fleet errorfamily wave: 12 repos ported, 6 bumped to v2.15.0 + verified green                      | matrix file + per-repo lint runs                       |
+| 6 pin bumps with CHANGELOG entries + rationale-comment truthing                                    | grep-verified v2.15.0 sites, zero stale pins           |
+| cue-policy pin sweep 7ecfcaf→f0ed5f5 ×4 consumers, vet ×4 green                                    | cue vet outputs; deliberate-commit pin                 |
+| meta inventory: endpoints discoverable (`meta list --tags endpoints`)                              | CLI outputs                                            |
+| file-size-check policy-reject recorded in AGENTS residuals (owner-overridable)                     | AGENTS.md BuildFlow paragraph                          |
+| docs-gates F/spacing class ELIMINATED (19 sites → 0, formatter-regression survived)                | docs-gates runs: 231→216, zero F/                      |
+| README GO-2026-6859 Security callout at the MaxBodySize ordering docs + CHANGELOG line             | README.md; CHANGELOG [Unreleased] Security             |
+| Full buildflow loop-closer: green-in-documented-shape (exit 69 = residuals only)                   | /tmp/buildflow-final-run.log                           |
+| Timing-regression verdict: noise-floor, not real (1ms→2ms proof)                                   | same log                                               |
+| `nix flake check --all-systems` exit 0                                                             | /tmp/flake-all-systems.txt                             |
+| 33-target fuzz rotation green under go1.27.4                                                       | rotation script output: NONE-ALL-33-GREEN              |
+| SQLITE_BUSY evidence pack (env-level, filing deferred)                                             | cache.db strings + observed concurrent pids            |
+| T6 decoded: decision-brief row with pre-written defaults (T1–T7)                                   | docs/planning/2026-10-15_02-12_owner-decision-brief.md |
+| GEF probe verdicts incl. the own-package-explanation                                               | probe runs, config restored                            |
+| TODO_LIST harvest (5 rows) + both reports annotated with done-at markers                           | TODO_LIST.md; docs/status                              |
+| Daemon-commit consolidation into deliberate b785f40 (attribution verified)                         | git show ×5 file lists                                 |
+| §f.15 FEATURES.md spacing fix (carried from 09-46 report) + fuzz-seed decision (skip: unit-pinned) | FEATURES.md; report §f                                 |
+| go-etag/GEF AGENTS pin-note convention check (none exists beyond CHANGELOG)                        | grep                                                   |
 
 ## b) PARTIALLY DONE
 
-| Work | Done | Missing |
-| --- | --- | --- |
-| Fleet wave bumps | 6/12 bumped green | 6 deferred on repo-local reds (templ skew ×2, typecheck ×1, huma ×1, mixed ×1, wholesale ×1); no revisit trigger beyond the matrix |
-| GOTOOLCHAIN fleet audit (§f.22) | 6 repos identified pinned < go1.27.4 (art-dupl, go-linter-sdk, go-graph-rag, go-output, crm, ratsgedaechtnis) | none bumped — recorded only, each repo's own cadence |
-| Docs campaign | F/spacing class at zero (216 findings remain) | A/verdict-marker + G/uniform classes, cadence (51 reports), audit-all — all T6-gated |
-| SQLITE_BUSY | evidence pack | no controlled repro run, no buildflow-source read, no issue filed |
-| cv/CV | untouched by protocol | revisit after the parallel writer lands its refactor |
-| Session reporting | this report | written only on request, after the fact (see e.7) |
-| go-appkit | root + 13 submodules green, bumped | integration-module CI invocation question open |
+| Work                            | Done                                                                                                          | Missing                                                                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Fleet wave bumps                | 6/12 bumped green                                                                                             | 6 deferred on repo-local reds (templ skew ×2, typecheck ×1, huma ×1, mixed ×1, wholesale ×1); no revisit trigger beyond the matrix |
+| GOTOOLCHAIN fleet audit (§f.22) | 6 repos identified pinned < go1.27.4 (art-dupl, go-linter-sdk, go-graph-rag, go-output, crm, ratsgedaechtnis) | none bumped — recorded only, each repo's own cadence                                                                               |
+| Docs campaign                   | F/spacing class at zero (216 findings remain)                                                                 | A/verdict-marker + G/uniform classes, cadence (51 reports), audit-all — all T6-gated                                               |
+| SQLITE_BUSY                     | evidence pack                                                                                                 | no controlled repro run, no buildflow-source read, no issue filed                                                                  |
+| cv/CV                           | untouched by protocol                                                                                         | revisit after the parallel writer lands its refactor                                                                               |
+| Session reporting               | this report                                                                                                   | written only on request, after the fact (see e.7)                                                                                  |
+| go-appkit                       | root + 13 submodules green, bumped                                                                            | integration-module CI invocation question open                                                                                     |
 
 ## c) NOT STARTED
 
@@ -141,4 +143,4 @@ Impact-ordered; O = owner-gated, U = upstream/other-repo, V = verification/cheap
 
 ---
 
-*Historical record — a)/g) sections and the timeline are not struck later; follow-ups live in TODO_LIST/ROADMAP via HARVEST.*
+_Historical record — a)/g) sections and the timeline are not struck later; follow-ups live in TODO_LIST/ROADMAP via HARVEST._
