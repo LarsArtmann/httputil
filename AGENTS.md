@@ -67,6 +67,10 @@ scripts/pre-sweep-check.sh
 # refresh): 57 = +1 enforce_generic_return at endpoints/endpoints.go:111
 # (Registry.Handle) — policy-rejected, a public API returning error is
 # idiomatic Go; same class as the scripts/ verdict below.
+# RE-CONFIRMED 2026-11-14 (post ×6-restore, local binary reports "dev" =
+# newer than fa5575f, messages now say //nolint:legacyerrors): exactly 57 =
+# 36 load-bearing + 17 hints + 3 enforce_generic_return (endpoints.go:111 +
+# scripts/ ×2) + 1 legacy_is; the ledger held across the restore untouched.
 # Multi-module handling is BUILD-DEPENDENT: the deployed fa5575f binary (up to
 # the 2026-11-03 fixes, erraudit#12/#13/#14) analyzes the root module only,
 # REJECTS --modules on lint, and its banner misleadingly hints
