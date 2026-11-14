@@ -174,3 +174,51 @@ func BenchmarkCompression(b *testing.B) {
 		handler.ServeHTTP(rec, req)
 	}
 }
+
+// BenchmarkCompressionContentTypeSniff isolates the Content-Type sniff cost
+// added with issue #46: CT-less responses are sniffed once, from at most the
+// first 512 buffered plaintext bytes, before the middleware commits the
+// header. The sub-benchmarks differ ONLY in whether the handler pre-sets
+// Content-Type; their delta is the per-response sniff overhead.
+func BenchmarkCompressionContentTypeSniff(b *testing.B) {
+	cfg := DefaultCompressionConfig()
+	middleware := Compression(cfg)
+
+	body := []byte(strings.Repeat("a", defaultCompressionMinSize*2))
+
+	req := newTestRequest(http.MethodGet, "/", "")
+	req.Header.Set(headerAcceptEncoding, encodingGzip)
+
+	b.Run("contentTypeSet", func(b *testing.B) {
+		inner := http.HandlerFunc(func(resp http.ResponseWriter, _ *http.Request) {
+			resp.Header().Set(headerContentType, "text/plain; charset=utf-8")
+			resp.WriteHeader(http.StatusOK)
+			_, _ = resp.Write(body)
+		})
+
+		handler := middleware(inner)
+
+		b.ReportAllocs()
+
+		for b.Loop() {
+			rec := newRecorder()
+			handler.ServeHTTP(rec, req)
+		}
+	})
+
+	b.Run("contentTypeAbsent", func(b *testing.B) {
+		inner := http.HandlerFunc(func(resp http.ResponseWriter, _ *http.Request) {
+			resp.WriteHeader(http.StatusOK)
+			_, _ = resp.Write(body)
+		})
+
+		handler := middleware(inner)
+
+		b.ReportAllocs()
+
+		for b.Loop() {
+			rec := newRecorder()
+			handler.ServeHTTP(rec, req)
+		}
+	})
+}
