@@ -159,9 +159,11 @@ Nothing shipped broken; all failures were caught at the tool boundary and fixed 
    rev-parse --short HEAD` first; expect ONLY policy-rejected residual classes.~~ done
    (freshness 7e4ca72 == HEAD; run composition = documented residuals + file-size-check NEW
    class triaged policy-reject + docs-gates reds routed to TODO_LIST)
-6. §f.12/22 docs-health: strike the 00-37 report's §f items resolved today; TODO_LIST: delete
+6. ~~§f.12/22 docs-health: strike the 00-37 report's §f items resolved today; TODO_LIST: delete
    the buildflow row (if green), add the fleet lint-ripple row, refresh the "Updated:" header;
-   run the docs-gates battery.
+   run the docs-gates battery.~~ done (all §f items struck in both reports; TODO_LIST rebuilt —
+   buildflow + nightly rows closed, three rows added; freshness/routing green; the annotate/
+   cadence/audit-all campaign reds routed to a TODO row, bulk-archive blocked on T6)
 7. §f.19 v1.9.0 release (full RELEASE.md order): CHANGELOG cut/links, FEATURES verify,
    step-9 annotation sweep (`rg -l 'GOEXPERIMENT|json/v2|...' docs/`), release commit
    (`--no-verify`), 3× apidiff zip regen from the tag worktree + README table refresh,
@@ -182,8 +184,9 @@ Nothing shipped broken; all failures were caught at the tool boundary and fixed 
 14. ~~Check tonight's nightly-fuzz run green (existing TODO row).~~ done (8 consecutive green
     2026-11-06..11-13 incl. all endpoints rotations; the TODO row closed on that evidence; the
     11-14 03:03Z run spot-checked at session tail)
-15. Session tail: `git log origin/master..master` empty, CI green on the exact head, tree
-    clean, AGENTS lessons (e.g. the §f.16 lesson) recorded.
+15. ~~Session tail: `git log origin/master..master` empty, CI green on the exact head, tree
+    clean, AGENTS lessons (e.g. the §f.16 lesson) recorded.~~ done (see the session-3 report;
+    AGENTS gained the Next-Up List Hygiene section and the benchmark-attribution rule)
 
 ## g) QUESTIONS FOR THE OWNER
 

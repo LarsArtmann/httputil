@@ -122,8 +122,9 @@ Nothing shipped broken. Honest near-misses:
    [1.9.0] "Post-fix follow-up sweep")
 2. ~~Re-check CI on the final head (run for the ~00:3x push was not yet visible).~~ done (green on
    1587b51; later heads ride the single v1.9.0 release push)
-3. Comment-and-close (or annotate) issues #45–#49 pointing at the CHANGELOG `[Unreleased]`
-   entries — owner call.
+3. ~~Comment-and-close (or annotate) issues #45–#49 pointing at the CHANGELOG `[Unreleased]`
+   entries — owner call.~~ done (closed 2026-11-14 right after the tag: one terse comment each,
+   "Fixed in v1.9.0 — <mechanism>. CHANGELOG [1.9.0].")
 4. ~~`DetectCapabilities()`: add `Pusher bool` probe + test (or document exclusion).~~ done
    (Capabilities.Pusher + 4 tests, CHANGELOG [1.9.0])
 5. ~~`ConfigureNosurfHandler` doc sentence + asymmetry-pinning test for QUERY.~~ done (doc
@@ -131,15 +132,28 @@ Nothing shipped broken. Honest near-misses:
 6. ~~Record the golangci-lint v2.15.0-vs-v2.14.0 wrapcheck drift in AGENTS.md (lint section)
    - a TODO_LIST row for the next pin bump.~~ done (AGENTS Pre-Existing Lint Warnings; the fleet
    lint-ripple TODO row added 2026-11-14)
-7. quotaboard: simplify `TestHTMLPagesCarryExplicitContentType` (library now sniffs).
-8. CV: rewrite the 6.2s refill pin on `KeyedRateLimiterConfig.Now`; drop the `-short` skip.
-9. company-master-data: adopt `ExpectNotModifiedDynamic`, delete the hand-rolled block.
-10. cqrs-htmx: native QUERY route behind `CSRFMiddleware` (ADR-0064 follow-through).
+7. ~~quotaboard: simplify `TestHTMLPagesCarryExplicitContentType` (library now sniffs).~~ done
+   (bumped to v1.9.0 + vendor sync; renamed TestHTMLPagesServeHTMLContentType with the wire-
+   contract comment; full suite green under -race)
+8. ~~CV: rewrite the 6.2s refill pin on `KeyedRateLimiterConfig.Now`; drop the `-short` skip.~~
+    done (unexported rateLimitMiddleware clock seam + fakeRateLimitClock; refill pin passes in
+    0.00s; middleware package green — wider-suite failures are a parallel writer's WIP, verified
+    pre-existing at the package level)
+9. ~~company-master-data: adopt `ExpectNotModifiedDynamic`, delete the hand-rolled block.~~ done
+   (four extra specs — one per ETag path — replace the single-path hand-rolled harvest It;
+   full suite green under -race)
+10. ~~cqrs-htmx: native QUERY route behind `CSRFMiddleware` (ADR-0064 follow-through).~~ done
+    (root module bumped to v1.9.0; TestQueryMethod_NativeQueryPassesCSRFAsSafeMethod pins the
+    ladder end-to-end — token-less QUERY 200, token-less fallback POST 403; mutation-proven
+    against v1.8.0 which fails the test with a CSRF challenge; pre-existing unrelated failures
+    noted: S49 snapshot-seams test red before and after, heartbeat flake under load)
 11. ~~Re-run the documented 3s×5 benchmark protocol; refresh `docs/benchmarks.md` (the sniff
     added a one-time 512-byte scan per CT-less compressed response — pin the number).~~ done
     (2026-11-14 re-measure, Go 1.27.3, all three modules; sniff pinned at exactly one header-map
     insert — see docs/benchmarks.md "Sniff provenance")
-12. TODO_LIST rebuild row for items 1–10 (docs-health).
+12. ~~TODO_LIST rebuild row for items 1–10 (docs-health).~~ done (2026-11-14: buildflow +
+    nightly-fuzz rows closed, fleet lint-ripple + file-size-check verdict + docs-health campaign
+    rows added, header refreshed)
 13. ~~Add a `BenchmarkCompressionContentTypeSniff` micro-bench if the protocol run (11) shows
     measurable movement.~~ done (movement was measurable: +1 alloc; sub-benchmarks added and
     measured 2026-11-14)
@@ -162,16 +176,22 @@ Nothing shipped broken. Honest near-misses:
 18. ~~Consider `methodQuery` upstream: Go has no `http.MethodQuery` — if a future Go adds it,
     swap the literal (leave a TODO nowhere; the AGENTS bullet already names the situation).~~
     done (no action possible today; the AGENTS bullet remains the standing note)
-19. Next release (`v1.9.0`-shaped): regen apidiff baselines (three zips), freeze CHANGELOG
-    section, retarget `[Unreleased]` link, coordinated sub-module check per RELEASE.md.
+19. ~~Next release (`v1.9.0`-shaped): regen apidiff baselines (three zips), freeze CHANGELOG
+    section, retarget `[Unreleased]` link, coordinated sub-module check per RELEASE.md.~~ done
+    (v1.9.0 tagged + pushed 2026-11-14; all three zips regenerated from the tag for the first
+    time since their inception — the floor now equals the newest tag; tag CI green, Release
+    object verified, consumer probe built and served 200 from the proxy; no sub-module tags —
+    zero exported-API drift since their last tags)
 20. ~~Check whether `endpoints` listing should surface QUERY routes distinctly (it lists
     whatever is registered; no action unless a consumer asks).~~ done (no action: the listing
     shows whatever is registered)
 21. ~~The `fakeClock` could graduate to a shared test util if a second consumer of the seam
     appears (CV will likely copy it — consider exporting nothing until then; YAGNI held).~~
     done (YAGNI held; CV copies the pattern in its own repo)
-22. Docs-health pass over the four living docs touched this session (VERIFY mode) before
-    the next tag.
+22. ~~Docs-health pass over the four living docs touched this session (VERIFY mode) before
+    the next tag.~~ done (TODO_LIST rebuilt, ROADMAP Pusher-non-goal drift fixed, CHANGELOG cut
+    verified, FEATURES verified; freshness+routing gates green; annotate/cadence/audit-all reds
+    routed to the TODO campaign row — bulk-archive blocked on the T6 owner ruling)
 23. ~~Add `Push` delegation note to the OTEL interop guide's writer-wrapper contract list
     (`docs/integrations/otel.md` names Flusher/Hijacker survival; Pusher now belongs).~~ done
     (both bullets, session 2)
