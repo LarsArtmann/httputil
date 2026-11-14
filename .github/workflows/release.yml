@@ -27,8 +27,9 @@ env:
   GO_VERSION: "1.27.x"
   GOLANGCI_LINT_VERSION: v2.15.0
   # setup-go's manifest lags new Go patches; pin the toolchain via Go
-  # itself so govulncheck scans a stdlib with current security fixes.
-  GOTOOLCHAIN: go1.27.1
+  # itself so govulncheck scans a stdlib with current security fixes
+  # (1.27.3 = the patch this release was validated against locally).
+  GOTOOLCHAIN: go1.27.3
 
 jobs:
   release:
