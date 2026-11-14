@@ -154,7 +154,7 @@ real slop, all self-caught:
    then walked into the SAME defect on b/2 because I didn't check placement
    immediately after the second prose call. Two extra repair rounds that a
    post-call grep would have collapsed into zero.
-3. **Shell-quoting mangle in b/1's hash verdict** (`done at`70d998a`` ,` ``94b9626`` — double backticks) from hand-built quoting in the prose spec
+3. **Shell-quoting mangle in b/1's hash verdict** (`done at` markers `70d998a` and `94b9626` — double backticks) from hand-built quoting in the prose spec
    argument. The f)-spec (printf with escapes) was clean; the prose call
    wasn't. Inconsistent tooling discipline in one session.
 4. **Wrong spec format first try** (`key:kind:value` lines vs the tool's

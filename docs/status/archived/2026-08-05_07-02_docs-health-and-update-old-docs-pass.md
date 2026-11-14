@@ -140,7 +140,7 @@ The `[Unreleased]` Changed block I added is one giant parenthesized run-on sente
 
 7. **The auto-commit daemon is still inferring commit messages from diffs.** My session work was split across 5 auto-commits (`980bcfb`, `fc9430a`, `405ca70`, `2fb8358`, `dab5dc3`) with inferred messages. The messages are roughly accurate this time, but the daemon also captured changes I did not author (AGENTS.md note, modularization HTMLs) into the same commit as my work. This bundling makes attribution impossible from `git log` alone.
 
-8. ~~**The 11MB `httputil.test` binary is committed in the repo root.** Pre-existing, but I noticed it in the initial `ls` and did not flag it. A committed test binary in the repo root is wrong — it should be `.gitignore`d and `trash`'d.~~ done (resolved — the binary no longer exists in the repo root (removed in a later session))
+8. ~~**The 11MB `httputil.test` binary is committed in the repo root.** Pre-existing, but I noticed it in the initial `ls` and did not flag it. A committed test binary in the repo root is wrong — it should be gitignored and deleted with `trash`.~~ done (resolved — the binary no longer exists in the repo root (removed in a later session))
 
 9. **The historical-report annotation tables are extremely verbose.** Each of the 9 recent files got a 40-80 row resolution table. Several rows repeat the same "Won't implement in v0.8.0. Deferred to v0.9.0." message. The update-old-docs skill says "Measure success by value added per annotation." Some of these tables could be 10 rows instead of 80.
 

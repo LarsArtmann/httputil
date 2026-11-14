@@ -176,7 +176,8 @@ func (r *Registry) Routes() []Route {
 
 // Handler returns the listing handler. It serves GET and HEAD (other methods
 // get 405 with an Allow header) and negotiates the representation from the
-// Accept request header: text/html renders a plain HTML table,
+// Accept request header (all Accept header lines combined, RFC 9110 § 5.3):
+// text/html renders a plain HTML table,
 // application/json (and */*, and absent Accept headers) render JSON. Every
 // request reads a fresh snapshot, so routes added after Handler was called
 // still appear.
@@ -189,6 +190,15 @@ func (r *Registry) Handler() http.Handler {
 // itself.
 func Register(mux *http.ServeMux, registry *Registry) error {
 	return registry.Handle(mux, DefaultPattern, registry.Handler(), listingSummary)
+}
+
+// combinedAccept joins all Accept header lines into one field value. RFC
+// 9110 § 5.3 lets a recipient combine multiple field lines of one name into a
+// comma-joined line without changing the semantics, so a client that splits
+// its media ranges across lines is negotiated exactly like one that sends a
+// single line.
+func combinedAccept(req *http.Request) string {
+	return strings.Join(req.Header.Values(headerAccept), ",")
 }
 
 // serveListing writes the negotiated listing representation.
@@ -205,7 +215,7 @@ func (r *Registry) serveListing(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Cache-Control", cacheControlNoStore)
 	w.Header().Add("Vary", headerAccept)
 
-	if negotiateRepresentation(req.Header.Get(headerAccept)) == representationHTML {
+	if negotiateRepresentation(combinedAccept(req)) == representationHTML {
 		w.Header().Set("Content-Type", contentTypeHTML)
 		w.WriteHeader(http.StatusOK)
 		writeCommitted(w, renderHTML(routes))

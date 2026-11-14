@@ -13,8 +13,9 @@
 //	err := routes.HandleFunc(mux, "GET /users/{id}", getUser, "Fetch one user")
 //	err = endpoints.Register(mux, routes) // mounts "GET /endpoints"
 //
-// The listing negotiates its representation from the Accept request header:
-// browsers (text/html) get a plain HTML table, API clients (application/json,
+// The listing negotiates its representation from the Accept request header
+// (multiple header lines are combined per RFC 9110 § 5.3): browsers
+// (text/html) get a plain HTML table, API clients (application/json,
 // */*, or no Accept header at all) get JSON. The two representations share one
 // URL, so the response carries Vary: Accept.
 //

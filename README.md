@@ -837,6 +837,8 @@ flowchart LR
 handler := Chain(mux, Decompression(cfg), MaxBodySize(1<<20))
 ```
 
+> **Security:** `MaxBodySize` wraps `http.MaxBytesReader`. Go < 1.27.4 ships GO-2026-6859 / CVE-2026-97054 (HTTP/1 crash from an unsynchronized `Connection: close` write in `MaxBytesReader` under concurrent body reads and header writes). Build on **go1.27.4+** when using `MaxBodySize`; this repo's CI pins enforce that for its own pipelines.
+
 **ETag** must be placed inside (after) `Compression` so it hashes the uncompressed body. If placed before `Compression`, the ETag would be computed over the compressed bytes — different content encodings on the wire would yield different ETags for the same logical resource, defeating conditional caching:
 
 ```go

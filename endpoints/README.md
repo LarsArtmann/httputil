@@ -76,7 +76,7 @@ Proactive negotiation (RFC 9110) between two representations:
 - `text/html` (and `text/*`) → HTML
 - `application/json` (and `application/*`, `*/*`, or no `Accept` header) → JSON
 
-Highest q-value wins; ties break toward JSON, the machine default — so browsers get the table and `curl` gets JSON from one URL. The response carries `Vary: Accept` (caches must not cross the two representations) and `Cache-Control: no-store` (a stale route listing after a redeploy is worse than a refetch). Unparseable Accept entries are skipped rather than rejected — the listing never answers 406, mirroring httputil's `Language` middleware posture.
+Highest q-value wins; ties break toward JSON, the machine default — so browsers get the table and `curl` gets JSON from one URL. Multiple `Accept` header lines are combined into one comma-joined field value (RFC 9110 § 5.3), so a client splitting its media ranges across lines is negotiated exactly like one that sends a single line. The response carries `Vary: Accept` (caches must not cross the two representations) and `Cache-Control: no-store` (a stale route listing after a redeploy is worse than a refetch). Unparseable Accept entries are skipped rather than rejected — the listing never answers 406, mirroring httputil's `Language` middleware posture.
 
 ## Concurrency
 

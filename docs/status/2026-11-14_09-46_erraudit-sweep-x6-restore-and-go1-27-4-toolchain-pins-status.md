@@ -94,7 +94,7 @@ Nothing this session did is irreversible, and no false claim was sent deliberate
 
 1. **Verify-before-claiming, even for trivialities.** `ls -la result` costs 1 second; an unverified "done" in a summary reads as a warranty. (verify-external-claims is framed for external claims; it applies to my own claims too.)
 2. **Test the artifact you ship.** A CI pin bump is a shipped change; a 60-second local `GOTOOLCHAIN=go1.27.4 go build ./...` smoke converts "should work" into "works".
-3. **Fix-on-sight discipline has a boundary I drew too broadly.** The living-doc F/spacing nit (FEATURES.md:214, "`Spec`s") rides the T6-blocked docs-gates row, but the owner's 2026-09-06 fix-on-sight permission covers trivial living-doc fixes independently of the blocked bulk-archive ruling. I deferred something that wasn't blocked.
+3. **Fix-on-sight discipline has a boundary I drew too broadly.** The living-doc F/spacing nit (FEATURES.md:214, the inline-code plural form) rides the T6-blocked docs-gates row, but the owner's 2026-09-06 fix-on-sight permission covers trivial living-doc fixes independently of the blocked bulk-archive ruling. I deferred something that wasn't blocked.
 4. **When re-deriving a ledger after a restore, measure the canonical lane, not just the real gates.** The `--max` lane is the documented canonical; I verified exit-0 gates and skipped the count that the AGENTS.md block says to re-derive per tool build.
 5. **Close the loop with the same lens the user opened it.** The user's command was a full pipeline run; the honest full-loop proof is a full re-run (or an explicit, stated reason why not — which this report now provides, but should have been in the session's own summary).
 6. **Split-brain audit: none created.** CHANGELOG + AGENTS.md both mention GO-2026-6859, but that is layering (change record vs. session context), not duplicated authority. TODO_LIST count drift (228/46 → 229/48) is staleness, being fixed in this session.
@@ -119,7 +119,7 @@ Brainstorm, impact-ordered; R = TODO_LIST candidate, O = owner-gated, U = upstre
 12. **[V] `buildflow format` once** — re-verify cached formatter verdicts under the drifted toolchain identity (the preflight's own fix hint).
 13. **[U] Rebuild/reinstall the BuildFlow binary** (5h13m stale) → `buildflow doctor` to confirm.
 14. **[V] Refresh the TODO_LIST docs-gates row counts** (228→229 findings, 46→48 reports) — done in-session alongside this report.
-15. **[V] Fix F/spacing in living docs** (FEATURES.md:214 `Spec`s + any other non-archived sites) — fix-on-sight class, NOT blocked by T6.
+15. **[V] Fix F/spacing in living docs** (FEATURES.md:214 inline-code plural + any other non-archived sites) — fix-on-sight class, NOT blocked by T6.
 16. **[O] docs-gates archive ritual** — 48 unarchived reports, ARCHIVE-OVERDUE; blocked on the T6 ruling (bulk-striking KEEP files).
 17. **[O] docs-gates annotate repair** — 229 findings (A/evidence struck-items-without-verdict, G/uniform cell-strike style, F/spacing); blocked/queued with the docs-health campaign row.
 18. **[O/U] erraudit upstream: stop emitting SuggestedFixes for load-bearing sentinels** (erraudit#10/#11 re-check) — unblocks removing the `.buildflow.yml` erraudit skip for good.

@@ -549,7 +549,7 @@ Steps execute only after the parent's gate opens.
 1. **OTEL demand source** — a specific consumer project or fleet posture? (Sets urgency; P2 proceeds regardless, but the guide's framing changes.)
 2. **`RecoveryConfig.OnPanic` additive hook acceptable in the frozen v1 line?** (P2.2 — shipped 2026-10-23 as additive public surface; awaiting sign-off, revertible in one commit.)
 3. **Correlation convention** — `X-Correlation-ID` echo + `correlation_id` baggage, and should RequestID seed from a valid traceparent? (P2.6 → B02.)
-4. **`httpspec.RunTracing` as new public API** (shipped 2026-10-23; not in the original gated list — it exists because handler-level `Spec`s cannot observe header passthrough or writer-interface preservation).
+4. **`httpspec.RunTracing` as new public API** (shipped 2026-10-23; not in the original gated list — it exists because handler-level `Spec` checks cannot observe header passthrough or writer-interface preservation).
 
 **Status 2026-10-23 17:28:** P0, P1, P2, and P3 are executed and verified; see `docs/status/2026-10-23_17-28_otel-tracing-p1-p3-execution-status.md`. Questions 2 and 4 remain open as post-hoc sign-offs (the code is additive and revertible); question 3 gates B02 only.
 

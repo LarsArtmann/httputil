@@ -462,6 +462,68 @@ func TestHandler_ExplicitJSONAccept_SelectsJSON(t *testing.T) {
 	}
 }
 
+func TestHandler_MultipleAcceptLines_SecondLineQValueSelectsHTML(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/endpoints", nil)
+	req.Header.Set("Accept", "application/json;q=0.5")
+	req.Header.Add("Accept", "text/html")
+
+	rec := httptest.NewRecorder()
+
+	NewRegistry().Handler().ServeHTTP(rec, req)
+
+	if ct := rec.Header().Get("Content-Type"); ct != contentTypeHTML {
+		t.Errorf(
+			"Content-Type = %q, want %q: the second Accept line's text/html (q=1) must beat the first line's application/json (q=0.5)",
+			ct,
+			contentTypeHTML,
+		)
+	}
+}
+
+func TestHandler_MultipleAcceptLines_LineOrderDoesNotChangeSelection(t *testing.T) {
+	t.Parallel()
+
+	newAcceptRequest := func(first, second string) *http.Request {
+		req := httptest.NewRequest(http.MethodGet, "/endpoints", nil)
+		req.Header.Set("Accept", first)
+		req.Header.Add("Accept", second)
+
+		return req
+	}
+
+	for _, lines := range [][2]string{{"application/json;q=0.5", "text/html"}, {"text/html", "application/json;q=0.5"}} {
+		rec := httptest.NewRecorder()
+
+		NewRegistry().Handler().ServeHTTP(rec, newAcceptRequest(lines[0], lines[1]))
+
+		if ct := rec.Header().Get("Content-Type"); ct != contentTypeHTML {
+			t.Errorf("Accept lines %q + %q: Content-Type = %q, want %q", lines[0], lines[1], ct, contentTypeHTML)
+		}
+	}
+}
+
+func TestHandler_MultipleAcceptLines_TieBreaksTowardJSON(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/endpoints", nil)
+	req.Header.Set("Accept", "text/html")
+	req.Header.Add("Accept", "application/json")
+
+	rec := httptest.NewRecorder()
+
+	NewRegistry().Handler().ServeHTTP(rec, req)
+
+	if ct := rec.Header().Get("Content-Type"); ct != contentTypeJSON {
+		t.Errorf(
+			"Content-Type = %q, want %q: equal q-values across combined Accept lines must keep the JSON tie-break",
+			ct,
+			contentTypeJSON,
+		)
+	}
+}
+
 func TestHandler_RespondsNoStoreAndVaryAcceptInBothRepresentations(t *testing.T) {
 	t.Parallel()
 

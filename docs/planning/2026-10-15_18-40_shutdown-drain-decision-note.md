@@ -10,7 +10,7 @@ _Created: 2026-10-15 18:40 CEST (pareto T23) · Sources: ROADMAP "Server shutdow
 
 ## The race, stated exactly
 
-`Serve` returns `http.ErrServerClosed` the moment the listener closes (early in `Shutdown`), so the goroutine flips `started` to **false** while the old `http.Server` may still be finishing in-flight handlers. A `Start()` issued in that window passes the CAS and binds a new listener on the now-free port. Two `http.Server`s are then live: the new one accepting, the old one finishing its tail (or, past a timed-out `Shutdown`, an unbounded stuck handler still writing). The public godoc currently promises "retrying the same Server after … `Shutdown()` is safe" — the code delivers restart-safety-with-a-tail-overlap, slightly weaker than documented.
+`Serve` returns `http.ErrServerClosed` the moment the listener closes (early in `Shutdown`), so the goroutine flips `started` to **false** while the old `http.Server` may still be finishing in-flight handlers. A `Start()` issued in that window passes the CAS and binds a new listener on the now-free port. Two `http.Server` instances are then live: the new one accepting, the old one finishing its tail (or, past a timed-out `Shutdown`, an unbounded stuck handler still writing). The public godoc currently promises "retrying the same Server after … `Shutdown()` is safe" — the code delivers restart-safety-with-a-tail-overlap, slightly weaker than documented.
 
 ## Option A — WaitGroup settlement (recommended)
 

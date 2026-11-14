@@ -13,8 +13,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `Connection: close` write in `http.MaxBytesReader` under concurrent body
   reads and header writes, is fixed in go1.27.4, and this library ships
   `http.MaxBytesReader` directly (`MaxBodySize` middleware). Consumers should
-  build on go1.27.4+; the nixpkgs-provided local toolchain moves with the next
-  flake nixpkgs input bump.
+  build on go1.27.4+ — the guidance also lives as a Security callout at the
+  `MaxBodySize` ordering section of the README; the nixpkgs-provided local
+  toolchain moves with the next flake nixpkgs input bump (go1.27.4 is not
+  packaged in nixpkgs yet, verified 2026-11-14).
+
+### Fixed
+
+- **The `endpoints` listing honors every `Accept` header line, not just the
+  first** — `serveListing` read the header with `Header.Get`, which returns
+  only the first field line, so a client splitting its media ranges across
+  multiple `Accept` lines (legal per RFC 9110) was negotiated on the first
+  line alone. All lines are now combined into one comma-joined field value
+  (`combinedAccept`) exactly as RFC 9110 § 5.3 describes, before the existing
+  q-value negotiation runs — so a second line can raise a representation's
+  weight, and the JSON tie-break behaves as if the client had sent one line.
+  Pinned by three `TestHandler_MultipleAcceptLines_*` tests, each verified to
+  fail under the old first-line-only behavior.
 
 ## [1.9.0] - 2026-11-14
 

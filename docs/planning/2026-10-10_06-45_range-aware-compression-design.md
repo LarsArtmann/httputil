@@ -28,7 +28,7 @@ hand-rolled interplay bug the consumer audit caught in the fleet.
 - **D3 additive/frozen-safe** — no config field, no signature change: the
   guard is unconditional. Consumers who want compressed full responses for
   range-bearing clients (a contradiction in terms) have no knob to preserve;
-  nobody in the surveyed fleet compresses `206`s on purpose.
+  nobody in the surveyed fleet compresses `206` responses on purpose.
 - **D4 tests** — passthrough test with a real byte-exact comparison, a
   control test proving compression still applies without `Range`, a fuzz
   seed with a `Range` header (oracle: passthrough identity), and a 206
