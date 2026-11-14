@@ -52,7 +52,7 @@ Plus `Chain()` and `Compose()` (bundle middlewares into one reusable `Middleware
 
 - `MiddlewareStack` collects named middleware with duplicate prevention and ordering validation (Recovery must be outermost when present). 14 well-known `Middleware*` constants (Recovery, Logging, RequestID, CORS, SecurityHeaders, Nonce, Compression, Decompression, Timeout, ClientIP, CSRF, ServerTiming, KeyedRateLimit, ETag).
 - `MiddlewareETag` intentionally survives the v1.1.0 adapter removal: it is the stack name key for composing `etag.New` (from `github.com/larsartmann/go-etag/server`) directly via `MiddlewareStack.Add`.
-- `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher support.
+- `DetectCapabilities()` inspects a ResponseWriter for Hijacker/Flusher/Pusher support.
 - `DefaultIncompressibleTypes()` returns the default content-type deny-list for Compression.
 
 ### Validate-at-Construction

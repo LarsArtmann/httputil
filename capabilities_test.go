@@ -19,6 +19,10 @@ func TestDetectCapabilitiesRecorderHasFlusherOnly(t *testing.T) {
 	if !caps.Flusher {
 		t.Error("expected Flusher=true for httptest.ResponseRecorder")
 	}
+
+	if caps.Pusher {
+		t.Error("expected Pusher=false for httptest.ResponseRecorder")
+	}
 }
 
 func TestDetectCapabilitiesReportsFalseForBasicWriter(t *testing.T) {
@@ -33,6 +37,10 @@ func TestDetectCapabilitiesReportsFalseForBasicWriter(t *testing.T) {
 
 	if caps.Flusher {
 		t.Error("expected Flusher=false for bare writer")
+	}
+
+	if caps.Pusher {
+		t.Error("expected Pusher=false for bare writer")
 	}
 }
 
@@ -49,6 +57,24 @@ func TestDetectCapabilitiesThroughResponseWrapper(t *testing.T) {
 
 	if !caps.Flusher {
 		t.Error("expected Flusher=true through responseWrapper")
+	}
+
+	if !caps.Pusher {
+		t.Error("expected Pusher=true through responseWrapper")
+	}
+}
+
+func TestDetectCapabilitiesReportsPusherForPushCapableWriter(t *testing.T) {
+	t.Parallel()
+
+	caps := DetectCapabilities(newPushRecorder())
+
+	if !caps.Pusher {
+		t.Error("expected Pusher=true for pushRecorder")
+	}
+
+	if caps.Hijacker {
+		t.Error("expected Hijacker=false for pushRecorder")
 	}
 }
 

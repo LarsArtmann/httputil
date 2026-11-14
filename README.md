@@ -631,7 +631,7 @@ Conditional-request outcomes have upstream classification guidance in [go-error-
 | `NewMiddlewareStack`              | `func() *MiddlewareStack`                                                              | Named middleware stack builder                                                |
 | `MiddlewareStack.Middleware()`    | `func() Middleware`                                                                    | Nest the whole stack as one middleware                                        |
 | `MiddlewareFunc.Then`             | `func(http.Handler) http.Handler`                                                      | Value-level chaining; nil wires a 500-stub handler                            |
-| `DetectCapabilities`              | `func(http.ResponseWriter) Capabilities`                                               | Report Hijacker/Flusher support                                               |
+| `DetectCapabilities`              | `func(http.ResponseWriter) Capabilities`                                               | Report Hijacker/Flusher/Pusher support                                        |
 | `RegisterErrorClassifications`    | `func()`                                                                               | Register stdlib error sentinels + templates                                   |
 | `NewServer`                       | `func(ServerConfig, http.Handler) (*Server, error)`                                    | Configurable HTTP server with timeouts                                        |
 | `NewServerListener`               | `func(net.Listener, ServerConfig, http.Handler) (*Server, error)`                      | Serve on a caller-bound listener (wrappers own the bind)                      |

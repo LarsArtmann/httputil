@@ -28,7 +28,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `CSRFConfig`             | Additive | New in v0.8.0                                             |
 | `CompressionConfig`      | Additive | `AbsentEncoding` added in v1.2.0 (default: identity)      |
 | `DecompressionConfig`    | Additive |                                                           |
-| `KeyedRateLimiterConfig` | Additive | New in v0.8.0                                             |
+| `KeyedRateLimiterConfig` | Additive | New in v0.8.0; `Now` clock-injection field added in v1.9.0 (issue #45) |
 | `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
 | `MetricsConfig`          | Additive |                                                           |
 | `NonceConfig`            | Additive | New in v0.10.0                                            |
@@ -36,7 +36,7 @@ This document enumerates every exported symbol and classifies its stability comm
 | `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
 | `SecurityHeadersConfig`  | Additive |                                                           |
 | `ServerConfig`           | Additive |                                                           |
-| `ResponseRecorder`       | Additive | Existing methods frozen; new methods may be added         |
+| `ResponseRecorder`       | Additive | Existing methods frozen; new methods may be added; `Push` added in v1.9.0 (issue #47) |
 
 ### Default Config Constructors (all Frozen at v1.0)
 
@@ -146,10 +146,10 @@ The gated alternative is additive:
 
 ### Capabilities (Frozen at v1.0)
 
-| Symbol               | Tier   |
-| -------------------- | ------ |
-| `DetectCapabilities` | Frozen |
-| `Capabilities`       | Frozen |
+| Symbol               | Tier     | Notes                                                                  |
+| -------------------- | -------- | ---------------------------------------------------------------------- |
+| `DetectCapabilities` | Frozen   |                                                                        |
+| `Capabilities`       | Additive | Frozen until v1.8.0; `Pusher` field added in v1.9.0 (issue #47)        |
 
 ### Rate Limiting (Frozen at v1.0)
 
@@ -276,8 +276,10 @@ The gated alternative is additive:
 | `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error                                                       |
 | `ErrCSRFInvalid`               | Frozen | CSRF sentinel                                                    |
 | `ErrCSRFConfig`                | Frozen | CSRF sentinel                                                    |
-| `ErrCSRFAttestationConflict`   | Frozen | Added in v1.0.0: CSRF origin-attestation contradiction rejection |
-| `RegisterErrorClassifications` | Frozen |                                                                  |
+| `ErrCSRFAttestationConflict`   | Frozen   | Added in v1.0.0: CSRF origin-attestation contradiction rejection |
+| `ErrCodePushUnsupported`       | Frozen   | Added in v1.9.0 (issue #47): writer lacks `http.Pusher`            |
+| `ErrCodePushFailed`            | Frozen   | Added in v1.9.0 (issue #47): delegated push failed                 |
+| `RegisterErrorClassifications` | Frozen   |                                                                  |
 
 ### Metrics (Frozen at v1.0)
 
@@ -316,6 +318,7 @@ The gated alternative is additive:
 | `ExpectHTML`                   | Additive | Added post-v0.10.0                                                                                                                                                                   |
 | `ExpectVaryContains`           | Additive | Added post-v0.10.0                                                                                                                                                                   |
 | `ExpectNotModifiedWithETag`    | Additive | Added post-v0.10.0                                                                                                                                                                   |
+| `ExpectNotModifiedDynamic`     | Additive | Added in v1.9.0 (issue #46): harvest-then-revalidate ETag check for content-hash servers                                                                                            |
 | `SpecName*` constants          | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`)                |
 | `CORSSpecs` / `RateLimitSpecs` | Frozen   | Pre-v1.0 opt-in spec bundles                                                                                                                                                         |
 | `PrivateNetworkSpecs`          | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec)                                                                                                                                         |
@@ -335,6 +338,7 @@ Released 2026-11-06 as `endpoints/v0.1.0` (`github.com/larsartmann/httputil/endp
 - **Post-1.0 minor versions:** May add new fields to "Additive" types, new exported functions, and new standard specs. No existing symbol signature changes.
 - **v1.1.0:** The APIs pre-declared for removal shipped deprecated and are gone: `RateLimit()`, `RateLimitConfig`, `DefaultRateLimitConfig`, `RateLimiter`, `TokenBucketLimiter`, `NewTokenBucketLimiter` (see [migrating-to-keyed-rate-limiter.md](migrating-to-keyed-rate-limiter.md)) and the `httputil.ETag()` adapter (use `etag.New` directly).
 - **v1.2.0 (next minor):** Four behavior changes within unchanged signatures: CSRF `TrustedOrigins` parsing is fail-closed all-or-nothing and `Validate` rejects entries that are not usable `scheme://host` origins; CSRF `SameSite=None` without `Secure` falls back to `Secure=true` at construction (`AllowInsecureSameSiteNone` opts out); the `http.ErrNoCookie`/`http.ErrNoLocation` classifications moved Transient → Rejection; and requests without an `Accept-Encoding` header are served uncompressed by default (`CompressionConfig.AbsentEncoding` opts back into the v1.1.x behavior). See [migrating-to-v1.2.md](migrating-to-v1.2.md).
+- **v1.9.0:** Two behavior changes within unchanged signatures: CSRF treats HTTP QUERY (RFC 10008) as spec-safe — token-less QUERY requests reach the handler instead of being challenged (a consumer who deliberately wants QUERY challenged re-adds a gate above `CSRFMiddleware`); and compression restores net/http's Content-Type sniffing — a handler that sets no Content-Type now gets one detected from the body (an explicit Content-Type is never overridden; body-less statuses stay bare). Additive surface in the same release: `Capabilities.Pusher`, `ResponseRecorder.Push`, `KeyedRateLimiterConfig.Now`, and `httpspec.ExpectNotModifiedDynamic`.
 - **Post-1.0 major versions (v2.0+):** Breaking changes permitted with migration guide.
 
 ## Mechanical Enforcement
