@@ -243,6 +243,10 @@ linters:
         - c
       ignore-type-assert-ok: true
     wrapcheck:
+      # v2.15.0 grew signature-based detection that flags the errorfamily
+      # clone methods themselves: With*/Wrap* return *errorfamily.Error —
+      # classified, wrapped errors, not unwrapped externals. The whole family
+      # is exempted for that reason.
       ignore-sigs:
         - .Errorf(
         - errors.New(
@@ -253,6 +257,10 @@ linters:
         - .WithMessage(
         - .WithMessagef(
         - .WithStack(
+        - .WithContext(
+        - .WithContextAny(
+        - .WithContextf(
+        - .WithCause(
   exclusions:
     generated: lax
     rules:

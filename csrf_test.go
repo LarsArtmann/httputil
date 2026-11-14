@@ -192,7 +192,8 @@ func TestConfigureNosurfHandler_QueryStillChallenged(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
-		t.Fatalf("low-level handler should challenge token-less QUERY (only CSRFMiddleware exempts it), got %d", rec.Code)
+		t.Fatalf("low-level handler should challenge token-less QUERY (only CSRFMiddleware exempts it), got %d",
+			rec.Code)
 	}
 }
 

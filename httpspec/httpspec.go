@@ -423,6 +423,9 @@ func ExpectNotModifiedWithETag(method, path, etag string) Check {
 // response with an empty body whose ETag echoes the harvested tag unchanged.
 // It fails when the first response carries no ETag at all. Use
 // [ExpectNotModifiedWithETag] instead when the tag is static and known.
+// Like the static variant, this check deliberately stays opt-in via
+// [WithExtraSpecs] rather than joining the standard suite: no default spec can
+// assume the handler serves ETag-validated resources, or which path would.
 func ExpectNotModifiedDynamic(method, path string) Check {
 	return func(handler http.Handler) Result {
 		first := serve(handler, mustRequest(method, path))

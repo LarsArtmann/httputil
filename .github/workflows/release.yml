@@ -19,14 +19,13 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # golangci-lint v2.14.0 is built with go1.27.0 and lints current 1.27.x
-  # stdlib export data (verified 2026-10-09 under a go1.27.2 toolchain),
-  # so no exact Go patch pin is needed. The workflow file is frozen at the
-  # tag: before tagging, confirm the pinned golangci version still reads
-  # the current Go patch's export data (RELEASE.md gate 6.6) — bump them
-  # together if a patch outpaces it again.
+  # golangci-lint v2.15.0 is built with go1.27.4 and lints current 1.27.x
+  # stdlib export data, so no exact Go patch pin is needed. The workflow file
+  # is frozen at the tag: before tagging, confirm the pinned golangci version
+  # still reads the current Go patch's export data (RELEASE.md gate 6.6) —
+  # bump them together if a patch outpaces it again.
   GO_VERSION: "1.27.x"
-  GOLANGCI_LINT_VERSION: v2.14.0
+  GOLANGCI_LINT_VERSION: v2.15.0
   # setup-go's manifest lags new Go patches; pin the toolchain via Go
   # itself so govulncheck scans a stdlib with current security fixes.
   GOTOOLCHAIN: go1.27.1
