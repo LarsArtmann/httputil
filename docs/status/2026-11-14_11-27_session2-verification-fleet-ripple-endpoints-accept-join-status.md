@@ -126,13 +126,13 @@ Impact-ordered; R = TODO_LIST candidate, O = owner-gated, U = upstream/other-rep
 16. **[R] endpoints fuzz corpus: add multi-line Accept seed entries** so the join behavior stays oracle-covered at handler level (currently only unit-probed).
 17. **[O] Push authority for go-etag `f8c9322` and GEF `98e9e93`** — the fleet bumps sit unpushed; their CI (incl. the new v2.15 pins) is unwatched.
 18. ~~[R] Check whether go-etag/GEF AGENTS.md conventions expect a pin-bump note** (CHANGELOG-only may be under-documented by their own rules).~~ done at b785f40
-19. **[V] `nix flake check --all-systems`** — today's run omitted aarch64-darwin/aarch64-linux; the fleet has mac members (AGENTS says safe, 2026-10-10 — re-confirm on the current lock).
+19. ~~`nix flake check --all-systems`~~ done at b785f40 (session 3: exit 0, all outputs/derivations evaluated across systems; nix reports the six checks as x86_64-scoped — message quirk, not a gap)
 20. **[O] The T6 ruling** — unchanged blocker for ~200 annotate findings + the archive ritual (now 49 reports).
 21. **[R] file-size-check owner verdict** (standing TODO row — 36 findings, policy-reject triage awaiting confirmation).
 22. ~~[V] Verify the OWNER's `952351a` doesn't collide with this session's files** (2 changed files — read-only curiosity, attribution hygiene).~~ done at b785f40
 23. **[D] dprint remote-plugin local wasm paths** (§f.27 carried) and **[D] shellcheck+vulnix in devShell** (§f.28) — unchanged.
 24. **[R] AGENTS.md size budget ruling** (standing row T7 — unchanged).
-25. **[V] Nightly-fuzz breadth under go1.27.4** — run the full local rotation once before tonight's scheduled run hits the new pin.
+25. ~~Nightly-fuzz breadth under go1.27.4 — run the full local rotation once before tonight's scheduled run hits the new pin~~ done at b785f40 (session 3: all 33 targets, 8s each, NONE failing)
 
 ## g) Questions I cannot figure out myself
 
