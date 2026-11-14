@@ -7,6 +7,7 @@
 ## Scope line — what this session verified vs. did NOT verify
 
 **VERIFIED by command this session** (exit status noted):
+
 - `erraudit lint ./... --max` (exit 2 = advisory findings, expected): ledger re-derived at **exactly 57** — 36 load-bearing + 17 hints + 3 `enforce_generic_return` (endpoints.go:111 + scripts/ ×2) + 1 `legacy_is`; matches the AGENTS "NEXT BUILD" line; stamped into AGENTS.md. (The local binary is newer than fa5575f — messages now say `//nolint:legacyerrors` — and the count held across the restore.)
 - `GOTOOLCHAIN=go1.27.4`: root build, root + httpspec race tests, server_timing race tests, endpoints race tests — ALL green; `GOTOOLCHAIN=go1.27.4 go version` → **go1.27.4** confirmed (the toolchain actually resolved, not silently ignored). §f.3 closed: the shipped CI pins compile-and-pass locally.
 - Fuzz smoke under go1.27.4: `FuzzParseAcceptLanguage`, 15s, ~1.3M execs, PASS (§f.31 by its own one-target definition).
@@ -22,6 +23,7 @@
 - Git forensics: daemon commit `e735984` = the prior session's report + TODO row (verified stat); owner's push = origin tip `952351a`; my two fleet daemon commits verified by file list.
 
 **NOT verified, and why:**
+
 - **Full `buildflow --build-mode=full` re-run** (§f.2 — the loop-closer from the originally-failed command) — NOT STARTED; I sequenced verification + the two actionable TODO rows ahead of it and the report request landed first.
 - **CI on the pushed head** (`952351a`) — the go1.27.4 pins' first live CI run; I cannot watch CI without push/CI access being exercised, and the run state is unknown to me.
 - **Mutation probe for go-error-family's four METHOD sigs** — only the package-level func sigs (`WrapRejection`/`WrapTransient`) were live-proven (examples failed without them). Root is green WITH the sigs; green-without is unproven (error.go:234's `.WithContext` is the only non-test method call site).
@@ -34,40 +36,40 @@
 
 ## a) FULLY DONE
 
-| Work | Evidence |
-| --- | --- |
-| erraudit `--max` ledger re-derived post-restore: 57 held exactly (36+17+3+1) | /tmp/erraudit-max.txt; AGENTS.md stamped "RE-CONFIRMED 2026-11-14" |
-| go1.27.4 CI-pin smoke: build + race tests across root/httpspec/server_timing/endpoints | ALL-GO1274-SMOKE-OK; `go version` → go1.27.4 |
-| Fuzz smoke under go1.27.4 (FuzzParseAcceptLanguage, 15s) | FUZZ-SMOKE-OK, ~1.3M execs |
-| govulncheck ×3: GO-2026-6859 measured present vs go1.27.3, nothing else | exit 3 ×3, "no other vulnerabilities" ×3, fixed-in 1.27.4 recorded |
-| nixpkgs-bump question resolved as externally blocked (evidence, not assumption) | `--refresh` no-op; go_1_27 = 1.27.3 at locked rev AND registry head; AGENTS note rewritten |
-| `nix flake check` — all 6 checks green on the current lock | flake-check-exit=0, "all checks passed" |
-| `./result` freshness converted from assumption to check | → /nix/store/…httputil-f2e8c93… |
-| v1.9.0 tag verified clean of the sweep commit | merge-base ancestry check |
-| **endpoints: multiple `Accept` header lines now combined (RFC 9110 § 5.3)** | `combinedAccept` in endpoints.go; `negotiateRepresentation(combinedAccept(req))` call site |
-| endpoints: 3 new standalone tests, each mutation-probed to FAIL under the old first-line-only behavior | `TestHandler_MultipleAcceptLines_{SecondLineQValueSelectsHTML,LineOrderDoesNotChangeSelection,TieBreaksTowardJSON}` |
-| endpoints doc sweep: README negotiation paragraph, package doc, Handler godoc | all mention the § 5.3 combining |
-| Root doc sweep: AGENTS.md endpoints paragraph, architecture-reference negotiate.go row + § 5.3 clause | grep-verified |
-| **Stale architecture-reference fix (found on sight): "No released tag yet" → released v0.1.0 + apidiff baseline** | arch-ref line 88 (was contradicting line 288 since 2026-11-06) |
-| CHANGELOG [Unreleased] `### Fixed` entry for the Accept-line join | written |
-| **go-etag fleet ripple complete**: +4 method sigs, pin v2.14.0→v2.15.0, GOTOOLCHAIN ×4 → go1.27.4, rationale comment updated, CHANGELOG entry | cue vet OK; lint ×5 modules green; build ×5; server/-scope mutation probe (6 findings → green) |
-| **go-error-family fleet ripple complete**: +6 sigs (4 methods + 2 package-level funcs), action pins v2.13.2→v2.15.0 ×10 sites, CHANGELOG entry | cue vet ×2 OK; lint green ×5 local modules; examples RED→GREEN proves the func sigs live |
-| library-policy audit verdict: nix-based CI, 0 call sites → nothing to port | ci.yml inspected (nix flake check/build steps only) |
-| FEATURES.md inline-code plural form → `Spec` checks fix-on-sight (§f.15, NOT T6-blocked) | FEATURES.md:214 |
-| Fleet git states documented: GEF `98e9e93`, go-etag `f8c9322` (daemon commits of my edits); owner push discovered | git log ×4 repos |
+| Work                                                                                                                                           | Evidence                                                                                                            |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| erraudit `--max` ledger re-derived post-restore: 57 held exactly (36+17+3+1)                                                                   | /tmp/erraudit-max.txt; AGENTS.md stamped "RE-CONFIRMED 2026-11-14"                                                  |
+| go1.27.4 CI-pin smoke: build + race tests across root/httpspec/server_timing/endpoints                                                         | ALL-GO1274-SMOKE-OK; `go version` → go1.27.4                                                                        |
+| Fuzz smoke under go1.27.4 (FuzzParseAcceptLanguage, 15s)                                                                                       | FUZZ-SMOKE-OK, ~1.3M execs                                                                                          |
+| govulncheck ×3: GO-2026-6859 measured present vs go1.27.3, nothing else                                                                        | exit 3 ×3, "no other vulnerabilities" ×3, fixed-in 1.27.4 recorded                                                  |
+| nixpkgs-bump question resolved as externally blocked (evidence, not assumption)                                                                | `--refresh` no-op; go_1_27 = 1.27.3 at locked rev AND registry head; AGENTS note rewritten                          |
+| `nix flake check` — all 6 checks green on the current lock                                                                                     | flake-check-exit=0, "all checks passed"                                                                             |
+| `./result` freshness converted from assumption to check                                                                                        | → /nix/store/…httputil-f2e8c93…                                                                                     |
+| v1.9.0 tag verified clean of the sweep commit                                                                                                  | merge-base ancestry check                                                                                           |
+| **endpoints: multiple `Accept` header lines now combined (RFC 9110 § 5.3)**                                                                    | `combinedAccept` in endpoints.go; `negotiateRepresentation(combinedAccept(req))` call site                          |
+| endpoints: 3 new standalone tests, each mutation-probed to FAIL under the old first-line-only behavior                                         | `TestHandler_MultipleAcceptLines_{SecondLineQValueSelectsHTML,LineOrderDoesNotChangeSelection,TieBreaksTowardJSON}` |
+| endpoints doc sweep: README negotiation paragraph, package doc, Handler godoc                                                                  | all mention the § 5.3 combining                                                                                     |
+| Root doc sweep: AGENTS.md endpoints paragraph, architecture-reference negotiate.go row + § 5.3 clause                                          | grep-verified                                                                                                       |
+| **Stale architecture-reference fix (found on sight): "No released tag yet" → released v0.1.0 + apidiff baseline**                              | arch-ref line 88 (was contradicting line 288 since 2026-11-06)                                                      |
+| CHANGELOG [Unreleased] `### Fixed` entry for the Accept-line join                                                                              | written                                                                                                             |
+| **go-etag fleet ripple complete**: +4 method sigs, pin v2.14.0→v2.15.0, GOTOOLCHAIN ×4 → go1.27.4, rationale comment updated, CHANGELOG entry  | cue vet OK; lint ×5 modules green; build ×5; server/-scope mutation probe (6 findings → green)                      |
+| **go-error-family fleet ripple complete**: +6 sigs (4 methods + 2 package-level funcs), action pins v2.13.2→v2.15.0 ×10 sites, CHANGELOG entry | cue vet ×2 OK; lint green ×5 local modules; examples RED→GREEN proves the func sigs live                            |
+| library-policy audit verdict: nix-based CI, 0 call sites → nothing to port                                                                     | ci.yml inspected (nix flake check/build steps only)                                                                 |
+| FEATURES.md inline-code plural form → `Spec` checks fix-on-sight (§f.15, NOT T6-blocked)                                                       | FEATURES.md:214                                                                                                     |
+| Fleet git states documented: GEF `98e9e93`, go-etag `f8c9322` (daemon commits of my edits); owner push discovered                              | git log ×4 repos                                                                                                    |
 
 ## b) PARTIALLY DONE
 
-| Work | Done | Missing |
-| --- | --- | --- |
-| Fleet lint-pin ripple (TODO row) | go-etag + go-error-family shipped and verified | library-policy = nix-managed lint (no workflow pin exists — row scope narrows to "no action"); "other errorfamily consumers" in ~/projects not yet enumerated |
-| Fleet GOTOOLCHAIN audit (§f.22) | go-etag's 4 pins bumped to go1.27.4 | GEF and library-policy have NO GOTOOLCHAIN pins (nothing to bump — verdict recorded); non-wave-1 repos not audited |
-| Session harvest | CHANGELOG/AGENTS/arch-ref/features updated in-tree | TODO_LIST rows not struck/updated (Accept row is done; ripple row narrowed); "Updated:" header not refreshed; report annotations not applied |
-| httputil session tail | tree builds (flake check dirty build) | 6 files uncommitted (daemon pending); `faed81e`+`9eff8df` unpushed; pre-sweep re-run pending; CI unwatched |
-| go-error-family sig verification | func sigs live-proven via examples RED→GREEN | method sigs not mutation-probed; git/postgres submodules not locally runnable |
-| BuildFlow binary freshness | rebuild observed running | never re-checked; `--version` returns "dev" so the AGENTS freshness check can't apply as written |
-| Nightly-fuzz readiness | 1 target green under go1.27.4 | full rotation untested locally |
-| Owner push of the restore commits | 3 commits + owner's `952351a` on origin | CI state on that head unknown; my 2 new commits not yet pushed |
+| Work                              | Done                                               | Missing                                                                                                                                                       |
+| --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fleet lint-pin ripple (TODO row)  | go-etag + go-error-family shipped and verified     | library-policy = nix-managed lint (no workflow pin exists — row scope narrows to "no action"); "other errorfamily consumers" in ~/projects not yet enumerated |
+| Fleet GOTOOLCHAIN audit (§f.22)   | go-etag's 4 pins bumped to go1.27.4                | GEF and library-policy have NO GOTOOLCHAIN pins (nothing to bump — verdict recorded); non-wave-1 repos not audited                                            |
+| Session harvest                   | CHANGELOG/AGENTS/arch-ref/features updated in-tree | TODO_LIST rows not struck/updated (Accept row is done; ripple row narrowed); "Updated:" header not refreshed; report annotations not applied                  |
+| httputil session tail             | tree builds (flake check dirty build)              | 6 files uncommitted (daemon pending); `faed81e`+`9eff8df` unpushed; pre-sweep re-run pending; CI unwatched                                                    |
+| go-error-family sig verification  | func sigs live-proven via examples RED→GREEN       | method sigs not mutation-probed; git/postgres submodules not locally runnable                                                                                 |
+| BuildFlow binary freshness        | rebuild observed running                           | never re-checked; `--version` returns "dev" so the AGENTS freshness check can't apply as written                                                              |
+| Nightly-fuzz readiness            | 1 target green under go1.27.4                      | full rotation untested locally                                                                                                                                |
+| Owner push of the restore commits | 3 commits + owner's `952351a` on origin            | CI state on that head unknown; my 2 new commits not yet pushed                                                                                                |
 
 ## c) NOT STARTED
 
@@ -140,4 +142,4 @@ Impact-ordered; R = TODO_LIST candidate, O = owner-gated, U = upstream/other-rep
 
 ---
 
-*Historical record — a)/g) sections and the timeline are not struck later; follow-ups live in TODO_LIST/ROADMAP via HARVEST.*
+_Historical record — a)/g) sections and the timeline are not struck later; follow-ups live in TODO_LIST/ROADMAP via HARVEST._

@@ -6,6 +6,7 @@
 ## Scope line — what this report verified vs. did NOT verify
 
 **VERIFIED by command this session** (all exit 0):
+
 - `./scripts/pre-sweep-check.sh` — build + vet + sentinel guards + q-value corpus across all 3 modules (run twice: after restore, and again at session tail)
 - `go test -race ./...` root + httpspec + server_timing + endpoints
 - `golangci-lint run` × 3 modules — 0 issues each
@@ -17,11 +18,12 @@
 - `docs-gates annotate|cadence` runs (diagnostic, red — see below); TODO_LIST row located
 
 **NOT verified, and why:**
+
 - **CI green on the fix commits** — commits are unpushed (`master...origin/master [ahead 2]`); pushing is owner-gated
 - **Full `buildflow --build-mode=full` re-run** — only the two failed step classes were re-run; the end-to-end verdict (incl. findings-gate exit shape) is untested
 - **`nix flake check`** (the 6 checks) — not run; `nix build .#` covers the default package only
 - **Local go1.27.4 compile** — the shipped CI `GOTOOLCHAIN` pins were never exercised locally; validation is deferred to CI's first run
-- **`./result` symlink freshness** — `nix build .#` writes `./result` by default, but I never inspected the link; the vulnix "stale target" warning is *assumed* fixed
+- **`./result` symlink freshness** — `nix build .#` writes `./result` by default, but I never inspected the link; the vulnix "stale target" warning is _assumed_ fixed
 - **Timing-regression attribution** — I asserted "contention with the parallel run" without measuring; `buildflow timings --regressions` was not run
 - **`erraudit lint ./... --max` ledger count** — not re-derived after the restore (canonical lane; expected back at the documented 57)
 - **v1.9.0 tag tree state** — tag predates the sweep commit in log order (0e62158/48b8771 < 850b3e5) but I did not verify the tagged tree compiles
@@ -41,32 +43,32 @@ The failed run was **recurrence ×6 of the documented erraudit sweep class** (AG
 
 ## a) FULLY DONE
 
-| Work | Evidence |
-| --- | --- |
-| All 17 sentinel declarations restored to concrete `*errorfamily.Error` (9 files) | sentinel guards ok ×3 modules; compile green; diff = 17+/17− |
-| `.buildflow.yml` skip_steps stopgap restored (`go-auto-upgrade`, `erraudit`) | `diff` vs `850b3e5^:.buildflow.yml` = byte-identical |
-| `go test -race` green across root + httpspec + server_timing + endpoints | ALL-MODULES-RACE-OK |
-| `golangci-lint run` 0 issues × 3 modules | exit 0 ×3 |
-| erraudit REAL gates green (legacy_as, stdlib_constructor + enforce flag) | exit 0 |
-| apidiff vs all 3 baselines clean (ErrCSRFConfig/ErrCSRFInvalid type-change findings gone) | exit 0, no output |
-| cue workflow-policy + YAML validation of the 3 edited workflows | exit 0 ×4 |
-| `nix build .#` green; `./result` written by the build | exit 0 |
-| Re-run of the failed step classes (`test-race`, `govalid-generate`) | exit 0 ×2 |
-| GO-2026-6859 CI exposure closed (3 workflow pins → go1.27.4) | grep GOTOOLCHAIN: all go1.27.4 |
-| CHANGELOG [Unreleased] Security entry; AGENTS.md RECURRENCE ×6 + toolchain note | committed in f2e8c93 |
-| docs-gates reds triaged → confirmed already tracked, T6-blocked, not duplicated | TODO_LIST row found |
+| Work                                                                                      | Evidence                                                     |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| All 17 sentinel declarations restored to concrete `*errorfamily.Error` (9 files)          | sentinel guards ok ×3 modules; compile green; diff = 17+/17− |
+| `.buildflow.yml` skip_steps stopgap restored (`go-auto-upgrade`, `erraudit`)              | `diff` vs `850b3e5^:.buildflow.yml` = byte-identical         |
+| `go test -race` green across root + httpspec + server_timing + endpoints                  | ALL-MODULES-RACE-OK                                          |
+| `golangci-lint run` 0 issues × 3 modules                                                  | exit 0 ×3                                                    |
+| erraudit REAL gates green (legacy_as, stdlib_constructor + enforce flag)                  | exit 0                                                       |
+| apidiff vs all 3 baselines clean (ErrCSRFConfig/ErrCSRFInvalid type-change findings gone) | exit 0, no output                                            |
+| cue workflow-policy + YAML validation of the 3 edited workflows                           | exit 0 ×4                                                    |
+| `nix build .#` green; `./result` written by the build                                     | exit 0                                                       |
+| Re-run of the failed step classes (`test-race`, `govalid-generate`)                       | exit 0 ×2                                                    |
+| GO-2026-6859 CI exposure closed (3 workflow pins → go1.27.4)                              | grep GOTOOLCHAIN: all go1.27.4                               |
+| CHANGELOG [Unreleased] Security entry; AGENTS.md RECURRENCE ×6 + toolchain note           | committed in f2e8c93                                         |
+| docs-gates reds triaged → confirmed already tracked, T6-blocked, not duplicated           | TODO_LIST row found                                          |
 
 ## b) PARTIALLY DONE
 
-| Work | Done | Missing |
-| --- | --- | --- |
-| GO-2026-6859 fix | CI pins (the repo-owned surface) at go1.27.4; CHANGELOG guidance recorded | Local/flake toolchain still go1.27.3 (nixpkgs input from 2026-11-11 predates the fix landing in nixpkgs); consumer-facing README note undecided |
-| Pipeline failure repair | Both failed step classes re-run green individually | Full `--build-mode=full` re-run not performed; findings-gate exit shape unconfirmed end-to-end |
-| nix failure diagnosis | Root cause identified: the broken tree, not vendorHashes (build went green post-restore with zero hash edits) | Hypothesis unverified for `nix-build-verify` and the 80% `nix-hash-fix` stat specifically; `nix flake check` not run |
-| Timing-regression verdict | Noted as likely contention artifacts from the parallel buildflow | **Assertion, not measurement** — `buildflow timings --regressions` never run; the run also admitted "1 lost to write failures", so the analytics themselves are suspect |
-| vulnix staleness | Build refreshed `./result` | Symlink freshness never inspected |
-| docs-gates | Classes decomposed (A/evidence, G/uniform, F/spacing; cadence ARCHIVE-OVERDUE 48 reports); existing TODO row confirmed current | Count drift (row says 228 findings / 46 reports; now 229 / 48) — one-line row refresh queued in this session |
-| BuildFlow binary freshness | Warning acknowledged; peer's ssh suggested a rebuild | `buildflow --version` vs BuildFlow HEAD never re-checked |
+| Work                       | Done                                                                                                                           | Missing                                                                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GO-2026-6859 fix           | CI pins (the repo-owned surface) at go1.27.4; CHANGELOG guidance recorded                                                      | Local/flake toolchain still go1.27.3 (nixpkgs input from 2026-11-11 predates the fix landing in nixpkgs); consumer-facing README note undecided                         |
+| Pipeline failure repair    | Both failed step classes re-run green individually                                                                             | Full `--build-mode=full` re-run not performed; findings-gate exit shape unconfirmed end-to-end                                                                          |
+| nix failure diagnosis      | Root cause identified: the broken tree, not vendorHashes (build went green post-restore with zero hash edits)                  | Hypothesis unverified for `nix-build-verify` and the 80% `nix-hash-fix` stat specifically; `nix flake check` not run                                                    |
+| Timing-regression verdict  | Noted as likely contention artifacts from the parallel buildflow                                                               | **Assertion, not measurement** — `buildflow timings --regressions` never run; the run also admitted "1 lost to write failures", so the analytics themselves are suspect |
+| vulnix staleness           | Build refreshed `./result`                                                                                                     | Symlink freshness never inspected                                                                                                                                       |
+| docs-gates                 | Classes decomposed (A/evidence, G/uniform, F/spacing; cadence ARCHIVE-OVERDUE 48 reports); existing TODO row confirmed current | Count drift (row says 228 findings / 46 reports; now 229 / 48) — one-line row refresh queued in this session                                                            |
+| BuildFlow binary freshness | Warning acknowledged; peer's ssh suggested a rebuild                                                                           | `buildflow --version` vs BuildFlow HEAD never re-checked                                                                                                                |
 
 ## c) NOT STARTED
 
@@ -88,7 +90,7 @@ Nothing this session did is irreversible, and no false claim was sent deliberate
 1. **"`./result` refreshed" was stated as fact without inspecting the symlink.** Near-certain from `nix build` semantics, but "near-certain" is not "verified" — this is exactly the assert-without-measure habit §e targets.
 2. **Timing "regressions" were attributed to contention on vibes, not data.** The same run admitted dropped timing records and a stale-binary baseline; I owned none of that uncertainty in the moment. The +4900% discover-go-modules numbers may equally be a corrupted-baseline artifact.
 3. ~~The shipped CI pins (go1.27.4) were never compiled against locally.** If go1.27.4 had any golangci-lint/GOTOOLCHAIN interaction surprise, the discovery would happen in CI, not here — a cheap local smoke was skipped.~~ done at b785f40
-4. ~~Inherited, pre-existing, and worse than anything I did:** master sat red AND pushed for ~2.5 hours (850b3e5 06:31 → restore swept ~09:01) with the break's own commit message predicting the break. Six recurrences of the same class means the *systemic* stopgaps (commit-time guard, daemon pre-sweep build gate proposal from 2026-10-15) remain unlanded — the "commit everything without fixing" override class beat the compile gate for the sixth time.~~ done at b785f40
+4. ~~Inherited, pre-existing, and worse than anything I did:** master sat red AND pushed for ~2.5 hours (850b3e5 06:31 → restore swept ~09:01) with the break's own commit message predicting the break. Six recurrences of the same class means the _systemic_ stopgaps (commit-time guard, daemon pre-sweep build gate proposal from 2026-10-15) remain unlanded — the "commit everything without fixing" override class beat the compile gate for the sixth time.~~ done at b785f40
 
 ## e) WHAT WE SHOULD IMPROVE
 
@@ -154,4 +156,4 @@ Brainstorm, impact-ordered; R = TODO_LIST candidate, O = owner-gated, U = upstre
 
 ---
 
-*Historical record — a)/g) sections and the timeline are not struck later; follow-ups live in TODO_LIST/ROADMAP via HARVEST.*
+_Historical record — a)/g) sections and the timeline are not struck later; follow-ups live in TODO_LIST/ROADMAP via HARVEST._
