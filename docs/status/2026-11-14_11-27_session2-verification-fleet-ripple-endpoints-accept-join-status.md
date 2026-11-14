@@ -90,7 +90,7 @@ Nothing this session did is irreversible, and every claim above carries its comm
 3. **Two edit-tool round-trips wasted on read-before-edit and same-string slips** (GEF `.golangci.yml`, go-etag CHANGELOG) — no damage, but sloppy sequencing under momentum.
 4. **The dangled library-policy thread**: the audit was interrupted mid-grep and sat unresolved until this report forced the re-run. Small, but the pattern (start a thread, switch context, reconstruct later) is the exact discipline the session-tail rules warn about.
 5. **Inherited and still open: the full buildflow re-run** — the user's original loop-closer from the failed `--fix --build-mode=full` run remains unexecuted after two sessions. I prioritized verification and TODO-row work; defensible, but the loop is still open and I own that.
-6. **arch-ref:88's stale "No released tag yet" survived 8 days** (since the 2026-11-06 release) and was found by accident while sweeping for THIS change — the docs-gates audit-all red exists precisely for this class and stays blocked on T6.
+6. ~~arch-ref:88's stale "No released tag yet" survived 8 days** (since the 2026-11-06 release) and was found by accident while sweeping for THIS change — the docs-gates audit-all red exists precisely for this class and stays blocked on T6.~~ done at b785f40
 
 ## e) WHAT WE SHOULD IMPROVE
 
@@ -99,8 +99,8 @@ Nothing this session did is irreversible, and every claim above carries its comm
 3. **Collect background jobs before writing any summary.** The flake check had been sitting completed for ~15 minutes uncollected; had it failed, the whole nix section of this report would have been wrong. Check → then write.
 4. **Close dangled threads in the same session** — or record them explicitly as open in the notes the next reader will see (this report's §c now does that for the buildflow run).
 5. **Fleet edits deserve per-repo AGENTS.md notes where those repos keep such context** — I wrote CHANGELOGs only; go-etag/GEF AGENTS conventions weren't checked for pin-bump note expectations.
-6. **The nixpkgs go1.27.4 block is fleet-wide** — every repo's LOCAL toolchain stalls at go1.27.3 until upstream packages it; a one-line standing note (fleet-level) prevents every repo re-discovering the no-op `nix flake update` independently.
-7. **What worked, keep doing:** verify-before-claiming (ledger count, toolchain version, symlink target), mutation-probes in both directions, snapshot discipline, and leaving owner-gated rows strictly alone despite "keep going until done".
+6. ~~The nixpkgs go1.27.4 block is fleet-wide** — every repo's LOCAL toolchain stalls at go1.27.3 until upstream packages it; a one-line standing note (fleet-level) prevents every repo re-discovering the no-op `nix flake update` independently.~~ done at b785f40
+7. ~~What worked, keep doing:** verify-before-claiming (ledger count, toolchain version, symlink target), mutation-probes in both directions, snapshot discipline, and leaving owner-gated rows strictly alone despite "keep going until done".~~ done at b785f40
 
 ## f) Up to 50 things we should get done next
 
@@ -111,11 +111,11 @@ Impact-ordered; R = TODO_LIST candidate, O = owner-gated, U = upstream/other-rep
 3. **[V] Push `faed81e`+`9eff8df` after harvest** (this session's ledger stamps + endpoints fix) — owner-gated, but the tail discipline is open until pushed.
 4. **[R] TODO_LIST harvest**: strike the Accept-headers row (done, in CHANGELOG), narrow the lint-ripple row (wave-1 complete except library-policy=no-action; remaining scope = other consumers), refresh docs-gates counts (49 unarchived now), refresh the "Updated:" header.
 5. **[R] Annotate this report + the 09:46 report** per cadence (strike completed §f items with done-at markers).
-6. **[U] meta inventory**: research how project-meta represents sub-modules (go-cqrs-lite precedent), then record `endpoints`.
-7. **[U] Enumerate remaining errorfamily consumers** in ~/projects (grep go.mod files) and port sigs where call sites + lint pins co-exist.
-8. **[V] Mutation-probe go-error-family's four method sigs** (error.go:234) for probe-parity with go-etag.
+6. ~~[U] meta inventory**: research how project-meta represents sub-modules (go-cqrs-lite precedent), then record `endpoints`.~~ done at b785f40
+7. ~~[U] Enumerate remaining errorfamily consumers** in ~/projects (grep go.mod files) and port sigs where call sites + lint pins co-exist.~~ done at b785f40
+8. ~~[V] Mutation-probe go-error-family's four method sigs** (error.go:234) for probe-parity with go-etag.~~ done at b785f40
 9. **[V] Re-run `scripts/pre-sweep-check.sh`** after the daemon sweeps this session's files.
-10. **[R] README MaxBytesReader consumer note** — placement decision (§f.24): README security note vs CHANGELOG-only guidance.
+10. ~~[R] README MaxBytesReader consumer note** — placement decision (§f.24): README security note vs CHANGELOG-only guidance.~~ done at b785f40
 11. **[D] nixpkgs re-run when upstream ships go1.27.4** — `nix flake update nixpkgs` (expect a real rev change) → `buildflow -s nix-hash-fix --fix`; AGENTS note carries the steps.
 12. **[V] `buildflow timings --regressions`** on the next green run (§f.10 — was the +N% contention or corruption?).
 13. **[U] Verify the BuildFlow binary rebuild** that was observed running (freshness verdict post-rebuild).
@@ -123,11 +123,11 @@ Impact-ordered; R = TODO_LIST candidate, O = owner-gated, U = upstream/other-rep
 15. **[V] Confirm `faed81e`/`9eff8df` file lists match exactly this session's edits** (attribution vs the owner's `952351a` — never cite heuristic commits externally either way).
 16. **[R] endpoints fuzz corpus: add multi-line Accept seed entries** so the join behavior stays oracle-covered at handler level (currently only unit-probed).
 17. **[O] Push authority for go-etag `f8c9322` and GEF `98e9e93`** — the fleet bumps sit unpushed; their CI (incl. the new v2.15 pins) is unwatched.
-18. **[R] Check whether go-etag/GEF AGENTS.md conventions expect a pin-bump note** (CHANGELOG-only may be under-documented by their own rules).
+18. ~~[R] Check whether go-etag/GEF AGENTS.md conventions expect a pin-bump note** (CHANGELOG-only may be under-documented by their own rules).~~ done at b785f40
 19. **[V] `nix flake check --all-systems`** — today's run omitted aarch64-darwin/aarch64-linux; the fleet has mac members (AGENTS says safe, 2026-10-10 — re-confirm on the current lock).
 20. **[O] The T6 ruling** — unchanged blocker for ~200 annotate findings + the archive ritual (now 49 reports).
 21. **[R] file-size-check owner verdict** (standing TODO row — 36 findings, policy-reject triage awaiting confirmation).
-22. **[V] Verify the OWNER's `952351a` doesn't collide with this session's files** (2 changed files — read-only curiosity, attribution hygiene).
+22. ~~[V] Verify the OWNER's `952351a` doesn't collide with this session's files** (2 changed files — read-only curiosity, attribution hygiene).~~ done at b785f40
 23. **[D] dprint remote-plugin local wasm paths** (§f.27 carried) and **[D] shellcheck+vulnix in devShell** (§f.28) — unchanged.
 24. **[R] AGENTS.md size budget ruling** (standing row T7 — unchanged).
 25. **[V] Nightly-fuzz breadth under go1.27.4** — run the full local rotation once before tonight's scheduled run hits the new pin.
