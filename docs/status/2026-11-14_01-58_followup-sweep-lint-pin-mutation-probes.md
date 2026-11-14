@@ -182,8 +182,8 @@ Nothing shipped broken; all failures were caught at the tool boundary and fixed 
 13. ~~GOTOOLCHAIN pin decision (e3/g2) at the release cut.~~ done (bumped go1.27.1 → go1.27.3
     in release.yml — the pin's own comment demands current security fixes; commit 80947ff)
 14. ~~Check tonight's nightly-fuzz run green (existing TODO row).~~ done (8 consecutive green
-    2026-11-06..11-13 incl. all endpoints rotations; the TODO row closed on that evidence; the
-    11-14 03:03Z run spot-checked at session tail)
+    2026-11-06..11-13 incl. all endpoints rotations closed the TODO row; the 11-14 04:03 CET run
+    fires after this session — the rolling-issue mechanism watches continuity)
 15. ~~Session tail: `git log origin/master..master` empty, CI green on the exact head, tree
     clean, AGENTS lessons (e.g. the §f.16 lesson) recorded.~~ done (see the session-3 report;
     AGENTS gained the Next-Up List Hygiene section and the benchmark-attribution rule)
