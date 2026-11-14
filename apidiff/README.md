@@ -6,9 +6,9 @@ of every exported package of one module at the latest released tag.
 
 | File                       | Module                                          | Generated at               |
 | -------------------------- | ----------------------------------------------- | -------------------------- |
-| `httputil.export.zip`      | `github.com/larsartmann/httputil`               | tag `v1.7.0`               |
-| `server_timing.export.zip` | `github.com/larsartmann/httputil/server_timing` | tag `server_timing/v1.0.3` |
-| `endpoints.export.zip`     | `github.com/larsartmann/httputil/endpoints`     | tag `endpoints/v0.1.0`     |
+| `httputil.export.zip`      | `github.com/larsartmann/httputil`               | tag `v1.9.0`               |
+| `server_timing.export.zip` | `github.com/larsartmann/httputil/server_timing` | tag `v1.9.0` (coordinated) |
+| `endpoints.export.zip`     | `github.com/larsartmann/httputil/endpoints`     | tag `v1.9.0` (coordinated) |
 
 ## The gate
 
@@ -34,7 +34,7 @@ commit and land them in the same release push, so the floor always equals
 the newest tag:
 
 ```bash
-git worktree add /tmp/apidiff-root v1.8.0   # the new tag
+git worktree add /tmp/apidiff-root v1.9.0   # the new tag
 cd /tmp/apidiff-root && GOWORK=off go run $APIDIFF -m -w <repo>/apidiff/httputil.export.zip .
 cd /tmp/apidiff-root/server_timing && GOWORK=off go run $APIDIFF -m -w <repo>/apidiff/server_timing.export.zip .
 cd /tmp/apidiff-root/endpoints && GOWORK=off go run $APIDIFF -m -w <repo>/apidiff/endpoints.export.zip .
