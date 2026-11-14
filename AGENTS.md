@@ -121,6 +121,15 @@ scripts/pre-sweep-check.sh
 # time and cannot stop a fix step that runs before them;
 # scripts/pre-sweep-check.sh stays the stopgap for the AGENT actor
 # (072e6db^ restore kept that commit's legitimate go.mod/flake.lock bumps).
+# RECURRENCE ×6 (2026-11-14): a fleet-sweep actor applied all 17 hints AND
+# deleted .buildflow.yml in one owner-instructed commit (850b3e5, message
+# records the warning but obeyed "commit everything without fixing"), leaving
+# master red AND pushed; buildflow full then failed test-race + govalid ×2 on
+# the compile break. Restored the 17 declarations (sed + nix fmt) and the yml
+# verbatim; guards + lint + -race green. LESSON: "commit everything" overrides
+# MUST NOT outrank the compile gate — the sweep commit message itself carries
+# the warning; if a requested state compile-breaks, commit it but flag the
+# restore as the immediate next action, do not leave the tree red silently.
 # MECHANICAL GUARDS (all three modules):
 # `sentinels_type_test.go` parses the package and fails any err*/Err* var
 # declared with an explicit `error` type (2026-10-23, commit 9aa4178; extended
@@ -206,7 +215,7 @@ cue vet -d '#CIWorkflow' ../cue-policy .github/workflows/ci.yml
 cue vet -d '#CIWorkflow' ../cue-policy .github/workflows/nightly-fuzz.yml
 ```
 
-**Go 1.27 notes (changelog review 2026-10-09; json/v2 gotcha added 2026-10-15):** json/v2 is standard (the erraudit flag prefix was dropped); **`json.Marshal` now REJECTS invalid UTF-8 where v1 coerced to U+FFFD** — version-semantic (depends on the consuming module's `go` directive), bit the `FuzzCSRFTokenHTMLFormatters` smoke run (`CSRFTokenHXHeaders` fails closed to `""`); every `json.Marshal` over externally-influenced strings needs a verdict (the 2026-10-15 fleet audit lives in docs/status/2026-10-15_08-20_jsonv2-marshal-fleet-audit.md); vet's new printf `%w`-pointer check is clean here; the gofmt alignment change caused no drift; compress/flate output changed (round-trip fuzz invariants are robust to it); net/http gained `Server.MaxHeaderValueCount` (NOT reachable through the `Server` wrapper — `ServerConfig` exposes no raw-server override; documented as a pass-through boundary in README).
+**Go 1.27 notes (changelog review 2026-10-09; json/v2 gotcha added 2026-10-15):** json/v2 is standard (the erraudit flag prefix was dropped); **`json.Marshal` now REJECTS invalid UTF-8 where v1 coerced to U+FFFD** — version-semantic (depends on the consuming module's `go` directive), bit the `FuzzCSRFTokenHTMLFormatters` smoke run (`CSRFTokenHXHeaders` fails closed to `""`); every `json.Marshal` over externally-influenced strings needs a verdict (the 2026-10-15 fleet audit lives in docs/status/2026-10-15_08-20_jsonv2-marshal-fleet-audit.md); vet's new printf `%w`-pointer check is clean here; the gofmt alignment change caused no drift; compress/flate output changed (round-trip fuzz invariants are robust to it); net/http gained `Server.MaxHeaderValueCount` (NOT reachable through the `Server` wrapper — `ServerConfig` exposes no raw-server override; documented as a pass-through boundary in README). **Toolchain security note (2026-11-14):** all three workflow `GOTOOLCHAIN` pins moved to go1.27.4 for GO-2026-6859 / CVE-2026-97054 (HTTP/1 crash via MaxBytesReader header race — this repo ships `http.MaxBytesReader` at maxbodysize.go:66); the local nixpkgs-provided toolchain still reads go1.27.3 until the flake's nixpkgs input is bumped (deferred while a parallel `nix-hash-fix` run owned the nix lane — re-run `buildflow -s nix-hash-fix --fix` after `nix flake update nixpkgs`).
 
 **`go test -count=1` does NOT detect data races.** Only `go test -race` catches shared-state access between goroutines. After writing or modifying ANY test with `t.Parallel()`, shared fixtures, or closures over mutable state, run `go test -race -count=10 ./...` (a 2026-08-05 race passed `count=1` clean but failed 60% of `-race` runs — `cors_ratelimit_specs_test.go:138`).
 

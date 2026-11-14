@@ -28,8 +28,8 @@ env:
   GOLANGCI_LINT_VERSION: v2.15.0
   # setup-go's manifest lags new Go patches; pin the toolchain via Go
   # itself so govulncheck scans a stdlib with current security fixes
-  # (1.27.3 = the patch this release was validated against locally).
-  GOTOOLCHAIN: go1.27.3
+  # (1.27.4 = GO-2026-6859 / CVE-2026-97054 fix, in lockstep with ci.yml).
+  GOTOOLCHAIN: go1.27.4
 
 jobs:
   release:

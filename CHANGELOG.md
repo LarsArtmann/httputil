@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Security
+
+- CI toolchain pins raised to go1.27.4 (ci.yml, nightly-fuzz.yml, release.yml):
+  GO-2026-6859 / CVE-2026-97054, an HTTP/1 crash from an unsynchronized
+  `Connection: close` write in `http.MaxBytesReader` under concurrent body
+  reads and header writes, is fixed in go1.27.4, and this library ships
+  `http.MaxBytesReader` directly (`MaxBodySize` middleware). Consumers should
+  build on go1.27.4+; the nixpkgs-provided local toolchain moves with the next
+  flake nixpkgs input bump.
+
 ## [1.9.0] - 2026-11-14
 
 ### Added

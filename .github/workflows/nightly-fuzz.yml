@@ -18,7 +18,8 @@ jobs:
       # so the nightly can never fall behind the workspace floor (the
       # 2026-10-05..10-09 "crash" streak was exactly this: go 1.26.8 +
       # GOTOOLCHAIN=local rejected go.work before any fuzzing ran).
-      GOTOOLCHAIN: go1.27.1
+      # 1.27.4 = GO-2026-6859 fix, kept in lockstep with ci.yml.
+      GOTOOLCHAIN: go1.27.4
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
