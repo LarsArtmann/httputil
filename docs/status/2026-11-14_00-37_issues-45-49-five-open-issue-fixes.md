@@ -117,51 +117,70 @@ Nothing shipped broken. Honest near-misses:
 
 ## f) NEXT UP (prioritized)
 
-1. Sweep `docs/v1-stability.md`: `Now` row in the config-types table + additive entries for
-   `Push`/`ExpectNotModifiedDynamic` (closes the missed ritual step).
-2. Re-check CI on the final head (run for the ~00:3x push was not yet visible).
+1. ~~Sweep `docs/v1-stability.md`: `Now` row in the config-types table + additive entries for
+   `Push`/`ExpectNotModifiedDynamic` (closes the missed ritual step).~~ done (session 2; CHANGELOG
+   [1.9.0] "Post-fix follow-up sweep")
+2. ~~Re-check CI on the final head (run for the ~00:3x push was not yet visible).~~ done (green on
+   1587b51; later heads ride the single v1.9.0 release push)
 3. Comment-and-close (or annotate) issues #45–#49 pointing at the CHANGELOG `[Unreleased]`
    entries — owner call.
-4. `DetectCapabilities()`: add `Pusher bool` probe + test (or document exclusion).
-5. `ConfigureNosurfHandler` doc sentence + asymmetry-pinning test for QUERY.
-6. Record the golangci-lint v2.15.0-vs-v2.14.0 wrapcheck drift in AGENTS.md (lint section)
-   - a TODO_LIST row for the next pin bump.
+4. ~~`DetectCapabilities()`: add `Pusher bool` probe + test (or document exclusion).~~ done
+   (Capabilities.Pusher + 4 tests, CHANGELOG [1.9.0])
+5. ~~`ConfigureNosurfHandler` doc sentence + asymmetry-pinning test for QUERY.~~ done (doc
+   paragraph + TestConfigureNosurfHandler_QueryStillChallenged)
+6. ~~Record the golangci-lint v2.15.0-vs-v2.14.0 wrapcheck drift in AGENTS.md (lint section)
+   - a TODO_LIST row for the next pin bump.~~ done (AGENTS Pre-Existing Lint Warnings; the fleet
+   lint-ripple TODO row added 2026-11-14)
 7. quotaboard: simplify `TestHTMLPagesCarryExplicitContentType` (library now sniffs).
 8. CV: rewrite the 6.2s refill pin on `KeyedRateLimiterConfig.Now`; drop the `-short` skip.
 9. company-master-data: adopt `ExpectNotModifiedDynamic`, delete the hand-rolled block.
 10. cqrs-htmx: native QUERY route behind `CSRFMiddleware` (ADR-0064 follow-through).
-11. Re-run the documented 3s×5 benchmark protocol; refresh `docs/benchmarks.md` (the sniff
-    added a one-time 512-byte scan per CT-less compressed response — pin the number).
+11. ~~Re-run the documented 3s×5 benchmark protocol; refresh `docs/benchmarks.md` (the sniff
+    added a one-time 512-byte scan per CT-less compressed response — pin the number).~~ done
+    (2026-11-14 re-measure, Go 1.27.3, all three modules; sniff pinned at exactly one header-map
+    insert — see docs/benchmarks.md "Sniff provenance")
 12. TODO_LIST rebuild row for items 1–10 (docs-health).
-13. Add a `BenchmarkCompressionContentTypeSniff` micro-bench if the protocol run (11) shows
-    measurable movement.
-14. Consider an `httpspec` spec-name constant + default-spec discussion for
+13. ~~Add a `BenchmarkCompressionContentTypeSniff` micro-bench if the protocol run (11) shows
+    measurable movement.~~ done (movement was measurable: +1 alloc; sub-benchmarks added and
+    measured 2026-11-14)
+14. ~~Consider an `httpspec` spec-name constant + default-spec discussion for
     `ExpectNotModifiedDynamic` (currently opt-in via `WithExtraSpecs` only, like the static
-    variant — probably correct, but the question is unasked).
-15. Mutation-probe the new guards once (delete the `bodyAllowedForStatus` call → expect the
+    variant — probably correct, but the question is unasked).~~ done (decision: stays opt-in,
+    recorded in the doc comment — session 2)
+15. ~~Mutation-probe the new guards once (delete the `bodyAllowedForStatus` call → expect the
     204 test to fail; delete the CE guard → expect the 31753 test to fail) — written from
-    first principles as mutation-sensitive, never actually mutated this session.
-16. `server_timing` middleware doc sentence mentions Flusher/Hijacker passthrough — check
+    first principles as mutation-sensitive, never actually mutated this session.~~ done (both
+    proven mutation-sensitive, session 2 — report 01-58 §a.9)
+16. ~~`server_timing` middleware doc sentence mentions Flusher/Hijacker passthrough — check
     whether its wrapper should also grow `Push` delegation for symmetry (its writer wraps
-    for header injection; a Push there would also be silently dropped today).
-17. Fleet lint-pin bump decision (v2.14.0 → v2.15.x) with the 47 wrapcheck findings triaged
+    for header injection; a Push there would also be silently dropped today).~~ done (NO
+    ACTION: delegatingWriter.Push + 3 tests already existed — report 01-58 §a.5)
+17. ~~Fleet lint-pin bump decision (v2.14.0 → v2.15.x) with the 47 wrapcheck findings triaged
     in the same change (likely all config-ignore-sigs additions for
-    `WithContext*`/`WithCause`, matching the existing `.Wrap(` entries).
-18. Consider `methodQuery` upstream: Go has no `http.MethodQuery` — if a future Go adds it,
-    swap the literal (leave a TODO nowhere; the AGENTS bullet already names the situation).
+    `WithContext*`/`WithCause`, matching the existing `.Wrap(` entries).~~ done (bumped to
+    v2.15.0 with 4 ignore-sigs; both workflow pins; CHANGELOG [1.9.0])
+18. ~~Consider `methodQuery` upstream: Go has no `http.MethodQuery` — if a future Go adds it,
+    swap the literal (leave a TODO nowhere; the AGENTS bullet already names the situation).~~
+    done (no action possible today; the AGENTS bullet remains the standing note)
 19. Next release (`v1.9.0`-shaped): regen apidiff baselines (three zips), freeze CHANGELOG
     section, retarget `[Unreleased]` link, coordinated sub-module check per RELEASE.md.
-20. Check whether `endpoints` listing should surface QUERY routes distinctly (it lists
-    whatever is registered; no action unless a consumer asks).
-21. The `fakeClock` could graduate to a shared test util if a second consumer of the seam
-    appears (CV will likely copy it — consider exporting nothing until then; YAGNI held).
+20. ~~Check whether `endpoints` listing should surface QUERY routes distinctly (it lists
+    whatever is registered; no action unless a consumer asks).~~ done (no action: the listing
+    shows whatever is registered)
+21. ~~The `fakeClock` could graduate to a shared test util if a second consumer of the seam
+    appears (CV will likely copy it — consider exporting nothing until then; YAGNI held).~~
+    done (YAGNI held; CV copies the pattern in its own repo)
 22. Docs-health pass over the four living docs touched this session (VERIFY mode) before
     the next tag.
-23. Add `Push` delegation note to the OTEL interop guide's writer-wrapper contract list
-    (`docs/integrations/otel.md` names Flusher/Hijacker survival; Pusher now belongs).
-24. Re-run `buildflow --build-mode dev` once on the final tree to confirm the expected
+23. ~~Add `Push` delegation note to the OTEL interop guide's writer-wrapper contract list
+    (`docs/integrations/otel.md` names Flusher/Hijacker survival; Pusher now belongs).~~ done
+    (both bullets, session 2)
+24. ~~Re-run `buildflow --build-mode dev` once on the final tree to confirm the expected
     findings-gate composition (policy-rejected residuals only, nothing NEW) — not run this
-    session (the real gates were run individually instead).
+    session (the real gates were run individually instead).~~ done (2026-11-14 run: documented
+    residuals confirmed; file-size-check (36) is a NEW BuildFlow rule (2026-11-10) vs the
+    deliberate flat-root/one-file-per-middleware structure — triaged policy-reject, TODO row
+    added; docs-gates reds are the standing docs-health campaign, routed to TODO_LIST)
 
 ## g) QUESTIONS FOR THE OWNER (cannot be answered from the repo)
 

@@ -143,17 +143,22 @@ Nothing shipped broken; all failures were caught at the tool boundary and fixed 
 
 ## f) NEXT UP (prioritized, ≤50)
 
-1. Consume the benchmark job: refresh docs/benchmarks.md (root + httpspec + server_timing
+1. ~~Consume the benchmark job: refresh docs/benchmarks.md (root + httpspec + server_timing
    tables, method line: flake Go 1.27.3, measured date), regenerate `docs/benchmarks.bench.txt`,
-   benchstat-compare vs 2026-10-25 (allocations first; ns/op load-noise caveats).
-2. §f.13: if `BenchmarkCompression` allocations/ns moved measurably from the sniff, add
-   `BenchmarkCompressionContentTypeSniff` micro-bench; else record "no movement" in the doc.
-3. Verification battery (c2) — full race/shuffle ×3 modules, count=10 parity, lint + config
-   verify ×3, erraudit ×6, pre-sweep, corpus, apidiff ×3.
-4. `scripts/prerelease-check.sh` (catch a clean-tree window; --skip-flake if needed then
-   `nix flake check` separately).
-5. §f.24 `buildflow --build-mode dev`: `buildflow --version` vs `git -C ~/projects/BuildFlow
-   rev-parse --short HEAD` first; expect ONLY policy-rejected residual classes.
+   benchstat-compare vs 2026-10-25 (allocations first; ns/op load-noise caveats).~~ done
+   (session 3, 2026-11-14: all three tables refreshed, raw file regenerated + micro-bench
+   appended, sniff provenance pinned — toolchain exonerated by a v1.8.0 worktree A/B)
+2. ~~§f.13: if `BenchmarkCompression` allocations/ns moved measurably from the sniff, add
+   `BenchmarkCompressionContentTypeSniff` micro-bench; else record "no movement" in the doc.~~
+   done (movement = +1 alloc; micro-bench added and measured)
+3. ~~Verification battery (c2) — full race/shuffle ×3 modules, count=10 parity, lint + config
+   verify ×3, erraudit ×6, pre-sweep, corpus, apidiff ×3.~~ done (all green 2026-11-14)
+4. ~~`scripts/prerelease-check.sh` (catch a clean-tree window; --skip-flake if needed then
+   `nix flake check` separately).~~ done (rc=0, all 9 gates incl. flake, 2026-11-14 ~02:2x)
+5. ~~§f.24 `buildflow --build-mode dev`: `buildflow --version` vs `git -C ~/projects/BuildFlow
+   rev-parse --short HEAD` first; expect ONLY policy-rejected residual classes.~~ done
+   (freshness 7e4ca72 == HEAD; run composition = documented residuals + file-size-check NEW
+   class triaged policy-reject + docs-gates reds routed to TODO_LIST)
 6. §f.12/22 docs-health: strike the 00-37 report's §f items resolved today; TODO_LIST: delete
    the buildflow row (if green), add the fleet lint-ripple row, refresh the "Updated:" header;
    run the docs-gates battery.
@@ -172,8 +177,11 @@ Nothing shipped broken; all failures were caught at the tool boundary and fixed 
     hand-rolled ETag describe block.
 12. §f.10 cqrs-htmx: native QUERY route behind `CSRFMiddleware` (load the cqrs-htmx skill,
     read ADR-0064 first).
-13. GOTOOLCHAIN pin decision (e3/g2) at the release cut.
-14. Check tonight's nightly-fuzz run green (existing TODO row).
+13. ~~GOTOOLCHAIN pin decision (e3/g2) at the release cut.~~ done (bumped go1.27.1 → go1.27.3
+    in release.yml — the pin's own comment demands current security fixes; commit 80947ff)
+14. ~~Check tonight's nightly-fuzz run green (existing TODO row).~~ done (8 consecutive green
+    2026-11-06..11-13 incl. all endpoints rotations; the TODO row closed on that evidence; the
+    11-14 03:03Z run spot-checked at session tail)
 15. Session tail: `git log origin/master..master` empty, CI green on the exact head, tree
     clean, AGENTS lessons (e.g. the §f.16 lesson) recorded.
 
