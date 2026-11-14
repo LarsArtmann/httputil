@@ -14,7 +14,7 @@
 | ------------------------------------------------------------------------ | ------ | ------ | --------- |
 | BenchmarkGenerateTimeOrderedID                                           | 240.7  | 41     | 1         |
 | BenchmarkGenerateTimeOrderedIDParallel                                   | 178.3  | 41     | 1         |
-| BenchmarkIDGeneratorRefillSwap (≈29.0 ns/ID amortized, load window)       | 7,432  | 2,304  | 1         |
+| BenchmarkIDGeneratorRefillSwap (≈29.0 ns/ID amortized, load window)      | 7,432  | 2,304  | 1         |
 | BenchmarkIDGeneratorRefillRawRandRead (baseline; ≈21.2 ns/ID)            | 5,436  | 0      | 0         |
 | BenchmarkCSRFMiddleware_PlainHTTPNosurf                                  | 3,071  | 2,336  | 23        |
 | BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck                     | 3,623  | 2,644  | 33        |
@@ -29,7 +29,7 @@
 | BenchmarkWrapTransientWithCause                                          | 259.5  |        |           |
 | BenchmarkDomainOf                                                        | 36.37  |        |           |
 | BenchmarkInDomain                                                        | 42.27  |        |           |
-| BenchmarkCompression ‡                                                    | 14,235 | 2,278  | 13        |
+| BenchmarkCompression ‡                                                   | 14,235 | 2,278  | 13        |
 | BenchmarkCompressionContentTypeSniff/contentTypeSet (no sniff)           | 4,549  | 2,159  | 13        |
 | BenchmarkCompressionContentTypeSniff/contentTypeAbsent (sniff fires)     | 4,591  | 2,228  | 13        |
 | BenchmarkCompressionNegotiator/singleToken                               | 15.46  | 0      | 0         |
@@ -67,11 +67,11 @@
 | BenchmarkLanguageHeaderOnly *                                            | 693.9  | 584    | 8         |
 | BenchmarkLanguageStaticRequest (bare-header writer, no recorder) *       | 824.5  | 584    | 8         |
 | BenchmarkParseAcceptLanguageCandidates *                                 | 194.2  | 176    | 3         |
-| \* Language rows: the 584 B/op is dominated by the query/URL parse on     |        |        |           |
+| \* Language rows: the 584 B/op is dominated by the query/URL parse on    |        |        |           |
 | the reused harness request — allocation counts are the trustworthy       |        |        |           |
 | signal, ns/op the noisy one. `BenchmarkLanguageStaticRequest` (added     |        |        |           |
-| 2026-10-15, T18) replaces the recorder with a bare-header writer over     |        |        |           |
-| `io.Discard`: identical 584 B/op and 8 allocs/op, slightly lower ns/op —  |        |        |           |
+| 2026-10-15, T18) replaces the recorder with a bare-header writer over    |        |        |           |
+| `io.Discard`: identical 584 B/op and 8 allocs/op, slightly lower ns/op — |        |        |           |
 | proving the httptest baseline was already allocation-clean in steady     |        |        |           |
 | state and the recorder delta is wall-clock bookkeeping only.             |        |        |           |
 

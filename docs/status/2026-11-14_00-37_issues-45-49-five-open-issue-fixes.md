@@ -131,14 +131,14 @@ Nothing shipped broken. Honest near-misses:
    paragraph + TestConfigureNosurfHandler_QueryStillChallenged)
 6. ~~Record the golangci-lint v2.15.0-vs-v2.14.0 wrapcheck drift in AGENTS.md (lint section)
    - a TODO_LIST row for the next pin bump.~~ done (AGENTS Pre-Existing Lint Warnings; the fleet
-   lint-ripple TODO row added 2026-11-14)
+     lint-ripple TODO row added 2026-11-14)
 7. ~~quotaboard: simplify `TestHTMLPagesCarryExplicitContentType` (library now sniffs).~~ done
    (bumped to v1.9.0 + vendor sync; renamed TestHTMLPagesServeHTMLContentType with the wire-
    contract comment; full suite green under -race)
 8. ~~CV: rewrite the 6.2s refill pin on `KeyedRateLimiterConfig.Now`; drop the `-short` skip.~~
-    done (unexported rateLimitMiddleware clock seam + fakeRateLimitClock; refill pin passes in
-    0.00s; middleware package green — wider-suite failures are a parallel writer's WIP, verified
-    pre-existing at the package level)
+   done (unexported rateLimitMiddleware clock seam + fakeRateLimitClock; refill pin passes in
+   0.00s; middleware package green — wider-suite failures are a parallel writer's WIP, verified
+   pre-existing at the package level)
 9. ~~company-master-data: adopt `ExpectNotModifiedDynamic`, delete the hand-rolled block.~~ done
    (four extra specs — one per ETag path — replace the single-path hand-rolled harvest It;
    full suite green under -race)

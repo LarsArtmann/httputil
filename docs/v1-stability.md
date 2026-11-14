@@ -22,20 +22,20 @@ This document enumerates every exported symbol and classifies its stability comm
 
 ### Config Types (all Additive — existing fields locked, new fields may be added)
 
-| Type                     | Tier     | Notes                                                     |
-| ------------------------ | -------- | --------------------------------------------------------- |
-| `CORSConfig`             | Additive | `DenyUnmatched` default flipped in v0.7.0; frozen at v1.0 |
-| `CSRFConfig`             | Additive | New in v0.8.0                                             |
-| `CompressionConfig`      | Additive | `AbsentEncoding` added in v1.2.0 (default: identity)      |
-| `DecompressionConfig`    | Additive |                                                           |
-| `KeyedRateLimiterConfig` | Additive | New in v0.8.0; `Now` clock-injection field added in v1.9.0 (issue #45) |
-| `MaxBodySizeConfig`      | Additive | New in v0.9.0                                             |
-| `MetricsConfig`          | Additive |                                                           |
-| `NonceConfig`            | Additive | New in v0.10.0                                            |
-| `RecoveryConfig`         | Additive | New in v1.6.0 (`Logger`, `OnPanic` observability hook)    |
-| `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                  |
-| `SecurityHeadersConfig`  | Additive |                                                           |
-| `ServerConfig`           | Additive |                                                           |
+| Type                     | Tier     | Notes                                                                                 |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------- |
+| `CORSConfig`             | Additive | `DenyUnmatched` default flipped in v0.7.0; frozen at v1.0                             |
+| `CSRFConfig`             | Additive | New in v0.8.0                                                                         |
+| `CompressionConfig`      | Additive | `AbsentEncoding` added in v1.2.0 (default: identity)                                  |
+| `DecompressionConfig`    | Additive |                                                                                       |
+| `KeyedRateLimiterConfig` | Additive | New in v0.8.0; `Now` clock-injection field added in v1.9.0 (issue #45)                |
+| `MaxBodySizeConfig`      | Additive | New in v0.9.0                                                                         |
+| `MetricsConfig`          | Additive |                                                                                       |
+| `NonceConfig`            | Additive | New in v0.10.0                                                                        |
+| `RecoveryConfig`         | Additive | New in v1.6.0 (`Logger`, `OnPanic` observability hook)                                |
+| `RequestIDConfig`        | Additive | Fields renamed in v0.7.0; frozen at v1.0                                              |
+| `SecurityHeadersConfig`  | Additive |                                                                                       |
+| `ServerConfig`           | Additive |                                                                                       |
 | `ResponseRecorder`       | Additive | Existing methods frozen; new methods may be added; `Push` added in v1.9.0 (issue #47) |
 
 ### Default Config Constructors (all Frozen at v1.0)
@@ -146,10 +146,10 @@ The gated alternative is additive:
 
 ### Capabilities (Frozen at v1.0)
 
-| Symbol               | Tier     | Notes                                                                  |
-| -------------------- | -------- | ---------------------------------------------------------------------- |
-| `DetectCapabilities` | Frozen   |                                                                        |
-| `Capabilities`       | Additive | Frozen until v1.8.0; `Pusher` field added in v1.9.0 (issue #47)        |
+| Symbol               | Tier     | Notes                                                           |
+| -------------------- | -------- | --------------------------------------------------------------- |
+| `DetectCapabilities` | Frozen   |                                                                 |
+| `Capabilities`       | Additive | Frozen until v1.8.0; `Pusher` field added in v1.9.0 (issue #47) |
 
 ### Rate Limiting (Frozen at v1.0)
 
@@ -276,10 +276,10 @@ The gated alternative is additive:
 | `etag.ErrCodeHashWriteFailed`  | Frozen | ETag error                                                       |
 | `ErrCSRFInvalid`               | Frozen | CSRF sentinel                                                    |
 | `ErrCSRFConfig`                | Frozen | CSRF sentinel                                                    |
-| `ErrCSRFAttestationConflict`   | Frozen   | Added in v1.0.0: CSRF origin-attestation contradiction rejection |
-| `ErrCodePushUnsupported`       | Frozen   | Added in v1.9.0 (issue #47): writer lacks `http.Pusher`            |
-| `ErrCodePushFailed`            | Frozen   | Added in v1.9.0 (issue #47): delegated push failed                 |
-| `RegisterErrorClassifications` | Frozen   |                                                                  |
+| `ErrCSRFAttestationConflict`   | Frozen | Added in v1.0.0: CSRF origin-attestation contradiction rejection |
+| `ErrCodePushUnsupported`       | Frozen | Added in v1.9.0 (issue #47): writer lacks `http.Pusher`          |
+| `ErrCodePushFailed`            | Frozen | Added in v1.9.0 (issue #47): delegated push failed               |
+| `RegisterErrorClassifications` | Frozen |                                                                  |
 
 ### Metrics (Frozen at v1.0)
 
@@ -318,7 +318,7 @@ The gated alternative is additive:
 | `ExpectHTML`                   | Additive | Added post-v0.10.0                                                                                                                                                                   |
 | `ExpectVaryContains`           | Additive | Added post-v0.10.0                                                                                                                                                                   |
 | `ExpectNotModifiedWithETag`    | Additive | Added post-v0.10.0                                                                                                                                                                   |
-| `ExpectNotModifiedDynamic`     | Additive | Added in v1.9.0 (issue #46): harvest-then-revalidate ETag check for content-hash servers                                                                                            |
+| `ExpectNotModifiedDynamic`     | Additive | Added in v1.9.0 (issue #46): harvest-then-revalidate ETag check for content-hash servers                                                                                             |
 | `SpecName*` constants          | Frozen   | String values are part of the API; the count is not frozen — new constants arrive additively with new specs (28 as of v1.2.0's `SpecNameCORSPrivateNetworkPreflight`)                |
 | `CORSSpecs` / `RateLimitSpecs` | Frozen   | Pre-v1.0 opt-in spec bundles                                                                                                                                                         |
 | `PrivateNetworkSpecs`          | Additive | Added post-v1.0 (v1.2.0, LNA preflight spec)                                                                                                                                         |

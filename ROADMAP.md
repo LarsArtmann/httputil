@@ -78,7 +78,7 @@ Stdlib + `go-error-family` (same author, zero transitive deps) + `go-etag` (same
 
 Things we are deliberately NOT pursuing and why:
 
-- **HTTP/2 Server Push** — removed in Chrome 2023, absent from HTTP/3. All `http.Pusher` code deleted in v0.3.0. (Updated v1.9.0: the library still never initiates pushes — that remains the non-goal — but issue #47 re-introduced `Push` *delegation* through the writer wrappers so wrapped handlers keep the standard `w.(http.Pusher)` idiom; `DetectCapabilities` reports the capability.)
+- **HTTP/2 Server Push** — removed in Chrome 2023, absent from HTTP/3. All `http.Pusher` code deleted in v0.3.0. (Updated v1.9.0: the library still never initiates pushes — that remains the non-goal — but issue #47 re-introduced `Push` _delegation_ through the writer wrappers so wrapped handlers keep the standard `w.(http.Pusher)` idiom; `DetectCapabilities` reports the capability.)
 - **Streaming ETag with a rolling hash** — ETag has been extracted to the `go-etag` module. HTTP requires headers before the body, so buffering is mandatory regardless of where the middleware lives.
 - **Internal `compress/` subpackage** — compression files depend on root symbols (`Middleware`, `responseWrapper`, `ErrCode*`), so extracting creates a circular import. The flat layout is structural (confirmed 2026-08-05).
 - **Built-in brotli/zstd encoders** — kept as `WriterFactory` plugin examples to preserve the dependency policy.
