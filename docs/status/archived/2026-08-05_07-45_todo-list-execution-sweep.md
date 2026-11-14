@@ -14,7 +14,7 @@ All 9 deliberate code changes were:
 
 **What I forgot:** the linter hit me on `paralleltest` once because I removed `t.Parallel()` from subtests that shared an atomic — I correctly diagnosed the race, but the fix to make each subtest own its own `called` atomic came on the second attempt after the auto-git-commit daemon reverted my edit. I should have written the file defensively from the start instead of trying the race-prone "shared atomic" pattern.
 
-**What I fucked up:** I left a duplicate-bracket artifact (`[[[!Coverage...`](#)](#)`) in `README.md` after running the badge-update script twice. The daemon captured the bad state. I corrected it manually. Also, the first run of the coverage script's color logic flagged 97.4% as "red" because `bc` wasn't available; I fixed it with`awk`, but the daemon had already captured the red state.
+**What I fucked up:** I left a duplicate-bracket artifact (`[[[!Coverage...`](#)](#)`) in `README.md` after running the badge-update script twice. The daemon captured the bad state. I corrected it manually. Also, the first run of the coverage script's color logic flagged 97.4% as "red" because `bc` wasn't available; I fixed it with `awk`, but the daemon had already captured the red state.
 
 **What I could still improve:** see the follow-up list below — there are 30+ items the audit surfaced that I deliberately did NOT do (out of scope), plus 3 questions I cannot answer from the codebase.
 
