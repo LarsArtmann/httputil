@@ -14,6 +14,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/justinas/nosurf"
 )
 
 func TestCSRFMiddleware_GETSetsTokenInContext(t *testing.T) {
@@ -169,6 +171,28 @@ func TestCSRFMiddleware_QueryWithContradictedAttestationNotRejected(t *testing.T
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("spec-safe QUERY must not run the unsafe-method attestation check, got %d", rec.Code)
+	}
+}
+
+// TestConfigureNosurfHandler_QueryStillChallenged pins the deliberate
+// asymmetry between the two construction paths: only CSRFMiddleware registers
+// the method-scoped nosurf exemption that safe-lists QUERY. A handler wired
+// through the low-level ConfigureNosurfHandler keeps nosurf's own safe-method
+// list, which does not know RFC 10008 — token-less QUERY is challenged there.
+func TestConfigureNosurfHandler_QueryStillChallenged(t *testing.T) {
+	t.Parallel()
+
+	handler := nosurf.New(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	ConfigureNosurfHandler(handler, CSRFConfig{})
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(methodQuery, "/", strings.NewReader(`{"filter":"x"}`))
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("low-level handler should challenge token-less QUERY (only CSRFMiddleware exempts it), got %d", rec.Code)
 	}
 }
 

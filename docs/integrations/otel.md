@@ -15,7 +15,7 @@ Do not build a third lane. An `httputil/otel` sub-module is a recorded non-goal:
 
 - `Middleware` is a **type alias** (`type Middleware = func(http.Handler) http.Handler`), not a named type. Any stdlib middleware — including `otelhttp.NewMiddleware` — composes with `Chain`, `Compose`, and `MiddlewareStack` without adapters.
 - Every request-forking middleware copies the matched route pattern back to the outermost request (`r.Pattern`) before calling `next`. `otelhttp` names spans from that pattern, so you get `GET /users/{id}` instead of `GET` even when RequestID, CSRF, Nonce, Timeout, or Server-Timing wraps the handler.
-- Response-writer wrappers preserve `http.Flusher` and `http.Hijacker`, so streaming and WebSocket handlers keep working underneath the span.
+- Response-writer wrappers preserve `http.Flusher`, `http.Hijacker`, and `http.Pusher`, so streaming, WebSocket, and HTTP/2-push handlers keep working underneath the span.
 
 ## Lane 1 — go-appkit/otel
 
@@ -185,7 +185,7 @@ Two rules that matter more than the ratio:
 ## Gotchas
 
 - **Compression and tracing both wrap the writer.** Keep tracing outermost (see the ordering table). `Compression` short-circuits `identity` and passes the raw writer through, so the span is unaffected either way; the order only decides whether compression time is inside the span.
-- **Streaming and hijacking.** httputil wrappers preserve `http.Flusher` and `http.Hijacker`. If you add your own writer wrapper between tracing and the handler, preserve them too or SSE/WebSocket handlers will fail.
+- **Streaming, hijacking, and push.** httputil wrappers preserve `http.Flusher`, `http.Hijacker`, and `http.Pusher`. If you add your own writer wrapper between tracing and the handler, preserve them too or SSE/WebSocket/HTTP/2-push handlers will fail.
 - **Public endpoints.** For endpoints reachable from the internet, unverified `traceparent` headers should become links, not parents — otherwise a caller can force trace continuity and skew sampling. `appkitotel` exposes this as `WithPublicEndpoint()`; bare `otelhttp` as `WithPublicEndpointFn(func(*http.Request) bool)`. Use it for public APIs, never for internal ones.
 - **Health endpoints.** `appkitotel.Middleware` filters `/health`, `/health/live`, and `/health/ready` by default and offers `WithFilteredPaths`. `otelhttp` does not filter anything; exclude probes yourself.
 - **Span names need patterns.** `r.Pattern` is populated by Go 1.22+ `ServeMux` pattern routing. With a custom router that does not set `Pattern`, spans fall back to the HTTP method.

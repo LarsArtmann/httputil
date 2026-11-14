@@ -405,6 +405,12 @@ func (c CSRFConfig) withSecureFallback() CSRFConfig {
 // through as-is, which current browsers refuse to store (rfc6265bis §5.7).
 // Reproduce the Secure fallback CSRFMiddleware performs before calling this
 // if you need the hardened behavior.
+//
+// The QUERY safe-listing is likewise a [CSRFMiddleware] behavior only: nosurf
+// v1.2.0's own safe-method list does not know RFC 10008's QUERY, so a handler
+// configured through this low-level function challenges token-less QUERY
+// requests. Register your own ExemptFunc if you build the handler this way
+// and want QUERY treated as spec-safe.
 func ConfigureNosurfHandler(handler *nosurf.CSRFHandler, cfg CSRFConfig) {
 	//nolint:gosec,exhaustruct_v5 // HttpOnly=false required for double-submit
 	cookie := http.Cookie{
