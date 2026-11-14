@@ -8,7 +8,7 @@ import (
 // codeMetricsNilRecorder classifies a missing metrics recorder as Rejection.
 const codeMetricsNilRecorder = Code("metrics.nil_recorder")
 
-var errNilMetricsRecorder = codeMetricsNilRecorder.Rejection(
+var errNilMetricsRecorder error = codeMetricsNilRecorder.Rejection(
 	"metrics config: Recorder must not be nil",
 )
 
