@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-11-14
+
 ### Added
 
 - **`http.Pusher` delegation through the writer wrappers** (issue #47) — `ResponseRecorder` and the compression `responseWrapper` now forward `Push(target, opts)` to the underlying writer (mirroring the existing `Flush`/`Hijack` delegation), so a handler behind the recorder — or behind `Compression` on an HTTP/2 connection — keeps the standard `w.(http.Pusher)` idiom instead of silently losing server push. A writer without `Push` underneath yields the new classified `http.push_unsupported` (Infrastructure, cause `http.ErrNotSupported`); a failing `Push` surfaces as `http.push_failed` (Transient, cause preserved) — both registered in the error-template map and the classification tables. `DetectCapabilities` reports the capability too: the additive `Capabilities.Pusher` field probes `http.Pusher` (the struct reclassifies Frozen → Additive in docs/v1-stability.md), so capability-checking consumers see the same three interfaces the wrappers delegate.
@@ -797,7 +799,8 @@ Coordinated cut: `server_timing/v1.0.3` is tagged from the same commit (no API c
 
 ---
 
-[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/larsartmann/httputil/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/larsartmann/httputil/compare/v1.8.0...v1.9.0
 [endpoints/v0.1.0]: https://github.com/larsartmann/httputil/compare/v1.8.0...endpoints/v0.1.0
 [1.8.0]: https://github.com/larsartmann/httputil/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/larsartmann/httputil/compare/v1.6.0...v1.7.0
