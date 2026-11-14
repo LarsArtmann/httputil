@@ -2,268 +2,282 @@ goos: linux
 goarch: amd64
 pkg: github.com/larsartmann/httputil
 cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
-BenchmarkChain-32                                          	 1100154	      3288 ns/op
-BenchmarkChain-32                                          	  932882	      3495 ns/op
-BenchmarkChain-32                                          	  965048	      3452 ns/op
-BenchmarkChain-32                                          	  985075	      4597 ns/op
-BenchmarkChain-32                                          	  671727	      4981 ns/op
-BenchmarkClientIP-32                                       	47797791	        79.38 ns/op	      32 B/op	       1 allocs/op
-BenchmarkClientIP-32                                       	46197571	        81.25 ns/op	      32 B/op	       1 allocs/op
-BenchmarkClientIP-32                                       	51937347	        65.21 ns/op	      32 B/op	       1 allocs/op
-BenchmarkClientIP-32                                       	74843688	        47.98 ns/op	      32 B/op	       1 allocs/op
-BenchmarkClientIP-32                                       	62075584	        53.37 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCodeRejectionConstruction-32                      	41700757	        79.80 ns/op
-BenchmarkCodeRejectionConstruction-32                      	36776005	        90.50 ns/op
-BenchmarkCodeRejectionConstruction-32                      	46309200	        80.92 ns/op
-BenchmarkCodeRejectionConstruction-32                      	46296261	        87.83 ns/op
-BenchmarkCodeRejectionConstruction-32                      	46621608	        76.82 ns/op
-BenchmarkSentinelCloneWithContext-32                       	30885778	       109.5 ns/op
-BenchmarkSentinelCloneWithContext-32                       	30823725	       118.9 ns/op
-BenchmarkSentinelCloneWithContext-32                       	34450537	       107.6 ns/op
-BenchmarkSentinelCloneWithContext-32                       	34008988	       120.7 ns/op
-BenchmarkSentinelCloneWithContext-32                       	30462392	       115.6 ns/op
-BenchmarkWrapTransientWithCause-32                         	34977854	       103.3 ns/op
-BenchmarkWrapTransientWithCause-32                         	35445490	       105.9 ns/op
-BenchmarkWrapTransientWithCause-32                         	34835077	       117.8 ns/op
-BenchmarkWrapTransientWithCause-32                         	32948796	       106.5 ns/op
-BenchmarkWrapTransientWithCause-32                         	34688348	       146.7 ns/op
-BenchmarkDomainOf-32                                       	218635254	        17.59 ns/op
-BenchmarkDomainOf-32                                       	230833791	        13.40 ns/op
-BenchmarkDomainOf-32                                       	319905930	        10.67 ns/op
-BenchmarkDomainOf-32                                       	342276648	        10.41 ns/op
-BenchmarkDomainOf-32                                       	338576980	        10.87 ns/op
-BenchmarkInDomain-32                                       	313874624	        10.94 ns/op
-BenchmarkInDomain-32                                       	332439184	        10.70 ns/op
-BenchmarkInDomain-32                                       	342512316	        10.62 ns/op
-BenchmarkInDomain-32                                       	301972959	        11.27 ns/op
-BenchmarkInDomain-32                                       	342081684	        10.60 ns/op
-BenchmarkCompose/Construct-32                              	781555057	         4.776 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompose/Construct-32                              	767844818	         4.623 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompose/Construct-32                              	808917213	         4.632 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompose/Construct-32                              	672843132	         4.778 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompose/Construct-32                              	769837120	         4.791 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompose/Serve-32                                  	44976724	        92.20 ns/op	     208 B/op	       4 allocs/op
-BenchmarkCompose/Serve-32                                  	45788908	        80.94 ns/op	     208 B/op	       4 allocs/op
-BenchmarkCompose/Serve-32                                  	43860931	        77.93 ns/op	     208 B/op	       4 allocs/op
-BenchmarkCompose/Serve-32                                  	47369841	       102.4 ns/op	     208 B/op	       4 allocs/op
-BenchmarkCompose/Serve-32                                  	28536654	       120.4 ns/op	     208 B/op	       4 allocs/op
-BenchmarkMiddlewareStack_Middleware-32                     	422187494	         8.689 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMiddlewareStack_Middleware-32                     	508650390	         6.537 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMiddlewareStack_Middleware-32                     	609113760	         7.238 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMiddlewareStack_Middleware-32                     	378837128	         8.879 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMiddlewareStack_Middleware-32                     	601318622	         5.936 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompression-32                                    	 1000000	      3448 ns/op	    2169 B/op	      12 allocs/op
-BenchmarkCompression-32                                    	 1000000	      3228 ns/op	    2149 B/op	      12 allocs/op
-BenchmarkCompression-32                                    	 1000000	      3404 ns/op	    2160 B/op	      12 allocs/op
-BenchmarkCompression-32                                    	 1000000	      5411 ns/op	    2215 B/op	      12 allocs/op
-BenchmarkCompression-32                                    	  904134	      3463 ns/op	    2153 B/op	      12 allocs/op
-BenchmarkCompressionNegotiator/singleToken-32              	611395995	         5.740 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/singleToken-32              	529196218	         9.668 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/singleToken-32              	318836832	         9.949 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/singleToken-32              	577851289	         6.511 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/singleToken-32              	503472726	         6.247 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/browserMulti-32             	53081826	        80.27 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/browserMulti-32             	46576519	        74.62 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/browserMulti-32             	48632005	       108.3 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/browserMulti-32             	27932302	       126.8 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/browserMulti-32             	24933891	       124.9 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/qvalues-32                  	71358783	        54.66 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/qvalues-32                  	72725750	        51.57 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/qvalues-32                  	69859954	        50.57 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/qvalues-32                  	77801372	        74.00 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/qvalues-32                  	55248517	        63.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         1.812 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         1.630 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         1.561 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         1.567 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         1.558 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCORS-32                                           	 9583718	       348.1 ns/op	     592 B/op	       9 allocs/op
-BenchmarkCORS-32                                           	10475406	       404.8 ns/op	     592 B/op	       9 allocs/op
-BenchmarkCORS-32                                           	 7407396	       524.1 ns/op	     592 B/op	       9 allocs/op
-BenchmarkCORS-32                                           	10145540	       337.8 ns/op	     592 B/op	       9 allocs/op
-BenchmarkCORS-32                                           	10860176	       330.5 ns/op	     592 B/op	       9 allocs/op
-BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 2638556	      1388 ns/op	    2336 B/op	      23 allocs/op
-BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 2778570	      1917 ns/op	    2336 B/op	      23 allocs/op
-BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1317235	      2713 ns/op	    2336 B/op	      23 allocs/op
-BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1585712	      2224 ns/op	    2336 B/op	      23 allocs/op
-BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1354603	      2564 ns/op	    2336 B/op	      23 allocs/op
-BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	 1000000	      3983 ns/op	    2644 B/op	      33 allocs/op
-BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	 1000000	      3756 ns/op	    2645 B/op	      33 allocs/op
-BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	 1000000	      4801 ns/op	    2645 B/op	      33 allocs/op
-BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	  759654	      5528 ns/op	    2645 B/op	      33 allocs/op
-BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	  791934	      6521 ns/op	    2645 B/op	      33 allocs/op
-BenchmarkDecompression/gzip-32                             	  345914	     15148 ns/op	1081.59 MB/s	   45799 B/op	      14 allocs/op
-BenchmarkDecompression/gzip-32                             	  267355	     18089 ns/op	 905.75 MB/s	   45806 B/op	      14 allocs/op
-BenchmarkDecompression/gzip-32                             	  153831	     24183 ns/op	 677.50 MB/s	   45723 B/op	      14 allocs/op
-BenchmarkDecompression/gzip-32                             	  160522	     20228 ns/op	 809.98 MB/s	   45755 B/op	      14 allocs/op
-BenchmarkDecompression/gzip-32                             	  195135	     19451 ns/op	 842.33 MB/s	   45777 B/op	      14 allocs/op
-BenchmarkDecompression/deflate-32                          	  284488	     16421 ns/op	 997.77 MB/s	   45087 B/op	      13 allocs/op
-BenchmarkDecompression/deflate-32                          	  185943	     17581 ns/op	 931.94 MB/s	   45068 B/op	      13 allocs/op
-BenchmarkDecompression/deflate-32                          	  262790	     15062 ns/op	1087.74 MB/s	   45102 B/op	      13 allocs/op
-BenchmarkDecompression/deflate-32                          	  192524	     21274 ns/op	 770.15 MB/s	   45037 B/op	      13 allocs/op
-BenchmarkDecompression/deflate-32                          	  190742	     18748 ns/op	 873.88 MB/s	   45056 B/op	      13 allocs/op
-BenchmarkDecompression/passthrough-32                      	24715432	       292.4 ns/op	  85.50 MB/s	     224 B/op	       5 allocs/op
-BenchmarkDecompression/passthrough-32                      	11130998	       296.4 ns/op	  84.34 MB/s	     224 B/op	       5 allocs/op
-BenchmarkDecompression/passthrough-32                      	25948748	       119.7 ns/op	 208.86 MB/s	     224 B/op	       5 allocs/op
-BenchmarkDecompression/passthrough-32                      	17871453	       287.8 ns/op	  86.86 MB/s	     224 B/op	       5 allocs/op
-BenchmarkDecompression/passthrough-32                      	14424169	       221.0 ns/op	 113.14 MB/s	     224 B/op	       5 allocs/op
-BenchmarkHealthHandler-32                                  	 5361160	       695.2 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkHealthHandler-32                                  	 5725832	       643.3 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkHealthHandler-32                                  	 5649043	       798.9 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkHealthHandler-32                                  	 4435844	       880.4 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkHealthHandler-32                                  	 5296060	       848.7 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkLiveHandler-32                                    	 5121168	       817.1 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkLiveHandler-32                                    	 3179757	      1388 ns/op	    1043 B/op	      12 allocs/op
-BenchmarkLiveHandler-32                                    	 4643014	       908.7 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkLiveHandler-32                                    	 4797392	      1410 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkLiveHandler-32                                    	 2783168	      1204 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkReadyHandler-32                                   	 4480696	       733.8 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkReadyHandler-32                                   	 5502348	       836.8 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkReadyHandler-32                                   	 3545974	      1374 ns/op	    1043 B/op	      12 allocs/op
-BenchmarkReadyHandler-32                                   	 2617988	      1274 ns/op	    1043 B/op	      12 allocs/op
-BenchmarkReadyHandler-32                                   	 4962702	       847.3 ns/op	    1042 B/op	      12 allocs/op
-BenchmarkMetricsMiddleware-32                              	15712062	       224.8 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddleware-32                              	15079772	       206.4 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddleware-32                              	19461884	       175.6 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddleware-32                              	21300194	       162.5 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddleware-32                              	22313216	       172.5 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddlewareWithBody-32                      	16621214	       208.7 ns/op	     304 B/op	       6 allocs/op
-BenchmarkMetricsMiddlewareWithBody-32                      	17980641	       206.0 ns/op	     304 B/op	       6 allocs/op
-BenchmarkMetricsMiddlewareWithBody-32                      	18810529	       202.1 ns/op	     304 B/op	       6 allocs/op
-BenchmarkMetricsMiddlewareWithBody-32                      	19343527	       299.0 ns/op	     304 B/op	       6 allocs/op
-BenchmarkMetricsMiddlewareWithBody-32                      	13731579	       281.3 ns/op	     304 B/op	       6 allocs/op
-BenchmarkMetricsMiddlewareWithCustomPath-32                	17438116	       217.4 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddlewareWithCustomPath-32                	17917399	       173.2 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddlewareWithCustomPath-32                	21957949	       169.7 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddlewareWithCustomPath-32                	20871538	       186.1 ns/op	     240 B/op	       5 allocs/op
-BenchmarkMetricsMiddlewareWithCustomPath-32                	22299591	       195.9 ns/op	     240 B/op	       5 allocs/op
-BenchmarkGenerateTimeOrderedID-32                          	25560176	       137.2 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedID-32                          	24971138	       154.8 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedID-32                          	31495699	       111.0 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedID-32                          	39079482	        95.29 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedID-32                          	38579359	       107.3 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedIDParallel-32                  	34099669	       128.8 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedIDParallel-32                  	32453962	       109.8 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedIDParallel-32                  	31465285	       107.1 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedIDParallel-32                  	33206877	       107.5 ns/op	      41 B/op	       1 allocs/op
-BenchmarkGenerateTimeOrderedIDParallel-32                  	32976895	       111.4 ns/op	      41 B/op	       1 allocs/op
-BenchmarkIDGeneratorRefillSwap-32                          	  743377	      4979 ns/op	        19.45 ns/ID-amortized	    2304 B/op	       1 allocs/op
-BenchmarkIDGeneratorRefillSwap-32                          	  750596	      4796 ns/op	        18.74 ns/ID-amortized	    2304 B/op	       1 allocs/op
-BenchmarkIDGeneratorRefillSwap-32                          	  735426	      4723 ns/op	        18.45 ns/ID-amortized	    2304 B/op	       1 allocs/op
-BenchmarkIDGeneratorRefillSwap-32                          	  815119	      4726 ns/op	        18.46 ns/ID-amortized	    2304 B/op	       1 allocs/op
-BenchmarkIDGeneratorRefillSwap-32                          	  759459	      4899 ns/op	        19.14 ns/ID-amortized	    2304 B/op	       1 allocs/op
-BenchmarkIDGeneratorRefillRawRandRead-32                   	  806545	      4449 ns/op	        17.38 ns/ID-amortized	       0 B/op	       0 allocs/op
-BenchmarkIDGeneratorRefillRawRandRead-32                   	  828115	      4383 ns/op	        17.12 ns/ID-amortized	       0 B/op	       0 allocs/op
-BenchmarkIDGeneratorRefillRawRandRead-32                   	  797517	      4316 ns/op	        16.86 ns/ID-amortized	       0 B/op	       0 allocs/op
-BenchmarkIDGeneratorRefillRawRandRead-32                   	  834080	      4799 ns/op	        18.75 ns/ID-amortized	       0 B/op	       0 allocs/op
-BenchmarkIDGeneratorRefillRawRandRead-32                   	  562052	      6398 ns/op	        24.99 ns/ID-amortized	       0 B/op	       0 allocs/op
-BenchmarkLanguage-32                                       	 5142613	       738.9 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguage-32                                       	 5524486	       631.9 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguage-32                                       	 6752546	       515.1 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguage-32                                       	 6861044	       524.2 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguage-32                                       	 7572939	       523.4 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageHeaderOnly-32                             	 8447767	       481.7 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageHeaderOnly-32                             	 7672892	       470.1 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageHeaderOnly-32                             	 8408598	       457.3 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageHeaderOnly-32                             	 8330163	       440.3 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageHeaderOnly-32                             	 8229735	       524.0 ns/op	     584 B/op	       8 allocs/op
-BenchmarkParseAcceptLanguageCandidates-32                  	22938826	       160.3 ns/op	     176 B/op	       3 allocs/op
-BenchmarkParseAcceptLanguageCandidates-32                  	20531731	       160.5 ns/op	     176 B/op	       3 allocs/op
-BenchmarkParseAcceptLanguageCandidates-32                  	24327123	       151.9 ns/op	     176 B/op	       3 allocs/op
-BenchmarkParseAcceptLanguageCandidates-32                  	26131017	       162.7 ns/op	     176 B/op	       3 allocs/op
-BenchmarkParseAcceptLanguageCandidates-32                  	21745904	       168.4 ns/op	     176 B/op	       3 allocs/op
-BenchmarkLanguageStaticRequest-32                          	 5915587	       572.1 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageStaticRequest-32                          	 5385660	       588.7 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageStaticRequest-32                          	 7617706	       597.3 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageStaticRequest-32                          	 4849496	       796.1 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLanguageStaticRequest-32                          	 4926618	       812.5 ns/op	     584 B/op	       8 allocs/op
-BenchmarkLogging-32                                        	 2955559	      1146 ns/op
-BenchmarkLogging-32                                        	 3301111	      1093 ns/op
-BenchmarkLogging-32                                        	 3154587	      1154 ns/op
-BenchmarkLogging-32                                        	 3425512	      1060 ns/op
-BenchmarkLogging-32                                        	 3522333	      1030 ns/op
-BenchmarkMaxBodySize-32                                    	 1780995	      1969 ns/op	    5431 B/op	      15 allocs/op
-BenchmarkMaxBodySize-32                                    	 1891538	      1893 ns/op	    5430 B/op	      15 allocs/op
-BenchmarkMaxBodySize-32                                    	 2056310	      1817 ns/op	    5430 B/op	      15 allocs/op
-BenchmarkMaxBodySize-32                                    	 1908117	      1896 ns/op	    5430 B/op	      15 allocs/op
-BenchmarkMaxBodySize-32                                    	 1835518	      1856 ns/op	    5430 B/op	      15 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 2280036	      1598 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 2281766	      1642 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 2343595	      1498 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 2409932	      1513 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 2444437	      1503 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 2471443	      1582 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 2425809	      1502 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 1918668	      1850 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 1729243	      2062 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 2004686	      1738 ns/op	    5105 B/op	       9 allocs/op
-BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	19405801	       191.4 ns/op	     512 B/op	       3 allocs/op
-BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	21570188	       179.7 ns/op	     512 B/op	       3 allocs/op
-BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	20118123	       167.9 ns/op	     512 B/op	       3 allocs/op
-BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	13836220	       263.4 ns/op	     512 B/op	       3 allocs/op
-BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	10182543	       295.8 ns/op	     512 B/op	       3 allocs/op
-BenchmarkNonce-32                                                         	 3560558	       961.2 ns/op
-BenchmarkNonce-32                                                         	 5954667	       583.0 ns/op
-BenchmarkNonce-32                                                         	 5915834	       655.7 ns/op
-BenchmarkNonce-32                                                         	 5637422	       675.4 ns/op
-BenchmarkNonce-32                                                         	 5927124	       735.7 ns/op
-BenchmarkGenerateNonce-32                                                 	35861130	       105.2 ns/op
-BenchmarkGenerateNonce-32                                                 	33692683	       113.0 ns/op
-BenchmarkGenerateNonce-32                                                 	28884556	       124.0 ns/op
-BenchmarkGenerateNonce-32                                                 	34456038	       109.5 ns/op
-BenchmarkGenerateNonce-32                                                 	30681008	       166.3 ns/op
-BenchmarkNonceAttr-32                                                     	71038178	        65.86 ns/op
-BenchmarkNonceAttr-32                                                     	46019884	        88.10 ns/op
-BenchmarkNonceAttr-32                                                     	45164761	        74.77 ns/op
-BenchmarkNonceAttr-32                                                     	66777055	        52.13 ns/op
-BenchmarkNonceAttr-32                                                     	81460669	        50.38 ns/op
-BenchmarkParseUintQuery-32                                                	16058028	       218.7 ns/op	     432 B/op	       4 allocs/op
-BenchmarkParseUintQuery-32                                                	16099389	       340.5 ns/op	     432 B/op	       4 allocs/op
-BenchmarkParseUintQuery-32                                                	13679048	       274.2 ns/op	     432 B/op	       4 allocs/op
-BenchmarkParseUintQuery-32                                                	13435701	       259.5 ns/op	     432 B/op	       4 allocs/op
-BenchmarkParseUintQuery-32                                                	15894757	       219.0 ns/op	     432 B/op	       4 allocs/op
-BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 7597575	       477.8 ns/op
-BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 8283814	       491.0 ns/op
-BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 7737331	       524.2 ns/op
-BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 7554026	       505.0 ns/op
-BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 7604257	       516.7 ns/op
-BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         2.576 ns/op	       0 B/op	       0 allocs/op
-BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         2.426 ns/op	       0 B/op	       0 allocs/op
-BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         2.539 ns/op	       0 B/op	       0 allocs/op
-BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         2.654 ns/op	       0 B/op	       0 allocs/op
-BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         2.570 ns/op	       0 B/op	       0 allocs/op
-BenchmarkKeyedRateLimiterMiddleware-32                                    	17812540	       229.2 ns/op	     208 B/op	       4 allocs/op
-BenchmarkKeyedRateLimiterMiddleware-32                                    	10764796	       315.2 ns/op	     208 B/op	       4 allocs/op
-BenchmarkKeyedRateLimiterMiddleware-32                                    	13069020	       276.0 ns/op	     208 B/op	       4 allocs/op
-BenchmarkKeyedRateLimiterMiddleware-32                                    	16657233	       208.3 ns/op	     208 B/op	       4 allocs/op
-BenchmarkKeyedRateLimiterMiddleware-32                                    	20017749	       184.6 ns/op	     208 B/op	       4 allocs/op
-BenchmarkResponseRecorder-32                                              	 6124598	       584.1 ns/op	    1008 B/op	       9 allocs/op
-BenchmarkResponseRecorder-32                                              	 5860580	       583.8 ns/op	    1008 B/op	       9 allocs/op
-BenchmarkResponseRecorder-32                                              	 5766438	       604.5 ns/op	    1008 B/op	       9 allocs/op
-BenchmarkResponseRecorder-32                                              	 5912368	       601.9 ns/op	    1008 B/op	       9 allocs/op
-BenchmarkResponseRecorder-32                                              	 6304290	       601.4 ns/op	    1008 B/op	       9 allocs/op
-BenchmarkRecovery-32                                                      	62093830	        60.75 ns/op
-BenchmarkRecovery-32                                                      	51857436	        65.37 ns/op
-BenchmarkRecovery-32                                                      	54353029	        58.52 ns/op
-BenchmarkRecovery-32                                                      	64869531	        58.40 ns/op
-BenchmarkRecovery-32                                                      	63269821	        58.89 ns/op
-BenchmarkRequestID-32                                                     	       1	4440451892 ns/op
-BenchmarkRequestID-32                                                     	 7123837	       514.4 ns/op
-BenchmarkRequestID-32                                                     	 6539331	       512.9 ns/op
-BenchmarkRequestID-32                                                     	 7079090	       520.9 ns/op
-BenchmarkRequestID-32                                                     	 6199310	       541.1 ns/op
-BenchmarkSecurityHeaders-32                                               	13210100	       404.4 ns/op
-BenchmarkSecurityHeaders-32                                               	 8107006	       423.7 ns/op
-BenchmarkSecurityHeaders-32                                               	 7283725	       467.7 ns/op
-BenchmarkSecurityHeaders-32                                               	 7523616	       499.9 ns/op
-BenchmarkSecurityHeaders-32                                               	 6460254	       522.4 ns/op
-BenchmarkServerConfigValidateWithTLS-32                                   	1000000000	         3.477 ns/op	       0 B/op	       0 allocs/op
-BenchmarkServerConfigValidateWithTLS-32                                   	908327377	         3.897 ns/op	       0 B/op	       0 allocs/op
-BenchmarkServerConfigValidateWithTLS-32                                   	986960715	         4.047 ns/op	       0 B/op	       0 allocs/op
-BenchmarkServerConfigValidateWithTLS-32                                   	894440452	         4.001 ns/op	       0 B/op	       0 allocs/op
-BenchmarkServerConfigValidateWithTLS-32                                   	894354771	         4.495 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTimeout-32                                                       	 1822299	      2027 ns/op
-BenchmarkTimeout-32                                                       	 2081894	      1489 ns/op
-BenchmarkTimeout-32                                                       	 2001446	      1716 ns/op
-BenchmarkTimeout-32                                                       	 2373871	      1548 ns/op
-BenchmarkTimeout-32                                                       	 2349651	      1743 ns/op
+BenchmarkChain-32                                          	  804410	      5479 ns/op
+BenchmarkChain-32                                          	  550053	      6472 ns/op
+BenchmarkChain-32                                          	  596451	      5875 ns/op
+BenchmarkChain-32                                          	  519321	      7306 ns/op
+BenchmarkChain-32                                          	  631742	      5710 ns/op
+BenchmarkClientIP-32                                       	39859261	        94.44 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	40677940	        94.82 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	41601200	       119.5 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	14635699	       213.1 ns/op	      32 B/op	       1 allocs/op
+BenchmarkClientIP-32                                       	20678530	       182.6 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCodeRejectionConstruction-32                      	10340655	       398.8 ns/op
+BenchmarkCodeRejectionConstruction-32                      	13263675	       277.1 ns/op
+BenchmarkCodeRejectionConstruction-32                      	19391958	       240.0 ns/op
+BenchmarkCodeRejectionConstruction-32                      	22946052	       264.6 ns/op
+BenchmarkCodeRejectionConstruction-32                      	12613020	       306.6 ns/op
+BenchmarkSentinelCloneWithContext-32                       	 4515577	       768.4 ns/op
+BenchmarkSentinelCloneWithContext-32                       	 4801710	       686.5 ns/op
+BenchmarkSentinelCloneWithContext-32                       	 6706861	       584.5 ns/op
+BenchmarkSentinelCloneWithContext-32                       	 7049966	       487.8 ns/op
+BenchmarkSentinelCloneWithContext-32                       	11752723	       673.5 ns/op
+BenchmarkWrapTransientWithCause-32                         	11083053	       382.7 ns/op
+BenchmarkWrapTransientWithCause-32                         	17182777	       259.5 ns/op
+BenchmarkWrapTransientWithCause-32                         	18628851	       292.7 ns/op
+BenchmarkWrapTransientWithCause-32                         	11845082	       305.8 ns/op
+BenchmarkWrapTransientWithCause-32                         	11153328	       522.5 ns/op
+BenchmarkDomainOf-32                                       	100000000	        36.37 ns/op
+BenchmarkDomainOf-32                                       	92282000	        42.62 ns/op
+BenchmarkDomainOf-32                                       	100000000	        47.91 ns/op
+BenchmarkDomainOf-32                                       	87432944	        42.69 ns/op
+BenchmarkDomainOf-32                                       	82461559	        43.67 ns/op
+BenchmarkInDomain-32                                       	82887666	        44.40 ns/op
+BenchmarkInDomain-32                                       	74890864	        42.27 ns/op
+BenchmarkInDomain-32                                       	76050880	        49.91 ns/op
+BenchmarkInDomain-32                                       	83698934	        45.26 ns/op
+BenchmarkInDomain-32                                       	77689239	        45.98 ns/op
+BenchmarkCompose/Construct-32                              	241398183	        15.59 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompose/Construct-32                              	282835866	        12.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompose/Construct-32                              	263732653	        14.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompose/Construct-32                              	236854993	        15.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompose/Construct-32                              	177410041	        19.33 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompose/Serve-32                                  	 4326424	       987.0 ns/op	     208 B/op	       4 allocs/op
+BenchmarkCompose/Serve-32                                  	 5003754	       689.5 ns/op	     208 B/op	       4 allocs/op
+BenchmarkCompose/Serve-32                                  	 5091178	       824.6 ns/op	     208 B/op	       4 allocs/op
+BenchmarkCompose/Serve-32                                  	 4879207	       829.7 ns/op	     208 B/op	       4 allocs/op
+BenchmarkCompose/Serve-32                                  	 3959391	       879.6 ns/op	     208 B/op	       4 allocs/op
+BenchmarkMiddlewareStack_Middleware-32                     	144635740	        24.98 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMiddlewareStack_Middleware-32                     	100000000	        43.83 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMiddlewareStack_Middleware-32                     	100000000	        31.22 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMiddlewareStack_Middleware-32                     	100000000	        30.68 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMiddlewareStack_Middleware-32                     	97837632	        32.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompression-32                                    	  257775	     18864 ns/op	    2290 B/op	      13 allocs/op
+BenchmarkCompression-32                                    	  273939	     17045 ns/op	    2229 B/op	      13 allocs/op
+BenchmarkCompression-32                                    	  193642	     17765 ns/op	    2313 B/op	      13 allocs/op
+BenchmarkCompression-32                                    	  169359	     20772 ns/op	    2352 B/op	      13 allocs/op
+BenchmarkCompression-32                                    	  235458	     14235 ns/op	    2278 B/op	      13 allocs/op
+BenchmarkCompressionNegotiator/singleToken-32              	178774692	        19.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/singleToken-32              	183999224	        18.01 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/singleToken-32              	203814253	        15.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/singleToken-32              	166810716	        20.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/singleToken-32              	193310632	        17.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/browserMulti-32             	22049343	       224.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/browserMulti-32             	12373124	       298.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/browserMulti-32             	 8901817	       357.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/browserMulti-32             	12231393	       321.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/browserMulti-32             	11622528	       298.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/qvalues-32                  	24976398	       135.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/qvalues-32                  	29371708	       143.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/qvalues-32                  	35744208	        96.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/qvalues-32                  	40394400	        99.12 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/qvalues-32                  	32890989	       105.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         2.430 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         3.863 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/emptyHeader-32              	958108848	         3.773 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         2.928 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCompressionNegotiator/emptyHeader-32              	1000000000	         2.725 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCORS-32                                           	 4613254	       842.0 ns/op	     592 B/op	       9 allocs/op
+BenchmarkCORS-32                                           	 5571741	       602.4 ns/op	     592 B/op	       9 allocs/op
+BenchmarkCORS-32                                           	 6613131	       648.0 ns/op	     592 B/op	       9 allocs/op
+BenchmarkCORS-32                                           	 4991766	       692.4 ns/op	     592 B/op	       9 allocs/op
+BenchmarkCORS-32                                           	 5617776	       619.3 ns/op	     592 B/op	       9 allocs/op
+BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1000000	      3094 ns/op	    2336 B/op	      23 allocs/op
+BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1000000	      3975 ns/op	    2336 B/op	      23 allocs/op
+BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1000000	      3389 ns/op	    2336 B/op	      23 allocs/op
+BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1253316	      3071 ns/op	    2336 B/op	      23 allocs/op
+BenchmarkCSRFMiddleware_PlainHTTPNosurf-32                 	 1000000	      3410 ns/op	    2336 B/op	      23 allocs/op
+BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	  563085	      5600 ns/op	    2645 B/op	      33 allocs/op
+BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	  753868	      4430 ns/op	    2645 B/op	      33 allocs/op
+BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	  608973	      7857 ns/op	    2644 B/op	      33 allocs/op
+BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	 1000000	      7941 ns/op	    2644 B/op	      33 allocs/op
+BenchmarkCSRFMiddleware_UnsafeMethodAttestationCheck-32    	 1000000	      3623 ns/op	    2644 B/op	      33 allocs/op
+BenchmarkDecompression/gzip-32                             	  250923	     14499 ns/op	1130.03 MB/s	   45853 B/op	      14 allocs/op
+BenchmarkDecompression/gzip-32                             	  249202	     14902 ns/op	1099.43 MB/s	   45848 B/op	      14 allocs/op
+BenchmarkDecompression/gzip-32                             	  263362	     15539 ns/op	1054.38 MB/s	   45855 B/op	      14 allocs/op
+BenchmarkDecompression/gzip-32                             	  207850	     17874 ns/op	 916.66 MB/s	   45853 B/op	      14 allocs/op
+BenchmarkDecompression/gzip-32                             	  209194	     17788 ns/op	 921.06 MB/s	   45845 B/op	      14 allocs/op
+BenchmarkDecompression/deflate-32                          	  244922	     16275 ns/op	1006.67 MB/s	   45147 B/op	      13 allocs/op
+BenchmarkDecompression/deflate-32                          	  242236	     14746 ns/op	1111.08 MB/s	   45145 B/op	      13 allocs/op
+BenchmarkDecompression/deflate-32                          	  286430	     12516 ns/op	1309.02 MB/s	   45147 B/op	      13 allocs/op
+BenchmarkDecompression/deflate-32                          	  279627	     12372 ns/op	1324.27 MB/s	   45150 B/op	      13 allocs/op
+BenchmarkDecompression/deflate-32                          	  260796	     12749 ns/op	1285.17 MB/s	   45156 B/op	      13 allocs/op
+BenchmarkDecompression/passthrough-32                      	22262535	       197.4 ns/op	 126.64 MB/s	     224 B/op	       5 allocs/op
+BenchmarkDecompression/passthrough-32                      	10011097	       334.4 ns/op	  74.76 MB/s	     224 B/op	       5 allocs/op
+BenchmarkDecompression/passthrough-32                      	10427269	       465.0 ns/op	  53.76 MB/s	     224 B/op	       5 allocs/op
+BenchmarkDecompression/passthrough-32                      	 5380327	       648.7 ns/op	  38.54 MB/s	     224 B/op	       5 allocs/op
+BenchmarkDecompression/passthrough-32                      	 6450753	       533.5 ns/op	  46.86 MB/s	     224 B/op	       5 allocs/op
+BenchmarkHealthHandler-32                                  	 1494626	      2740 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkHealthHandler-32                                  	 1409302	      2500 ns/op	    1043 B/op	      12 allocs/op
+BenchmarkHealthHandler-32                                  	 1448941	      2496 ns/op	    1043 B/op	      12 allocs/op
+BenchmarkHealthHandler-32                                  	 1000000	      3346 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkHealthHandler-32                                  	 1000000	      4745 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkLiveHandler-32                                    	 1009270	      3711 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkLiveHandler-32                                    	 1000000	      3377 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkLiveHandler-32                                    	 1000000	      3109 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkLiveHandler-32                                    	 1000000	      3107 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkLiveHandler-32                                    	 1000000	      3783 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkReadyHandler-32                                   	  985510	      4025 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkReadyHandler-32                                   	 1000000	      3662 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkReadyHandler-32                                   	  860316	      3698 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkReadyHandler-32                                   	  891204	      3642 ns/op	    1042 B/op	      12 allocs/op
+BenchmarkReadyHandler-32                                   	 1508374	      2263 ns/op	    1043 B/op	      12 allocs/op
+BenchmarkMetricsMiddleware-32                              	 6758307	       604.4 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddleware-32                              	 6228015	       643.5 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddleware-32                              	 6636787	       576.9 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddleware-32                              	 6687555	       512.5 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddleware-32                              	 6011010	       608.1 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddlewareWithBody-32                      	 6851300	       881.7 ns/op	     304 B/op	       6 allocs/op
+BenchmarkMetricsMiddlewareWithBody-32                      	 3527426	      1088 ns/op	     304 B/op	       6 allocs/op
+BenchmarkMetricsMiddlewareWithBody-32                      	 2978412	      1368 ns/op	     304 B/op	       6 allocs/op
+BenchmarkMetricsMiddlewareWithBody-32                      	 2437815	      1339 ns/op	     304 B/op	       6 allocs/op
+BenchmarkMetricsMiddlewareWithBody-32                      	 2115130	      1866 ns/op	     304 B/op	       6 allocs/op
+BenchmarkMetricsMiddlewareWithCustomPath-32                	 3274772	      1207 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddlewareWithCustomPath-32                	 2963097	      1203 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddlewareWithCustomPath-32                	 3166610	      1217 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddlewareWithCustomPath-32                	 2983557	      1248 ns/op	     240 B/op	       5 allocs/op
+BenchmarkMetricsMiddlewareWithCustomPath-32                	 3819205	      1244 ns/op	     240 B/op	       5 allocs/op
+BenchmarkGenerateTimeOrderedID-32                          	 8919273	       409.4 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedID-32                          	 9988098	       332.8 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedID-32                          	 8594480	       386.4 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedID-32                          	11098578	       302.3 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedID-32                          	13361346	       240.7 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedIDParallel-32                  	17062700	       220.1 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedIDParallel-32                  	18144638	       213.7 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedIDParallel-32                  	15527529	       210.4 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedIDParallel-32                  	19252113	       190.0 ns/op	      41 B/op	       1 allocs/op
+BenchmarkGenerateTimeOrderedIDParallel-32                  	18504544	       178.3 ns/op	      41 B/op	       1 allocs/op
+BenchmarkIDGeneratorRefillSwap-32                          	  465244	      7432 ns/op	        29.03 ns/ID-amortized	    2304 B/op	       1 allocs/op
+BenchmarkIDGeneratorRefillSwap-32                          	  511882	      7926 ns/op	        30.96 ns/ID-amortized	    2304 B/op	       1 allocs/op
+BenchmarkIDGeneratorRefillSwap-32                          	  448765	      7795 ns/op	        30.45 ns/ID-amortized	    2304 B/op	       1 allocs/op
+BenchmarkIDGeneratorRefillSwap-32                          	  525570	      9214 ns/op	        35.99 ns/ID-amortized	    2304 B/op	       1 allocs/op
+BenchmarkIDGeneratorRefillSwap-32                          	  451464	      9066 ns/op	        35.41 ns/ID-amortized	    2304 B/op	       1 allocs/op
+BenchmarkIDGeneratorRefillRawRandRead-32                   	  560379	      6177 ns/op	        24.13 ns/ID-amortized	       0 B/op	       0 allocs/op
+BenchmarkIDGeneratorRefillRawRandRead-32                   	  554582	      6358 ns/op	        24.84 ns/ID-amortized	       0 B/op	       0 allocs/op
+BenchmarkIDGeneratorRefillRawRandRead-32                   	  600458	      5917 ns/op	        23.11 ns/ID-amortized	       0 B/op	       0 allocs/op
+BenchmarkIDGeneratorRefillRawRandRead-32                   	  653386	      5839 ns/op	        22.81 ns/ID-amortized	       0 B/op	       0 allocs/op
+BenchmarkIDGeneratorRefillRawRandRead-32                   	  568560	      5436 ns/op	        21.23 ns/ID-amortized	       0 B/op	       0 allocs/op
+BenchmarkLanguage-32                                       	 6477638	       949.5 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguage-32                                       	 6200697	       572.6 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguage-32                                       	 5625979	       704.4 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguage-32                                       	 4142965	       946.3 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguage-32                                       	 4486744	       817.7 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageHeaderOnly-32                             	 5123922	       693.9 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageHeaderOnly-32                             	 5453557	       747.6 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageHeaderOnly-32                             	 4953766	       768.0 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageHeaderOnly-32                             	 5504577	      1013 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageHeaderOnly-32                             	 4394354	       790.3 ns/op	     584 B/op	       8 allocs/op
+BenchmarkParseAcceptLanguageCandidates-32                  	13635678	       275.1 ns/op	     176 B/op	       3 allocs/op
+BenchmarkParseAcceptLanguageCandidates-32                  	17793081	       268.1 ns/op	     176 B/op	       3 allocs/op
+BenchmarkParseAcceptLanguageCandidates-32                  	18152192	       197.6 ns/op	     176 B/op	       3 allocs/op
+BenchmarkParseAcceptLanguageCandidates-32                  	18940047	       194.2 ns/op	     176 B/op	       3 allocs/op
+BenchmarkParseAcceptLanguageCandidates-32                  	19980469	       201.5 ns/op	     176 B/op	       3 allocs/op
+BenchmarkLanguageStaticRequest-32                          	 4092638	       908.7 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageStaticRequest-32                          	 4597189	       824.5 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageStaticRequest-32                          	 3426583	      1133 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageStaticRequest-32                          	 2873653	      1446 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLanguageStaticRequest-32                          	 2046681	      2163 ns/op	     584 B/op	       8 allocs/op
+BenchmarkLogging-32                                        	 1140915	      3269 ns/op
+BenchmarkLogging-32                                        	 1103690	      2882 ns/op
+BenchmarkLogging-32                                        	 1424120	      2692 ns/op
+BenchmarkLogging-32                                        	 1311454	      2413 ns/op
+BenchmarkLogging-32                                        	 2899269	      1476 ns/op
+BenchmarkMaxBodySize-32                                    	  987928	      3926 ns/op	    5425 B/op	      15 allocs/op
+BenchmarkMaxBodySize-32                                    	  885562	      4256 ns/op	    5426 B/op	      15 allocs/op
+BenchmarkMaxBodySize-32                                    	  761046	      5362 ns/op	    5418 B/op	      15 allocs/op
+BenchmarkMaxBodySize-32                                    	  838677	      3836 ns/op	    5427 B/op	      15 allocs/op
+BenchmarkMaxBodySize-32                                    	 1000000	      4947 ns/op	    5420 B/op	      15 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	  752578	      4867 ns/op	    5101 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	  682971	      5881 ns/op	    5100 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 1277246	      2747 ns/op	    5105 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 1166838	      2896 ns/op	    5104 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequest-32     	 1692423	      2037 ns/op	    5104 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 1329634	      2483 ns/op	    5104 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 2000666	      1774 ns/op	    5105 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 2074608	      1704 ns/op	    5105 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 1929818	      1810 ns/op	    5105 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httptestNewRequestWithContext-32         	 2072284	      1945 ns/op	    5105 B/op	       9 allocs/op
+BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	11734608	       266.6 ns/op	     512 B/op	       3 allocs/op
+BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	15867907	       220.8 ns/op	     512 B/op	       3 allocs/op
+BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	17416075	       239.7 ns/op	     512 B/op	       3 allocs/op
+BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	14721960	       247.3 ns/op	     512 B/op	       3 allocs/op
+BenchmarkHTTPRequestConstruction/httpNewRequestWithContext-32             	14197766	       236.7 ns/op	     512 B/op	       3 allocs/op
+BenchmarkNonce-32                                                         	 4676833	       765.8 ns/op
+BenchmarkNonce-32                                                         	 4852870	       756.9 ns/op
+BenchmarkNonce-32                                                         	 4906897	       741.9 ns/op
+BenchmarkNonce-32                                                         	 4661697	       732.0 ns/op
+BenchmarkNonce-32                                                         	 4102156	       987.2 ns/op
+BenchmarkGenerateNonce-32                                                 	25332864	       141.5 ns/op
+BenchmarkGenerateNonce-32                                                 	26506838	       142.6 ns/op
+BenchmarkGenerateNonce-32                                                 	27462034	       132.9 ns/op
+BenchmarkGenerateNonce-32                                                 	28091844	       133.3 ns/op
+BenchmarkGenerateNonce-32                                                 	26858386	       132.1 ns/op
+BenchmarkNonceAttr-32                                                     	37338580	        92.97 ns/op
+BenchmarkNonceAttr-32                                                     	39039001	        93.01 ns/op
+BenchmarkNonceAttr-32                                                     	32347220	       101.2 ns/op
+BenchmarkNonceAttr-32                                                     	37563082	        96.29 ns/op
+BenchmarkNonceAttr-32                                                     	39006414	        90.17 ns/op
+BenchmarkParseUintQuery-32                                                	12097651	       271.3 ns/op	     432 B/op	       4 allocs/op
+BenchmarkParseUintQuery-32                                                	 9240848	       364.5 ns/op	     432 B/op	       4 allocs/op
+BenchmarkParseUintQuery-32                                                	 8755154	       419.9 ns/op	     432 B/op	       4 allocs/op
+BenchmarkParseUintQuery-32                                                	14188539	       263.3 ns/op	     432 B/op	       4 allocs/op
+BenchmarkParseUintQuery-32                                                	13919323	       263.7 ns/op	     432 B/op	       4 allocs/op
+BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 6885450	       533.4 ns/op
+BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 6708270	       583.0 ns/op
+BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 5688915	       623.4 ns/op
+BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 6182308	       570.4 ns/op
+BenchmarkKeyedRateLimiter_MaxKeysChurn-32                                 	 6694710	       550.8 ns/op
+BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         1.993 ns/op	       0 B/op	       0 allocs/op
+BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         1.939 ns/op	       0 B/op	       0 allocs/op
+BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         1.888 ns/op	       0 B/op	       0 allocs/op
+BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         1.861 ns/op	       0 B/op	       0 allocs/op
+BenchmarkKeyedRateLimiterConfigValidate-32                                	1000000000	         1.899 ns/op	       0 B/op	       0 allocs/op
+BenchmarkKeyedRateLimiterMiddleware-32                                    	13255273	       261.2 ns/op	     208 B/op	       4 allocs/op
+BenchmarkKeyedRateLimiterMiddleware-32                                    	13446684	       285.7 ns/op	     208 B/op	       4 allocs/op
+BenchmarkKeyedRateLimiterMiddleware-32                                    	 9503905	       325.5 ns/op	     208 B/op	       4 allocs/op
+BenchmarkKeyedRateLimiterMiddleware-32                                    	 8730408	       344.3 ns/op	     208 B/op	       4 allocs/op
+BenchmarkKeyedRateLimiterMiddleware-32                                    	 9712086	       365.4 ns/op	     208 B/op	       4 allocs/op
+BenchmarkResponseRecorder-32                                              	 4030110	       852.1 ns/op	    1008 B/op	       9 allocs/op
+BenchmarkResponseRecorder-32                                              	 4632462	       785.6 ns/op	    1008 B/op	       9 allocs/op
+BenchmarkResponseRecorder-32                                              	 4711807	       733.0 ns/op	    1008 B/op	       9 allocs/op
+BenchmarkResponseRecorder-32                                              	 4781901	       790.1 ns/op	    1008 B/op	       9 allocs/op
+BenchmarkResponseRecorder-32                                              	 4286362	       789.4 ns/op	    1008 B/op	       9 allocs/op
+BenchmarkRecovery-32                                                      	44050846	        82.82 ns/op
+BenchmarkRecovery-32                                                      	42900181	        84.18 ns/op
+BenchmarkRecovery-32                                                      	42568890	        82.06 ns/op
+BenchmarkRecovery-32                                                      	50627314	        80.88 ns/op
+BenchmarkRecovery-32                                                      	43268234	        83.81 ns/op
+BenchmarkRequestID-32                                                     	       1	3060203731 ns/op
+BenchmarkRequestID-32                                                     	 5326713	       667.9 ns/op
+BenchmarkRequestID-32                                                     	 5375137	       650.6 ns/op
+BenchmarkRequestID-32                                                     	 4862841	       861.0 ns/op
+BenchmarkRequestID-32                                                     	 4221333	       813.7 ns/op
+BenchmarkSecurityHeaders-32                                               	 9733552	       351.3 ns/op
+BenchmarkSecurityHeaders-32                                               	10944751	       355.1 ns/op
+BenchmarkSecurityHeaders-32                                               	10043684	       354.1 ns/op
+BenchmarkSecurityHeaders-32                                               	10567755	       365.9 ns/op
+BenchmarkSecurityHeaders-32                                               	 9417792	       383.1 ns/op
+BenchmarkServerConfigValidateWithTLS-32                                   	1000000000	         2.680 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerConfigValidateWithTLS-32                                   	1000000000	         2.838 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerConfigValidateWithTLS-32                                   	1000000000	         2.745 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerConfigValidateWithTLS-32                                   	1000000000	         2.782 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerConfigValidateWithTLS-32                                   	1000000000	         2.914 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTimeout-32                                                       	 4571863	       928.9 ns/op
+BenchmarkTimeout-32                                                       	 3584710	       908.6 ns/op
+BenchmarkTimeout-32                                                       	 4667181	       855.0 ns/op
+BenchmarkTimeout-32                                                       	 4182374	      1116 ns/op
+BenchmarkTimeout-32                                                       	 1532664	      2273 ns/op
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/httputil
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkCompressionContentTypeSniff/contentTypeSet-32         	  783446	      4960 ns/op	    2159 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeSet-32         	  718092	      4854 ns/op	    2167 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeSet-32         	  770352	      4756 ns/op	    2183 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeSet-32         	  738997	      4599 ns/op	    2183 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeSet-32         	  734623	      4549 ns/op	    2218 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeAbsent-32      	  611197	      5088 ns/op	    2287 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeAbsent-32      	  845629	      4759 ns/op	    2261 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeAbsent-32      	  822224	      4591 ns/op	    2228 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeAbsent-32      	  738969	      4689 ns/op	    2272 B/op	      13 allocs/op
+BenchmarkCompressionContentTypeSniff/contentTypeAbsent-32      	  834036	      5044 ns/op	    2265 B/op	      13 allocs/op
