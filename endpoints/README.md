@@ -92,6 +92,10 @@ A `Registry` is safe for concurrent use. Reads (`Routes`, the listing handler) r
 
 The listing is a plain `http.Handler`; wrap it in any middleware chain (compression, auth, logging). With [`httputil`](https://github.com/larsartmann/httputil), it composes like any other handler — but it never requires the root module.
 
+## Consumers
+
+- [CV](https://github.com/LarsArtmann/CV) (since v0.1.0, 2026-11-17) — the first consumer. CV routes its entire surface through one `http.ServeMux` via a `BuildHandler` split (pattern + wrapped handler without mounting), then mounts every route — engine routes, raw-mux entries, and `GET /endpoints` itself — through `Registry.Handle`, so the listing is derived from the actual registration site and cannot drift. The listing is served API-key-guarded at the same posture as its `/metrics` surface.
+
 ## License
 
 [MIT](LICENSE)
